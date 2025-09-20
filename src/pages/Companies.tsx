@@ -121,28 +121,30 @@ const Companies = () => {
             <img 
               src={company["Profile Image URL"]} 
               alt={`${company["Company Name"]} logo`}
-              className="w-6 h-6 rounded object-cover flex-shrink-0"
+              className="w-10 h-10 rounded object-cover flex-shrink-0"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
           ) : (
-            <div className="w-6 h-6 bg-muted rounded flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-medium text-muted-foreground">
+            <div className="w-10 h-10 bg-muted rounded flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-medium text-muted-foreground">
                 {company["Company Name"]?.charAt(0)?.toUpperCase() || "C"}
               </span>
             </div>
           )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              // Navigate to leads page with company filter
-              window.location.href = `/leads?company=${encodeURIComponent(company["Company Name"] || "")}`;
-            }}
-            className="text-xs font-medium truncate hover:text-primary transition-colors text-left"
-          >
-            {company["Company Name"] || "-"}
-          </button>
+          <div className="flex flex-col">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // Navigate to leads page with company filter
+                window.location.href = `/leads?company=${encodeURIComponent(company["Company Name"] || "")}`;
+              }}
+              className="text-sm font-medium truncate hover:text-primary transition-colors text-left"
+            >
+              {company["Company Name"] || "-"}
+            </button>
+          </div>
         </div>
       ),
     },

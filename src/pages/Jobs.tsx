@@ -235,13 +235,22 @@ const Jobs = () => {
 
   return (
     <>
-      <DataTable
-        title="Jobs"
-        data={jobs}
-        columns={columns}
-        loading={loading}
-        onRowClick={handleRowClick}
-        addButton={
+      <div className="space-y-4">
+        <div className="border-b pb-3">
+          <h1 className="text-lg font-semibold tracking-tight">Jobs</h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            Manage job postings and opportunities
+          </p>
+        </div>
+
+        <div className="bg-card rounded-md border">
+          <DataTable
+            title=""
+            data={jobs}
+            columns={columns}
+            loading={loading}
+            onRowClick={handleRowClick}
+            addButton={
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>Add Job</Button>
@@ -382,7 +391,9 @@ const Jobs = () => {
           </DialogContent>
         </Dialog>
       }
-      />
+          />
+        </div>
+      </div>
       
       <JobDetailModal
         job={selectedJob}
