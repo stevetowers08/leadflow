@@ -184,6 +184,7 @@ export type Database = {
       Jobs: {
         Row: {
           Company: string | null
+          company_id: string | null
           company_size_id: string | null
           Created: string | null
           created_at: string | null
@@ -219,6 +220,7 @@ export type Database = {
         }
         Insert: {
           Company?: string | null
+          company_id?: string | null
           company_size_id?: string | null
           Created?: string | null
           created_at?: string | null
@@ -254,6 +256,7 @@ export type Database = {
         }
         Update: {
           Company?: string | null
+          company_id?: string | null
           company_size_id?: string | null
           Created?: string | null
           created_at?: string | null
@@ -289,6 +292,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "Companies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "Jobs_company_size_id_fkey"
             columns: ["company_size_id"]
             isOneToOne: false
@@ -318,6 +328,7 @@ export type Database = {
           Campaigns: string | null
           Company: string | null
           "Company Role": string | null
+          company_id: string | null
           "Confidence Level": string | null
           confidence_level_enum:
             | Database["public"]["Enums"]["confidence_level"]
@@ -380,6 +391,7 @@ export type Database = {
           Campaigns?: string | null
           Company?: string | null
           "Company Role"?: string | null
+          company_id?: string | null
           "Confidence Level"?: string | null
           confidence_level_enum?:
             | Database["public"]["Enums"]["confidence_level"]
@@ -442,6 +454,7 @@ export type Database = {
           Campaigns?: string | null
           Company?: string | null
           "Company Role"?: string | null
+          company_id?: string | null
           "Confidence Level"?: string | null
           confidence_level_enum?:
             | Database["public"]["Enums"]["confidence_level"]
@@ -491,7 +504,15 @@ export type Database = {
           Updated?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "people_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "Companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

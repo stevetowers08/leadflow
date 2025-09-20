@@ -1,7 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Building2, ExternalLink, MapPin, Users, Star, Calendar, Globe, Info } from "lucide-react";
+import { Building2, ExternalLink, MapPin, Users, Star, Calendar, Globe, Info, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface Company {
   id: string;
@@ -27,6 +29,31 @@ interface CompanyDetailModalProps {
 
 export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailModalProps) {
   if (!company) return null;
+
+  // Fetch related leads
+  const { data: relatedLeads, isLoading: leadsLoading } = useQuery({
+    queryKey: ["company-leads", company.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("People")
+        .select(`
+          id,
+          "Name",
+          "Stage",
+          stage_enum,
+          "Lead Score",
+          "Company Role",
+          "Email Address",
+          "LinkedIn URL"
+        `)
+        .eq("company_id", company.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!company.id && isOpen
+  });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -159,6 +186,50 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
               </p>
             </div>
           )}
+
+          {/* Related Leads */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                Related Leads ({relatedLeads?.length || 0})
+              </h3>
+            </div>
+            
+            {leadsLoading ? (
+              <div className="text-sm text-muted-foreground">Loading leads...</div>
+            ) : relatedLeads && relatedLeads.length > 0 ? (
+              <div className="space-y-3 max-h-48 overflow-y-auto">
+                {relatedLeads.map((lead) => (
+                  <div key={lead.id} className="p-3 bg-muted/20 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">{lead["Name"]}</span>
+                      <StatusBadge 
+                        status={lead["Stage"] || lead.stage_enum || "new lead"} 
+                        size="sm"
+                      />
+                    </div>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      {lead["Company Role"] && (
+                        <div>{lead["Company Role"]}</div>
+                      )}
+                      {lead["Email Address"] && (
+                        <div>{lead["Email Address"]}</div>
+                      )}
+                      {lead["Lead Score"] && (
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3 w-3 text-yellow-500" />
+                          Score: {lead["Lead Score"]}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground">No leads found for this company.</div>
+            )}
+          </div>
 
           {/* Profile Image */}
           {company["Profile Image URL"] && (
