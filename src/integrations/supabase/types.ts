@@ -29,6 +29,7 @@ export type Database = {
           id: string
           "Image Attachment": string | null
           Industry: string | null
+          industry_id: string | null
           "Job Description": string | null
           Jobs: string | null
           "Key Info Raw": string | null
@@ -38,10 +39,12 @@ export type Database = {
           "LinkedIn URL": string | null
           "Loxo Company ID": string | null
           Priority: string | null
+          priority_enum: Database["public"]["Enums"]["priority_level"] | null
           "Profile Image URL": string | null
           Remove: string | null
           "Score Reason": string | null
           STATUS: string | null
+          status_enum: Database["public"]["Enums"]["company_status"] | null
           updated_at: string | null
           Website: string | null
         }
@@ -59,6 +62,7 @@ export type Database = {
           id?: string
           "Image Attachment"?: string | null
           Industry?: string | null
+          industry_id?: string | null
           "Job Description"?: string | null
           Jobs?: string | null
           "Key Info Raw"?: string | null
@@ -68,10 +72,12 @@ export type Database = {
           "LinkedIn URL"?: string | null
           "Loxo Company ID"?: string | null
           Priority?: string | null
+          priority_enum?: Database["public"]["Enums"]["priority_level"] | null
           "Profile Image URL"?: string | null
           Remove?: string | null
           "Score Reason"?: string | null
           STATUS?: string | null
+          status_enum?: Database["public"]["Enums"]["company_status"] | null
           updated_at?: string | null
           Website?: string | null
         }
@@ -89,6 +95,7 @@ export type Database = {
           id?: string
           "Image Attachment"?: string | null
           Industry?: string | null
+          industry_id?: string | null
           "Job Description"?: string | null
           Jobs?: string | null
           "Key Info Raw"?: string | null
@@ -98,22 +105,94 @@ export type Database = {
           "LinkedIn URL"?: string | null
           "Loxo Company ID"?: string | null
           Priority?: string | null
+          priority_enum?: Database["public"]["Enums"]["priority_level"] | null
           "Profile Image URL"?: string | null
           Remove?: string | null
           "Score Reason"?: string | null
           STATUS?: string | null
+          status_enum?: Database["public"]["Enums"]["company_status"] | null
           updated_at?: string | null
           Website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Companies_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "industries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_sizes: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          size_range: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          size_range?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          size_range?: string | null
+        }
+        Relationships: []
+      }
+      industries: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      job_functions: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
       Jobs: {
         Row: {
           Company: string | null
+          company_size_id: string | null
           Created: string | null
           created_at: string | null
           "Employment Type": string | null
+          employment_type_enum:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
           Function: string | null
+          function_id: string | null
           id: string
           Industry: string | null
           "Job Description": string | null
@@ -130,16 +209,25 @@ export type Database = {
           Salary: string | null
           "Score Reason (from Company)": string | null
           "Seniority Level": string | null
+          seniority_level_enum:
+            | Database["public"]["Enums"]["seniority_level"]
+            | null
+          status_enum: Database["public"]["Enums"]["job_status"] | null
           "Target People": string | null
           updated_at: string | null
           "Valid Through": string | null
         }
         Insert: {
           Company?: string | null
+          company_size_id?: string | null
           Created?: string | null
           created_at?: string | null
           "Employment Type"?: string | null
+          employment_type_enum?:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
           Function?: string | null
+          function_id?: string | null
           id?: string
           Industry?: string | null
           "Job Description"?: string | null
@@ -156,16 +244,25 @@ export type Database = {
           Salary?: string | null
           "Score Reason (from Company)"?: string | null
           "Seniority Level"?: string | null
+          seniority_level_enum?:
+            | Database["public"]["Enums"]["seniority_level"]
+            | null
+          status_enum?: Database["public"]["Enums"]["job_status"] | null
           "Target People"?: string | null
           updated_at?: string | null
           "Valid Through"?: string | null
         }
         Update: {
           Company?: string | null
+          company_size_id?: string | null
           Created?: string | null
           created_at?: string | null
           "Employment Type"?: string | null
+          employment_type_enum?:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
           Function?: string | null
+          function_id?: string | null
           id?: string
           Industry?: string | null
           "Job Description"?: string | null
@@ -182,11 +279,30 @@ export type Database = {
           Salary?: string | null
           "Score Reason (from Company)"?: string | null
           "Seniority Level"?: string | null
+          seniority_level_enum?:
+            | Database["public"]["Enums"]["seniority_level"]
+            | null
+          status_enum?: Database["public"]["Enums"]["job_status"] | null
           "Target People"?: string | null
           updated_at?: string | null
           "Valid Through"?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "Jobs_company_size_id_fkey"
+            columns: ["company_size_id"]
+            isOneToOne: false
+            referencedRelation: "company_sizes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Jobs_function_id_fkey"
+            columns: ["function_id"]
+            isOneToOne: false
+            referencedRelation: "job_functions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       People: {
         Row: {
@@ -235,10 +351,12 @@ export type Database = {
           "Next Action Date": string | null
           "Outreach Channels": string | null
           Owner: string | null
+          priority_enum: Database["public"]["Enums"]["priority_level"] | null
           Remove: string | null
           "Response Date": string | null
           Stage: string | null
           "Stage Updated": string | null
+          stage_enum: Database["public"]["Enums"]["lead_stage"] | null
           Updated: string | null
           updated_at: string | null
         }
@@ -288,10 +406,12 @@ export type Database = {
           "Next Action Date"?: string | null
           "Outreach Channels"?: string | null
           Owner?: string | null
+          priority_enum?: Database["public"]["Enums"]["priority_level"] | null
           Remove?: string | null
           "Response Date"?: string | null
           Stage?: string | null
           "Stage Updated"?: string | null
+          stage_enum?: Database["public"]["Enums"]["lead_stage"] | null
           Updated?: string | null
           updated_at?: string | null
         }
@@ -341,10 +461,12 @@ export type Database = {
           "Next Action Date"?: string | null
           "Outreach Channels"?: string | null
           Owner?: string | null
+          priority_enum?: Database["public"]["Enums"]["priority_level"] | null
           Remove?: string | null
           "Response Date"?: string | null
           Stage?: string | null
           "Stage Updated"?: string | null
+          stage_enum?: Database["public"]["Enums"]["lead_stage"] | null
           Updated?: string | null
           updated_at?: string | null
         }
@@ -358,7 +480,32 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      company_status: "active" | "inactive" | "prospect"
+      employment_type:
+        | "full-time"
+        | "part-time"
+        | "contract"
+        | "internship"
+        | "freelance"
+      job_status: "draft" | "active" | "paused" | "filled" | "cancelled"
+      lead_stage:
+        | "new"
+        | "contacted"
+        | "qualified"
+        | "interview"
+        | "offer"
+        | "hired"
+        | "lost"
+      priority_level: "low" | "medium" | "high" | "urgent"
+      seniority_level:
+        | "entry"
+        | "junior"
+        | "mid"
+        | "senior"
+        | "lead"
+        | "manager"
+        | "director"
+        | "executive"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -485,6 +632,36 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      company_status: ["active", "inactive", "prospect"],
+      employment_type: [
+        "full-time",
+        "part-time",
+        "contract",
+        "internship",
+        "freelance",
+      ],
+      job_status: ["draft", "active", "paused", "filled", "cancelled"],
+      lead_stage: [
+        "new",
+        "contacted",
+        "qualified",
+        "interview",
+        "offer",
+        "hired",
+        "lost",
+      ],
+      priority_level: ["low", "medium", "high", "urgent"],
+      seniority_level: [
+        "entry",
+        "junior",
+        "mid",
+        "senior",
+        "lead",
+        "manager",
+        "director",
+        "executive",
+      ],
+    },
   },
 } as const
