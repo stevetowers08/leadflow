@@ -15,9 +15,17 @@ interface Job {
   id: string;
   title: string;
   company_id: string | null;
+  logo: string | null;
   description: string | null;
   requirements: string | null;
   location: string | null;
+  industry: string | null;
+  function: string | null;
+  lead_score: number | null;
+  score_reason: string | null;
+  posted_date: string | null;
+  valid_through: string | null;
+  priority: string | null;
   salary_min: number | null;
   salary_max: number | null;
   status: string;
@@ -42,12 +50,20 @@ const Jobs = () => {
   const [formData, setFormData] = useState({
     title: "",
     company_id: "",
+    logo: "",
     description: "",
     requirements: "",
     location: "",
+    industry: "",
+    function: "",
+    lead_score: "",
+    score_reason: "",
+    posted_date: "",
+    valid_through: "",
+    priority: "medium",
     salary_min: "",
     salary_max: "",
-    status: "draft",
+    status: "active",
     type: "full-time",
     remote: false
   });
@@ -99,6 +115,14 @@ const Jobs = () => {
       const submitData = {
         ...formData,
         company_id: formData.company_id || null,
+        logo: formData.logo || null,
+        industry: formData.industry || null,
+        function: formData.function || null,
+        lead_score: formData.lead_score ? parseInt(formData.lead_score) : null,
+        score_reason: formData.score_reason || null,
+        posted_date: formData.posted_date || null,
+        valid_through: formData.valid_through || null,
+        priority: formData.priority || "medium",
         salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
         salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
       };
@@ -118,12 +142,20 @@ const Jobs = () => {
       setFormData({
         title: "",
         company_id: "",
+        logo: "",
         description: "",
         requirements: "",
         location: "",
+        industry: "",
+        function: "",
+        lead_score: "",
+        score_reason: "",
+        posted_date: "",
+        valid_through: "",
+        priority: "medium",
         salary_min: "",
         salary_max: "",
-        status: "draft",
+        status: "active",
         type: "full-time",
         remote: false
       });
@@ -151,57 +183,98 @@ const Jobs = () => {
 
   const columns = [
     {
-      key: "title",
-      label: "Job Title",
+      key: "logo",
+      label: "Logo",
       render: (job: Job) => (
-        <div className="font-medium">{job.title}</div>
-      ),
-    },
-    {
-      key: "company",
-      label: "Company",
-      render: (job: Job) => job.companies?.name || "-",
-    },
-    {
-      key: "location",
-      label: "Location",
-      render: (job: Job) => (
-        <div>
-          {job.location || "-"}
-          {job.remote && (
-            <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-              Remote
-            </span>
+        <div className="flex items-center">
+          {job.logo ? (
+            <img src={job.logo} alt="Logo" className="w-5 h-5 rounded object-cover" />
+          ) : (
+            <div className="w-5 h-5 bg-muted rounded flex items-center justify-center">
+              <span className="text-xs text-muted-foreground">
+                {job.companies?.name?.charAt(0) || "?"}
+              </span>
+            </div>
           )}
         </div>
       ),
     },
     {
-      key: "type",
-      label: "Type",
+      key: "company",
+      label: "Company",
       render: (job: Job) => (
-        <span className="capitalize">{job.type.replace("-", " ")}</span>
+        <span className="text-xs">{job.companies?.name || "-"}</span>
       ),
     },
     {
-      key: "salary",
-      label: "Salary",
-      render: (job: Job) => formatSalary(job.salary_min, job.salary_max),
-    },
-    {
-      key: "status",
-      label: "Status",
+      key: "title",
+      label: "Job Title",
       render: (job: Job) => (
-        <StatusBadge status={job.status} />
+        <span className="text-xs font-medium">{job.title}</span>
       ),
     },
     {
-      key: "actions",
-      label: "",
+      key: "location",
+      label: "Job Location",
       render: (job: Job) => (
-        <Button variant="ghost" size="sm">
-          Edit
-        </Button>
+        <span className="text-xs">{job.location || "-"}</span>
+      ),
+    },
+    {
+      key: "industry",
+      label: "Industry",
+      render: (job: Job) => (
+        <span className="text-xs">{job.industry || "-"}</span>
+      ),
+    },
+    {
+      key: "function",
+      label: "Function",
+      render: (job: Job) => (
+        <span className="text-xs">{job.function || "-"}</span>
+      ),
+    },
+    {
+      key: "lead_score",
+      label: "Lead Score",
+      render: (job: Job) => (
+        <span className="text-xs font-mono">
+          {job.lead_score ? `#${job.lead_score}` : "-"}
+        </span>
+      ),
+    },
+    {
+      key: "score_reason",
+      label: "Score Reason",
+      render: (job: Job) => (
+        <span className="text-xs text-muted-foreground max-w-24 truncate" title={job.score_reason || ""}>
+          {job.score_reason || "-"}
+        </span>
+      ),
+    },
+    {
+      key: "posted_date",
+      label: "Posted Date",
+      render: (job: Job) => (
+        <span className="text-xs">
+          {job.posted_date ? new Date(job.posted_date).toLocaleDateString() : "-"}
+        </span>
+      ),
+    },
+    {
+      key: "valid_through",
+      label: "Valid Through",
+      render: (job: Job) => (
+        <span className="text-xs">
+          {job.valid_through ? new Date(job.valid_through).toLocaleDateString() : "-"}
+        </span>
+      ),
+    },
+    {
+      key: "priority",
+      label: "Priority",
+      render: (job: Job) => (
+        <StatusBadge status={job.priority || "medium"} />
       ),
     },
   ];
@@ -276,8 +349,91 @@ const Jobs = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div>
+               </div>
+               <div>
+                 <Label htmlFor="logo">Logo URL</Label>
+                 <Input
+                   id="logo"
+                   value={formData.logo}
+                   onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
+                   placeholder="https://company.com/logo.png"
+                 />
+               </div>
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <Label htmlFor="industry">Industry</Label>
+                   <Input
+                     id="industry"
+                     value={formData.industry}
+                     onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                     placeholder="Technology, Healthcare, etc."
+                   />
+                 </div>
+                 <div>
+                   <Label htmlFor="function">Function</Label>
+                   <Input
+                     id="function"
+                     value={formData.function}
+                     onChange={(e) => setFormData({ ...formData, function: e.target.value })}
+                     placeholder="Engineering, Sales, etc."
+                   />
+                 </div>
+               </div>
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <Label htmlFor="lead_score">Lead Score</Label>
+                   <Input
+                     id="lead_score"
+                     type="number"
+                     value={formData.lead_score}
+                     onChange={(e) => setFormData({ ...formData, lead_score: e.target.value })}
+                     placeholder="1-100"
+                   />
+                 </div>
+                 <div>
+                   <Label htmlFor="priority">Priority</Label>
+                   <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                     <SelectTrigger>
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="low">Low</SelectItem>
+                       <SelectItem value="medium">Medium</SelectItem>
+                       <SelectItem value="high">High</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div>
+               </div>
+               <div>
+                 <Label htmlFor="score_reason">Score Reason</Label>
+                 <Input
+                   id="score_reason"
+                   value={formData.score_reason}
+                   onChange={(e) => setFormData({ ...formData, score_reason: e.target.value })}
+                   placeholder="Reason for lead score from company data"
+                 />
+               </div>
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <Label htmlFor="posted_date">Posted Date</Label>
+                   <Input
+                     id="posted_date"
+                     type="date"
+                     value={formData.posted_date}
+                     onChange={(e) => setFormData({ ...formData, posted_date: e.target.value })}
+                   />
+                 </div>
+                 <div>
+                   <Label htmlFor="valid_through">Valid Through</Label>
+                   <Input
+                     id="valid_through"
+                     type="date"
+                     value={formData.valid_through}
+                     onChange={(e) => setFormData({ ...formData, valid_through: e.target.value })}
+                   />
+                 </div>
+               </div>
+               <div>
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"

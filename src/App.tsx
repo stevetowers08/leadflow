@@ -7,6 +7,9 @@ import Index from "./pages/Index";
 import Companies from "./pages/Companies";
 import Leads from "./pages/Leads";
 import Jobs from "./pages/Jobs";
+import Opportunities from "./pages/Opportunities";
+import Campaigns from "./pages/Campaigns";
+import Reporting from "./pages/Reporting";
 import NotFound from "./pages/NotFound";
 import { Layout } from "./components/Layout";
 
@@ -23,6 +26,9 @@ const App = () => (
           <Route path="/companies" element={<Layout><Companies /></Layout>} />
           <Route path="/leads" element={<Layout><Leads /></Layout>} />
           <Route path="/jobs" element={<Layout><Jobs /></Layout>} />
+          <Route path="/opportunities" element={<Layout><Opportunities /></Layout>} />
+          <Route path="/campaigns" element={<Layout><Campaigns /></Layout>} />
+          <Route path="/reporting" element={<Layout><Reporting /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

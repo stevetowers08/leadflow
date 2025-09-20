@@ -61,46 +61,70 @@ export type Database = {
           company_id: string | null
           created_at: string
           description: string | null
+          function: string | null
           id: string
+          industry: string | null
+          lead_score: number | null
           location: string | null
+          logo: string | null
+          posted_date: string | null
+          priority: string | null
           remote: boolean | null
           requirements: string | null
           salary_max: number | null
           salary_min: number | null
+          score_reason: string | null
           status: string | null
           title: string
           type: string | null
           updated_at: string
+          valid_through: string | null
         }
         Insert: {
           company_id?: string | null
           created_at?: string
           description?: string | null
+          function?: string | null
           id?: string
+          industry?: string | null
+          lead_score?: number | null
           location?: string | null
+          logo?: string | null
+          posted_date?: string | null
+          priority?: string | null
           remote?: boolean | null
           requirements?: string | null
           salary_max?: number | null
           salary_min?: number | null
+          score_reason?: string | null
           status?: string | null
           title: string
           type?: string | null
           updated_at?: string
+          valid_through?: string | null
         }
         Update: {
           company_id?: string | null
           created_at?: string
           description?: string | null
+          function?: string | null
           id?: string
+          industry?: string | null
+          lead_score?: number | null
           location?: string | null
+          logo?: string | null
+          posted_date?: string | null
+          priority?: string | null
           remote?: boolean | null
           requirements?: string | null
           salary_max?: number | null
           salary_min?: number | null
+          score_reason?: string | null
           status?: string | null
           title?: string
           type?: string | null
           updated_at?: string
+          valid_through?: string | null
         }
         Relationships: [
           {

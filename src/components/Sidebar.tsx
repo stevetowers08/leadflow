@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Building2, Users, Briefcase } from "lucide-react";
+import { Home, Building2, Users, Briefcase, BarChart3, Target, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +8,9 @@ const navigation = [
   { name: "Companies", href: "/companies", icon: Building2 },
   { name: "Leads", href: "/leads", icon: Users },
   { name: "Jobs", href: "/jobs", icon: Briefcase },
+  { name: "Opportunities", href: "/opportunities", icon: Target },
+  { name: "Campaigns", href: "/campaigns", icon: Megaphone },
+  { name: "Reporting", href: "/reporting", icon: BarChart3 },
 ];
 
 export const Sidebar = () => {
