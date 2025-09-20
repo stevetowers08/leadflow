@@ -13,12 +13,13 @@ interface Column<T> {
 }
 
 interface DataTableProps<T> {
-  title: string;
+  title?: string;
   data: T[];
   columns: Column<T>[];
   loading?: boolean;
   addButton?: ReactNode;
   onRowClick?: (item: T) => void;
+  showSearch?: boolean;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -28,6 +29,7 @@ export function DataTable<T extends Record<string, any>>({
   loading = false,
   addButton,
   onRowClick,
+  showSearch = true,
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -42,19 +44,21 @@ export function DataTable<T extends Record<string, any>>({
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Manage and track your {title.toLowerCase()} pipeline
-            </p>
+        {title && (
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+              <p className="text-muted-foreground text-sm mt-1">
+                Manage and track your {title.toLowerCase()} pipeline
+              </p>
+            </div>
           </div>
-        </div>
+        )}
         <div className="bg-card border border-border rounded-lg shadow-sm p-12">
           <div className="flex items-center justify-center">
             <div className="flex items-center gap-3 text-muted-foreground">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-              <span>Loading {title.toLowerCase()}...</span>
+              <span>Loading {title?.toLowerCase() || 'data'}...</span>
             </div>
           </div>
         </div>
@@ -64,31 +68,35 @@ export function DataTable<T extends Record<string, any>>({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Manage and track your {title.toLowerCase()} pipeline
-          </p>
+      {title && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Manage and track your {title.toLowerCase()} pipeline
+            </p>
+          </div>
+          {addButton}
         </div>
-        {addButton}
-      </div>
+      )}
       
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder={`Search ${title.toLowerCase()}...`}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-10 bg-background border-input"
-          />
+      {showSearch && (
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder={`Search ${title?.toLowerCase() || 'items'}...`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-10 bg-background border-input"
+            />
+          </div>
+          <Button variant="outline" size="default" className="h-10 px-4">
+            <Filter className="h-4 w-4 mr-2" />
+            Filter
+          </Button>
         </div>
-        <Button variant="outline" size="default" className="h-10 px-4">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
-        </Button>
-      </div>
+      )}
 
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <Table>
@@ -115,11 +123,11 @@ export function DataTable<T extends Record<string, any>>({
                     <div className="text-4xl opacity-20">📋</div>
                     <div className="font-medium">
                       {searchTerm
-                        ? `No ${title.toLowerCase()} found matching "${searchTerm}"`
-                        : `No ${title.toLowerCase()} found`}
+                        ? `No ${title?.toLowerCase() || 'items'} found matching "${searchTerm}"`
+                        : `No ${title?.toLowerCase() || 'items'} found`}
                     </div>
                     <div className="text-sm text-muted-foreground/60">
-                      {searchTerm ? "Try adjusting your search terms" : `Start by adding your first ${title.toLowerCase().slice(0, -1)}`}
+                      {searchTerm ? "Try adjusting your search terms" : `Start by adding your first ${title?.toLowerCase().slice(0, -1) || 'item'}`}
                     </div>
                   </div>
                 </TableCell>
@@ -149,7 +157,7 @@ export function DataTable<T extends Record<string, any>>({
       {filteredData.length > 0 && (
         <div className="flex items-center justify-between text-sm text-muted-foreground bg-muted/20 px-4 py-2 rounded-md">
           <span>
-            Showing {filteredData.length} of {data.length} {title.toLowerCase()}
+            Showing {filteredData.length} of {data.length} {title?.toLowerCase() || 'items'}
           </span>
           <div className="text-xs">
             Updated {new Date().toLocaleDateString()}

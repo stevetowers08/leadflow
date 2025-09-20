@@ -133,7 +133,16 @@ const Companies = () => {
               </span>
             </div>
           )}
-          <span className="text-xs font-medium truncate">{company["Company Name"] || "-"}</span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              // Navigate to leads page with company filter
+              window.location.href = `/leads?company=${encodeURIComponent(company["Company Name"] || "")}`;
+            }}
+            className="text-xs font-medium truncate hover:text-primary transition-colors text-left"
+          >
+            {company["Company Name"] || "-"}
+          </button>
         </div>
       ),
     },

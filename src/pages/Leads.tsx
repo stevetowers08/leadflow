@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { LEAD_STAGE_OPTIONS, PRIORITY_OPTIONS } from "@/hooks/useDropdownOptions";
+import { Search, Filter, X } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 interface Lead {
   id: string;
@@ -39,6 +41,9 @@ const Leads = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [companyFilter, setCompanyFilter] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -50,7 +55,41 @@ const Leads = () => {
     lead_score: "",
     linkedin_url: ""
   });
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
+
+  // Get company filter from URL params (when navigating from companies page)
+  useEffect(() => {
+    const company = searchParams.get('company');
+    if (company) {
+      setCompanyFilter(company);
+    }
+  }, [searchParams]);
+
+  // Filter leads based on search term, status, and company
+  const filteredLeads = leads.filter(lead => {
+    const matchesSearch = !searchTerm || 
+      lead.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.Company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead["Email Address"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead["Company Role"]?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = !statusFilter || 
+      (lead.Stage?.toLowerCase() === statusFilter.toLowerCase()) ||
+      (lead.stage_enum?.toLowerCase() === statusFilter.toLowerCase());
+    
+    const matchesCompany = !companyFilter || 
+      lead.Company?.toLowerCase().includes(companyFilter.toLowerCase());
+    
+    return matchesSearch && matchesStatus && matchesCompany;
+  });
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("");
+    setCompanyFilter("");
+    setSearchParams({});
+  };
 
   const fetchLeads = async () => {
     try {
@@ -265,104 +304,164 @@ const Leads = () => {
           </p>
         </div>
 
-        <div className="bg-card rounded-md border">
-          <DataTable
-            title=""
-            data={leads}
-            columns={columns}
-            loading={loading}
-            onRowClick={handleRowClick}
-            addButton={
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Add Lead</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add New Lead</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="company">Company</Label>
-                <Input
-                  id="company"
-                  value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="role">Role</Label>
-                <Input
-                  id="role"
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="stage">Stage</Label>
-                <DropdownSelect
-                  options={LEAD_STAGE_OPTIONS}
-                  value={formData.stage}
-                  onValueChange={(value) => setFormData({ ...formData, stage: value })}
-                  placeholder="Select stage..."
-                />
-              </div>
-              <div>
-                <Label htmlFor="priority">Priority</Label>
-                <DropdownSelect
-                  options={PRIORITY_OPTIONS}
-                  value={formData.priority}
-                  onValueChange={(value) => setFormData({ ...formData, priority: value })}
-                  placeholder="Select priority..."
-                />
-              </div>
-              <div>
-                <Label htmlFor="linkedin_url">LinkedIn URL</Label>
-                <Input
-                  id="linkedin_url"
-                  value={formData.linkedin_url}
-                  onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
-                  placeholder="https://linkedin.com/in/profile"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" className="flex-1">Create Lead</Button>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      }
+        {/* Search and Filter Controls */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search leads..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-9 text-sm"
+            />
+          </div>
+          
+          <DropdownSelect
+            options={[
+              { label: "All Statuses", value: "" },
+              ...LEAD_STAGE_OPTIONS
+            ]}
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+            placeholder="Filter by status"
           />
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-9 px-3"
+            onClick={clearFilters}
+            disabled={!searchTerm && !statusFilter && !companyFilter}
+          >
+            <X className="h-3 w-3 mr-1" />
+            Clear
+          </Button>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-9 px-4">Add Lead</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add New Lead</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="company">Company</Label>
+                  <Input
+                    id="company"
+                    value={formData.company}
+                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="role">Role</Label>
+                  <Input
+                    id="role"
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="stage">Stage</Label>
+                  <DropdownSelect
+                    options={LEAD_STAGE_OPTIONS}
+                    value={formData.stage}
+                    onValueChange={(value) => setFormData({ ...formData, stage: value })}
+                    placeholder="Select stage..."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="priority">Priority</Label>
+                  <DropdownSelect
+                    options={PRIORITY_OPTIONS}
+                    value={formData.priority}
+                    onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                    placeholder="Select priority..."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="linkedin_url">LinkedIn URL</Label>
+                  <Input
+                    id="linkedin_url"
+                    value={formData.linkedin_url}
+                    onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                    placeholder="https://linkedin.com/in/profile"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" className="flex-1">Create Lead</Button>
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
+
+        {/* Active Filters Display */}
+        {(companyFilter || statusFilter) && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground">Active filters:</span>
+            {companyFilter && (
+              <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full">
+                <span>Company: {companyFilter}</span>
+                <button 
+                  onClick={() => setCompanyFilter("")}
+                  className="hover:bg-primary/20 rounded-full p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+            {statusFilter && (
+              <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full">
+                <span>Status: {statusFilter}</span>
+                <button 
+                  onClick={() => setStatusFilter("")}
+                  className="hover:bg-primary/20 rounded-full p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        <DataTable
+          data={filteredLeads}
+          columns={columns}
+          loading={loading}
+          onRowClick={handleRowClick}
+          showSearch={false}
+        />
       </div>
       
       <LeadDetailModal
