@@ -5,6 +5,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { CompanyDetailModal } from "@/components/CompanyDetailModal";
+import { JobDetailModal } from "@/components/JobDetailModal";
 import { ExternalLink, Zap, User, Building2, Mail, MapPin, Star, Calendar, Briefcase, Users } from "lucide-react";
 
 interface Lead {
@@ -30,6 +32,10 @@ interface LeadDetailModalProps {
 
 export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps) {
   const [isAutomating, setIsAutomating] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch related company data
@@ -87,6 +93,18 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
   });
 
   if (!lead) return null;
+
+  const handleCompanyClick = () => {
+    if (companyData) {
+      setSelectedCompany(companyData);
+      setIsCompanyModalOpen(true);
+    }
+  };
+
+  const handleJobClick = (job: any) => {
+    setSelectedJob(job);
+    setIsJobModalOpen(true);
+  };
 
   const handleAutomate = async () => {
     setIsAutomating(true);
@@ -214,7 +232,12 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
               {lead.Company && (
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{lead.Company}</span>
+                  <button
+                    onClick={handleCompanyClick}
+                    className="text-sm text-primary hover:underline text-left"
+                  >
+                    {lead.Company}
+                  </button>
                 </div>
               )}
 
@@ -302,7 +325,11 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
               </div>
               <div className="space-y-2">
                 {relatedJobs.map((job: any) => (
-                  <div key={job.id} className="flex items-center justify-between p-2 bg-background rounded border">
+                  <div 
+                    key={job.id} 
+                    className="flex items-center justify-between p-2 bg-background rounded border cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleJobClick(job)}
+                  >
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">{job["Job Title"]}</div>
                       <div className="text-xs text-muted-foreground">
@@ -369,6 +396,24 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
           </div>
         </div>
       </DialogContent>
+      
+      <CompanyDetailModal
+        company={selectedCompany}
+        isOpen={isCompanyModalOpen}
+        onClose={() => {
+          setIsCompanyModalOpen(false);
+          setSelectedCompany(null);
+        }}
+      />
+
+      <JobDetailModal
+        job={selectedJob}
+        isOpen={isJobModalOpen}
+        onClose={() => {
+          setIsJobModalOpen(false);
+          setSelectedJob(null);
+        }}
+      />
     </Dialog>
   );
 }

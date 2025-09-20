@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LinkedInConfirmationModal } from "@/components/LinkedInConfirmationModal";
+import { LeadDetailModal } from "@/components/LeadDetailModal";
+import { CompanyDetailModal } from "@/components/CompanyDetailModal";
 import { Building2, MapPin, Clock, DollarSign, Calendar, Briefcase, Star, Users, User, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -38,8 +40,28 @@ interface JobDetailModalProps {
 export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
   const [selectedLeads, setSelectedLeads] = useState<any[]>([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
 
   if (!job) return null;
+
+  // Fetch related company data
+  const { data: companyData } = useQuery({
+    queryKey: ["job-company", job.Company],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Companies")
+        .select("*")
+        .ilike("Company Name", `%${job.Company}%`)
+        .limit(1);
+
+      if (error) throw error;
+      return data?.[0];
+    },
+    enabled: !!job.Company && isOpen
+  });
 
   // Fetch related leads for this job's company
   const { data: relatedLeads, isLoading: leadsLoading } = useQuery({
@@ -72,6 +94,32 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
     enabled: !!job.Company && isOpen
   });
 
+  // Fetch other jobs from the same company
+  const { data: otherJobs } = useQuery({
+    queryKey: ["company-other-jobs", job.Company, job.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Jobs")
+        .select(`
+          id,
+          "Job Title",
+          "Job Location",
+          "Posted Date",
+          "Employment Type",
+          Salary,
+          Priority,
+          created_at
+        `)
+        .ilike("Company", `%${job.Company}%`)
+        .neq("id", job.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!job.Company && isOpen
+  });
+
   const handleLeadSelect = (leadId: string, checked: boolean) => {
     const lead = relatedLeads?.find(l => l.id === leadId);
     if (!lead) return;
@@ -80,6 +128,18 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
       setSelectedLeads(prev => [...prev, lead]);
     } else {
       setSelectedLeads(prev => prev.filter(l => l.id !== leadId));
+    }
+  };
+
+  const handleLeadClick = (lead: any) => {
+    setSelectedLead(lead);
+    setIsLeadModalOpen(true);
+  };
+
+  const handleCompanyClick = () => {
+    if (companyData) {
+      setSelectedCompany(companyData);
+      setIsCompanyModalOpen(true);
     }
   };
 
@@ -130,7 +190,12 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
               )}
               <div>
                 <div className="font-semibold">{job["Job Title"]}</div>
-                <div className="text-sm text-muted-foreground">{job.Company}</div>
+                <button
+                  onClick={handleCompanyClick}
+                  className="text-sm text-primary hover:underline text-left"
+                >
+                  {job.Company}
+                </button>
               </div>
             </div>
           </DialogTitle>
@@ -295,9 +360,18 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
                           <div className="flex items-center justify-between">
                             <label 
                               htmlFor={`lead-${lead.id}`}
-                              className="font-medium text-sm cursor-pointer"
+                              className="font-medium text-sm cursor-pointer flex items-center gap-2"
                             >
                               {lead.Name}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleLeadClick(lead);
+                                }}
+                                className="text-xs text-primary hover:underline"
+                              >
+                                View Details
+                              </button>
                             </label>
                             <StatusBadge 
                               status={lead.Stage || lead.stage_enum || "NEW LEAD"} 
@@ -326,6 +400,54 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
             </div>
           )}
 
+          {/* Other Jobs from Same Company */}
+          {otherJobs && otherJobs.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                  Other Jobs at {job.Company} ({otherJobs.length})
+                </h3>
+              </div>
+              <div className="space-y-3 max-h-48 overflow-y-auto">
+                {otherJobs.map((otherJob) => (
+                  <div 
+                    key={otherJob.id} 
+                    className="p-3 bg-muted/20 rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
+                    onClick={() => {
+                      // This would need to be handled by parent component
+                      console.log("Navigate to job:", otherJob.id);
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">{otherJob["Job Title"]}</span>
+                      {otherJob.Priority && (
+                        <StatusBadge 
+                          status={otherJob.Priority.toLowerCase()} 
+                          size="sm"
+                        />
+                      )}
+                    </div>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      {otherJob["Job Location"] && (
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {otherJob["Job Location"]}
+                        </div>
+                      )}
+                      {otherJob["Employment Type"] && (
+                        <div>{otherJob["Employment Type"]}</div>
+                      )}
+                      {otherJob.Salary && (
+                        <div>{otherJob.Salary}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Action Button */}
           <div className="flex justify-end pt-4 border-t">
             <Button variant="outline" onClick={onClose}>
@@ -342,6 +464,24 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
         onConfirm={handleConfirmAutomation}
         jobTitle={job["Job Title"]}
         companyName={job.Company}
+      />
+      
+      <LeadDetailModal
+        lead={selectedLead}
+        isOpen={isLeadModalOpen}
+        onClose={() => {
+          setIsLeadModalOpen(false);
+          setSelectedLead(null);
+        }}
+      />
+
+      <CompanyDetailModal
+        company={selectedCompany}
+        isOpen={isCompanyModalOpen}
+        onClose={() => {
+          setIsCompanyModalOpen(false);
+          setSelectedCompany(null);
+        }}
       />
     </Dialog>
   );
