@@ -186,6 +186,13 @@ const NewJobs = () => {
         <StatusBadge status={job.Priority?.toLowerCase() || "medium"} />
       ),
     },
+    {
+      key: "status_enum",
+      label: "Status",
+      render: (job: Job) => (
+        <StatusBadge status={(job as any).status_enum?.toLowerCase() || "active"} />
+      ),
+    },
   ];
 
   const handleRowClick = (job: Job) => {
