@@ -1,7 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Building2, ExternalLink, MapPin, Users, Star, Calendar, Globe, Info, User, Briefcase } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { LinkedInConfirmationModal } from "@/components/LinkedInConfirmationModal";
+import { Building2, ExternalLink, MapPin, Users, Star, Calendar, Globe, Info, User, Briefcase, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { LeadDetailModal } from "@/components/LeadDetailModal";
@@ -37,6 +40,8 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [selectedLeads, setSelectedLeads] = useState<any[]>([]);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   // Fetch related leads
   const { data: relatedLeads, isLoading: leadsLoading } = useQuery({
@@ -53,8 +58,12 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
           "Company Role",
           "Email Address",
           "LinkedIn URL",
+          "LinkedIn Request Message",
+          "LinkedIn Connected Message", 
+          "LinkedIn Follow Up Message",
           priority_enum,
           "Employee Location",
+          "Automation Status",
           created_at
         `)
         .eq("company_id", company.id)
@@ -101,6 +110,29 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
   const handleJobClick = (job: any) => {
     setSelectedJob(job);
     setIsJobModalOpen(true);
+  };
+
+  const handleLeadSelect = (leadId: string, checked: boolean) => {
+    const lead = relatedLeads?.find(l => l.id === leadId);
+    if (!lead) return;
+
+    if (checked) {
+      setSelectedLeads(prev => [...prev, lead]);
+    } else {
+      setSelectedLeads(prev => prev.filter(l => l.id !== leadId));
+    }
+  };
+
+  const handleAddToAutomation = () => {
+    if (selectedLeads.length > 0) {
+      setShowConfirmation(true);
+    }
+  };
+
+  const handleConfirmAutomation = () => {
+    setSelectedLeads([]);
+    setShowConfirmation(false);
+    // Optionally refresh the leads data
   };
 
   const formatDate = (dateString: string) => {
@@ -238,47 +270,86 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
 
             {/* Related Leads */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                  Related Leads ({relatedLeads?.length || 0})
-                </h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                    Related Leads ({relatedLeads?.length || 0})
+                  </h3>
+                </div>
+                {selectedLeads.length > 0 && (
+                  <Button 
+                    size="sm" 
+                    onClick={handleAddToAutomation}
+                    className="flex items-center gap-2"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Add {selectedLeads.length} to Automation
+                  </Button>
+                )}
               </div>
               
               {leadsLoading ? (
                 <div className="text-sm text-muted-foreground">Loading leads...</div>
               ) : relatedLeads && relatedLeads.length > 0 ? (
-                <div className="space-y-3 max-h-48 overflow-y-auto">
-                  {relatedLeads.map((lead) => (
-                    <div 
-                      key={lead.id} 
-                      className="p-3 bg-muted/20 rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
-                      onClick={() => handleLeadClick(lead)}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-sm">{lead["Name"]}</span>
-                        <StatusBadge 
-                          status={lead["Stage"] || lead.stage_enum || "NEW LEAD"} 
-                          size="sm"
-                        />
-                      </div>
-                      <div className="space-y-1 text-xs text-muted-foreground">
-                        {lead["Company Role"] && (
-                          <div>{lead["Company Role"]}</div>
-                        )}
-                        {lead["Email Address"] && (
-                          <div>{lead["Email Address"]}</div>
-                        )}
-                        {lead["Lead Score"] && (
-                          <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 text-yellow-500" />
-                            Score: {lead["Lead Score"]}
+                <ScrollArea className="max-h-64">
+                  <div className="space-y-3 pr-4">
+                    {relatedLeads.map((lead) => (
+                      <div key={lead.id} className="space-y-2">
+                        <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg">
+                          <Checkbox
+                            id={`company-lead-${lead.id}`}
+                            checked={selectedLeads.some(l => l.id === lead.id)}
+                            onCheckedChange={(checked) => handleLeadSelect(lead.id, checked as boolean)}
+                            disabled={lead["Automation Status"] === "ACTIVE" || lead["Automation Status"] === "PENDING"}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <label 
+                                htmlFor={`company-lead-${lead.id}`}
+                                className="font-medium text-sm cursor-pointer flex items-center gap-2"
+                              >
+                                {lead["Name"]}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleLeadClick(lead);
+                                  }}
+                                  className="text-xs text-primary hover:underline"
+                                >
+                                  View Details
+                                </button>
+                              </label>
+                              <StatusBadge 
+                                status={lead["Stage"] || lead.stage_enum || "NEW LEAD"} 
+                                size="sm"
+                              />
+                            </div>
+                            <div className="space-y-1 text-xs text-muted-foreground mt-1">
+                              {lead["Company Role"] && (
+                                <div>{lead["Company Role"]}</div>
+                              )}
+                              {lead["Email Address"] && (
+                                <div>{lead["Email Address"]}</div>
+                              )}
+                              {lead["Lead Score"] && (
+                                <div className="flex items-center gap-1">
+                                  <Star className="h-3 w-3 text-yellow-500" />
+                                  Score: {lead["Lead Score"]}
+                                </div>
+                              )}
+                              {lead["Automation Status"] && (
+                                <div className="text-orange-600">
+                                  Automation: {lead["Automation Status"]}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               ) : (
                 <div className="text-sm text-muted-foreground">No leads found for this company.</div>
               )}
@@ -371,6 +442,14 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
           setIsJobModalOpen(false);
           setSelectedJob(null);
         }}
+      />
+
+      <LinkedInConfirmationModal
+        selectedLeads={selectedLeads}
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        onConfirm={handleConfirmAutomation}
+        companyName={company["Company Name"]}
       />
     </>
   );
