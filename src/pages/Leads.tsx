@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { LEAD_STAGE_OPTIONS } from "@/hooks/useDropdownOptions";
+import { LEAD_STAGE_OPTIONS, PRIORITY_OPTIONS } from "@/hooks/useDropdownOptions";
 
 interface Lead {
   id: string;
@@ -19,6 +19,8 @@ interface Lead {
   "Employee Location": string | null;
   "Company Role": string | null;
   Stage: string | null;
+  stage_enum: string | null;
+  priority_enum: string | null;
   "Lead Score": string | null;
   "LinkedIn URL": string | null;
   created_at: string;
@@ -41,6 +43,7 @@ const Leads = () => {
     location: "",
     role: "",
     stage: "new",
+    priority: "",
     lead_score: "",
     linkedin_url: ""
   });
@@ -50,7 +53,20 @@ const Leads = () => {
     try {
       const { data, error } = await supabase
         .from("People")
-        .select("*")
+        .select(`
+          id,
+          Name,
+          Company,
+          "Email Address",
+          "Employee Location", 
+          "Company Role",
+          Stage,
+          stage_enum,
+          priority_enum,
+          "Lead Score",
+          "LinkedIn URL",
+          created_at
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -83,19 +99,26 @@ const Leads = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const insertData: any = {
+        Name: formData.name,
+        Company: formData.company,
+        "Email Address": formData.email,
+        "Employee Location": formData.location,
+        "Company Role": formData.role,
+        Stage: formData.stage,
+        stage_enum: formData.stage,
+        "Lead Score": formData.lead_score,
+        "LinkedIn URL": formData.linkedin_url
+      };
+
+      // Only add priority_enum if a priority is selected
+      if (formData.priority) {
+        insertData.priority_enum = formData.priority;
+      }
+
       const { error } = await supabase
         .from("People")
-        .insert([{
-          Name: formData.name,
-          Company: formData.company,
-          "Email Address": formData.email,
-          "Employee Location": formData.location,
-          "Company Role": formData.role,
-          Stage: formData.stage,
-          stage_enum: formData.stage as any, // Save to enum column as well
-          "Lead Score": formData.lead_score,
-          "LinkedIn URL": formData.linkedin_url
-        }]);
+        .insert([insertData]);
 
       if (error) throw error;
 
@@ -112,6 +135,7 @@ const Leads = () => {
         location: "",
         role: "",
         stage: "new",
+        priority: "",
         lead_score: "",
         linkedin_url: ""
       });
@@ -175,9 +199,9 @@ const Leads = () => {
     },
     {
       key: "Stage",
-      label: "Stage",
+      label: "Stage", 
       render: (lead: Lead) => (
-        <StatusBadge status={lead.Stage?.toLowerCase() || "new"} />
+        <StatusBadge status={lead.stage_enum || lead.Stage?.toLowerCase() || "new"} />
       ),
     },
     {
@@ -263,6 +287,15 @@ const Leads = () => {
                   value={formData.stage}
                   onValueChange={(value) => setFormData({ ...formData, stage: value })}
                   placeholder="Select stage..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <DropdownSelect
+                  options={PRIORITY_OPTIONS}
+                  value={formData.priority}
+                  onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                  placeholder="Select priority..."
                 />
               </div>
               <div>
