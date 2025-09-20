@@ -310,12 +310,18 @@ export type Database = {
           Automation: string | null
           "Automation Date": string | null
           "Automation Status": string | null
+          automation_status_enum:
+            | Database["public"]["Enums"]["automation_status"]
+            | null
           Business: string | null
           "Campaign Finished": string | null
           Campaigns: string | null
           Company: string | null
           "Company Role": string | null
           "Confidence Level": string | null
+          confidence_level_enum:
+            | Database["public"]["Enums"]["confidence_level"]
+            | null
           "Connection Accepted Date": string | null
           "Connection Request": string | null
           "Connection Request Date": string | null
@@ -336,6 +342,7 @@ export type Database = {
           "Last Message": string | null
           "Lead Score": string | null
           "Lead Source": string | null
+          lead_source_enum: Database["public"]["Enums"]["lead_source"] | null
           LinkedIn: string | null
           "LinkedIn Connected": string | null
           "LinkedIn Connected Message": string | null
@@ -365,12 +372,18 @@ export type Database = {
           Automation?: string | null
           "Automation Date"?: string | null
           "Automation Status"?: string | null
+          automation_status_enum?:
+            | Database["public"]["Enums"]["automation_status"]
+            | null
           Business?: string | null
           "Campaign Finished"?: string | null
           Campaigns?: string | null
           Company?: string | null
           "Company Role"?: string | null
           "Confidence Level"?: string | null
+          confidence_level_enum?:
+            | Database["public"]["Enums"]["confidence_level"]
+            | null
           "Connection Accepted Date"?: string | null
           "Connection Request"?: string | null
           "Connection Request Date"?: string | null
@@ -391,6 +404,7 @@ export type Database = {
           "Last Message"?: string | null
           "Lead Score"?: string | null
           "Lead Source"?: string | null
+          lead_source_enum?: Database["public"]["Enums"]["lead_source"] | null
           LinkedIn?: string | null
           "LinkedIn Connected"?: string | null
           "LinkedIn Connected Message"?: string | null
@@ -420,12 +434,18 @@ export type Database = {
           Automation?: string | null
           "Automation Date"?: string | null
           "Automation Status"?: string | null
+          automation_status_enum?:
+            | Database["public"]["Enums"]["automation_status"]
+            | null
           Business?: string | null
           "Campaign Finished"?: string | null
           Campaigns?: string | null
           Company?: string | null
           "Company Role"?: string | null
           "Confidence Level"?: string | null
+          confidence_level_enum?:
+            | Database["public"]["Enums"]["confidence_level"]
+            | null
           "Connection Accepted Date"?: string | null
           "Connection Request"?: string | null
           "Connection Request Date"?: string | null
@@ -446,6 +466,7 @@ export type Database = {
           "Last Message"?: string | null
           "Lead Score"?: string | null
           "Lead Source"?: string | null
+          lead_source_enum?: Database["public"]["Enums"]["lead_source"] | null
           LinkedIn?: string | null
           "LinkedIn Connected"?: string | null
           "LinkedIn Connected Message"?: string | null
@@ -483,7 +504,15 @@ export type Database = {
       }
     }
     Enums: {
+      automation_status:
+        | "idle"
+        | "queued"
+        | "running"
+        | "paused"
+        | "completed"
+        | "failed"
       company_status: "active" | "inactive" | "prospect"
+      confidence_level: "low" | "medium" | "high" | "very-high"
       employment_type:
         | "full-time"
         | "part-time"
@@ -491,6 +520,13 @@ export type Database = {
         | "internship"
         | "freelance"
       job_status: "draft" | "active" | "paused" | "filled" | "cancelled"
+      lead_source:
+        | "linkedin"
+        | "email"
+        | "referral"
+        | "website"
+        | "event"
+        | "other"
       lead_stage:
         | "new"
         | "contacted"
@@ -636,7 +672,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      automation_status: [
+        "idle",
+        "queued",
+        "running",
+        "paused",
+        "completed",
+        "failed",
+      ],
       company_status: ["active", "inactive", "prospect"],
+      confidence_level: ["low", "medium", "high", "very-high"],
       employment_type: [
         "full-time",
         "part-time",
@@ -645,6 +690,14 @@ export const Constants = {
         "freelance",
       ],
       job_status: ["draft", "active", "paused", "filled", "cancelled"],
+      lead_source: [
+        "linkedin",
+        "email",
+        "referral",
+        "website",
+        "event",
+        "other",
+      ],
       lead_stage: [
         "new",
         "contacted",

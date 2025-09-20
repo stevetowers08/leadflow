@@ -95,3 +95,28 @@ export const SENIORITY_LEVEL_OPTIONS: DropdownOption[] = [
   { value: 'director', label: 'Director' },
   { value: 'executive', label: 'Executive' }
 ];
+
+export const CONFIDENCE_LEVEL_OPTIONS: DropdownOption[] = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'very-high', label: 'Very High' }
+];
+
+export const AUTOMATION_STATUS_OPTIONS: DropdownOption[] = [
+  { value: 'idle', label: 'Idle' },
+  { value: 'queued', label: 'Queued' },
+  { value: 'running', label: 'Running' },
+  { value: 'paused', label: 'Paused' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'failed', label: 'Failed' }
+];
+
+export const LEAD_SOURCE_OPTIONS: DropdownOption[] = [
+  { value: 'linkedin', label: 'LinkedIn' },
+  { value: 'email', label: 'Email' },
+  { value: 'referral', label: 'Referral' },
+  { value: 'website', label: 'Website' },
+  { value: 'event', label: 'Event' },
+  { value: 'other', label: 'Other' }
+];
