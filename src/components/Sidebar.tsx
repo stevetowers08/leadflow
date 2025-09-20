@@ -10,8 +10,10 @@ const navigation = [
   { name: "Leads", href: "/leads", icon: Users },
   { 
     name: "Jobs", 
+    href: "/jobs",
     icon: Briefcase,
     subItems: [
+      { name: "ALL JOBS", href: "/jobs" },
       { name: "NEW JOBS", href: "/jobs/new" },
       { name: "MORNING VIEW", href: "/jobs/morning" },
       { name: "ENDING SOON", href: "/jobs/ending" },
@@ -41,7 +43,8 @@ export const Sidebar = () => {
             
             return (
               <div key={item.name} className="space-y-1">
-                <button
+                <Link
+                  to={item.href || '#'}
                   onClick={() => setExpandedJobs(!expandedJobs)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 w-full",
@@ -57,7 +60,7 @@ export const Sidebar = () => {
                   ) : (
                     <ChevronRight className="h-3 w-3 ml-auto" />
                   )}
-                </button>
+                </Link>
                 
                 {expandedJobs && (
                   <div className="ml-6 space-y-1">
