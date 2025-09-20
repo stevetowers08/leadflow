@@ -116,35 +116,33 @@ const Companies = () => {
       key: "Company Name",
       label: "Company",
       render: (company: Company) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 min-w-0">
           {company["Profile Image URL"] ? (
             <img 
               src={company["Profile Image URL"]} 
               alt={`${company["Company Name"]} logo`}
-              className="w-10 h-10 rounded object-cover flex-shrink-0"
+              className="w-8 h-8 rounded object-cover flex-shrink-0"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
           ) : (
-            <div className="w-10 h-10 bg-muted rounded flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
               <span className="text-sm font-medium text-muted-foreground">
                 {company["Company Name"]?.charAt(0)?.toUpperCase() || "C"}
               </span>
             </div>
           )}
-          <div className="flex flex-col">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                // Navigate to leads page with company filter
-                window.location.href = `/leads?company=${encodeURIComponent(company["Company Name"] || "")}`;
-              }}
-              className="text-sm font-medium truncate hover:text-primary transition-colors text-left"
-            >
-              {company["Company Name"] || "-"}
-            </button>
-          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              // Navigate to leads page with company filter
+              window.location.href = `/leads?company=${encodeURIComponent(company["Company Name"] || "")}`;
+            }}
+            className="text-sm font-medium truncate hover:text-primary transition-colors text-left min-w-0 flex-1"
+          >
+            {company["Company Name"] || "-"}
+          </button>
         </div>
       ),
     },
