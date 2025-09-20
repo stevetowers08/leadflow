@@ -93,11 +93,30 @@ const Jobs = () => {
     try {
       const { data, error } = await supabase
         .from("Jobs")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*");
 
       if (error) throw error;
-      setJobs(data || []);
+      
+      // Sort by Posted Date (most recent first)
+      const sortedJobs = (data || []).sort((a, b) => {
+        const parseDate = (dateStr: string | null) => {
+          if (!dateStr) return new Date(0); // Put jobs without dates at the end
+          const parts = dateStr.split('/');
+          if (parts.length === 3) {
+            const day = parts[0].padStart(2, '0');
+            const month = parts[1].padStart(2, '0');
+            const year = parts[2];
+            return new Date(`${year}-${month}-${day}`);
+          }
+          return new Date(dateStr);
+        };
+        
+        const dateA = parseDate(a["Posted Date"]);
+        const dateB = parseDate(b["Posted Date"]);
+        return dateB.getTime() - dateA.getTime(); // Most recent first
+      });
+      
+      setJobs(sortedJobs);
     } catch (error) {
       toast({
         title: "Error",

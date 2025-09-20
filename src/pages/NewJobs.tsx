@@ -40,18 +40,41 @@ const NewJobs = () => {
 
   const fetchNewJobs = async () => {
     try {
-      // Fetch recent jobs (created within the last 30 days)
+      // Fetch recent jobs (posted within the last 30 days based on Posted Date)
+      const { data, error } = await supabase
+        .from("Jobs")
+        .select("*");
+
+      if (error) throw error;
+      
+      // Filter and sort by Posted Date
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
-      const { data, error } = await supabase
-        .from("Jobs")
-        .select("*")
-        .gte("created_at", thirtyDaysAgo.toISOString())
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setJobs(data || []);
+      const parseDate = (dateStr: string | null) => {
+        if (!dateStr) return new Date(0);
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          const day = parts[0].padStart(2, '0');
+          const month = parts[1].padStart(2, '0');
+          const year = parts[2];
+          return new Date(`${year}-${month}-${day}`);
+        }
+        return new Date(dateStr);
+      };
+      
+      const filteredAndSortedJobs = (data || [])
+        .filter(job => {
+          const postedDate = parseDate(job["Posted Date"]);
+          return postedDate >= thirtyDaysAgo;
+        })
+        .sort((a, b) => {
+          const dateA = parseDate(a["Posted Date"]);
+          const dateB = parseDate(b["Posted Date"]);
+          return dateB.getTime() - dateA.getTime(); // Most recent first
+        });
+      
+      setJobs(filteredAndSortedJobs);
     } catch (error) {
       toast({
         title: "Error",

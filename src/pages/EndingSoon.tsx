@@ -70,35 +70,39 @@ const EndingSoon = () => {
       const { data, error } = await supabase
         .from("Jobs")
         .select("*")
-        .not("Valid Through", "is", null)
-        .order("created_at", { ascending: false });
+        .not("Valid Through", "is", null);
 
       if (error) throw error;
       
-      // Filter jobs that are ending soon (client-side filtering for date parsing)
-      const filteredJobs = (data || []).filter(job => {
-        if (!job["Valid Through"]) return false;
-        
-        try {
-          // Parse date from DD/M/YYYY or DD/MM/YYYY format
-          const parseDate = (dateStr: string) => {
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-              const day = parts[0].padStart(2, '0');
-              const month = parts[1].padStart(2, '0');
-              const year = parts[2];
-              return new Date(`${year}-${month}-${day}`);
-            }
-            return new Date(dateStr);
-          };
-          
-          const validThrough = parseDate(job["Valid Through"]);
-          const now = new Date();
-          return validThrough >= now && validThrough <= oneWeekFromNow;
-        } catch {
-          return false;
+      // Parse date from DD/M/YYYY or DD/MM/YYYY format
+      const parseDate = (dateStr: string) => {
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          const day = parts[0].padStart(2, '0');
+          const month = parts[1].padStart(2, '0');
+          const year = parts[2];
+          return new Date(`${year}-${month}-${day}`);
         }
-      });
+        return new Date(dateStr);
+      };
+      
+      // Filter jobs that are ending soon and sort by Posted Date (most recent first)
+      const filteredJobs = (data || [])
+        .filter(job => {
+          if (!job["Valid Through"]) return false;
+          try {
+            const validThrough = parseDate(job["Valid Through"]);
+            const now = new Date();
+            return validThrough >= now && validThrough <= oneWeekFromNow;
+          } catch {
+            return false;
+          }
+        })
+        .sort((a, b) => {
+          const dateA = a["Posted Date"] ? parseDate(a["Posted Date"]) : new Date(0);
+          const dateB = b["Posted Date"] ? parseDate(b["Posted Date"]) : new Date(0);
+          return dateB.getTime() - dateA.getTime(); // Most recent first
+        });
       
       setJobs(filteredJobs);
     } catch (error) {
