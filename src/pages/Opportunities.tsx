@@ -21,6 +21,9 @@ interface Lead {
   "Lead Score": string | null;
   "LinkedIn URL": string | null;
   created_at: string;
+  "Next Action Date": string | null;
+  "Last Contact Date": string | null;
+  "Meeting Date": string | null;
 }
 
 const stageColors = {
@@ -66,13 +69,19 @@ const Opportunities = () => {
           priority_enum,
           "Lead Score",
           "LinkedIn URL",
-          created_at
+          created_at,
+          "Next Action Date",
+          "Last Contact Date",
+          "Meeting Date"
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      
+      console.log("Fetched leads:", data); // Debug log
       setLeads(data || []);
     } catch (error) {
+      console.error("Error fetching leads:", error);
       toast({
         title: "Error",
         description: "Failed to fetch opportunities",
@@ -88,12 +97,21 @@ const Opportunities = () => {
   }, []);
 
   const groupedLeads = LEAD_STAGE_OPTIONS.reduce((acc, stage) => {
-    const stageLeads = leads.filter(lead => 
-      (lead.stage_enum || lead.Stage?.toLowerCase()) === stage.value
-    );
+    const stageLeads = leads.filter(lead => {
+      const leadStage = lead.stage_enum || lead.Stage?.toLowerCase() || 'new';
+      return leadStage === stage.value;
+    });
     acc[stage.value] = stageLeads;
+    console.log(`Stage ${stage.value}:`, stageLeads.length, "leads"); // Debug log
     return acc;
   }, {} as Record<string, Lead[]>);
+
+  // If no leads have stages, put them all in 'new' stage
+  const totalLeadsInStages = Object.values(groupedLeads).flat().length;
+  if (totalLeadsInStages === 0 && leads.length > 0) {
+    groupedLeads['new'] = leads;
+    console.log("No staged leads found, putting all in 'new' stage:", leads.length);
+  }
 
   const getStageStats = () => {
     const activeLeads = leads.filter(lead => !['hired', 'lost'].includes(lead.stage_enum || lead.Stage?.toLowerCase() || ''));
@@ -196,7 +214,15 @@ const Opportunities = () => {
       </div>
       
       {/* Pipeline Stages */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Sales Pipeline</h2>
+          <div className="text-sm text-muted-foreground">
+            Total Leads: {leads.length} | Active: {activeLeads}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-7 gap-4">
         {LEAD_STAGE_OPTIONS.map(stage => {
           const stageLeads = groupedLeads[stage.value] || [];
           const stageKey = stage.value as keyof typeof stageColors;
@@ -262,6 +288,25 @@ const Opportunities = () => {
                               <span className="truncate">{lead["Employee Location"]}</span>
                             </div>
                           )}
+
+                          {/* CRM Pipeline Info */}
+                          {lead["Last Contact Date"] && (
+                            <div className="text-xs text-muted-foreground">
+                              Last contact: {new Date(lead["Last Contact Date"]).toLocaleDateString()}
+                            </div>
+                          )}
+
+                          {lead["Next Action Date"] && (
+                            <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                              Next: {new Date(lead["Next Action Date"]).toLocaleDateString()}
+                            </div>
+                          )}
+
+                          {lead["Meeting Date"] && (
+                            <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                              Meeting: {new Date(lead["Meeting Date"]).toLocaleDateString()}
+                            </div>
+                          )}
                           
                           <div className="flex items-center justify-between pt-1">
                             {lead.priority_enum && (
@@ -269,8 +314,39 @@ const Opportunities = () => {
                             )}
                             {lead["Lead Score"] && (
                               <span className="text-xs font-medium text-yellow-700 bg-yellow-100 px-2 py-1 rounded-full">
-                                {lead["Lead Score"]}
+                                Score: {lead["Lead Score"]}
                               </span>
+                            )}
+                          </div>
+
+                          {/* Pipeline Actions */}
+                          <div className="flex gap-1 pt-2">
+                            {lead["Email Address"] && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(`mailto:${lead["Email Address"]}`, '_blank');
+                                }}
+                              >
+                                <Mail className="h-3 w-3 mr-1" />
+                                Email
+                              </Button>
+                            )}
+                            {lead["LinkedIn URL"] && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(lead["LinkedIn URL"], '_blank');
+                                }}
+                              >
+                                LinkedIn
+                              </Button>
                             )}
                           </div>
                         </div>
@@ -282,6 +358,7 @@ const Opportunities = () => {
             </Card>
           );
         })}
+        </div>
       </div>
 
       <LeadDetailModal
