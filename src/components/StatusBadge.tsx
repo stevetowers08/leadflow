@@ -53,16 +53,17 @@ const statusStyles = {
 };
 
 const sizeStyles = {
-  sm: "text-xs px-2 py-1 font-medium min-w-16 text-center",
-  md: "text-xs px-2.5 py-1 font-medium min-w-20 text-center",
-  lg: "text-sm px-3 py-1.5 font-medium min-w-24 text-center"
+  sm: "text-[11px] px-2 py-1 font-medium min-w-24 text-center",
+  md: "text-xs px-2.5 py-1 font-medium min-w-28 text-center",
+  lg: "text-sm px-3 py-1.5 font-medium min-w-32 text-center"
 };
 
 export const StatusBadge = ({ status, className, size = "md" }: StatusBadgeProps) => {
   if (!status) return null;
   
-  const normalizedStatus = status.toLowerCase().replace(/\s+/g, '-') as keyof typeof statusStyles;
-  const styleClass = statusStyles[normalizedStatus] || "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-950/50 dark:text-slate-400 dark:border-slate-800";
+  const normalizedHyphen = status.toLowerCase().trim().replace(/\s+/g, '-') as keyof typeof statusStyles;
+  const normalizedSpace = status.toLowerCase().trim().replace(/\s+/g, ' ') as keyof typeof statusStyles;
+  const styleClass = statusStyles[normalizedHyphen] || statusStyles[normalizedSpace] || "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-950/50 dark:text-slate-400 dark:border-slate-800";
   
   // Format the display text
   const displayText = status.charAt(0).toUpperCase() + status.slice(1).replace(/-/g, ' ');
@@ -71,7 +72,7 @@ export const StatusBadge = ({ status, className, size = "md" }: StatusBadgeProps
     <Badge
       variant="outline"
       className={cn(
-        "border transition-colors duration-200 font-medium",
+        "border transition-colors duration-200 font-medium justify-center",
         styleClass,
         sizeStyles[size],
         className
