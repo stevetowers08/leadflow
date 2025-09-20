@@ -18,6 +18,7 @@ interface DataTableProps<T> {
   columns: Column<T>[];
   loading?: boolean;
   addButton?: ReactNode;
+  onRowClick?: (item: T) => void;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -26,6 +27,7 @@ export function DataTable<T extends Record<string, any>>({
   columns,
   loading = false,
   addButton,
+  onRowClick,
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -130,6 +132,7 @@ export function DataTable<T extends Record<string, any>>({
                     "border-b border-border/50 hover:bg-muted/20 transition-colors duration-150",
                     "group cursor-pointer"
                   )}
+                  onClick={() => onRowClick?.(item)}
                 >
                   {columns.map((column) => (
                     <TableCell key={column.key} className="px-6 py-4">

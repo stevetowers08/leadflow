@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
+import { JobDetailModal } from "@/components/JobDetailModal";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -40,6 +41,8 @@ const Jobs = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     company: "",
@@ -242,13 +245,20 @@ const Jobs = () => {
     },
   ];
 
+  const handleRowClick = (job: Job) => {
+    setSelectedJob(job);
+    setIsDetailModalOpen(true);
+  };
+
   return (
-    <DataTable
-      title="Jobs"
-      data={jobs}
-      columns={columns}
-      loading={loading}
-      addButton={
+    <>
+      <DataTable
+        title="Jobs"
+        data={jobs}
+        columns={columns}
+        loading={loading}
+        onRowClick={handleRowClick}
+        addButton={
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>Add Job</Button>
@@ -389,7 +399,17 @@ const Jobs = () => {
           </DialogContent>
         </Dialog>
       }
-    />
+      />
+      
+      <JobDetailModal
+        job={selectedJob}
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedJob(null);
+        }}
+      />
+    </>
   );
 };
 

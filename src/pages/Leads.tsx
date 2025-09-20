@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
+import { LeadDetailModal } from "@/components/LeadDetailModal";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -36,6 +37,8 @@ const Leads = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -247,13 +250,20 @@ const Leads = () => {
     },
   ];
 
+  const handleRowClick = (lead: Lead) => {
+    setSelectedLead(lead);
+    setIsDetailModalOpen(true);
+  };
+
   return (
-    <DataTable
-      title="Leads"
-      data={leads}
-      columns={columns}
-      loading={loading}
-      addButton={
+    <>
+      <DataTable
+        title="Leads"
+        data={leads}
+        columns={columns}
+        loading={loading}
+        onRowClick={handleRowClick}
+        addButton={
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>Add Lead</Button>
@@ -342,7 +352,17 @@ const Leads = () => {
           </DialogContent>
         </Dialog>
       }
-    />
+      />
+      
+      <LeadDetailModal
+        lead={selectedLead}
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedLead(null);
+        }}
+      />
+    </>
   );
 };
 
