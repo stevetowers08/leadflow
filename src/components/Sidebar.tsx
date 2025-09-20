@@ -17,12 +17,12 @@ export const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <aside className="w-64 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border/40 flex flex-col">
-      <div className="px-6 py-8">
-        <h1 className="text-xl font-semibold text-foreground">4Twenty CRM</h1>
+    <aside className="w-52 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border/40 flex flex-col fixed left-0 top-0 h-screen z-40">
+      <div className="px-4 py-6">
+        <h1 className="text-lg font-semibold text-foreground">4Twenty CRM</h1>
       </div>
       
-      <nav className="flex-1 px-4 space-y-1">
+      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
         {navigation.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
@@ -45,7 +45,7 @@ export const Sidebar = () => {
         })}
       </nav>
       
-      <div className="p-4 border-t border-border/40">
+      <div className="p-3 border-t border-border/40">
         <Button asChild size="sm" className="w-full">
           <Link to="/leads">Add New Lead</Link>
         </Button>
