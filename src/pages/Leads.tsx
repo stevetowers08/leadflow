@@ -50,7 +50,7 @@ const Leads = () => {
     company: "",
     location: "",
     role: "",
-    stage: "new",
+                    stage: "NEW LEAD",
     priority: "",
     lead_score: "",
     linkedin_url: ""
@@ -75,8 +75,8 @@ const Leads = () => {
       lead["Company Role"]?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = !statusFilter || 
-      (lead.Stage?.toLowerCase() === statusFilter.toLowerCase()) ||
-      (lead.stage_enum?.toLowerCase() === statusFilter.toLowerCase());
+      (lead.Stage === statusFilter) ||
+      (lead.stage_enum === statusFilter);
     
     const matchesCompany = !companyFilter || 
       lead.Company?.toLowerCase().includes(companyFilter.toLowerCase());
@@ -176,7 +176,7 @@ const Leads = () => {
         company: "",
         location: "",
         role: "",
-        stage: "new",
+        stage: "NEW LEAD",
         priority: "",
         lead_score: "",
         linkedin_url: ""
@@ -204,7 +204,7 @@ const Leads = () => {
         <div className="flex justify-center">
           <div className="w-28 flex justify-center">
             <StatusBadge 
-              status={lead.Stage || lead.stage_enum || "new lead"} 
+              status={lead.Stage || lead.stage_enum || "NEW LEAD"} 
               size="sm"
               className="shadow-sm"
             />

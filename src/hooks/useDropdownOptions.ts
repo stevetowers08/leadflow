@@ -47,13 +47,13 @@ export const useReferenceOptions = (tableName: 'industries' | 'job_functions' | 
 
 // Static enum options for immediate use
 export const LEAD_STAGE_OPTIONS: DropdownOption[] = [
-  { value: 'new', label: 'New' },
-  { value: 'contacted', label: 'Contacted' },
-  { value: 'qualified', label: 'Qualified' },
-  { value: 'interview', label: 'Interview' },
-  { value: 'offer', label: 'Offer' },
-  { value: 'hired', label: 'Hired' },
-  { value: 'lost', label: 'Lost' }
+  { value: 'NEW LEAD', label: 'New Lead' },
+  { value: 'IN QUEUE', label: 'In Queue' },
+  { value: 'CONNECT SENT', label: 'Connect Sent' },
+  { value: 'CONNECTED', label: 'Connected' },
+  { value: 'MSG SENT', label: 'Message Sent' },
+  { value: 'REPLIED', label: 'Replied' },
+  { value: 'LEAD LOST', label: 'Lead Lost' }
 ];
 
 export const PRIORITY_OPTIONS: DropdownOption[] = [
