@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Building2, Users, Briefcase, BarChart3, Target, Megaphone, ChevronDown, ChevronRight } from "lucide-react";
+import { Home, Building2, Users, Briefcase, BarChart3, Target, Megaphone, ChevronDown, ChevronRight, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -15,12 +15,13 @@ const navigation = [
     subItems: [
       { name: "ALL JOBS", href: "/jobs" },
       { name: "NEW JOBS", href: "/jobs/new" },
-      { name: "MORNING VIEW", href: "/jobs/morning" },
-      { name: "ENDING SOON", href: "/jobs/ending" },
+      { name: "MORNING VIEW", href: "/jobs/morning-view" },
+      { name: "ENDING SOON", href: "/jobs/ending-soon" },
     ]
   },
   { name: "Opportunities", href: "/opportunities", icon: Target },
   { name: "Campaigns", href: "/campaigns", icon: Megaphone },
+  { name: "Automations", href: "/automations", icon: Bot },
   { name: "Reporting", href: "/reporting", icon: BarChart3 },
 ];
 

@@ -12,6 +12,7 @@ import MorningView from "./pages/MorningView";
 import EndingSoon from "./pages/EndingSoon";
 import Opportunities from "./pages/Opportunities";
 import Campaigns from "./pages/Campaigns";
+import Automations from "./pages/Automations";
 import Reporting from "./pages/Reporting";
 import NotFound from "./pages/NotFound";
 import { Layout } from "./components/Layout";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/jobs/ending-soon" element={<Layout><EndingSoon /></Layout>} />
           <Route path="/opportunities" element={<Layout><Opportunities /></Layout>} />
           <Route path="/campaigns" element={<Layout><Campaigns /></Layout>} />
+          <Route path="/automations" element={<Layout><Automations /></Layout>} />
           <Route path="/reporting" element={<Layout><Reporting /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
