@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownSelect } from "@/components/ui/dropdown-select";
+import { LEAD_STAGE_OPTIONS } from "@/hooks/useDropdownOptions";
 
 interface Lead {
   id: string;
@@ -91,6 +92,7 @@ const Leads = () => {
           "Employee Location": formData.location,
           "Company Role": formData.role,
           Stage: formData.stage,
+          stage_enum: formData.stage as any, // Save to enum column as well
           "Lead Score": formData.lead_score,
           "LinkedIn URL": formData.linkedin_url
         }]);
@@ -256,19 +258,12 @@ const Leads = () => {
               </div>
               <div>
                 <Label htmlFor="stage">Stage</Label>
-                <Select value={formData.stage} onValueChange={(value) => setFormData({ ...formData, stage: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="contacted">Contacted</SelectItem>
-                    <SelectItem value="qualified">Qualified</SelectItem>
-                    <SelectItem value="interview">Interview</SelectItem>
-                    <SelectItem value="offer">Offer</SelectItem>
-                    <SelectItem value="hired">Hired</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DropdownSelect
+                  options={LEAD_STAGE_OPTIONS}
+                  value={formData.stage}
+                  onValueChange={(value) => setFormData({ ...formData, stage: value })}
+                  placeholder="Select stage..."
+                />
               </div>
               <div>
                 <Label htmlFor="linkedin_url">LinkedIn URL</Label>

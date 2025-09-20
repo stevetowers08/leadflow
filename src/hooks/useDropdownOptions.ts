@@ -11,43 +11,8 @@ export interface ReferenceOption {
   name: string;
 }
 
-// Hook for enum-based dropdowns
-export const useEnumOptions = (enumType: string) => {
-  const [options, setOptions] = useState<DropdownOption[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchEnumOptions = async () => {
-      try {
-        const { data, error } = await supabase
-          .rpc('get_enum_values', { enum_type: enumType });
-        
-        if (error) {
-          console.error('Error fetching enum options:', error);
-          return;
-        }
-
-        const formattedOptions = data?.map((value: string) => ({
-          value,
-          label: value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ')
-        })) || [];
-
-        setOptions(formattedOptions);
-      } catch (error) {
-        console.error('Error fetching enum options:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEnumOptions();
-  }, [enumType]);
-
-  return { options, loading };
-};
-
 // Hook for reference table dropdowns
-export const useReferenceOptions = (tableName: string) => {
+export const useReferenceOptions = (tableName: 'industries' | 'job_functions' | 'company_sizes') => {
   const [options, setOptions] = useState<ReferenceOption[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -64,7 +29,9 @@ export const useReferenceOptions = (tableName: string) => {
           return;
         }
 
-        setOptions(data || []);
+        if (data) {
+          setOptions(data);
+        }
       } catch (error) {
         console.error(`Error fetching ${tableName} options:`, error);
       } finally {
