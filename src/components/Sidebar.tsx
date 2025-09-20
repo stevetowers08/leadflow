@@ -1,13 +1,22 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Building2, Users, Briefcase, BarChart3, Target, Megaphone } from "lucide-react";
+import { Home, Building2, Users, Briefcase, BarChart3, Target, Megaphone, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Companies", href: "/companies", icon: Building2 },
   { name: "Leads", href: "/leads", icon: Users },
-  { name: "Jobs", href: "/jobs", icon: Briefcase },
+  { 
+    name: "Jobs", 
+    icon: Briefcase,
+    subItems: [
+      { name: "NEW JOBS", href: "/jobs/new" },
+      { name: "MORNING VIEW", href: "/jobs/morning" },
+      { name: "ENDING SOON", href: "/jobs/ending" },
+    ]
+  },
   { name: "Opportunities", href: "/opportunities", icon: Target },
   { name: "Campaigns", href: "/campaigns", icon: Megaphone },
   { name: "Reporting", href: "/reporting", icon: BarChart3 },
@@ -15,6 +24,7 @@ const navigation = [
 
 export const Sidebar = () => {
   const location = useLocation();
+  const [expandedJobs, setExpandedJobs] = useState(false);
 
   return (
     <aside className="w-52 bg-sidebar backdrop-blur border-r border-sidebar-border flex flex-col fixed left-0 top-0 h-screen z-40">
@@ -25,6 +35,55 @@ export const Sidebar = () => {
       <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
         {navigation.map((item) => {
           const Icon = item.icon;
+          
+          if (item.subItems) {
+            const isJobsActive = location.pathname.startsWith('/jobs');
+            
+            return (
+              <div key={item.name} className="space-y-1">
+                <button
+                  onClick={() => setExpandedJobs(!expandedJobs)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 w-full",
+                    isJobsActive
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.name}
+                  {expandedJobs ? (
+                    <ChevronDown className="h-3 w-3 ml-auto" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 ml-auto" />
+                  )}
+                </button>
+                
+                {expandedJobs && (
+                  <div className="ml-6 space-y-1">
+                    {item.subItems.map((subItem) => {
+                      const isSubActive = location.pathname === subItem.href;
+                      return (
+                        <Link
+                          key={subItem.name}
+                          to={subItem.href}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200",
+                            isSubActive
+                              ? "bg-sidebar-primary/80 text-sidebar-primary-foreground"
+                              : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+                          )}
+                        >
+                          {subItem.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          
           const isActive = location.pathname === item.href;
           
           return (

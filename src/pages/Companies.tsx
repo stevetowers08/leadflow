@@ -139,7 +139,7 @@ const Companies = () => {
                 e.stopPropagation();
                 window.location.href = `/leads?company=${encodeURIComponent(company["Company Name"] || "")}`;
               }}
-              className="text-sm font-semibold truncate hover:text-primary transition-colors text-left"
+              className="text-xs font-medium truncate hover:text-primary transition-colors text-left"
             >
               {company["Company Name"] || "-"}
             </button>
@@ -148,7 +148,7 @@ const Companies = () => {
                 href={company["Website"]} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:text-primary transition-colors truncate"
+                className="text-xs text-muted-foreground hover:text-primary transition-colors truncate opacity-75"
                 onClick={(e) => e.stopPropagation()}
               >
                 {company["Website"].replace(/^https?:\/\//, '')}
@@ -163,7 +163,7 @@ const Companies = () => {
       label: "Industry",
       render: (company: Company) => (
         <div className="max-w-xs">
-          <span className="text-sm font-medium text-foreground">
+          <span className="text-xs font-medium text-foreground">
             {company["Industry"] || "-"}
           </span>
         </div>
@@ -173,7 +173,7 @@ const Companies = () => {
       key: "Company Size",
       label: "Company Size",
       render: (company: Company) => (
-        <span className="text-sm text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           {company["Company Size"] || "-"}
         </span>
       ),
@@ -183,7 +183,7 @@ const Companies = () => {
       label: "Location",
       render: (company: Company) => (
         <div className="max-w-xs">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {company["Head Office"] || "-"}
           </span>
         </div>
@@ -195,11 +195,11 @@ const Companies = () => {
       render: (company: Company) => (
         <div className="text-center">
           {company["Lead Score"] ? (
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-mono text-sm font-semibold">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-mono text-xs font-semibold">
               {company["Lead Score"]}
             </span>
           ) : (
-            <span className="text-sm text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">-</span>
           )}
         </div>
       ),
