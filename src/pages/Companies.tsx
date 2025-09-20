@@ -116,33 +116,45 @@ const Companies = () => {
       key: "Company Name",
       label: "Company",
       render: (company: Company) => (
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 max-w-sm">
           {company["Profile Image URL"] ? (
             <img 
               src={company["Profile Image URL"]} 
               alt={`${company["Company Name"]} logo`}
-              className="w-8 h-8 rounded object-cover flex-shrink-0"
+              className="w-10 h-10 rounded object-cover flex-shrink-0"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
           ) : (
-            <div className="w-8 h-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-muted rounded flex items-center justify-center flex-shrink-0">
               <span className="text-sm font-medium text-muted-foreground">
                 {company["Company Name"]?.charAt(0)?.toUpperCase() || "C"}
               </span>
             </div>
           )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              // Navigate to leads page with company filter
-              window.location.href = `/leads?company=${encodeURIComponent(company["Company Name"] || "")}`;
-            }}
-            className="text-sm font-medium truncate hover:text-primary transition-colors text-left min-w-0 flex-1"
-          >
-            {company["Company Name"] || "-"}
-          </button>
+          <div className="flex flex-col min-w-0 flex-1">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                window.location.href = `/leads?company=${encodeURIComponent(company["Company Name"] || "")}`;
+              }}
+              className="text-sm font-semibold truncate hover:text-primary transition-colors text-left"
+            >
+              {company["Company Name"] || "-"}
+            </button>
+            {company["Website"] && (
+              <a 
+                href={company["Website"]} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground hover:text-primary transition-colors truncate"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {company["Website"].replace(/^https?:\/\//, '')}
+              </a>
+            )}
+          </div>
         </div>
       ),
     },
@@ -150,30 +162,46 @@ const Companies = () => {
       key: "Industry",
       label: "Industry",
       render: (company: Company) => (
-        <span className="text-xs">{company["Industry"] || "-"}</span>
+        <div className="max-w-xs">
+          <span className="text-sm font-medium text-foreground">
+            {company["Industry"] || "-"}
+          </span>
+        </div>
       ),
     },
     {
       key: "Company Size",
-      label: "Size",
+      label: "Company Size",
       render: (company: Company) => (
-        <span className="text-xs">{company["Company Size"] || "-"}</span>
+        <span className="text-sm text-muted-foreground">
+          {company["Company Size"] || "-"}
+        </span>
       ),
     },
     {
       key: "Head Office",
       label: "Location",
       render: (company: Company) => (
-        <span className="text-xs">{company["Head Office"] || "-"}</span>
+        <div className="max-w-xs">
+          <span className="text-sm text-muted-foreground">
+            {company["Head Office"] || "-"}
+          </span>
+        </div>
       ),
     },
     {
       key: "Lead Score",
-      label: "Lead Score",
+      label: "Score",
       render: (company: Company) => (
-        <span className="text-xs font-mono">
-          {company["Lead Score"] ? `#${company["Lead Score"]}` : "-"}
-        </span>
+        <div className="text-center">
+          {company["Lead Score"] ? (
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-mono text-sm font-semibold">
+              {company["Lead Score"]}
+            </span>
+          ) : (
+            <span className="text-sm text-muted-foreground">-</span>
+          )}
+        </div>
       ),
     },
     {
@@ -188,22 +216,6 @@ const Companies = () => {
       label: "Status",
       render: (company: Company) => (
         <StatusBadge status={company["STATUS"]?.toLowerCase() || "active"} />
-      ),
-    },
-    {
-      key: "Website",
-      label: "Website",
-      render: (company: Company) => (
-        company["Website"] ? (
-          <a 
-            href={company["Website"]} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-xs text-primary hover:underline"
-          >
-            Visit
-          </a>
-        ) : "-"
       ),
     },
   ];
