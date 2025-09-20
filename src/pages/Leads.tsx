@@ -320,11 +320,11 @@ const Leads = () => {
           
           <DropdownSelect
             options={[
-              { label: "All Statuses", value: "" },
+              { label: "All Statuses", value: "all" },
               ...LEAD_STAGE_OPTIONS
             ]}
-            value={statusFilter}
-            onValueChange={setStatusFilter}
+            value={statusFilter || "all"}
+            onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}
             placeholder="Filter by status"
           />
           
