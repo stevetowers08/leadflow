@@ -12,19 +12,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface Lead {
   id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  company_id: string | null;
-  position: string | null;
-  status: string;
-  source: string | null;
-  notes: string | null;
-  last_interaction: string | null;
+  Name: string;
+  Company: string | null;
+  "Email Address": string | null;
+  "Employee Location": string | null;
+  "Company Role": string | null;
+  Stage: string | null;
+  "Lead Score": string | null;
+  "LinkedIn URL": string | null;
   created_at: string;
-  companies?: {
-    name: string;
-  };
 }
 
 interface Company {
@@ -40,25 +36,20 @@ const Leads = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
-    company_id: "",
-    position: "",
-    status: "new",
-    source: "",
-    notes: ""
+    company: "",
+    location: "",
+    role: "",
+    stage: "new",
+    lead_score: "",
+    linkedin_url: ""
   });
   const { toast } = useToast();
 
   const fetchLeads = async () => {
     try {
       const { data, error } = await supabase
-        .from("leads")
-        .select(`
-          *,
-          companies (
-            name
-          )
-        `)
+        .from("People")
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -77,13 +68,12 @@ const Leads = () => {
   const fetchCompanies = async () => {
     try {
       const { data, error } = await supabase
-        .from("companies")
-        .select("id, name")
-        .eq("status", "active")
-        .order("name");
+        .from("Companies")
+        .select("id, \"Company Name\"")
+        .order("\"Company Name\"");
 
       if (error) throw error;
-      setCompanies(data || []);
+      setCompanies(data?.map(c => ({ id: c.id, name: c["Company Name"] })) || []);
     } catch (error) {
       console.error("Failed to fetch companies:", error);
     }
@@ -92,14 +82,18 @@ const Leads = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const submitData = {
-        ...formData,
-        company_id: formData.company_id || null
-      };
-
       const { error } = await supabase
-        .from("leads")
-        .insert([submitData]);
+        .from("People")
+        .insert([{
+          Name: formData.name,
+          Company: formData.company,
+          "Email Address": formData.email,
+          "Employee Location": formData.location,
+          "Company Role": formData.role,
+          Stage: formData.stage,
+          "Lead Score": formData.lead_score,
+          "LinkedIn URL": formData.linkedin_url
+        }]);
 
       if (error) throw error;
 
@@ -112,12 +106,12 @@ const Leads = () => {
       setFormData({
         name: "",
         email: "",
-        phone: "",
-        company_id: "",
-        position: "",
-        status: "new",
-        source: "",
-        notes: ""
+        company: "",
+        location: "",
+        role: "",
+        stage: "new",
+        lead_score: "",
+        linkedin_url: ""
       });
       fetchLeads();
     } catch (error) {
@@ -136,52 +130,68 @@ const Leads = () => {
 
   const columns = [
     {
-      key: "name",
+      key: "Name",
       label: "Name",
       render: (lead: Lead) => (
-        <div className="font-medium">{lead.name}</div>
+        <span className="text-xs font-medium">{lead.Name}</span>
       ),
     },
     {
-      key: "email",
-      label: "Email",
-      render: (lead: Lead) => lead.email || "-",
-    },
-    {
-      key: "company",
+      key: "Company",
       label: "Company",
-      render: (lead: Lead) => lead.companies?.name || "-",
-    },
-    {
-      key: "position",
-      label: "Position",
-      render: (lead: Lead) => lead.position || "-",
-    },
-    {
-      key: "status",
-      label: "Status",
       render: (lead: Lead) => (
-        <StatusBadge status={lead.status} />
+        <span className="text-xs">{lead.Company || "-"}</span>
       ),
     },
     {
-      key: "source",
-      label: "Source",
-      render: (lead: Lead) => lead.source || "-",
-    },
-    {
-      key: "last_interaction",
-      label: "Last Contact",
-      render: (lead: Lead) => 
-        lead.last_interaction ? new Date(lead.last_interaction).toLocaleDateString() : "-",
-    },
-    {
-      key: "actions",
-      label: "",
+      key: "Email Address",
+      label: "Email",
       render: (lead: Lead) => (
-        <Button variant="ghost" size="sm">
-          Edit
-        </Button>
+        <span className="text-xs">{lead["Email Address"] || "-"}</span>
+      ),
+    },
+    {
+      key: "Company Role",
+      label: "Role",
+      render: (lead: Lead) => (
+        <span className="text-xs">{lead["Company Role"] || "-"}</span>
+      ),
+    },
+    {
+      key: "Employee Location",
+      label: "Location",
+      render: (lead: Lead) => (
+        <span className="text-xs">{lead["Employee Location"] || "-"}</span>
+      ),
+    },
+    {
+      key: "Lead Score",
+      label: "Lead Score",
+      render: (lead: Lead) => (
+        <span className="text-xs font-mono">{lead["Lead Score"] || "-"}</span>
+      ),
+    },
+    {
+      key: "Stage",
+      label: "Stage",
+      render: (lead: Lead) => (
+        <StatusBadge status={lead.Stage?.toLowerCase() || "new"} />
+      ),
+    },
+    {
+      key: "LinkedIn URL",
+      label: "LinkedIn",
+      render: (lead: Lead) => (
+        lead["LinkedIn URL"] ? (
+          <a 
+            href={lead["LinkedIn URL"]} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-xs text-primary hover:underline"
+          >
+            View
+          </a>
+        ) : "-"
       ),
     },
   ];
@@ -221,39 +231,32 @@ const Leads = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="company">Company</Label>
                 <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  id="company"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                 />
               </div>
               <div>
-                <Label htmlFor="company_id">Company</Label>
-                <Select value={formData.company_id} onValueChange={(value) => setFormData({ ...formData, company_id: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select company" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {companies.map((company) => (
-                      <SelectItem key={company.id} value={company.id}>
-                        {company.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="position">Position</Label>
+                <Label htmlFor="role">Role</Label>
                 <Input
-                  id="position"
-                  value={formData.position}
-                  onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                  id="role"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 />
               </div>
               <div>
-                <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="stage">Stage</Label>
+                <Select value={formData.stage} onValueChange={(value) => setFormData({ ...formData, stage: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -261,27 +264,19 @@ const Leads = () => {
                     <SelectItem value="new">New</SelectItem>
                     <SelectItem value="contacted">Contacted</SelectItem>
                     <SelectItem value="qualified">Qualified</SelectItem>
-                    <SelectItem value="proposal">Proposal</SelectItem>
-                    <SelectItem value="won">Won</SelectItem>
-                    <SelectItem value="lost">Lost</SelectItem>
+                    <SelectItem value="interview">Interview</SelectItem>
+                    <SelectItem value="offer">Offer</SelectItem>
+                    <SelectItem value="hired">Hired</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="source">Source</Label>
+                <Label htmlFor="linkedin_url">LinkedIn URL</Label>
                 <Input
-                  id="source"
-                  value={formData.source}
-                  onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                  placeholder="e.g., Website, LinkedIn, Referral"
-                />
-              </div>
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  id="linkedin_url"
+                  value={formData.linkedin_url}
+                  onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                  placeholder="https://linkedin.com/in/profile"
                 />
               </div>
               <div className="flex gap-2">

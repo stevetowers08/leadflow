@@ -14,180 +14,413 @@ export type Database = {
   }
   public: {
     Tables: {
-      companies: {
+      Companies: {
         Row: {
-          address: string | null
-          created_at: string
-          email: string | null
+          "AI Info": string | null
+          Automation: string | null
+          "Company Info": string | null
+          "Company Name": string | null
+          "Company Size": string | null
+          Created: string | null
+          created_at: string | null
+          "Existing Loxo Profile": string | null
+          Favourite: string | null
+          "Head Office": string | null
           id: string
-          industry: string | null
-          name: string
-          notes: string | null
-          phone: string | null
-          status: string | null
-          updated_at: string
-          website: string | null
+          "Image Attachment": string | null
+          Industry: string | null
+          "Job Description": string | null
+          Jobs: string | null
+          "Key Info Raw": string | null
+          "Lead Score": number | null
+          Leads: string | null
+          LinkedIn: string | null
+          "LinkedIn URL": string | null
+          "Loxo Company ID": string | null
+          Priority: string | null
+          "Profile Image URL": string | null
+          Remove: string | null
+          "Score Reason": string | null
+          STATUS: string | null
+          updated_at: string | null
+          Website: string | null
         }
         Insert: {
-          address?: string | null
-          created_at?: string
-          email?: string | null
+          "AI Info"?: string | null
+          Automation?: string | null
+          "Company Info"?: string | null
+          "Company Name"?: string | null
+          "Company Size"?: string | null
+          Created?: string | null
+          created_at?: string | null
+          "Existing Loxo Profile"?: string | null
+          Favourite?: string | null
+          "Head Office"?: string | null
           id?: string
-          industry?: string | null
-          name: string
-          notes?: string | null
-          phone?: string | null
-          status?: string | null
-          updated_at?: string
-          website?: string | null
+          "Image Attachment"?: string | null
+          Industry?: string | null
+          "Job Description"?: string | null
+          Jobs?: string | null
+          "Key Info Raw"?: string | null
+          "Lead Score"?: number | null
+          Leads?: string | null
+          LinkedIn?: string | null
+          "LinkedIn URL"?: string | null
+          "Loxo Company ID"?: string | null
+          Priority?: string | null
+          "Profile Image URL"?: string | null
+          Remove?: string | null
+          "Score Reason"?: string | null
+          STATUS?: string | null
+          updated_at?: string | null
+          Website?: string | null
         }
         Update: {
-          address?: string | null
-          created_at?: string
-          email?: string | null
+          "AI Info"?: string | null
+          Automation?: string | null
+          "Company Info"?: string | null
+          "Company Name"?: string | null
+          "Company Size"?: string | null
+          Created?: string | null
+          created_at?: string | null
+          "Existing Loxo Profile"?: string | null
+          Favourite?: string | null
+          "Head Office"?: string | null
           id?: string
-          industry?: string | null
-          name?: string
-          notes?: string | null
-          phone?: string | null
-          status?: string | null
-          updated_at?: string
-          website?: string | null
+          "Image Attachment"?: string | null
+          Industry?: string | null
+          "Job Description"?: string | null
+          Jobs?: string | null
+          "Key Info Raw"?: string | null
+          "Lead Score"?: number | null
+          Leads?: string | null
+          LinkedIn?: string | null
+          "LinkedIn URL"?: string | null
+          "Loxo Company ID"?: string | null
+          Priority?: string | null
+          "Profile Image URL"?: string | null
+          Remove?: string | null
+          "Score Reason"?: string | null
+          STATUS?: string | null
+          updated_at?: string | null
+          Website?: string | null
         }
         Relationships: []
       }
-      jobs: {
+      company_jobs_mapping: {
         Row: {
           company_id: string | null
-          created_at: string
-          description: string | null
-          function: string | null
+          created_at: string | null
           id: string
-          industry: string | null
-          lead_score: number | null
-          location: string | null
-          logo: string | null
-          posted_date: string | null
-          priority: string | null
-          remote: boolean | null
-          requirements: string | null
-          salary_max: number | null
-          salary_min: number | null
-          score_reason: string | null
-          status: string | null
-          title: string
-          type: string | null
-          updated_at: string
-          valid_through: string | null
+          job_id: string | null
         }
         Insert: {
           company_id?: string | null
-          created_at?: string
-          description?: string | null
-          function?: string | null
+          created_at?: string | null
           id?: string
-          industry?: string | null
-          lead_score?: number | null
-          location?: string | null
-          logo?: string | null
-          posted_date?: string | null
-          priority?: string | null
-          remote?: boolean | null
-          requirements?: string | null
-          salary_max?: number | null
-          salary_min?: number | null
-          score_reason?: string | null
-          status?: string | null
-          title: string
-          type?: string | null
-          updated_at?: string
-          valid_through?: string | null
+          job_id?: string | null
         }
         Update: {
           company_id?: string | null
-          created_at?: string
-          description?: string | null
-          function?: string | null
+          created_at?: string | null
           id?: string
-          industry?: string | null
-          lead_score?: number | null
-          location?: string | null
-          logo?: string | null
-          posted_date?: string | null
-          priority?: string | null
-          remote?: boolean | null
-          requirements?: string | null
-          salary_max?: number | null
-          salary_min?: number | null
-          score_reason?: string | null
-          status?: string | null
-          title?: string
-          type?: string | null
-          updated_at?: string
-          valid_through?: string | null
+          job_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "jobs_company_id_fkey"
+            foreignKeyName: "company_jobs_mapping_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "companies"
+            referencedRelation: "Companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_jobs_mapping_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "Jobs"
             referencedColumns: ["id"]
           },
         ]
       }
-      leads: {
+      company_people_mapping: {
         Row: {
           company_id: string | null
-          created_at: string
-          email: string | null
+          created_at: string | null
           id: string
-          last_interaction: string | null
-          name: string
-          notes: string | null
-          phone: string | null
-          position: string | null
-          source: string | null
-          status: string | null
-          updated_at: string
+          person_id: string | null
         }
         Insert: {
           company_id?: string | null
-          created_at?: string
-          email?: string | null
+          created_at?: string | null
           id?: string
-          last_interaction?: string | null
-          name: string
-          notes?: string | null
-          phone?: string | null
-          position?: string | null
-          source?: string | null
-          status?: string | null
-          updated_at?: string
+          person_id?: string | null
         }
         Update: {
           company_id?: string | null
-          created_at?: string
-          email?: string | null
+          created_at?: string | null
           id?: string
-          last_interaction?: string | null
-          name?: string
-          notes?: string | null
-          phone?: string | null
-          position?: string | null
-          source?: string | null
-          status?: string | null
-          updated_at?: string
+          person_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "leads_company_id_fkey"
+            foreignKeyName: "company_people_mapping_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "companies"
+            referencedRelation: "Companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_people_mapping_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "People"
             referencedColumns: ["id"]
           },
         ]
+      }
+      Jobs: {
+        Row: {
+          Company: string | null
+          Created: string | null
+          created_at: string | null
+          "Employment Type": string | null
+          Function: string | null
+          id: string
+          Industry: string | null
+          "Job Description": string | null
+          "Job Location": string | null
+          "Job Summary": string | null
+          "Job Title": string | null
+          "Job URL": string | null
+          "Lead Score": number | null
+          "Lead Score (from Company)": number | null
+          "LinkedIn Job ID": string | null
+          Logo: string | null
+          "Posted Date": string | null
+          Priority: string | null
+          Salary: string | null
+          "Score Reason (from Company)": string | null
+          "Seniority Level": string | null
+          "Target People": string | null
+          updated_at: string | null
+          "Valid Through": string | null
+        }
+        Insert: {
+          Company?: string | null
+          Created?: string | null
+          created_at?: string | null
+          "Employment Type"?: string | null
+          Function?: string | null
+          id?: string
+          Industry?: string | null
+          "Job Description"?: string | null
+          "Job Location"?: string | null
+          "Job Summary"?: string | null
+          "Job Title"?: string | null
+          "Job URL"?: string | null
+          "Lead Score"?: number | null
+          "Lead Score (from Company)"?: number | null
+          "LinkedIn Job ID"?: string | null
+          Logo?: string | null
+          "Posted Date"?: string | null
+          Priority?: string | null
+          Salary?: string | null
+          "Score Reason (from Company)"?: string | null
+          "Seniority Level"?: string | null
+          "Target People"?: string | null
+          updated_at?: string | null
+          "Valid Through"?: string | null
+        }
+        Update: {
+          Company?: string | null
+          Created?: string | null
+          created_at?: string | null
+          "Employment Type"?: string | null
+          Function?: string | null
+          id?: string
+          Industry?: string | null
+          "Job Description"?: string | null
+          "Job Location"?: string | null
+          "Job Summary"?: string | null
+          "Job Title"?: string | null
+          "Job URL"?: string | null
+          "Lead Score"?: number | null
+          "Lead Score (from Company)"?: number | null
+          "LinkedIn Job ID"?: string | null
+          Logo?: string | null
+          "Posted Date"?: string | null
+          Priority?: string | null
+          Salary?: string | null
+          "Score Reason (from Company)"?: string | null
+          "Seniority Level"?: string | null
+          "Target People"?: string | null
+          updated_at?: string | null
+          "Valid Through"?: string | null
+        }
+        Relationships: []
+      }
+      People: {
+        Row: {
+          Account: string | null
+          Automation: string | null
+          "Automation Date": string | null
+          "Automation Status": string | null
+          Business: string | null
+          "Campaign Finished": string | null
+          Campaigns: string | null
+          Company: string | null
+          "Company Role": string | null
+          "Confidence Level": string | null
+          "Connection Accepted Date": string | null
+          "Connection Request": string | null
+          "Connection Request Date": string | null
+          Created: string | null
+          "Created Date": string | null
+          created_at: string | null
+          "Email Address": string | null
+          "Email Draft": string | null
+          "Email Reply": string | null
+          "Email Reply Date": string | null
+          "Email Sent": string | null
+          "Email Sent Date": string | null
+          "Employee Location": string | null
+          Favourite: string | null
+          id: string
+          Jobs: string | null
+          "Last Contact Date": string | null
+          "Last Message": string | null
+          "Lead Score": string | null
+          "Lead Source": string | null
+          LinkedIn: string | null
+          "LinkedIn Connected": string | null
+          "LinkedIn Connected Message": string | null
+          "LinkedIn Follow Up Message": string | null
+          "LinkedIn Request Message": string | null
+          "LinkedIn Responded": string | null
+          "LinkedIn URL": string | null
+          "Meeting Booked": string | null
+          "Meeting Date": string | null
+          "Message Sent": string | null
+          "Message Sent Date": string | null
+          Name: string | null
+          "Next Action Date": string | null
+          "Outreach Channels": string | null
+          Owner: string | null
+          Remove: string | null
+          "Response Date": string | null
+          Stage: string | null
+          "Stage Updated": string | null
+          Updated: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          Account?: string | null
+          Automation?: string | null
+          "Automation Date"?: string | null
+          "Automation Status"?: string | null
+          Business?: string | null
+          "Campaign Finished"?: string | null
+          Campaigns?: string | null
+          Company?: string | null
+          "Company Role"?: string | null
+          "Confidence Level"?: string | null
+          "Connection Accepted Date"?: string | null
+          "Connection Request"?: string | null
+          "Connection Request Date"?: string | null
+          Created?: string | null
+          "Created Date"?: string | null
+          created_at?: string | null
+          "Email Address"?: string | null
+          "Email Draft"?: string | null
+          "Email Reply"?: string | null
+          "Email Reply Date"?: string | null
+          "Email Sent"?: string | null
+          "Email Sent Date"?: string | null
+          "Employee Location"?: string | null
+          Favourite?: string | null
+          id?: string
+          Jobs?: string | null
+          "Last Contact Date"?: string | null
+          "Last Message"?: string | null
+          "Lead Score"?: string | null
+          "Lead Source"?: string | null
+          LinkedIn?: string | null
+          "LinkedIn Connected"?: string | null
+          "LinkedIn Connected Message"?: string | null
+          "LinkedIn Follow Up Message"?: string | null
+          "LinkedIn Request Message"?: string | null
+          "LinkedIn Responded"?: string | null
+          "LinkedIn URL"?: string | null
+          "Meeting Booked"?: string | null
+          "Meeting Date"?: string | null
+          "Message Sent"?: string | null
+          "Message Sent Date"?: string | null
+          Name?: string | null
+          "Next Action Date"?: string | null
+          "Outreach Channels"?: string | null
+          Owner?: string | null
+          Remove?: string | null
+          "Response Date"?: string | null
+          Stage?: string | null
+          "Stage Updated"?: string | null
+          Updated?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          Account?: string | null
+          Automation?: string | null
+          "Automation Date"?: string | null
+          "Automation Status"?: string | null
+          Business?: string | null
+          "Campaign Finished"?: string | null
+          Campaigns?: string | null
+          Company?: string | null
+          "Company Role"?: string | null
+          "Confidence Level"?: string | null
+          "Connection Accepted Date"?: string | null
+          "Connection Request"?: string | null
+          "Connection Request Date"?: string | null
+          Created?: string | null
+          "Created Date"?: string | null
+          created_at?: string | null
+          "Email Address"?: string | null
+          "Email Draft"?: string | null
+          "Email Reply"?: string | null
+          "Email Reply Date"?: string | null
+          "Email Sent"?: string | null
+          "Email Sent Date"?: string | null
+          "Employee Location"?: string | null
+          Favourite?: string | null
+          id?: string
+          Jobs?: string | null
+          "Last Contact Date"?: string | null
+          "Last Message"?: string | null
+          "Lead Score"?: string | null
+          "Lead Source"?: string | null
+          LinkedIn?: string | null
+          "LinkedIn Connected"?: string | null
+          "LinkedIn Connected Message"?: string | null
+          "LinkedIn Follow Up Message"?: string | null
+          "LinkedIn Request Message"?: string | null
+          "LinkedIn Responded"?: string | null
+          "LinkedIn URL"?: string | null
+          "Meeting Booked"?: string | null
+          "Meeting Date"?: string | null
+          "Message Sent"?: string | null
+          "Message Sent Date"?: string | null
+          Name?: string | null
+          "Next Action Date"?: string | null
+          "Outreach Channels"?: string | null
+          Owner?: string | null
+          Remove?: string | null
+          "Response Date"?: string | null
+          Stage?: string | null
+          "Stage Updated"?: string | null
+          Updated?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {

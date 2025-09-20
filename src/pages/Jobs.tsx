@@ -13,28 +13,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 interface Job {
   id: string;
-  title: string;
-  company_id: string | null;
-  logo: string | null;
-  description: string | null;
-  requirements: string | null;
-  location: string | null;
-  industry: string | null;
-  function: string | null;
-  lead_score: number | null;
-  score_reason: string | null;
-  posted_date: string | null;
-  valid_through: string | null;
-  priority: string | null;
-  salary_min: number | null;
-  salary_max: number | null;
-  status: string;
-  type: string;
-  remote: boolean;
+  "Job Title": string;
+  Company: string;
+  Logo: string | null;
+  "Job Location": string | null;
+  Industry: string | null;
+  Function: string | null;
+  "Lead Score": number | null;
+  "Score Reason (from Company)": string | null;
+  "Posted Date": string | null;
+  "Valid Through": string | null;
+  Priority: string | null;
+  "Job Description": string | null;
+  "Employment Type": string | null;
+  Salary: string | null;
   created_at: string;
-  companies?: {
-    name: string;
-  };
 }
 
 interface Company {
@@ -49,10 +42,8 @@ const Jobs = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
-    company_id: "",
+    company: "",
     logo: "",
-    description: "",
-    requirements: "",
     location: "",
     industry: "",
     function: "",
@@ -61,24 +52,17 @@ const Jobs = () => {
     posted_date: "",
     valid_through: "",
     priority: "medium",
-    salary_min: "",
-    salary_max: "",
-    status: "active",
-    type: "full-time",
-    remote: false
+    description: "",
+    employment_type: "Full-time",
+    salary: ""
   });
   const { toast } = useToast();
 
   const fetchJobs = async () => {
     try {
       const { data, error } = await supabase
-        .from("jobs")
-        .select(`
-          *,
-          companies (
-            name
-          )
-        `)
+        .from("Jobs")
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -97,13 +81,12 @@ const Jobs = () => {
   const fetchCompanies = async () => {
     try {
       const { data, error } = await supabase
-        .from("companies")
-        .select("id, name")
-        .eq("status", "active")
-        .order("name");
+        .from("Companies")
+        .select("id, \"Company Name\"")
+        .order("\"Company Name\"");
 
       if (error) throw error;
-      setCompanies(data || []);
+      setCompanies(data?.map(c => ({ id: c.id, name: c["Company Name"] })) || []);
     } catch (error) {
       console.error("Failed to fetch companies:", error);
     }
@@ -112,24 +95,24 @@ const Jobs = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const submitData = {
-        ...formData,
-        company_id: formData.company_id || null,
-        logo: formData.logo || null,
-        industry: formData.industry || null,
-        function: formData.function || null,
-        lead_score: formData.lead_score ? parseInt(formData.lead_score) : null,
-        score_reason: formData.score_reason || null,
-        posted_date: formData.posted_date || null,
-        valid_through: formData.valid_through || null,
-        priority: formData.priority || "medium",
-        salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
-        salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
-      };
-
       const { error } = await supabase
-        .from("jobs")
-        .insert([submitData]);
+        .from("Jobs")
+        .insert([{
+          "Job Title": formData.title,
+          Company: formData.company,
+          Logo: formData.logo,
+          "Job Location": formData.location,
+          Industry: formData.industry,
+          Function: formData.function,
+          "Lead Score": formData.lead_score ? parseInt(formData.lead_score) : null,
+          "Score Reason (from Company)": formData.score_reason,
+          "Posted Date": formData.posted_date,
+          "Valid Through": formData.valid_through,
+          Priority: formData.priority,
+          "Job Description": formData.description,
+          "Employment Type": formData.employment_type,
+          Salary: formData.salary,
+        }]);
 
       if (error) throw error;
 
@@ -141,10 +124,8 @@ const Jobs = () => {
       setIsDialogOpen(false);
       setFormData({
         title: "",
-        company_id: "",
+        company: "",
         logo: "",
-        description: "",
-        requirements: "",
         location: "",
         industry: "",
         function: "",
@@ -153,11 +134,9 @@ const Jobs = () => {
         posted_date: "",
         valid_through: "",
         priority: "medium",
-        salary_min: "",
-        salary_max: "",
-        status: "active",
-        type: "full-time",
-        remote: false
+        description: "",
+        employment_type: "Full-time",
+        salary: ""
       });
       fetchJobs();
     } catch (error) {
@@ -174,25 +153,18 @@ const Jobs = () => {
     fetchCompanies();
   }, []);
 
-  const formatSalary = (min: number | null, max: number | null) => {
-    if (!min && !max) return "-";
-    if (min && max) return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
-    if (min) return `$${min.toLocaleString()}+`;
-    return `Up to $${max?.toLocaleString()}`;
-  };
-
   const columns = [
     {
-      key: "logo",
+      key: "Logo",
       label: "Logo",
       render: (job: Job) => (
         <div className="flex items-center">
-          {job.logo ? (
-            <img src={job.logo} alt="Logo" className="w-5 h-5 rounded object-cover" />
+          {job.Logo ? (
+            <img src={job.Logo} alt="Logo" className="w-5 h-5 rounded object-cover" />
           ) : (
             <div className="w-5 h-5 bg-muted rounded flex items-center justify-center">
               <span className="text-xs text-muted-foreground">
-                {job.companies?.name?.charAt(0) || "?"}
+                {job.Company?.charAt(0) || "?"}
               </span>
             </div>
           )}
@@ -200,81 +172,72 @@ const Jobs = () => {
       ),
     },
     {
-      key: "company",
+      key: "Company",
       label: "Company",
       render: (job: Job) => (
-        <span className="text-xs">{job.companies?.name || "-"}</span>
+        <span className="text-xs">{job.Company || "-"}</span>
       ),
     },
     {
-      key: "title",
+      key: "Job Title",
       label: "Job Title",
       render: (job: Job) => (
-        <span className="text-xs font-medium">{job.title}</span>
+        <span className="text-xs font-medium">{job["Job Title"]}</span>
       ),
     },
     {
-      key: "location",
+      key: "Job Location",
       label: "Job Location",
       render: (job: Job) => (
-        <span className="text-xs">{job.location || "-"}</span>
+        <span className="text-xs">{job["Job Location"] || "-"}</span>
       ),
     },
     {
-      key: "industry",
+      key: "Industry",
       label: "Industry",
       render: (job: Job) => (
-        <span className="text-xs">{job.industry || "-"}</span>
+        <span className="text-xs">{job.Industry || "-"}</span>
       ),
     },
     {
-      key: "function",
+      key: "Function",
       label: "Function",
       render: (job: Job) => (
-        <span className="text-xs">{job.function || "-"}</span>
+        <span className="text-xs">{job.Function || "-"}</span>
       ),
     },
     {
-      key: "lead_score",
+      key: "Lead Score",
       label: "Lead Score",
       render: (job: Job) => (
         <span className="text-xs font-mono">
-          {job.lead_score ? `#${job.lead_score}` : "-"}
+          {job["Lead Score"] ? `#${job["Lead Score"]}` : "-"}
         </span>
       ),
     },
     {
-      key: "score_reason",
-      label: "Score Reason",
-      render: (job: Job) => (
-        <span className="text-xs text-muted-foreground max-w-24 truncate" title={job.score_reason || ""}>
-          {job.score_reason || "-"}
-        </span>
-      ),
-    },
-    {
-      key: "posted_date",
+      key: "Posted Date",
       label: "Posted Date",
       render: (job: Job) => (
         <span className="text-xs">
-          {job.posted_date ? new Date(job.posted_date).toLocaleDateString() : "-"}
+          {job["Posted Date"] ? new Date(job["Posted Date"]).toLocaleDateString() : "-"}
         </span>
       ),
     },
     {
-      key: "valid_through",
+      key: "Valid Through",
       label: "Valid Through",
       render: (job: Job) => (
         <span className="text-xs">
-          {job.valid_through ? new Date(job.valid_through).toLocaleDateString() : "-"}
+          {job["Valid Through"] ? new Date(job["Valid Through"]).toLocaleDateString() : "-"}
         </span>
       ),
     },
     {
-      key: "priority",
+      key: "Priority",
       label: "Priority",
       render: (job: Job) => (
-        <StatusBadge status={job.priority || "medium"} />
+        <StatusBadge status={job.Priority?.toLowerCase() || "medium"} />
       ),
     },
   ];
@@ -305,135 +268,43 @@ const Jobs = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="company_id">Company</Label>
-                <Select value={formData.company_id} onValueChange={(value) => setFormData({ ...formData, company_id: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select company" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {companies.map((company) => (
-                      <SelectItem key={company.id} value={company.id}>
-                        {company.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="company">Company</Label>
+                <Input
+                  id="company"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="logo">Logo URL</Label>
+                <Input
+                  id="logo"
+                  value={formData.logo}
+                  onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
+                  placeholder="https://company.com/logo.png"
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="type">Job Type</Label>
-                  <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full-time">Full-time</SelectItem>
-                      <SelectItem value="part-time">Part-time</SelectItem>
-                      <SelectItem value="contract">Contract</SelectItem>
-                      <SelectItem value="temporary">Temporary</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="industry">Industry</Label>
+                  <Input
+                    id="industry"
+                    value={formData.industry}
+                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                    placeholder="Technology, Healthcare, etc."
+                  />
                 </div>
                 <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="paused">Paused</SelectItem>
-                      <SelectItem value="filled">Filled</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="function">Function</Label>
+                  <Input
+                    id="function"
+                    value={formData.function}
+                    onChange={(e) => setFormData({ ...formData, function: e.target.value })}
+                    placeholder="Engineering, Sales, etc."
+                  />
                 </div>
-               </div>
-               <div>
-                 <Label htmlFor="logo">Logo URL</Label>
-                 <Input
-                   id="logo"
-                   value={formData.logo}
-                   onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
-                   placeholder="https://company.com/logo.png"
-                 />
-               </div>
-               <div className="grid grid-cols-2 gap-4">
-                 <div>
-                   <Label htmlFor="industry">Industry</Label>
-                   <Input
-                     id="industry"
-                     value={formData.industry}
-                     onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                     placeholder="Technology, Healthcare, etc."
-                   />
-                 </div>
-                 <div>
-                   <Label htmlFor="function">Function</Label>
-                   <Input
-                     id="function"
-                     value={formData.function}
-                     onChange={(e) => setFormData({ ...formData, function: e.target.value })}
-                     placeholder="Engineering, Sales, etc."
-                   />
-                 </div>
-               </div>
-               <div className="grid grid-cols-2 gap-4">
-                 <div>
-                   <Label htmlFor="lead_score">Lead Score</Label>
-                   <Input
-                     id="lead_score"
-                     type="number"
-                     value={formData.lead_score}
-                     onChange={(e) => setFormData({ ...formData, lead_score: e.target.value })}
-                     placeholder="1-100"
-                   />
-                 </div>
-                 <div>
-                   <Label htmlFor="priority">Priority</Label>
-                   <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
-                     <SelectTrigger>
-                       <SelectValue />
-                     </SelectTrigger>
-                     <SelectContent>
-                       <SelectItem value="low">Low</SelectItem>
-                       <SelectItem value="medium">Medium</SelectItem>
-                       <SelectItem value="high">High</SelectItem>
-                     </SelectContent>
-                   </Select>
-                 </div>
-               </div>
-               <div>
-                 <Label htmlFor="score_reason">Score Reason</Label>
-                 <Input
-                   id="score_reason"
-                   value={formData.score_reason}
-                   onChange={(e) => setFormData({ ...formData, score_reason: e.target.value })}
-                   placeholder="Reason for lead score from company data"
-                 />
-               </div>
-               <div className="grid grid-cols-2 gap-4">
-                 <div>
-                   <Label htmlFor="posted_date">Posted Date</Label>
-                   <Input
-                     id="posted_date"
-                     type="date"
-                     value={formData.posted_date}
-                     onChange={(e) => setFormData({ ...formData, posted_date: e.target.value })}
-                   />
-                 </div>
-                 <div>
-                   <Label htmlFor="valid_through">Valid Through</Label>
-                   <Input
-                     id="valid_through"
-                     type="date"
-                     value={formData.valid_through}
-                     onChange={(e) => setFormData({ ...formData, valid_through: e.target.value })}
-                   />
-                 </div>
-               </div>
-               <div>
+              </div>
+              <div>
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
@@ -441,33 +312,61 @@ const Jobs = () => {
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 />
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remote"
-                  checked={formData.remote}
-                  onCheckedChange={(checked) => setFormData({ ...formData, remote: checked as boolean })}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="employment_type">Employment Type</Label>
+                  <Select value={formData.employment_type} onValueChange={(value) => setFormData({ ...formData, employment_type: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Full-time">Full-time</SelectItem>
+                      <SelectItem value="Part-time">Part-time</SelectItem>
+                      <SelectItem value="Contract">Contract</SelectItem>
+                      <SelectItem value="Temporary">Temporary</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="salary">Salary</Label>
+                <Input
+                  id="salary"
+                  value={formData.salary}
+                  onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                  placeholder="$50,000 - $80,000"
                 />
-                <Label htmlFor="remote">Remote work available</Label>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="salary_min">Min Salary</Label>
+                  <Label htmlFor="posted_date">Posted Date</Label>
                   <Input
-                    id="salary_min"
-                    type="number"
-                    value={formData.salary_min}
-                    onChange={(e) => setFormData({ ...formData, salary_min: e.target.value })}
-                    placeholder="50000"
+                    id="posted_date"
+                    type="date"
+                    value={formData.posted_date}
+                    onChange={(e) => setFormData({ ...formData, posted_date: e.target.value })}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="salary_max">Max Salary</Label>
+                  <Label htmlFor="valid_through">Valid Through</Label>
                   <Input
-                    id="salary_max"
-                    type="number"
-                    value={formData.salary_max}
-                    onChange={(e) => setFormData({ ...formData, salary_max: e.target.value })}
-                    placeholder="100000"
+                    id="valid_through"
+                    type="date"
+                    value={formData.valid_through}
+                    onChange={(e) => setFormData({ ...formData, valid_through: e.target.value })}
                   />
                 </div>
               </div>
@@ -477,15 +376,6 @@ const Jobs = () => {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={4}
-                />
-              </div>
-              <div>
-                <Label htmlFor="requirements">Requirements</Label>
-                <Textarea
-                  id="requirements"
-                  value={formData.requirements}
-                  onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
                   rows={4}
                 />
               </div>

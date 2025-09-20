@@ -21,11 +21,11 @@ const Index = () => {
   const fetchStats = async () => {
     try {
       const [leadsCount, companiesCount, jobsCount, recentLeadsCount] = await Promise.all([
-        supabase.from("leads").select("*", { count: "exact", head: true }),
-        supabase.from("companies").select("*", { count: "exact", head: true }),
-        supabase.from("jobs").select("*", { count: "exact", head: true }),
+        supabase.from("People").select("*", { count: "exact", head: true }),
+        supabase.from("Companies").select("*", { count: "exact", head: true }),
+        supabase.from("Jobs").select("*", { count: "exact", head: true }),
         supabase
-          .from("leads")
+          .from("People")
           .select("*", { count: "exact", head: true })
           .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
       ]);

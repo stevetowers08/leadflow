@@ -9,18 +9,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AirtableSync } from "@/components/AirtableSync";
 
 interface Company {
   id: string;
-  name: string;
-  industry: string | null;
-  website: string | null;
-  phone: string | null;
-  email: string | null;
-  address: string | null;
-  status: string;
-  notes: string | null;
+  "Company Name": string;
+  "Industry": string | null;
+  "Website": string | null;
+  "Company Size": string | null;
+  "Head Office": string | null;
+  "Lead Score": number | null;
+  "Priority": string | null;
+  "STATUS": string | null;
+  "Company Info": string | null;
+  "LinkedIn URL": string | null;
+  "Profile Image URL": string | null;
   created_at: string;
 }
 
@@ -43,7 +45,7 @@ const Companies = () => {
   const fetchCompanies = async () => {
     try {
       const { data, error } = await supabase
-        .from("companies")
+        .from("Companies")
         .select("*")
         .order("created_at", { ascending: false });
 
@@ -64,8 +66,15 @@ const Companies = () => {
     e.preventDefault();
     try {
       const { error } = await supabase
-        .from("companies")
-        .insert([formData]);
+        .from("Companies")
+        .insert([{
+          "Company Name": formData.name,
+          "Industry": formData.industry,
+          "Website": formData.website,
+          "Head Office": formData.address,
+          "STATUS": formData.status,
+          "Company Info": formData.notes,
+        }]);
 
       if (error) throw error;
 
@@ -101,41 +110,70 @@ const Companies = () => {
 
   const columns = [
     {
-      key: "name",
-      label: "Company Name",
+      key: "Company Name",
+      label: "Company",
       render: (company: Company) => (
-        <div className="font-medium text-xs">{company.name}</div>
+        <span className="text-xs font-medium">{company["Company Name"] || "-"}</span>
       ),
     },
     {
-      key: "industry",
+      key: "Industry",
       label: "Industry",
-      render: (company: Company) => <span className="text-xs">{company.industry || "-"}</span>,
+      render: (company: Company) => (
+        <span className="text-xs">{company["Industry"] || "-"}</span>
+      ),
     },
     {
-      key: "email",
-      label: "Email",
-      render: (company: Company) => <span className="text-xs">{company.email || "-"}</span>,
+      key: "Company Size",
+      label: "Size",
+      render: (company: Company) => (
+        <span className="text-xs">{company["Company Size"] || "-"}</span>
+      ),
     },
     {
-      key: "phone",
-      label: "Phone",
-      render: (company: Company) => <span className="text-xs">{company.phone || "-"}</span>,
+      key: "Head Office",
+      label: "Location",
+      render: (company: Company) => (
+        <span className="text-xs">{company["Head Office"] || "-"}</span>
+      ),
     },
     {
-      key: "status",
+      key: "Lead Score",
+      label: "Lead Score",
+      render: (company: Company) => (
+        <span className="text-xs font-mono">
+          {company["Lead Score"] ? `#${company["Lead Score"]}` : "-"}
+        </span>
+      ),
+    },
+    {
+      key: "Priority",
+      label: "Priority",
+      render: (company: Company) => (
+        <StatusBadge status={company["Priority"]?.toLowerCase() || "medium"} />
+      ),
+    },
+    {
+      key: "STATUS",
       label: "Status",
       render: (company: Company) => (
-        <StatusBadge status={company.status} />
+        <StatusBadge status={company["STATUS"]?.toLowerCase() || "active"} />
       ),
     },
     {
-      key: "actions",
-      label: "",
+      key: "Website",
+      label: "Website",
       render: (company: Company) => (
-        <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-          Edit
-        </Button>
+        company["Website"] ? (
+          <a 
+            href={company["Website"]} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-xs text-primary hover:underline"
+          >
+            Visit
+          </a>
+        ) : "-"
       ),
     },
   ];
@@ -147,12 +185,10 @@ const Companies = () => {
       columns={columns}
       loading={loading}
       addButton={
-        <div className="flex gap-2">
-          <AirtableSync onSyncComplete={fetchCompanies} />
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="h-8 text-xs px-3">Add Company</Button>
-            </DialogTrigger>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="h-8 text-xs px-3">Add Company</Button>
+          </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add New Company</DialogTitle>
@@ -230,7 +266,6 @@ const Companies = () => {
             </form>
           </DialogContent>
         </Dialog>
-        </div>
       }
     />
   );
