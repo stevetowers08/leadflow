@@ -33,11 +33,14 @@ const NewJobs = () => {
 
   const fetchNewJobs = async () => {
     try {
-      // Fetch jobs where automation hasn't started (assuming there's a field that tracks automation status)
+      // Fetch recent jobs (created within the last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
       const { data, error } = await supabase
         .from("Jobs")
         .select("*")
-        .is("automation_started", false) // Adjust this condition based on your schema
+        .gte("created_at", thirtyDaysAgo.toISOString())
         .order("created_at", { ascending: false });
 
       if (error) throw error;

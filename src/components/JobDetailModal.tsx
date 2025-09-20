@@ -45,12 +45,11 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
 
-  if (!job) return null;
-
   // Fetch related company data
   const { data: companyData } = useQuery({
-    queryKey: ["job-company", job.Company],
+    queryKey: ["job-company", job?.Company],
     queryFn: async () => {
+      if (!job?.Company) return null;
       const { data, error } = await supabase
         .from("Companies")
         .select("*")
@@ -60,13 +59,14 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
       if (error) throw error;
       return data?.[0];
     },
-    enabled: !!job.Company && isOpen
+    enabled: !!job?.Company && isOpen
   });
 
   // Fetch related leads for this job's company
   const { data: relatedLeads, isLoading: leadsLoading } = useQuery({
-    queryKey: ["job-leads", job.Company],
+    queryKey: ["job-leads", job?.Company],
     queryFn: async () => {
+      if (!job?.Company) return [];
       const { data, error } = await supabase
         .from("People")
         .select(`
@@ -89,15 +89,16 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
-    enabled: !!job.Company && isOpen
+    enabled: !!job?.Company && isOpen
   });
 
   // Fetch other jobs from the same company
   const { data: otherJobs } = useQuery({
-    queryKey: ["company-other-jobs", job.Company, job.id],
+    queryKey: ["company-other-jobs", job?.Company, job?.id],
     queryFn: async () => {
+      if (!job?.Company || !job?.id) return [];
       const { data, error } = await supabase
         .from("Jobs")
         .select(`
@@ -115,10 +116,12 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
-    enabled: !!job.Company && isOpen
+    enabled: !!job?.Company && !!job?.id && isOpen
   });
+
+  if (!job) return null;
 
   const handleLeadSelect = (leadId: string, checked: boolean) => {
     const lead = relatedLeads?.find(l => l.id === leadId);

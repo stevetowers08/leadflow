@@ -41,12 +41,36 @@ const EndingSoon = () => {
         .from("Jobs")
         .select("*")
         .not("Valid Through", "is", null)
-        .lte("Valid Through", oneWeekFromNow.toISOString())
-        .gte("Valid Through", new Date().toISOString())
-        .order("Valid Through", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setJobs(data || []);
+      
+      // Filter jobs that are ending soon (client-side filtering for date parsing)
+      const filteredJobs = (data || []).filter(job => {
+        if (!job["Valid Through"]) return false;
+        
+        try {
+          // Parse date from DD/M/YYYY or DD/MM/YYYY format
+          const parseDate = (dateStr: string) => {
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+              const day = parts[0].padStart(2, '0');
+              const month = parts[1].padStart(2, '0');
+              const year = parts[2];
+              return new Date(`${year}-${month}-${day}`);
+            }
+            return new Date(dateStr);
+          };
+          
+          const validThrough = parseDate(job["Valid Through"]);
+          const now = new Date();
+          return validThrough >= now && validThrough <= oneWeekFromNow;
+        } catch {
+          return false;
+        }
+      });
+      
+      setJobs(filteredJobs);
     } catch (error) {
       toast({
         title: "Error",
