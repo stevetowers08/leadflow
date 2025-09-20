@@ -306,19 +306,12 @@ const Jobs = () => {
           </p>
         </div>
 
-        <div className="bg-card rounded-md border">
-          <DataTable
-            title=""
-            data={jobs}
-            columns={columns}
-            loading={loading}
-            onRowClick={handleRowClick}
-            addButton={
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Add Job</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-end mb-4">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-9 px-4">Add Job</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Job</DialogTitle>
             </DialogHeader>
@@ -453,9 +446,15 @@ const Jobs = () => {
             </form>
           </DialogContent>
         </Dialog>
-      }
-          />
         </div>
+
+        <DataTable
+          data={jobs}
+          columns={columns}
+          loading={loading}
+          onRowClick={handleRowClick}
+          showSearch={false}
+        />
       </div>
       
       <JobDetailModal

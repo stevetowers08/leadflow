@@ -5,17 +5,15 @@ import { Plus } from "lucide-react";
 const Campaigns = () => {
   return (
     <div className="space-y-4">
-      <div className="border-b pb-3">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-lg font-semibold tracking-tight">Campaigns</h1>
-            <p className="text-xs text-muted-foreground mt-1">Create and manage marketing campaigns</p>
-          </div>
-          <Button className="h-8 text-xs px-3">
-            <Plus className="h-4 w-4 mr-2" />
-            New Campaign
-          </Button>
+      <div className="flex items-center justify-between border-b pb-3">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">Campaigns</h1>
+          <p className="text-xs text-muted-foreground mt-1">Create and manage marketing campaigns</p>
         </div>
+        <Button className="h-9 px-4">
+          <Plus className="h-4 w-4 mr-2" />
+          New Campaign
+        </Button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

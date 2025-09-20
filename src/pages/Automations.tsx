@@ -263,9 +263,9 @@ const Automations = () => {
     <div className="space-y-4">
         <div className="border-b pb-3">
           <h1 className="text-lg font-semibold tracking-tight">Automations</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Manage leads that need automation actions and status updates
-          </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Manage automated outreach campaigns and sequences
+        </p>
         </div>
 
       {/* Search and Filter Controls */}

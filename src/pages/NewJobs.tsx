@@ -205,21 +205,17 @@ const NewJobs = () => {
       <div className="space-y-4">
         <div className="border-b pb-3">
           <h1 className="text-lg font-semibold tracking-tight">New Jobs</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Jobs where automation hasn't started yet
-          </p>
-        </div>
-
-        <div className="bg-card rounded-md border">
-          <DataTable
-            title=""
-            data={jobs}
-            columns={columns}
-            loading={loading}
-            onRowClick={handleRowClick}
-          />
-        </div>
+        <p className="text-xs text-muted-foreground mt-1">Recently posted job opportunities</p>
       </div>
+
+      <DataTable
+        data={jobs}
+        columns={columns}
+        loading={loading}
+        onRowClick={handleRowClick}
+        showSearch={false}
+      />
+    </div>
       
       <JobDetailModal
         job={selectedJob}

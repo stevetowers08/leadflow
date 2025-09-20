@@ -212,21 +212,17 @@ const EndingSoon = () => {
       <div className="space-y-4">
         <div className="border-b pb-3">
           <h1 className="text-lg font-semibold tracking-tight">Ending Soon</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Jobs ending within the next week
-          </p>
-        </div>
-
-        <div className="bg-card rounded-md border">
-          <DataTable
-            title=""
-            data={jobs}
-            columns={columns}
-            loading={loading}
-            onRowClick={handleRowClick}
-          />
-        </div>
+        <p className="text-xs text-muted-foreground mt-1">Job postings that are about to expire</p>
       </div>
+
+      <DataTable
+        data={jobs}
+        columns={columns}
+        loading={loading}
+        onRowClick={handleRowClick}
+        showSearch={false}
+      />
+    </div>
       
       <JobDetailModal
         job={selectedJob}

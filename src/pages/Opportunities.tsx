@@ -196,10 +196,10 @@ const Opportunities = () => {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="border-b pb-2">
+    <div className="space-y-4">
+      <div className="border-b pb-3">
         <h1 className="text-lg font-semibold tracking-tight">Opportunities Pipeline</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">
+        <p className="text-xs text-muted-foreground mt-1">
           Track leads through your recruiting stages
         </p>
       </div>

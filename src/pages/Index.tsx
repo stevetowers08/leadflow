@@ -46,11 +46,11 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome to your recruitment CRM dashboard
+    <div className="space-y-4">
+      <div className="border-b pb-3">
+        <h1 className="text-lg font-semibold tracking-tight">Dashboard</h1>
+        <p className="text-xs text-muted-foreground mt-1">
+          Overview of your recruitment metrics and activities
         </p>
       </div>
 
