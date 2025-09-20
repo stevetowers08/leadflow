@@ -8,15 +8,15 @@ interface StatusBadgeProps {
 }
 
 const statusStyles = {
-  // Lead statuses - Modern CRM colors inspired by HubSpot/Salesforce
-  new: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
-  contacted: "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
-  qualified: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800",
-  interview: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
-  offer: "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800",
-  hired: "bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800",
-  won: "bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800",
-  lost: "bg-red-50 text-red-700 border-red-200 hover:bg-red-100 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
+  // Lead statuses - Enhanced CRM colors with gradients and vibrant tones
+  new: "bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-800 border-emerald-300 hover:from-emerald-100 hover:to-emerald-200 shadow-sm dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
+  contacted: "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 border-blue-300 hover:from-blue-100 hover:to-blue-200 shadow-sm dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
+  qualified: "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 border-purple-300 hover:from-purple-100 hover:to-purple-200 shadow-sm dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800",
+  interview: "bg-gradient-to-r from-amber-50 to-amber-100 text-amber-800 border-amber-300 hover:from-amber-100 hover:to-amber-200 shadow-sm dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
+  offer: "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-800 border-orange-300 hover:from-orange-100 hover:to-orange-200 shadow-sm dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800",
+  hired: "bg-gradient-to-r from-green-50 to-green-100 text-green-800 border-green-300 hover:from-green-100 hover:to-green-200 shadow-sm dark:bg-green-950/50 dark:text-green-400 dark:border-green-800",
+  won: "bg-gradient-to-r from-green-50 to-green-100 text-green-800 border-green-300 hover:from-green-100 hover:to-green-200 shadow-sm dark:bg-green-950/50 dark:text-green-400 dark:border-green-800",
+  lost: "bg-gradient-to-r from-red-50 to-red-100 text-red-800 border-red-300 hover:from-red-100 hover:to-red-200 shadow-sm dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
   
   // Company statuses
   active: "bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800",
