@@ -164,8 +164,8 @@ const Leads = () => {
       render: (lead: Lead) => (
         <div className="flex justify-center">
           <StatusBadge 
-            status={lead.stage_enum || lead.Stage?.toLowerCase() || "new"} 
-            size="md"
+            status={lead.Stage || lead.stage_enum || "new lead"} 
+            size="sm"
             className="shadow-sm"
           />
         </div>

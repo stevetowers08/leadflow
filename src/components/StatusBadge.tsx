@@ -8,7 +8,16 @@ interface StatusBadgeProps {
 }
 
 const statusStyles = {
-  // Lead statuses - Enhanced CRM colors with gradients and vibrant tones
+  // Lead statuses - Enhanced with recruiting stages
+  'new lead': "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 border-blue-300 hover:from-blue-100 hover:to-blue-200 shadow-sm dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
+  'in queue': "bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-800 border-yellow-300 hover:from-yellow-100 hover:to-yellow-200 shadow-sm dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-800",
+  'connect sent': "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 border-purple-300 hover:from-purple-100 hover:to-purple-200 shadow-sm dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800", 
+  'msg sent': "bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-800 border-indigo-300 hover:from-indigo-100 hover:to-indigo-200 shadow-sm dark:bg-indigo-950/50 dark:text-indigo-400 dark:border-indigo-800",
+  connected: "bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-800 border-emerald-300 hover:from-emerald-100 hover:to-emerald-200 shadow-sm dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
+  replied: "bg-gradient-to-r from-green-50 to-green-100 text-green-800 border-green-300 hover:from-green-100 hover:to-green-200 shadow-sm dark:bg-green-950/50 dark:text-green-400 dark:border-green-800",
+  'lead lost': "bg-gradient-to-r from-red-50 to-red-100 text-red-800 border-red-300 hover:from-red-100 hover:to-red-200 shadow-sm dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
+  
+  // Legacy stages for backwards compatibility
   new: "bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-800 border-emerald-300 hover:from-emerald-100 hover:to-emerald-200 shadow-sm dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
   contacted: "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 border-blue-300 hover:from-blue-100 hover:to-blue-200 shadow-sm dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
   qualified: "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 border-purple-300 hover:from-purple-100 hover:to-purple-200 shadow-sm dark:bg-purple-950/50 dark:text-purple-400 dark:border-purple-800",
