@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AirtableSync } from "@/components/AirtableSync";
 
 interface Company {
   id: string;
@@ -103,23 +104,23 @@ const Companies = () => {
       key: "name",
       label: "Company Name",
       render: (company: Company) => (
-        <div className="font-medium">{company.name}</div>
+        <div className="font-medium text-xs">{company.name}</div>
       ),
     },
     {
       key: "industry",
       label: "Industry",
-      render: (company: Company) => company.industry || "-",
+      render: (company: Company) => <span className="text-xs">{company.industry || "-"}</span>,
     },
     {
       key: "email",
       label: "Email",
-      render: (company: Company) => company.email || "-",
+      render: (company: Company) => <span className="text-xs">{company.email || "-"}</span>,
     },
     {
       key: "phone",
       label: "Phone",
-      render: (company: Company) => company.phone || "-",
+      render: (company: Company) => <span className="text-xs">{company.phone || "-"}</span>,
     },
     {
       key: "status",
@@ -132,7 +133,7 @@ const Companies = () => {
       key: "actions",
       label: "",
       render: (company: Company) => (
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
           Edit
         </Button>
       ),
@@ -146,10 +147,12 @@ const Companies = () => {
       columns={columns}
       loading={loading}
       addButton={
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Add Company</Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <AirtableSync onSyncComplete={fetchCompanies} />
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-8 text-xs px-3">Add Company</Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add New Company</DialogTitle>
@@ -227,6 +230,7 @@ const Companies = () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       }
     />
   );

@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Filter } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 
 interface Column<T> {
   key: string;
@@ -38,88 +38,81 @@ export function DataTable<T extends Record<string, any>>({
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="text-muted-foreground">Loading...</div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-xs text-muted-foreground">Loading...</div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>{title}</CardTitle>
-          {addButton}
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        {addButton}
+      </div>
+      
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3.5 w-3.5" />
+          <Input
+            placeholder={`Search ${title.toLowerCase()}...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8 h-8 text-xs"
+          />
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder={`Search ${title.toLowerCase()}...`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
-          </div>
+        <Button variant="outline" size="sm" className="h-8 text-xs px-2">
+          <Filter className="h-3 w-3 mr-1" />
+          Filter
+        </Button>
+      </div>
 
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
+      <div className="border rounded-md">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b">
+              {columns.map((column) => (
+                <TableHead key={column.key} className="h-8 text-xs font-medium text-muted-foreground px-3 py-2">
+                  {column.label}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredData.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="text-center py-6 text-xs text-muted-foreground"
+                >
+                  {searchTerm
+                    ? `No ${title.toLowerCase()} found matching "${searchTerm}"`
+                    : `No ${title.toLowerCase()} found`}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredData.map((item, index) => (
+                <TableRow key={item.id || index} className="border-b last:border-0 hover:bg-muted/50">
                   {columns.map((column) => (
-                    <TableHead key={column.key}>{column.label}</TableHead>
+                    <TableCell key={column.key} className="px-3 py-2 text-xs">
+                      {column.render(item)}
+                    </TableCell>
                   ))}
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredData.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="text-center py-8 text-muted-foreground"
-                    >
-                      {searchTerm
-                        ? `No ${title.toLowerCase()} found matching "${searchTerm}"`
-                        : `No ${title.toLowerCase()} found`}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredData.map((item, index) => (
-                    <TableRow key={item.id || index}>
-                      {columns.map((column) => (
-                        <TableCell key={column.key}>
-                          {column.render(item)}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-          {filteredData.length > 0 && (
-            <div className="text-sm text-muted-foreground">
-              Showing {filteredData.length} of {data.length} {title.toLowerCase()}
-            </div>
-          )}
+      {filteredData.length > 0 && (
+        <div className="text-xs text-muted-foreground">
+          {filteredData.length} of {data.length} {title.toLowerCase()}
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
