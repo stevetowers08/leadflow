@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ExternalLink, Zap, User, Building2, Mail, MapPin, Star, Calendar } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ExternalLink, Zap, User, Building2, Mail, MapPin, Star, Calendar, Briefcase, Users } from "lucide-react";
 
 interface Lead {
   id: string;
@@ -30,6 +31,60 @@ interface LeadDetailModalProps {
 export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps) {
   const [isAutomating, setIsAutomating] = useState(false);
   const { toast } = useToast();
+
+  // Fetch related company data
+  const { data: companyData } = useQuery({
+    queryKey: ['company', lead?.Company],
+    queryFn: async () => {
+      if (!lead?.Company) return null;
+      const { data, error } = await supabase
+        .from('Companies')
+        .select('*')
+        .ilike('Company Name', lead.Company)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!lead?.Company && isOpen,
+  });
+
+  // Fetch related jobs from the same company
+  const { data: relatedJobs } = useQuery({
+    queryKey: ['company-jobs', lead?.Company],
+    queryFn: async () => {
+      if (!lead?.Company) return [];
+      const { data, error } = await supabase
+        .from('Jobs')
+        .select('*')
+        .ilike('Company', lead.Company)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!lead?.Company && isOpen,
+  });
+
+  // Fetch other leads from the same company
+  const { data: relatedLeads } = useQuery({
+    queryKey: ['company-leads', lead?.Company, lead?.id],
+    queryFn: async () => {
+      if (!lead?.Company || !lead?.id) return [];
+      const { data, error } = await supabase
+        .from('People')
+        .select('*')
+        .ilike('Company', lead.Company)
+        .neq('id', lead.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!lead?.Company && !!lead?.id && isOpen,
+  });
 
   if (!lead) return null;
 
@@ -191,6 +246,109 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
                   <span className="text-sm">View Profile</span>
                   <ExternalLink className="h-3 w-3" />
                 </a>
+              </div>
+            </div>
+          )}
+
+          {/* Company Details */}
+          {companyData && (
+            <div className="p-4 bg-muted/10 rounded-lg border">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Company Details</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                {companyData.Industry && (
+                  <div>
+                    <span className="text-muted-foreground">Industry:</span>
+                    <span className="ml-2">{companyData.Industry}</span>
+                  </div>
+                )}
+                {companyData["Company Size"] && (
+                  <div>
+                    <span className="text-muted-foreground">Size:</span>
+                    <span className="ml-2">{companyData["Company Size"]}</span>
+                  </div>
+                )}
+                {companyData["Head Office"] && (
+                  <div>
+                    <span className="text-muted-foreground">Location:</span>
+                    <span className="ml-2">{companyData["Head Office"]}</span>
+                  </div>
+                )}
+                {companyData.Website && (
+                  <div>
+                    <span className="text-muted-foreground">Website:</span>
+                    <a 
+                      href={companyData.Website.startsWith('http') ? companyData.Website : `https://${companyData.Website}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 text-primary hover:underline"
+                    >
+                      {companyData.Website}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Related Jobs */}
+          {relatedJobs && relatedJobs.length > 0 && (
+            <div className="p-4 bg-muted/10 rounded-lg border">
+              <div className="flex items-center gap-2 mb-3">
+                <Briefcase className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Related Jobs ({relatedJobs.length})</h3>
+              </div>
+              <div className="space-y-2">
+                {relatedJobs.map((job: any) => (
+                  <div key={job.id} className="flex items-center justify-between p-2 bg-background rounded border">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{job["Job Title"]}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {job["Job Location"]} • Posted {job["Posted Date"]}
+                      </div>
+                    </div>
+                    {job["Lead Score"] && (
+                      <div className={`px-2 py-1 rounded text-xs font-medium ${getScoreColor(job["Lead Score"].toString())}`}>
+                        {job["Lead Score"]}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Related Leads */}
+          {relatedLeads && relatedLeads.length > 0 && (
+            <div className="p-4 bg-muted/10 rounded-lg border">
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Other Leads from {lead.Company} ({relatedLeads.length})</h3>
+              </div>
+              <div className="space-y-2">
+                {relatedLeads.map((otherLead: any) => (
+                  <div key={otherLead.id} className="flex items-center justify-between p-2 bg-background rounded border">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm">{otherLead.Name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {otherLead["Company Role"]} • {otherLead["Employee Location"]}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {otherLead["Lead Score"] && (
+                        <div className={`px-2 py-1 rounded text-xs font-medium ${getScoreColor(otherLead["Lead Score"])}`}>
+                          {otherLead["Lead Score"]}
+                        </div>
+                      )}
+                      <StatusBadge 
+                        status={otherLead.stage_enum || otherLead.Stage?.toLowerCase() || "new"} 
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
