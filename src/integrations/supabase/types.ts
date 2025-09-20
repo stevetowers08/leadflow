@@ -477,7 +477,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_enum_values: {
+        Args: { enum_type: string }
+        Returns: string[]
+      }
     }
     Enums: {
       company_status: "active" | "inactive" | "prospect"
