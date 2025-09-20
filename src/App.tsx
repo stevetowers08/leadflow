@@ -7,6 +7,9 @@ import Index from "./pages/Index";
 import Companies from "./pages/Companies";
 import Leads from "./pages/Leads";
 import Jobs from "./pages/Jobs";
+import NewJobs from "./pages/NewJobs";
+import MorningView from "./pages/MorningView";
+import EndingSoon from "./pages/EndingSoon";
 import Opportunities from "./pages/Opportunities";
 import Campaigns from "./pages/Campaigns";
 import Reporting from "./pages/Reporting";
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/companies" element={<Layout><Companies /></Layout>} />
           <Route path="/leads" element={<Layout><Leads /></Layout>} />
           <Route path="/jobs" element={<Layout><Jobs /></Layout>} />
+          <Route path="/jobs/new" element={<Layout><NewJobs /></Layout>} />
+          <Route path="/jobs/morning-view" element={<Layout><MorningView /></Layout>} />
+          <Route path="/jobs/ending-soon" element={<Layout><EndingSoon /></Layout>} />
           <Route path="/opportunities" element={<Layout><Opportunities /></Layout>} />
           <Route path="/campaigns" element={<Layout><Campaigns /></Layout>} />
           <Route path="/reporting" element={<Layout><Reporting /></Layout>} />

@@ -194,11 +194,17 @@ const Jobs = () => {
     },
     {
       key: "Lead Score",
-      label: "Lead Score",
+      label: "Score",
       render: (job: Job) => (
-        <span className="text-xs font-mono">
-          {job["Lead Score"] ? `#${job["Lead Score"]}` : "-"}
-        </span>
+        <div className="text-center">
+          {job["Lead Score"] ? (
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-mono text-xs font-semibold">
+              {job["Lead Score"]}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">-</span>
+          )}
+        </div>
       ),
     },
     {
@@ -206,7 +212,11 @@ const Jobs = () => {
       label: "Posted Date",
       render: (job: Job) => (
         <span className="text-xs">
-          {job["Posted Date"] ? new Date(job["Posted Date"]).toLocaleDateString() : "-"}
+          {job["Posted Date"] ? new Date(job["Posted Date"]).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }) : "-"}
         </span>
       ),
     },
@@ -215,7 +225,11 @@ const Jobs = () => {
       label: "Valid Through",
       render: (job: Job) => (
         <span className="text-xs">
-          {job["Valid Through"] ? new Date(job["Valid Through"]).toLocaleDateString() : "-"}
+          {job["Valid Through"] ? new Date(job["Valid Through"]).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }) : "-"}
         </span>
       ),
     },
