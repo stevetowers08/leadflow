@@ -4,6 +4,10 @@ import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { JobDetailModal } from "@/components/JobDetailModal";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { DropdownSelect } from "@/components/ui/dropdown-select";
+import { Search, X } from "lucide-react";
 
 interface Job {
   id: string;
@@ -29,7 +33,33 @@ const EndingSoon = () => {
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [companyFilter, setCompanyFilter] = useState<string>("");
+  const [priorityFilter, setPriorityFilter] = useState<string>("");
   const { toast } = useToast();
+
+  // Filter jobs based on search term, company, and priority
+  const filteredJobs = jobs.filter(job => {
+    const matchesSearch = !searchTerm || 
+      job["Job Title"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.Company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job["Job Location"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.Industry?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCompany = !companyFilter || 
+      job.Company?.toLowerCase().includes(companyFilter.toLowerCase());
+    
+    const matchesPriority = !priorityFilter || 
+      job.Priority?.toLowerCase() === priorityFilter.toLowerCase();
+    
+    return matchesSearch && matchesCompany && matchesPriority;
+  });
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setCompanyFilter("");
+    setPriorityFilter("");
+  };
 
   const fetchEndingSoonJobs = async () => {
     try {
@@ -215,8 +245,86 @@ const EndingSoon = () => {
         <p className="text-xs text-muted-foreground mt-1">Job postings that are about to expire</p>
       </div>
 
+      {/* Search and Filter Controls */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search jobs..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-9 text-sm"
+          />
+        </div>
+        
+        <DropdownSelect
+          options={[
+            { label: "All Companies", value: "all" },
+            ...Array.from(new Set(jobs.map(j => j.Company).filter(Boolean))).map(company => ({
+              label: company,
+              value: company
+            }))
+          ]}
+          value={companyFilter || "all"}
+          onValueChange={(value) => setCompanyFilter(value === "all" ? "" : value)}
+          placeholder="Filter by company"
+        />
+        
+        <DropdownSelect
+          options={[
+            { label: "All Priorities", value: "all" },
+            { label: "High", value: "high" },
+            { label: "Medium", value: "medium" },
+            { label: "Low", value: "low" }
+          ]}
+          value={priorityFilter || "all"}
+          onValueChange={(value) => setPriorityFilter(value === "all" ? "" : value)}
+          placeholder="Filter by priority"
+        />
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="h-9 px-3"
+          onClick={clearFilters}
+          disabled={!searchTerm && !companyFilter && !priorityFilter}
+        >
+          <X className="h-3 w-3 mr-1" />
+          Clear
+        </Button>
+      </div>
+
+      {/* Active Filters Display */}
+      {(companyFilter || priorityFilter) && (
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-muted-foreground">Active filters:</span>
+          {companyFilter && (
+            <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full">
+              <span>Company: {companyFilter}</span>
+              <button 
+                onClick={() => setCompanyFilter("")}
+                className="hover:bg-primary/20 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+          {priorityFilter && (
+            <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full">
+              <span>Priority: {priorityFilter}</span>
+              <button 
+                onClick={() => setPriorityFilter("")}
+                className="hover:bg-primary/20 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <DataTable
-        data={jobs}
+        data={filteredJobs}
         columns={columns}
         loading={loading}
         onRowClick={handleRowClick}
