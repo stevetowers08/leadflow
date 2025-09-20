@@ -138,19 +138,19 @@ const Companies = () => {
       key: "Company Name",
       label: "Company",
       render: (company: Company) => (
-        <div className="flex items-center gap-3 min-w-0 max-w-sm">
+        <div className="flex items-center gap-2 min-w-0 max-w-xs">
           {company["Profile Image URL"] ? (
             <img 
               src={company["Profile Image URL"]} 
               alt={`${company["Company Name"]} logo`}
-              className="w-10 h-10 rounded object-cover flex-shrink-0"
+              className="w-8 h-8 rounded object-cover flex-shrink-0 cursor-default"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
           ) : (
-            <div className="w-10 h-10 bg-muted rounded flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-medium text-muted-foreground">
+            <div className="w-8 h-8 bg-muted rounded flex items-center justify-center flex-shrink-0 cursor-default">
+              <span className="text-xs font-medium text-muted-foreground">
                 {company["Company Name"]?.charAt(0)?.toUpperCase() || "C"}
               </span>
             </div>
@@ -170,7 +170,7 @@ const Companies = () => {
                 href={company["Website"]} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:text-primary transition-colors truncate opacity-75"
+                className="text-xs text-muted-foreground hover:text-primary transition-colors truncate opacity-75 hover:underline"
                 onClick={(e) => e.stopPropagation()}
               >
                 {company["Website"].replace(/^https?:\/\//, '')}
