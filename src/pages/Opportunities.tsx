@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { LeadDetailModal } from "@/components/LeadDetailModal";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LEAD_STAGE_OPTIONS } from "@/hooks/useDropdownOptions";
-import { User, Building2, Mail, MapPin, Star, TrendingUp, Eye } from "lucide-react";
+import { User, Building2, Mail, MapPin, Star, TrendingUp, Eye, ChevronDown, MoreVertical } from "lucide-react";
 
 interface Lead {
   id: string;
@@ -26,7 +26,7 @@ interface Lead {
   "Meeting Date": string | null;
 }
 
-const stageColors = {
+const stageColors: Record<string, string> = {
   new: "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200",
   contacted: "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200",
   qualified: "bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200",
@@ -36,7 +36,7 @@ const stageColors = {
   lost: "bg-gradient-to-br from-red-50 to-red-100 border-red-200"
 };
 
-const stageIcons = {
+const stageIcons: Record<string, string> = {
   new: "🆕",
   contacted: "📞",
   qualified: "✅",
@@ -48,10 +48,41 @@ const stageIcons = {
 
 const Opportunities = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [availableStages, setAvailableStages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { toast } = useToast();
+
+  const fetchAvailableStages = async () => {
+    try {
+      // Get unique stages from the database
+      const { data, error } = await supabase
+        .from("People")
+        .select("Stage, stage_enum")
+        .not("Stage", "is", null);
+
+      if (error) throw error;
+
+      const stages = new Set<string>();
+      
+      data?.forEach(row => {
+        if (row.stage_enum) stages.add(row.stage_enum);
+        if (row.Stage && !row.stage_enum) stages.add(row.Stage.toLowerCase());
+      });
+
+      // Default stages if none exist
+      const stageArray = stages.size > 0 
+        ? Array.from(stages).sort()
+        : ['new', 'contacted', 'qualified', 'interview', 'offer', 'hired', 'lost'];
+      
+      console.log("Available stages:", stageArray);
+      setAvailableStages(stageArray);
+    } catch (error) {
+      console.error("Error fetching stages:", error);
+      setAvailableStages(['new', 'contacted', 'qualified', 'interview', 'offer', 'hired', 'lost']);
+    }
+  };
 
   const fetchLeads = async () => {
     try {
@@ -93,25 +124,54 @@ const Opportunities = () => {
   };
 
   useEffect(() => {
+    fetchAvailableStages();
     fetchLeads();
   }, []);
 
-  const groupedLeads = LEAD_STAGE_OPTIONS.reduce((acc, stage) => {
+  const updateLeadStage = async (leadId: string, newStage: string) => {
+    try {
+      const { error } = await supabase
+        .from("People")
+        .update({ 
+          stage_enum: newStage as any,
+          Stage: newStage.charAt(0).toUpperCase() + newStage.slice(1)
+        })
+        .eq("id", leadId);
+
+      if (error) throw error;
+
+      // Update local state
+      setLeads(prevLeads => 
+        prevLeads.map(lead => 
+          lead.id === leadId 
+            ? { ...lead, stage_enum: newStage, Stage: newStage.charAt(0).toUpperCase() + newStage.slice(1) }
+            : lead
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: "Lead stage updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating lead stage:", error);
+      toast({
+        title: "Error", 
+        description: "Failed to update lead stage",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const groupedLeads = availableStages.reduce((acc, stage) => {
     const stageLeads = leads.filter(lead => {
       const leadStage = lead.stage_enum || lead.Stage?.toLowerCase() || 'new';
-      return leadStage === stage.value;
+      return leadStage === stage;
     });
-    acc[stage.value] = stageLeads;
-    console.log(`Stage ${stage.value}:`, stageLeads.length, "leads"); // Debug log
+    acc[stage] = stageLeads;
+    console.log(`Stage ${stage}:`, stageLeads.length, "leads");
     return acc;
   }, {} as Record<string, Lead[]>);
-
-  // If no leads have stages, put them all in 'new' stage
-  const totalLeadsInStages = Object.values(groupedLeads).flat().length;
-  if (totalLeadsInStages === 0 && leads.length > 0) {
-    groupedLeads['new'] = leads;
-    console.log("No staged leads found, putting all in 'new' stage:", leads.length);
-  }
 
   const getStageStats = () => {
     const activeLeads = leads.filter(lead => !['hired', 'lost'].includes(lead.stage_enum || lead.Stage?.toLowerCase() || ''));
@@ -223,16 +283,19 @@ const Opportunities = () => {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-        {LEAD_STAGE_OPTIONS.map(stage => {
-          const stageLeads = groupedLeads[stage.value] || [];
-          const stageKey = stage.value as keyof typeof stageColors;
+        {availableStages.map(stage => {
+          const stageLeads = groupedLeads[stage] || [];
+          const stageKey = stage as keyof typeof stageColors;
+          const stageName = stage.charAt(0).toUpperCase() + stage.slice(1);
+          const stageColor = stageColors[stageKey] || stageColors.new;
+          const stageIcon = stageIcons[stageKey] || "📋";
           
           return (
-            <Card key={stage.value} className={`${stageColors[stageKey]} min-h-[400px]`}>
+            <Card key={stage} className={`${stageColor} min-h-[400px]`}>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-                  <span className="text-lg">{stageIcons[stageKey]}</span>
-                  {stage.label}
+                  <span className="text-lg">{stageIcon}</span>
+                  {stageName}
                   <span className="ml-auto text-xs bg-white/70 px-2 py-1 rounded-full">
                     {stageLeads.length}
                   </span>
@@ -241,7 +304,7 @@ const Opportunities = () => {
               <CardContent className="space-y-3">
                 {stageLeads.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <div className="text-3xl opacity-50 mb-2">{stageIcons[stageKey]}</div>
+                    <div className="text-3xl opacity-50 mb-2">{stageIcon}</div>
                     <p className="text-sm">No leads in this stage</p>
                   </div>
                 ) : (
@@ -255,17 +318,51 @@ const Opportunities = () => {
                         <div className="space-y-2">
                           <div className="flex items-start justify-between">
                             <h4 className="font-semibold text-sm leading-tight">{lead.Name}</h4>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 opacity-70 hover:opacity-100"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleLeadClick(lead);
-                              }}
-                            >
-                              <Eye className="h-3 w-3" />
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 opacity-70 hover:opacity-100"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <MoreVertical className="h-3 w-3" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent 
+                                className="w-48 bg-white shadow-lg border border-gray-200 rounded-md z-50" 
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground border-b">
+                                  Move to Stage
+                                </div>
+                                {availableStages.map(newStage => (
+                                  <DropdownMenuItem
+                                    key={newStage}
+                                    className="cursor-pointer hover:bg-gray-100 px-3 py-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      updateLeadStage(lead.id, newStage);
+                                    }}
+                                  >
+                                    <StatusBadge status={newStage} size="sm" className="mr-2" />
+                                    {newStage.charAt(0).toUpperCase() + newStage.slice(1)}
+                                  </DropdownMenuItem>
+                                ))}
+                                <div className="border-t mt-1 pt-1">
+                                  <DropdownMenuItem
+                                    className="cursor-pointer hover:bg-gray-100 px-3 py-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleLeadClick(lead);
+                                    }}
+                                  >
+                                    <Eye className="h-3 w-3 mr-2" />
+                                    View Details
+                                  </DropdownMenuItem>
+                                </div>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                           
                           {lead.Company && (
