@@ -53,9 +53,9 @@ const statusStyles = {
 };
 
 const sizeStyles = {
-  sm: "text-xs px-2 py-0.5 font-medium",
-  md: "text-sm px-2.5 py-1 font-medium",
-  lg: "text-sm px-3 py-1.5 font-semibold"
+  sm: "text-xs px-1.5 py-0.5 font-medium",
+  md: "text-xs px-2 py-0.5 font-medium",
+  lg: "text-sm px-2.5 py-1 font-medium"
 };
 
 export const StatusBadge = ({ status, className, size = "md" }: StatusBadgeProps) => {
