@@ -158,23 +158,6 @@ const Jobs = () => {
 
   const columns = [
     {
-      key: "Logo",
-      label: "Logo",
-      render: (job: Job) => (
-        <div className="flex items-center">
-          {job.Logo ? (
-            <img src={job.Logo} alt="Logo" className="w-5 h-5 rounded object-cover" />
-          ) : (
-            <div className="w-5 h-5 bg-muted rounded flex items-center justify-center">
-              <span className="text-xs text-muted-foreground">
-                {job.Company?.charAt(0) || "?"}
-              </span>
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
       key: "Company",
       label: "Company",
       render: (job: Job) => (

@@ -202,11 +202,13 @@ const Leads = () => {
       label: "Status",
       render: (lead: Lead) => (
         <div className="flex justify-center">
-          <StatusBadge 
-            status={lead.Stage || lead.stage_enum || "new lead"} 
-            size="sm"
-            className="shadow-sm"
-          />
+          <div className="w-20 flex justify-center">
+            <StatusBadge 
+              status={lead.Stage || lead.stage_enum || "new lead"} 
+              size="sm"
+              className="shadow-sm w-full text-center"
+            />
+          </div>
         </div>
       ),
     },
