@@ -116,7 +116,25 @@ const Companies = () => {
       key: "Company Name",
       label: "Company",
       render: (company: Company) => (
-        <span className="text-xs font-medium">{company["Company Name"] || "-"}</span>
+        <div className="flex items-center gap-2">
+          {company["Profile Image URL"] ? (
+            <img 
+              src={company["Profile Image URL"]} 
+              alt={`${company["Company Name"]} logo`}
+              className="w-6 h-6 rounded object-cover flex-shrink-0"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="w-6 h-6 bg-muted rounded flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-medium text-muted-foreground">
+                {company["Company Name"]?.charAt(0)?.toUpperCase() || "C"}
+              </span>
+            </div>
+          )}
+          <span className="text-xs font-medium truncate">{company["Company Name"] || "-"}</span>
+        </div>
       ),
     },
     {
@@ -188,13 +206,22 @@ const Companies = () => {
 
   return (
     <>
-      <DataTable
-        title="Companies"
-        data={companies}
-        columns={columns}
-        loading={loading}
-        onRowClick={handleRowClick}
-        addButton={
+      <div className="space-y-4">
+        <div className="border-b pb-3">
+          <h1 className="text-lg font-semibold tracking-tight">Companies</h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            Manage your target companies and prospects
+          </p>
+        </div>
+
+        <div className="bg-card rounded-md border">
+          <DataTable
+            title=""
+            data={companies}
+            columns={columns}
+            loading={loading}
+            onRowClick={handleRowClick}
+            addButton={
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="h-8 text-xs px-3">Add Company</Button>
@@ -277,7 +304,9 @@ const Companies = () => {
           </DialogContent>
         </Dialog>
       }
-      />
+          />
+        </div>
+      </div>
       
       <CompanyDetailModal
         company={selectedCompany}

@@ -27,7 +27,7 @@ const statusStyles = {
   won: "bg-gradient-to-r from-green-50 to-green-100 text-green-800 border-green-300 hover:from-green-100 hover:to-green-200 shadow-sm dark:bg-green-950/50 dark:text-green-400 dark:border-green-800",
   lost: "bg-gradient-to-r from-red-50 to-red-100 text-red-800 border-red-300 hover:from-red-100 hover:to-red-200 shadow-sm dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
   
-  // Company statuses
+  // Status enum values
   active: "bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800",
   inactive: "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-950/50 dark:text-slate-400 dark:border-slate-800",
   prospect: "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:text-indigo-400 dark:border-indigo-800",
