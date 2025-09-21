@@ -71,15 +71,11 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
     queryKey: ["company-leads", company?.id],
     queryFn: async () => {
       if (!company?.id) return [];
-      console.log("Fetching leads for company:", company.id, company["Company Name"]);
-      
       const { data, error } = await supabase
         .from("People")
         .select(`
           id,
-          "Full Name",
-          "Job Title",
-          "Location",
+          Name,
           "Company Role",
           "Lead Score",
           "Employee Location",
@@ -99,7 +95,6 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
         throw error;
       }
       
-      console.log("Fetched leads:", data);
       return data || [];
     },
     enabled: !!company?.id && isOpen,
@@ -335,7 +330,6 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
               <CardContent>
                 <ScrollArea className="h-40">
                   <div className="space-y-2">
-                    {console.log("Rendering leads:", relatedLeads)}
                     {relatedLeads?.map((lead) => (
                       <div 
                         key={lead.id}
@@ -344,11 +338,11 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                       >
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-gray-900 truncate">
-                            {lead["Full Name"] || "Unknown Lead"}
+                            {lead.Name || "Unknown Lead"}
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
-                            {lead["Job Title"] && `${lead["Job Title"]}`}
-                            {lead["Location"] && ` • ${lead["Location"]}`}
+                            {lead["Company Role"] && `${lead["Company Role"]}`}
+                            {lead["Employee Location"] && ` • ${lead["Employee Location"]}`}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
