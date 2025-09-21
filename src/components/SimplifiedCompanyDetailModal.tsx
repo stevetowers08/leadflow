@@ -213,37 +213,32 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
             {/* AI Score */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
+                <CardTitle className="text-sm flex items-center gap-3">
                   <Bot className="h-4 w-4" />
                   AI Score
+                  <AIScoreBadge
+                    leadData={{
+                      name: "",
+                      company: company["Company Name"] || "",
+                      role: "",
+                      location: company["Head Office"] || "",
+                      industry: company.Industry || "",
+                      company_size: company["Company Size"] || ""
+                    }}
+                    initialScore={company["Lead Score"]}
+                  />
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0 space-y-2">
-                <div>
-                  <label className="text-xs font-medium text-gray-700">Score</label>
-                  <div className="mt-1 flex items-center">
-                    <AIScoreBadge
-                      leadData={{
-                        name: "",
-                        company: company["Company Name"] || "",
-                        role: "",
-                        location: company["Head Office"] || "",
-                        industry: company.Industry || "",
-                        company_size: company["Company Size"] || ""
-                      }}
-                      initialScore={company["Lead Score"]}
-                    />
-                  </div>
-                </div>
-                {company["Score Reason"] && (
+              {company["Score Reason"] && (
+                <CardContent className="pt-0">
                   <div>
                     <label className="text-xs font-medium text-gray-700">Reasoning</label>
                     <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded mt-1">
                       {company["Score Reason"]}
                     </p>
                   </div>
-                )}
-              </CardContent>
+                </CardContent>
+              )}
             </Card>
 
             {/* AI Intelligence */}
@@ -280,7 +275,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                     {relatedJobs?.map((job) => (
                       <div 
                         key={job.id}
-                        className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 cursor-pointer transition-colors group"
+                        className="flex items-center justify-between p-2 border rounded cursor-pointer"
                         onClick={() => handleJobClick(job)}
                       >
                         <div className="flex-1 min-w-0">
@@ -298,7 +293,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                               {job.Priority}
                             </Badge>
                           )}
-                          <ArrowRight className="h-3 w-3 text-gray-400 group-hover:text-gray-600" />
+                          <ArrowRight className="h-3 w-3 text-gray-400" />
                         </div>
                       </div>
                     ))}
@@ -331,7 +326,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                     {relatedLeads?.map((lead) => (
                       <div 
                         key={lead.id}
-                        className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 cursor-pointer transition-colors group"
+                        className="flex items-center justify-between p-2 border rounded cursor-pointer"
                         onClick={() => handleLeadClick(lead)}
                       >
                         <div className="flex-1 min-w-0">
@@ -349,7 +344,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                               {lead.Priority}
                             </Badge>
                           )}
-                          <ArrowRight className="h-3 w-3 text-gray-400 group-hover:text-gray-600" />
+                          <ArrowRight className="h-3 w-3 text-gray-400" />
                         </div>
                       </div>
                     ))}
