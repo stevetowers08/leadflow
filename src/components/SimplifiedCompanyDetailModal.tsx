@@ -134,8 +134,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                   {company["Company Name"] || "Unknown Company"}
                 </h1>
                 <div className="text-sm text-gray-500">
-                  {company.Industry && `${company.Industry}`}
-                  {company["Head Office"] && ` • ${company["Head Office"]}`}
+                  {[company.Industry, company["Head Office"]].filter(Boolean).join(' • ')}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -149,7 +148,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Company Overview - At the Top */}
             <Card>
               <CardHeader className="pb-2">
@@ -158,8 +157,8 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                   Company Overview
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0 space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="pt-0 space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Basic Information */}
                   <div className="space-y-2">
                     <div>
@@ -221,18 +220,11 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
               </CardContent>
             </Card>
 
-            {/* Score Reason */}
+            {/* AI Score and Reasoning */}
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Bot className="h-4 w-4" />
-                  Score Reason
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-3">
-                <div>
-                  <label className="text-xs font-medium text-gray-700">AI Score</label>
-                  <div className="mt-1">
+              <CardContent className="p-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
                     <AIScoreBadge
                       leadData={{
                         name: "",
@@ -245,15 +237,14 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                       initialScore={company["Lead Score"]}
                     />
                   </div>
+                  {company["Score Reason"] && (
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-900">
+                        {company["Score Reason"]}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                {company["Score Reason"] && (
-                  <div>
-                    <label className="text-xs font-medium text-gray-700">Reasoning</label>
-                    <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded mt-1">
-                      {company["Score Reason"]}
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
