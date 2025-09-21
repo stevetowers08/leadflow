@@ -15,7 +15,15 @@ import {
   Calendar,
   TrendingUp,
   Target,
-  Eye
+  Eye,
+  Star,
+  Bot,
+  Info,
+  Activity,
+  BarChart3,
+  Zap,
+  Heart,
+  Linkedin
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -195,6 +203,144 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                   </div>
                 </div>
               )}
+
+              {/* Company Intelligence */}
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* AI Info */}
+                {company["AI Info"] && (
+                  <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-2">
+                        <Bot className="h-4 w-4 text-purple-600 mt-0.5" />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-purple-900 mb-2">AI Intelligence</div>
+                          <div className="text-sm text-purple-700">{company["AI Info"]}</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Company Info */}
+                {company["Company Info"] && (
+                  <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-2">
+                        <Info className="h-4 w-4 text-green-600 mt-0.5" />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-green-900 mb-2">Company Details</div>
+                          <div className="text-sm text-green-700">{company["Company Info"]}</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Key Info Raw */}
+              {company["Key Info Raw"] && (
+                <Card className="mt-4 bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-2">
+                      <Activity className="h-4 w-4 text-indigo-600 mt-0.5" />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-indigo-900 mb-2">Key Information</div>
+                        <div className="text-sm text-indigo-700 whitespace-pre-wrap">{company["Key Info Raw"]}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Company Analytics */}
+              <Card className="mt-4 bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <BarChart3 className="h-4 w-4 text-orange-600" />
+                    <div className="text-sm font-medium text-orange-900">Company Analytics</div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Jobs Count */}
+                    <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
+                      <div className="text-2xl font-bold text-orange-600">{relatedJobs?.length || 0}</div>
+                      <div className="text-xs text-orange-700">Active Jobs</div>
+                    </div>
+                    
+                    {/* Leads Count */}
+                    <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
+                      <div className="text-2xl font-bold text-orange-600">{relatedLeads?.length || 0}</div>
+                      <div className="text-xs text-orange-700">Total Leads</div>
+                    </div>
+                    
+                    {/* Automation Status */}
+                    <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {company.Automation ? "✓" : "○"}
+                      </div>
+                      <div className="text-xs text-orange-700">Automation</div>
+                    </div>
+                    
+                    {/* Priority Level */}
+                    <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {company.Priority === "high" ? "🔴" : company.Priority === "medium" ? "🟡" : "🟢"}
+                      </div>
+                      <div className="text-xs text-orange-700 capitalize">{company.Priority || "Low"}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Company Actions */}
+              <Card className="mt-4 bg-gradient-to-r from-gray-50 to-slate-50 border-gray-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="h-4 w-4 text-gray-600" />
+                    <div className="text-sm font-medium text-gray-900">Quick Actions</div>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {/* LinkedIn */}
+                    {company["LinkedIn URL"] && (
+                      <a
+                        href={company["LinkedIn URL"]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                      >
+                        <Linkedin className="h-3 w-3" />
+                        LinkedIn
+                      </a>
+                    )}
+                    
+                    {/* Website */}
+                    {company.Website && (
+                      <a
+                        href={company.Website.startsWith('http') ? company.Website : `https://${company.Website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm"
+                      >
+                        <Globe className="h-3 w-3" />
+                        Website
+                      </a>
+                    )}
+                    
+                    {/* Favorite */}
+                    <button className="inline-flex items-center gap-1 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors text-sm">
+                      <Heart className="h-3 w-3" />
+                      {company.Favourite ? "Favorited" : "Add to Favorites"}
+                    </button>
+                    
+                    {/* Automation */}
+                    <button className="inline-flex items-center gap-1 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm">
+                      <Bot className="h-3 w-3" />
+                      {company.Automation ? "Automated" : "Enable Automation"}
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
             </CardContent>
           </Card>
 
