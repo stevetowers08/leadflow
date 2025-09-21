@@ -19,7 +19,10 @@ import {
   ArrowRight,
   Zap,
   CheckSquare,
-  Square
+  Square,
+  Heart,
+  Trash2,
+  Star
 } from "lucide-react";
 import { useState } from "react";
 import { SimplifiedJobDetailModal } from "./SimplifiedJobDetailModal";
@@ -106,7 +109,8 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
           "Meeting Booked",
           created_at,
           Company,
-          company_id
+          company_id,
+          Favourite
         `)
         .eq("company_id", company.id)
         .order("created_at", { ascending: false })
@@ -176,6 +180,113 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
     });
   };
 
+  const handleFavoriteCompany = async () => {
+    try {
+      const { error } = await supabase
+        .from("Companies")
+        .update({ Favourite: company.Favourite ? null : "true" })
+        .eq("id", company.id);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: company.Favourite ? "Company removed from favorites" : "Company added to favorites",
+      });
+      
+      // Refresh the company data
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteCompany = async () => {
+    if (!confirm("Are you sure you want to delete this company? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("Companies")
+        .delete()
+        .eq("id", company.id);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Company deleted successfully",
+      });
+      
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete company",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFavoritePerson = async (personId: string, currentFavorite: string | null) => {
+    try {
+      const { error } = await supabase
+        .from("People")
+        .update({ Favourite: currentFavorite ? null : "true" })
+        .eq("id", personId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: currentFavorite ? "Person removed from favorites" : "Person added to favorites",
+      });
+      
+      // Refresh the leads data
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeletePerson = async (personId: string, personName: string) => {
+    if (!confirm(`Are you sure you want to delete ${personName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("People")
+        .delete()
+        .eq("id", personId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Person deleted successfully",
+      });
+      
+      // Refresh the leads data
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete person",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!company) return null;
 
   return (
@@ -183,28 +294,52 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
     <Dialog open={isOpen} onOpenChange={onClose}>
               <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
                 <DialogHeader className="pb-2">
-                  <DialogTitle className="flex items-center gap-2">
-                    <div className="p-1.5 bg-gray-50 rounded">
-                      <Building2 className="h-3.5 w-3.5 text-gray-600" />
-            </div>
-                    <div className="flex-1">
-                      <h1 className="text-lg font-semibold text-gray-900">
-                        {company["Company Name"] || "Unknown Company"}
-                      </h1>
-                      <div className="text-sm text-gray-500">
-                        {[company.Industry, company["Head Office"]].filter(Boolean).join(' • ')}
-              </div>
-            </div>
-                    <div className="flex items-center gap-1.5">
-                      {company.Priority && (
-                        <Badge variant="outline" className="text-sm px-1.5 py-0.5">
-                          {company.Priority}
-                        </Badge>
-                      )}
-                      <StatusBadge status={company.status_enum} />
+                  <DialogTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-gray-50 rounded">
+                        <Building2 className="h-3.5 w-3.5 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h1 className="text-lg font-semibold text-gray-900">
+                          {company["Company Name"] || "Unknown Company"}
+                        </h1>
+                        <div className="text-sm text-gray-500">
+                          {[company.Industry, company["Head Office"]].filter(Boolean).join(' • ')}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {company.Priority && (
+                          <Badge variant="outline" className="text-sm px-1.5 py-0.5">
+                            {company.Priority}
+                          </Badge>
+                        )}
+                        <StatusBadge status={company.status_enum} />
+                      </div>
                     </div>
-          </DialogTitle>
-        </DialogHeader>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleFavoriteCompany}
+                        className="h-7 px-2"
+                      >
+                        {company.Favourite ? (
+                          <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                        ) : (
+                          <Star className="h-3 w-3" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDeleteCompany}
+                        className="h-7 px-2 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </DialogTitle>
+                </DialogHeader>
 
                 <div className="space-y-2">
             {/* Company Overview - At the Top */}
@@ -279,7 +414,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                             </span>
                           )}
                   </div>
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                     {selectedLeadsForAutomation.length > 0 && (
                       <Button
                         size="sm"
@@ -335,9 +470,32 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                         </div>
                         <div className="flex items-center gap-1">
                           <StatusBadge status={lead.stage_enum || lead.Stage} size="sm" />
-                          {lead.automation_status_enum && (
-                            <StatusBadge status={lead.automation_status_enum} size="sm" />
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFavoritePerson(lead.id, lead.Favourite);
+                            }}
+                            className="h-6 w-6 p-0"
+                          >
+                            {lead.Favourite ? (
+                              <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                            ) : (
+                              <Star className="h-3 w-3" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePerson(lead.id, lead.Name);
+                            }}
+                            className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                           <ArrowRight className="h-2.5 w-2.5 text-gray-400" />
                         </div>
                       </div>
