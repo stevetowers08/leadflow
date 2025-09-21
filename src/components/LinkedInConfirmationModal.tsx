@@ -196,79 +196,102 @@ export function LinkedInConfirmationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            Confirm LinkedIn Messages
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <MessageSquare className="h-4 w-4 text-primary" />
+            LinkedIn Automation
             <span className="text-sm font-normal text-muted-foreground">
               ({selectedLeads.length} lead{selectedLeads.length !== 1 ? 's' : ''})
             </span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           {jobTitle && (
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <p className="text-sm">
-                <span className="font-medium">Job:</span> {jobTitle}
-                {companyName && <span className="text-muted-foreground"> at {companyName}</span>}
-              </p>
+            <div className="p-2 bg-gray-50 rounded text-sm">
+              <span className="font-medium">Job:</span> {jobTitle}
+              {companyName && <span className="text-muted-foreground"> at {companyName}</span>}
             </div>
           )}
 
-          <ScrollArea className="max-h-[60vh]">
-            <div className="space-y-6 pr-4">
+          <ScrollArea className="max-h-[50vh]">
+            <div className="space-y-3 pr-2">
               {selectedLeads.map((lead, index) => (
-                <div key={lead.id} className="space-y-4 p-4 border rounded-lg">
+                <div key={lead.id} className="space-y-2 p-3 border rounded">
                   {/* Lead Header */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-primary" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                        <User className="h-3 w-3 text-gray-600" />
                       </div>
                       <div>
-                        <h4 className="font-medium">{lead.Name}</h4>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          {lead["Company Role"] && (
-                            <div>{lead["Company Role"]}</div>
-                          )}
-                          {lead.Company && (
-                            <div>{lead.Company}</div>
-                          )}
+                        <h4 className="text-sm font-medium">{lead.Name}</h4>
+                        <div className="text-xs text-gray-500">
+                          {lead["Company Role"] && lead.Company && `${lead["Company Role"]} at ${lead.Company}`}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       {lead["LinkedIn URL"] ? (
                         <div className="flex items-center gap-1 text-green-600">
-                          <CheckCircle className="h-4 w-4" />
-                          <span className="text-xs">LinkedIn Found</span>
+                          <CheckCircle className="h-3 w-3" />
+                          <span className="text-xs">LinkedIn</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1 text-red-600">
-                          <XCircle className="h-4 w-4" />
+                          <XCircle className="h-3 w-3" />
                           <span className="text-xs">No LinkedIn</span>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Message Editor */}
+                  {/* All 3 LinkedIn Messages */}
                   <div className="space-y-2">
-                    <Label htmlFor={`message-${lead.id}`}>
-                      LinkedIn Connection Message
-                    </Label>
-                    <Textarea
-                      id={`message-${lead.id}`}
-                      value={messages[lead.id] || ''}
-                      onChange={(e) => handleMessageChange(lead.id, e.target.value)}
-                      rows={6}
-                      className="text-sm"
-                      placeholder="Enter your LinkedIn connection request message..."
-                    />
-                    <div className="text-xs text-muted-foreground">
-                      Character count: {(messages[lead.id] || '').length}/300
+                    {/* Connection Request Message */}
+                    <div>
+                      <Label htmlFor={`request-${lead.id}`} className="text-xs font-medium">
+                        Connection Request
+                      </Label>
+                      <Textarea
+                        id={`request-${lead.id}`}
+                        value={messages[lead.id] || lead["LinkedIn Request Message"] || ''}
+                        onChange={(e) => handleMessageChange(lead.id, e.target.value)}
+                        rows={2}
+                        className="text-xs mt-1"
+                        placeholder="Hi [Name], I'd like to connect..."
+                      />
+                    </div>
+
+                    {/* Connected Message */}
+                    <div>
+                      <Label htmlFor={`connected-${lead.id}`} className="text-xs font-medium">
+                        After Connection
+                      </Label>
+                      <Textarea
+                        id={`connected-${lead.id}`}
+                        value={lead["LinkedIn Connected Message"] || ''}
+                        rows={2}
+                        className="text-xs mt-1 bg-gray-50"
+                        placeholder="Thank you for connecting! I'd love to learn more about..."
+                        readOnly
+                      />
+                    </div>
+
+                    {/* Follow Up Message */}
+                    <div>
+                      <Label htmlFor={`followup-${lead.id}`} className="text-xs font-medium">
+                        Follow Up
+                      </Label>
+                      <Textarea
+                        id={`followup-${lead.id}`}
+                        value={lead["LinkedIn Follow Up Message"] || ''}
+                        rows={2}
+                        className="text-xs mt-1 bg-gray-50"
+                        placeholder="Following up on our connection..."
+                        readOnly
+                      />
                     </div>
                   </div>
                 </div>
@@ -277,20 +300,21 @@ export function LinkedInConfirmationModal({
           </ScrollArea>
 
           {/* Action Buttons */}
-          <div className="flex justify-between items-center pt-4 border-t">
-            <div className="text-sm text-muted-foreground">
-              {selectedLeads.filter(lead => lead["LinkedIn URL"]).length} of {selectedLeads.length} leads have LinkedIn profiles
+          <div className="flex justify-between items-center pt-2 border-t">
+            <div className="text-xs text-gray-500">
+              {selectedLeads.filter(lead => lead["LinkedIn URL"]).length} of {selectedLeads.length} have LinkedIn
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={onClose} disabled={loading}>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose} disabled={loading} size="sm" className="text-xs">
                 Cancel
               </Button>
               <Button 
                 onClick={handleConfirm} 
                 disabled={loading || selectedLeads.length === 0}
-                className="min-w-[120px]"
+                size="sm"
+                className="text-xs min-w-[100px]"
               >
-                {loading ? "Adding..." : `Add ${selectedLeads.length} to Automation`}
+                {loading ? "Sending..." : `Automate ${selectedLeads.length}`}
               </Button>
             </div>
           </div>
