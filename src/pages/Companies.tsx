@@ -160,17 +160,6 @@ const Companies = () => {
       ),
     },
     {
-      key: "Score Reason",
-      label: "Score Reason",
-      render: (company: Company) => (
-        <div className="max-w-xs">
-          <span className="text-sm text-muted-foreground">
-            {company["Score Reason"] || "-"}
-          </span>
-        </div>
-      ),
-    },
-    {
       key: "Priority",
       label: "Priority",
       headerAlign: "center" as const,
