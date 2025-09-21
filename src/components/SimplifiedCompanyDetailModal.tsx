@@ -207,23 +207,13 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                     </div>
                   </div>
                 </div>
-                
-                {/* Company Information */}
-                {company["Company Info"] && (
-                  <div>
-                    <label className="text-xs font-medium text-gray-700">Company Information</label>
-                    <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded mt-1">
-                      {company["Company Info"]}
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
-            {/* AI Score and Reasoning */}
+            {/* AI Score */}
             <Card>
               <CardContent className="p-3">
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
                     <AIScoreBadge
                       leadData={{
