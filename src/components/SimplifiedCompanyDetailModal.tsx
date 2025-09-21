@@ -108,6 +108,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
         throw error;
       }
       
+      console.log("Fetched related leads for company:", company["Company Name"], "Data:", data);
       return data || [];
     },
     enabled: !!company?.id && isOpen,
@@ -238,7 +239,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                         href={company.Website.startsWith('http') ? company.Website : `https://${company.Website}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                          className="text-sm text-blue-600 flex items-center gap-1"
                       >
                           {company.Website.length > 20 ? company.Website.substring(0, 20) + '...' : company.Website}
                           <ExternalLink className="h-2.5 w-2.5" />

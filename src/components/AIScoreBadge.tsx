@@ -109,23 +109,14 @@ export function AIScoreBadge({
 
   if (!score) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={calculateScore}
-              className="h-6 px-2 text-xs"
-            >
-              Score
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs">Click to calculate AI score</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={calculateScore}
+        className="h-6 px-2 text-xs"
+      >
+        Score
+      </Button>
     );
   }
 
@@ -140,26 +131,7 @@ export function AIScoreBadge({
   );
 
   if (!showDetails) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {scoreDisplay}
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
-            <div className="space-y-2">
-              <div className="font-medium text-sm">AI Score: {score.score}/100</div>
-              <div className="text-xs">{score.reason}</div>
-              <div className="text-xs">
-                Confidence: <span className={getConfidenceColor(score.confidence)}>
-                  {Math.round(score.confidence * 100)}%
-                </span>
-              </div>
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
+    return scoreDisplay;
   }
 
   return (
