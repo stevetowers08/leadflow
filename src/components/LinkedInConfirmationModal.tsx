@@ -46,6 +46,7 @@ export function LinkedInConfirmationModal({
   jobTitle,
   companyName 
 }: LinkedInConfirmationModalProps) {
+  console.log("LinkedInConfirmationModal rendered with:", { isOpen, selectedLeads: selectedLeads?.length, jobTitle, companyName });
   const [messages, setMessages] = useState<{[key: string]: string}>({});
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

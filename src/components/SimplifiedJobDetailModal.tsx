@@ -102,6 +102,7 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
   };
 
   const handleAutomateLeads = () => {
+    console.log("handleAutomateLeads called, selectedLeadsForAutomation:", selectedLeadsForAutomation);
     if (selectedLeadsForAutomation.length === 0) {
       toast({
         title: "Error",
@@ -110,6 +111,7 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
       });
       return;
     }
+    console.log("Setting showAutomationModal to true");
     setShowAutomationModal(true);
   };
 
