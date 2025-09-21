@@ -127,17 +127,19 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
   };
 
   const handleLeadSelect = (lead: any) => {
+    console.log("Lead selected:", lead);
     setSelectedLeadsForAutomation(prev => {
       const isSelected = prev.some(l => l.id === lead.id);
-      if (isSelected) {
-        return prev.filter(l => l.id !== lead.id);
-      } else {
-        return [...prev, lead];
-      }
+      const newSelection = isSelected 
+        ? prev.filter(l => l.id !== lead.id)
+        : [...prev, lead];
+      console.log("New selection:", newSelection);
+      return newSelection;
     });
   };
 
   const handleAutomateSelected = () => {
+    console.log("Automate button clicked, selected leads:", selectedLeadsForAutomation);
     if (selectedLeadsForAutomation.length === 0) {
       toast({
         title: "Error",
@@ -146,6 +148,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
       });
       return;
     }
+    console.log("Opening automation modal for", selectedLeadsForAutomation.length, "leads");
     setShowAutomationModal(true);
   };
 
@@ -257,16 +260,22 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                     {leadsLoading && <span className="text-sm text-gray-500">(Loading...)</span>}
                     {leadsError && <span className="text-sm text-red-500">(Error)</span>}
                   </div>
-                  {selectedLeadsForAutomation.length > 0 && (
-                    <Button
-                      size="sm"
-                      onClick={handleAutomateSelected}
-                      className="text-sm h-6 px-2"
-                    >
-                      <Zap className="h-3 w-3 mr-1" />
-                      Automate ({selectedLeadsForAutomation.length})
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {selectedLeadsForAutomation.length > 0 && (
+                      <Button
+                        size="sm"
+                        onClick={handleAutomateSelected}
+                        className="text-sm h-6 px-2"
+                      >
+                        <Zap className="h-3 w-3 mr-1" />
+                        Automate ({selectedLeadsForAutomation.length})
+                      </Button>
+                    )}
+                    {/* Debug info */}
+                    <div className="text-xs text-gray-500">
+                      Selected: {selectedLeadsForAutomation.length} | Modal: {showAutomationModal ? 'Open' : 'Closed'}
+                    </div>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
@@ -481,17 +490,17 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
             setSelectedLead(null);
           }}
         />
-              )}
+      )}
 
-              {/* LinkedIn Confirmation Modal */}
-              {showAutomationModal && (
-                <LinkedInConfirmationModal
-                  leads={selectedLeadsForAutomation}
-                  isOpen={showAutomationModal}
-                  onClose={() => setShowAutomationModal(false)}
-                  onConfirm={handleConfirmAutomation}
-                />
-              )}
+      {/* LinkedIn Confirmation Modal */}
+      {showAutomationModal && (
+        <LinkedInConfirmationModal
+          leads={selectedLeadsForAutomation}
+          isOpen={showAutomationModal}
+          onClose={() => setShowAutomationModal(false)}
+          onConfirm={handleConfirmAutomation}
+        />
+      )}
             </>
           );
         }
