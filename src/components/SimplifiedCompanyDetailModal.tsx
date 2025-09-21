@@ -78,7 +78,17 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
   const { data: relatedLeads, isLoading: leadsLoading, error: leadsError } = useQuery({
     queryKey: ["company-leads", company?.id],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!company?.id) {
+        console.log("No company ID provided");
+        return [];
+      }
+      
+      console.log("Fetching leads for company:", {
+        id: company.id,
+        name: company["Company Name"],
+        company_id: company.id
+      });
+      
       const { data, error } = await supabase
         .from("People")
         .select(`
@@ -97,7 +107,8 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
           "Connection Request",
           "Email Reply",
           "Meeting Booked",
-          created_at
+          created_at,
+          company_id
         `)
         .eq("company_id", company.id)
         .order("created_at", { ascending: false })
@@ -108,7 +119,45 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
         throw error;
       }
       
-      console.log("Fetched related leads for company:", company["Company Name"], "Data:", data);
+      console.log("Fetched related leads for company:", company["Company Name"], "Data:", data, "Count:", data?.length);
+      
+      // If no results by company_id, try by company name as fallback
+      if (!data || data.length === 0) {
+        console.log("No results by company_id, trying by company name...");
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("People")
+          .select(`
+            id,
+            Name,
+            "Company Role",
+            "Lead Score",
+            "Employee Location",
+            automation_status_enum,
+            "Automation Status",
+            Stage,
+            stage_enum,
+            Priority,
+            priority_enum,
+            "Message Sent",
+            "Connection Request",
+            "Email Reply",
+            "Meeting Booked",
+            created_at,
+            company_id,
+            Company
+          `)
+          .ilike("Company", `%${company["Company Name"]}%`)
+          .order("created_at", { ascending: false })
+          .limit(10);
+          
+        if (fallbackError) {
+          console.error("Fallback query error:", fallbackError);
+        } else {
+          console.log("Fallback query results:", fallbackData, "Count:", fallbackData?.length);
+          return fallbackData || [];
+        }
+      }
+      
       return data || [];
     },
     enabled: !!company?.id && isOpen,
