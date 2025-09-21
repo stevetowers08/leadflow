@@ -90,6 +90,20 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
       });
       
       try {
+        // First, let's test if we can access the People table at all
+        console.log("Testing People table access...");
+        const { data: testData, error: testError } = await supabase
+          .from("People")
+          .select("id, Name")
+          .limit(1);
+          
+        if (testError) {
+          console.error("Cannot access People table:", testError);
+          throw testError;
+        }
+        
+        console.log("People table accessible, test data:", testData);
+        
         const { data, error } = await supabase
           .from("People")
           .select(`
