@@ -495,7 +495,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
       {/* LinkedIn Confirmation Modal */}
       {showAutomationModal && (
         <LinkedInConfirmationModal
-          leads={selectedLeadsForAutomation}
+          selectedLeads={selectedLeadsForAutomation}
           isOpen={showAutomationModal}
           onClose={() => setShowAutomationModal(false)}
           onConfirm={handleConfirmAutomation}

@@ -50,6 +50,9 @@ export function LinkedInConfirmationModal({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  // Debug logging
+  console.log("LinkedInConfirmationModal opened with leads:", selectedLeads);
+
   // Initialize messages for each lead
   const initializeMessages = () => {
     const initialMessages: {[key: string]: string} = {};
@@ -123,6 +126,7 @@ export function LinkedInConfirmationModal({
   };
 
   const handleConfirm = async () => {
+    console.log("LinkedInConfirmationModal handleConfirm called with leads:", selectedLeads);
     setLoading(true);
     try {
       // Update each lead with their LinkedIn message and set automation status
@@ -140,8 +144,10 @@ export function LinkedInConfirmationModal({
       );
 
       await Promise.all(updates);
+      console.log("Database updates completed");
 
       // Send each lead to webhook
+      console.log("Sending webhooks for", selectedLeads.length, "leads");
       const webhookPromises = selectedLeads.map(lead => 
         sendToWebhook(lead, messages[lead.id])
       );
