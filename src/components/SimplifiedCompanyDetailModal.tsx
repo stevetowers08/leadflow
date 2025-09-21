@@ -149,66 +149,83 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
+            {/* Score Reason - Moved to Top */}
+            {company["Score Reason"] && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Bot className="h-4 w-4" />
+                    Score Reason
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">
+                    {company["Score Reason"]}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Company Overview */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
                   Company Overview
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CardContent className="pt-0 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Basic Information */}
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Company Size</label>
-                      <p className="text-sm text-gray-900 mt-1">
+                      <label className="text-xs font-medium text-gray-700">Company Size</label>
+                      <p className="text-sm text-gray-900">
                         {company["Company Size"] || "Not specified"}
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Industry</label>
-                      <p className="text-sm text-gray-900 mt-1">
+                      <label className="text-xs font-medium text-gray-700">Industry</label>
+                      <p className="text-sm text-gray-900">
                         {company.Industry || "Not specified"}
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Head Office</label>
-                      <p className="text-sm text-gray-900 mt-1">
+                      <label className="text-xs font-medium text-gray-700">Head Office</label>
+                      <p className="text-sm text-gray-900">
                         {company["Head Office"] || "Not specified"}
                       </p>
                     </div>
                   </div>
 
                   {/* Additional Information */}
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Website</label>
+                      <label className="text-xs font-medium text-gray-700">Website</label>
                       {company.Website ? (
                         <a 
                           href={company.Website.startsWith('http') ? company.Website : `https://${company.Website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-1"
+                          className="text-sm text-blue-600 hover:underline flex items-center gap-1"
                         >
                           {company.Website}
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       ) : (
-                        <p className="text-sm text-gray-500 mt-1">Not specified</p>
+                        <p className="text-sm text-gray-500">Not specified</p>
                       )}
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Created</label>
-                      <p className="text-sm text-gray-900 mt-1">
+                      <label className="text-xs font-medium text-gray-700">Created</label>
+                      <p className="text-sm text-gray-900">
                         {company.created_at ? formatDate(company.created_at) : "Unknown"}
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">AI Score</label>
-                      <div className="mt-1">
+                      <label className="text-xs font-medium text-gray-700">AI Score</label>
+                      <div>
                         <AIScoreBadge
                           leadData={{
                             name: "",
@@ -227,85 +244,81 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
               </CardContent>
             </Card>
 
-            {/* AI Intelligence */}
-            {(company["AI Info"] || company["Company Info"] || company["Score Reason"]) && (
+            {/* Company Information */}
+            {company["Company Info"] && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Bot className="h-5 w-5" />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Info className="h-4 w-4" />
+                    Company Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">
+                    {company["Company Info"]}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* AI Intelligence */}
+            {company["AI Info"] && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Bot className="h-4 w-4" />
                     AI Intelligence
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {company["AI Info"] && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">AI Analysis</label>
-                      <p className="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded-lg">
-                        {company["AI Info"]}
-                      </p>
-                    </div>
-                  )}
-                  {company["Company Info"] && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Company Information</label>
-                      <p className="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded-lg">
-                        {company["Company Info"]}
-                      </p>
-                    </div>
-                  )}
-                  {company["Score Reason"] && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Score Reasoning</label>
-                      <p className="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded-lg">
-                        {company["Score Reason"]}
-                      </p>
-                    </div>
-                  )}
+                <CardContent className="pt-0">
+                  <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">
+                    {company["AI Info"]}
+                  </p>
                 </CardContent>
               </Card>
             )}
 
             {/* Related Jobs */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Briefcase className="h-4 w-4" />
                   Related Jobs
-                  <Badge variant="outline" className="ml-2">
+                  <Badge variant="outline" className="ml-2 text-xs">
                     {relatedJobs?.length || 0}
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-40">
-                  <div className="space-y-2">
+              <CardContent className="pt-0">
+                <ScrollArea className="h-32">
+                  <div className="space-y-1">
                     {relatedJobs?.map((job) => (
                       <div 
                         key={job.id}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
+                        className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 cursor-pointer transition-colors group"
                         onClick={() => handleJobClick(job)}
                       >
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-gray-900 truncate">
                             {job["Job Title"] || "Untitled Job"}
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-gray-500">
                             {job["Job Location"] && `${job["Job Location"]}`}
                             {job["Employment Type"] && ` • ${job["Employment Type"]}`}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           {job.Priority && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs px-1 py-0">
                               {job.Priority}
                             </Badge>
                           )}
-                          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                          <ArrowRight className="h-3 w-3 text-gray-400 group-hover:text-gray-600" />
                         </div>
                       </div>
                     ))}
                     {(!relatedJobs || relatedJobs.length === 0) && (
-                      <div className="text-sm text-gray-500 text-center py-8">
+                      <div className="text-sm text-gray-500 text-center py-4">
                         No related jobs found
                       </div>
                     )}
@@ -316,52 +329,52 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
 
             {/* Related Leads */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Users className="h-4 w-4" />
                   Related People
-                  <Badge variant="outline" className="ml-2">
+                  <Badge variant="outline" className="ml-2 text-xs">
                     {relatedLeads?.length || 0}
                   </Badge>
                   {leadsLoading && <span className="text-xs text-gray-500">(Loading...)</span>}
                   {leadsError && <span className="text-xs text-red-500">(Error)</span>}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-40">
-                  <div className="space-y-2">
+              <CardContent className="pt-0">
+                <ScrollArea className="h-32">
+                  <div className="space-y-1">
                     {relatedLeads?.map((lead) => (
                       <div 
                         key={lead.id}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
+                        className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 cursor-pointer transition-colors group"
                         onClick={() => handleLeadClick(lead)}
                       >
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-gray-900 truncate">
                             {lead.Name || "Unknown Lead"}
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-gray-500">
                             {lead["Company Role"] && `${lead["Company Role"]}`}
                             {lead["Employee Location"] && ` • ${lead["Employee Location"]}`}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           {lead.Priority && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs px-1 py-0">
                               {lead.Priority}
                             </Badge>
                           )}
-                          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                          <ArrowRight className="h-3 w-3 text-gray-400 group-hover:text-gray-600" />
                         </div>
                       </div>
                     ))}
                     {(!relatedLeads || relatedLeads.length === 0) && !leadsLoading && (
-                      <div className="text-sm text-gray-500 text-center py-8">
+                      <div className="text-sm text-gray-500 text-center py-4">
                         No related people found
                       </div>
                     )}
                     {leadsLoading && (
-                      <div className="text-sm text-gray-500 text-center py-8">
+                      <div className="text-sm text-gray-500 text-center py-4">
                         Loading people...
                       </div>
                     )}
@@ -372,27 +385,29 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex gap-2 pt-3 border-t">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => {
                 onClose();
                 window.location.href = `/jobs?filter=${encodeURIComponent(company["Company Name"] || "")}`;
               }}
-              className="flex-1"
+              className="flex-1 text-xs"
             >
-              <Briefcase className="h-4 w-4 mr-2" />
+              <Briefcase className="h-3 w-3 mr-1" />
               View All Jobs ({relatedJobs?.length || 0})
             </Button>
             <Button
               variant="outline"
+              size="sm"
               onClick={() => {
                 onClose();
                 window.location.href = `/leads?filter=${encodeURIComponent(company["Company Name"] || "")}`;
               }}
-              className="flex-1"
+              className="flex-1 text-xs"
             >
-              <Users className="h-4 w-4 mr-2" />
+              <Users className="h-3 w-3 mr-1" />
               View All People ({relatedLeads?.length || 0})
             </Button>
           </div>
