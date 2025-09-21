@@ -80,7 +80,6 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
     queryFn: async () => {
       if (!company?.id) return [];
       
-      // Try by company name first since that's more likely to work
       const { data, error } = await supabase
         .from("People")
         .select(`
@@ -99,17 +98,15 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
           "Connection Request",
           "Email Reply",
           "Meeting Booked",
-          created_at,
-          company_id,
-          Company
+          created_at
         `)
-        .ilike("Company", `%${company["Company Name"]}%`)
+        .eq("company_id", company.id)
         .order("created_at", { ascending: false })
         .limit(10);
 
       if (error) {
         console.error("Error fetching leads:", error);
-        return [];
+        throw error;
       }
       
       return data || [];
