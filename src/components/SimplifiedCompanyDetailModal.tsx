@@ -221,7 +221,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
               <CardContent className="pt-0 space-y-2">
                 <div>
                   <label className="text-xs font-medium text-gray-700">Score</label>
-                  <div className="mt-1">
+                  <div className="mt-1 flex items-center">
                     <AIScoreBadge
                       leadData={{
                         name: "",
