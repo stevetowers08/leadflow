@@ -67,10 +67,12 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
   });
 
   // Fetch related leads for this company
-  const { data: relatedLeads } = useQuery({
+  const { data: relatedLeads, isLoading: leadsLoading, error: leadsError } = useQuery({
     queryKey: ["company-leads", company?.id],
     queryFn: async () => {
       if (!company?.id) return [];
+      console.log("Fetching leads for company:", company.id, company["Company Name"]);
+      
       const { data, error } = await supabase
         .from("People")
         .select(`
@@ -92,7 +94,12 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
         .order("created_at", { ascending: false })
         .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching leads:", error);
+        throw error;
+      }
+      
+      console.log("Fetched leads:", data);
       return data || [];
     },
     enabled: !!company?.id && isOpen,
@@ -122,16 +129,16 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="pb-6">
-            <DialogTitle className="flex items-center gap-4">
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <Building2 className="h-6 w-6 text-gray-600" />
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3">
+              <div className="p-2 bg-gray-50 rounded-lg">
+                <Building2 className="h-4 w-4 text-gray-600" />
               </div>
               <div className="flex-1">
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className="text-lg font-semibold text-gray-900">
                   {company["Company Name"] || "Unknown Company"}
                 </h1>
-                <div className="text-sm text-gray-500 mt-1">
+                <div className="text-sm text-gray-500">
                   {company.Industry && `${company.Industry}`}
                   {company["Head Office"] && ` • ${company["Head Office"]}`}
                 </div>
@@ -321,11 +328,14 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                   <Badge variant="outline" className="ml-2">
                     {relatedLeads?.length || 0}
                   </Badge>
+                  {leadsLoading && <span className="text-xs text-gray-500">(Loading...)</span>}
+                  {leadsError && <span className="text-xs text-red-500">(Error)</span>}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-40">
                   <div className="space-y-2">
+                    {console.log("Rendering leads:", relatedLeads)}
                     {relatedLeads?.map((lead) => (
                       <div 
                         key={lead.id}
@@ -351,9 +361,14 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                         </div>
                       </div>
                     ))}
-                    {(!relatedLeads || relatedLeads.length === 0) && (
+                    {(!relatedLeads || relatedLeads.length === 0) && !leadsLoading && (
                       <div className="text-sm text-gray-500 text-center py-8">
                         No related people found
+                      </div>
+                    )}
+                    {leadsLoading && (
+                      <div className="text-sm text-gray-500 text-center py-8">
+                        Loading people...
                       </div>
                     )}
                   </div>
