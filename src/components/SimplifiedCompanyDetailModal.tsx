@@ -27,7 +27,7 @@ import { LeadDetailModal } from "./LeadDetailModal";
 import { LinkedInConfirmationModal } from "./LinkedInConfirmationModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "react-toast";
+import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface SimplifiedCompanyDetailModalProps {
@@ -43,6 +43,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [selectedLeadsForAutomation, setSelectedLeadsForAutomation] = useState<any[]>([]);
   const [showAutomationModal, setShowAutomationModal] = useState(false);
+  const { toast } = useToast();
 
   // Fetch related jobs for this company
   const { data: relatedJobs } = useQuery({
@@ -138,7 +139,11 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
 
   const handleAutomateSelected = () => {
     if (selectedLeadsForAutomation.length === 0) {
-      toast.error("Please select at least one person to automate");
+      toast({
+        title: "Error",
+        description: "Please select at least one person to automate",
+        variant: "destructive",
+      });
       return;
     }
     setShowAutomationModal(true);
@@ -147,28 +152,31 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
   const handleConfirmAutomation = () => {
     setShowAutomationModal(false);
     setSelectedLeadsForAutomation([]);
-    toast.success(`Automation triggered for ${selectedLeadsForAutomation.length} people`);
+    toast({
+      title: "Success",
+      description: `Automation triggered for ${selectedLeadsForAutomation.length} people`,
+    });
   };
 
   if (!company) return null;
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
               <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
                 <DialogHeader className="pb-2">
                   <DialogTitle className="flex items-center gap-2">
                     <div className="p-1.5 bg-gray-50 rounded">
                       <Building2 className="h-3.5 w-3.5 text-gray-600" />
-                    </div>
+            </div>
                     <div className="flex-1">
                       <h1 className="text-lg font-semibold text-gray-900">
                         {company["Company Name"] || "Unknown Company"}
                       </h1>
                       <div className="text-sm text-gray-500">
                         {[company.Industry, company["Head Office"]].filter(Boolean).join(' • ')}
-                      </div>
-                    </div>
+              </div>
+            </div>
                     <div className="flex items-center gap-1.5">
                       {company.Priority && (
                         <Badge variant="outline" className="text-sm px-1.5 py-0.5">
@@ -177,8 +185,8 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                       )}
                       <StatusBadge status={company.status_enum} />
                     </div>
-                  </DialogTitle>
-                </DialogHeader>
+          </DialogTitle>
+        </DialogHeader>
 
                 <div className="space-y-2">
             {/* Company Overview - At the Top */}
@@ -218,18 +226,18 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                     <div>
                       <label className="text-sm font-medium text-gray-700">Website</label>
                       {company.Website ? (
-                        <a 
-                          href={company.Website.startsWith('http') ? company.Website : `https://${company.Website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                      <a 
+                        href={company.Website.startsWith('http') ? company.Website : `https://${company.Website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                           className="text-sm text-blue-600 hover:underline flex items-center gap-1"
-                        >
+                      >
                           {company.Website.length > 20 ? company.Website.substring(0, 20) + '...' : company.Website}
                           <ExternalLink className="h-2.5 w-2.5" />
-                        </a>
+                      </a>
                       ) : (
                         <p className="text-sm text-gray-500">Not specified</p>
-                      )}
+                    )}
                     </div>
                   </div>
                 </div>
@@ -262,65 +270,63 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <ScrollArea className="h-24">
-                  <div className="space-y-0.5">
-                    {relatedLeads?.map((lead) => {
-                      const isSelected = selectedLeadsForAutomation.some(l => l.id === lead.id);
-                      return (
-                        <div 
-                          key={lead.id}
-                          className="flex items-center justify-between p-1.5 border rounded"
-                        >
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleLeadSelect(lead);
-                              }}
-                              className="flex-shrink-0"
-                            >
-                              {isSelected ? (
-                                <CheckSquare className="h-4 w-4 text-blue-600" />
-                              ) : (
-                                <Square className="h-4 w-4 text-gray-400" />
-                              )}
-                            </button>
-                            <div 
-                              className="flex-1 min-w-0 cursor-pointer"
-                              onClick={() => handleLeadClick(lead)}
-                            >
-                              <div className="text-sm font-medium text-gray-900 truncate">
-                                {lead.Name || "Unknown Lead"}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {lead["Company Role"] && `${lead["Company Role"]}`}
-                                {lead["Employee Location"] && ` • ${lead["Employee Location"]}`}
-                              </div>
+                <div className="space-y-0.5">
+                  {relatedLeads?.map((lead) => {
+                    const isSelected = selectedLeadsForAutomation.some(l => l.id === lead.id);
+                    return (
+                      <div 
+                        key={lead.id}
+                        className="flex items-center justify-between p-1.5 border rounded"
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleLeadSelect(lead);
+                            }}
+                            className="flex-shrink-0"
+                          >
+                            {isSelected ? (
+                              <CheckSquare className="h-4 w-4 text-blue-600" />
+                            ) : (
+                              <Square className="h-4 w-4 text-gray-400" />
+                            )}
+                          </button>
+                          <div 
+                            className="flex-1 min-w-0 cursor-pointer"
+                            onClick={() => handleLeadClick(lead)}
+                          >
+                            <div className="text-sm font-medium text-gray-900 truncate">
+                              {lead.Name || "Unknown Lead"}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {lead["Company Role"] && `${lead["Company Role"]}`}
+                              {lead["Employee Location"] && ` • ${lead["Employee Location"]}`}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            {lead.Priority && (
-                              <Badge variant="outline" className="text-sm px-1 py-0">
-                                {lead.Priority}
-                              </Badge>
-                            )}
-                            <ArrowRight className="h-2.5 w-2.5 text-gray-400" />
-                          </div>
                         </div>
-                      );
-                    })}
-                    {(!relatedLeads || relatedLeads.length === 0) && !leadsLoading && (
-                      <div className="text-sm text-gray-500 text-center py-2">
-                        No related people found
+                        <div className="flex items-center gap-1">
+                          {lead.Priority && (
+                            <Badge variant="outline" className="text-sm px-1 py-0">
+                              {lead.Priority}
+                            </Badge>
+                          )}
+                          <ArrowRight className="h-2.5 w-2.5 text-gray-400" />
+                        </div>
                       </div>
-                    )}
-                    {leadsLoading && (
-                      <div className="text-sm text-gray-500 text-center py-2">
-                        Loading people...
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
+                    );
+                  })}
+                  {(!relatedLeads || relatedLeads.length === 0) && !leadsLoading && (
+                    <div className="text-sm text-gray-500 text-center py-2">
+                      No related people found
+                    </div>
+                  )}
+                  {leadsLoading && (
+                    <div className="text-sm text-gray-500 text-center py-2">
+                      Loading people...
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -405,11 +411,11 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                           {job.Priority && (
                             <Badge variant="outline" className="text-sm px-1 py-0">
                               {job.Priority}
-                            </Badge>
+                  </Badge>
                           )}
                           <ArrowRight className="h-2.5 w-2.5 text-gray-400" />
-                        </div>
-                      </div>
+                </div>
+              </div>
                     ))}
                     {(!relatedJobs || relatedJobs.length === 0) && (
                       <div className="text-sm text-gray-500 text-center py-2">
@@ -418,8 +424,8 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                     )}
                   </div>
                 </ScrollArea>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
 
           </div>
 
