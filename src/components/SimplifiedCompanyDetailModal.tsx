@@ -13,11 +13,10 @@ import {
   Globe, 
   Briefcase,
   Calendar,
-  TrendingUp,
-  Target,
   Eye,
   Bot,
-  Info
+  Info,
+  ArrowRight
 } from "lucide-react";
 import { useState } from "react";
 import { SimplifiedJobDetailModal } from "./SimplifiedJobDetailModal";
@@ -89,7 +88,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
           "Meeting Booked",
           created_at
         `)
-        .ilike("Company", `%${company["Company Name"]}%`)
+        .eq("company_id", company.id)
         .order("created_at", { ascending: false })
         .limit(10);
 
@@ -123,24 +122,24 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="pb-4">
-            <DialogTitle className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Building2 className="h-4 w-4 text-gray-600" />
+          <DialogHeader className="pb-6">
+            <DialogTitle className="flex items-center gap-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <Building2 className="h-6 w-6 text-gray-600" />
               </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-lg font-medium text-gray-900">
+              <div className="flex-1">
+                <h1 className="text-xl font-semibold text-gray-900">
                   {company["Company Name"] || "Unknown Company"}
                 </h1>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-500 mt-1">
                   {company.Industry && `${company.Industry}`}
                   {company["Head Office"] && ` • ${company["Head Office"]}`}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 {company.Priority && (
-                  <Badge className="bg-orange-100 text-orange-800 border-orange-200 text-xs font-medium px-2 py-1">
-                    {company.Priority}
+                  <Badge variant="outline" className="text-xs">
+                    {company.Priority} Priority
                   </Badge>
                 )}
                 <StatusBadge status={company.status_enum} />
@@ -148,50 +147,66 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
-            {/* Company Details - Card */}
-            <Card className="shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Company Details
+          <div className="space-y-6">
+            {/* Company Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Company Overview
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  {/* Company Info */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-gray-600 text-sm font-medium">
-                      <Building2 className="h-4 w-4" />
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Basic Information */}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Company Size</label>
+                      <p className="text-sm text-gray-900 mt-1">
+                        {company["Company Size"] || "Not specified"}
+                      </p>
                     </div>
-                    <div className="flex-1">
-                      <div className="text-xs text-muted-foreground">
-                        {company["Company Size"] && `${company["Company Size"]}`}
-                        {company.Industry && ` • ${company.Industry}`}
-                      </div>
-                      <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                        {company["Head Office"] && (
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {company["Head Office"]}
-                          </span>
-                        )}
-                        {company.Website && (
-                          <span className="flex items-center gap-1">
-                            <Globe className="h-3 w-3" />
-                            Website
-                          </span>
-                        )}
-                      </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Industry</label>
+                      <p className="text-sm text-gray-900 mt-1">
+                        {company.Industry || "Not specified"}
+                      </p>
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3 w-3 text-gray-500" />
-                        <span className="text-xs text-gray-600">
-                          {company.created_at ? formatDate(company.created_at) : "Unknown"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Head Office</label>
+                      <p className="text-sm text-gray-900 mt-1">
+                        {company["Head Office"] || "Not specified"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Additional Information */}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Website</label>
+                      {company.Website ? (
+                        <a 
+                          href={company.Website.startsWith('http') ? company.Website : `https://${company.Website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-1"
+                        >
+                          {company.Website}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : (
+                        <p className="text-sm text-gray-500 mt-1">Not specified</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Created</label>
+                      <p className="text-sm text-gray-900 mt-1">
+                        {company.created_at ? formatDate(company.created_at) : "Unknown"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">AI Score</label>
+                      <div className="mt-1">
                         <AIScoreBadge
                           leadData={{
                             name: "",
@@ -206,94 +221,89 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Website URL */}
-                  {company.Website && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <ExternalLink className="h-3 w-3 text-gray-500" />
-                      <a 
-                        href={company.Website.startsWith('http') ? company.Website : `https://${company.Website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline truncate"
-                      >
-                        {company.Website}
-                      </a>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* AI Intelligence */}
             {(company["AI Info"] || company["Company Info"] || company["Score Reason"]) && (
-              <Card className="shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Bot className="h-4 w-4" />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Bot className="h-5 w-5" />
                     AI Intelligence
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    {company["AI Info"] && (
-                      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                        <div className="text-sm text-purple-700">{company["AI Info"]}</div>
-                      </div>
-                    )}
-                    {company["Company Info"] && (
-                      <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="text-sm text-green-700">{company["Company Info"]}</div>
-                      </div>
-                    )}
-                    {company["Score Reason"] && (
-                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="text-sm text-blue-700">{company["Score Reason"]}</div>
-                      </div>
-                    )}
-                  </div>
+                <CardContent className="space-y-4">
+                  {company["AI Info"] && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">AI Analysis</label>
+                      <p className="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded-lg">
+                        {company["AI Info"]}
+                      </p>
+                    </div>
+                  )}
+                  {company["Company Info"] && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Company Information</label>
+                      <p className="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded-lg">
+                        {company["Company Info"]}
+                      </p>
+                    </div>
+                  )}
+                  {company["Score Reason"] && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Score Reasoning</label>
+                      <p className="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded-lg">
+                        {company["Score Reason"]}
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
 
             {/* Related Jobs */}
-            <Card className="shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Briefcase className="h-4 w-4" />
-                  Related Jobs ({relatedJobs?.length || 0})
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Briefcase className="h-5 w-5" />
+                  Related Jobs
+                  <Badge variant="outline" className="ml-2">
+                    {relatedJobs?.length || 0}
+                  </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <ScrollArea className="h-32">
+              <CardContent>
+                <ScrollArea className="h-40">
                   <div className="space-y-2">
                     {relatedJobs?.map((job) => (
                       <div 
                         key={job.id}
-                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
                         onClick={() => handleJobClick(job)}
                       >
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-gray-900 truncate">
                             {job["Job Title"] || "Untitled Job"}
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-gray-500 mt-1">
                             {job["Job Location"] && `${job["Job Location"]}`}
                             {job["Employment Type"] && ` • ${job["Employment Type"]}`}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           {job.Priority && (
-                            <Badge className="bg-orange-100 text-orange-800 border-orange-200 text-xs px-2 py-1">
+                            <Badge variant="outline" className="text-xs">
                               {job.Priority}
                             </Badge>
                           )}
-                          <Eye className="h-3 w-3 text-gray-400" />
+                          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
                         </div>
                       </div>
                     ))}
                     {(!relatedJobs || relatedJobs.length === 0) && (
-                      <div className="text-sm text-gray-500 text-center py-4">
+                      <div className="text-sm text-gray-500 text-center py-8">
                         No related jobs found
                       </div>
                     )}
@@ -303,44 +313,47 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
             </Card>
 
             {/* Related Leads */}
-            <Card className="shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Related Leads ({relatedLeads?.length || 0})
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Related People
+                  <Badge variant="outline" className="ml-2">
+                    {relatedLeads?.length || 0}
+                  </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <ScrollArea className="h-32">
+              <CardContent>
+                <ScrollArea className="h-40">
                   <div className="space-y-2">
                     {relatedLeads?.map((lead) => (
                       <div 
                         key={lead.id}
-                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
                         onClick={() => handleLeadClick(lead)}
                       >
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-gray-900 truncate">
                             {lead["Full Name"] || "Unknown Lead"}
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-gray-500 mt-1">
                             {lead["Job Title"] && `${lead["Job Title"]}`}
                             {lead["Location"] && ` • ${lead["Location"]}`}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           {lead.Priority && (
-                            <Badge className="bg-orange-100 text-orange-800 border-orange-200 text-xs px-2 py-1">
+                            <Badge variant="outline" className="text-xs">
                               {lead.Priority}
                             </Badge>
                           )}
-                          <Eye className="h-3 w-3 text-gray-400" />
+                          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
                         </div>
                       </div>
                     ))}
                     {(!relatedLeads || relatedLeads.length === 0) && (
-                      <div className="text-sm text-gray-500 text-center py-4">
-                        No related leads found
+                      <div className="text-sm text-gray-500 text-center py-8">
+                        No related people found
                       </div>
                     )}
                   </div>
@@ -349,8 +362,8 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
             </Card>
           </div>
 
-          {/* Navigation Actions */}
-          <div className="flex gap-3">
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4 border-t">
             <Button
               variant="outline"
               onClick={() => {
