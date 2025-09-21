@@ -48,6 +48,7 @@ export function LinkedInConfirmationModal({
 }: LinkedInConfirmationModalProps) {
   const [messages, setMessages] = useState<{[key: string]: string}>({});
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const { toast } = useToast();
 
   // Debug logging
@@ -104,6 +105,8 @@ export function LinkedInConfirmationModal({
         companyName: companyName
       }
     };
+
+    console.log("Sending webhook for lead:", lead.Name, "Payload:", webhookPayload);
 
     try {
       const response = await fetch(webhookUrl, {
@@ -177,13 +180,18 @@ export function LinkedInConfirmationModal({
         });
       }
 
+      // Show success animation
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        onConfirm();
+        onClose();
+      }, 2000);
+
       toast({
         title: "Success",
         description: `${selectedLeads.length} lead(s) added to automation queue and sent to n8n`,
       });
-
-      onConfirm();
-      onClose();
     } catch (error) {
       toast({
         title: "Error",
@@ -197,7 +205,21 @@ export function LinkedInConfirmationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden relative">
+        {/* Success Animation Overlay */}
+        {showSuccess && (
+          <div className="absolute inset-0 bg-green-50/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <CheckCircle className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-green-800 mb-2">Automation Started!</h3>
+              <p className="text-sm text-green-600">
+                {selectedLeads.length} lead{selectedLeads.length !== 1 ? 's' : ''} sent to automation queue
+              </p>
+            </div>
+          </div>
+        )}
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <MessageSquare className="h-4 w-4 text-primary" />

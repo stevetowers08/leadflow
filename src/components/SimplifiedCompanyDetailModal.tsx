@@ -320,24 +320,12 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          <StatusBadge status={lead.stage_enum || lead.Stage} />
+                          <StatusBadge status={lead.stage_enum || lead.Stage} size="sm" />
                           {lead.automation_status_enum && (
-                            <Badge 
-                              variant="outline" 
-                              className={`text-xs px-1 py-0 ${
-                                lead.automation_status_enum === 'completed' ? 'text-green-600 border-green-600' :
-                                lead.automation_status_enum === 'running' ? 'text-blue-600 border-blue-600' :
-                                lead.automation_status_enum === 'queued' ? 'text-yellow-600 border-yellow-600' :
-                                'text-gray-600 border-gray-600'
-                              }`}
-                            >
-                              {lead.automation_status_enum}
-                            </Badge>
+                            <StatusBadge status={lead.automation_status_enum} size="sm" />
                           )}
                           {lead.Priority && (
-                            <Badge variant="outline" className="text-sm px-1 py-0">
-                              {lead.Priority}
-                            </Badge>
+                            <StatusBadge status={lead.Priority} size="sm" />
                           )}
                           <ArrowRight className="h-2.5 w-2.5 text-gray-400" />
                         </div>
