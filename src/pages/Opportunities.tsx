@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { LeadDetailModal } from "@/components/LeadDetailModal";
+import { AIScoreBadge } from "@/components/AIScoreBadge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -82,10 +83,8 @@ const Opportunities = () => {
 
       if (error) throw error;
       
-      console.log("Fetched leads:", data);
       setLeads(data || []);
     } catch (error) {
-      console.error("Error fetching leads:", error);
       toast({
         title: "Error",
         description: "Failed to fetch leads",
@@ -126,7 +125,6 @@ const Opportunities = () => {
         description: "Lead stage updated successfully",
       });
     } catch (error) {
-      console.error("Error updating lead stage:", error);
       toast({
         title: "Error", 
         description: "Failed to update lead stage",
@@ -141,7 +139,6 @@ const Opportunities = () => {
       return leadStage === stage;
     });
     acc[stage] = stageLeads;
-    console.log(`Stage ${stage}:`, stageLeads.length, "leads");
     return acc;
   }, {} as Record<string, Lead[]>);
 
@@ -173,112 +170,118 @@ const Opportunities = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Opportunities</h1>
-            <p className="text-muted-foreground">Track your sales pipeline by stage</p>
+      <div className="min-h-screen bg-gray-50/50">
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+          <div className="flex flex-col space-y-2">
+            <div className="h-8 bg-gray-200 rounded w-64 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-96 animate-pulse"></div>
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-muted rounded w-24 mb-2"></div>
-                <div className="h-8 bg-muted rounded w-16 mb-1"></div>
-                <div className="h-3 bg-muted rounded w-20"></div>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-gray-200 rounded-lg"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-8 bg-gray-200 rounded w-16"></div>
+                      <div className="h-3 bg-gray-200 rounded w-20"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="border-b pb-3">
-        <h1 className="text-lg font-semibold tracking-tight">Opportunities Pipeline</h1>
-        <p className="text-xs text-muted-foreground mt-1">
-          Track leads through your recruiting stages
-        </p>
-      </div>
-      
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1 bg-blue-200 rounded">
-                <Target className="h-3 w-3 text-blue-700" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-blue-900">Active Leads</p>
-                <p className="text-sm font-bold text-blue-900">{activeLeads}</p>
-                <p className="text-xs text-blue-700 opacity-75">decision makers</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1 bg-green-200 rounded">
-                <MessageCircle className="h-3 w-3 text-green-700" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-green-900">Connected</p>
-                <p className="text-sm font-bold text-green-900">{connectedLeads}</p>
-                <p className="text-xs text-green-700 opacity-75">conversations</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1 bg-purple-200 rounded">
-                <Users2 className="h-3 w-3 text-purple-700" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-purple-900">Companies</p>
-                <p className="text-sm font-bold text-purple-900">{totalCompanies}</p>
-                <p className="text-xs text-purple-700 opacity-75">with open roles</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Pipeline Stages */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium">Outreach Pipeline</h2>
-          <div className="text-xs text-muted-foreground">
-            Total: {leads.length} | Active: {activeLeads}
-          </div>
+    <div className="bg-gray-50/50">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Opportunities Pipeline</h1>
+          <p className="text-gray-600">
+            Track and manage your recruiting pipeline across all stages
+          </p>
         </div>
-        
-        {/* Horizontally scrollable pipeline */}
-        <div className="overflow-x-auto pb-2">
-          <div className="flex gap-3 min-w-max">
+      
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-200 rounded-lg">
+                  <Target className="h-6 w-6 text-blue-700" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-blue-900">Active Leads</p>
+                  <p className="text-2xl font-bold text-blue-900">{activeLeads}</p>
+                  <p className="text-sm text-blue-700 opacity-75">decision makers</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-200 rounded-lg">
+                  <MessageCircle className="h-6 w-6 text-green-700" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-green-900">Connected</p>
+                  <p className="text-2xl font-bold text-green-900">{connectedLeads}</p>
+                  <p className="text-sm text-green-700 opacity-75">conversations</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-200 rounded-lg">
+                  <Users2 className="h-6 w-6 text-purple-700" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-purple-900">Companies</p>
+                  <p className="text-2xl font-bold text-purple-900">{totalCompanies}</p>
+                  <p className="text-sm text-purple-700 opacity-75">with open roles</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      
+        {/* Pipeline Stages */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900">Outreach Pipeline</h2>
+            <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+              Total: {leads.length} | Active: {activeLeads}
+            </div>
+          </div>
+          
+          {/* Pipeline stages */}
+          <div className="flex gap-6 overflow-x-auto pb-4">
             {availableStages.map(stage => {
               const stageLeads = groupedLeads[stage] || [];
               const stageColor = recruitingStageColors[stage] || recruitingStageColors['NEW LEAD'];
               
               return (
-                <Card key={stage} className={`${stageColor} min-h-[400px] w-64 flex-shrink-0`}>
-                  <CardHeader className="pb-1">
-                    <CardTitle className="flex items-center justify-between text-xs font-medium">
-                      <span>{stage}</span>
-                      <span className="text-xs bg-white/80 px-1.5 py-0.5 rounded-full">
+                <Card key={stage} className={`${stageColor} w-80 flex-shrink-0 shadow-lg border-2`}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center justify-between text-sm font-semibold">
+                      <span className="text-gray-800">{stage}</span>
+                      <span className="text-sm bg-white/90 px-3 py-1 rounded-full font-bold text-gray-700 shadow-sm">
                         {stageLeads.length}
                       </span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-1.5 max-h-[330px] overflow-y-auto">
+                  <CardContent className="space-y-3 px-4 pb-4">
                     {stageLeads.length === 0 ? (
                       <div className="text-center py-6 text-muted-foreground">
                         <p className="text-xs opacity-60">No leads in this stage</p>
@@ -287,22 +290,22 @@ const Opportunities = () => {
                       stageLeads.map(lead => (
                         <Card 
                           key={lead.id} 
-                          className="bg-white/90 hover:bg-white hover:shadow-sm transition-all duration-200 cursor-pointer border border-white/60"
+                          className="bg-white/95 hover:bg-white hover:shadow-lg transition-all duration-200 cursor-pointer border border-white/80 group"
                           onClick={() => handleLeadClick(lead)}
                         >
-                          <CardContent className="p-2">
-                            <div className="space-y-1">
+                          <CardContent className="p-4">
+                            <div className="space-y-3">
                               <div className="flex items-start justify-between">
-                                <h4 className="font-medium text-xs leading-tight truncate">{lead.Name}</h4>
+                                <h4 className="font-semibold text-sm leading-tight text-gray-900">{lead.Name}</h4>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100"
+                                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100"
                                       onClick={(e) => e.stopPropagation()}
                                     >
-                                      <MoreVertical className="h-2.5 w-2.5" />
+                                      <MoreVertical className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent 
@@ -341,77 +344,84 @@ const Opportunities = () => {
                               </div>
                               
                               {lead.Company && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground opacity-75">
-                                  <Building2 className="h-2.5 w-2.5" />
-                                  <span className="truncate">{lead.Company}</span>
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <Building2 className="h-4 w-4 text-gray-500" />
+                                  <span className="truncate font-medium">{lead.Company}</span>
                                 </div>
                               )}
                               
                               {lead["Company Role"] && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground opacity-75">
-                                  <User className="h-2.5 w-2.5" />
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <User className="h-4 w-4 text-gray-500" />
                                   <span className="truncate">{lead["Company Role"]}</span>
                                 </div>
                               )}
 
                               {lead.Jobs && (
-                                <div className="text-xs text-blue-700 bg-blue-100/80 px-1.5 py-0.5 rounded text-center truncate">
+                                <div className="text-sm text-blue-700 bg-blue-100 px-3 py-1 rounded-full text-center font-medium">
                                   {lead.Jobs}
                                 </div>
                               )}
                               
                               {lead["Employee Location"] && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground opacity-75">
-                                  <MapPin className="h-2.5 w-2.5" />
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <MapPin className="h-4 w-4 text-gray-500" />
                                   <span className="truncate">{lead["Employee Location"]}</span>
                                 </div>
                               )}
 
                               {/* Recruiting Pipeline Info */}
                               {lead["Last Contact Date"] && (
-                                <div className="text-xs text-muted-foreground opacity-75">
-                                  Last: {new Date(lead["Last Contact Date"]).toLocaleDateString()}
+                                <div className="text-sm text-gray-500">
+                                  Last contact: {new Date(lead["Last Contact Date"]).toLocaleDateString()}
                                 </div>
                               )}
 
                               {lead["Next Action Date"] && (
-                                <div className="text-xs text-blue-700 bg-blue-100/80 px-1.5 py-0.5 rounded">
+                                <div className="text-sm text-blue-700 bg-blue-100 px-3 py-1 rounded-full font-medium">
                                   Next: {new Date(lead["Next Action Date"]).toLocaleDateString()}
                                 </div>
                               )}
                               
-                              <div className="flex items-center justify-between pt-0.5">
+                              <div className="flex items-center justify-between pt-2">
                                 {lead.priority_enum && (
                                   <StatusBadge status={lead.priority_enum} size="sm" />
                                 )}
-                                {lead["Lead Score"] && (
-                                  <span className="text-xs font-medium text-yellow-700 bg-yellow-100/80 px-1.5 py-0.5 rounded-full">
-                                    {lead["Lead Score"]}
-                                  </span>
-                                )}
+                                <AIScoreBadge
+                                  leadData={{
+                                    name: lead.Name || "",
+                                    company: lead.Company || "",
+                                    role: lead["Company Role"] || "",
+                                    location: lead["Employee Location"] || "",
+                                    industry: lead["Company Industry"] || "Unknown",
+                                    company_size: "Unknown"
+                                  }}
+                                  initialScore={lead["Lead Score"] ? parseInt(lead["Lead Score"]) : undefined}
+                                  showDetails={false}
+                                />
                               </div>
 
                               {/* Pipeline Actions */}
-                              <div className="flex gap-1 pt-0.5">
+                              <div className="flex gap-2 pt-2">
                                 {lead["Email Address"] && (
                                   <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
-                                    className="h-4 px-1 text-xs"
+                                    className="h-8 px-3 text-xs hover:bg-blue-50 hover:border-blue-300"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       window.open(`mailto:${lead["Email Address"]}`, '_blank');
                                     }}
                                   >
-                                    <Mail className="h-2 w-2 mr-1" />
+                                    <Mail className="h-3 w-3 mr-1" />
                                     Email
                                   </Button>
                                 )}
                                 {lead["LinkedIn URL"] && (
                                   <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
-                                    className="h-4 px-1 text-xs"
+                                    className="h-8 px-3 text-xs hover:bg-blue-50 hover:border-blue-300"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       window.open(lead["LinkedIn URL"], '_blank');
@@ -432,16 +442,16 @@ const Opportunities = () => {
             })}
           </div>
         </div>
-      </div>
 
-      <LeadDetailModal
-        lead={selectedLead}
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedLead(null);
-        }}
-      />
+        <LeadDetailModal
+          lead={selectedLead}
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedLead(null);
+          }}
+        />
+      </div>
     </div>
   );
 };

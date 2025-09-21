@@ -32,9 +32,34 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Set up environment variables (see Environment Setup section below)
+cp .env.example .env
+# Edit .env with your actual values
+
+# Step 5: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
+
+## Environment Setup
+
+This project uses environment variables for configuration. Copy `.env.example` to `.env` and update with your actual values:
+
+### Required Environment Variables
+
+- `VITE_SUPABASE_URL`: Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous/public key
+
+### Optional Environment Variables
+
+- `VITE_AIRTABLE_API_KEY`: Your Airtable API key (if using Airtable integration)
+- `VITE_AIRTABLE_BASE_ID`: Your Airtable base ID (if using Airtable integration)
+
+### Getting Supabase Credentials
+
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Go to Settings > API
+4. Copy the Project URL and anon/public key
 
 **Edit a file directly in GitHub**
 

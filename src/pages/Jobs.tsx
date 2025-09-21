@@ -2,12 +2,36 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
-import { JobDetailModal } from "@/components/JobDetailModal";
+import { DynamicStatusBadge } from "@/components/DynamicStatusBadge";
+import { SimplifiedJobDetailModal } from "@/components/SimplifiedJobDetailModal";
+import { AIScoreBadge } from "@/components/AIScoreBadge";
 import { useToast } from "@/hooks/use-toast";
+import { useOptimizedStatus, useRealTimeStatus } from "@/hooks/useOptimizedStatus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { Search, X } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Search, 
+  X, 
+  RefreshCw, 
+  Edit, 
+  Archive, 
+  Calendar,
+  Clock,
+  AlertTriangle,
+  TrendingUp,
+  Building2,
+  MapPin,
+  DollarSign,
+  Users,
+  Filter,
+  SortAsc,
+  SortDesc,
+  Eye,
+  ExternalLink
+} from "lucide-react";
 
 interface Job {
   id: string;
@@ -25,12 +49,21 @@ interface Job {
   "Job Description": string | null;
   "Employment Type": string | null;
   Salary: string | null;
+  status_enum: string | null;
   created_at: string;
 }
 
 interface Company {
   id: string;
   name: string;
+}
+
+interface JobMetrics {
+  totalJobs: number;
+  newToday: number;
+  expiringSoon: number;
+  highPriority: number;
+  activeJobs: number;
 }
 
 const Jobs = () => {
@@ -41,9 +74,26 @@ const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [companyFilter, setCompanyFilter] = useState<string>("");
   const [priorityFilter, setPriorityFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [industryFilter, setIndustryFilter] = useState<string>("");
+  const [locationFilter, setLocationFilter] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("posted_date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [metrics, setMetrics] = useState<JobMetrics>({
+    totalJobs: 0,
+    newToday: 0,
+    expiringSoon: 0,
+    highPriority: 0,
+    activeJobs: 0
+  });
   const { toast } = useToast();
 
-  // Filter jobs based on search term, company, and priority
+  // Optimized status management
+  const { getJobStatus, isLoading: statusLoading } = useOptimizedStatus();
+  const { refreshAllStatuses } = useRealTimeStatus();
+
+  // Filter jobs based on search term, company, priority, and dynamic status
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = !searchTerm || 
       job["Job Title"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,13 +107,18 @@ const Jobs = () => {
     const matchesPriority = !priorityFilter || 
       job.Priority?.toLowerCase() === priorityFilter.toLowerCase();
     
-    return matchesSearch && matchesCompany && matchesPriority;
+    const jobStatusInfo = getJobStatus(job.id);
+    const matchesStatus = !statusFilter || 
+      jobStatusInfo.status === statusFilter.toLowerCase();
+    
+    return matchesSearch && matchesCompany && matchesPriority && matchesStatus;
   });
 
   const clearFilters = () => {
     setSearchTerm("");
     setCompanyFilter("");
     setPriorityFilter("");
+    setStatusFilter("");
   };
 
   const fetchJobs = async () => {
@@ -109,6 +164,12 @@ const Jobs = () => {
     fetchJobs();
   }, []);
 
+
+  const handleRowClick = (job: Job) => {
+    setSelectedJob(job);
+    setIsDetailModalOpen(true);
+  };
+
   const columns = [
     {
       key: "Company",
@@ -118,51 +179,46 @@ const Jobs = () => {
       ),
     },
     {
-      key: "Job Title",
-      label: "Job Title",
+      key: "Job Summary",
+      label: "Job Summary",
       render: (job: Job) => (
-        <span className="text-xs font-medium">{job["Job Title"]}</span>
+        <div className="max-w-xs">
+          <div className="text-xs font-medium mb-1">{job["Job Title"]}</div>
+          <div className="text-xs text-muted-foreground">
+            {job["Job Location"] && `${job["Job Location"]} • `}
+            {job.Industry && `${job.Industry} • `}
+            {job.Function && job.Function}
+          </div>
+        </div>
       ),
     },
     {
-      key: "Job Location",
-      label: "Job Location",
-      render: (job: Job) => (
-        <span className="text-xs">{job["Job Location"] || "-"}</span>
-      ),
-    },
-    {
-      key: "Industry",
-      label: "Industry",
-      render: (job: Job) => (
-        <span className="text-xs">{job.Industry || "-"}</span>
-      ),
-    },
-    {
-      key: "Function",
-      label: "Function",
-      render: (job: Job) => (
-        <span className="text-xs">{job.Function || "-"}</span>
-      ),
-    },
-    {
-      key: "Lead Score",
-      label: "Score",
+      key: "AI Score",
+      label: "AI Score",
+      headerAlign: "center",
+      cellAlign: "center",
       render: (job: Job) => (
         <div className="text-center">
-          {job["Lead Score"] ? (
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-mono text-xs font-semibold">
-              {job["Lead Score"]}
-            </span>
-          ) : (
-            <span className="text-xs text-muted-foreground">-</span>
-          )}
+          <AIScoreBadge
+            leadData={{
+              name: "Job Candidate",
+              company: job.Company || "",
+              role: job["Job Title"] || "",
+              location: job["Job Location"] || "",
+              industry: job.Industry,
+              company_size: "Unknown"
+            }}
+            initialScore={job["Lead Score"] ? parseInt(job["Lead Score"]) : undefined}
+            showDetails={false}
+          />
         </div>
       ),
     },
     {
       key: "Posted Date",
       label: "Posted Date",
+      headerAlign: "center",
+      cellAlign: "center",
       render: (job: Job) => {
         if (!job["Posted Date"]) return <span className="text-xs">-</span>;
         
@@ -197,6 +253,8 @@ const Jobs = () => {
     {
       key: "Valid Through",
       label: "Valid Through",
+      headerAlign: "center",
+      cellAlign: "center",
       render: (job: Job) => {
         if (!job["Valid Through"]) return <span className="text-xs">-</span>;
         
@@ -231,6 +289,8 @@ const Jobs = () => {
     {
       key: "Priority",
       label: "Priority",
+      headerAlign: "center",
+      cellAlign: "center",
       render: (job: Job) => (
         <StatusBadge status={job.Priority?.toLowerCase() || "medium"} />
       ),
@@ -238,25 +298,34 @@ const Jobs = () => {
     {
       key: "status_enum",
       label: "Status",
-      render: (job: Job) => (
-        <StatusBadge status={(job as any).status_enum?.toLowerCase() || "active"} />
-      ),
+      headerAlign: "center",
+      cellAlign: "center",
+      render: (job: Job) => {
+        const statusInfo = getJobStatus(job.id);
+        return (
+          <DynamicStatusBadge
+            status={statusInfo.status}
+            leadCount={statusInfo.leadCount}
+            isLoading={statusInfo.isLoading}
+            showLeadCount={true}
+          />
+        );
+      },
     },
   ];
-
-  const handleRowClick = (job: Job) => {
-    setSelectedJob(job);
-    setIsDetailModalOpen(true);
-  };
 
   return (
     <>
       <div className="space-y-4">
         <div className="border-b pb-3">
-          <h1 className="text-lg font-semibold tracking-tight">Jobs</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Manage job postings and opportunities
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight">Jobs</h1>
+              <p className="text-xs text-muted-foreground mt-1">
+                Manage job postings and opportunities
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Search and Filter Controls */}
@@ -296,12 +365,26 @@ const Jobs = () => {
             placeholder="Filter by priority"
           />
           
+          <DropdownSelect
+            options={[
+              { label: "All Statuses", value: "all" },
+              { label: "Active", value: "active" },
+              { label: "Draft", value: "draft" },
+              { label: "Paused", value: "paused" },
+              { label: "Filled", value: "filled" },
+              { label: "Cancelled", value: "cancelled" }
+            ]}
+            value={statusFilter || "all"}
+            onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}
+            placeholder="Filter by status"
+          />
+          
           <Button 
             variant="outline" 
             size="sm" 
             className="h-9 px-3"
             onClick={clearFilters}
-            disabled={!searchTerm && !companyFilter && !priorityFilter}
+            disabled={!searchTerm && !companyFilter && !priorityFilter && !statusFilter}
           >
             <X className="h-3 w-3 mr-1" />
             Clear
@@ -343,17 +426,68 @@ const Jobs = () => {
           loading={loading}
           onRowClick={handleRowClick}
           showSearch={false}
+          enableBulkActions={true}
+          enableExport={true}
+          exportFilename="jobs-export.csv"
+          itemName="job"
+          itemNamePlural="jobs"
+          pagination={{
+            enabled: true,
+            pageSize: 25,
+            pageSizeOptions: [10, 25, 50, 100],
+            showPageSizeSelector: true,
+            showItemCount: true,
+          }}
+          bulkActions={[
+            {
+              id: 'update-priority',
+              label: 'Update Priority',
+              icon: Edit,
+              action: async (jobs) => {
+                const newPriority = prompt('Enter new priority (high/medium/low):');
+                if (newPriority) {
+                  for (const job of jobs) {
+                    await supabase
+                      .from("Jobs")
+                      .update({ Priority: newPriority })
+                      .eq("id", job.id);
+                  }
+                  fetchJobs(); // Refresh data
+                }
+              },
+              variant: 'secondary'
+            },
+            {
+              id: 'archive-jobs',
+              label: 'Archive Jobs',
+              icon: Archive,
+              action: async (jobs) => {
+                for (const job of jobs) {
+                  await supabase
+                    .from("Jobs")
+                    .update({ status_enum: 'archived' })
+                    .eq("id", job.id);
+                }
+                fetchJobs(); // Refresh data
+              },
+              variant: 'secondary',
+              requiresConfirmation: true,
+              confirmationMessage: 'Are you sure you want to archive the selected jobs?'
+            }
+          ]}
         />
       </div>
       
-      <JobDetailModal
-        job={selectedJob}
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedJob(null);
-        }}
-      />
+      {selectedJob && (
+        <SimplifiedJobDetailModal
+          job={selectedJob}
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedJob(null);
+          }}
+        />
+      )}
     </>
   );
 };

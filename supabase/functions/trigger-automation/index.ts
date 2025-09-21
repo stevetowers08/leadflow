@@ -16,8 +16,8 @@ serve(async (req) => {
 
     console.log('Automation trigger received:', { leadId, action, leadData });
 
-    // Get webhook URL from environment or use a default n8n webhook URL
-    const webhookUrl = Deno.env.get('N8N_WEBHOOK_URL') || 'https://your-n8n-instance.com/webhook/lead-automation';
+    // Get webhook URL from environment or use the default n8n webhook URL
+    const webhookUrl = Deno.env.get('N8N_WEBHOOK_URL') || 'https://n8n.srv814433.hstgr.cloud/webhook/crm';
 
     // Prepare payload for n8n
     const webhookPayload = {
@@ -28,11 +28,18 @@ serve(async (req) => {
         id: leadId,
         name: leadData.name,
         company: leadData.company,
+        companyRole: leadData.companyRole,
         email: leadData.email,
+        location: leadData.location,
+        linkedinUrl: leadData.linkedinUrl,
         stage: leadData.stage,
         priority: leadData.priority,
-        linkedinUrl: leadData.linkedinUrl,
-        leadScore: leadData.leadScore
+        leadScore: leadData.leadScore,
+        automationStatus: leadData.automationStatus,
+        createdAt: leadData.createdAt,
+        linkedinMessage: leadData.linkedinMessage,
+        jobTitle: leadData.jobTitle,
+        companyName: leadData.companyName
       }
     };
 

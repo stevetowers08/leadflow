@@ -2,14 +2,22 @@ import { ReactNode, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, MoreHorizontal } from "lucide-react";
+import { Search, Filter, MoreHorizontal, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TableSkeleton } from "@/components/LoadingSkeletons";
+import { PaginationControls } from "@/components/PaginationControls";
+import { usePaginatedData } from "@/hooks/usePagination";
+import { BulkActions, BulkAction, createBulkActions } from "@/components/BulkActions";
+import { useToast } from "@/hooks/use-toast";
+import { exportToCSV } from "@/utils/exportUtils";
 
 
 interface Column<T> {
   key: string;
   label: string;
   render: (item: T) => ReactNode;
+  headerAlign?: "left" | "center" | "right";
+  cellAlign?: "left" | "center" | "right";
 }
 
 interface DataTableProps<T> {
@@ -20,6 +28,19 @@ interface DataTableProps<T> {
   addButton?: ReactNode;
   onRowClick?: (item: T) => void;
   showSearch?: boolean;
+  pagination?: {
+    enabled: boolean;
+    pageSize?: number;
+    pageSizeOptions?: number[];
+    showPageSizeSelector?: boolean;
+    showItemCount?: boolean;
+  };
+  bulkActions?: BulkAction<T>[];
+  enableBulkActions?: boolean;
+  itemName?: string;
+  itemNamePlural?: string;
+  enableExport?: boolean;
+  exportFilename?: string;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -30,8 +51,17 @@ export function DataTable<T extends Record<string, any>>({
   addButton,
   onRowClick,
   showSearch = true,
+  pagination = { enabled: false },
+  bulkActions = [],
+  enableBulkActions = false,
+  itemName = 'item',
+  itemNamePlural = 'items',
+  enableExport = false,
+  exportFilename = 'export.csv',
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedItems, setSelectedItems] = useState<T[]>([]);
+  const { toast } = useToast();
 
   const filteredData = data.filter((item) => {
     if (!searchTerm) return true;
@@ -41,29 +71,43 @@ export function DataTable<T extends Record<string, any>>({
     );
   });
 
+  // Use pagination if enabled
+  const { paginatedData, pagination: paginationState } = usePaginatedData(
+    filteredData,
+    {
+      pageSize: pagination.pageSize || 10,
+    }
+  );
+
+  const displayData = pagination.enabled ? paginatedData : filteredData;
+
+  // Bulk actions handlers
+  const handleSelectAll = () => {
+    if (selectedItems.length === displayData.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems([...displayData]);
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedItems([]);
+  };
+
+  const handleItemSelect = (item: T, checked: boolean) => {
+    if (checked) {
+      setSelectedItems(prev => [...prev, item]);
+    } else {
+      setSelectedItems(prev => prev.filter(selected => selected.id !== item.id));
+    }
+  };
+
+
+  // Create default bulk actions if none provided
+  const allBulkActions = [...bulkActions];
+
   if (loading) {
-    return (
-      <div className="space-y-6">
-        {title && (
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
-              <p className="text-muted-foreground text-sm mt-1">
-                Manage and track your {title.toLowerCase()} pipeline
-              </p>
-            </div>
-          </div>
-        )}
-        <div className="bg-card border border-border rounded-lg shadow-sm p-12">
-          <div className="flex items-center justify-center">
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-              <span>Loading {title?.toLowerCase() || 'data'}...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <TableSkeleton rows={pagination.pageSize || 10} columns={columns.length} />;
   }
 
   return (
@@ -95,17 +139,62 @@ export function DataTable<T extends Record<string, any>>({
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </Button>
+          {enableExport && (
+            <Button 
+              variant="outline" 
+              size="default" 
+              className="h-10 px-4"
+              onClick={() => {
+                exportToCSV(filteredData, { filename: exportFilename });
+                toast({
+                  title: "Export successful",
+                  description: `Data exported to ${exportFilename}`,
+                });
+              }}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          )}
         </div>
+      )}
+
+      {/* Bulk Actions */}
+      {enableBulkActions && (
+        <BulkActions
+          selectedItems={selectedItems}
+          onSelectionChange={setSelectedItems}
+          allItems={displayData}
+          onSelectAll={handleSelectAll}
+          onClearSelection={handleClearSelection}
+          actions={allBulkActions}
+          itemName={itemName}
+          itemNamePlural={itemNamePlural}
+        />
       )}
 
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="border-b bg-muted/30">
+              {(enableBulkActions || enableExport) && (
+                <TableHead className="h-12 px-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider w-12">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.length === displayData.length && displayData.length > 0}
+                    onChange={handleSelectAll}
+                    className="rounded border-input"
+                  />
+                </TableHead>
+              )}
               {columns.map((column) => (
                 <TableHead 
                   key={column.key} 
-                  className="h-12 px-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider"
+                  className={cn(
+                    "h-12 px-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider",
+                    column.headerAlign === "center" && "text-center",
+                    column.headerAlign === "right" && "text-right"
+                  )}
                 >
                   {column.label}
                 </TableHead>
@@ -113,10 +202,10 @@ export function DataTable<T extends Record<string, any>>({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.length === 0 ? (
+            {displayData.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={columns.length + ((enableBulkActions || enableExport) ? 1 : 0)}
                   className="text-center py-12 text-muted-foreground"
                 >
                   <div className="flex flex-col items-center gap-2">
@@ -133,17 +222,38 @@ export function DataTable<T extends Record<string, any>>({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredData.map((item, index) => (
+              displayData.map((item, index) => (
                 <TableRow 
                   key={item.id || index} 
                   className={cn(
                     "border-b border-border/50 hover:bg-muted/20 transition-colors duration-150",
-                    "group cursor-pointer"
+                    "group cursor-pointer",
+                    selectedItems.some(selected => selected.id === item.id) && "bg-primary/5"
                   )}
                   onClick={() => onRowClick?.(item)}
                 >
+                  {(enableBulkActions || enableExport) && (
+                    <TableCell 
+                      className="px-6 py-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.some(selected => selected.id === item.id)}
+                        onChange={(e) => handleItemSelect(item, e.target.checked)}
+                        className="rounded border-input"
+                      />
+                    </TableCell>
+                  )}
                   {columns.map((column) => (
-                    <TableCell key={column.key} className="px-6 py-4">
+                    <TableCell 
+                      key={column.key} 
+                      className={cn(
+                        "px-6 py-4",
+                        column.cellAlign === "center" && "text-center",
+                        column.cellAlign === "right" && "text-right"
+                      )}
+                    >
                       {column.render(item)}
                     </TableCell>
                   ))}
@@ -154,7 +264,28 @@ export function DataTable<T extends Record<string, any>>({
         </Table>
       </div>
 
-      {filteredData.length > 0 && (
+      {/* Pagination Controls */}
+      {pagination.enabled && filteredData.length > 0 && (
+        <PaginationControls
+          currentPage={paginationState.currentPage}
+          totalPages={paginationState.totalPages}
+          pageSize={paginationState.pageSize}
+          totalItems={filteredData.length}
+          onPageChange={paginationState.goToPage}
+          onPageSizeChange={paginationState.setPageSize}
+          visiblePages={paginationState.visiblePages}
+          showFirstEllipsis={paginationState.showFirstEllipsis}
+          showLastEllipsis={paginationState.showLastEllipsis}
+          hasNextPage={paginationState.hasNextPage}
+          hasPreviousPage={paginationState.hasPreviousPage}
+          pageSizeOptions={pagination.pageSizeOptions}
+          showPageSizeSelector={pagination.showPageSizeSelector}
+          showItemCount={pagination.showItemCount}
+        />
+      )}
+
+      {/* Legacy item count for non-paginated tables */}
+      {!pagination.enabled && filteredData.length > 0 && (
         <div className="flex items-center justify-between text-sm text-muted-foreground bg-muted/20 px-4 py-2 rounded-md">
           <span>
             Showing {filteredData.length} of {data.length} {title?.toLowerCase() || 'items'}

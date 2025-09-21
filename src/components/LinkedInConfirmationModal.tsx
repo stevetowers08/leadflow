@@ -14,10 +14,19 @@ interface Lead {
   Name: string;
   Company: string | null;
   "Company Role": string | null;
+  "Email Address": string | null;
+  "Employee Location": string | null;
   "LinkedIn URL": string | null;
   "LinkedIn Request Message": string | null;
   "LinkedIn Connected Message": string | null;
   "LinkedIn Follow Up Message": string | null;
+  Stage: string | null;
+  stage_enum: string | null;
+  priority_enum: string | null;
+  "Lead Score": string | null;
+  automation_status_enum: string | null;
+  "Automation Status": string | null;
+  created_at: string;
 }
 
 interface LinkedInConfirmationModalProps {
@@ -66,6 +75,53 @@ export function LinkedInConfirmationModal({
     }));
   };
 
+  const sendToWebhook = async (lead: Lead, message: string) => {
+    const webhookUrl = "https://n8n.srv814433.hstgr.cloud/webhook/crm";
+    
+    const webhookPayload = {
+      timestamp: new Date().toISOString(),
+      source: "crm_automation",
+      action: "lead_automation_trigger",
+      lead: {
+        id: lead.id,
+        name: lead.Name,
+        company: lead.Company,
+        companyRole: lead["Company Role"],
+        email: lead["Email Address"],
+        location: lead["Employee Location"],
+        linkedinUrl: lead["LinkedIn URL"],
+        stage: lead.Stage || lead.stage_enum,
+        priority: lead.priority_enum,
+        leadScore: lead["Lead Score"],
+        automationStatus: lead.automation_status_enum || lead["Automation Status"],
+        createdAt: lead.created_at,
+        linkedinMessage: message,
+        jobTitle: jobTitle,
+        companyName: companyName
+      }
+    };
+
+    try {
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'CRM-Automation/1.0'
+        },
+        body: JSON.stringify(webhookPayload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook failed: ${response.status} ${response.statusText}`);
+      }
+
+      return await response.text();
+    } catch (error) {
+      console.error('Webhook error for lead:', lead.Name, error);
+      throw error;
+    }
+  };
+
   const handleConfirm = async () => {
     setLoading(true);
     try {
@@ -76,6 +132,7 @@ export function LinkedInConfirmationModal({
           .update({
             "LinkedIn Request Message": messages[lead.id],
             "Automation Status": "PENDING",
+            automation_status_enum: "queued",
             "Stage": "contacted",
             stage_enum: "contacted"
           })
@@ -84,9 +141,38 @@ export function LinkedInConfirmationModal({
 
       await Promise.all(updates);
 
+      // Send each lead to webhook
+      const webhookPromises = selectedLeads.map(lead => 
+        sendToWebhook(lead, messages[lead.id])
+      );
+
+      try {
+        const webhookResults = await Promise.allSettled(webhookPromises);
+        const successful = webhookResults.filter(result => result.status === 'fulfilled').length;
+        const failed = webhookResults.filter(result => result.status === 'rejected').length;
+        
+        console.log(`Webhook results: ${successful} successful, ${failed} failed`);
+        
+        if (failed > 0) {
+          console.error('Failed webhooks:', webhookResults.filter(result => result.status === 'rejected'));
+          toast({
+            title: "Warning",
+            description: `Leads updated but ${failed} webhook notification(s) failed`,
+            variant: "destructive",
+          });
+        }
+      } catch (webhookError) {
+        console.error('Webhook processing error:', webhookError);
+        toast({
+          title: "Warning",
+          description: "Leads updated but webhook notifications failed",
+          variant: "destructive",
+        });
+      }
+
       toast({
         title: "Success",
-        description: `${selectedLeads.length} lead(s) added to automation queue`,
+        description: `${selectedLeads.length} lead(s) added to automation queue and sent to n8n`,
       });
 
       onConfirm();

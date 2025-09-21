@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { LEAD_STAGE_OPTIONS } from "@/hooks/useDropdownOptions";
+import { useLeadStageDropdown, usePriorityLevelDropdown, FALLBACK_LEAD_STAGE_OPTIONS, FALLBACK_PRIORITY_OPTIONS } from "@/hooks/useDropdownOptions";
 import { Search, X, Bot, UserCheck, MessageSquare, Clock } from "lucide-react";
 
 interface Lead {
@@ -22,7 +22,8 @@ interface Lead {
   "Lead Score": string | null;
   "LinkedIn URL": string | null;
   created_at: string;
-  automation_status?: string;
+  automation_status_enum: string | null;
+  "Automation Status": string | null;
   days_since_update?: number;
 }
 
@@ -33,6 +34,10 @@ const Automations = () => {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [priorityFilter, setPriorityFilter] = useState<string>("");
   const { toast } = useToast();
+  
+  // Database-driven dropdowns
+  const { options: leadStageOptions, loading: leadStageLoading } = useLeadStageDropdown();
+  const { options: priorityOptions, loading: priorityLoading } = usePriorityLevelDropdown();
 
   const fetchLeads = async () => {
     try {
@@ -50,29 +55,24 @@ const Automations = () => {
           priority_enum,
           "Lead Score",
           "LinkedIn URL",
-          created_at
+          created_at,
+          automation_status_enum,
+          "Automation Status"
         `)
+        // Only fetch leads that are automated (not idle)
+        .not('automation_status_enum', 'is', null)
+        .neq('automation_status_enum', 'idle')
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      // Process leads to add automation status and days since update
+      // Process leads to add days since update
       const processedLeads = (data || []).map(lead => {
         const createdAt = new Date(lead.created_at);
         const daysSinceUpdate = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
         
-        let automationStatus = "active";
-        if (lead.Stage === "contacted" || lead.stage_enum === "contacted") {
-          automationStatus = "contacted";
-        } else if (lead.Stage === "qualified" || lead.stage_enum === "qualified") {
-          automationStatus = "qualified";
-        } else if (daysSinceUpdate > 7) {
-          automationStatus = "needs_update";
-        }
-        
         return {
           ...lead,
-          automation_status: automationStatus,
           days_since_update: daysSinceUpdate
         };
       });
@@ -81,7 +81,7 @@ const Automations = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch leads",
+        description: "Failed to fetch automated leads",
         variant: "destructive",
       });
     } finally {
@@ -121,14 +121,17 @@ const Automations = () => {
       let updateData: any = {};
       
       switch (action) {
-        case "contact":
-          updateData = { Stage: "contacted", stage_enum: "contacted" };
+        case "pause":
+          updateData = { automation_status_enum: "paused" };
           break;
-        case "qualify":
-          updateData = { Stage: "qualified", stage_enum: "qualified" };
+        case "resume":
+          updateData = { automation_status_enum: "running" };
           break;
-        case "follow_up":
-          updateData = { Stage: "interview", stage_enum: "interview" };
+        case "stop":
+          updateData = { automation_status_enum: "completed" };
+          break;
+        case "restart":
+          updateData = { automation_status_enum: "queued" };
           break;
         default:
           return;
@@ -143,14 +146,14 @@ const Automations = () => {
 
       toast({
         title: "Success",
-        description: `Lead status updated to ${updateData.Stage}`,
+        description: `Automation ${action}d successfully`,
       });
       
       fetchLeads();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update lead",
+        description: "Failed to update automation",
         variant: "destructive",
       });
     }
@@ -185,28 +188,34 @@ const Automations = () => {
       ),
     },
     {
-      key: "automation_status",
+      key: "automation_status_enum",
       label: "Automation Status",
       render: (lead: Lead) => {
-        const status = lead.automation_status || "active";
+        const status = lead.automation_status_enum || lead["Automation Status"] || "queued";
         let icon = <Bot className="h-3 w-3" />;
         let color = "bg-blue-100 text-blue-700";
         
-        if (status === "contacted") {
-          icon = <MessageSquare className="h-3 w-3" />;
+        if (status === "running") {
+          icon = <Bot className="h-3 w-3" />;
           color = "bg-green-100 text-green-700";
-        } else if (status === "qualified") {
+        } else if (status === "completed") {
           icon = <UserCheck className="h-3 w-3" />;
           color = "bg-purple-100 text-purple-700";
-        } else if (status === "needs_update") {
+        } else if (status === "paused") {
           icon = <Clock className="h-3 w-3" />;
           color = "bg-orange-100 text-orange-700";
+        } else if (status === "failed") {
+          icon = <X className="h-3 w-3" />;
+          color = "bg-red-100 text-red-700";
+        } else if (status === "queued") {
+          icon = <Clock className="h-3 w-3" />;
+          color = "bg-yellow-100 text-yellow-700";
         }
         
         return (
           <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${color}`}>
             {icon}
-            <span className="capitalize">{status.replace('_', ' ')}</span>
+            <span className="capitalize">{status}</span>
           </div>
         );
       },
@@ -229,33 +238,67 @@ const Automations = () => {
     },
     {
       key: "actions",
-      label: "Quick Actions",
-      render: (lead: Lead) => (
-        <div className="flex gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleAutomationAction(lead.id, "contact");
-            }}
-            className="h-7 px-2 text-xs"
-          >
-            Contact
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleAutomationAction(lead.id, "follow_up");
-            }}
-            className="h-7 px-2 text-xs"
-          >
-            Follow Up
-          </Button>
-        </div>
-      ),
+      label: "Automation Controls",
+      render: (lead: Lead) => {
+        const status = lead.automation_status_enum || lead["Automation Status"] || "queued";
+        
+        return (
+          <div className="flex gap-1">
+            {status === "running" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAutomationAction(lead.id, "pause");
+                }}
+                className="h-7 px-2 text-xs"
+              >
+                Pause
+              </Button>
+            )}
+            {status === "paused" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAutomationAction(lead.id, "resume");
+                }}
+                className="h-7 px-2 text-xs"
+              >
+                Resume
+              </Button>
+            )}
+            {(status === "running" || status === "paused") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAutomationAction(lead.id, "stop");
+                }}
+                className="h-7 px-2 text-xs"
+              >
+                Stop
+              </Button>
+            )}
+            {(status === "completed" || status === "failed") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAutomationAction(lead.id, "restart");
+                }}
+                className="h-7 px-2 text-xs"
+              >
+                Restart
+              </Button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -283,23 +326,23 @@ const Automations = () => {
           <DropdownSelect
             options={[
               { label: "All Statuses", value: "all" },
-              ...LEAD_STAGE_OPTIONS
+              ...(leadStageOptions.length > 0 ? leadStageOptions : FALLBACK_LEAD_STAGE_OPTIONS)
             ]}
             value={statusFilter || "all"}
             onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}
             placeholder="Filter by status"
+            loading={leadStageLoading}
           />
           
           <DropdownSelect
             options={[
               { label: "All Priorities", value: "all" },
-              { label: "High", value: "HIGH" },
-              { label: "Medium", value: "MEDIUM" },
-              { label: "Low", value: "LOW" }
+              ...(priorityOptions.length > 0 ? priorityOptions : FALLBACK_PRIORITY_OPTIONS)
             ]}
             value={priorityFilter || "all"}
             onValueChange={(value) => setPriorityFilter(value === "all" ? "" : value)}
             placeholder="Filter by priority"
+            loading={priorityLoading}
           />
         
         <Button 

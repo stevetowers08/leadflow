@@ -1,48 +1,82 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Companies from "./pages/Companies";
-import Leads from "./pages/Leads";
-import Jobs from "./pages/Jobs";
-import NewJobs from "./pages/NewJobs";
-import MorningView from "./pages/MorningView";
-import EndingSoon from "./pages/EndingSoon";
-import Opportunities from "./pages/Opportunities";
-import Campaigns from "./pages/Campaigns";
-import Automations from "./pages/Automations";
-import Reporting from "./pages/Reporting";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { PermissionsProvider } from "./contexts/PermissionsContext";
 import { Layout } from "./components/Layout";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { PageLoadingSpinner } from "./components/LoadingSpinner";
+import { Toaster } from "@/components/ui/sonner";
 
-const queryClient = new QueryClient();
+// Pages
+import Index from "./pages/Index";
+import Opportunities from "./pages/Opportunities";
+import Leads from "./pages/Leads";
+import Companies from "./pages/Companies";
+import Jobs from "./pages/Jobs";
+import Reporting from "./pages/Reporting";
+import Settings from "./pages/Settings";
+import AdminUsers from "./pages/AdminUsers";
+import AdminSettings from "./pages/AdminSettings";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout><Index /></Layout>} />
-          <Route path="/companies" element={<Layout><Companies /></Layout>} />
-          <Route path="/leads" element={<Layout><Leads /></Layout>} />
-          <Route path="/jobs" element={<Layout><Jobs /></Layout>} />
-          <Route path="/jobs/new" element={<Layout><NewJobs /></Layout>} />
-          <Route path="/jobs/morning-view" element={<Layout><MorningView /></Layout>} />
-          <Route path="/jobs/ending-soon" element={<Layout><EndingSoon /></Layout>} />
-          <Route path="/opportunities" element={<Layout><Opportunities /></Layout>} />
-          <Route path="/campaigns" element={<Layout><Campaigns /></Layout>} />
-          <Route path="/automations" element={<Layout><Automations /></Layout>} />
-          <Route path="/reporting" element={<Layout><Reporting /></Layout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const AppRoutes = () => {
+  const { user, loading } = useAuth();
+
+  // Simplified loading state to prevent flickering
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/opportunities" element={<Opportunities />} />
+        <Route path="/leads" element={<Leads />} />
+        <Route path="/companies" element={<Companies />} />
+        <Route path="/jobs" element={<Jobs />} />
+        <Route path="/reporting" element={<Reporting />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
+      </Routes>
+    </Layout>
+  );
+};
+
+const App = () => {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <PermissionsProvider>
+              <AppRoutes />
+              <Toaster />
+            </PermissionsProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;

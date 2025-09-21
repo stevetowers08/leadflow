@@ -11,7 +11,48 @@ export interface ReferenceOption {
   name: string;
 }
 
-// Hook for reference table dropdowns
+// Hook for database-driven enum dropdowns
+export const useDatabaseDropdowns = (dropdownType: string) => {
+  const [options, setOptions] = useState<DropdownOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDropdownOptions = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { data, error } = await supabase.rpc('get_dropdown_options', {
+          dropdown_type: dropdownType
+        });
+
+        if (error) throw error;
+
+        setOptions(data || []);
+      } catch (err) {
+        console.error(`Error fetching ${dropdownType} options:`, err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch options');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDropdownOptions();
+  }, [dropdownType]);
+
+  return { options, loading, error };
+};
+
+// Convenience hooks for specific dropdown types
+export const useCompanyStatusDropdown = () => useDatabaseDropdowns('company_status');
+export const useLeadStageDropdown = () => useDatabaseDropdowns('lead_stage');
+export const usePriorityLevelDropdown = () => useDatabaseDropdowns('priority_level');
+export const useAutomationStatusDropdown = () => useDatabaseDropdowns('automation_status');
+export const useConfidenceLevelDropdown = () => useDatabaseDropdowns('confidence_level');
+export const useLeadSourceDropdown = () => useDatabaseDropdowns('lead_source');
+
+// Hook for reference table dropdowns (if still needed)
 export const useReferenceOptions = (tableName: 'industries' | 'job_functions' | 'company_sizes') => {
   const [options, setOptions] = useState<ReferenceOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,65 +86,31 @@ export const useReferenceOptions = (tableName: 'industries' | 'job_functions' | 
   return { options, loading };
 };
 
-// Static enum options for immediate use
-export const LEAD_STAGE_OPTIONS: DropdownOption[] = [
-  { value: 'NEW LEAD', label: 'New Lead' },
-  { value: 'IN QUEUE', label: 'In Queue' },
-  { value: 'CONNECT SENT', label: 'Connect Sent' },
-  { value: 'CONNECTED', label: 'Connected' },
-  { value: 'MSG SENT', label: 'Message Sent' },
-  { value: 'REPLIED', label: 'Replied' },
-  { value: 'LEAD LOST', label: 'Lead Lost' }
+// Fallback options for when database is unavailable (keep as backup)
+export const FALLBACK_LEAD_STAGE_OPTIONS: DropdownOption[] = [
+  { value: 'new', label: 'New Lead' },
+  { value: 'contacted', label: 'Contacted' },
+  { value: 'qualified', label: 'Qualified' },
+  { value: 'interview', label: 'Interview' },
+  { value: 'offer', label: 'Offer' },
+  { value: 'hired', label: 'Hired' },
+  { value: 'lost', label: 'Lost' }
 ];
 
-export const PRIORITY_OPTIONS: DropdownOption[] = [
+export const FALLBACK_PRIORITY_OPTIONS: DropdownOption[] = [
   { value: 'low', label: 'Low' },
   { value: 'medium', label: 'Medium' },
   { value: 'high', label: 'High' },
   { value: 'urgent', label: 'Urgent' }
 ];
 
-export const COMPANY_STATUS_OPTIONS: DropdownOption[] = [
+export const FALLBACK_COMPANY_STATUS_OPTIONS: DropdownOption[] = [
   { value: 'active', label: 'Active' },
   { value: 'inactive', label: 'Inactive' },
   { value: 'prospect', label: 'Prospect' }
 ];
 
-export const JOB_STATUS_OPTIONS: DropdownOption[] = [
-  { value: 'draft', label: 'Draft' },
-  { value: 'active', label: 'Active' },
-  { value: 'paused', label: 'Paused' },
-  { value: 'filled', label: 'Filled' },
-  { value: 'cancelled', label: 'Cancelled' }
-];
-
-export const EMPLOYMENT_TYPE_OPTIONS: DropdownOption[] = [
-  { value: 'full-time', label: 'Full Time' },
-  { value: 'part-time', label: 'Part Time' },
-  { value: 'contract', label: 'Contract' },
-  { value: 'internship', label: 'Internship' },
-  { value: 'freelance', label: 'Freelance' }
-];
-
-export const SENIORITY_LEVEL_OPTIONS: DropdownOption[] = [
-  { value: 'entry', label: 'Entry Level' },
-  { value: 'junior', label: 'Junior' },
-  { value: 'mid', label: 'Mid Level' },
-  { value: 'senior', label: 'Senior' },
-  { value: 'lead', label: 'Lead' },
-  { value: 'manager', label: 'Manager' },
-  { value: 'director', label: 'Director' },
-  { value: 'executive', label: 'Executive' }
-];
-
-export const CONFIDENCE_LEVEL_OPTIONS: DropdownOption[] = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'very-high', label: 'Very High' }
-];
-
-export const AUTOMATION_STATUS_OPTIONS: DropdownOption[] = [
+export const FALLBACK_AUTOMATION_STATUS_OPTIONS: DropdownOption[] = [
   { value: 'idle', label: 'Idle' },
   { value: 'queued', label: 'Queued' },
   { value: 'running', label: 'Running' },
@@ -112,7 +119,14 @@ export const AUTOMATION_STATUS_OPTIONS: DropdownOption[] = [
   { value: 'failed', label: 'Failed' }
 ];
 
-export const LEAD_SOURCE_OPTIONS: DropdownOption[] = [
+export const FALLBACK_CONFIDENCE_LEVEL_OPTIONS: DropdownOption[] = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'very-high', label: 'Very High' }
+];
+
+export const FALLBACK_LEAD_SOURCE_OPTIONS: DropdownOption[] = [
   { value: 'linkedin', label: 'LinkedIn' },
   { value: 'email', label: 'Email' },
   { value: 'referral', label: 'Referral' },

@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DynamicStatusBadge } from "@/components/DynamicStatusBadge";
 import { JobDetailModal } from "@/components/JobDetailModal";
 import { useToast } from "@/hooks/use-toast";
+import { useBatchJobStatuses } from "@/hooks/useDynamicStatus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
@@ -37,6 +39,9 @@ const EndingSoon = () => {
   const [companyFilter, setCompanyFilter] = useState<string>("");
   const [priorityFilter, setPriorityFilter] = useState<string>("");
   const { toast } = useToast();
+
+  // Dynamic status management
+  const { getJobStatus } = useBatchJobStatuses(jobs);
 
   // Filter jobs based on search term, company, and priority
   const filteredJobs = jobs.filter(job => {
@@ -230,9 +235,17 @@ const EndingSoon = () => {
     {
       key: "status_enum",
       label: "Status",
-      render: (job: Job) => (
-        <StatusBadge status={(job as any).status_enum?.toLowerCase() || "active"} />
-      ),
+      render: (job: Job) => {
+        const statusInfo = getJobStatus(job.id);
+        return (
+          <DynamicStatusBadge
+            status={statusInfo.status}
+            leadCount={statusInfo.leadCount}
+            isLoading={statusInfo.isLoading}
+            showLeadCount={true}
+          />
+        );
+      },
     },
   ];
 

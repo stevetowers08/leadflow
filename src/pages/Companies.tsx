@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
-import { CompanyDetailModal } from "@/components/CompanyDetailModal";
+import { SimplifiedCompanyDetailModal } from "@/components/SimplifiedCompanyDetailModal";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { Search, X } from "lucide-react";
+import { Search, RefreshCw } from "lucide-react";
+import { isValidImageUrl, getCompanyLogoFallback } from "@/utils/logoUtils";
 
 interface Company {
   id: string;
@@ -31,29 +31,19 @@ const Companies = () => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
   const { toast } = useToast();
 
-  // Filter companies based on search term and status
+  // Simple filtering
   const filteredCompanies = companies.filter(company => {
-    const matchesSearch = !searchTerm || 
-      company["Company Name"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company["Industry"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company["Head Office"]?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = !statusFilter || 
-      company["STATUS"]?.toLowerCase() === statusFilter.toLowerCase();
-    
-    return matchesSearch && matchesStatus;
+    if (!searchTerm) return true;
+    return company["Company Name"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           company["Industry"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           company["Head Office"]?.toLowerCase().includes(searchTerm.toLowerCase());
   });
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("");
-  };
 
   const fetchCompanies = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from("Companies")
         .select("*")
@@ -80,98 +70,76 @@ const Companies = () => {
     {
       key: "Company Name",
       label: "Company",
-      render: (company: Company) => (
-        <div className="flex items-center gap-2 min-w-0 max-w-xs">
-          {company["Profile Image URL"] ? (
-            <img 
-              src={company["Profile Image URL"]} 
-              alt={`${company["Company Name"]} logo`}
-              className="w-8 h-8 rounded object-cover flex-shrink-0 cursor-default"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          ) : (
-            <div className="w-8 h-8 bg-muted rounded flex items-center justify-center flex-shrink-0 cursor-default">
-              <span className="text-xs font-medium text-muted-foreground">
-                {company["Company Name"]?.charAt(0)?.toUpperCase() || "C"}
-              </span>
+      render: (company: Company) => {
+        const hasValidLogo = isValidImageUrl(company["Profile Image URL"]);
+        const logoUrl = hasValidLogo ? company["Profile Image URL"] : getCompanyLogoFallback(company["Company Name"]);
+        
+        return (
+          <div className="flex items-center gap-3 min-w-0 max-w-xs">
+            <div className="relative w-10 h-10 flex-shrink-0">
+              <img 
+                src={logoUrl} 
+                alt={`${company["Company Name"]} logo`}
+                className="w-10 h-10 rounded-lg object-cover border border-border shadow-sm"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = getCompanyLogoFallback(company["Company Name"]);
+                }}
+              />
             </div>
-          )}
-          <div className="flex flex-col min-w-0 flex-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `/leads?company=${encodeURIComponent(company["Company Name"] || "")}`;
-              }}
-              className="text-xs font-medium truncate hover:text-primary transition-colors text-left"
-            >
-              {company["Company Name"] || "-"}
-            </button>
-            {company["Website"] && (
-              <a 
-                href={company["Website"]} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:text-primary transition-colors truncate opacity-75 hover:underline"
-                onClick={(e) => e.stopPropagation()}
+            <div className="flex flex-col min-w-0 flex-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedCompany(company);
+                  setIsDetailModalOpen(true);
+                }}
+                className="text-sm font-medium truncate hover:text-primary transition-colors text-left"
               >
-                {company["Website"].replace(/^https?:\/\//, '')}
-              </a>
-            )}
+                {company["Company Name"] || "-"}
+              </button>
+              {company["Website"] && (
+                <a 
+                  href={company["Website"]} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors truncate opacity-75 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {company["Website"].replace(/^https?:\/\//, '')}
+                </a>
+              )}
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: "Industry",
       label: "Industry",
       render: (company: Company) => (
-        <div className="max-w-xs">
-          <span className="text-xs font-medium text-foreground">
-            {company["Industry"] || "-"}
-          </span>
-        </div>
+        <span className="text-sm">{company["Industry"] || "-"}</span>
       ),
     },
     {
       key: "Company Size",
-      label: "Company Size",
+      label: "Size",
       render: (company: Company) => (
-        <span className="text-xs text-muted-foreground">
-          {company["Company Size"] || "-"}
-        </span>
+        <span className="text-sm">{company["Company Size"] || "-"}</span>
       ),
     },
     {
       key: "Head Office",
       label: "Location",
       render: (company: Company) => (
-        <div className="max-w-xs">
-          <span className="text-xs text-muted-foreground">
-            {company["Head Office"] || "-"}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "Lead Score",
-      label: "Score",
-      render: (company: Company) => (
-        <div className="text-center">
-          {company["Lead Score"] ? (
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-mono text-xs font-semibold">
-              {company["Lead Score"]}
-            </span>
-          ) : (
-            <span className="text-xs text-muted-foreground">-</span>
-          )}
-        </div>
+        <span className="text-sm">{company["Head Office"] || "-"}</span>
       ),
     },
     {
       key: "Priority",
       label: "Priority",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (company: Company) => (
         <StatusBadge status={company["Priority"]?.toLowerCase() || "medium"} />
       ),
@@ -179,9 +147,13 @@ const Companies = () => {
     {
       key: "STATUS",
       label: "Status",
-      render: (company: Company) => (
-        <StatusBadge status={company["STATUS"]?.toLowerCase() || "active"} />
-      ),
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (company: Company) => {
+        return (
+          <StatusBadge status={company["STATUS"] || "Unknown"} />
+        );
+      },
     },
   ];
 
@@ -192,15 +164,20 @@ const Companies = () => {
 
   return (
     <>
-      <div className="space-y-4">
-        <div className="border-b pb-3">
-          <h1 className="text-lg font-semibold tracking-tight">Companies</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Manage your target companies and prospects
-          </p>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="border-b pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight">Companies</h1>
+              <p className="text-xs text-muted-foreground mt-1">
+                Manage your target companies and prospects
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Search and Filter Controls */}
+        {/* Simple Search */}
         <div className="flex items-center gap-3 mb-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -212,45 +189,16 @@ const Companies = () => {
             />
           </div>
           
-          <DropdownSelect
-            options={[
-              { label: "All Statuses", value: "all" },
-              { label: "Prospect", value: "prospect" },
-              { label: "Active", value: "active" },
-              { label: "Inactive", value: "inactive" }
-            ]}
-            value={statusFilter || "all"}
-            onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}
-            placeholder="Filter by status"
-          />
-          
           <Button 
             variant="outline" 
             size="sm" 
             className="h-9 px-3"
-            onClick={clearFilters}
-            disabled={!searchTerm && !statusFilter}
+            onClick={fetchCompanies}
           >
-            <X className="h-3 w-3 mr-1" />
-            Clear
+            <RefreshCw className="h-3 w-3 mr-1" />
+            Refresh
           </Button>
         </div>
-
-        {/* Active Filters Display */}
-        {statusFilter && (
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground">Active filters:</span>
-            <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full">
-              <span>Status: {statusFilter}</span>
-              <button 
-                onClick={() => setStatusFilter("")}
-                className="hover:bg-primary/20 rounded-full p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          </div>
-        )}
 
         <DataTable
           data={filteredCompanies}
@@ -258,17 +206,32 @@ const Companies = () => {
           loading={loading}
           onRowClick={handleRowClick}
           showSearch={false}
+          enableBulkActions={false}
+          enableExport={true}
+          exportFilename="companies-export.csv"
+          itemName="company"
+          itemNamePlural="companies"
+          pagination={{
+            enabled: true,
+            pageSize: 20,
+            pageSizeOptions: [10, 20, 50, 100],
+            showPageSizeSelector: true,
+            showItemCount: true,
+          }}
         />
       </div>
-      
-      <CompanyDetailModal
-        company={selectedCompany}
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedCompany(null);
-        }}
-      />
+
+      {/* Company Detail Modal */}
+      {selectedCompany && (
+        <SimplifiedCompanyDetailModal
+          company={selectedCompany}
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedCompany(null);
+          }}
+        />
+      )}
     </>
   );
 };

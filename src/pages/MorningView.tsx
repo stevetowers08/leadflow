@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DynamicStatusBadge } from "@/components/DynamicStatusBadge";
 import { JobDetailModal } from "@/components/JobDetailModal";
 import { useToast } from "@/hooks/use-toast";
+import { useBatchJobStatuses } from "@/hooks/useDynamicStatus";
 
 interface Job {
   id: string;
@@ -30,6 +32,9 @@ const MorningView = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { toast } = useToast();
+
+  // Dynamic status management
+  const { getJobStatus } = useBatchJobStatuses(jobs);
 
   const fetchMorningJobs = async () => {
     try {
@@ -185,6 +190,21 @@ const MorningView = () => {
       render: (job: Job) => (
         <StatusBadge status={job.Priority?.toLowerCase() || "medium"} />
       ),
+    },
+    {
+      key: "status_enum",
+      label: "Status",
+      render: (job: Job) => {
+        const statusInfo = getJobStatus(job.id);
+        return (
+          <DynamicStatusBadge
+            status={statusInfo.status}
+            leadCount={statusInfo.leadCount}
+            isLoading={statusInfo.isLoading}
+            showLeadCount={true}
+          />
+        );
+      },
     },
   ];
 

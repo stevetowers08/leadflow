@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DynamicStatusBadge } from "@/components/DynamicStatusBadge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LinkedInConfirmationModal } from "@/components/LinkedInConfirmationModal";
@@ -10,6 +11,13 @@ import { useQuery } from "@tanstack/react-query";
 import { LeadDetailModal } from "@/components/LeadDetailModal";
 import { JobDetailModal } from "@/components/JobDetailModal";
 import { useState } from "react";
+import { useCompanyStatus } from "@/hooks/useDynamicStatus";
+import { isValidImageUrl, getCompanyLogoFallback } from "@/utils/logoUtils";
+import type { Tables } from "@/integrations/supabase/types";
+
+// Type definitions for the component
+type Lead = Tables<"People">;
+type Job = Tables<"Jobs">;
 
 interface Company {
   id: string;
@@ -34,19 +42,24 @@ interface CompanyDetailModalProps {
 }
 
 export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailModalProps) {
-  if (!company) return null;
+  // Always call hooks unconditionally. Use guards in queries instead of early returns.
+  const companyId = company?.id ?? null;
 
-  const [selectedLead, setSelectedLead] = useState<any>(null);
-  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
-  const [selectedLeads, setSelectedLeads] = useState<any[]>([]);
+  const [selectedLeads, setSelectedLeads] = useState<Lead[]>([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
+
+  // Dynamic status management
+  const { status, leadCount, isLoading: statusLoading } = useCompanyStatus(company);
 
   // Fetch related leads
   const { data: relatedLeads, isLoading: leadsLoading } = useQuery({
-    queryKey: ["company-leads", company.id],
+    queryKey: ["company-leads", companyId],
     queryFn: async () => {
+      if (!companyId) return [] as Lead[];
       const { data, error } = await supabase
         .from("People")
         .select(`
@@ -66,19 +79,20 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
           "Automation Status",
           created_at
         `)
-        .eq("company_id", company.id)
+        .eq("company_id", companyId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
     },
-    enabled: !!company.id && isOpen
+    enabled: Boolean(companyId && isOpen)
   });
 
   // Fetch related jobs
   const { data: relatedJobs, isLoading: jobsLoading } = useQuery({
-    queryKey: ["company-jobs", company.id],
+    queryKey: ["company-jobs", companyId],
     queryFn: async () => {
+      if (!companyId) return [] as Job[];
       const { data, error } = await supabase
         .from("Jobs")
         .select(`
@@ -93,21 +107,21 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
           "Job URL",
           created_at
         `)
-        .eq("company_id", company.id)
+        .eq("company_id", companyId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
     },
-    enabled: !!company.id && isOpen
+    enabled: Boolean(companyId && isOpen)
   });
 
-  const handleLeadClick = (lead: any) => {
+  const handleLeadClick = (lead: Lead) => {
     setSelectedLead(lead);
     setIsLeadModalOpen(true);
   };
 
-  const handleJobClick = (job: any) => {
+  const handleJobClick = (job: Job) => {
     setSelectedJob(job);
     setIsJobModalOpen(true);
   };
@@ -150,6 +164,8 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
     return "text-red-600 bg-red-50";
   };
 
+  if (!company) return null;
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -164,12 +180,16 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
           <div className="space-y-6">
             {/* Status and Metrics */}
             <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-lg">
-              {company["STATUS"] && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Status:</span>
-                  <StatusBadge status={company["STATUS"].toLowerCase()} size="md" />
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Status:</span>
+                <DynamicStatusBadge
+                  status={status}
+                  leadCount={leadCount}
+                  isLoading={statusLoading}
+                  showLeadCount={true}
+                  size="md"
+                />
+              </div>
               {company["Priority"] && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">Priority:</span>
@@ -406,15 +426,17 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
             </div>
 
             {/* Profile Image */}
-            {company["Profile Image URL"] && (
-              <div className="flex justify-center">
-                <img 
-                  src={company["Profile Image URL"]} 
-                  alt={`${company["Company Name"]} profile`}
-                  className="max-w-xs rounded-lg shadow-md"
-                />
-              </div>
-            )}
+            <div className="flex justify-center">
+              <img 
+                src={getCompanyLogoFallback(company["Company Name"])} 
+                alt={`${company["Company Name"]} profile`}
+                className="max-w-xs rounded-lg shadow-md border border-border"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = getCompanyLogoFallback(company["Company Name"]);
+                }}
+              />
+            </div>
 
             {/* Action Button */}
             <div className="flex justify-end pt-4 border-t">

@@ -194,6 +194,34 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
             )}
           </div>
 
+          {/* Navigation Actions */}
+          {lead.Company && (
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onClose();
+                  window.location.href = `/companies?filter=${encodeURIComponent(lead.Company || "")}`;
+                }}
+                className="flex-1"
+              >
+                <Building2 className="h-4 w-4 mr-2" />
+                View Company
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onClose();
+                  window.location.href = `/jobs?filter=${encodeURIComponent(lead.Company || "")}`;
+                }}
+                className="flex-1"
+              >
+                <Briefcase className="h-4 w-4 mr-2" />
+                View Jobs
+              </Button>
+            </div>
+          )}
+
           {/* Personal Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-3">
