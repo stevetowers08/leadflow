@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
+import { AIScoreBadge } from "@/components/AIScoreBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Building2, 
@@ -165,8 +166,35 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                     <Users className="h-3 w-3 mr-1" />
                     {relatedLeads?.length || 0} Leads
                   </Badge>
+                  {company["Lead Score"] && (
+                    <AIScoreBadge
+                      leadData={{
+                        name: "Company",
+                        company: company["Company Name"] || "",
+                        role: "Company",
+                        location: company["Head Office"] || "",
+                        industry: company["Industry"],
+                        company_size: company["Company Size"] || "Unknown"
+                      }}
+                      initialScore={parseInt(company["Lead Score"].toString())}
+                      showDetails={false}
+                    />
+                  )}
                 </div>
               </div>
+              
+              {/* Score Reason */}
+              {company["Score Reason"] && (
+                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-start gap-2">
+                    <TrendingUp className="h-4 w-4 text-blue-600 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-blue-900">Score Reason</div>
+                      <div className="text-sm text-blue-700 mt-1">{company["Score Reason"]}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

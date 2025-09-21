@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
+import { AIScoreBadge } from "@/components/AIScoreBadge";
 import { SimplifiedCompanyDetailModal } from "@/components/SimplifiedCompanyDetailModal";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ interface Company {
   "Company Size": string | null;
   "Head Office": string | null;
   "Lead Score": number | null;
+  "Score Reason": string | null;
   "Priority": string | null;
   "STATUS": string | null;
   "Company Info": string | null;
@@ -133,6 +135,39 @@ const Companies = () => {
       label: "Location",
       render: (company: Company) => (
         <span className="text-sm">{company["Head Office"] || "-"}</span>
+      ),
+    },
+    {
+      key: "AI Score",
+      label: "AI Score",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (company: Company) => (
+        <div className="text-center">
+          <AIScoreBadge
+            leadData={{
+              name: "Company",
+              company: company["Company Name"] || "",
+              role: "Company",
+              location: company["Head Office"] || "",
+              industry: company["Industry"],
+              company_size: company["Company Size"] || "Unknown"
+            }}
+            initialScore={company["Lead Score"] ? parseInt(company["Lead Score"].toString()) : undefined}
+            showDetails={false}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "Score Reason",
+      label: "Score Reason",
+      render: (company: Company) => (
+        <div className="max-w-xs">
+          <span className="text-sm text-muted-foreground">
+            {company["Score Reason"] || "-"}
+          </span>
+        </div>
       ),
     },
     {
