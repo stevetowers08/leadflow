@@ -57,6 +57,7 @@ export function LinkedInConfirmationModal({
   const initializeMessages = () => {
     const initialMessages: {[key: string]: string} = {};
     selectedLeads.forEach(lead => {
+      // Use existing LinkedIn Request Message or create a default one
       const defaultMessage = lead["LinkedIn Request Message"] || 
         `Hi ${lead.Name?.split(' ')[0] || 'there'},\n\nI came across your profile and noticed your experience as a ${lead["Company Role"] || 'professional'} at ${lead.Company || companyName}. ${jobTitle ? `We have an exciting opportunity for a ${jobTitle} role that might interest you.` : 'I\'d love to connect and discuss potential opportunities.'}\n\nWould you be open to a brief conversation?\n\nBest regards`;
       initialMessages[lead.id] = defaultMessage;
@@ -271,7 +272,7 @@ export function LinkedInConfirmationModal({
                       </Label>
                       <Textarea
                         id={`connected-${lead.id}`}
-                        value={lead["LinkedIn Connected Message"] || ''}
+                        value={lead["LinkedIn Connected Message"] || 'Thank you for connecting! I\'d love to learn more about your experience at ' + (lead.Company || 'your company') + '.'}
                         rows={2}
                         className="text-xs mt-1 bg-gray-50"
                         placeholder="Thank you for connecting! I'd love to learn more about..."
@@ -286,7 +287,7 @@ export function LinkedInConfirmationModal({
                       </Label>
                       <Textarea
                         id={`followup-${lead.id}`}
-                        value={lead["LinkedIn Follow Up Message"] || ''}
+                        value={lead["LinkedIn Follow Up Message"] || 'Following up on our connection. I hope you\'re doing well!'}
                         rows={2}
                         className="text-xs mt-1 bg-gray-50"
                         placeholder="Following up on our connection..."

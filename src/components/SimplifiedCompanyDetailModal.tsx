@@ -88,6 +88,11 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
           "Lead Score",
           "Employee Location",
           automation_status_enum,
+          "Automation Status",
+          Stage,
+          stage_enum,
+          Priority,
+          priority_enum,
           "Message Sent",
           "Connection Request",
           "Email Reply",
@@ -315,6 +320,20 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
+                          <StatusBadge status={lead.stage_enum || lead.Stage} />
+                          {lead.automation_status_enum && (
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs px-1 py-0 ${
+                                lead.automation_status_enum === 'completed' ? 'text-green-600 border-green-600' :
+                                lead.automation_status_enum === 'running' ? 'text-blue-600 border-blue-600' :
+                                lead.automation_status_enum === 'queued' ? 'text-yellow-600 border-yellow-600' :
+                                'text-gray-600 border-gray-600'
+                              }`}
+                            >
+                              {lead.automation_status_enum}
+                            </Badge>
+                          )}
                           {lead.Priority && (
                             <Badge variant="outline" className="text-sm px-1 py-0">
                               {lead.Priority}
