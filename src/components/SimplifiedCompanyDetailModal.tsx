@@ -150,24 +150,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Score Reason - Moved to Top */}
-            {company["Score Reason"] && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Bot className="h-4 w-4" />
-                    Score Reason
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">
-                    {company["Score Reason"]}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Company Overview */}
+            {/* Company Overview - At the Top */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -223,43 +206,56 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                         {company.created_at ? formatDate(company.created_at) : "Unknown"}
                       </p>
                     </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-700">AI Score</label>
-                      <div>
-                        <AIScoreBadge
-                          leadData={{
-                            name: "",
-                            company: company["Company Name"] || "",
-                            role: "",
-                            location: company["Head Office"] || "",
-                            industry: company.Industry || "",
-                            company_size: company["Company Size"] || ""
-                          }}
-                          initialScore={company["Lead Score"]}
-                        />
-                      </div>
-                    </div>
                   </div>
                 </div>
+                
+                {/* Company Information */}
+                {company["Company Info"] && (
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">Company Information</label>
+                    <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded mt-1">
+                      {company["Company Info"]}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Company Information */}
-            {company["Company Info"] && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Info className="h-4 w-4" />
-                    Company Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">
-                    {company["Company Info"]}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+            {/* Score Reason */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Bot className="h-4 w-4" />
+                  Score Reason
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-700">AI Score</label>
+                  <div className="mt-1">
+                    <AIScoreBadge
+                      leadData={{
+                        name: "",
+                        company: company["Company Name"] || "",
+                        role: "",
+                        location: company["Head Office"] || "",
+                        industry: company.Industry || "",
+                        company_size: company["Company Size"] || ""
+                      }}
+                      initialScore={company["Lead Score"]}
+                    />
+                  </div>
+                </div>
+                {company["Score Reason"] && (
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">Reasoning</label>
+                    <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded mt-1">
+                      {company["Score Reason"]}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* AI Intelligence */}
             {company["AI Info"] && (
