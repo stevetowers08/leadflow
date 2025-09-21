@@ -100,8 +100,6 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
           "Automation Status",
           Stage,
           stage_enum,
-          Priority,
-          priority_enum,
           "Message Sent",
           "Connection Request",
           "Email Reply",
@@ -339,9 +337,6 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                           <StatusBadge status={lead.stage_enum || lead.Stage} size="sm" />
                           {lead.automation_status_enum && (
                             <StatusBadge status={lead.automation_status_enum} size="sm" />
-                          )}
-                          {lead.Priority && (
-                            <StatusBadge status={lead.Priority} size="sm" />
                           )}
                           <ArrowRight className="h-2.5 w-2.5 text-gray-400" />
                         </div>
