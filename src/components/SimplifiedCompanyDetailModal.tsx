@@ -212,9 +212,16 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
 
             {/* AI Score */}
             <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Bot className="h-4 w-4" />
+                  AI Score
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-2">
+                <div>
+                  <label className="text-xs font-medium text-gray-700">Score</label>
+                  <div className="mt-1">
                     <AIScoreBadge
                       leadData={{
                         name: "",
@@ -227,14 +234,15 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                       initialScore={company["Lead Score"]}
                     />
                   </div>
-                  {company["Score Reason"] && (
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">
-                        {company["Score Reason"]}
-                      </p>
-                    </div>
-                  )}
                 </div>
+                {company["Score Reason"] && (
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">Reasoning</label>
+                    <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded mt-1">
+                      {company["Score Reason"]}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
