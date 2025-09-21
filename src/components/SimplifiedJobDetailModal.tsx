@@ -22,6 +22,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { LinkedInConfirmationModal } from "./LinkedInConfirmationModal";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface SimplifiedJobDetailModalProps {
@@ -32,6 +34,9 @@ interface SimplifiedJobDetailModalProps {
 
 export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJobDetailModalProps) {
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
+  const [selectedLeadsForAutomation, setSelectedLeadsForAutomation] = useState<any[]>([]);
+  const [showAutomationModal, setShowAutomationModal] = useState(false);
+  const { toast } = useToast();
 
   // Fetch company data
   const { data: companyData } = useQuery({
@@ -103,24 +108,34 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
     }
   };
 
-  const handleAutomateLeads = async () => {
-    if (selectedLeads.length === 0) return;
-    
-    try {
-      // Update automation status for selected leads
-      const { error } = await supabase
-        .from("People")
-        .update({ automation_status_enum: "automated" })
-        .in("id", selectedLeads);
+  const handleLeadSelect = (lead: any) => {
+    setSelectedLeadsForAutomation(prev => {
+      const isSelected = prev.some(l => l.id === lead.id);
+      return isSelected 
+        ? prev.filter(l => l.id !== lead.id)
+        : [...prev, lead];
+    });
+  };
 
-      if (error) throw error;
-      
-      // Reset selection
-      setSelectedLeads([]);
-      onClose();
-    } catch (error) {
-      console.error("Failed to automate leads:", error);
+  const handleAutomateLeads = () => {
+    if (selectedLeadsForAutomation.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one person to automate",
+        variant: "destructive",
+      });
+      return;
     }
+    setShowAutomationModal(true);
+  };
+
+  const handleConfirmAutomation = () => {
+    setShowAutomationModal(false);
+    setSelectedLeadsForAutomation([]);
+    toast({
+      title: "Success",
+      description: `Automation triggered for ${selectedLeadsForAutomation.length} people`,
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -339,8 +354,14 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
                   </CardTitle>
                   <div className="flex items-center gap-2">
                     <Checkbox
-                      checked={selectedLeads.length === relatedLeads.length}
-                      onCheckedChange={handleSelectAll}
+                      checked={selectedLeadsForAutomation.length === relatedLeads.length}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedLeadsForAutomation(relatedLeads);
+                        } else {
+                          setSelectedLeadsForAutomation([]);
+                        }
+                      }}
                       onClick={(e) => e.stopPropagation()}
                     />
                     <span className="text-xs text-muted-foreground">Select All</span>
@@ -361,8 +382,8 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
                       >
                         <div className="flex items-center gap-3">
                           <Checkbox
-                            checked={selectedLeads.includes(lead.id)}
-                            onCheckedChange={(checked) => handleLeadSelect(lead.id, checked as boolean)}
+                            checked={selectedLeadsForAutomation.some(l => l.id === lead.id)}
+                            onCheckedChange={() => handleLeadSelect(lead)}
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div className="flex-1">
@@ -403,7 +424,7 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
           {/* Action Buttons */}
           <div className="flex items-center justify-between pt-4 border-t">
             <div className="text-sm text-muted-foreground">
-              {selectedLeads.length} of {relatedLeads?.length || 0} leads selected
+              {selectedLeadsForAutomation.length} of {relatedLeads?.length || 0} leads selected
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={onClose}>
@@ -411,16 +432,28 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
               </Button>
               <Button 
                 onClick={handleAutomateLeads}
-                disabled={selectedLeads.length === 0}
+                disabled={selectedLeadsForAutomation.length === 0}
                 className="bg-purple-600 hover:bg-purple-700"
               >
                 <Zap className="h-4 w-4 mr-2" />
-                Automate {selectedLeads.length} Leads
+                Automate {selectedLeadsForAutomation.length} Leads
               </Button>
             </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* LinkedIn Confirmation Modal */}
+    {showAutomationModal && (
+      <LinkedInConfirmationModal
+        selectedLeads={selectedLeadsForAutomation}
+        isOpen={showAutomationModal}
+        onClose={() => setShowAutomationModal(false)}
+        onConfirm={handleConfirmAutomation}
+        jobTitle={job["Job Title"]}
+        companyName={job.Company}
+      />
+    )}
   );
 }
