@@ -80,6 +80,14 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
     queryFn: async () => {
       if (!company?.id) return [];
       
+      // Let's see what's actually in the People table
+      const { data: allPeople, error: allError } = await supabase
+        .from("People")
+        .select("id, Name, Company, company_id")
+        .limit(5);
+        
+      console.log("Sample people in database:", allPeople);
+      
       const { data, error } = await supabase
         .from("People")
         .select(`
@@ -98,7 +106,9 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
           "Connection Request",
           "Email Reply",
           "Meeting Booked",
-          created_at
+          created_at,
+          Company,
+          company_id
         `)
         .eq("company_id", company.id)
         .order("created_at", { ascending: false })
@@ -109,6 +119,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
         throw error;
       }
       
+      console.log("Query results:", data);
       return data || [];
     },
     enabled: !!company?.id && isOpen,
