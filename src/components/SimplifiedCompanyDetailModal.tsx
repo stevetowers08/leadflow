@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { SimplifiedJobDetailModal } from "./SimplifiedJobDetailModal";
-import { SimplifiedLeadDetailModal } from "./SimplifiedLeadDetailModal";
+import { LeadDetailModal } from "./LeadDetailModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
@@ -391,7 +391,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
 
       {/* Lead Detail Modal */}
       {selectedLead && (
-        <SimplifiedLeadDetailModal
+        <LeadDetailModal
           lead={selectedLead}
           isOpen={isLeadModalOpen}
           onClose={() => {
