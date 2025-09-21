@@ -290,7 +290,7 @@ const Opportunities = () => {
                       stageLeads.map(lead => (
                         <Card 
                           key={lead.id} 
-                          className="bg-white/95 hover:bg-white hover:shadow-lg transition-all duration-200 cursor-pointer border border-white/80 group"
+                          className="bg-white/95 hover:bg-white hover:shadow-lg transition-colors duration-200 cursor-pointer border border-white/80 group"
                           onClick={() => handleLeadClick(lead)}
                         >
                           <CardContent className="p-4">

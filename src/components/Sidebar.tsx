@@ -60,7 +60,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               key={item.name}
               to={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer",
                 isActive
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -91,7 +91,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer",
                   isActive
                     ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
