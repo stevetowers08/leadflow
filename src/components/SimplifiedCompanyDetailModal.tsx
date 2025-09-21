@@ -506,29 +506,29 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
       </DialogContent>
     </Dialog>
 
-    {/* Job Detail Modal */}
-    {selectedJob && (
-      <SimplifiedJobDetailModal
-        job={selectedJob}
-        isOpen={isJobModalOpen}
-        onClose={() => {
-          setIsJobModalOpen(false);
-          setSelectedJob(null);
-        }}
-      />
-    )}
+      {/* Job Detail Modal */}
+      {selectedJob && (
+        <SimplifiedJobDetailModal
+          job={selectedJob}
+          isOpen={isJobModalOpen}
+          onClose={() => {
+            setIsJobModalOpen(false);
+            setSelectedJob(null);
+          }}
+        />
+      )}
 
-    {/* Lead Detail Modal */}
-    {selectedLead && (
-      <SimplifiedLeadDetailModal
-        lead={selectedLead}
-        isOpen={isLeadModalOpen}
-        onClose={() => {
-          setIsLeadModalOpen(false);
-          setSelectedLead(null);
-        }}
-      />
-    )}
-  </>
+      {/* Lead Detail Modal */}
+      {selectedLead && (
+        <SimplifiedLeadDetailModal
+          lead={selectedLead}
+          isOpen={isLeadModalOpen}
+          onClose={() => {
+            setIsLeadModalOpen(false);
+            setSelectedLead(null);
+          }}
+        />
+      )}
+    </>
   );
 }
