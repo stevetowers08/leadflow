@@ -78,111 +78,43 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
   const { data: relatedLeads, isLoading: leadsLoading, error: leadsError } = useQuery({
     queryKey: ["company-leads", company?.id],
     queryFn: async () => {
-      if (!company?.id) {
-        console.log("No company ID provided");
-        return [];
-      }
+      if (!company?.id) return [];
       
-      console.log("Fetching leads for company:", {
-        id: company.id,
-        name: company["Company Name"],
-        company_id: company.id
-      });
-      
-      try {
-        // First, let's test if we can access the People table at all
-        console.log("Testing People table access...");
-        const { data: testData, error: testError } = await supabase
-          .from("People")
-          .select("id, Name")
-          .limit(1);
-          
-        if (testError) {
-          console.error("Cannot access People table:", testError);
-          throw testError;
-        }
-        
-        console.log("People table accessible, test data:", testData);
-        
-        const { data, error } = await supabase
-          .from("People")
-          .select(`
-            id,
-            Name,
-            "Company Role",
-            "Lead Score",
-            "Employee Location",
-            automation_status_enum,
-            "Automation Status",
-            Stage,
-            stage_enum,
-            Priority,
-            priority_enum,
-            "Message Sent",
-            "Connection Request",
-            "Email Reply",
-            "Meeting Booked",
-            created_at,
-            company_id
-          `)
-          .eq("company_id", company.id)
-          .order("created_at", { ascending: false })
-          .limit(10);
+      // Try by company name first since that's more likely to work
+      const { data, error } = await supabase
+        .from("People")
+        .select(`
+          id,
+          Name,
+          "Company Role",
+          "Lead Score",
+          "Employee Location",
+          automation_status_enum,
+          "Automation Status",
+          Stage,
+          stage_enum,
+          Priority,
+          priority_enum,
+          "Message Sent",
+          "Connection Request",
+          "Email Reply",
+          "Meeting Booked",
+          created_at,
+          company_id,
+          Company
+        `)
+        .ilike("Company", `%${company["Company Name"]}%`)
+        .order("created_at", { ascending: false })
+        .limit(10);
 
-        if (error) {
-          console.error("Error fetching leads:", error);
-          throw error;
-        }
-        
-        console.log("Fetched related leads for company:", company["Company Name"], "Data:", data, "Count:", data?.length);
-        
-        // If no results by company_id, try by company name as fallback
-        if (!data || data.length === 0) {
-          console.log("No results by company_id, trying by company name...");
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .from("People")
-            .select(`
-              id,
-              Name,
-              "Company Role",
-              "Lead Score",
-              "Employee Location",
-              automation_status_enum,
-              "Automation Status",
-              Stage,
-              stage_enum,
-              Priority,
-              priority_enum,
-              "Message Sent",
-              "Connection Request",
-              "Email Reply",
-              "Meeting Booked",
-              created_at,
-              company_id,
-              Company
-            `)
-            .ilike("Company", `%${company["Company Name"]}%`)
-            .order("created_at", { ascending: false })
-            .limit(10);
-            
-          if (fallbackError) {
-            console.error("Fallback query error:", fallbackError);
-            throw fallbackError;
-          } else {
-            console.log("Fallback query results:", fallbackData, "Count:", fallbackData?.length);
-            return fallbackData || [];
-          }
-        }
-        
-        return data || [];
-      } catch (err) {
-        console.error("Query failed:", err);
-        // Return empty array instead of throwing to prevent UI error
+      if (error) {
+        console.error("Error fetching leads:", error);
         return [];
       }
+      
+      return data || [];
     },
     enabled: !!company?.id && isOpen,
-    retry: 1,
   });
 
   const formatDate = (dateString: string) => {
