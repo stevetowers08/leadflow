@@ -92,22 +92,6 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
     enabled: !!job?.Company && isOpen
   });
 
-  const handleLeadSelect = (leadId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedLeads(prev => [...prev, leadId]);
-    } else {
-      setSelectedLeads(prev => prev.filter(id => id !== leadId));
-    }
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedLeads(relatedLeads?.map(lead => lead.id) || []);
-    } else {
-      setSelectedLeads([]);
-    }
-  };
-
   const handleLeadSelect = (lead: any) => {
     setSelectedLeadsForAutomation(prev => {
       const isSelected = prev.some(l => l.id === lead.id);
@@ -154,6 +138,7 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
   if (!job) return null;
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="pb-4">
@@ -455,5 +440,6 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
         companyName={job.Company}
       />
     )}
+    </>
   );
 }
