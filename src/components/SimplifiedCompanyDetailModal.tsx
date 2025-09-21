@@ -16,15 +16,12 @@ import {
   TrendingUp,
   Target,
   Eye,
-  Star,
   Bot,
-  Info,
-  Activity,
-  BarChart3,
-  Zap,
-  Heart,
-  Linkedin
+  Info
 } from "lucide-react";
+import { useState } from "react";
+import { SimplifiedJobDetailModal } from "./SimplifiedJobDetailModal";
+import { SimplifiedLeadDetailModal } from "./SimplifiedLeadDetailModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
@@ -36,6 +33,10 @@ interface SimplifiedCompanyDetailModalProps {
 }
 
 export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: SimplifiedCompanyDetailModalProps) {
+  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   // Fetch related jobs for this company
   const { data: relatedJobs } = useQuery({
     queryKey: ["company-jobs", company?.id],
@@ -110,239 +111,247 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
     });
   };
 
+  const handleJobClick = (job: any) => {
+    setSelectedJob(job);
+    setIsJobModalOpen(true);
+  };
+
+  const handleLeadClick = (lead: any) => {
+    setSelectedLead(lead);
+    setIsLeadModalOpen(true);
+  };
+
   if (!company) return null;
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="pb-4">
-          <DialogTitle className="flex items-center gap-3 text-xl">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <Building2 className="h-6 w-6 text-blue-600" />
+          <DialogTitle className="flex items-center gap-3">
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <Building2 className="h-4 w-4 text-gray-600" />
             </div>
-            <div>
-              <div className="font-bold">{company["Company Name"] || "Unknown Company"}</div>
-              <div className="text-sm font-normal text-muted-foreground">
-                {company.Industry || "Industry not specified"} • {company["Head Office"] || "Location not specified"}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg font-medium text-gray-900">
+                {company["Company Name"] || "Unknown Company"}
+              </h1>
+              <div className="text-sm text-gray-600">
+                {company.Industry && `${company.Industry}`}
+                {company["Head Office"] && ` • ${company["Head Office"]}`}
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {company.Priority && (
+                <Badge className="bg-orange-100 text-orange-800 border-orange-200 text-xs font-medium px-2 py-1">
+                  {company.Priority}
+                </Badge>
+              )}
+              <StatusBadge status={company.status_enum} />
             </div>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Company Overview - Clean */}
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {company.Logo ? (
-                    <img src={company.Logo} alt="Company logo" className="w-12 h-12 rounded object-cover" />
-                  ) : (
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white text-lg font-medium">
-                      {company["Company Name"]?.charAt(0)?.toUpperCase() || "?"}
+          <div className="space-y-4">
+            {/* Company Details - Card */}
+            <Card className="shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Company Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  {/* Company Info */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-gray-600 text-sm font-medium">
+                      <Building2 className="h-4 w-4" />
                     </div>
-                  )}
+                    <div className="flex-1">
+                      <div className="text-xs text-muted-foreground">
+                        {company["Company Size"] && `${company["Company Size"]}`}
+                        {company.Industry && ` • ${company.Industry}`}
+                      </div>
+                      <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                        {company["Head Office"] && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {company["Head Office"]}
+                          </span>
+                        )}
+                        {company.Website && (
+                          <span className="flex items-center gap-1">
+                            <Globe className="h-3 w-3" />
+                            Website
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-3 w-3 text-gray-500" />
+                        <span className="text-xs text-gray-600">
+                          {company.created_at ? formatDate(company.created_at) : "Unknown"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <AIScoreBadge
+                          leadData={{
+                            name: "",
+                            company: company["Company Name"] || "",
+                            role: "",
+                            location: company["Head Office"] || "",
+                            industry: company.Industry || "",
+                            company_size: company["Company Size"] || ""
+                          }}
+                          initialScore={company["Lead Score"]}
+                        />
+                      </div>
+                    </div>
+                  </div>
                   
-                  <div className="flex items-center gap-2">
-                    {company["Company Size"] && (
-                      <Badge className="bg-blue-100 text-blue-800 border text-xs">
-                        <Users className="h-3 w-3 mr-1" />
-                        {company["Company Size"]}
-                      </Badge>
-                    )}
-                    
-                    {company.Website && (
+                  {/* Website URL */}
+                  {company.Website && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <ExternalLink className="h-3 w-3 text-gray-500" />
                       <a 
                         href={company.Website.startsWith('http') ? company.Website : `https://${company.Website}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-blue-600 hover:underline text-xs"
+                        className="text-blue-600 hover:underline truncate"
                       >
-                        <Globe className="h-3 w-3" />
-                        Website
+                        {company.Website}
                       </a>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-green-100 text-green-800 border text-xs">
-                    <Briefcase className="h-3 w-3 mr-1" />
-                    {relatedJobs?.length || 0} Jobs
-                  </Badge>
-                  <Badge className="bg-purple-100 text-purple-800 border text-xs">
-                    <Users className="h-3 w-3 mr-1" />
-                    {relatedLeads?.length || 0} Leads
-                  </Badge>
-                  {company["Lead Score"] && (
-                    <AIScoreBadge
-                      leadData={{
-                        name: "Company",
-                        company: company["Company Name"] || "",
-                        role: "Company",
-                        location: company["Head Office"] || "",
-                        industry: company["Industry"],
-                        company_size: company["Company Size"] || "Unknown"
-                      }}
-                      initialScore={parseInt(company["Lead Score"].toString())}
-                      showDetails={false}
-                    />
+                    </div>
                   )}
                 </div>
-              </div>
-              
-              {/* Score Reason */}
-              {company["Score Reason"] && (
-                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-start gap-2">
-                    <TrendingUp className="h-4 w-4 text-blue-600 mt-0.5" />
-                    <div>
-                      <div className="text-sm font-medium text-blue-900">Score Reason</div>
-                      <div className="text-sm text-blue-700 mt-1">{company["Score Reason"]}</div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              </CardContent>
+            </Card>
 
-              {/* Company Intelligence */}
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* AI Info */}
-                {company["AI Info"] && (
-                  <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-2">
-                        <Bot className="h-4 w-4 text-purple-600 mt-0.5" />
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-purple-900 mb-2">AI Intelligence</div>
-                          <div className="text-sm text-purple-700">{company["AI Info"]}</div>
-                        </div>
+            {/* AI Intelligence */}
+            {(company["AI Info"] || company["Company Info"] || company["Score Reason"]) && (
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Bot className="h-4 w-4" />
+                    AI Intelligence
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-3">
+                    {company["AI Info"] && (
+                      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <div className="text-sm text-purple-700">{company["AI Info"]}</div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Company Info */}
-                {company["Company Info"] && (
-                  <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-2">
-                        <Info className="h-4 w-4 text-green-600 mt-0.5" />
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-green-900 mb-2">Company Details</div>
-                          <div className="text-sm text-green-700">{company["Company Info"]}</div>
-                        </div>
+                    )}
+                    {company["Company Info"] && (
+                      <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="text-sm text-green-700">{company["Company Info"]}</div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-
-              {/* Key Info Raw */}
-              {company["Key Info Raw"] && (
-                <Card className="mt-4 bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-2">
-                      <Activity className="h-4 w-4 text-indigo-600 mt-0.5" />
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-indigo-900 mb-2">Key Information</div>
-                        <div className="text-sm text-indigo-700 whitespace-pre-wrap">{company["Key Info Raw"]}</div>
+                    )}
+                    {company["Score Reason"] && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="text-sm text-blue-700">{company["Score Reason"]}</div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Company Analytics */}
-              <Card className="mt-4 bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <BarChart3 className="h-4 w-4 text-orange-600" />
-                    <div className="text-sm font-medium text-orange-900">Company Analytics</div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {/* Jobs Count */}
-                    <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
-                      <div className="text-2xl font-bold text-orange-600">{relatedJobs?.length || 0}</div>
-                      <div className="text-xs text-orange-700">Active Jobs</div>
-                    </div>
-                    
-                    {/* Leads Count */}
-                    <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
-                      <div className="text-2xl font-bold text-orange-600">{relatedLeads?.length || 0}</div>
-                      <div className="text-xs text-orange-700">Total Leads</div>
-                    </div>
-                    
-                    {/* Automation Status */}
-                    <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
-                      <div className="text-2xl font-bold text-orange-600">
-                        {company.Automation ? "✓" : "○"}
-                      </div>
-                      <div className="text-xs text-orange-700">Automation</div>
-                    </div>
-                    
-                    {/* Priority Level */}
-                    <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
-                      <div className="text-2xl font-bold text-orange-600">
-                        {company.Priority === "high" ? "🔴" : company.Priority === "medium" ? "🟡" : "🟢"}
-                      </div>
-                      <div className="text-xs text-orange-700 capitalize">{company.Priority || "Low"}</div>
-                    </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
+            )}
 
-              {/* Company Actions */}
-              <Card className="mt-4 bg-gradient-to-r from-gray-50 to-slate-50 border-gray-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Zap className="h-4 w-4 text-gray-600" />
-                    <div className="text-sm font-medium text-gray-900">Quick Actions</div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {/* LinkedIn */}
-                    {company["LinkedIn URL"] && (
-                      <a
-                        href={company["LinkedIn URL"]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+            {/* Related Jobs */}
+            <Card className="shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  Related Jobs ({relatedJobs?.length || 0})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ScrollArea className="h-32">
+                  <div className="space-y-2">
+                    {relatedJobs?.map((job) => (
+                      <div 
+                        key={job.id}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                        onClick={() => handleJobClick(job)}
                       >
-                        <Linkedin className="h-3 w-3" />
-                        LinkedIn
-                      </a>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {job["Job Title"] || "Untitled Job"}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {job["Job Location"] && `${job["Job Location"]}`}
+                            {job["Employment Type"] && ` • ${job["Employment Type"]}`}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {job.Priority && (
+                            <Badge className="bg-orange-100 text-orange-800 border-orange-200 text-xs px-2 py-1">
+                              {job.Priority}
+                            </Badge>
+                          )}
+                          <Eye className="h-3 w-3 text-gray-400" />
+                        </div>
+                      </div>
+                    ))}
+                    {(!relatedJobs || relatedJobs.length === 0) && (
+                      <div className="text-sm text-gray-500 text-center py-4">
+                        No related jobs found
+                      </div>
                     )}
-                    
-                    {/* Website */}
-                    {company.Website && (
-                      <a
-                        href={company.Website.startsWith('http') ? company.Website : `https://${company.Website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm"
-                      >
-                        <Globe className="h-3 w-3" />
-                        Website
-                      </a>
-                    )}
-                    
-                    {/* Favorite */}
-                    <button className="inline-flex items-center gap-1 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors text-sm">
-                      <Heart className="h-3 w-3" />
-                      {company.Favourite ? "Favorited" : "Add to Favorites"}
-                    </button>
-                    
-                    {/* Automation */}
-                    <button className="inline-flex items-center gap-1 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm">
-                      <Bot className="h-3 w-3" />
-                      {company.Automation ? "Automated" : "Enable Automation"}
-                    </button>
                   </div>
-                </CardContent>
-              </Card>
-            </CardContent>
-          </Card>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
+            {/* Related Leads */}
+            <Card className="shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Related Leads ({relatedLeads?.length || 0})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ScrollArea className="h-32">
+                  <div className="space-y-2">
+                    {relatedLeads?.map((lead) => (
+                      <div 
+                        key={lead.id}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                        onClick={() => handleLeadClick(lead)}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {lead["Full Name"] || "Unknown Lead"}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {lead["Job Title"] && `${lead["Job Title"]}`}
+                            {lead["Location"] && ` • ${lead["Location"]}`}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {lead.Priority && (
+                            <Badge className="bg-orange-100 text-orange-800 border-orange-200 text-xs px-2 py-1">
+                              {lead.Priority}
+                            </Badge>
+                          )}
+                          <Eye className="h-3 w-3 text-gray-400" />
+                        </div>
+                      </div>
+                    ))}
+                    {(!relatedLeads || relatedLeads.length === 0) && (
+                      <div className="text-sm text-gray-500 text-center py-4">
+                        No related leads found
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Navigation Actions */}
           <div className="flex gap-3">
@@ -496,5 +505,30 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Job Detail Modal */}
+    {selectedJob && (
+      <SimplifiedJobDetailModal
+        job={selectedJob}
+        isOpen={isJobModalOpen}
+        onClose={() => {
+          setIsJobModalOpen(false);
+          setSelectedJob(null);
+        }}
+      />
+    )}
+
+    {/* Lead Detail Modal */}
+    {selectedLead && (
+      <SimplifiedLeadDetailModal
+        lead={selectedLead}
+        isOpen={isLeadModalOpen}
+        onClose={() => {
+          setIsLeadModalOpen(false);
+          setSelectedLead(null);
+        }}
+      />
+    )}
+  </>
   );
 }

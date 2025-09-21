@@ -136,9 +136,6 @@ export function AIScoreBadge({
           {score.score}
         </span>
       </Badge>
-      <div className="text-xs text-muted-foreground text-center max-w-20 leading-tight">
-        {score.reason}
-      </div>
     </div>
   );
 
