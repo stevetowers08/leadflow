@@ -184,13 +184,6 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {job.Logo ? (
-                <img src={job.Logo} alt="Company logo" className="w-8 h-8 rounded object-cover" />
-              ) : (
-                <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                </div>
-              )}
               <div>
                 <div className="font-semibold">{job["Job Title"]}</div>
                 <button

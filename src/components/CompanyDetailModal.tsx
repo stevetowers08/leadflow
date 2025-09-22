@@ -417,18 +417,6 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
               )}
             </div>
 
-            {/* Profile Image */}
-            <div className="flex justify-center">
-              <img 
-                src={getCompanyLogoFallback(company["Company Name"])} 
-                alt={`${company["Company Name"]} profile`}
-                className="max-w-xs rounded-lg shadow-md border border-border"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = getCompanyLogoFallback(company["Company Name"]);
-                }}
-              />
-            </div>
 
             {/* Action Button */}
             <div className="flex justify-end pt-4 border-t">

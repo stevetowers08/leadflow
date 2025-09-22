@@ -291,13 +291,6 @@ const OptimizedJobs = () => {
       label: "Company",
       render: (job: Job) => (
         <div className="flex items-center gap-2">
-          {job.Logo ? (
-            <img src={job.Logo} alt="Company logo" className="w-6 h-6 rounded object-cover" />
-          ) : (
-            <div className="w-6 h-6 bg-muted rounded flex items-center justify-center">
-              <Building2 className="h-3 w-3 text-muted-foreground" />
-            </div>
-          )}
           <span className="text-sm font-medium">{job.Company || "-"}</span>
         </div>
       ),

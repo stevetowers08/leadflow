@@ -171,13 +171,6 @@ const Jobs = () => {
       label: "Company",
       render: (job: Job) => (
         <div className="flex items-center gap-2">
-          {job.Logo ? (
-            <img src={job.Logo} alt="Company logo" className="w-8 h-8 rounded object-cover" />
-          ) : (
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white text-sm font-medium">
-              {job.Company?.charAt(0)?.toUpperCase() || "?"}
-            </div>
-          )}
           <span className="text-sm font-medium">{job.Company || "-"}</span>
         </div>
       ),

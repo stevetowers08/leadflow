@@ -612,13 +612,6 @@ export function SimplifiedJobDetailModal({ job, isOpen, onClose }: SimplifiedJob
                     </div>
                   ) : companyData ? (
                     <div className="flex items-center gap-3">
-                      {companyData.Logo ? (
-                        <img src={companyData.Logo} alt="Company logo" className="w-10 h-10 rounded object-cover" />
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-gray-600 text-sm font-medium">
-                          {companyData["Company Name"]?.charAt(0)?.toUpperCase() || "?"}
-                        </div>
-                      )}
                       <div className="flex-1">
                         <div className="font-medium text-sm">{companyData["Company Name"]}</div>
                         <div className="text-xs text-muted-foreground mt-1">

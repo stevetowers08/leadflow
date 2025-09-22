@@ -79,13 +79,6 @@ const Companies = () => {
       label: "Company",
       render: (company: Company) => (
         <div className="flex items-center gap-2">
-          {company["Profile Image URL"] ? (
-            <img src={company["Profile Image URL"]} alt="Company logo" className="w-8 h-8 rounded object-cover" />
-          ) : (
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white text-sm font-medium">
-              {company["Company Name"]?.charAt(0)?.toUpperCase() || "?"}
-            </div>
-          )}
           <span className="text-sm font-medium">{company["Company Name"] || "-"}</span>
         </div>
       ),

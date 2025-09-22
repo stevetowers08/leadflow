@@ -384,13 +384,6 @@ const OptimizedDashboard = () => {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            {job.Logo ? (
-                              <img src={job.Logo} alt="Company logo" className="w-8 h-8 rounded object-cover" />
-                            ) : (
-                              <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                                <Building2 className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                            )}
                             <div>
                               <h3 className="font-medium text-sm">{job["Job Title"]}</h3>
                               <p className="text-xs text-muted-foreground">{job.Company}</p>
@@ -630,13 +623,6 @@ const OptimizedDashboard = () => {
                 onClick={() => handleCompanyClick(company)}
               >
                 <div className="flex items-start gap-3">
-                  {company.Logo ? (
-                    <img src={company.Logo} alt="Company logo" className="w-10 h-10 rounded object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
-                      <Building2 className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                  )}
                   <div className="flex-1">
                     <h3 className="font-medium text-sm mb-1">{company["Company Name"]}</h3>
                     <div className="text-xs text-muted-foreground space-y-1">
