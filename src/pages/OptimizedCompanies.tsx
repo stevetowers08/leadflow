@@ -35,7 +35,7 @@ interface Company {
   "Company Size": string | null;
   "Head Office": string | null;
   Website: string | null;
-  Logo: string | null;
+  "Profile Image URL": string | null;
   status_enum: string | null;
   created_at: string;
 }
@@ -186,7 +186,7 @@ const OptimizedCompanies = () => {
           "Company Size",
           "Head Office",
           Website,
-          Logo,
+          "Profile Image URL",
           status_enum,
           created_at
         `);
@@ -216,10 +216,10 @@ const OptimizedCompanies = () => {
       label: "Company",
       render: (company: Company) => (
         <div className="flex items-center gap-3">
-          {company.Logo ? (
-            <img src={company.Logo} alt="Company logo" className="w-10 h-10 rounded object-cover" />
+          {company["Profile Image URL"] ? (
+            <img src={company["Profile Image URL"]} alt="Company logo" className="w-8 h-8 rounded object-cover" />
           ) : (
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white text-sm font-medium">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white text-sm font-medium">
               {company["Company Name"]?.charAt(0)?.toUpperCase() || "?"}
             </div>
           )}
@@ -246,36 +246,44 @@ const OptimizedCompanies = () => {
     {
       key: "Industry",
       label: "Industry",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (company: Company) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-center">
           <Building2 className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{company.Industry || "-"}</span>
+          <span className="text-sm font-medium">{company.Industry || "-"}</span>
         </div>
       ),
     },
     {
       key: "Company Size",
       label: "Size",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (company: Company) => (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 justify-center">
           <Users className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs">{company["Company Size"] || "-"}</span>
+          <span className="text-sm font-medium">{company["Company Size"] || "-"}</span>
         </div>
       ),
     },
     {
       key: "Head Office",
       label: "Location",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (company: Company) => (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 justify-center">
           <MapPin className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs">{company["Head Office"] || "-"}</span>
+          <span className="text-sm font-medium">{company["Head Office"] || "-"}</span>
         </div>
       ),
     },
     {
       key: "Status",
       label: "Status",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (company: Company) => (
         <StatusBadge status={company.status_enum?.toLowerCase() || "active"} />
       ),
@@ -283,13 +291,15 @@ const OptimizedCompanies = () => {
     {
       key: "Created",
       label: "Added",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (company: Company) => {
         const date = new Date(company.created_at);
         const today = new Date();
         const isRecent = (today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24) <= 7;
         
         return (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 justify-center">
             <Calendar className="h-3 w-3 text-muted-foreground" />
             <span className={`text-xs ${isRecent ? 'text-green-600 font-medium' : ''}`}>
               {date.toLocaleDateString('en-US', {
@@ -305,8 +315,8 @@ const OptimizedCompanies = () => {
     {
       key: "actions",
       label: "Actions",
-      headerAlign: "center",
-      cellAlign: "center",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (company: Company) => (
         <div className="flex items-center gap-1">
           <Button
@@ -340,7 +350,7 @@ const OptimizedCompanies = () => {
         <div className="border-b pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Companies</h1>
+              <h1 className="text-xl font-semibold tracking-tight">Companies</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Manage company information and track job postings
               </p>
@@ -586,3 +596,5 @@ const OptimizedCompanies = () => {
 };
 
 export default OptimizedCompanies;
+
+

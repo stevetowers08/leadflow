@@ -46,11 +46,16 @@ export function LinkedInConfirmationModal({
   jobTitle,
   companyName 
 }: LinkedInConfirmationModalProps) {
-  console.log("LinkedInConfirmationModal rendered with:", { isOpen, selectedLeads: selectedLeads?.length, jobTitle, companyName });
+  console.log("🚀 LinkedInConfirmationModal rendered with:", { isOpen, selectedLeads: selectedLeads?.length, jobTitle, companyName });
+  
+  // Always render the modal, let Dialog handle the open/close state
+  console.log("✅ LinkedInConfirmationModal rendering content");
   const [messages, setMessages] = useState<{[key: string]: string}>({});
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const { toast } = useToast();
+
+  console.log("🔍 LinkedInConfirmationModal render - isOpen:", isOpen, "selectedLeads:", selectedLeads?.length);
 
   // Debug logging
   console.log("LinkedInConfirmationModal opened with leads:", selectedLeads);
@@ -131,7 +136,9 @@ export function LinkedInConfirmationModal({
   };
 
   const handleConfirm = async () => {
-    console.log("LinkedInConfirmationModal handleConfirm called with leads:", selectedLeads);
+    console.log("🚀 AUTOMATION DEBUG: LinkedInConfirmationModal handleConfirm called");
+    console.log("🚀 Leads to automate:", selectedLeads);
+    console.log("🚀 Messages:", messages);
     setLoading(true);
     try {
       // Update each lead with their LinkedIn message and set automation status
@@ -206,7 +213,7 @@ export function LinkedInConfirmationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden relative">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden relative bg-white" style={{ zIndex: 99999 }}>
         {/* Success Animation Overlay */}
         {showSuccess && (
           <div className="absolute inset-0 bg-green-50/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">

@@ -508,7 +508,7 @@ const OptimizedJobs = () => {
         <div className="border-b pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Jobs</h1>
+              <h1 className="text-xl font-semibold tracking-tight">Jobs</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Manage job postings and track candidate pipeline
               </p>

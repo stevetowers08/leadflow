@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -7,6 +7,8 @@ import { SimplifiedJobDetailModal } from "@/components/SimplifiedJobDetailModal"
 import { AIScoreBadge } from "@/components/AIScoreBadge";
 import { useToast } from "@/hooks/use-toast";
 import { useOptimizedStatus, useRealTimeStatus } from "@/hooks/useOptimizedStatus";
+import { useDebouncedSearch } from "@/hooks/useDebounce";
+import { measureFilterPerformance } from "@/utils/performanceUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
@@ -33,25 +35,9 @@ import {
   ExternalLink
 } from "lucide-react";
 
-interface Job {
-  id: string;
-  "Job Title": string;
-  Company: string;
-  Logo: string | null;
-  "Job Location": string | null;
-  Industry: string | null;
-  Function: string | null;
-  "Lead Score": number | null;
-  "Score Reason (from Company)": string | null;
-  "Posted Date": string | null;
-  "Valid Through": string | null;
-  Priority: string | null;
-  "Job Description": string | null;
-  "Employment Type": string | null;
-  Salary: string | null;
-  status_enum: string | null;
-  created_at: string;
-}
+import type { Tables } from "@/integrations/supabase/types";
+
+type Job = Tables<"Jobs">;
 
 interface Company {
   id: string;
@@ -93,26 +79,35 @@ const Jobs = () => {
   const { getJobStatus, isLoading: statusLoading } = useOptimizedStatus();
   const { refreshAllStatuses } = useRealTimeStatus();
 
-  // Filter jobs based on search term, company, priority, and dynamic status
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = !searchTerm || 
-      job["Job Title"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.Company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job["Job Location"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.Industry?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCompany = !companyFilter || 
-      job.Company?.toLowerCase().includes(companyFilter.toLowerCase());
-    
-    const matchesPriority = !priorityFilter || 
-      job.Priority?.toLowerCase() === priorityFilter.toLowerCase();
-    
-    const jobStatusInfo = getJobStatus(job.id);
-    const matchesStatus = !statusFilter || 
-      jobStatusInfo.status === statusFilter.toLowerCase();
-    
-    return matchesSearch && matchesCompany && matchesPriority && matchesStatus;
-  });
+  // Debounced search for better performance
+  const debouncedSearchTerm = useDebouncedSearch(searchTerm, 300, 0);
+
+  // Memoized filtering for optimal performance with measurement
+  const filteredJobs = useMemo(() => {
+    return measureFilterPerformance(
+      jobs,
+      job => {
+        const matchesSearch = !debouncedSearchTerm || 
+          job["Job Title"]?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          job.Company?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          job["Job Location"]?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          job.Industry?.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+        
+        const matchesCompany = !companyFilter || 
+          job.Company?.toLowerCase().includes(companyFilter.toLowerCase());
+        
+        const matchesPriority = !priorityFilter || 
+          job.Priority?.toLowerCase() === priorityFilter.toLowerCase();
+        
+        const jobStatusInfo = getJobStatus(job.id);
+        const matchesStatus = !statusFilter || 
+          jobStatusInfo.status === statusFilter.toLowerCase();
+        
+        return matchesSearch && matchesCompany && matchesPriority && matchesStatus;
+      },
+      'jobs-filtering'
+    );
+  }, [jobs, debouncedSearchTerm, companyFilter, priorityFilter, statusFilter, getJobStatus]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -175,7 +170,16 @@ const Jobs = () => {
       key: "Company",
       label: "Company",
       render: (job: Job) => (
-        <span className="text-xs">{job.Company || "-"}</span>
+        <div className="flex items-center gap-2">
+          {job.Logo ? (
+            <img src={job.Logo} alt="Company logo" className="w-8 h-8 rounded object-cover" />
+          ) : (
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white text-sm font-medium">
+              {job.Company?.charAt(0)?.toUpperCase() || "?"}
+            </div>
+          )}
+          <span className="text-sm font-medium">{job.Company || "-"}</span>
+        </div>
       ),
     },
     {
@@ -183,7 +187,7 @@ const Jobs = () => {
       label: "Job Summary",
       render: (job: Job) => (
         <div className="max-w-xs">
-          <div className="text-xs font-medium mb-1">{job["Job Title"]}</div>
+          <div className="text-sm font-medium mb-1">{job["Job Title"]}</div>
           <div className="text-xs text-muted-foreground">
             {job["Job Location"] && `${job["Job Location"]} • `}
             {job.Industry && `${job.Industry} • `}
@@ -195,8 +199,8 @@ const Jobs = () => {
     {
       key: "AI Score",
       label: "AI Score",
-      headerAlign: "center",
-      cellAlign: "center",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (job: Job) => (
         <div className="text-center">
           <AIScoreBadge
@@ -208,7 +212,7 @@ const Jobs = () => {
               industry: job.Industry,
               company_size: "Unknown"
             }}
-            initialScore={job["Lead Score"] ? parseInt(job["Lead Score"]) : undefined}
+            initialScore={job["Lead Score"] ? parseInt(job["Lead Score"].toString()) : undefined}
             showDetails={false}
           />
         </div>
@@ -217,8 +221,8 @@ const Jobs = () => {
     {
       key: "Posted Date",
       label: "Posted Date",
-      headerAlign: "center",
-      cellAlign: "center",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (job: Job) => {
         if (!job["Posted Date"]) return <span className="text-xs">-</span>;
         
@@ -253,8 +257,8 @@ const Jobs = () => {
     {
       key: "Valid Through",
       label: "Valid Through",
-      headerAlign: "center",
-      cellAlign: "center",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (job: Job) => {
         if (!job["Valid Through"]) return <span className="text-xs">-</span>;
         
@@ -289,8 +293,8 @@ const Jobs = () => {
     {
       key: "Priority",
       label: "Priority",
-      headerAlign: "center",
-      cellAlign: "center",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (job: Job) => (
         <StatusBadge status={job.Priority?.toLowerCase() || "medium"} />
       ),
@@ -298,15 +302,15 @@ const Jobs = () => {
     {
       key: "status_enum",
       label: "Status",
-      headerAlign: "center",
-      cellAlign: "center",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (job: Job) => {
         const statusInfo = getJobStatus(job.id);
         return (
           <DynamicStatusBadge
             status={statusInfo.status}
             leadCount={statusInfo.leadCount}
-            isLoading={statusInfo.isLoading}
+            isLoading={false}
             showLeadCount={true}
           />
         );
@@ -320,8 +324,8 @@ const Jobs = () => {
         <div className="border-b pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold tracking-tight">Jobs</h1>
-              <p className="text-xs text-muted-foreground mt-1">
+              <h1 className="text-xl font-semibold tracking-tight">Jobs</h1>
+              <p className="text-sm text-muted-foreground mt-1">
                 Manage job postings and opportunities
               </p>
             </div>
@@ -465,7 +469,7 @@ const Jobs = () => {
                 for (const job of jobs) {
                   await supabase
                     .from("Jobs")
-                    .update({ status_enum: 'archived' })
+                    .update({ status_enum: 'cancelled' })
                     .eq("id", job.id);
                 }
                 fetchJobs(); // Refresh data
@@ -480,7 +484,7 @@ const Jobs = () => {
       
       {selectedJob && (
         <SimplifiedJobDetailModal
-          job={selectedJob}
+          job={selectedJob as Tables<"Jobs">}
           isOpen={isDetailModalOpen}
           onClose={() => {
             setIsDetailModalOpen(false);

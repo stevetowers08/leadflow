@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,22 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+// Simple cache implementation for performance
+const cache = new Map();
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+
+const getCachedData = (key: string) => {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+  return null;
+};
+
+const setCachedData = (key: string, data: any) => {
+  cache.set(key, { data, timestamp: Date.now() });
+};
+
 interface DashboardStats {
   totalLeads: number;
   totalCompanies: number;
@@ -32,9 +48,15 @@ interface TodayJob {
   Logo: string | null;
   "Job Location": string | null;
   Industry: string | null;
+  Function: string | null;
   "Lead Score": number | null;
   "Posted Date": string | null;
+  "Valid Through": string | null;
   Priority: string | null;
+  "Employment Type": string | null;
+  "Seniority Level": string | null;
+  Salary: string | null;
+  "Job URL": string | null;
   created_at: string;
 }
 
@@ -79,26 +101,57 @@ export default function Index() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      
+      // Check cache first
+      const cachedData = getCachedData('dashboard');
+      if (cachedData) {
+        setStats(cachedData.stats);
+        setTodayJobs(cachedData.todayJobs);
+        setRecentLeads(cachedData.recentLeads);
+        setLoading(false);
+        return;
+      }
+      
       const today = new Date();
       const sevenDaysFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      // Fetch basic counts
+      // OPTIMIZED: Fetch only counts, not full data
       const [leadsCount, companiesCount, jobsCount] = await Promise.all([
-        supabase.from("People").select("*", { count: "exact", head: true }),
-        supabase.from("Companies").select("*", { count: "exact", head: true }),
-        supabase.from("Jobs").select("*", { count: "exact", head: true }),
+        supabase.from("People").select("id", { count: "exact", head: true }),
+        supabase.from("Companies").select("id", { count: "exact", head: true }),
+        supabase.from("Jobs").select("id", { count: "exact", head: true }),
       ]);
 
       // Fetch jobs posted today
+      const todayStartOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      
+      // OPTIMIZED: Fetch only essential fields for today's jobs
       const { data: todayJobsData } = await supabase
         .from("Jobs")
-        .select("*")
-        .gte("created_at", new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString())
+        .select(`
+          id,
+          "Job Title",
+          Company,
+          Logo,
+          "Job Location",
+          Industry,
+          Function,
+          "Lead Score",
+          "Posted Date",
+          "Valid Through",
+          Priority,
+          "Employment Type",
+          "Seniority Level",
+          Salary,
+          "Job URL",
+          created_at
+        `)
+        .gte("created_at", todayStartOfDay)
         .order("created_at", { ascending: false })
         .limit(5);
 
-      // Fetch expiring jobs (next 7 days)
-      const { data: allJobs } = await supabase.from("Jobs").select("*");
+      // OPTIMIZED: Fetch only fields needed for expiring jobs calculation
+      const { data: allJobs } = await supabase.from("Jobs").select("id, Priority, \"Valid Through\"");
       const expiringJobs = allJobs?.filter(job => {
         if (!job["Valid Through"]) return false;
         const parseDate = (dateStr: string) => {
@@ -120,23 +173,43 @@ export default function Index() {
         }
       }) || [];
 
-      // Fetch recent leads
+      // OPTIMIZED: Fetch only essential fields for recent leads
       const { data: recentLeadsData } = await supabase
         .from("People")
-        .select("*")
+        .select(`
+          id,
+          Name,
+          Company,
+          "Company Role",
+          "Employee Location",
+          Stage,
+          stage_enum,
+          "Lead Score",
+          priority_enum,
+          automation_status_enum,
+          created_at
+        `)
         .order("created_at", { ascending: false })
         .limit(5);
 
-      setStats({
+      const statsData = {
         totalLeads: leadsCount.count || 0,
         totalCompanies: companiesCount.count || 0,
         totalJobs: jobsCount.count || 0,
         newJobsToday: todayJobsData?.length || 0,
         expiringJobs: expiringJobs.length,
-      });
+      };
 
+      setStats(statsData);
       setTodayJobs(todayJobsData || []);
       setRecentLeads(recentLeadsData || []);
+      
+      // Cache the data
+      setCachedData('dashboard', {
+        stats: statsData,
+        todayJobs: todayJobsData || [],
+        recentLeads: recentLeadsData || []
+      });
 
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
@@ -145,22 +218,23 @@ export default function Index() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  // OPTIMIZED: Memoize expensive calculations
+  const formatDate = useMemo(() => (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
     });
-  };
+  }, []);
 
-  const getPriorityColor = (priority: string | null) => {
+  const getPriorityColor = useMemo(() => (priority: string | null) => {
     switch (priority?.toLowerCase()) {
       case 'high': return 'bg-red-100 text-red-800 border-red-200';
       case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'low': return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
-  };
+  }, []);
 
   const handleJobClick = (job: TodayJob) => {
     setSelectedJob(job);
@@ -183,7 +257,7 @@ export default function Index() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
           <p className="text-gray-600">Good morning! Here's what's happening today.</p>
         </div>
       </div>

@@ -217,7 +217,7 @@ export function EnhancedLeadDetailModal({ lead, isOpen, onClose }: LeadDetailMod
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="flex items-center gap-3">
                     <StatusBadge 
-                      status={lead.stage_enum || lead.Stage?.toLowerCase() || "new"} 
+                      status={lead.Stage || lead.stage_enum || "NEW LEAD"} 
                       size="md"
                     />
                     <span className="text-sm font-medium">Stage</span>
@@ -559,3 +559,5 @@ export function EnhancedLeadDetailModal({ lead, isOpen, onClose }: LeadDetailMod
     </>
   );
 }
+
+

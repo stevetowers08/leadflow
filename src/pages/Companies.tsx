@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AIScoreBadge } from "@/components/AIScoreBadge";
 import { SimplifiedCompanyDetailModal } from "@/components/SimplifiedCompanyDetailModal";
 import { useToast } from "@/hooks/use-toast";
+import { useDebouncedSearch } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, RefreshCw } from "lucide-react";
-import { isValidImageUrl, getCompanyLogoFallback } from "@/utils/logoUtils";
 
 interface Company {
   id: string;
@@ -35,13 +35,18 @@ const Companies = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  // Simple filtering
-  const filteredCompanies = companies.filter(company => {
-    if (!searchTerm) return true;
-    return company["Company Name"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           company["Industry"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           company["Head Office"]?.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  // Debounced search for better performance
+  const debouncedSearchTerm = useDebouncedSearch(searchTerm, 300, 0);
+
+  // Memoized filtering for optimal performance
+  const filteredCompanies = useMemo(() => {
+    return companies.filter(company => {
+      if (!debouncedSearchTerm) return true;
+      return company["Company Name"]?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+             company["Industry"]?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+             company["Head Office"]?.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+    });
+  }, [companies, debouncedSearchTerm]);
 
   const fetchCompanies = async () => {
     try {
@@ -72,69 +77,38 @@ const Companies = () => {
     {
       key: "Company Name",
       label: "Company",
-      render: (company: Company) => {
-        const hasValidLogo = isValidImageUrl(company["Profile Image URL"]);
-        const logoUrl = hasValidLogo ? company["Profile Image URL"] : getCompanyLogoFallback(company["Company Name"]);
-        
-        return (
-          <div className="flex items-center gap-3 min-w-0 max-w-xs">
-            <div className="relative w-10 h-10 flex-shrink-0">
-              <img 
-                src={logoUrl} 
-                alt={`${company["Company Name"]} logo`}
-                className="w-10 h-10 rounded-lg object-cover border border-border shadow-sm"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = getCompanyLogoFallback(company["Company Name"]);
-                }}
-              />
+      render: (company: Company) => (
+        <div className="flex items-center gap-2">
+          {company["Profile Image URL"] ? (
+            <img src={company["Profile Image URL"]} alt="Company logo" className="w-8 h-8 rounded object-cover" />
+          ) : (
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white text-sm font-medium">
+              {company["Company Name"]?.charAt(0)?.toUpperCase() || "?"}
             </div>
-            <div className="flex flex-col min-w-0 flex-1">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedCompany(company);
-                  setIsDetailModalOpen(true);
-                }}
-                className="text-sm font-medium truncate hover:text-primary transition-colors text-left"
-              >
-                {company["Company Name"] || "-"}
-              </button>
-              {company["Website"] && (
-                <a 
-                  href={company["Website"]} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-xs text-muted-foreground hover:text-primary transition-colors truncate opacity-75 hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {company["Website"].replace(/^https?:\/\//, '')}
-                </a>
-              )}
-            </div>
-          </div>
-        );
-      },
+          )}
+          <span className="text-sm font-medium">{company["Company Name"] || "-"}</span>
+        </div>
+      ),
     },
     {
       key: "Industry",
       label: "Industry",
       render: (company: Company) => (
-        <span className="text-sm">{company["Industry"] || "-"}</span>
+        <span className="text-xs text-muted-foreground">{company["Industry"] || "-"}</span>
       ),
     },
     {
       key: "Company Size",
       label: "Size",
       render: (company: Company) => (
-        <span className="text-sm">{company["Company Size"] || "-"}</span>
+        <span className="text-xs text-muted-foreground">{company["Company Size"] || "-"}</span>
       ),
     },
     {
       key: "Head Office",
       label: "Location",
       render: (company: Company) => (
-        <span className="text-sm">{company["Head Office"] || "-"}</span>
+        <span className="text-xs text-muted-foreground">{company["Head Office"] || "-"}</span>
       ),
     },
     {
@@ -188,13 +162,13 @@ const Companies = () => {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
-        <div className="border-b pb-4">
+        <div className="border-b pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold tracking-tight">Companies</h1>
-              <p className="text-xs text-muted-foreground mt-1">
+              <h1 className="text-xl font-semibold tracking-tight">Companies</h1>
+              <p className="text-sm text-muted-foreground mt-1">
                 Manage your target companies and prospects
               </p>
             </div>

@@ -165,3 +165,5 @@ src/pages/
 - **Better data insights** with comprehensive metrics
 
 The enhanced dashboard and jobs page are specifically designed to support your client's morning workflow while providing powerful tools for ongoing job and lead management! 🎯
+
+

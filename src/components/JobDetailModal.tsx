@@ -167,10 +167,10 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600 bg-green-50";
-    if (score >= 60) return "text-yellow-600 bg-yellow-50";
-    if (score >= 40) return "text-orange-600 bg-orange-50";
-    return "text-red-600 bg-red-50";
+    if (score >= 80) return "text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950/50 dark:border-green-800";
+    if (score >= 60) return "text-yellow-700 bg-yellow-50 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-950/50 dark:border-yellow-800";
+    if (score >= 40) return "text-orange-700 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-950/50 dark:border-orange-800";
+    return "text-red-700 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950/50 dark:border-red-800";
   };
 
   const isJobExpired = job["Valid Through"] && new Date(job["Valid Through"]) < new Date();
@@ -182,7 +182,7 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
+          <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {job.Logo ? (
                 <img src={job.Logo} alt="Company logo" className="w-8 h-8 rounded object-cover" />
@@ -201,39 +201,32 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
                 </button>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              {job.Priority && (
+                <StatusBadge status={job.Priority.toLowerCase()} size="md" />
+              )}
+              {job["Lead Score"] && (
+                <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${getScoreColor(job["Lead Score"])}`}>
+                  Score: {job["Lead Score"]}
+                </div>
+              )}
+              {isJobExpired ? (
+                <Badge variant="destructive" className="h-6 px-2.5 text-xs font-medium rounded-full">Expired</Badge>
+              ) : daysRemaining !== null && daysRemaining <= 7 && (
+                <Badge variant="secondary" className="h-6 px-2.5 text-xs font-medium rounded-full">
+                  {daysRemaining <= 0 ? "Expires today" : `${daysRemaining} days left`}
+                </Badge>
+              )}
+            </div>
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Status and Priority */}
-          <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-lg">
-            {job.Priority && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Priority:</span>
-                <StatusBadge status={job.Priority.toLowerCase()} size="md" />
-              </div>
-            )}
-            {job["Lead Score"] && (
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-500" />
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getScoreColor(job["Lead Score"])}`}>
-                  Score: {job["Lead Score"]}
-                </span>
-              </div>
-            )}
-            {isJobExpired ? (
-              <Badge variant="destructive">Expired</Badge>
-            ) : daysRemaining !== null && daysRemaining <= 7 && (
-              <Badge variant="secondary">
-                {daysRemaining <= 0 ? "Expires today" : `${daysRemaining} days left`}
-              </Badge>
-            )}
-          </div>
 
           {/* Job Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Job Details</h3>
+              <h3 className="text-lg font-medium text-foreground">Job Details</h3>
               
               {job["Job Location"] && (
                 <div className="flex items-center gap-2">
@@ -272,7 +265,7 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Timeline</h3>
+              <h3 className="text-lg font-medium text-foreground">Timeline</h3>
               
               {job["Posted Date"] && (
                 <div className="flex items-center gap-2">
@@ -300,8 +293,8 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
           {/* Job Description */}
           {job["Job Description"] && (
             <div className="space-y-3">
-              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Job Description</h3>
-              <div className="p-4 bg-muted/20 rounded-lg">
+              <h3 className="text-lg font-medium text-foreground">Job Description</h3>
+              <div className="p-6 bg-muted/20 rounded-lg">
                 <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                   {job["Job Description"]}
                 </div>
@@ -312,9 +305,9 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
           {/* Score Reason */}
           {job["Score Reason (from Company)"] && (
             <div className="space-y-3">
-              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Score Analysis</h3>
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="text-sm text-blue-900 leading-relaxed">
+              <h3 className="text-lg font-medium text-foreground">Score Analysis</h3>
+              <div className="p-6 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="text-sm text-foreground leading-relaxed">
                   {job["Score Reason (from Company)"]}
                 </div>
               </div>
@@ -327,7 +320,7 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                  <h3 className="text-lg font-medium text-foreground">
                     Available Leads ({relatedLeads.length})
                   </h3>
                 </div>
@@ -408,7 +401,7 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                <h3 className="text-lg font-medium text-foreground">
                   Other Jobs at {job.Company} ({otherJobs.length})
                 </h3>
               </div>

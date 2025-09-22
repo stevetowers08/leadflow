@@ -569,3 +569,5 @@ export function EnhancedCompanyDetailModal({ company, isOpen, onClose }: Company
     </>
   );
 }
+
+

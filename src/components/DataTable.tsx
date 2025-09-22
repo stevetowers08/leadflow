@@ -18,6 +18,7 @@ interface Column<T> {
   render: (item: T) => ReactNode;
   headerAlign?: "left" | "center" | "right";
   cellAlign?: "left" | "center" | "right";
+  sortable?: boolean;
 }
 
 interface DataTableProps<T> {
@@ -61,6 +62,7 @@ export function DataTable<T extends Record<string, any>>({
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const { toast } = useToast();
 
   const filteredData = data.filter((item) => {
@@ -71,15 +73,54 @@ export function DataTable<T extends Record<string, any>>({
     );
   });
 
+  // Sorting logic
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (!sortConfig) return 0;
+    
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
+    
+    // Handle date sorting
+    if (sortConfig.key === 'created_at' || sortConfig.key === 'updated_at') {
+      const aDate = new Date(aValue || 0);
+      const bDate = new Date(bValue || 0);
+      return sortConfig.direction === 'asc' ? aDate.getTime() - bDate.getTime() : bDate.getTime() - aDate.getTime();
+    }
+    
+    // Handle string sorting
+    const aStr = String(aValue || '').toLowerCase();
+    const bStr = String(bValue || '').toLowerCase();
+    
+    if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   // Use pagination if enabled
   const { paginatedData, pagination: paginationState } = usePaginatedData(
-    filteredData,
+    sortedData,
     {
       pageSize: pagination.pageSize || 10,
     }
   );
 
-  const displayData = pagination.enabled ? paginatedData : filteredData;
+  const displayData = pagination.enabled ? paginatedData : sortedData;
+
+  // Sorting handler
+  const handleSort = (key: string) => {
+    setSortConfig(prevConfig => {
+      if (prevConfig?.key === key) {
+        // Toggle direction if same column
+        return {
+          key,
+          direction: prevConfig.direction === 'asc' ? 'desc' : 'asc'
+        };
+      } else {
+        // New column, default to ascending
+        return { key, direction: 'asc' };
+      }
+    });
+  };
 
   // Bulk actions handlers
   const handleSelectAll = () => {

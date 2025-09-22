@@ -158,10 +158,10 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600 bg-green-50";
-    if (score >= 60) return "text-yellow-600 bg-yellow-50";
-    if (score >= 40) return "text-orange-600 bg-orange-50";
-    return "text-red-600 bg-red-50";
+    if (score >= 80) return "text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950/50 dark:border-green-800";
+    if (score >= 60) return "text-yellow-700 bg-yellow-50 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-950/50 dark:border-yellow-800";
+    if (score >= 40) return "text-orange-700 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-950/50 dark:border-orange-800";
+    return "text-red-700 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950/50 dark:border-red-800";
   };
 
   if (!company) return null;
@@ -171,17 +171,12 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <Building2 className="h-5 w-5 text-primary" />
-              {company["Company Name"]}
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {/* Status and Metrics */}
-            <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-lg">
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Building2 className="h-5 w-5 text-primary" />
+                {company["Company Name"]}
+              </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Status:</span>
                 <DynamicStatusBadge
                   status={status}
                   leadCount={leadCount}
@@ -189,27 +184,24 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
                   showLeadCount={true}
                   size="md"
                 />
-              </div>
-              {company["Priority"] && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Priority:</span>
+                {company["Priority"] && (
                   <StatusBadge status={company["Priority"].toLowerCase()} size="md" />
-                </div>
-              )}
-              {company["Lead Score"] && (
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getScoreColor(company["Lead Score"])}`}>
+                )}
+                {company["Lead Score"] && (
+                  <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${getScoreColor(company["Lead Score"])}`}>
                     Score: {company["Lead Score"]}
-                  </span>
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
 
             {/* Company Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Company Details</h3>
+                <h3 className="text-lg font-medium text-foreground">Company Details</h3>
                 
                 {company["Industry"] && (
                   <div className="flex items-center gap-2">
@@ -239,7 +231,7 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Contact Info</h3>
+                <h3 className="text-lg font-medium text-foreground">Contact Info</h3>
                 
                 {company["Website"] && (
                   <div className="flex items-center gap-2">
@@ -277,10 +269,10 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
 
             {/* Company Information */}
             {company["Company Info"] && (
-              <div className="p-4 bg-muted/20 rounded-lg">
+              <div className="p-6 bg-muted/20 rounded-lg">
                 <div className="flex items-start gap-2 mb-2">
                   <Info className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <h3 className="font-semibold text-sm">Company Information</h3>
+                  <h3 className="text-lg font-medium text-foreground">Company Information</h3>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {company["Company Info"]}
@@ -293,9 +285,9 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                    Related Leads ({relatedLeads?.length || 0})
-                  </h3>
+                <h3 className="text-lg font-medium text-foreground">
+                  Related Leads ({relatedLeads?.length || 0})
+                </h3>
                 </div>
                 {selectedLeads.length > 0 && (
                   <Button 
@@ -379,7 +371,7 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                <h3 className="text-lg font-medium text-foreground">
                   Related Jobs ({relatedJobs?.length || 0})
                 </h3>
               </div>

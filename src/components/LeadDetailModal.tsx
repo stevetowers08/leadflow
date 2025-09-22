@@ -152,47 +152,33 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
 
   const getScoreColor = (score: string) => {
     const numScore = parseInt(score);
-    if (numScore >= 80) return "text-green-600 bg-green-50";
-    if (numScore >= 60) return "text-yellow-600 bg-yellow-50";
-    if (numScore >= 40) return "text-orange-600 bg-orange-50";
-    return "text-red-600 bg-red-50";
+    if (numScore >= 80) return "text-green-700 bg-green-50 border-green-200";
+    if (numScore >= 60) return "text-yellow-700 bg-yellow-50 border-yellow-200";
+    if (numScore >= 40) return "text-orange-700 bg-orange-50 border-orange-200";
+    return "text-red-700 bg-red-50 border-red-200";
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <User className="h-5 w-5 text-primary" />
-            {lead.Name}
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <User className="h-5 w-5 text-primary" />
+              {lead.Name}
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-xs font-medium text-gray-600">Status</span>
+                <StatusBadge 
+                  status={lead.Stage || "NEW LEAD"} 
+                />
+              </div>
+            </div>
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Status and Priority */}
-          <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Status:</span>
-              <StatusBadge 
-                status={lead.stage_enum || lead.Stage?.toLowerCase() || "new"} 
-                size="md"
-              />
-            </div>
-            {lead.priority_enum && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Priority:</span>
-                <StatusBadge status={lead.priority_enum} size="md" />
-              </div>
-            )}
-            {lead["Lead Score"] && (
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-500" />
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getScoreColor(lead["Lead Score"])}`}>
-                  Score: {lead["Lead Score"]}
-                </span>
-              </div>
-            )}
-          </div>
 
           {/* Navigation Actions */}
           {lead.Company && (
@@ -225,7 +211,7 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
           {/* Personal Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-3">
-              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Personal Info</h3>
+              <h3 className="text-lg font-medium text-foreground">Personal Info</h3>
               
               {lead["Company Role"] && (
                 <div className="flex items-center gap-2">
@@ -255,7 +241,7 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
             </div>
 
             <div className="space-y-3">
-              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Company Info</h3>
+              <h3 className="text-lg font-medium text-foreground">Company Info</h3>
               
               {lead.Company && (
                 <div className="flex items-center gap-2">
@@ -278,21 +264,21 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
 
           {/* LinkedIn Profile */}
           {lead["LinkedIn URL"] && (
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-blue-100 rounded-full">
-                    <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z" clipRule="evenodd"/>
                     </svg>
                   </div>
-                  <span className="font-medium text-blue-900">LinkedIn Profile</span>
+                  <span className="font-medium text-foreground">LinkedIn Profile</span>
                 </div>
                 <a
                   href={lead["LinkedIn URL"]}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
+                  className="flex items-center gap-1 text-primary hover:text-primary/80 transition-colors"
                 >
                   <span className="text-sm">View Profile</span>
                   <ExternalLink className="h-3 w-3" />
@@ -303,10 +289,10 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
 
           {/* Company Details */}
           {companyData && (
-            <div className="p-4 bg-muted/10 rounded-lg border">
+            <div className="p-6 bg-muted/10 rounded-lg border">
               <div className="flex items-center gap-2 mb-3">
                 <Building2 className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Company Details</h3>
+                <h3 className="text-lg font-medium text-foreground">Company Details</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 {companyData.Industry && (
@@ -346,10 +332,10 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
 
           {/* Related Jobs */}
           {relatedJobs && relatedJobs.length > 0 && (
-            <div className="p-4 bg-muted/10 rounded-lg border">
+            <div className="p-6 bg-muted/10 rounded-lg border">
               <div className="flex items-center gap-2 mb-3">
                 <Briefcase className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Related Jobs ({relatedJobs.length})</h3>
+                <h3 className="text-lg font-medium text-foreground">Related Jobs ({relatedJobs.length})</h3>
               </div>
               <div className="space-y-2">
                 {relatedJobs.map((job: any) => (
@@ -377,10 +363,10 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
 
           {/* Related Leads */}
           {relatedLeads && relatedLeads.length > 0 && (
-            <div className="p-4 bg-muted/10 rounded-lg border">
+            <div className="p-6 bg-muted/10 rounded-lg border">
               <div className="flex items-center gap-2 mb-3">
                 <Users className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Other Leads from {lead.Company} ({relatedLeads.length})</h3>
+                <h3 className="text-lg font-medium text-foreground">Other Leads from {lead.Company} ({relatedLeads.length})</h3>
               </div>
               <div className="space-y-2">
                 {relatedLeads.map((otherLead: any) => (
@@ -392,14 +378,8 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {otherLead["Lead Score"] && (
-                        <div className={`px-2 py-1 rounded text-xs font-medium ${getScoreColor(otherLead["Lead Score"])}`}>
-                          {otherLead["Lead Score"]}
-                        </div>
-                      )}
                       <StatusBadge 
-                        status={otherLead.stage_enum || otherLead.Stage?.toLowerCase() || "new"} 
-                        size="sm"
+                        status={otherLead.Stage || otherLead.stage_enum || "NEW LEAD"} 
                       />
                     </div>
                   </div>
@@ -413,7 +393,7 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
             <Button 
               onClick={handleAutomate}
               disabled={isAutomating}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+              className="flex-1"
             >
               <Zap className="h-4 w-4 mr-2" />
               {isAutomating ? "Starting Automation..." : "AUTOMATE"}

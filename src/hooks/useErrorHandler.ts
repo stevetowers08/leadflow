@@ -250,3 +250,5 @@ export function useErrorBoundary() {
 
   return { captureError };
 }
+
+

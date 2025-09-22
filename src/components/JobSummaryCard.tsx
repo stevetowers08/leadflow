@@ -216,3 +216,5 @@ export function JobSummaryCard({ jobData, onSummaryUpdate }: JobSummaryCardProps
     </Card>
   );
 }
+
+

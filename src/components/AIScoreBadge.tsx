@@ -31,6 +31,14 @@ export function AIScoreBadge({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Debug: Log what's being passed to the component
+  console.log('AIScoreBadge Debug:', {
+    leadName: leadData.name,
+    initialScore: initialScore,
+    initialScoreType: typeof initialScore,
+    aiServiceAvailable: aiService.isAvailable()
+  });
+
   const calculateScore = async () => {
     if (!aiService.isAvailable()) {
       setError("AI service not available");
@@ -56,8 +64,8 @@ export function AIScoreBadge({
       // Use initial score as fallback
       setScore({
         score: initialScore,
-        reason: "AI Score",
-        confidence: 0.5,
+        reason: "Database Score",
+        confidence: 0.8,
         factors: {
           company_size: 0.7,
           industry_match: 0.6,
@@ -108,6 +116,18 @@ export function AIScoreBadge({
   }
 
   if (!score) {
+    // If we have an initial score but no calculated score, show the initial score
+    if (initialScore) {
+      return (
+        <Badge className={`${getScoreColor(initialScore)} border w-12 h-6 flex items-center justify-center`}>
+          <span className="font-mono text-xs font-semibold">
+            {initialScore}
+          </span>
+        </Badge>
+      );
+    }
+    
+    // No score available at all
     return (
       <Button
         variant="outline"

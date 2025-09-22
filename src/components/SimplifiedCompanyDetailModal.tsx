@@ -24,10 +24,13 @@ import {
   Trash2,
   Star
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SimplifiedJobDetailModal } from "./SimplifiedJobDetailModal";
 import { LeadDetailModal } from "./LeadDetailModal";
 import { LinkedInConfirmationModal } from "./LinkedInConfirmationModal";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +49,9 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [selectedLeadsForAutomation, setSelectedLeadsForAutomation] = useState<any[]>([]);
   const [showAutomationModal, setShowAutomationModal] = useState(false);
+  const [messages, setMessages] = useState<{[key: string]: {request: string, connected: string, followUp: string}}>({});
+  const [selectedCampaign, setSelectedCampaign] = useState<string>("");
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   // Fetch related jobs for this company
@@ -99,6 +105,10 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
           "Company Role",
           "Lead Score",
           "Employee Location",
+          "LinkedIn URL",
+          "LinkedIn Request Message",
+          "LinkedIn Connected Message",
+          "LinkedIn Follow Up Message",
           automation_status_enum,
           "Automation Status",
           Stage,
@@ -152,13 +162,98 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
       const newSelection = isSelected 
         ? prev.filter(l => l.id !== lead.id)
         : [...prev, lead];
-      console.log("New selection:", newSelection);
       return newSelection;
     });
   };
 
+  // Initialize messages for each lead
+  const initializeMessages = () => {
+    const initialMessages: {[key: string]: {request: string, connected: string, followUp: string}} = {};
+    selectedLeadsForAutomation.forEach(lead => {
+      // Only use existing messages from database, leave empty if none exist
+      initialMessages[lead.id] = {
+        request: lead["LinkedIn Request Message"] || '',
+        connected: lead["LinkedIn Connected Message"] || '',
+        followUp: lead["LinkedIn Follow Up Message"] || ''
+      };
+    });
+    setMessages(initialMessages);
+  };
+
+  // Initialize messages when modal opens
+  useEffect(() => {
+    if (showAutomationModal && selectedLeadsForAutomation.length > 0) {
+      initializeMessages();
+    }
+  }, [showAutomationModal, selectedLeadsForAutomation]);
+
+  const handleMessageChange = (leadId: string, messageType: 'request' | 'connected' | 'followUp', message: string) => {
+    setMessages(prev => ({
+      ...prev,
+      [leadId]: {
+        ...prev[leadId],
+        [messageType]: message
+      }
+    }));
+  };
+
+  const sendToWebhook = async (lead: any, leadMessages: {request: string, connected: string, followUp: string}) => {
+    const webhookUrl = "https://n8n.srv814433.hstgr.cloud/webhook/crm";
+    
+    const webhookPayload = {
+      timestamp: new Date().toISOString(),
+      source: "crm_automation",
+      action: "lead_automation_trigger",
+      lead: {
+        id: lead.id,
+        name: lead.Name,
+        company: lead.Company,
+        role: lead["Company Role"],
+        location: lead["Employee Location"],
+        linkedin_url: lead["LinkedIn URL"],
+        email: lead["Email Address"],
+        stage: lead.Stage || lead.stage_enum,
+        priority: lead.priority_enum,
+        lead_score: lead["Lead Score"],
+        automation_status: lead.automation_status_enum || lead["Automation Status"]
+      },
+      company: {
+        name: company.Company,
+        industry: company.Industry,
+        location: company.Location,
+        website: company.Website,
+        company_size: company["Company Size"]
+      },
+      messages: {
+        request_message: leadMessages.request,
+        connected_message: leadMessages.connected,
+        follow_up_message: leadMessages.followUp
+      },
+      campaign: selectedCampaign,
+      automation_type: "linkedin_outreach"
+    };
+
+    try {
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookPayload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook failed: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Webhook error:', error);
+      throw error;
+    }
+  };
+
   const handleAutomateSelected = () => {
-    console.log("Automate button clicked, selected leads:", selectedLeadsForAutomation);
     if (selectedLeadsForAutomation.length === 0) {
       toast({
         title: "Error",
@@ -167,17 +262,52 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
       });
       return;
     }
-    console.log("Opening automation modal for", selectedLeadsForAutomation.length, "leads");
     setShowAutomationModal(true);
   };
 
-  const handleConfirmAutomation = () => {
+  const handleConfirmAutomation = async () => {
+    setLoading(true);
+    
+    try {
+      // Send each lead to the webhook
+      const promises = selectedLeadsForAutomation.map(lead => 
+        sendToWebhook(lead, messages[lead.id] || {request: '', connected: '', followUp: ''})
+      );
+      
+      await Promise.all(promises);
+      
+      // Update lead automation status in database
+      const leadIds = selectedLeadsForAutomation.map(lead => lead.id);
+      const { error } = await supabase
+        .from('Leads')
+        .update({ 
+          automation_status_enum: 'automation_triggered',
+          "Automation Status": 'Automation Triggered',
+          updated_at: new Date().toISOString()
+        })
+        .in('id', leadIds);
+
+      if (error) {
+        console.error('Database update error:', error);
+      }
+
     setShowAutomationModal(false);
     setSelectedLeadsForAutomation([]);
+      setMessages({});
+      
     toast({
       title: "Success",
-      description: `Automation triggered for ${selectedLeadsForAutomation.length} people`,
-    });
+        description: `${selectedLeadsForAutomation.length} lead(s) added to automation queue and sent to n8n`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add leads to automation",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFavoriteCompany = async () => {
@@ -287,6 +417,13 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
     }
   };
 
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-700 bg-green-50 border-green-200";
+    if (score >= 60) return "text-yellow-700 bg-yellow-50 border-yellow-200";
+    if (score >= 40) return "text-orange-700 bg-orange-50 border-orange-200";
+    return "text-red-700 bg-red-50 border-red-200";
+  };
+
   if (!company) return null;
 
   return (
@@ -295,7 +432,7 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
               <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
                 <DialogHeader className="pb-2">
                   <DialogTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <div className="p-1.5 bg-gray-50 rounded">
                         <Building2 className="h-3.5 w-3.5 text-gray-600" />
                       </div>
@@ -307,36 +444,44 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                           {[company.Industry, company["Head Office"]].filter(Boolean).join(' • ')}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        {company.Priority && (
-                          <Badge variant="outline" className="text-sm px-1.5 py-0.5">
-                            {company.Priority}
-                          </Badge>
-                        )}
-                        <StatusBadge status={company.status_enum} />
-                      </div>
                     </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleFavoriteCompany}
-                        className="h-7 px-2"
-                      >
-                        {company.Favourite ? (
-                          <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                        ) : (
-                          <Star className="h-3 w-3" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDeleteCompany}
-                        className="h-7 px-2 text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                    <div className="flex items-center gap-3">
+                      {company.Priority && (
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-xs font-medium text-gray-600">Priority</span>
+                          <StatusBadge status={company.Priority} size="md" />
+                        </div>
+                      )}
+                      {company["Lead Score"] && (
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-xs font-medium text-gray-600">Score</span>
+                          <div className={`h-6 w-16 rounded-full text-xs font-medium text-center flex items-center justify-center ${getScoreColor(company["Lead Score"])}`}>
+                            {company["Lead Score"]}
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleFavoriteCompany}
+                          className="h-7 px-2"
+                        >
+                          {company.Favourite ? (
+                            <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                          ) : (
+                            <Star className="h-3 w-3" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDeleteCompany}
+                          className="h-7 px-2 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   </DialogTitle>
                 </DialogHeader>
@@ -425,10 +570,6 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
                         Automate ({selectedLeadsForAutomation.length})
                       </Button>
                     )}
-                    {/* Debug info */}
-                    <div className="text-xs text-gray-500">
-                      Selected: {selectedLeadsForAutomation.length} | Modal: {showAutomationModal ? 'Open' : 'Closed'}
-                    </div>
                   </div>
                 </CardTitle>
               </CardHeader>
@@ -668,14 +809,135 @@ export function SimplifiedCompanyDetailModal({ company, isOpen, onClose }: Simpl
         />
       )}
 
-      {/* LinkedIn Confirmation Modal */}
+      {/* Enhanced Automation Modal */}
       {showAutomationModal && (
-        <LinkedInConfirmationModal
-          selectedLeads={selectedLeadsForAutomation}
-          isOpen={showAutomationModal}
-          onClose={() => setShowAutomationModal(false)}
-          onConfirm={handleConfirmAutomation}
-        />
+        <Dialog open={showAutomationModal} onOpenChange={() => setShowAutomationModal(false)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden" style={{ zIndex: 999999 }}>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-blue-600" />
+                LinkedIn Automation
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Company Info */}
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <h3 className="font-medium text-blue-900">Company: {company.Company}</h3>
+                <p className="text-sm text-blue-700">Industry: {company.Industry}</p>
+              </div>
+
+              {/* Campaign Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="campaign-select" className="text-sm font-medium">
+                  Select Campaign:
+                </Label>
+                <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
+                  <SelectTrigger id="campaign-select" className="w-full">
+                    <SelectValue placeholder="Choose a campaign..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tech-recruitment">Tech Recruitment</SelectItem>
+                    <SelectItem value="sales-outreach">Sales Outreach</SelectItem>
+                    <SelectItem value="marketing-leads">Marketing Leads</SelectItem>
+                    <SelectItem value="general-networking">General Networking</SelectItem>
+                    <SelectItem value="custom-campaign">Custom Campaign</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Selected Leads with LinkedIn Messages */}
+              <div>
+                <h3 className="font-medium mb-2">LinkedIn Messages ({selectedLeadsForAutomation.length})</h3>
+                <ScrollArea className="h-96 border rounded-lg p-2">
+                  <div className="space-y-4">
+                    {selectedLeadsForAutomation.map((lead) => (
+                      <div key={lead.id} className="border rounded-lg p-3 bg-gray-50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{lead.Name}</div>
+                            <div className="text-xs text-gray-600">
+                              {lead["Company Role"]} • {lead["Employee Location"]}
+                            </div>
+                          </div>
+                          <StatusBadge 
+                            status={lead.stage_enum || lead.Stage?.toLowerCase() || "new"} 
+                            size="sm"
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          {/* Request Message */}
+                          <div>
+                            <Label htmlFor={`request-${lead.id}`} className="text-xs font-medium text-gray-700">
+                              Connection Request Message:
+                            </Label>
+                            <Textarea
+                              id={`request-${lead.id}`}
+                              value={messages[lead.id]?.request || ''}
+                              onChange={(e) => handleMessageChange(lead.id, 'request', e.target.value)}
+                              className="mt-1 text-sm"
+                              rows={3}
+                              placeholder="Enter your connection request message..."
+                            />
+                          </div>
+
+                          {/* Connected Message */}
+                          <div>
+                            <Label htmlFor={`connected-${lead.id}`} className="text-xs font-medium text-gray-700">
+                              After Connection Message:
+                            </Label>
+                            <Textarea
+                              id={`connected-${lead.id}`}
+                              value={messages[lead.id]?.connected || ''}
+                              onChange={(e) => handleMessageChange(lead.id, 'connected', e.target.value)}
+                              className="mt-1 text-sm"
+                              rows={3}
+                              placeholder="Enter your message after they accept..."
+                            />
+                          </div>
+
+                          {/* Follow Up Message */}
+                          <div>
+                            <Label htmlFor={`followup-${lead.id}`} className="text-xs font-medium text-gray-700">
+                              Follow Up Message:
+                            </Label>
+                            <Textarea
+                              id={`followup-${lead.id}`}
+                              value={messages[lead.id]?.followUp || ''}
+                              onChange={(e) => handleMessageChange(lead.id, 'followUp', e.target.value)}
+                              className="mt-1 text-sm"
+                              rows={3}
+                              placeholder="Enter your follow up message..."
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowAutomationModal(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleConfirmAutomation}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={loading || !selectedCampaign}
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  {loading ? "Starting Automation..." : "Start Automation"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
             </>
           );

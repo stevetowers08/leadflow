@@ -202,7 +202,7 @@ const Opportunities = () => {
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Opportunities Pipeline</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-gray-900">Opportunities Pipeline</h1>
           <p className="text-gray-600">
             Track and manage your recruiting pipeline across all stages
           </p>
