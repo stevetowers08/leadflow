@@ -33,9 +33,37 @@ export class ErrorBoundary extends Component<Props, State> {
       console.error('ErrorBoundary caught an error:', error, errorInfo);
     }
     
+    // Send error to monitoring service (in production)
+    if (process.env.NODE_ENV === 'production') {
+      this.reportError(error, errorInfo);
+    }
+    
     // Call custom error handler if provided
     this.props.onError?.(error, errorInfo);
   }
+
+  reportError = (error: Error, errorInfo: ErrorInfo) => {
+    // In a real app, you'd send this to your error monitoring service
+    // like Sentry, LogRocket, or Bugsnag
+    const errorReport = {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+    };
+    
+    // For now, just log it (replace with actual error service)
+    console.error('Error Report:', errorReport);
+    
+    // Example: Send to monitoring service
+    // fetch('/api/errors', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(errorReport)
+    // }).catch(console.error);
+  };
 
   handleRetry = () => {
     this.setState({ hasError: false, error: null, errorInfo: null });

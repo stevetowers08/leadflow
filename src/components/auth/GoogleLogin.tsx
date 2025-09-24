@@ -14,13 +14,21 @@ export const GoogleLogin: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    const { error } = await signInWithGoogle();
-    
-    if (error) {
-      setError(error.message);
+    try {
+      const { error } = await signInWithGoogle();
+      
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      } else {
+        // Success - user will be redirected, so we don't reset loading
+        // The redirect will happen automatically
+      }
+    } catch (err) {
+      console.error('Google sign-in error:', err);
+      setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }
-    // Note: If successful, the user will be redirected, so we don't need to set loading to false
   };
 
   return (

@@ -202,3 +202,5 @@ export function comparePerformance(
   console.log(`   Improvement: ${improvement.toFixed(1)}%`);
   console.log(`   Speedup: ${speedup.toFixed(2)}x`);
 }
+
+

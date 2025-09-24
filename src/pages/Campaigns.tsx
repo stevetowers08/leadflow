@@ -30,57 +30,29 @@ const Campaigns = () => {
   const [typeFilter, setTypeFilter] = useState<string>("");
   const { toast } = useToast();
 
-  // Mock data for campaigns
+  // Load campaigns data
   useEffect(() => {
-    const mockCampaigns: Campaign[] = [
-      {
-        id: '1',
-        name: 'Q1 Tech Recruitment Drive',
-        status: 'active',
-        type: 'linkedin',
-        targetAudience: 'Software Engineers',
-        startDate: '2024-01-01',
-        endDate: '2024-03-31',
-        impressions: 15420,
-        clicks: 892,
-        conversions: 45,
-        budget: 5000,
-        created_at: '2024-01-01T00:00:00Z'
-      },
-      {
-        id: '2',
-        name: 'Senior Developer Outreach',
-        status: 'paused',
-        type: 'email',
-        targetAudience: 'Senior Developers',
-        startDate: '2024-02-01',
-        endDate: '2024-02-28',
-        impressions: 8200,
-        clicks: 456,
-        conversions: 23,
-        budget: 2500,
-        created_at: '2024-02-01T00:00:00Z'
-      },
-      {
-        id: '3',
-        name: 'Startup Founders Campaign',
-        status: 'completed',
-        type: 'phone',
-        targetAudience: 'Startup Founders',
-        startDate: '2024-01-15',
-        endDate: '2024-01-31',
-        impressions: 3200,
-        clicks: 189,
-        conversions: 12,
-        budget: 1500,
-        created_at: '2024-01-15T00:00:00Z'
+    const loadCampaigns = async () => {
+      try {
+        setLoading(true);
+        
+        // TODO: Replace with actual Supabase queries
+        // For now, start with empty array
+        setCampaigns([]);
+        
+      } catch (error) {
+        console.error('Error loading campaigns:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load campaigns",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
-    ];
-    
-    setTimeout(() => {
-      setCampaigns(mockCampaigns);
-      setLoading(false);
-    }, 1000);
+    };
+
+    loadCampaigns();
   }, []);
 
   // Filter campaigns

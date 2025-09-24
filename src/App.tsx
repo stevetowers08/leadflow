@@ -7,6 +7,8 @@ import { Layout } from "./components/Layout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { PageLoadingSpinner } from "./components/LoadingSpinner";
 import { Toaster } from "@/components/ui/sonner";
+import { useGlobalErrorHandler, usePerformanceMonitoring } from "./hooks/useGlobalErrorHandler";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 
 // Pages
 import Index from "./pages/Index";
@@ -15,9 +17,10 @@ import Leads from "./pages/Leads";
 import Companies from "./pages/Companies";
 import Jobs from "./pages/Jobs";
 import Reporting from "./pages/Reporting";
-import Settings from "./pages/Settings";
+import PersonalSettings from "./pages/PersonalSettings";
 import AdminUsers from "./pages/AdminUsers";
 import AdminSettings from "./pages/AdminSettings";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +35,13 @@ const queryClient = new QueryClient({
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
+  
+  // Initialize global error handling and performance monitoring
+  useGlobalErrorHandler();
+  usePerformanceMonitoring();
+  
+  // Initialize keyboard shortcuts
+  useKeyboardShortcuts();
 
   // Simplified loading state to prevent flickering
   if (loading) {
@@ -54,7 +64,8 @@ const AppRoutes = () => {
         <Route path="/companies" element={<Companies />} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/reporting" element={<Reporting />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/settings" element={<PersonalSettings />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
       </Routes>

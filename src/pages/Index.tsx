@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AIScoreBadge } from "@/components/AIScoreBadge";
 import { SimplifiedJobDetailModal } from "@/components/SimplifiedJobDetailModal";
+import { DashboardSkeleton } from "@/components/LoadingSkeletons";
 import { 
   Users, 
   Building2, 
@@ -242,91 +243,86 @@ export default function Index() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Good morning! Here's what's happening today.</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Good Morning! 👋</h1>
+          <p className="text-gray-600 mt-2 text-lg">Here's what's happening today and your key metrics</p>
         </div>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-4 w-4 text-blue-600" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <Users className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <div className="text-2xl font-semibold">{stats.totalLeads}</div>
-                <div className="text-sm text-gray-600">Total Leads</div>
+                <div className="text-3xl font-bold text-gray-900">{stats.totalLeads}</div>
+                <div className="text-sm text-gray-600 font-medium">Total Leads</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Building2 className="h-4 w-4 text-green-600" />
+        <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-100 rounded-xl">
+                <Building2 className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <div className="text-2xl font-semibold">{stats.totalCompanies}</div>
-                <div className="text-sm text-gray-600">Companies</div>
+                <div className="text-3xl font-bold text-gray-900">{stats.totalCompanies}</div>
+                <div className="text-sm text-gray-600 font-medium">Companies</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Briefcase className="h-4 w-4 text-purple-600" />
+        <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <Briefcase className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <div className="text-2xl font-semibold">{stats.totalJobs}</div>
-                <div className="text-sm text-gray-600">Total Jobs</div>
+                <div className="text-3xl font-bold text-gray-900">{stats.totalJobs}</div>
+                <div className="text-sm text-gray-600 font-medium">Total Jobs</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Calendar className="h-4 w-4 text-orange-600" />
+        <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-orange-100 rounded-xl">
+                <Calendar className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <div className="text-2xl font-semibold">{stats.newJobsToday}</div>
-                <div className="text-sm text-gray-600">New Today</div>
+                <div className="text-3xl font-bold text-gray-900">{stats.newJobsToday}</div>
+                <div className="text-sm text-gray-600 font-medium">New Today</div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* New Jobs Today */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
+        <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Calendar className="h-4 w-4 text-blue-600" />
+              </div>
               New Jobs Today ({stats.newJobsToday})
             </CardTitle>
           </CardHeader>
@@ -341,16 +337,16 @@ export default function Index() {
                 {todayJobs.map((job) => (
                   <div 
                     key={job.id}
-                    className="p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="p-4 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group"
                     onClick={() => handleJobClick(job)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center text-gray-600 text-xs font-medium">
-                        <Briefcase className="h-3 w-3" />
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-600 group-hover:bg-gray-200 transition-colors">
+                        <Briefcase className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{job["Job Title"]}</div>
-                        <div className="text-xs text-gray-600 truncate">
+                        <div className="font-semibold text-sm truncate">{job["Job Title"]}</div>
+                        <div className="text-xs text-gray-500 truncate">
                           {job.Company}
                           {job["Job Location"] && ` • ${job["Job Location"]}`}
                         </div>
@@ -394,10 +390,12 @@ export default function Index() {
         </Card>
 
         {/* Recent Leads */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users className="h-4 w-4" />
+        <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Users className="h-4 w-4 text-green-600" />
+              </div>
               Recent Leads ({recentLeads.length})
             </CardTitle>
           </CardHeader>
@@ -412,16 +410,16 @@ export default function Index() {
                 {recentLeads.map((lead) => (
                   <div 
                     key={lead.id}
-                    className="p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="p-4 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group"
                     onClick={() => navigate(`/leads?filter=${encodeURIComponent(lead.Name || "")}`)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center text-gray-600 text-xs font-medium">
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-600 text-sm font-semibold group-hover:bg-gray-200 transition-colors">
                         {lead.Name?.charAt(0)?.toUpperCase() || "?"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{lead.Name}</div>
-                        <div className="text-xs text-gray-600 truncate">
+                        <div className="font-semibold text-sm truncate">{lead.Name}</div>
+                        <div className="text-xs text-gray-500 truncate">
                           {lead["Company Role"]}
                           {lead.Company && ` at ${lead.Company}`}
                         </div>

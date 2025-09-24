@@ -41,14 +41,19 @@ const PermissionsContext = createContext<PermissionsContextType | undefined>(und
 // Default roles and permissions
 const DEFAULT_ROLES: Role[] = [
   {
-    id: 'admin',
-    name: 'Administrator',
-    description: 'Full access to all features and data',
+    id: 'owner',
+    name: 'Owner',
+    description: 'Full system control including user limits and billing',
     isDefault: false,
     permissions: [
       { id: 'users_view', name: 'View Users', description: 'View user accounts', resource: 'users', action: 'view' },
       { id: 'users_edit', name: 'Edit Users', description: 'Edit user accounts', resource: 'users', action: 'edit' },
       { id: 'users_delete', name: 'Delete Users', description: 'Delete user accounts', resource: 'users', action: 'delete' },
+      { id: 'users_invite', name: 'Invite Users', description: 'Invite new users', resource: 'users', action: 'invite' },
+      { id: 'system_settings_view', name: 'View System Settings', description: 'View system settings', resource: 'system_settings', action: 'view' },
+      { id: 'system_settings_edit', name: 'Edit System Settings', description: 'Edit system settings including user limits', resource: 'system_settings', action: 'edit' },
+      { id: 'billing_view', name: 'View Billing', description: 'View billing information', resource: 'billing', action: 'view' },
+      { id: 'billing_edit', name: 'Edit Billing', description: 'Edit billing information', resource: 'billing', action: 'edit' },
       { id: 'leads_view', name: 'View Leads', description: 'View leads data', resource: 'leads', action: 'view' },
       { id: 'leads_edit', name: 'Edit Leads', description: 'Edit leads data', resource: 'leads', action: 'edit' },
       { id: 'leads_delete', name: 'Delete Leads', description: 'Delete leads', resource: 'leads', action: 'delete' },
@@ -77,6 +82,45 @@ const DEFAULT_ROLES: Role[] = [
       { id: 'reports_export', name: 'Export Reports', description: 'Export reports', resource: 'reports', action: 'export' },
       { id: 'settings_view', name: 'View Settings', description: 'View system settings', resource: 'settings', action: 'view' },
       { id: 'settings_edit', name: 'Edit Settings', description: 'Edit system settings', resource: 'settings', action: 'edit' },
+    ]
+  },
+  {
+    id: 'admin',
+    name: 'Administrator',
+    description: 'Manage users and organization settings (limited by owner)',
+    isDefault: false,
+    permissions: [
+      { id: 'users_view', name: 'View Users', description: 'View user accounts', resource: 'users', action: 'view' },
+      { id: 'users_edit', name: 'Edit Users', description: 'Edit user accounts', resource: 'users', action: 'edit' },
+      { id: 'users_invite', name: 'Invite Users', description: 'Invite new users (within limits)', resource: 'users', action: 'invite' },
+      { id: 'leads_view', name: 'View Leads', description: 'View leads data', resource: 'leads', action: 'view' },
+      { id: 'leads_edit', name: 'Edit Leads', description: 'Edit leads data', resource: 'leads', action: 'edit' },
+      { id: 'leads_delete', name: 'Delete Leads', description: 'Delete leads', resource: 'leads', action: 'delete' },
+      { id: 'leads_export', name: 'Export Leads', description: 'Export leads data', resource: 'leads', action: 'export' },
+      { id: 'leads_bulk', name: 'Bulk Actions', description: 'Perform bulk actions on leads', resource: 'leads', action: 'bulk' },
+      { id: 'companies_view', name: 'View Companies', description: 'View companies data', resource: 'companies', action: 'view' },
+      { id: 'companies_edit', name: 'Edit Companies', description: 'Edit companies data', resource: 'companies', action: 'edit' },
+      { id: 'companies_delete', name: 'Delete Companies', description: 'Delete companies', resource: 'companies', action: 'delete' },
+      { id: 'companies_export', name: 'Export Companies', description: 'Export companies data', resource: 'companies', action: 'export' },
+      { id: 'companies_bulk', name: 'Bulk Actions', description: 'Perform bulk actions on companies', resource: 'companies', action: 'bulk' },
+      { id: 'jobs_view', name: 'View Jobs', description: 'View jobs data', resource: 'jobs', action: 'view' },
+      { id: 'jobs_edit', name: 'Edit Jobs', description: 'Edit jobs data', resource: 'jobs', action: 'edit' },
+      { id: 'jobs_delete', name: 'Delete Jobs', description: 'Delete jobs', resource: 'jobs', action: 'delete' },
+      { id: 'jobs_export', name: 'Export Jobs', description: 'Export jobs data', resource: 'jobs', action: 'export' },
+      { id: 'jobs_bulk', name: 'Bulk Actions', description: 'Perform bulk actions on jobs', resource: 'jobs', action: 'bulk' },
+      { id: 'campaigns_view', name: 'View Campaigns', description: 'View campaigns data', resource: 'campaigns', action: 'view' },
+      { id: 'campaigns_edit', name: 'Edit Campaigns', description: 'Edit campaigns data', resource: 'campaigns', action: 'edit' },
+      { id: 'campaigns_delete', name: 'Delete Campaigns', description: 'Delete campaigns', resource: 'campaigns', action: 'delete' },
+      { id: 'campaigns_export', name: 'Export Campaigns', description: 'Export campaigns data', resource: 'campaigns', action: 'export' },
+      { id: 'campaigns_bulk', name: 'Bulk Actions', description: 'Perform bulk actions on campaigns', resource: 'campaigns', action: 'bulk' },
+      { id: 'workflows_view', name: 'View Workflows', description: 'View workflows', resource: 'workflows', action: 'view' },
+      { id: 'workflows_edit', name: 'Edit Workflows', description: 'Edit workflows', resource: 'workflows', action: 'edit' },
+      { id: 'workflows_delete', name: 'Delete Workflows', description: 'Delete workflows', resource: 'workflows', action: 'delete' },
+      { id: 'workflows_execute', name: 'Execute Workflows', description: 'Execute workflows', resource: 'workflows', action: 'execute' },
+      { id: 'reports_view', name: 'View Reports', description: 'View reports and analytics', resource: 'reports', action: 'view' },
+      { id: 'reports_export', name: 'Export Reports', description: 'Export reports', resource: 'reports', action: 'export' },
+      { id: 'settings_view', name: 'View Settings', description: 'View organization settings', resource: 'settings', action: 'view' },
+      { id: 'settings_edit', name: 'Edit Settings', description: 'Edit organization settings (not system limits)', resource: 'settings', action: 'edit' },
     ]
   },
   {
@@ -141,17 +185,33 @@ const DEFAULT_ROLES: Role[] = [
 ];
 
 export function PermissionsProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [roles] = useState<Role[]>(DEFAULT_ROLES);
   const [userPermissions, setUserPermissions] = useState<UserPermissions | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for auth to finish loading before processing permissions
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
+
     if (user) {
-      // In a real app, you'd fetch user permissions from the database
-      // For now, we'll assign roles based on user metadata or default to 'recruiter'
-      const userRole = user.user_metadata?.role || 'recruiter';
-      const role = roles.find(r => r.id === userRole) || roles.find(r => r.isDefault);
+      // Check for explicit role in user metadata first
+      let userRole = user.user_metadata?.role;
+      
+      // TEMPORARY: Check for temporary owner role in localStorage
+      if (!userRole && localStorage.getItem('temp_owner_role') === 'true') {
+        userRole = 'owner';
+      }
+      
+      // TEMPORARY: If no role set, make everyone admin for testing
+      if (!userRole) {
+        userRole = 'admin'; // Everyone gets admin access by default
+      }
+      
+      const role = roles.find(r => r.id === userRole) || roles.find(r => r.id === 'admin');
       
       if (role) {
         setUserPermissions({
@@ -160,9 +220,12 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
           permissions: role.permissions
         });
       }
+    } else {
+      // No user, clear permissions
+      setUserPermissions(null);
     }
     setLoading(false);
-  }, [user, roles]);
+  }, [user, roles, authLoading]);
 
   const hasPermission = (resource: string, action: string): boolean => {
     if (!userPermissions) return false;

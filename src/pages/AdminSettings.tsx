@@ -7,6 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { PermissionGuard } from "@/components/PermissionGuard";
+import { supabase } from "@/integrations/supabase/client";
 import { Shield, Users, Database, Mail, Bell, Globe, Save } from "lucide-react";
 
 interface SystemSettings {
@@ -44,22 +46,73 @@ const AdminSettings = () => {
     termsOfService: ""
   });
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const { toast } = useToast();
+
+  // Load settings from database
+  const loadSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('key, value');
+
+      if (error) throw error;
+
+      // Convert database settings to our settings object
+      const dbSettings: Partial<SystemSettings> = {};
+      data?.forEach(item => {
+        const key = item.key as keyof SystemSettings;
+        if (key in settings) {
+          dbSettings[key] = item.value;
+        }
+      });
+
+      setSettings(prev => ({ ...prev, ...dbSettings }));
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      toast({
+        title: "Warning",
+        description: "Failed to load settings. Using defaults.",
+        variant: "destructive",
+      });
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
 
   const handleSaveSettings = async () => {
     setLoading(true);
     try {
-      // In a real app, this would save to your backend/database
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
+      // Prepare settings for database upsert
+      const settingsArray = Object.entries(settings).map(([key, value]) => ({
+        key,
+        value,
+        updated_at: new Date().toISOString()
+      }));
+
+      // Use upsert to update existing settings or create new ones
+      const { error } = await supabase
+        .from('system_settings')
+        .upsert(settingsArray, { 
+          onConflict: 'key',
+          ignoreDuplicates: false 
+        });
+
+      if (error) throw error;
+
       toast({
         title: "Success",
         description: "Settings saved successfully",
       });
     } catch (error) {
+      console.error('Failed to save settings:', error);
       toast({
         title: "Error",
-        description: "Failed to save settings",
+        description: error instanceof Error ? error.message : "Failed to save settings",
         variant: "destructive",
       });
     } finally {
@@ -71,8 +124,22 @@ const AdminSettings = () => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
+  if (initialLoading) {
+    return (
+      <PermissionGuard requiredRole="Administrator">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-sm text-muted-foreground">Loading settings...</p>
+          </div>
+        </div>
+      </PermissionGuard>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <PermissionGuard requiredRole="Administrator">
+      <div className="space-y-6">
       <div className="flex items-center justify-between border-b pb-3">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">System Settings</h1>
@@ -302,7 +369,8 @@ const AdminSettings = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </PermissionGuard>
   );
 };
 

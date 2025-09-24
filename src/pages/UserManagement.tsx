@@ -47,65 +47,29 @@ const UserManagement = () => {
   const { toast } = useToast();
   const { roles, canEdit, canDelete } = usePermissions();
 
-  // Mock users data
+  // Load users data
   useEffect(() => {
-    const mockUsers: User[] = [
-      {
-        id: '1',
-        email: 'admin@empowr.com',
-        fullName: 'Admin User',
-        role: 'admin',
-        status: 'active',
-        lastLogin: '2024-01-20T10:30:00Z',
-        createdAt: '2024-01-01T00:00:00Z',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
-      },
-      {
-        id: '2',
-        email: 'manager@empowr.com',
-        fullName: 'Sarah Johnson',
-        role: 'manager',
-        status: 'active',
-        lastLogin: '2024-01-20T09:15:00Z',
-        createdAt: '2024-01-05T00:00:00Z',
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face'
-      },
-      {
-        id: '3',
-        email: 'recruiter1@empowr.com',
-        fullName: 'Mike Chen',
-        role: 'recruiter',
-        status: 'active',
-        lastLogin: '2024-01-20T08:45:00Z',
-        createdAt: '2024-01-10T00:00:00Z',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face'
-      },
-      {
-        id: '4',
-        email: 'recruiter2@empowr.com',
-        fullName: 'Emily Davis',
-        role: 'recruiter',
-        status: 'active',
-        lastLogin: '2024-01-19T16:20:00Z',
-        createdAt: '2024-01-12T00:00:00Z',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face'
-      },
-      {
-        id: '5',
-        email: 'viewer@empowr.com',
-        fullName: 'John Smith',
-        role: 'viewer',
-        status: 'inactive',
-        lastLogin: '2024-01-15T14:30:00Z',
-        createdAt: '2024-01-15T00:00:00Z',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=32&h=32&fit=crop&crop=face'
+    const loadUsers = async () => {
+      try {
+        setLoading(true);
+        
+        // TODO: Replace with actual Supabase queries
+        // For now, start with empty array
+        setUsers([]);
+        
+      } catch (error) {
+        console.error('Error loading users:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load users",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
-    ];
+    };
 
-    setTimeout(() => {
-      setUsers(mockUsers);
-      setLoading(false);
-    }, 1000);
+    loadUsers();
   }, []);
 
   // Filter users

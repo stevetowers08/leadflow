@@ -249,9 +249,9 @@ export function useOfflineData<T extends { id: string }>(
 
       // If online, fetch fresh data
       if (isOnline) {
-        // Simulate API call - replace with actual Supabase call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const freshData: T[] = []; // Replace with actual data from Supabase
+        // TODO: Replace with actual Supabase call
+        // For now, return empty array
+        const freshData: T[] = [];
         
         setData(freshData);
         setCachedData(`${tableName}_list`, freshData);

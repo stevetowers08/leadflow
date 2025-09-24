@@ -1,7 +1,9 @@
 import React, { ReactNode, useState } from "react";
 import { Sidebar } from "./Sidebar";
+import { FloatingChatWidget } from "./FloatingChatWidget";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { useMobile } from "./MobileComponents";
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,19 +11,10 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  // Stable mobile detection
-  const [isMobile, setIsMobile] = useState(false);
-  
-  React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const isMobile = useMobile();
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="flex min-h-screen w-full">
       {/* Mobile sidebar overlay */}
       {isMobile && sidebarOpen && (
         <div 
@@ -54,22 +47,26 @@ export const Layout = ({ children }: LayoutProps) => {
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(true)}
-              className="p-2"
+              className="p-3 min-h-[44px] min-w-[44px] touch-manipulation"
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">Empowr CRM</h1>
-            <div className="w-9" /> {/* Spacer for centering */}
+            <h1 className="text-lg font-normal text-white">Empowr CRM</h1>
+            <div className="w-11" /> {/* Spacer for centering */}
           </div>
         )}
 
         {/* Content */}
         <div className={`
           ${isMobile ? 'p-4' : 'p-8'}
+          min-h-screen
         `}>
           {children}
         </div>
       </main>
+
+      {/* Floating Chat Widget */}
+      <FloatingChatWidget />
     </div>
   );
 };

@@ -215,7 +215,7 @@ export function DataTable<T extends Record<string, any>>({
       )}
 
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <Table>
+        <Table role="table" aria-label={title || "Data table"}>
           <TableHeader>
             <TableRow className="border-b bg-muted/30">
               {(enableBulkActions || enableExport) && (
@@ -225,6 +225,7 @@ export function DataTable<T extends Record<string, any>>({
                     checked={selectedItems.length === displayData.length && displayData.length > 0}
                     onChange={handleSelectAll}
                     className="rounded border-input"
+                    aria-label="Select all items"
                   />
                 </TableHead>
               )}
@@ -236,6 +237,7 @@ export function DataTable<T extends Record<string, any>>({
                     column.headerAlign === "center" && "text-center",
                     column.headerAlign === "right" && "text-right"
                   )}
+                  scope="col"
                 >
                   {column.label}
                 </TableHead>
@@ -272,6 +274,15 @@ export function DataTable<T extends Record<string, any>>({
                     selectedItems.some(selected => selected.id === item.id) && "bg-primary/5"
                   )}
                   onClick={() => onRowClick?.(item)}
+                  role="row"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onRowClick?.(item);
+                    }
+                  }}
+                  aria-label={`Row ${index + 1}: ${columns.map(col => col.render(item)).join(', ')}`}
                 >
                   {(enableBulkActions || enableExport) && (
                     <TableCell 
@@ -283,6 +294,7 @@ export function DataTable<T extends Record<string, any>>({
                         checked={selectedItems.some(selected => selected.id === item.id)}
                         onChange={(e) => handleItemSelect(item, e.target.checked)}
                         className="rounded border-input"
+                        aria-label={`Select ${item.name || item.title || `item ${index + 1}`}`}
                       />
                     </TableCell>
                   )}

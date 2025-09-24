@@ -211,3 +211,5 @@ performanceTracker.clearMetrics();
 // Check specific operation performance
 console.log(performanceTracker.getAveragePerformance('jobs-filtering'));
 ```
+
+

@@ -1,226 +1,143 @@
 import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 
-export interface KeyboardShortcut {
+interface KeyboardShortcut {
   key: string;
   ctrlKey?: boolean;
   metaKey?: boolean;
-  shiftKey?: boolean;
   altKey?: boolean;
+  shiftKey?: boolean;
   action: () => void;
   description: string;
-  category: 'navigation' | 'actions' | 'data' | 'ui';
 }
 
-export interface KeyboardShortcutsConfig {
-  onExport?: () => void;
-  onSave?: () => void;
-  onNew?: () => void;
-  onSearch?: () => void;
-  onRefresh?: () => void;
-  onSelectAll?: () => void;
-  onClearSelection?: () => void;
-  onBulkAction?: () => void;
-  customShortcuts?: KeyboardShortcut[];
-}
-
-export function useKeyboardShortcuts(config: KeyboardShortcutsConfig = {}) {
+export const useKeyboardShortcuts = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const {
-    onExport,
-    onSave,
-    onNew,
-    onSearch,
-    onRefresh,
-    onSelectAll,
-    onClearSelection,
-    onBulkAction,
-    customShortcuts = []
-  } = config;
-
-  // Default shortcuts
-  const defaultShortcuts: KeyboardShortcut[] = [
-    // Navigation shortcuts
+  const shortcuts: KeyboardShortcut[] = [
+    {
+      key: 'k',
+      ctrlKey: true,
+      action: () => {
+        // Focus search input
+        const searchInput = document.querySelector('input[type="search"], input[placeholder*="search" i]') as HTMLInputElement;
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+      },
+      description: 'Focus search'
+    },
+    {
+      key: 'n',
+      ctrlKey: true,
+      action: () => {
+        // Navigate to create new lead (if on leads page)
+        if (window.location.pathname.includes('/leads')) {
+          // Trigger add lead action
+          const addButton = document.querySelector('[data-action="add-lead"]') as HTMLButtonElement;
+          if (addButton) {
+            addButton.click();
+          }
+        }
+      },
+      description: 'Create new lead'
+    },
     {
       key: '1',
-      metaKey: true,
+      ctrlKey: true,
       action: () => navigate('/'),
-      description: 'Go to Dashboard',
-      category: 'navigation'
+      description: 'Go to Dashboard'
     },
     {
       key: '2',
-      metaKey: true,
-      action: () => navigate('/jobs'),
-      description: 'Go to Jobs',
-      category: 'navigation'
+      ctrlKey: true,
+      action: () => navigate('/leads'),
+      description: 'Go to Leads'
     },
     {
       key: '3',
-      metaKey: true,
-      action: () => navigate('/leads'),
-      description: 'Go to Leads',
-      category: 'navigation'
+      ctrlKey: true,
+      action: () => navigate('/companies'),
+      description: 'Go to Companies'
     },
     {
       key: '4',
-      metaKey: true,
-      action: () => navigate('/companies'),
-      description: 'Go to Companies',
-      category: 'navigation'
+      ctrlKey: true,
+      action: () => navigate('/jobs'),
+      description: 'Go to Jobs'
     },
     {
       key: '5',
-      metaKey: true,
+      ctrlKey: true,
       action: () => navigate('/opportunities'),
-      description: 'Go to Opportunities',
-      category: 'navigation'
+      description: 'Go to Opportunities'
     },
     {
       key: '6',
-      metaKey: true,
-      action: () => navigate('/campaigns'),
-      description: 'Go to Campaigns',
-      category: 'navigation'
-    },
-    {
-      key: '7',
-      metaKey: true,
-      action: () => navigate('/automations'),
-      description: 'Go to Automations',
-      category: 'navigation'
-    },
-    {
-      key: '8',
-      metaKey: true,
+      ctrlKey: true,
       action: () => navigate('/reporting'),
-      description: 'Go to Reporting',
-      category: 'navigation'
+      description: 'Go to Reporting'
     },
     {
-      key: '9',
-      metaKey: true,
+      key: ',',
+      ctrlKey: true,
       action: () => navigate('/settings'),
-      description: 'Go to Settings',
-      category: 'navigation'
-    },
-
-    // Action shortcuts
-    {
-      key: 'n',
-      metaKey: true,
-      action: () => onNew?.(),
-      description: 'Create New',
-      category: 'actions'
-    },
-    {
-      key: 's',
-      metaKey: true,
-      action: () => onSave?.(),
-      description: 'Save',
-      category: 'actions'
-    },
-    {
-      key: 'f',
-      metaKey: true,
-      action: () => onSearch?.(),
-      description: 'Focus Search',
-      category: 'actions'
-    },
-    {
-      key: 'r',
-      metaKey: true,
-      action: () => onRefresh?.(),
-      description: 'Refresh Data',
-      category: 'actions'
-    },
-
-    // Data shortcuts
-    {
-      key: 'e',
-      metaKey: true,
-      action: () => onExport?.(),
-      description: 'Export Data',
-      category: 'data'
-    },
-    {
-      key: 'a',
-      metaKey: true,
-      action: () => onSelectAll?.(),
-      description: 'Select All',
-      category: 'data'
+      description: 'Go to Settings'
     },
     {
       key: 'Escape',
-      action: () => onClearSelection?.(),
-      description: 'Clear Selection',
-      category: 'data'
-    },
-    {
-      key: 'b',
-      metaKey: true,
-      action: () => onBulkAction?.(),
-      description: 'Bulk Actions',
-      category: 'data'
-    },
-
-    // UI shortcuts
-    {
-      key: 'b',
-      metaKey: true,
-      shiftKey: true,
       action: () => {
-        // Toggle sidebar (this is handled by the sidebar component)
-        const event = new KeyboardEvent('keydown', {
-          key: 'b',
-          metaKey: true,
-          shiftKey: true
+        // Close any open modals
+        const modals = document.querySelectorAll('[role="dialog"]');
+        modals.forEach(modal => {
+          const closeButton = modal.querySelector('[data-dialog-close]') as HTMLButtonElement;
+          if (closeButton) {
+            closeButton.click();
+          }
         });
-        window.dispatchEvent(event);
       },
-      description: 'Toggle Sidebar',
-      category: 'ui'
+      description: 'Close modal'
     },
     {
       key: '?',
-      metaKey: true,
+      ctrlKey: true,
       action: () => {
-        toast({
-          title: "Keyboard Shortcuts",
-          description: "Press Cmd+? to see all available shortcuts",
-        });
+        // Show keyboard shortcuts help
+        alert(`Keyboard Shortcuts:
+Ctrl+K - Focus search
+Ctrl+N - Create new lead
+Ctrl+1 - Dashboard
+Ctrl+2 - Leads
+Ctrl+3 - Companies
+Ctrl+4 - Jobs
+Ctrl+5 - Opportunities
+Ctrl+6 - Reporting
+Ctrl+, - Settings
+Escape - Close modal`);
       },
-      description: 'Show Help',
-      category: 'ui'
+      description: 'Show keyboard shortcuts'
     }
   ];
 
-  // Combine default and custom shortcuts
-  const allShortcuts = [...defaultShortcuts, ...customShortcuts];
-
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // Don't trigger shortcuts when typing in inputs
-    const target = event.target as HTMLElement;
     if (
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.contentEditable === 'true' ||
-      target.closest('[contenteditable="true"]')
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement ||
+      event.target instanceof HTMLSelectElement ||
+      (event.target as HTMLElement)?.contentEditable === 'true'
     ) {
       return;
     }
 
-    // Find matching shortcut
-    const matchingShortcut = allShortcuts.find(shortcut => {
+    const matchingShortcut = shortcuts.find(shortcut => {
       return (
         shortcut.key.toLowerCase() === event.key.toLowerCase() &&
         !!shortcut.ctrlKey === event.ctrlKey &&
         !!shortcut.metaKey === event.metaKey &&
-        !!shortcut.shiftKey === event.shiftKey &&
-        !!shortcut.altKey === event.altKey
+        !!shortcut.altKey === event.altKey &&
+        !!shortcut.shiftKey === event.shiftKey
       );
     });
 
@@ -228,53 +145,78 @@ export function useKeyboardShortcuts(config: KeyboardShortcutsConfig = {}) {
       event.preventDefault();
       matchingShortcut.action();
     }
-  }, [allShortcuts]);
+  }, [shortcuts]);
 
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Return shortcuts for help display
-  return {
-    shortcuts: allShortcuts,
-    getShortcutsByCategory: (category: KeyboardShortcut['category']) =>
-      allShortcuts.filter(s => s.category === category)
-  };
-}
+  return shortcuts;
+};
 
-// Hook for showing keyboard shortcuts help
-export function useKeyboardShortcutsHelp() {
-  const { shortcuts } = useKeyboardShortcuts();
+// Hook for focus management
+export const useFocusManagement = () => {
+  const trapFocus = useCallback((element: HTMLElement) => {
+    const focusableElements = element.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    ) as NodeListOf<HTMLElement>;
+    
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
 
-  const showHelp = () => {
-    const categories = ['navigation', 'actions', 'data', 'ui'] as const;
-    const helpText = categories.map(category => {
-      const categoryShortcuts = shortcuts.filter(s => s.category === category);
-      if (categoryShortcuts.length === 0) return '';
-      
-      const shortcutsText = categoryShortcuts.map(s => {
-        const modifiers = [];
-        if (s.metaKey) modifiers.push('Cmd');
-        if (s.ctrlKey) modifiers.push('Ctrl');
-        if (s.shiftKey) modifiers.push('Shift');
-        if (s.altKey) modifiers.push('Alt');
-        
-        const keyCombo = modifiers.length > 0 
-          ? `${modifiers.join('+')}+${s.key}`
-          : s.key;
-        
-        return `${keyCombo}: ${s.description}`;
-      }).join('\n');
-      
-      return `${category.toUpperCase()}:\n${shortcutsText}`;
-    }).filter(Boolean).join('\n\n');
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
 
-    alert(`KEYBOARD SHORTCUTS\n\n${helpText}`);
-  };
+    element.addEventListener('keydown', handleTabKey);
+    
+    return () => {
+      element.removeEventListener('keydown', handleTabKey);
+    };
+  }, []);
 
-  return { showHelp, shortcuts };
-}
+  const focusFirstElement = useCallback((element: HTMLElement) => {
+    const focusableElement = element.querySelector(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    ) as HTMLElement;
+    
+    if (focusableElement) {
+      focusableElement.focus();
+    }
+  }, []);
 
+  return { trapFocus, focusFirstElement };
+};
 
+// Hook for screen reader announcements
+export const useScreenReaderAnnouncement = () => {
+  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', priority);
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+    
+    document.body.appendChild(announcement);
+    
+    // Remove after announcement
+    setTimeout(() => {
+      document.body.removeChild(announcement);
+    }, 1000);
+  }, []);
 
+  return announce;
+};

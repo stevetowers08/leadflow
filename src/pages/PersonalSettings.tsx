@@ -9,26 +9,30 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, User, Mail, Calendar, LogOut, Save, Settings as SettingsIcon, Bell, Shield, Palette, Database } from 'lucide-react';
+import { Loader2, User, Mail, Calendar, LogOut, Save, Bell, Palette, Database } from 'lucide-react';
 import { format } from 'date-fns';
 
-const Settings = () => {
+const PersonalSettings = () => {
   const { user, updateProfile, signOut } = useAuth();
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   
-  // Settings state
+  // Personal settings state
   const [notifications, setNotifications] = useState({
     email: true,
     browser: false,
     weeklyReports: true,
+    marketingEmails: false,
   });
+  
   const [preferences, setPreferences] = useState({
     theme: 'light',
     timezone: 'UTC',
     dateFormat: 'MM/dd/yyyy',
+    language: 'en',
+    itemsPerPage: 25,
   });
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -37,13 +41,30 @@ const Settings = () => {
     setError(null);
     setSuccess(false);
 
-    const { error } = await updateProfile({ full_name: fullName });
-    
-    if (error) {
-      setError(error.message);
-    } else {
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+    // Validation
+    if (!fullName.trim()) {
+      setError('Full name is required');
+      setLoading(false);
+      return;
+    }
+
+    if (fullName.length < 2) {
+      setError('Full name must be at least 2 characters');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { error } = await updateProfile({ full_name: fullName.trim() });
+      
+      if (error) {
+        setError(error.message);
+      } else {
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
     }
     
     setLoading(false);
@@ -72,9 +93,9 @@ const Settings = () => {
   return (
     <div className="space-y-6">
       <div className="border-b pb-3">
-        <h1 className="text-lg font-semibold tracking-tight">Settings</h1>
+        <h1 className="text-lg font-semibold tracking-tight">Personal Settings</h1>
         <p className="text-xs text-muted-foreground mt-1">
-          Manage your account settings, preferences, and system configuration
+          Manage your personal account settings and preferences
         </p>
       </div>
 
@@ -92,9 +113,9 @@ const Settings = () => {
             <Palette className="h-4 w-4" />
             Preferences
           </TabsTrigger>
-          <TabsTrigger value="system" className="flex items-center gap-2">
+          <TabsTrigger value="account" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
-            System
+            Account
           </TabsTrigger>
         </TabsList>
 
@@ -224,10 +245,10 @@ const Settings = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Notification Settings
+                Notification Preferences
               </CardTitle>
               <CardDescription>
-                Configure how you receive notifications
+                Choose how you want to be notified about updates
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -241,12 +262,10 @@ const Settings = () => {
                   </div>
                   <Switch
                     checked={notifications.email}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, email: checked }))
-                    }
+                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, email: checked }))}
                   />
                 </div>
-
+                
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Browser Notifications</Label>
@@ -256,24 +275,33 @@ const Settings = () => {
                   </div>
                   <Switch
                     checked={notifications.browser}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, browser: checked }))
-                    }
+                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, browser: checked }))}
                   />
                 </div>
-
+                
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Weekly Reports</Label>
                     <p className="text-sm text-muted-foreground">
-                      Receive weekly performance reports
+                      Receive weekly summary reports
                     </p>
                   </div>
                   <Switch
                     checked={notifications.weeklyReports}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, weeklyReports: checked }))
-                    }
+                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, weeklyReports: checked }))}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Marketing Emails</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Receive product updates and tips
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notifications.marketingEmails}
+                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, marketingEmails: checked }))}
                   />
                 </div>
               </div>
@@ -290,97 +318,89 @@ const Settings = () => {
                 Display Preferences
               </CardTitle>
               <CardDescription>
-                Customize your interface preferences
+                Customize your experience
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="theme">Theme</Label>
-                  <select
+                  <Input
                     id="theme"
                     value={preferences.theme}
                     onChange={(e) => setPreferences(prev => ({ ...prev, theme: e.target.value }))}
-                    className="w-full px-3 py-2 border border-input bg-background rounded-md"
-                  >
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="system">System</option>
-                  </select>
+                    placeholder="light, dark, or system"
+                  />
                 </div>
-
+                
                 <div className="space-y-2">
                   <Label htmlFor="timezone">Timezone</Label>
-                  <select
+                  <Input
                     id="timezone"
                     value={preferences.timezone}
                     onChange={(e) => setPreferences(prev => ({ ...prev, timezone: e.target.value }))}
-                    className="w-full px-3 py-2 border border-input bg-background rounded-md"
-                  >
-                    <option value="UTC">UTC</option>
-                    <option value="America/New_York">Eastern Time</option>
-                    <option value="America/Chicago">Central Time</option>
-                    <option value="America/Denver">Mountain Time</option>
-                    <option value="America/Los_Angeles">Pacific Time</option>
-                    <option value="Europe/London">London</option>
-                    <option value="Europe/Paris">Paris</option>
-                    <option value="Asia/Tokyo">Tokyo</option>
-                  </select>
+                    placeholder="UTC, EST, PST, etc."
+                  />
                 </div>
-
+                
                 <div className="space-y-2">
                   <Label htmlFor="dateFormat">Date Format</Label>
-                  <select
+                  <Input
                     id="dateFormat"
                     value={preferences.dateFormat}
                     onChange={(e) => setPreferences(prev => ({ ...prev, dateFormat: e.target.value }))}
-                    className="w-full px-3 py-2 border border-input bg-background rounded-md"
-                  >
-                    <option value="MM/dd/yyyy">MM/DD/YYYY</option>
-                    <option value="dd/MM/yyyy">DD/MM/YYYY</option>
-                    <option value="yyyy-MM-dd">YYYY-MM-DD</option>
-                    <option value="MMM d, yyyy">MMM D, YYYY</option>
-                  </select>
+                    placeholder="MM/dd/yyyy, dd/MM/yyyy, etc."
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="language">Language</Label>
+                  <Input
+                    id="language"
+                    value={preferences.language}
+                    onChange={(e) => setPreferences(prev => ({ ...prev, language: e.target.value }))}
+                    placeholder="en, es, fr, etc."
+                  />
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* System Tab */}
-        <TabsContent value="system" className="space-y-6">
+        {/* Account Tab */}
+        <TabsContent value="account" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Database className="h-5 w-5" />
-                System Information
+                Account Information
               </CardTitle>
               <CardDescription>
-                System status and information
+                Your account status and information
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Application Version</Label>
-                  <p className="text-sm text-muted-foreground">1.0.0</p>
+                  <Label>Account Status</Label>
+                  <p className="text-sm text-green-600">Active</p>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Database Status</Label>
-                  <p className="text-sm text-green-600">Connected</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Last Sync</Label>
+                  <Label>Last Login</Label>
                   <p className="text-sm text-muted-foreground">
                     {format(new Date(), 'MMM d, yyyy HH:mm')}
                   </p>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Environment</Label>
-                  <p className="text-sm text-muted-foreground">Production</p>
+                  <Label>Account Type</Label>
+                  <p className="text-sm text-muted-foreground">Standard</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Data Usage</Label>
+                  <p className="text-sm text-muted-foreground">2.3 GB of 10 GB</p>
                 </div>
               </div>
             </CardContent>
@@ -391,5 +411,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
-
+export default PersonalSettings;

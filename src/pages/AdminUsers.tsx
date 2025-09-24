@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import { Search, X, Plus, Users, Shield, UserCheck, UserX, Mail, Calendar } from "lucide-react";
 
 interface User {
@@ -42,23 +43,29 @@ const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase.auth.admin.listUsers();
+      // Check if service role key is available
+      if (!supabaseAdmin) {
+        throw new Error("Service role key not configured. Admin functions require VITE_SUPABASE_SERVICE_ROLE_KEY environment variable.");
+      }
+
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers();
       
       if (error) throw error;
       
       // Process users to add role and status info
       const processedUsers = (data.users || []).map(user => ({
         ...user,
-        role: user.user_metadata?.role || "user",
+        role: user.user_metadata?.role || "recruiter",
         is_active: user.banned_until === null,
         user_limit: user.user_metadata?.user_limit || 100
       }));
       
       setUsers(processedUsers);
     } catch (error) {
+      console.error("Failed to fetch users:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch users",
+        description: error instanceof Error ? error.message : "Failed to fetch users. Check console for details.",
         variant: "destructive",
       });
     } finally {
@@ -82,7 +89,11 @@ const AdminUsers = () => {
 
   const handleAddUser = async () => {
     try {
-      const { data, error } = await supabase.auth.admin.createUser({
+      if (!supabaseAdmin) {
+        throw new Error("Service role key not configured.");
+      }
+
+      const { data, error } = await supabaseAdmin.auth.admin.createUser({
         email: newUser.email,
         password: newUser.password,
         user_metadata: {
@@ -100,12 +111,13 @@ const AdminUsers = () => {
       });
       
       setIsAddUserOpen(false);
-      setNewUser({ email: "", password: "", full_name: "", role: "user", user_limit: 100 });
+      setNewUser({ email: "", password: "", full_name: "", role: "recruiter", user_limit: 100 });
       fetchUsers();
     } catch (error) {
+      console.error("Failed to create user:", error);
       toast({
         title: "Error",
-        description: "Failed to create user",
+        description: error instanceof Error ? error.message : "Failed to create user",
         variant: "destructive",
       });
     }
@@ -113,7 +125,11 @@ const AdminUsers = () => {
 
   const handleToggleUserStatus = async (userId: string, isActive: boolean) => {
     try {
-      const { error } = await supabase.auth.admin.updateUserById(userId, {
+      if (!supabaseAdmin) {
+        throw new Error("Service role key not configured.");
+      }
+
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         ban_duration: isActive ? "none" : "876000h" // 100 years
       });
 
@@ -126,9 +142,10 @@ const AdminUsers = () => {
       
       fetchUsers();
     } catch (error) {
+      console.error("Failed to update user status:", error);
       toast({
         title: "Error",
-        description: "Failed to update user status",
+        description: error instanceof Error ? error.message : "Failed to update user status",
         variant: "destructive",
       });
     }
@@ -136,8 +153,12 @@ const AdminUsers = () => {
 
   const handleUpdateUserRole = async (userId: string, role: string) => {
     try {
+      if (!supabaseAdmin) {
+        throw new Error("Service role key not configured.");
+      }
+
       const user = users.find(u => u.id === userId);
-      const { error } = await supabase.auth.admin.updateUserById(userId, {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         user_metadata: {
           ...user?.user_metadata,
           role: role
@@ -153,9 +174,10 @@ const AdminUsers = () => {
       
       fetchUsers();
     } catch (error) {
+      console.error("Failed to update user role:", error);
       toast({
         title: "Error",
-        description: "Failed to update user role",
+        description: error instanceof Error ? error.message : "Failed to update user role",
         variant: "destructive",
       });
     }
@@ -261,7 +283,8 @@ const AdminUsers = () => {
   ];
 
   return (
-    <div className="space-y-4">
+    <PermissionGuard requiredRole="Administrator">
+      <div className="space-y-4">
       <div className="flex items-center justify-between border-b pb-3">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">User Management</h1>
@@ -448,7 +471,8 @@ const AdminUsers = () => {
           showItemCount: true,
         }}
       />
-    </div>
+      </div>
+    </PermissionGuard>
   );
 };
 

@@ -1,11 +1,12 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Building2, Users, Briefcase, BarChart3, Target, Settings, LogOut, X } from "lucide-react";
+import { Home, Building2, Users, Briefcase, BarChart3, Target, Settings, LogOut, X, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/contexts/PermissionsContext";
 
 const mainNavigation = [
   { name: "Dashboard", href: "/", icon: Home },
@@ -17,8 +18,7 @@ const mainNavigation = [
 ];
 
 const adminNavigation = [
-  { name: "User Management", href: "/admin/users", icon: Users },
-  { name: "System Settings", href: "/admin/settings", icon: Settings },
+  { name: "Admin", href: "/admin", icon: Users },
 ];
 
 interface SidebarProps {
@@ -27,7 +27,8 @@ interface SidebarProps {
 
 export const Sidebar = ({ onClose }: SidebarProps) => {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, signOut, signInWithGoogle } = useAuth();
+  const { hasRole } = usePermissions();
   
   // Memoize the navigation to prevent re-renders
   const navigationItems = React.useMemo(() => mainNavigation, []);
@@ -36,7 +37,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   return (
     <aside className="w-52 bg-sidebar backdrop-blur border-r border-sidebar-border flex flex-col fixed left-0 top-0 h-screen z-40">
       <div className="px-4 py-6 border-b border-sidebar-border flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-sidebar-foreground">4Twenty CRM</h1>
+        <h1 className="text-lg font-normal text-sidebar-foreground">4Twenty CRM</h1>
         {onClose && (
           <Button
             variant="ghost"
@@ -60,9 +61,9 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               key={item.name}
               to={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
                 isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               )}
             >
@@ -72,45 +73,64 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
           );
         })}
         
-        {/* Separator */}
-        <div className="border-t border-sidebar-border my-4"></div>
+        {/* Admin Section - Only visible to administrators and owners */}
+        {(hasRole('Administrator') || hasRole('Owner')) && (
+          <>
+            <div className="border-t border-sidebar-border my-4"></div>
+            <div className="space-y-2">
+              <div className="px-3 py-1">
+                <h3 className="text-xs font-normal text-sidebar-foreground/60 uppercase tracking-wider">
+                  Admin
+                </h3>
+              </div>
+              {adminItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.href;
+                
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
+                      isActive
+                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </>
+        )}
         
-        {/* Admin Section */}
+        {/* Settings Section */}
+        <div className="border-t border-sidebar-border my-4"></div>
         <div className="space-y-2">
-          <div className="px-3 py-1">
-            <h3 className="text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider">
-              Admin
-            </h3>
-          </div>
-          {adminItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer",
-                  isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.name}
-              </Link>
-            );
-          })}
+          <Link
+            to="/settings"
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
+              location.pathname === "/settings"
+                ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            )}
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </Link>
         </div>
       </nav>
       
-      {/* User Menu */}
-      {user && (
-        <div className="p-3 border-t border-sidebar-border">
+      {/* User Menu or Sign In */}
+      <div className="p-3 border-t border-sidebar-border">
+        {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start p-2 h-auto">
+              <Button variant="ghost" className="w-full justify-start p-2 h-auto hover:bg-transparent">
                 <div className="flex items-center gap-3 w-full">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.user_metadata?.avatar_url} />
@@ -121,10 +141,10 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium truncate">
+                    <p className="text-sm font-normal truncate text-white">
                       {user.user_metadata?.full_name || 'User'}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-xs text-white/70 truncate">
                       {user.email}
                     </p>
                   </div>
@@ -132,21 +152,23 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem asChild>
-                <Link to="/settings" className="flex items-center">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => signOut()} className="text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      )}
+        ) : (
+          <Button 
+            onClick={() => signInWithGoogle()} 
+            variant="ghost" 
+            className="w-full justify-start text-white hover:text-white hover:bg-transparent"
+          >
+            <LogIn className="mr-2 h-4 w-4 text-white" />
+            <span className="text-white">Sign in with Google</span>
+          </Button>
+        )}
+      </div>
     </aside>
   );
 };

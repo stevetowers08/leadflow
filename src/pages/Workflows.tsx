@@ -33,122 +33,29 @@ const Workflows = () => {
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const { toast } = useToast();
 
-  // Mock workflows data
+  // Load workflows data
   useEffect(() => {
-    const mockWorkflows: Workflow[] = [
-      {
-        id: '1',
-        name: 'New Lead Welcome Sequence',
-        description: 'Automatically welcome new leads with email sequence',
-        isActive: true,
-        trigger: {
-          id: 'trigger-1',
-          type: 'trigger',
-          name: 'Lead Created',
-          config: { type: 'lead_created' },
-          position: { x: 100, y: 100 }
-        },
-        steps: [
-          {
-            id: 'step-1',
-            type: 'action',
-            name: 'Send Welcome Email',
-            config: { type: 'send_email', subject: 'Welcome!', body: 'Thanks for your interest...' },
-            position: { x: 300, y: 100 }
-          },
-          {
-            id: 'step-2',
-            type: 'delay',
-            name: 'Wait 24 Hours',
-            config: { type: 'wait_time', hours: 24 },
-            position: { x: 500, y: 100 }
-          },
-          {
-            id: 'step-3',
-            type: 'action',
-            name: 'Send Follow-up',
-            config: { type: 'send_email', subject: 'Follow-up', body: 'How can we help...' },
-            position: { x: 700, y: 100 }
-          }
-        ],
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-15T00:00:00Z'
-      },
-      {
-        id: '2',
-        name: 'High-Value Lead Priority',
-        description: 'Prioritize high-value leads with immediate follow-up',
-        isActive: true,
-        trigger: {
-          id: 'trigger-2',
-          type: 'trigger',
-          name: 'Lead Created',
-          config: { type: 'lead_created' },
-          position: { x: 100, y: 100 }
-        },
-        steps: [
-          {
-            id: 'step-4',
-            type: 'condition',
-            name: 'Check Lead Score',
-            config: { type: 'lead_score', field: 'lead_score', value: '80' },
-            position: { x: 300, y: 100 }
-          },
-          {
-            id: 'step-5',
-            type: 'action',
-            name: 'Assign to Manager',
-            config: { type: 'assign_user', user: 'manager' },
-            position: { x: 500, y: 100 }
-          },
-          {
-            id: 'step-6',
-            type: 'action',
-            name: 'Send Priority Email',
-            config: { type: 'send_email', subject: 'Priority Lead', body: 'High-value lead...' },
-            position: { x: 700, y: 100 }
-          }
-        ],
-        createdAt: '2024-01-05T00:00:00Z',
-        updatedAt: '2024-01-20T00:00:00Z'
-      },
-      {
-        id: '3',
-        name: 'Stale Lead Re-engagement',
-        description: 'Re-engage leads that haven\'t been contacted in 7 days',
-        isActive: false,
-        trigger: {
-          id: 'trigger-3',
-          type: 'trigger',
-          name: 'Time Based',
-          config: { type: 'time_based' },
-          position: { x: 100, y: 100 }
-        },
-        steps: [
-          {
-            id: 'step-7',
-            type: 'condition',
-            name: 'Check Last Contact',
-            config: { type: 'last_contact', days: 7 },
-            position: { x: 300, y: 100 }
-          },
-          {
-            id: 'step-8',
-            type: 'action',
-            name: 'Send Re-engagement Email',
-            config: { type: 'send_email', subject: 'Still interested?', body: 'We noticed...' },
-            position: { x: 500, y: 100 }
-          }
-        ],
-        createdAt: '2024-01-10T00:00:00Z',
-        updatedAt: '2024-01-25T00:00:00Z'
+    const loadWorkflows = async () => {
+      try {
+        setLoading(true);
+        
+        // TODO: Replace with actual Supabase queries
+        // For now, start with empty array
+        setWorkflows([]);
+        
+      } catch (error) {
+        console.error('Error loading workflows:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load workflows",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
-    ];
+    };
 
-    setTimeout(() => {
-      setWorkflows(mockWorkflows);
-      setLoading(false);
-    }, 1000);
+    loadWorkflows();
   }, []);
 
   // Filter workflows
