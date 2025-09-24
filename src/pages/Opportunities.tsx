@@ -20,6 +20,7 @@ interface Lead {
   priority_enum: string | null;
   "Lead Score": string | null;
   "LinkedIn URL": string | null;
+  Owner: string | null;
   created_at: string;
   "Next Action Date": string | null;
   "Last Contact Date": string | null;
@@ -72,6 +73,7 @@ const Opportunities = () => {
           priority_enum,
           "Lead Score",
           "LinkedIn URL",
+          Owner,
           created_at,
           "Next Action Date",
           "Last Contact Date",
@@ -380,6 +382,14 @@ const Opportunities = () => {
                                 </div>
                               )}
                               
+                              {/* Owner Assignment */}
+                              {lead.Owner && (
+                                <div className="flex items-center gap-1 text-xs text-purple-700 bg-purple-100/80 px-1.5 py-0.5 rounded">
+                                  <User className="h-2.5 w-2.5" />
+                                  <span className="truncate">{lead.Owner.split(' ')[0]}</span>
+                                </div>
+                              )}
+
                               <div className="flex items-center justify-between pt-0.5">
                                 {lead.priority_enum && (
                                   <StatusBadge status={lead.priority_enum} size="sm" />

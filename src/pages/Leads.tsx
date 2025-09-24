@@ -22,6 +22,7 @@ interface Lead {
   priority_enum: string | null;
   "Lead Score": string | null;
   "LinkedIn URL": string | null;
+  Owner: string | null;
   created_at: string;
 }
 
@@ -91,6 +92,7 @@ const Leads = () => {
           priority_enum,
           "Lead Score",
           "LinkedIn URL",
+          Owner,
           created_at
         `)
         .order("created_at", { ascending: false });
@@ -185,6 +187,22 @@ const Leads = () => {
           </div>
         );
       },
+    },
+    {
+      key: "Owner", 
+      label: "Assigned To",
+      render: (lead: Lead) => (
+        lead.Owner ? (
+          <div className="flex items-center gap-1">
+            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+              {lead.Owner.split(' ').map(n => n[0]).join('').toUpperCase()}
+            </div>
+            <span className="text-xs truncate max-w-[80px]">{lead.Owner.split(' ')[0]}</span>
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground">Unassigned</span>
+        )
+      ),
     },
     {
       key: "LinkedIn URL",

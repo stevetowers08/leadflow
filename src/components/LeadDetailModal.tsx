@@ -7,6 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { CompanyDetailModal } from "@/components/CompanyDetailModal";
 import { JobDetailModal } from "@/components/JobDetailModal";
+import { ActivityTimeline } from "@/components/ActivityTimeline";
+import { LeadAssignment } from "@/components/LeadAssignment";
+import { NotesSection } from "@/components/NotesSection";
 import { ExternalLink, Zap, User, Building2, Mail, MapPin, Star, Calendar, Briefcase, Users } from "lucide-react";
 
 interface Lead {
@@ -21,6 +24,7 @@ interface Lead {
   priority_enum: string | null;
   "Lead Score": string | null;
   "LinkedIn URL": string | null;
+  Owner: string | null;
   created_at: string;
 }
 
@@ -248,6 +252,19 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
             </div>
           </div>
 
+          {/* Lead Assignment */}
+          <div className="p-4 bg-muted/10 rounded-lg border">
+            <LeadAssignment 
+              leadId={lead.id} 
+              currentOwner={lead.Owner} 
+              leadName={lead.Name}
+              onAssignmentChange={(newOwner) => {
+                // Optionally update the local state or refetch data
+                console.log(`Lead ${lead.Name} assigned to ${newOwner}`);
+              }}
+            />
+          </div>
+
           {/* LinkedIn Profile */}
           {lead["LinkedIn URL"] && (
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -315,6 +332,16 @@ export function LeadDetailModal({ lead, isOpen, onClose }: LeadDetailModalProps)
               </div>
             </div>
           )}
+
+          {/* Activity Timeline */}
+          <ActivityTimeline leadId={lead.id} leadName={lead.Name} />
+
+          {/* Notes Section */}
+          <NotesSection 
+            entityId={lead.id}
+            entityType="lead"
+            entityName={lead.Name}
+          />
 
           {/* Related Jobs */}
           {relatedJobs && relatedJobs.length > 0 && (

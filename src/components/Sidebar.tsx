@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, Building2, Users, Briefcase, BarChart3, Target, Megaphone, ChevronDown, ChevronRight, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -32,7 +33,12 @@ export const Sidebar = () => {
   return (
     <aside className="w-52 bg-sidebar backdrop-blur border-r border-sidebar-border flex flex-col fixed left-0 top-0 h-screen z-40">
       <div className="px-4 py-6 border-b border-sidebar-border">
-        <h1 className="text-lg font-semibold text-sidebar-foreground">4Twenty CRM</h1>
+        <h1 className="text-lg font-semibold text-sidebar-foreground mb-4">4Twenty CRM</h1>
+        {/* Global Search */}
+        <GlobalSearch 
+          placeholder="Search..."
+          className="w-full"
+        />
       </div>
       
       <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">

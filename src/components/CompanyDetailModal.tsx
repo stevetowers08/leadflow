@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { LeadDetailModal } from "@/components/LeadDetailModal";
 import { JobDetailModal } from "@/components/JobDetailModal";
+import { NotesSection } from "@/components/NotesSection";
 import { useState } from "react";
 
 interface Company {
@@ -415,6 +416,13 @@ export function CompanyDetailModal({ company, isOpen, onClose }: CompanyDetailMo
                 />
               </div>
             )}
+
+            {/* Notes Section */}
+            <NotesSection 
+              entityId={company.id}
+              entityType="company"
+              entityName={company["Company Name"]}
+            />
 
             {/* Action Button */}
             <div className="flex justify-end pt-4 border-t">
