@@ -1,430 +1,255 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { DataTable } from "@/components/DataTable";
-import { AIScoreBadge } from "@/components/AIScoreBadge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { 
-  Search, 
-  X, 
-  Download, 
-  Calendar, 
   TrendingUp, 
+  TrendingDown, 
   Users, 
   Building2, 
-  Briefcase,
+  Briefcase, 
+  Target, 
+  MessageCircle, 
+  Mail, 
+  Calendar,
   BarChart3,
   PieChart,
   Activity,
-  Target,
-  MessageSquare,
-  UserPlus,
-  CheckCircle,
-  Clock,
-  ArrowUp,
-  ArrowDown,
-  Minus,
-  Zap,
-  Eye,
-  Filter,
-  RefreshCw,
-  TrendingDown,
-  DollarSign,
-  Percent,
-  Timer,
-  Mail,
-  Phone,
-  MapPin,
-  Star,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  PauseCircle
+  Clock
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { exportToCSV } from "@/utils/exportUtils";
+import { formatDistanceToNow, subDays, subWeeks, subMonths } from "date-fns";
 
-interface ReportData {
+interface ReportingStats {
   totalLeads: number;
-  activeCampaigns: number;
-  openJobs: number;
+  totalCompanies: number;
+  totalJobs: number;
+  activeLeads: number;
+  connectedLeads: number;
+  repliedLeads: number;
+  lostLeads: number;
   conversionRate: number;
+  averageLeadScore: number;
+  leadsThisWeek: number;
   leadsThisMonth: number;
-  leadsLastMonth: number;
-  companies: number;
-  avgResponseTime: number;
-  totalRevenue: number;
-  avgDealSize: number;
-  winRate: number;
-  salesCycle: number;
+  topPerformers: Array<{
+    name: string;
+    leadsCount: number;
+  }>;
+  stageDistribution: Array<{
+    stage: string;
+    count: number;
+    percentage: number;
+  }>;
+  industryDistribution: Array<{
+    industry: string;
+    count: number;
+    percentage: number;
+  }>;
+  recentActivity: Array<{
+    id: string;
+    type: string;
+    description: string;
+    timestamp: string;
+  }>;
 }
 
-interface LeadReport {
-  id: string;
-  name: string;
-  company: string;
-  stage: string;
-  created_at: string;
-  last_contact: string;
-  lead_score: number;
-  conversion_date?: string;
-  "Message Sent"?: boolean;
-  "Message Sent Date"?: string;
-  "Connection Request"?: boolean;
-  "Connection Request Date"?: string;
-  "Connection Accepted Date"?: string;
-  "LinkedIn Responded"?: boolean;
-  "Response Date"?: string;
-  "Email Sent"?: boolean;
-  "Email Sent Date"?: string;
-  "Email Reply"?: boolean;
-  "Email Reply Date"?: string;
-  "Meeting Booked"?: boolean;
-  "Meeting Date"?: string;
-  automation_status_enum?: string;
-}
-
-interface TimeSeriesData {
-  date: string;
-  leads: number;
-  connections: number;
-  responses: number;
-  meetings: number;
-  conversions: number;
-}
-
-interface ConversionFunnelData {
-  stage: string;
-  count: number;
-  percentage: number;
-  color: string;
-}
-
-interface PerformanceMetrics {
-  responseRate: number;
-  connectionRate: number;
-  meetingRate: number;
-  conversionRate: number;
-  avgResponseTime: number;
-  avgConnectionTime: number;
-  avgMeetingTime: number;
-}
-
-interface CompanyPerformance {
-  company: string;
-  leads: number;
-  conversions: number;
-  conversionRate: number;
-  avgScore: number;
-}
-
-export default function Reporting() {
-  const [reportData, setReportData] = useState<ReportData>({
-    totalLeads: 0,
-    activeCampaigns: 0,
-    openJobs: 0,
-    conversionRate: 0,
-    leadsThisMonth: 0,
-    leadsLastMonth: 0,
-    companies: 0,
-    avgResponseTime: 0,
-    totalRevenue: 0,
-    avgDealSize: 0,
-    winRate: 0,
-    salesCycle: 0,
-  });
-  const [leadReports, setLeadReports] = useState<LeadReport[]>([]);
-  const [timeSeriesData, setTimeSeriesData] = useState<TimeSeriesData[]>([]);
-  const [conversionFunnel, setConversionFunnel] = useState<ConversionFunnelData[]>([]);
-  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics>({
-    responseRate: 0,
-    connectionRate: 0,
-    meetingRate: 0,
-    conversionRate: 0,
-    avgResponseTime: 0,
-    avgConnectionTime: 0,
-    avgMeetingTime: 0,
-  });
-  const [companyPerformance, setCompanyPerformance] = useState<CompanyPerformance[]>([]);
+const Reporting = () => {
+  const [stats, setStats] = useState<ReportingStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [stageFilter, setStageFilter] = useState<string>("");
-  const [dateRange, setDateRange] = useState<string>("all");
-  const [selectedMetric, setSelectedMetric] = useState<string>("overview");
+  const [selectedPeriod, setSelectedPeriod] = useState("30d");
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchReportData();
-    
-    // Auto-refresh every 3 minutes
-    const interval = setInterval(() => {
-      fetchReportData();
-    }, 180000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchReportData = async () => {
+  const fetchReportingData = async () => {
     try {
       setLoading(true);
       
-      // Fetch comprehensive leads data
-      const { data: leadsData, error: leadsError } = await supabase
-        .from("People")
-        .select(`
-          id, 
-          Name, 
-          Company, 
-          Stage, 
-          stage_enum, 
-          created_at, 
+      // Calculate date range based on selected period
+      let startDate: Date;
+      switch (selectedPeriod) {
+        case "7d":
+          startDate = subDays(new Date(), 7);
+          break;
+        case "30d":
+          startDate = subDays(new Date(), 30);
+          break;
+        case "90d":
+          startDate = subDays(new Date(), 90);
+          break;
+        default:
+          startDate = subDays(new Date(), 30);
+      }
+
+      // Fetch all data
+      const [leadsResponse, companiesResponse, jobsResponse] = await Promise.all([
+        supabase.from("People").select(`
+          id,
+          Name,
+          Company,
+          Stage,
+          stage_enum,
           "Lead Score",
-          "Message Sent",
-          "Message Sent Date",
-          "Connection Request",
-          "Connection Request Date",
-          "Connection Accepted Date",
-          "LinkedIn Responded",
-          "Response Date",
-          "Email Sent",
-          "Email Sent Date",
-          "Email Reply",
+          Owner,
+          "Last Contact Date",
           "Email Reply Date",
-          "Meeting Booked",
-          "Meeting Date",
-          automation_status_enum
-        `);
-
-      if (leadsError) throw leadsError;
-
-      // Fetch jobs and companies data
-      const [jobsResult, companiesResult] = await Promise.all([
-        supabase.from("Jobs").select("id, status_enum, Company"),
-        supabase.from("Companies").select("id, \"Company Name\"")
+          "LinkedIn Connected",
+          created_at
+        `),
+        supabase.from("Companies").select(`
+          id,
+          "Company Name",
+          Industry,
+          "Lead Score",
+          created_at
+        `),
+        supabase.from("Jobs").select(`
+          id,
+          "Job Title",
+          Company,
+          "Posted Date",
+          created_at
+        `)
       ]);
 
-      if (jobsResult.error) throw jobsResult.error;
-      if (companiesResult.error) throw companiesResult.error;
+      const leads = leadsResponse.data || [];
+      const companies = companiesResponse.data || [];
+      const jobs = jobsResponse.data || [];
 
-      const jobsData = jobsResult.data || [];
-      const companiesData = companiesResult.data || [];
+      // Calculate metrics
+      const totalLeads = leads.length;
+      const totalCompanies = companies.length;
+      const totalJobs = jobs.length;
 
-      // Calculate comprehensive metrics
-      const totalLeads = leadsData?.length || 0;
-      const openJobs = jobsData.filter(job => job.status_enum === 'active').length;
-      const companies = companiesData.length;
+      // Lead stage analysis
+      const stageGroups = leads.reduce((acc, lead) => {
+        const stage = lead.Stage || lead.stage_enum || 'NEW LEAD';
+        acc[stage] = (acc[stage] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const activeLeads = leads.filter(lead => 
+        !['LEAD LOST', 'LOST'].includes(lead.Stage || lead.stage_enum || '')
+      ).length;
       
-      // Calculate conversion metrics
-      const qualifiedLeads = leadsData?.filter(lead => 
-        lead.Stage === 'qualified' || lead.stage_enum === 'qualified'
-      ).length || 0;
-      const conversionRate = totalLeads > 0 ? (qualifiedLeads / totalLeads) * 100 : 0;
+      const connectedLeads = leads.filter(lead => 
+        ['CONNECTED', 'REPLIED'].includes(lead.Stage || lead.stage_enum || '')
+      ).length;
+      
+      const repliedLeads = leads.filter(lead => 
+        lead["Email Reply Date"] || ['REPLIED'].includes(lead.Stage || lead.stage_enum || '')
+      ).length;
+      
+      const lostLeads = leads.filter(lead => 
+        ['LEAD LOST', 'LOST'].includes(lead.Stage || lead.stage_enum || '')
+      ).length;
 
-      // Calculate monthly growth
-      const now = new Date();
-      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const endLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      // Conversion rate (Connected + Replied / Total Active Leads)
+      const conversionRate = activeLeads > 0 ? ((connectedLeads + repliedLeads) / activeLeads * 100) : 0;
 
-      const leadsThisMonth = leadsData?.filter(lead => 
-        new Date(lead.created_at) >= thisMonth
-      ).length || 0;
+      // Average lead score
+      const scoresSum = leads.reduce((sum, lead) => {
+        const score = parseInt(lead["Lead Score"] || "0");
+        return sum + (isNaN(score) ? 0 : score);
+      }, 0);
+      const averageLeadScore = totalLeads > 0 ? scoresSum / totalLeads : 0;
 
-      const leadsLastMonth = leadsData?.filter(lead => {
-        const createdDate = new Date(lead.created_at);
-        return createdDate >= lastMonth && createdDate <= endLastMonth;
-      }).length || 0;
+      // Time-based metrics
+      const oneWeekAgo = subWeeks(new Date(), 1);
+      const oneMonthAgo = subMonths(new Date(), 1);
+      
+      const leadsThisWeek = leads.filter(lead => 
+        new Date(lead.created_at) >= oneWeekAgo
+      ).length;
+      
+      const leadsThisMonth = leads.filter(lead => 
+        new Date(lead.created_at) >= oneMonthAgo
+      ).length;
 
-      // Calculate performance metrics
-      const totalMessages = leadsData?.filter(lead => lead["Message Sent"]).length || 0;
-      const totalConnections = leadsData?.filter(lead => lead["Connection Request"]).length || 0;
-      const totalResponses = leadsData?.filter(lead => lead["LinkedIn Responded"]).length || 0;
-      const totalMeetings = leadsData?.filter(lead => lead["Meeting Booked"]).length || 0;
+      // Top performers by assigned leads
+      const ownerCounts = leads.reduce((acc, lead) => {
+        if (lead.Owner) {
+          acc[lead.Owner] = (acc[lead.Owner] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
 
-      const responseRate = totalMessages > 0 ? (totalResponses / totalMessages) * 100 : 0;
-      const connectionRate = totalMessages > 0 ? (totalConnections / totalMessages) * 100 : 0;
-      const meetingRate = totalConnections > 0 ? (totalMeetings / totalConnections) * 100 : 0;
+      const topPerformers = Object.entries(ownerCounts)
+        .map(([name, count]) => ({ name, leadsCount: count }))
+        .sort((a, b) => b.leadsCount - a.leadsCount)
+        .slice(0, 5);
 
-      // Calculate average response time
-      const responseTimes = leadsData?.filter(lead => 
-        lead["Message Sent Date"] && lead["Response Date"]
-      ).map(lead => {
-        const sentDate = new Date(lead["Message Sent Date"]);
-        const responseDate = new Date(lead["Response Date"]);
-        return (responseDate.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24);
-      }) || [];
+      // Stage distribution
+      const stageDistribution = Object.entries(stageGroups)
+        .map(([stage, count]) => ({
+          stage,
+          count,
+          percentage: (count / totalLeads * 100)
+        }))
+        .sort((a, b) => b.count - a.count);
 
-      const avgResponseTime = responseTimes.length > 0 
-        ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length 
-        : 0;
+      // Industry distribution
+      const industryGroups = companies.reduce((acc, company) => {
+        const industry = company.Industry || 'Unknown';
+        acc[industry] = (acc[industry] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
 
-      // Calculate active campaigns
-      const activeCampaigns = leadsData?.filter(lead => 
-        lead.automation_status_enum && lead.automation_status_enum !== 'idle'
-      ).length || 0;
+      const industryDistribution = Object.entries(industryGroups)
+        .map(([industry, count]) => ({
+          industry,
+          count,
+          percentage: (count / totalCompanies * 100)
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8);
 
-      // Mock revenue data (would come from actual sales data)
-      const totalRevenue = totalMeetings * 50000; // $50k average deal
-      const avgDealSize = totalMeetings > 0 ? totalRevenue / totalMeetings : 0;
-      const winRate = totalMeetings > 0 ? (qualifiedLeads / totalMeetings) * 100 : 0;
-      const salesCycle = 45; // Average days
-
-      setReportData({
-        totalLeads,
-        activeCampaigns,
-        openJobs,
-        conversionRate,
-        leadsThisMonth,
-        leadsLastMonth,
-        companies,
-        avgResponseTime,
-        totalRevenue,
-        avgDealSize,
-        winRate,
-        salesCycle,
-      });
-
-      // Set performance metrics
-      setPerformanceMetrics({
-        responseRate,
-        connectionRate,
-        meetingRate,
-        conversionRate,
-        avgResponseTime,
-        avgConnectionTime: avgResponseTime * 0.7, // Mock data
-        avgMeetingTime: avgResponseTime * 1.5, // Mock data
-      });
-
-      // Process lead reports
-      const processedReports: LeadReport[] = (leadsData || []).map(lead => ({
-        id: lead.id,
-        name: lead.Name || "Unknown",
-        company: lead.Company || "Unknown",
-        stage: lead.Stage || lead.stage_enum || "NEW LEAD",
-        created_at: lead.created_at,
-        last_contact: lead["Message Sent Date"] || lead["Connection Request Date"] || lead.created_at,
-        lead_score: parseInt(lead["Lead Score"]) || 0,
-        conversion_date: lead["Meeting Date"],
-        "Message Sent": lead["Message Sent"],
-        "Message Sent Date": lead["Message Sent Date"],
-        "Connection Request": lead["Connection Request"],
-        "Connection Request Date": lead["Connection Request Date"],
-        "Connection Accepted Date": lead["Connection Accepted Date"],
-        "LinkedIn Responded": lead["LinkedIn Responded"],
-        "Response Date": lead["Response Date"],
-        "Email Sent": lead["Email Sent"],
-        "Email Sent Date": lead["Email Sent Date"],
-        "Email Reply": lead["Email Reply"],
-        "Email Reply Date": lead["Email Reply Date"],
-        "Meeting Booked": lead["Meeting Booked"],
-        "Meeting Date": lead["Meeting Date"],
-        automation_status_enum: lead.automation_status_enum,
-      }));
-
-      setLeadReports(processedReports);
-
-      // Generate time series data (last 30 days)
-      const timeSeries: TimeSeriesData[] = [];
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
-        
-        const dayLeads = leadsData?.filter(lead => 
-          lead.created_at.startsWith(dateStr)
-        ).length || 0;
-        
-        const dayConnections = leadsData?.filter(lead => 
-          lead["Connection Request Date"]?.startsWith(dateStr)
-        ).length || 0;
-        
-        const dayResponses = leadsData?.filter(lead => 
-          lead["Response Date"]?.startsWith(dateStr)
-        ).length || 0;
-        
-        const dayMeetings = leadsData?.filter(lead => 
-          lead["Meeting Date"]?.startsWith(dateStr)
-        ).length || 0;
-        
-        const dayConversions = leadsData?.filter(lead => 
-          lead.created_at.startsWith(dateStr) && 
-          (lead.Stage === 'qualified' || lead.stage_enum === 'qualified')
-        ).length || 0;
-        
-        timeSeries.push({
-          date: dateStr,
-          leads: dayLeads,
-          connections: dayConnections,
-          responses: dayResponses,
-          meetings: dayMeetings,
-          conversions: dayConversions,
-        });
-      }
-      setTimeSeriesData(timeSeries);
-
-      // Generate conversion funnel
-      const funnelStages = [
-        { stage: "New Leads", count: totalLeads, color: "bg-blue-500" },
-        { stage: "Messages Sent", count: totalMessages, color: "bg-purple-500" },
-        { stage: "Connections", count: totalConnections, color: "bg-indigo-500" },
-        { stage: "Responses", count: totalResponses, color: "bg-green-500" },
-        { stage: "Meetings", count: totalMeetings, color: "bg-yellow-500" },
-        { stage: "Qualified", count: qualifiedLeads, color: "bg-red-500" },
+      // Recent activity (mock data for demonstration)
+      const recentActivity = [
+        {
+          id: "1",
+          type: "lead_added",
+          description: `${leadsThisWeek} new leads added this week`,
+          timestamp: new Date().toISOString()
+        },
+        {
+          id: "2", 
+          type: "connection",
+          description: `${connectedLeads} LinkedIn connections established`,
+          timestamp: new Date().toISOString()
+        },
+        {
+          id: "3",
+          type: "reply",
+          description: `${repliedLeads} email replies received`,
+          timestamp: new Date().toISOString()
+        }
       ];
 
-      const funnelData: ConversionFunnelData[] = funnelStages.map((stage, index) => {
-        const previousCount = index > 0 ? funnelStages[index - 1].count : totalLeads;
-        const percentage = previousCount > 0 ? (stage.count / previousCount) * 100 : 0;
-        
-        return {
-          stage: stage.stage,
-          count: stage.count,
-          percentage: percentage,
-          color: stage.color,
-        };
+      setStats({
+        totalLeads,
+        totalCompanies,
+        totalJobs,
+        activeLeads,
+        connectedLeads,
+        repliedLeads,
+        lostLeads,
+        conversionRate,
+        averageLeadScore,
+        leadsThisWeek,
+        leadsThisMonth,
+        topPerformers,
+        stageDistribution,
+        industryDistribution,
+        recentActivity
       });
-      
-      setConversionFunnel(funnelData);
-
-      // Generate company performance data
-      const companyStats: Record<string, { leads: number; conversions: number; scores: number[] }> = {};
-      
-      leadsData?.forEach(lead => {
-        const company = lead.Company || "Unknown";
-        if (!companyStats[company]) {
-          companyStats[company] = { leads: 0, conversions: 0, scores: [] };
-        }
-        companyStats[company].leads++;
-        if (lead.Stage === 'qualified' || lead.stage_enum === 'qualified') {
-          companyStats[company].conversions++;
-        }
-        if (lead["Lead Score"]) {
-          companyStats[company].scores.push(parseInt(lead["Lead Score"]));
-        }
-      });
-
-      const companyPerformanceData: CompanyPerformance[] = Object.entries(companyStats)
-        .map(([company, stats]) => ({
-          company,
-          leads: stats.leads,
-          conversions: stats.conversions,
-          conversionRate: stats.leads > 0 ? (stats.conversions / stats.leads) * 100 : 0,
-          avgScore: stats.scores.length > 0 
-            ? stats.scores.reduce((sum, score) => sum + score, 0) / stats.scores.length 
-            : 0,
-        }))
-        .sort((a, b) => b.leads - a.leads)
-        .slice(0, 10);
-
-      setCompanyPerformance(companyPerformanceData);
 
     } catch (error) {
-      console.error("Error fetching report data:", error);
+      console.error("Error fetching reporting data:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch report data",
+        description: "Failed to fetch reporting data",
         variant: "destructive",
       });
     } finally {
@@ -432,85 +257,20 @@ export default function Reporting() {
     }
   };
 
-  const filteredReports = leadReports.filter(report => {
-    const matchesSearch = !searchTerm || 
-      report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.company.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStage = !stageFilter || report.stage.toLowerCase() === stageFilter.toLowerCase();
-    
-    let matchesDate = true;
-    if (dateRange !== "all") {
-      const reportDate = new Date(report.created_at);
-      const now = new Date();
-      
-      switch (dateRange) {
-        case "today":
-          matchesDate = reportDate.toDateString() === now.toDateString();
-          break;
-        case "week":
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          matchesDate = reportDate >= weekAgo;
-          break;
-        case "month":
-          const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-          matchesDate = reportDate >= monthAgo;
-          break;
-      }
-    }
-    
-    return matchesSearch && matchesStage && matchesDate;
-  });
+  useEffect(() => {
+    fetchReportingData();
+  }, [selectedPeriod]);
 
-  const clearFilters = () => {
-    setSearchTerm("");
-    setStageFilter("");
-    setDateRange("all");
-  };
-
-  const exportReports = () => {
-    exportToCSV(filteredReports, { filename: "lead-reports-export.csv" });
-    toast({
-      title: "Export Complete",
-      description: "Lead reports exported successfully",
-    });
-  };
-
-  const getGrowthIcon = (current: number, previous: number) => {
-    if (current > previous) return <ArrowUp className="h-3 w-3 text-green-600" />;
-    if (current < previous) return <ArrowDown className="h-3 w-3 text-red-600" />;
-    return <Minus className="h-3 w-3 text-gray-600" />;
-  };
-
-  const getGrowthColor = (current: number, previous: number) => {
-    if (current > previous) return "text-green-600";
-    if (current < previous) return "text-red-600";
-    return "text-gray-600";
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  if (loading) {
+  if (loading || !stats) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading comprehensive reports...</p>
+      <div className="space-y-4">
+        <div className="border-b pb-3">
+          <h1 className="text-lg font-semibold tracking-tight">Reporting & Analytics</h1>
+          <p className="text-xs text-muted-foreground mt-1">Performance metrics and insights</p>
+        </div>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-sm text-muted-foreground mt-2">Loading analytics...</p>
         </div>
       </div>
     );
@@ -519,593 +279,263 @@ export default function Reporting() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b pb-3">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Advanced Analytics & Reporting</h1>
-          <p className="text-gray-600">Comprehensive insights into your lead generation and conversion performance</p>
+          <h1 className="text-lg font-semibold tracking-tight">Reporting & Analytics</h1>
+          <p className="text-xs text-muted-foreground mt-1">Performance metrics and business insights</p>
         </div>
         <div className="flex items-center gap-2">
-          <DropdownSelect
-            options={[
-              { label: "Overview", value: "overview" },
-              { label: "Performance", value: "performance" },
-              { label: "Revenue", value: "revenue" },
-              { label: "Companies", value: "companies" }
-            ]}
-            value={selectedMetric}
-            onValueChange={setSelectedMetric}
-            placeholder="View"
-          />
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={fetchReportingData} size="sm" variant="outline">
+            <Activity className="h-3 w-3 mr-1" />
+            Refresh
+          </Button>
         </div>
       </div>
 
-      {/* Key Performance Indicators */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-4 w-4 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <div className="text-2xl font-semibold">{reportData.totalLeads}</div>
-                <div className="text-sm text-gray-600">Total Leads</div>
-                <div className="flex items-center gap-1 text-xs">
-                  {getGrowthIcon(reportData.leadsThisMonth, reportData.leadsLastMonth)}
-                  <span className={getGrowthColor(reportData.leadsThisMonth, reportData.leadsLastMonth)}>
-                    {reportData.leadsThisMonth} this month
-                  </span>
-                </div>
-              </div>
-            </div>
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Users className="h-4 w-4 text-blue-600" />
+              Total Leads
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-900">{stats.totalLeads}</div>
+            <p className="text-xs text-blue-700 flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              {stats.leadsThisWeek} added this week
+            </p>
           </CardContent>
         </Card>
-
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Target className="h-4 w-4 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <div className="text-2xl font-semibold">{reportData.conversionRate.toFixed(1)}%</div>
-                <div className="text-sm text-gray-600">Conversion Rate</div>
-                <div className="text-xs text-gray-500">Qualified leads</div>
-              </div>
-            </div>
+        
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <MessageCircle className="h-4 w-4 text-green-600" />
+              Conversion Rate
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-900">{stats.conversionRate.toFixed(1)}%</div>
+            <p className="text-xs text-green-700">
+              {stats.connectedLeads} connected + {stats.repliedLeads} replied
+            </p>
           </CardContent>
         </Card>
-
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <DollarSign className="h-4 w-4 text-purple-600" />
-              </div>
-              <div className="flex-1">
-                <div className="text-2xl font-semibold">{formatCurrency(reportData.totalRevenue)}</div>
-                <div className="text-sm text-gray-600">Pipeline Value</div>
-                <div className="text-xs text-gray-500">Estimated revenue</div>
-              </div>
-            </div>
+        
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-purple-600" />
+              Active Companies
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-900">{stats.totalCompanies}</div>
+            <p className="text-xs text-purple-700">
+              {stats.totalJobs} open job postings
+            </p>
           </CardContent>
         </Card>
-
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Timer className="h-4 w-4 text-orange-600" />
-              </div>
-              <div className="flex-1">
-                <div className="text-2xl font-semibold">{reportData.salesCycle}</div>
-                <div className="text-sm text-gray-600">Sales Cycle</div>
-                <div className="text-xs text-gray-500">Average days</div>
-              </div>
-            </div>
+        
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Target className="h-4 w-4 text-orange-600" />
+              Lead Quality
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-900">{stats.averageLeadScore.toFixed(0)}</div>
+            <p className="text-xs text-orange-700">Average lead score</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Performance Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <MessageSquare className="h-4 w-4 text-indigo-600" />
-              </div>
-              <div className="flex-1">
-                <div className="text-2xl font-semibold">{performanceMetrics.responseRate.toFixed(1)}%</div>
-                <div className="text-sm text-gray-600">Response Rate</div>
-                <div className="text-xs text-gray-500">LinkedIn responses</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-100 rounded-lg">
-                <UserPlus className="h-4 w-4 text-emerald-600" />
-              </div>
-              <div className="flex-1">
-                <div className="text-2xl font-semibold">{performanceMetrics.connectionRate.toFixed(1)}%</div>
-                <div className="text-sm text-gray-600">Connection Rate</div>
-                <div className="text-xs text-gray-500">Accepted connections</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Calendar className="h-4 w-4 text-yellow-600" />
-              </div>
-              <div className="flex-1">
-                <div className="text-2xl font-semibold">{performanceMetrics.meetingRate.toFixed(1)}%</div>
-                <div className="text-sm text-gray-600">Meeting Rate</div>
-                <div className="text-xs text-gray-500">Meetings booked</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <Clock className="h-4 w-4 text-red-600" />
-              </div>
-              <div className="flex-1">
-                <div className="text-2xl font-semibold">{performanceMetrics.avgResponseTime.toFixed(1)}</div>
-                <div className="text-sm text-gray-600">Avg Response Time</div>
-                <div className="text-xs text-gray-500">Days to respond</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Section */}
+      {/* Charts and Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Conversion Funnel */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Conversion Funnel
+        {/* Pipeline Stage Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <PieChart className="h-4 w-4" />
+              Pipeline Stage Distribution
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-4">
-              {conversionFunnel.map((stage, index) => (
-                <div key={stage.stage} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{stage.stage}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">{stage.count}</span>
-                      {index > 0 && (
-                        <span className="text-xs text-gray-500">
-                          ({stage.percentage.toFixed(1)}%)
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
-                      className={`h-3 rounded-full ${stage.color}`}
-                      style={{ width: `${(stage.count / conversionFunnel[0].count) * 100}%` }}
-                    ></div>
-                  </div>
+          <CardContent className="space-y-3">
+            {stats.stageDistribution.map((stage, index) => (
+              <div key={stage.stage} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: `hsl(${index * 50}, 60%, 60%)` }}
+                  />
+                  <span className="text-sm font-medium">{stage.stage}</span>
                 </div>
-              ))}
-            </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{stage.count}</span>
+                  <Badge variant="secondary" className="text-xs">
+                    {stage.percentage.toFixed(1)}%
+                  </Badge>
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
-        {/* Activity Trends Chart */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Activity Trends (30 Days)
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant={selectedMetric === "bar" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedMetric("bar")}
-                  className="h-6 px-2 text-xs"
-                >
-                  Bar
-                </Button>
-                <Button
-                  variant={selectedMetric === "line" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedMetric("line")}
-                  className="h-6 px-2 text-xs"
-                >
-                  Line
-        </Button>
-              </div>
+        {/* Top Industries */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <BarChart3 className="h-4 w-4" />
+              Top Industries
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            {selectedMetric === "bar" ? (
-              // Vertical Bar Chart
-              <div className="space-y-4">
-                <div className="flex items-end justify-between h-48 gap-1">
-                  {timeSeriesData.slice(-7).map((data, index) => {
-                    const maxValue = Math.max(
-                      ...timeSeriesData.slice(-7).map(d => Math.max(d.leads, d.connections, d.responses, d.meetings))
-                    );
-                    
-                    return (
-                      <div key={data.date} className="flex-1 flex flex-col items-center gap-1">
-                        <div className="flex flex-col items-center gap-1 h-40 justify-end">
-                          {/* Leads Bar */}
-                          <div 
-                            className="w-full bg-blue-500 rounded-t-sm"
-                            style={{ height: `${(data.leads / maxValue) * 100}%` }}
-                            title={`Leads: ${data.leads}`}
-                          ></div>
-                          {/* Connections Bar */}
-                          <div 
-                            className="w-full bg-green-500"
-                            style={{ height: `${(data.connections / maxValue) * 100}%` }}
-                            title={`Connections: ${data.connections}`}
-                          ></div>
-                          {/* Responses Bar */}
-                          <div 
-                            className="w-full bg-purple-500"
-                            style={{ height: `${(data.responses / maxValue) * 100}%` }}
-                            title={`Responses: ${data.responses}`}
-                          ></div>
-                          {/* Meetings Bar */}
-                          <div 
-                            className="w-full bg-yellow-500 rounded-b-sm"
-                            style={{ height: `${(data.meetings / maxValue) * 100}%` }}
-                            title={`Meetings: ${data.meetings}`}
-                          ></div>
-                        </div>
-                        <div className="text-xs text-gray-600 text-center">
-                          {new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </div>
+          <CardContent className="space-y-3">
+            {stats.industryDistribution.map((industry, index) => (
+              <div key={industry.industry} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: `hsl(${index * 45 + 200}, 55%, 55%)` }}
+                  />
+                  <span className="text-sm font-medium truncate">{industry.industry}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{industry.count}</span>
+                  <Badge variant="outline" className="text-xs">
+                    {industry.percentage.toFixed(1)}%
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Team Performance and Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Team Performance */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Users className="h-4 w-4" />
+              Team Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats.topPerformers.length > 0 ? (
+              <div className="space-y-3">
+                {stats.topPerformers.map((performer, index) => (
+                  <div key={performer.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                        {index + 1}
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center justify-center gap-6 text-xs">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
-                    <span>Leads</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                          {performer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </div>
+                        <span className="text-sm font-medium">{performer.name}</span>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {performer.leadsCount} leads
+                    </Badge>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-green-500 rounded-sm"></div>
-                    <span>Connections</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-purple-500 rounded-sm"></div>
-                    <span>Responses</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div>
-                    <span>Meetings</span>
-                  </div>
-                </div>
+                ))}
               </div>
             ) : (
-              // Line Chart
-              <div className="space-y-4">
-                <div className="relative h-48">
-                  <svg className="w-full h-full" viewBox="0 0 400 200">
-                    {/* Grid lines */}
-                    <defs>
-                      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f3f4f6" strokeWidth="1"/>
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#grid)" />
-                    
-                    {/* Data points and lines */}
-                    {timeSeriesData.slice(-7).map((data, index) => {
-                      const x = (index / 6) * 360 + 20;
-                      const maxValue = Math.max(
-                        ...timeSeriesData.slice(-7).map(d => Math.max(d.leads, d.connections, d.responses, d.meetings))
-                      );
-                      
-                      const leadsY = 180 - (data.leads / maxValue) * 160;
-                      const connectionsY = 180 - (data.connections / maxValue) * 160;
-                      const responsesY = 180 - (data.responses / maxValue) * 160;
-                      const meetingsY = 180 - (data.meetings / maxValue) * 160;
-                      
-                      return (
-                        <g key={data.date}>
-                          {/* Leads line and point */}
-                          <circle cx={x} cy={leadsY} r="3" fill="#3b82f6" />
-                          {/* Connections line and point */}
-                          <circle cx={x} cy={connectionsY} r="3" fill="#10b981" />
-                          {/* Responses line and point */}
-                          <circle cx={x} cy={responsesY} r="3" fill="#8b5cf6" />
-                          {/* Meetings line and point */}
-                          <circle cx={x} cy={meetingsY} r="3" fill="#f59e0b" />
-                        </g>
-                      );
-                    })}
-                    
-                    {/* Lines connecting points */}
-                    {timeSeriesData.slice(-7).map((data, index) => {
-                      if (index === 0) return null;
-                      const x1 = ((index - 1) / 6) * 360 + 20;
-                      const x2 = (index / 6) * 360 + 20;
-                      const maxValue = Math.max(
-                        ...timeSeriesData.slice(-7).map(d => Math.max(d.leads, d.connections, d.responses, d.meetings))
-                      );
-                      
-                      const prevData = timeSeriesData.slice(-7)[index - 1];
-                      const leadsY1 = 180 - (prevData.leads / maxValue) * 160;
-                      const leadsY2 = 180 - (data.leads / maxValue) * 160;
-                      const connectionsY1 = 180 - (prevData.connections / maxValue) * 160;
-                      const connectionsY2 = 180 - (data.connections / maxValue) * 160;
-                      const responsesY1 = 180 - (prevData.responses / maxValue) * 160;
-                      const responsesY2 = 180 - (data.responses / maxValue) * 160;
-                      const meetingsY1 = 180 - (prevData.meetings / maxValue) * 160;
-                      const meetingsY2 = 180 - (data.meetings / maxValue) * 160;
-                      
-                      return (
-                        <g key={`lines-${index}`}>
-                          <line x1={x1} y1={leadsY1} x2={x2} y2={leadsY2} stroke="#3b82f6" strokeWidth="2" />
-                          <line x1={x1} y1={connectionsY1} x2={x2} y2={connectionsY2} stroke="#10b981" strokeWidth="2" />
-                          <line x1={x1} y1={responsesY1} x2={x2} y2={responsesY2} stroke="#8b5cf6" strokeWidth="2" />
-                          <line x1={x1} y1={meetingsY1} x2={x2} y2={meetingsY2} stroke="#f59e0b" strokeWidth="2" />
-                        </g>
-                      );
-                    })}
-                  </svg>
-                  
-                  {/* X-axis labels */}
-                  <div className="absolute bottom-0 left-0 right-0 flex justify-between px-5">
-                    {timeSeriesData.slice(-7).map((data, index) => (
-                      <div key={data.date} className="text-xs text-gray-600">
-                        {new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center justify-center gap-6 text-xs">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-0.5 bg-blue-500"></div>
-                    <span>Leads</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-0.5 bg-green-500"></div>
-                    <span>Connections</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-0.5 bg-purple-500"></div>
-                    <span>Responses</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-0.5 bg-yellow-500"></div>
-                    <span>Meetings</span>
-                  </div>
-                </div>
+              <div className="text-center py-4 text-muted-foreground">
+                <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <div className="text-sm">No assigned leads yet</div>
+                <div className="text-xs">Assign leads to team members to track performance</div>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Company Performance */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            Top Performing Companies
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-3">
-            {companyPerformance.map((company, index) => (
-              <div key={company.company} className="flex items-center gap-4 p-3 border rounded-lg">
-                <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center text-gray-600 text-xs font-medium">
-                  {index + 1}
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Clock className="h-4 w-4" />
+              Activity Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {stats.recentActivity.map((activity) => (
+              <div key={activity.id} className="flex items-start gap-3 p-2 rounded-lg bg-muted/20">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs mt-0.5">
+                  <Activity className="h-3 w-3" />
                 </div>
-                <div className="flex-1">
-                  <div className="font-medium text-sm">{company.company}</div>
-                  <div className="text-xs text-gray-600">
-                    {company.leads} leads • {company.conversions} conversions
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-center">
-                    <div className="text-sm font-semibold">{company.conversionRate.toFixed(1)}%</div>
-                    <div className="text-xs text-gray-500">Conversion</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm font-semibold">{company.avgScore.toFixed(0)}</div>
-                    <div className="text-xs text-gray-500">Avg Score</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium">{activity.description}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                   </div>
                 </div>
               </div>
             ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Filters */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search leads..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-9 text-sm"
-          />
-        </div>
-        
-        <DropdownSelect
-          options={[
-            { label: "All Stages", value: "all" },
-            { label: "New Lead", value: "new lead" },
-            { label: "Contacted", value: "contacted" },
-            { label: "Qualified", value: "qualified" },
-            { label: "Interview", value: "interview" }
-          ]}
-          value={stageFilter || "all"}
-          onValueChange={(value) => setStageFilter(value === "all" ? "" : value)}
-          placeholder="Filter by stage"
-        />
-        
-        <DropdownSelect
-          options={[
-            { label: "All Time", value: "all" },
-            { label: "Today", value: "today" },
-            { label: "This Week", value: "week" },
-            { label: "This Month", value: "month" }
-          ]}
-          value={dateRange}
-          onValueChange={setDateRange}
-          placeholder="Date range"
-        />
-        
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="h-9 px-3"
-          onClick={clearFilters}
-          disabled={!searchTerm && !stageFilter && dateRange === "all"}
-        >
-          <X className="h-3 w-3 mr-1" />
-          Clear
-        </Button>
-
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="h-9 px-3"
-          onClick={exportReports}
-        >
-          <Download className="h-3 w-3 mr-1" />
-          Export
-        </Button>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Lead Reports Table */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Detailed Lead Reports ({filteredReports.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-      <DataTable
-        data={filteredReports}
-            columns={[
-              {
-                key: "name",
-                label: "Lead Name",
-                render: (report: LeadReport) => (
-                  <div className="flex flex-col">
-                    <span className="font-medium text-sm">{report.name}</span>
-                    <span className="text-xs text-gray-600">{report.company}</span>
-                  </div>
-                ),
-              },
-              {
-                key: "stage",
-                label: "Stage",
-                render: (report: LeadReport) => (
-                  <span className="text-sm">{report.stage}</span>
-                ),
-              },
-              {
-                key: "lead_score",
-                label: "AI Score",
-                headerAlign: "center",
-                cellAlign: "center",
-                render: (report: LeadReport) => (
-                  <div className="text-center">
-                    <AIScoreBadge
-                      leadData={{
-                        name: report.name,
-                        company: report.company,
-                        role: "",
-                        location: "",
-                        industry: "",
-                        company_size: "Unknown"
-                      }}
-                      initialScore={report.lead_score}
-                      showDetails={false}
-                    />
-                  </div>
-                ),
-              },
-              {
-                key: "created_at",
-                label: "Created",
-                render: (report: LeadReport) => (
-                  <span className="text-sm text-gray-600">
-                    {formatDate(report.created_at)}
-                  </span>
-                ),
-              },
-              {
-                key: "last_contact",
-                label: "Last Activity",
-                render: (report: LeadReport) => (
-                  <span className="text-sm text-gray-600">
-                    {formatDate(report.last_contact)}
-                  </span>
-                ),
-              },
-              {
-                key: "automation_status",
-                label: "Automation",
-                render: (report: LeadReport) => {
-                  const status = report.automation_status_enum || "idle";
-                  let color = "bg-gray-100 text-gray-700";
-                  let icon = <Activity className="h-3 w-3" />;
-                  
-                  if (status === "running") {
-                    color = "bg-green-100 text-green-700";
-                    icon = <CheckCircle className="h-3 w-3" />;
-                  } else if (status === "completed") {
-                    color = "bg-blue-100 text-blue-700";
-                    icon = <CheckCircle className="h-3 w-3" />;
-                  } else if (status === "paused") {
-                    color = "bg-yellow-100 text-yellow-700";
-                    icon = <PauseCircle className="h-3 w-3" />;
-                  }
-                  
-                  return (
-                    <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${color}`}>
-                      {icon}
-                      <span className="capitalize">{status}</span>
-                    </div>
-                  );
-                },
-              },
-            ]}
-        loading={loading}
-        enableExport={true}
-        exportFilename="lead-reports-export.csv"
-        pagination={{
-          enabled: true,
-              pageSize: 10,
-          showPageSizeSelector: true,
-          showItemCount: true,
-        }}
-      />
-        </CardContent>
-      </Card>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-emerald-900">Active Leads</p>
+                <p className="text-xl font-bold text-emerald-900">{stats.activeLeads}</p>
+                <p className="text-xs text-emerald-700">In pipeline</p>
+              </div>
+              <Target className="h-8 w-8 text-emerald-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-rose-50 to-rose-100 border-rose-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-rose-900">Lost Leads</p>
+                <p className="text-xl font-bold text-rose-900">{stats.lostLeads}</p>
+                <p className="text-xs text-rose-700">Need attention</p>
+              </div>
+              <TrendingDown className="h-8 w-8 text-rose-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-cyan-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-cyan-900">This Month</p>
+                <p className="text-xl font-bold text-cyan-900">{stats.leadsThisMonth}</p>
+                <p className="text-xs text-cyan-700">New leads added</p>
+              </div>
+              <Calendar className="h-8 w-8 text-cyan-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+export default Reporting;

@@ -4,6 +4,7 @@ import { Home, Building2, Users, Briefcase, BarChart3, Target, Settings, LogOut,
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionsContext";
@@ -36,18 +37,25 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
 
   return (
     <aside className="w-52 bg-sidebar backdrop-blur border-r border-sidebar-border flex flex-col fixed left-0 top-0 h-screen z-40">
-      <div className="px-4 py-6 border-b border-sidebar-border flex items-center justify-between">
-        <h1 className="text-lg font-normal text-sidebar-foreground">4Twenty CRM</h1>
-        {onClose && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="lg:hidden p-2 text-sidebar-foreground hover:bg-sidebar-accent"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+      <div className="px-4 py-6 border-b border-sidebar-border">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-lg font-semibold text-sidebar-foreground">4Twenty CRM</h1>
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="lg:hidden p-2 text-sidebar-foreground hover:bg-sidebar-accent"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        {/* Global Search */}
+        <GlobalSearch 
+          placeholder="Search..."
+          className="w-full"
+        />
       </div>
       
       <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
