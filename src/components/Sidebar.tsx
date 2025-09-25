@@ -1,10 +1,9 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Building2, Users, Briefcase, BarChart3, Target, Settings, LogOut, X, LogIn } from "lucide-react";
+import { Home, Building2, Users, Briefcase, BarChart3, Target, Settings, LogOut, X, LogIn, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { GlobalSearch } from "@/components/GlobalSearch";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionsContext";
@@ -14,8 +13,13 @@ const mainNavigation = [
   { name: "Jobs", href: "/jobs", icon: Briefcase },
   { name: "People", href: "/leads", icon: Users },
   { name: "Companies", href: "/companies", icon: Building2 },
-  { name: "Opportunities", href: "/opportunities", icon: Target },
+  { name: "Pipeline", href: "/pipeline", icon: Target },
+];
+
+const secondaryNavigation = [
+  { name: "Automations", href: "/automations", icon: Bot },
   { name: "Reporting", href: "/reporting", icon: BarChart3 },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 const adminNavigation = [
@@ -33,6 +37,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   
   // Memoize the navigation to prevent re-renders
   const navigationItems = React.useMemo(() => mainNavigation, []);
+  const secondaryItems = React.useMemo(() => secondaryNavigation, []);
   const adminItems = React.useMemo(() => adminNavigation, []);
 
   return (
@@ -51,11 +56,6 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
             </Button>
           )}
         </div>
-        {/* Global Search */}
-        <GlobalSearch 
-          placeholder="Search..."
-          className="w-full"
-        />
       </div>
       
       <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
@@ -81,57 +81,65 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
           );
         })}
         
-        {/* Admin Section - Only visible to administrators and owners */}
-        {(hasRole('Administrator') || hasRole('Owner')) && (
-          <>
-            <div className="border-t border-sidebar-border my-4"></div>
-            <div className="space-y-2">
-              <div className="px-3 py-1">
-                <h3 className="text-xs font-normal text-sidebar-foreground/60 uppercase tracking-wider">
-                  Admin
-                </h3>
-              </div>
-              {adminItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-                
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
-                      isActive
-                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </div>
-          </>
-        )}
-        
-        {/* Settings Section */}
+        {/* Secondary Navigation - Automations, Reporting & Settings */}
         <div className="border-t border-sidebar-border my-4"></div>
         <div className="space-y-2">
-          <Link
-            to="/settings"
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
-              location.pathname === "/settings"
-                ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-            )}
-          >
-            <Settings className="h-4 w-4" />
-            Settings
-          </Link>
+          {secondaryItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.href;
+            
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
+                  isActive
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {item.name}
+              </Link>
+            );
+          })}
         </div>
+        
       </nav>
+      
+      {/* Admin Section - Only visible to administrators and owners - Bottom */}
+      {(hasRole('Administrator') || hasRole('Owner')) && (
+        <div className="px-3 py-2 border-t border-sidebar-border">
+          <div className="space-y-2">
+            <div className="px-3 py-1">
+              <h3 className="text-xs font-normal text-sidebar-foreground/60 uppercase tracking-wider">
+                Admin
+              </h3>
+            </div>
+            {adminItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
+                    isActive
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
       
       {/* User Menu or Sign In */}
       <div className="p-3 border-t border-sidebar-border">

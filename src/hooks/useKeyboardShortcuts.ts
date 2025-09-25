@@ -70,8 +70,8 @@ export const useKeyboardShortcuts = () => {
     {
       key: '5',
       ctrlKey: true,
-      action: () => navigate('/opportunities'),
-      description: 'Go to Opportunities'
+      action: () => navigate('/pipeline'),
+      description: 'Go to Pipeline'
     },
     {
       key: '6',
@@ -111,7 +111,7 @@ Ctrl+1 - Dashboard
 Ctrl+2 - Leads
 Ctrl+3 - Companies
 Ctrl+4 - Jobs
-Ctrl+5 - Opportunities
+Ctrl+5 - Pipeline
 Ctrl+6 - Reporting
 Ctrl+, - Settings
 Escape - Close modal`);

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AIScoreBadge } from "@/components/AIScoreBadge";
-import { SimplifiedJobDetailModal } from "@/components/SimplifiedJobDetailModal";
+import { JobDetailPopup } from "@/components/JobDetailPopup";
 import { DashboardSkeleton } from "@/components/LoadingSkeletons";
 import { 
   Users, 
@@ -17,6 +17,7 @@ import {
   MapPin
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getProfileImage } from '@/utils/linkedinProfileUtils';
 
 // Simple cache implementation for performance
 const cache = new Map();
@@ -63,13 +64,14 @@ interface TodayJob {
 
 interface RecentLead {
   id: string;
-  Name: string;
-  Company: string | null;
-  "Company Role": string | null;
-  "Employee Location": string | null;
-  Stage: string | null;
-  stage_enum: string | null;
-  "Lead Score": string | null;
+  name: string;
+  company_id: string | null;
+  company_name: string | null;
+  company_logo_url: string | null;
+  company_role: string | null;
+  employee_location: string | null;
+  stage: string | null;
+  lead_score: string | null;
   created_at: string;
 }
 
@@ -118,9 +120,9 @@ export default function Index() {
 
       // OPTIMIZED: Fetch only counts, not full data
       const [leadsCount, companiesCount, jobsCount] = await Promise.all([
-        supabase.from("People").select("id", { count: "exact", head: true }),
-        supabase.from("Companies").select("id", { count: "exact", head: true }),
-        supabase.from("Jobs").select("id", { count: "exact", head: true }),
+        supabase.from("people").select("id", { count: "exact", head: true }),
+        supabase.from("companies").select("id", { count: "exact", head: true }),
+        supabase.from("jobs").select("id", { count: "exact", head: true }),
       ]);
 
       // Fetch jobs posted today
@@ -128,23 +130,23 @@ export default function Index() {
       
       // OPTIMIZED: Fetch only essential fields for today's jobs
       const { data: todayJobsData } = await supabase
-        .from("Jobs")
+        .from("jobs")
         .select(`
           id,
-          "Job Title",
-          Company,
-          Logo,
-          "Job Location",
-          Industry,
-          Function,
-          "Lead Score",
-          "Posted Date",
-          "Valid Through",
-          Priority,
-          "Employment Type",
-          "Seniority Level",
-          Salary,
-          "Job URL",
+          title,
+          company_id,
+          logo_url,
+          location,
+          industry,
+          function,
+          lead_score_job,
+          posted_date,
+          valid_through,
+          priority,
+          employment_type,
+          seniority_level,
+          salary,
+          job_url,
           created_at
         `)
         .gte("created_at", todayStartOfDay)
@@ -152,9 +154,9 @@ export default function Index() {
         .limit(5);
 
       // OPTIMIZED: Fetch only fields needed for expiring jobs calculation
-      const { data: allJobs } = await supabase.from("Jobs").select("id, Priority, \"Valid Through\"");
+      const { data: allJobs } = await supabase.from("jobs").select("id, priority, valid_through");
       const expiringJobs = allJobs?.filter(job => {
-        if (!job["Valid Through"]) return false;
+        if (!job.valid_through) return false;
         const parseDate = (dateStr: string) => {
           const parts = dateStr.split('/');
           if (parts.length === 3) {
@@ -167,7 +169,7 @@ export default function Index() {
         };
         
         try {
-          const expiryDate = parseDate(job["Valid Through"]);
+          const expiryDate = parseDate(job.valid_through);
           return expiryDate <= sevenDaysFromNow && expiryDate >= today;
         } catch {
           return false;
@@ -176,19 +178,17 @@ export default function Index() {
 
       // OPTIMIZED: Fetch only essential fields for recent leads
       const { data: recentLeadsData } = await supabase
-        .from("People")
+        .from("people")
         .select(`
           id,
-          Name,
-          Company,
-          "Company Role",
-          "Employee Location",
-          Stage,
-          stage_enum,
-          "Lead Score",
-          priority_enum,
-          automation_status_enum,
-          created_at
+          name,
+          company_id,
+          company_role,
+          employee_location,
+          stage,
+          lead_score,
+          created_at,
+          companies!inner(name, profile_image_url)
         `)
         .order("created_at", { ascending: false })
         .limit(5);
@@ -201,15 +201,22 @@ export default function Index() {
         expiringJobs: expiringJobs.length,
       };
 
+      // Transform recent leads data to include company info
+      const transformedRecentLeads = recentLeadsData?.map(lead => ({
+        ...lead,
+        company_name: lead.companies?.name || null,
+        company_logo_url: lead.companies?.profile_image_url || null
+      })) || [];
+
       setStats(statsData);
       setTodayJobs(todayJobsData || []);
-      setRecentLeads(recentLeadsData || []);
+      setRecentLeads(transformedRecentLeads);
       
       // Cache the data
       setCachedData('dashboard', {
         stats: statsData,
         todayJobs: todayJobsData || [],
-        recentLeads: recentLeadsData || []
+        recentLeads: transformedRecentLeads
       });
 
     } catch (error) {
@@ -251,8 +258,8 @@ export default function Index() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Good Morning! 👋</h1>
-          <p className="text-gray-600 mt-2 text-lg">Here's what's happening today and your key metrics</p>
+          <h1 className="text-base font-semibold tracking-tight">Good Morning! 👋</h1>
+          <p className="text-sm text-muted-foreground mt-1">Here's what's happening today and your key metrics</p>
         </div>
       </div>
 
@@ -261,11 +268,9 @@ export default function Index() {
         <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <Users className="h-5 w-5 text-blue-600" />
-              </div>
+              <Users className="h-4 w-4 text-blue-600" />
               <div>
-                <div className="text-3xl font-bold text-gray-900">{stats.totalLeads}</div>
+                <div className="text-base font-bold text-gray-900">{stats.totalLeads}</div>
                 <div className="text-sm text-gray-600 font-medium">Total Leads</div>
               </div>
             </div>
@@ -275,11 +280,9 @@ export default function Index() {
         <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-100 rounded-xl">
-                <Building2 className="h-5 w-5 text-green-600" />
-              </div>
+              <Building2 className="h-4 w-4 text-green-600" />
               <div>
-                <div className="text-3xl font-bold text-gray-900">{stats.totalCompanies}</div>
+                <div className="text-base font-bold text-gray-900">{stats.totalCompanies}</div>
                 <div className="text-sm text-gray-600 font-medium">Companies</div>
               </div>
             </div>
@@ -289,11 +292,9 @@ export default function Index() {
         <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-purple-100 rounded-xl">
-                <Briefcase className="h-5 w-5 text-purple-600" />
-              </div>
+              <Briefcase className="h-4 w-4 text-purple-600" />
               <div>
-                <div className="text-3xl font-bold text-gray-900">{stats.totalJobs}</div>
+                <div className="text-base font-bold text-gray-900">{stats.totalJobs}</div>
                 <div className="text-sm text-gray-600 font-medium">Total Jobs</div>
               </div>
             </div>
@@ -303,11 +304,9 @@ export default function Index() {
         <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-orange-100 rounded-xl">
-                <Calendar className="h-5 w-5 text-orange-600" />
-              </div>
+              <Calendar className="h-4 w-4 text-orange-600" />
               <div>
-                <div className="text-3xl font-bold text-gray-900">{stats.newJobsToday}</div>
+                <div className="text-base font-bold text-gray-900">{stats.newJobsToday}</div>
                 <div className="text-sm text-gray-600 font-medium">New Today</div>
               </div>
             </div>
@@ -319,17 +318,15 @@ export default function Index() {
         {/* New Jobs Today */}
         <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Calendar className="h-4 w-4 text-blue-600" />
-              </div>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-blue-600" />
               New Jobs Today ({stats.newJobsToday})
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             {todayJobs.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <Briefcase className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <Briefcase className="h-4 w-4 mx-auto mb-2 opacity-50" />
                 <p>No new jobs today</p>
               </div>
             ) : (
@@ -345,29 +342,29 @@ export default function Index() {
                         <Briefcase className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm truncate">{job["Job Title"]}</div>
+                        <div className="font-semibold text-sm truncate">{job.title}</div>
                         <div className="text-xs text-gray-500 truncate">
-                          {job.Company}
-                          {job["Job Location"] && ` • ${job["Job Location"]}`}
+                          {job.company_id}
+                          {job.location && ` • ${job.location}`}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {job.Priority && (
-                          <Badge className={`text-xs px-2 py-1 ${getPriorityColor(job.Priority)}`}>
-                            {job.Priority}
+                        {job.priority && (
+                          <Badge className={`text-xs px-2 py-1 ${getPriorityColor(job.priority)}`}>
+                            {job.priority}
                           </Badge>
                         )}
-                        {job["Lead Score"] && (
+                        {job.lead_score_job && (
                           <AIScoreBadge
                             leadData={{
                               name: "Job Candidate",
-                              company: job.Company || "",
-                              role: job["Job Title"] || "",
-                              location: job["Job Location"] || "",
-                              industry: job.Industry,
+                              company: job.company_id || "",
+                              role: job.title || "",
+                              location: job.location || "",
+                              industry: job.industry,
                               company_size: "Unknown"
                             }}
-                            initialScore={job["Lead Score"]}
+                            initialScore={job.lead_score_job}
                             showDetails={false}
                           />
                         )}
@@ -392,17 +389,15 @@ export default function Index() {
         {/* Recent Leads */}
         <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Users className="h-4 w-4 text-green-600" />
-              </div>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Users className="h-4 w-4 text-green-600" />
               Recent Leads ({recentLeads.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             {recentLeads.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <Users className="h-4 w-4 mx-auto mb-2 opacity-50" />
                 <p>No recent leads</p>
               </div>
             ) : (
@@ -411,31 +406,53 @@ export default function Index() {
                   <div 
                     key={lead.id}
                     className="p-4 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group"
-                    onClick={() => navigate(`/leads?filter=${encodeURIComponent(lead.Name || "")}`)}
+                    onClick={() => navigate(`/leads?filter=${encodeURIComponent(lead.name || "")}`)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-600 text-sm font-semibold group-hover:bg-gray-200 transition-colors">
-                        {lead.Name?.charAt(0)?.toUpperCase() || "?"}
-                      </div>
+                      {(() => {
+                        const { avatarUrl, initials } = getProfileImage(lead.name, 40);
+                        return (
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
+                            <img 
+                              src={avatarUrl} 
+                              alt={lead.name || 'Lead'}
+                              className="w-10 h-10 rounded-lg object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                                if (nextElement) {
+                                  nextElement.style.display = 'flex';
+                                }
+                              }}
+                            />
+                            <div 
+                              className="w-10 h-10 rounded-lg bg-indigo-500 text-white flex items-center justify-center text-sm font-semibold group-hover:bg-indigo-600 transition-colors"
+                              style={{ display: 'none' }}
+                            >
+                              {initials}
+                            </div>
+                          </div>
+                        );
+                      })()}
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm truncate">{lead.Name}</div>
+                        <div className="font-semibold text-sm truncate">{lead.name}</div>
                         <div className="text-xs text-gray-500 truncate">
-                          {lead["Company Role"]}
-                          {lead.Company && ` at ${lead.Company}`}
+                          {lead.company_role}
+                          {lead.company_id && ` at ${lead.company_id}`}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {lead["Lead Score"] && (
+                        {lead.lead_score && (
                           <AIScoreBadge
                             leadData={{
-                              name: lead.Name || "",
-                              company: lead.Company || "",
-                              role: lead["Company Role"] || "",
-                              location: lead["Employee Location"] || "",
+                              name: lead.name || "",
+                              company: lead.company_id || "",
+                              role: lead.company_role || "",
+                              location: lead.employee_location || "",
                               industry: "",
                               company_size: "Unknown"
                             }}
-                            initialScore={parseInt(lead["Lead Score"])}
+                            initialScore={parseInt(lead.lead_score)}
                             showDetails={false}
                           />
                         )}
@@ -487,7 +504,7 @@ export default function Index() {
 
       {/* Job Detail Modal */}
       {selectedJob && (
-        <SimplifiedJobDetailModal
+        <JobDetailPopup
           job={selectedJob}
           isOpen={isJobModalOpen}
           onClose={() => {

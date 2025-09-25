@@ -10,8 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable } from '@/components/DataTable';
-import { Users, Building2, Crown, Plus, Save, Mail, UserPlus, Settings, Database } from 'lucide-react';
+import { LogoManager } from '@/components/LogoManager';
+import { Users, Building2, Crown, Plus, Save, Mail, UserPlus, Settings, Database, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getUnifiedStatusClass } from '@/utils/colorScheme';
 
 interface User {
   id: string;
@@ -157,27 +159,16 @@ const Admin: React.FC = () => {
   };
 
   const getRoleBadge = (role: string) => {
-    const colors = {
-      owner: 'bg-purple-100 text-purple-800',
-      admin: 'bg-blue-100 text-blue-800',
-      recruiter: 'bg-green-100 text-green-800',
-      viewer: 'bg-gray-100 text-gray-800'
-    };
     return (
-      <Badge className={colors[role as keyof typeof colors] || colors.viewer}>
+      <Badge className={getUnifiedStatusClass(role)}>
         {role.charAt(0).toUpperCase() + role.slice(1)}
       </Badge>
     );
   };
 
   const getInviteStatusBadge = (status: string) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      accepted: 'bg-green-100 text-green-800',
-      expired: 'bg-red-100 text-red-800'
-    };
     return (
-      <Badge className={colors[status as keyof typeof colors] || colors.pending}>
+      <Badge className={getUnifiedStatusClass(status)}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
@@ -386,9 +377,10 @@ const Admin: React.FC = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="users" className="w-full">
-        <TabsList className={`grid w-full ${hasRole('Owner') ? 'grid-cols-5' : 'grid-cols-4'}`}>
+        <TabsList className={`grid w-full ${hasRole('Owner') ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="invites">Invites</TabsTrigger>
+          <TabsTrigger value="logos">Logos</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
           {hasRole('Owner') && <TabsTrigger value="owner">Owner</TabsTrigger>}
@@ -457,6 +449,11 @@ const Admin: React.FC = () => {
             </Badge>
           </div>
           <DataTable columns={inviteColumns} data={invites} showSearch={false} />
+          </TabsContent>
+
+          {/* Logos Tab */}
+          <TabsContent value="logos" className="space-y-4">
+            <LogoManager />
           </TabsContent>
 
         {/* Settings Tab */}

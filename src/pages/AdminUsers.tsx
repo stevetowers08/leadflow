@@ -11,6 +11,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PermissionGuard } from "@/components/PermissionGuard";
 import { Search, X, Plus, Users, Shield, UserCheck, UserX, Mail, Calendar } from "lucide-react";
+import { getUnifiedStatusClass } from "@/utils/colorScheme";
 
 interface User {
   id: string;
@@ -224,7 +225,7 @@ const AdminUsers = () => {
       key: "status",
       label: "Status",
       render: (user: User) => (
-        <Badge variant={user.is_active ? "default" : "secondary"}>
+        <Badge className={getUnifiedStatusClass(user.is_active ? 'active' : 'inactive')}>
           {user.is_active ? (
             <>
               <UserCheck className="h-3 w-3 mr-1" />

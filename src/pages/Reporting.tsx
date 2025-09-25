@@ -265,7 +265,7 @@ const Reporting = () => {
     return (
       <div className="space-y-4">
         <div className="border-b pb-3">
-          <h1 className="text-lg font-semibold tracking-tight">Reporting & Analytics</h1>
+          <h1 className="text-base font-semibold tracking-tight">Reporting & Analytics</h1>
           <p className="text-xs text-muted-foreground mt-1">Performance metrics and insights</p>
         </div>
         <div className="text-center py-12">
@@ -281,8 +281,8 @@ const Reporting = () => {
       {/* Header */}
       <div className="flex items-center justify-between border-b pb-3">
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">Reporting & Analytics</h1>
-          <p className="text-xs text-muted-foreground mt-1">Performance metrics and business insights</p>
+          <h1 className="text-base font-semibold tracking-tight">Reporting & Analytics</h1>
+          <p className="text-sm text-muted-foreground mt-1">Performance metrics and business insights</p>
         </div>
         <div className="flex items-center gap-2">
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
@@ -306,13 +306,13 @@ const Reporting = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Users className="h-4 w-4 text-blue-600" />
               Total Leads
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{stats.totalLeads}</div>
+            <div className="text-base font-bold text-blue-900">{stats.totalLeads}</div>
             <p className="text-xs text-blue-700 flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               {stats.leadsThisWeek} added this week
@@ -322,13 +322,13 @@ const Reporting = () => {
         
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
               <MessageCircle className="h-4 w-4 text-green-600" />
               Conversion Rate
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">{stats.conversionRate.toFixed(1)}%</div>
+            <div className="text-base font-bold text-green-900">{stats.conversionRate.toFixed(1)}%</div>
             <p className="text-xs text-green-700">
               {stats.connectedLeads} connected + {stats.repliedLeads} replied
             </p>
@@ -337,13 +337,13 @@ const Reporting = () => {
         
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Building2 className="h-4 w-4 text-purple-600" />
               Active Companies
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900">{stats.totalCompanies}</div>
+            <div className="text-base font-bold text-purple-900">{stats.totalCompanies}</div>
             <p className="text-xs text-purple-700">
               {stats.totalJobs} open job postings
             </p>
@@ -352,13 +352,13 @@ const Reporting = () => {
         
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Target className="h-4 w-4 text-orange-600" />
               Lead Quality
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-900">{stats.averageLeadScore.toFixed(0)}</div>
+            <div className="text-base font-bold text-orange-900">{stats.averageLeadScore.toFixed(0)}</div>
             <p className="text-xs text-orange-700">Average lead score</p>
           </CardContent>
         </Card>
@@ -369,7 +369,7 @@ const Reporting = () => {
         {/* Pipeline Stage Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
               <PieChart className="h-4 w-4" />
               Pipeline Stage Distribution
             </CardTitle>
@@ -398,7 +398,7 @@ const Reporting = () => {
         {/* Top Industries */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
               <BarChart3 className="h-4 w-4" />
               Top Industries
             </CardTitle>
@@ -430,7 +430,7 @@ const Reporting = () => {
         {/* Team Performance */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
               <Users className="h-4 w-4" />
               Team Performance
             </CardTitle>
@@ -470,7 +470,7 @@ const Reporting = () => {
         {/* Recent Activity */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
               <Clock className="h-4 w-4" />
               Activity Summary
             </CardTitle>

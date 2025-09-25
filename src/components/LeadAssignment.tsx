@@ -41,8 +41,8 @@ export const LeadAssignment = ({ leadId, currentOwner, leadName, onAssignmentCha
       const ownerName = newOwnerId ? TEAM_MEMBERS.find(m => m.id === newOwnerId)?.name : null;
 
       const { error } = await supabase
-        .from("People")
-        .update({ Owner: ownerName })
+        .from("people")
+        .update({ owner_id: newOwnerId })
         .eq("id", leadId);
 
       if (error) throw error;
@@ -132,15 +132,15 @@ export const LeadAssignment = ({ leadId, currentOwner, leadName, onAssignmentCha
       {/* Assignment Selector */}
       <div className="space-y-2">
         <Select
-          value={selectedOwner || ""}
-          onValueChange={(value) => handleAssignment(value || null)}
+          value={selectedOwner || undefined}
+          onValueChange={(value) => handleAssignment(value === "unassign" ? null : value)}
           disabled={isAssigning}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Assign to team member..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">
+            <SelectItem value="unassign">
               <div className="flex items-center gap-2">
                 <UserX className="w-4 h-4 text-muted-foreground" />
                 <span>Unassign</span>

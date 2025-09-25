@@ -14,558 +14,449 @@ export type Database = {
   }
   public: {
     Tables: {
-      Companies: {
+      campaign_participants: {
         Row: {
-          "AI Info": string | null
-          Automation: string | null
-          "Company Info": string | null
-          "Company Name": string | null
-          "Company Size": string | null
-          Created: string | null
-          created_at: string | null
-          "Existing Loxo Profile": string | null
-          Favourite: string | null
-          "Head Office": string | null
+          campaign_id: string
+          completed_at: string | null
           id: string
-          "Image Attachment": string | null
-          Industry: string | null
+          joined_at: string | null
+          person_id: string
+        }
+        Insert: {
+          campaign_id: string
+          completed_at?: string | null
+          id?: string
+          joined_at?: string | null
+          person_id: string
+        }
+        Update: {
+          campaign_id?: string
+          completed_at?: string | null
+          id?: string
+          joined_at?: string | null
+          person_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_participants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_participants_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          status: Database["public"]["Enums"]["campaign_status_enum"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["campaign_status_enum"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["campaign_status_enum"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      companies: {
+        Row: {
+          ai_info: Json | null
+          automation_active: boolean | null
+          automation_started_at: string | null
+          company_size: string | null
+          confidence_level:
+            | Database["public"]["Enums"]["confidence_level_enum"]
+            | null
+          created_at: string | null
+          head_office: string | null
+          id: string
+          industry: string | null
           industry_id: string | null
-          "Job Description": string | null
-          Jobs: string | null
-          "Key Info Raw": string | null
-          "Lead Score": number | null
-          Leads: string | null
-          LinkedIn: string | null
-          "LinkedIn URL": string | null
-          "Loxo Company ID": string | null
-          Priority: string | null
-          priority_enum: Database["public"]["Enums"]["priority_level"] | null
-          "Profile Image URL": string | null
-          Remove: string | null
-          "Score Reason": string | null
-          STATUS: string | null
-          status_enum: Database["public"]["Enums"]["company_status"] | null
+          is_favourite: boolean | null
+          key_info_raw: Json | null
+          lead_score: string | null
+          linkedin_url: string | null
+          loxo_company_id: string | null
+          name: string
+          priority: string | null
+          profile_image_url: string | null
+          score_reason: string | null
           updated_at: string | null
-          Website: string | null
+          website: string | null
         }
         Insert: {
-          "AI Info"?: string | null
-          Automation?: string | null
-          "Company Info"?: string | null
-          "Company Name"?: string | null
-          "Company Size"?: string | null
-          Created?: string | null
+          ai_info?: Json | null
+          automation_active?: boolean | null
+          automation_started_at?: string | null
+          company_size?: string | null
+          confidence_level?:
+            | Database["public"]["Enums"]["confidence_level_enum"]
+            | null
           created_at?: string | null
-          "Existing Loxo Profile"?: string | null
-          Favourite?: string | null
-          "Head Office"?: string | null
+          head_office?: string | null
           id?: string
-          "Image Attachment"?: string | null
-          Industry?: string | null
+          industry?: string | null
           industry_id?: string | null
-          "Job Description"?: string | null
-          Jobs?: string | null
-          "Key Info Raw"?: string | null
-          "Lead Score"?: number | null
-          Leads?: string | null
-          LinkedIn?: string | null
-          "LinkedIn URL"?: string | null
-          "Loxo Company ID"?: string | null
-          Priority?: string | null
-          priority_enum?: Database["public"]["Enums"]["priority_level"] | null
-          "Profile Image URL"?: string | null
-          Remove?: string | null
-          "Score Reason"?: string | null
-          STATUS?: string | null
-          status_enum?: Database["public"]["Enums"]["company_status"] | null
+          is_favourite?: boolean | null
+          key_info_raw?: Json | null
+          lead_score?: string | null
+          linkedin_url?: string | null
+          loxo_company_id?: string | null
+          name: string
+          priority?: string | null
+          profile_image_url?: string | null
+          score_reason?: string | null
           updated_at?: string | null
-          Website?: string | null
+          website?: string | null
         }
         Update: {
-          "AI Info"?: string | null
-          Automation?: string | null
-          "Company Info"?: string | null
-          "Company Name"?: string | null
-          "Company Size"?: string | null
-          Created?: string | null
+          ai_info?: Json | null
+          automation_active?: boolean | null
+          automation_started_at?: string | null
+          company_size?: string | null
+          confidence_level?:
+            | Database["public"]["Enums"]["confidence_level_enum"]
+            | null
           created_at?: string | null
-          "Existing Loxo Profile"?: string | null
-          Favourite?: string | null
-          "Head Office"?: string | null
+          head_office?: string | null
           id?: string
-          "Image Attachment"?: string | null
-          Industry?: string | null
+          industry?: string | null
           industry_id?: string | null
-          "Job Description"?: string | null
-          Jobs?: string | null
-          "Key Info Raw"?: string | null
-          "Lead Score"?: number | null
-          Leads?: string | null
-          LinkedIn?: string | null
-          "LinkedIn URL"?: string | null
-          "Loxo Company ID"?: string | null
-          Priority?: string | null
-          priority_enum?: Database["public"]["Enums"]["priority_level"] | null
-          "Profile Image URL"?: string | null
-          Remove?: string | null
-          "Score Reason"?: string | null
-          STATUS?: string | null
-          status_enum?: Database["public"]["Enums"]["company_status"] | null
+          is_favourite?: boolean | null
+          key_info_raw?: Json | null
+          lead_score?: string | null
+          linkedin_url?: string | null
+          loxo_company_id?: string | null
+          name?: string
+          priority?: string | null
+          profile_image_url?: string | null
+          score_reason?: string | null
           updated_at?: string | null
-          Website?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      interactions: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          interaction_type: Database["public"]["Enums"]["interaction_type_enum"]
+          metadata: Json | null
+          occurred_at: string
+          person_id: string
+          subject: string | null
+          template_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          interaction_type: Database["public"]["Enums"]["interaction_type_enum"]
+          metadata?: Json | null
+          occurred_at?: string
+          person_id: string
+          subject?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          interaction_type?: Database["public"]["Enums"]["interaction_type_enum"]
+          metadata?: Json | null
+          occurred_at?: string
+          person_id?: string
+          subject?: string | null
+          template_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "Companies_industry_id_fkey"
-            columns: ["industry_id"]
+            foreignKeyName: "interactions_person_id_fkey"
+            columns: ["person_id"]
             isOneToOne: false
-            referencedRelation: "industries"
+            referencedRelation: "people"
             referencedColumns: ["id"]
           },
         ]
       }
-      company_sizes: {
+      jobs: {
         Row: {
+          automation_active: boolean | null
+          automation_started_at: string | null
+          company_id: string
           created_at: string | null
+          description: string | null
+          employment_type: string | null
+          function: string | null
           id: string
-          name: string
-          size_range: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          name: string
-          size_range?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          name?: string
-          size_range?: string | null
-        }
-        Relationships: []
-      }
-      industries: {
-        Row: {
-          created_at: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      job_functions: {
-        Row: {
-          created_at: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      Jobs: {
-        Row: {
-          Company: string | null
-          company_id: string | null
-          company_size_id: string | null
-          Created: string | null
-          created_at: string | null
-          "Employment Type": string | null
-          employment_type_enum:
-            | Database["public"]["Enums"]["employment_type"]
-            | null
-          Function: string | null
-          function_id: string | null
-          id: string
-          Industry: string | null
-          "Job Description": string | null
-          "Job Location": string | null
-          "Job Summary": string | null
-          "Job Title": string | null
-          "Job URL": string | null
-          "Lead Score": number | null
-          "Lead Score (from Company)": number | null
-          "LinkedIn Job ID": string | null
-          Logo: string | null
-          "Posted Date": string | null
-          Priority: string | null
-          Salary: string | null
-          "Score Reason (from Company)": string | null
-          "Seniority Level": string | null
-          seniority_level_enum:
-            | Database["public"]["Enums"]["seniority_level"]
-            | null
-          status_enum: Database["public"]["Enums"]["job_status"] | null
-          "Target People": string | null
+          job_url: string | null
+          lead_score_job: number | null
+          linkedin_job_id: string | null
+          location: string | null
+          logo_url: string | null
+          posted_date: string | null
+          priority: string | null
+          salary: string | null
+          seniority_level: string | null
+          summary: string | null
+          title: string
           updated_at: string | null
-          "Valid Through": string | null
+          valid_through: string | null
         }
         Insert: {
-          Company?: string | null
-          company_id?: string | null
-          company_size_id?: string | null
-          Created?: string | null
+          automation_active?: boolean | null
+          automation_started_at?: string | null
+          company_id: string
           created_at?: string | null
-          "Employment Type"?: string | null
-          employment_type_enum?:
-            | Database["public"]["Enums"]["employment_type"]
-            | null
-          Function?: string | null
-          function_id?: string | null
+          description?: string | null
+          employment_type?: string | null
+          function?: string | null
           id?: string
-          Industry?: string | null
-          "Job Description"?: string | null
-          "Job Location"?: string | null
-          "Job Summary"?: string | null
-          "Job Title"?: string | null
-          "Job URL"?: string | null
-          "Lead Score"?: number | null
-          "Lead Score (from Company)"?: number | null
-          "LinkedIn Job ID"?: string | null
-          Logo?: string | null
-          "Posted Date"?: string | null
-          Priority?: string | null
-          Salary?: string | null
-          "Score Reason (from Company)"?: string | null
-          "Seniority Level"?: string | null
-          seniority_level_enum?:
-            | Database["public"]["Enums"]["seniority_level"]
-            | null
-          status_enum?: Database["public"]["Enums"]["job_status"] | null
-          "Target People"?: string | null
+          job_url?: string | null
+          lead_score_job?: number | null
+          linkedin_job_id?: string | null
+          location?: string | null
+          logo_url?: string | null
+          posted_date?: string | null
+          priority?: string | null
+          salary?: string | null
+          seniority_level?: string | null
+          summary?: string | null
+          title: string
           updated_at?: string | null
-          "Valid Through"?: string | null
+          valid_through?: string | null
         }
         Update: {
-          Company?: string | null
-          company_id?: string | null
-          company_size_id?: string | null
-          Created?: string | null
+          automation_active?: boolean | null
+          automation_started_at?: string | null
+          company_id?: string
           created_at?: string | null
-          "Employment Type"?: string | null
-          employment_type_enum?:
-            | Database["public"]["Enums"]["employment_type"]
-            | null
-          Function?: string | null
-          function_id?: string | null
+          description?: string | null
+          employment_type?: string | null
+          function?: string | null
           id?: string
-          Industry?: string | null
-          "Job Description"?: string | null
-          "Job Location"?: string | null
-          "Job Summary"?: string | null
-          "Job Title"?: string | null
-          "Job URL"?: string | null
-          "Lead Score"?: number | null
-          "Lead Score (from Company)"?: number | null
-          "LinkedIn Job ID"?: string | null
-          Logo?: string | null
-          "Posted Date"?: string | null
-          Priority?: string | null
-          Salary?: string | null
-          "Score Reason (from Company)"?: string | null
-          "Seniority Level"?: string | null
-          seniority_level_enum?:
-            | Database["public"]["Enums"]["seniority_level"]
-            | null
-          status_enum?: Database["public"]["Enums"]["job_status"] | null
-          "Target People"?: string | null
+          job_url?: string | null
+          lead_score_job?: number | null
+          linkedin_job_id?: string | null
+          location?: string | null
+          logo_url?: string | null
+          posted_date?: string | null
+          priority?: string | null
+          salary?: string | null
+          seniority_level?: string | null
+          summary?: string | null
+          title?: string
           updated_at?: string | null
-          "Valid Through"?: string | null
+          valid_through?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "jobs_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "Companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "Jobs_company_size_id_fkey"
-            columns: ["company_size_id"]
-            isOneToOne: false
-            referencedRelation: "company_sizes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "Jobs_function_id_fkey"
-            columns: ["function_id"]
-            isOneToOne: false
-            referencedRelation: "job_functions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      People: {
+      people: {
         Row: {
-          Account: string | null
-          Automation: string | null
-          "Automation Date": string | null
-          "Automation Status": string | null
-          automation_status_enum:
-            | Database["public"]["Enums"]["automation_status"]
-            | null
-          Business: string | null
-          "Campaign Finished": string | null
-          Campaigns: string | null
-          Company: string | null
-          "Company Role": string | null
+          automation_started_at: string | null
+          campaign_finished: string | null
           company_id: string | null
-          "Confidence Level": string | null
-          confidence_level_enum:
-            | Database["public"]["Enums"]["confidence_level"]
-            | null
-          "Connection Accepted Date": string | null
-          "Connection Request": string | null
-          "Connection Request Date": string | null
-          Created: string | null
-          "Created Date": string | null
+          company_role: string | null
+          confidence_level: string | null
+          connected_at: string | null
+          connection_accepted_date: string | null
+          connection_request_date: string | null
+          connection_request_sent: string | null
           created_at: string | null
-          "Email Address": string | null
-          "Email Draft": string | null
-          "Email Reply": string | null
-          "Email Reply Date": string | null
-          "Email Sent": string | null
-          "Email Sent Date": string | null
-          "Employee Location": string | null
-          Favourite: string | null
+          email_address: string | null
+          email_draft: string | null
+          email_reply: string | null
+          email_reply_date: string | null
+          email_sent: string | null
+          email_sent_date: string | null
+          employee_location: string | null
+          favourite: boolean | null
           id: string
-          Jobs: string | null
-          "Last Contact Date": string | null
-          "Last Message": string | null
-          "Lead Score": string | null
-          "Lead Source": string | null
-          lead_source_enum: Database["public"]["Enums"]["lead_source"] | null
-          LinkedIn: string | null
-          "LinkedIn Connected": string | null
-          "LinkedIn Connected Message": string | null
-          "LinkedIn Follow Up Message": string | null
-          "LinkedIn Request Message": string | null
-          "LinkedIn Responded": string | null
-          "LinkedIn URL": string | null
-          "Meeting Booked": string | null
-          "Meeting Date": string | null
-          "Message Sent": string | null
-          "Message Sent Date": string | null
-          Name: string | null
-          "Next Action Date": string | null
-          "Outreach Channels": string | null
-          Owner: string | null
-          priority_enum: Database["public"]["Enums"]["priority_level"] | null
-          Remove: string | null
-          "Response Date": string | null
-          Stage: string | null
-          "Stage Updated": string | null
-          stage_enum: Database["public"]["Enums"]["lead_stage"] | null
-          Updated: string | null
+          is_favourite: string | null
+          jobs: string | null
+          last_interaction_at: string | null
+          last_reply_at: string | null
+          last_reply_channel: string | null
+          last_reply_message: string | null
+          lead_score: string | null
+          linkedin_connected: string | null
+          linkedin_connected_message: string | null
+          linkedin_follow_up_message: string | null
+          linkedin_request_message: string | null
+          linkedin_responded: string | null
+          linkedin_url: string | null
+          meeting_booked: string | null
+          meeting_date: string | null
+          message_sent: string | null
+          message_sent_date: string | null
+          name: string
+          owner_id: string | null
+          response_date: string | null
+          stage: Database["public"]["Enums"]["stage_enum"]
+          stage_updated: string | null
           updated_at: string | null
         }
         Insert: {
-          Account?: string | null
-          Automation?: string | null
-          "Automation Date"?: string | null
-          "Automation Status"?: string | null
-          automation_status_enum?:
-            | Database["public"]["Enums"]["automation_status"]
-            | null
-          Business?: string | null
-          "Campaign Finished"?: string | null
-          Campaigns?: string | null
-          Company?: string | null
-          "Company Role"?: string | null
+          automation_started_at?: string | null
+          campaign_finished?: string | null
           company_id?: string | null
-          "Confidence Level"?: string | null
-          confidence_level_enum?:
-            | Database["public"]["Enums"]["confidence_level"]
-            | null
-          "Connection Accepted Date"?: string | null
-          "Connection Request"?: string | null
-          "Connection Request Date"?: string | null
-          Created?: string | null
-          "Created Date"?: string | null
+          company_role?: string | null
+          confidence_level?: string | null
+          connected_at?: string | null
+          connection_accepted_date?: string | null
+          connection_request_date?: string | null
+          connection_request_sent?: string | null
           created_at?: string | null
-          "Email Address"?: string | null
-          "Email Draft"?: string | null
-          "Email Reply"?: string | null
-          "Email Reply Date"?: string | null
-          "Email Sent"?: string | null
-          "Email Sent Date"?: string | null
-          "Employee Location"?: string | null
-          Favourite?: string | null
+          email_address?: string | null
+          email_draft?: string | null
+          email_reply?: string | null
+          email_reply_date?: string | null
+          email_sent?: string | null
+          email_sent_date?: string | null
+          employee_location?: string | null
+          favourite?: boolean | null
           id?: string
-          Jobs?: string | null
-          "Last Contact Date"?: string | null
-          "Last Message"?: string | null
-          "Lead Score"?: string | null
-          "Lead Source"?: string | null
-          lead_source_enum?: Database["public"]["Enums"]["lead_source"] | null
-          LinkedIn?: string | null
-          "LinkedIn Connected"?: string | null
-          "LinkedIn Connected Message"?: string | null
-          "LinkedIn Follow Up Message"?: string | null
-          "LinkedIn Request Message"?: string | null
-          "LinkedIn Responded"?: string | null
-          "LinkedIn URL"?: string | null
-          "Meeting Booked"?: string | null
-          "Meeting Date"?: string | null
-          "Message Sent"?: string | null
-          "Message Sent Date"?: string | null
-          Name?: string | null
-          "Next Action Date"?: string | null
-          "Outreach Channels"?: string | null
-          Owner?: string | null
-          priority_enum?: Database["public"]["Enums"]["priority_level"] | null
-          Remove?: string | null
-          "Response Date"?: string | null
-          Stage?: string | null
-          "Stage Updated"?: string | null
-          stage_enum?: Database["public"]["Enums"]["lead_stage"] | null
-          Updated?: string | null
+          is_favourite?: string | null
+          jobs?: string | null
+          last_interaction_at?: string | null
+          last_reply_at?: string | null
+          last_reply_channel?: string | null
+          last_reply_message?: string | null
+          lead_score?: string | null
+          linkedin_connected?: string | null
+          linkedin_connected_message?: string | null
+          linkedin_follow_up_message?: string | null
+          linkedin_request_message?: string | null
+          linkedin_responded?: string | null
+          linkedin_url?: string | null
+          meeting_booked?: string | null
+          meeting_date?: string | null
+          message_sent?: string | null
+          message_sent_date?: string | null
+          name: string
+          owner_id?: string | null
+          response_date?: string | null
+          stage?: Database["public"]["Enums"]["stage_enum"]
+          stage_updated?: string | null
           updated_at?: string | null
         }
         Update: {
-          Account?: string | null
-          Automation?: string | null
-          "Automation Date"?: string | null
-          "Automation Status"?: string | null
-          automation_status_enum?:
-            | Database["public"]["Enums"]["automation_status"]
-            | null
-          Business?: string | null
-          "Campaign Finished"?: string | null
-          Campaigns?: string | null
-          Company?: string | null
-          "Company Role"?: string | null
+          automation_started_at?: string | null
+          campaign_finished?: string | null
           company_id?: string | null
-          "Confidence Level"?: string | null
-          confidence_level_enum?:
-            | Database["public"]["Enums"]["confidence_level"]
-            | null
-          "Connection Accepted Date"?: string | null
-          "Connection Request"?: string | null
-          "Connection Request Date"?: string | null
-          Created?: string | null
-          "Created Date"?: string | null
+          company_role?: string | null
+          confidence_level?: string | null
+          connected_at?: string | null
+          connection_accepted_date?: string | null
+          connection_request_date?: string | null
+          connection_request_sent?: string | null
           created_at?: string | null
-          "Email Address"?: string | null
-          "Email Draft"?: string | null
-          "Email Reply"?: string | null
-          "Email Reply Date"?: string | null
-          "Email Sent"?: string | null
-          "Email Sent Date"?: string | null
-          "Employee Location"?: string | null
-          Favourite?: string | null
+          email_address?: string | null
+          email_draft?: string | null
+          email_reply?: string | null
+          email_reply_date?: string | null
+          email_sent?: string | null
+          email_sent_date?: string | null
+          employee_location?: string | null
+          favourite?: boolean | null
           id?: string
-          Jobs?: string | null
-          "Last Contact Date"?: string | null
-          "Last Message"?: string | null
-          "Lead Score"?: string | null
-          "Lead Source"?: string | null
-          lead_source_enum?: Database["public"]["Enums"]["lead_source"] | null
-          LinkedIn?: string | null
-          "LinkedIn Connected"?: string | null
-          "LinkedIn Connected Message"?: string | null
-          "LinkedIn Follow Up Message"?: string | null
-          "LinkedIn Request Message"?: string | null
-          "LinkedIn Responded"?: string | null
-          "LinkedIn URL"?: string | null
-          "Meeting Booked"?: string | null
-          "Meeting Date"?: string | null
-          "Message Sent"?: string | null
-          "Message Sent Date"?: string | null
-          Name?: string | null
-          "Next Action Date"?: string | null
-          "Outreach Channels"?: string | null
-          Owner?: string | null
-          priority_enum?: Database["public"]["Enums"]["priority_level"] | null
-          Remove?: string | null
-          "Response Date"?: string | null
-          Stage?: string | null
-          "Stage Updated"?: string | null
-          stage_enum?: Database["public"]["Enums"]["lead_stage"] | null
-          Updated?: string | null
+          is_favourite?: string | null
+          jobs?: string | null
+          last_interaction_at?: string | null
+          last_reply_at?: string | null
+          last_reply_channel?: string | null
+          last_reply_message?: string | null
+          lead_score?: string | null
+          linkedin_connected?: string | null
+          linkedin_connected_message?: string | null
+          linkedin_follow_up_message?: string | null
+          linkedin_request_message?: string | null
+          linkedin_responded?: string | null
+          linkedin_url?: string | null
+          meeting_booked?: string | null
+          meeting_date?: string | null
+          message_sent?: string | null
+          message_sent_date?: string | null
+          name?: string
+          owner_id?: string | null
+          response_date?: string | null
+          stage?: Database["public"]["Enums"]["stage_enum"]
+          stage_updated?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "people_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "Companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_dropdown_options: {
+        Args: { dropdown_type: string }
+        Returns: {
+          label: string
+          value: string
+        }[]
+      }
       get_enum_values: {
         Args: { enum_type: string }
         Returns: string[]
       }
     }
     Enums: {
-      automation_status:
-        | "idle"
-        | "queued"
-        | "running"
-        | "paused"
-        | "completed"
-        | "failed"
-      company_status: "active" | "inactive" | "prospect"
-      confidence_level: "low" | "medium" | "high" | "very-high"
-      employment_type:
-        | "full-time"
-        | "part-time"
-        | "contract"
-        | "internship"
-        | "freelance"
-      job_status: "draft" | "active" | "paused" | "filled" | "cancelled"
-      lead_source:
-        | "linkedin"
-        | "email"
-        | "referral"
-        | "website"
-        | "event"
-        | "other"
-      lead_stage:
+      campaign_status_enum: "draft" | "active" | "paused"
+      confidence_level_enum: "low" | "medium" | "high"
+      interaction_type_enum:
+        | "linkedin_connection_request_sent"
+        | "linkedin_connected"
+        | "linkedin_message_sent"
+        | "linkedin_message_reply"
+        | "email_sent"
+        | "email_reply"
+        | "meeting_booked"
+        | "meeting_held"
+        | "disqualified"
+        | "note"
+      stage_enum:
         | "new"
-        | "contacted"
-        | "qualified"
-        | "interview"
-        | "offer"
-        | "hired"
-        | "lost"
-      priority_level: "low" | "medium" | "high" | "urgent"
-      seniority_level:
-        | "entry"
-        | "junior"
-        | "mid"
-        | "senior"
-        | "lead"
-        | "manager"
-        | "director"
-        | "executive"
+        | "connection_requested"
+        | "connected"
+        | "messaged"
+        | "replied"
+        | "meeting_booked"
+        | "meeting_held"
+        | "disqualified"
+        | "in queue"
+        | "lead_lost"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -693,51 +584,31 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      automation_status: [
-        "idle",
-        "queued",
-        "running",
-        "paused",
-        "completed",
-        "failed",
+      campaign_status_enum: ["draft", "active", "paused"],
+      confidence_level_enum: ["low", "medium", "high"],
+      interaction_type_enum: [
+        "linkedin_connection_request_sent",
+        "linkedin_connected",
+        "linkedin_message_sent",
+        "linkedin_message_reply",
+        "email_sent",
+        "email_reply",
+        "meeting_booked",
+        "meeting_held",
+        "disqualified",
+        "note",
       ],
-      company_status: ["active", "inactive", "prospect"],
-      confidence_level: ["low", "medium", "high", "very-high"],
-      employment_type: [
-        "full-time",
-        "part-time",
-        "contract",
-        "internship",
-        "freelance",
-      ],
-      job_status: ["draft", "active", "paused", "filled", "cancelled"],
-      lead_source: [
-        "linkedin",
-        "email",
-        "referral",
-        "website",
-        "event",
-        "other",
-      ],
-      lead_stage: [
+      stage_enum: [
         "new",
-        "contacted",
-        "qualified",
-        "interview",
-        "offer",
-        "hired",
-        "lost",
-      ],
-      priority_level: ["low", "medium", "high", "urgent"],
-      seniority_level: [
-        "entry",
-        "junior",
-        "mid",
-        "senior",
-        "lead",
-        "manager",
-        "director",
-        "executive",
+        "connection_requested",
+        "connected",
+        "messaged",
+        "replied",
+        "meeting_booked",
+        "meeting_held",
+        "disqualified",
+        "in queue",
+        "lead_lost",
       ],
     },
   },

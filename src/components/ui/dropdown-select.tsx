@@ -42,6 +42,11 @@ export const DropdownSelect = ({
           const optionValue = isReferenceOption(option) ? option.id : option.value;
           const optionLabel = isReferenceOption(option) ? option.name : option.label;
           
+          // Ensure optionValue is never an empty string
+          if (!optionValue || optionValue === "") {
+            return null;
+          }
+          
           return (
             <SelectItem
               key={optionValue}

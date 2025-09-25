@@ -144,12 +144,12 @@ export function LinkedInConfirmationModal({
       // Update each lead with their LinkedIn message and set automation status
       const updates = selectedLeads.map(lead => 
         supabase
-          .from("People")
+          .from("people")
           .update({
-            "LinkedIn Request Message": messages[lead.id],
-            "Automation Status": "PENDING",
+            linkedin_request_message: messages[lead.id],
+            automation_status: "PENDING",
             automation_status_enum: "queued",
-            "Stage": "contacted",
+            stage: "contacted",
             stage_enum: "contacted"
           })
           .eq("id", lead.id)

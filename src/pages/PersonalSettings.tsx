@@ -28,7 +28,6 @@ const PersonalSettings = () => {
   });
   
   const [preferences, setPreferences] = useState({
-    theme: 'light',
     timezone: 'UTC',
     dateFormat: 'MM/dd/yyyy',
     language: 'en',
@@ -126,7 +125,7 @@ const PersonalSettings = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
+                  <User className="h-4 w-4" />
                   Profile Information
                 </CardTitle>
                 <CardDescription>
@@ -192,7 +191,7 @@ const PersonalSettings = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
+                  <Mail className="h-4 w-4" />
                   Account Details
                 </CardTitle>
                 <CardDescription>
@@ -244,7 +243,7 @@ const PersonalSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
+                <Bell className="h-4 w-4" />
                 Notification Preferences
               </CardTitle>
               <CardDescription>
@@ -314,7 +313,7 @@ const PersonalSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
+                <Palette className="h-4 w-4" />
                 Display Preferences
               </CardTitle>
               <CardDescription>
@@ -323,15 +322,6 @@ const PersonalSettings = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="theme">Theme</Label>
-                  <Input
-                    id="theme"
-                    value={preferences.theme}
-                    onChange={(e) => setPreferences(prev => ({ ...prev, theme: e.target.value }))}
-                    placeholder="light, dark, or system"
-                  />
-                </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="timezone">Timezone</Label>
@@ -372,7 +362,7 @@ const PersonalSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
+                <Database className="h-4 w-4" />
                 Account Information
               </CardTitle>
               <CardDescription>

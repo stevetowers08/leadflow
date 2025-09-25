@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { getUnifiedStatusClass } from '@/utils/colorScheme';
 import { 
   Plus, 
   Trash2, 
@@ -165,13 +166,8 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
   };
 
   const getStepColor = (type: WorkflowStep['type']) => {
-    switch (type) {
-      case 'trigger': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'condition': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'action': return 'bg-green-100 text-green-800 border-green-200';
-      case 'delay': return 'bg-purple-100 text-purple-800 border-purple-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    // Use unified color scheme for consistency
+    return getUnifiedStatusClass(type);
   };
 
   return (

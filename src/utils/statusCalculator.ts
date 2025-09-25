@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getUnifiedStatusClass } from './colorScheme';
 
 // Lead status types from the database
 export type LeadStatus = 'new' | 'in queue' | 'connect sent' | 'msg sent' | 'connected' | 'replied' | 'hired' | 'lead lost' | 'paused';
@@ -210,31 +211,32 @@ export const getBatchCompanyStatuses = async (companies: Company[]): Promise<Map
 
 /**
  * Get status color and styling information
+ * Now uses unified color scheme for consistency
  */
 export const getStatusInfo = (status: JobStatus | CompanyStatus) => {
   const statusInfo = {
     new: {
-      color: 'bg-blue-50 text-blue-700 border-blue-200',
+      color: getUnifiedStatusClass('new'),
       label: 'New',
       description: 'Just entered the system'
     },
     active: {
-      color: 'bg-green-50 text-green-700 border-green-200',
+      color: getUnifiedStatusClass('active'),
       label: 'Active',
       description: 'Automation running'
     },
     paused: {
-      color: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      color: getUnifiedStatusClass('paused'),
       label: 'Paused',
       description: 'Automation stopped'
     },
     completed: {
-      color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      color: getUnifiedStatusClass('completed'),
       label: 'Completed',
       description: 'Recruitment finished'
     },
     failed: {
-      color: 'bg-red-50 text-red-700 border-red-200',
+      color: getUnifiedStatusClass('failed'),
       label: 'Failed',
       description: 'Automation issues'
     }

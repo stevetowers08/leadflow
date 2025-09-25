@@ -1,417 +1,412 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DataTable } from "@/components/DataTable";
-import { StatusBadge } from "@/components/StatusBadge";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { useLeadStageDropdown, usePriorityLevelDropdown, FALLBACK_LEAD_STAGE_OPTIONS, FALLBACK_PRIORITY_OPTIONS } from "@/hooks/useDropdownOptions";
-import { Search, X, Bot, UserCheck, MessageSquare, Clock } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Bot, 
+  UserPlus, 
+  MessageSquare, 
+  Mail, 
+  Calendar, 
+  CheckCircle, 
+  Clock, 
+  Users,
+  Building2,
+  Zap,
+  Target,
+  TrendingUp
+} from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
 
-interface Lead {
+interface AutomationActivity {
   id: string;
-  Name: string;
-  Company: string | null;
-  "Email Address": string | null;
-  "Employee Location": string | null;
-  "Company Role": string | null;
-  Stage: string | null;
-  stage_enum: string | null;
-  priority_enum: string | null;
-  "Lead Score": string | null;
-  "LinkedIn URL": string | null;
-  created_at: string;
-  automation_status_enum: string | null;
-  "Automation Status": string | null;
-  days_since_update?: number;
+  type: 'automation_started' | 'connection_request' | 'message_sent' | 'response_received' | 'meeting_booked' | 'email_sent' | 'email_reply' | 'stage_updated';
+  person_name: string;
+  company_name: string;
+  company_role?: string;
+  occurred_at: string;
+  details?: string;
+  stage?: string;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
 }
 
 const Automations = () => {
-  const [leads, setLeads] = useState<Lead[]>([]);
+  const [activities, setActivities] = useState<AutomationActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [priorityFilter, setPriorityFilter] = useState<string>("");
-  const { toast } = useToast();
-  
-  // Database-driven dropdowns
-  const { options: leadStageOptions, loading: leadStageLoading } = useLeadStageDropdown();
-  const { options: priorityOptions, loading: priorityLoading } = usePriorityLevelDropdown();
+  const [stats, setStats] = useState({
+    totalAutomations: 0,
+    activeAutomations: 0,
+    connectionsSent: 0,
+    messagesSent: 0,
+    responsesReceived: 0,
+    meetingsBooked: 0
+  });
 
-  const fetchLeads = async () => {
+  const fetchAutomationActivities = async () => {
     try {
-      const { data, error } = await supabase
-        .from("People")
+      setLoading(true);
+      
+      // Fetch people with automation activities
+      const { data: peopleData, error } = await supabase
+        .from("people")
         .select(`
           id,
-          Name,
-          Company,
-          "Email Address",
-          "Employee Location", 
-          "Company Role",
-          Stage,
-          stage_enum,
-          priority_enum,
-          "Lead Score",
-          "LinkedIn URL",
-          created_at,
-          automation_status_enum,
-          "Automation Status"
+          name,
+          company_role,
+          automation_started_at,
+          connection_request_date,
+          connection_accepted_date,
+          message_sent_date,
+          response_date,
+          meeting_booked,
+          meeting_date,
+          email_sent_date,
+          email_reply_date,
+          stage_updated,
+          last_interaction_at,
+          stage,
+          companies!inner(name)
         `)
-        // Only fetch leads that are automated (not idle)
-        .not('automation_status_enum', 'is', null)
-        .neq('automation_status_enum', 'idle')
-        .order("created_at", { ascending: false });
+        .not('automation_started_at', 'is', null)
+        .order('last_interaction_at', { ascending: false });
 
       if (error) throw error;
+
+      // Transform data into activities
+      const activitiesList: AutomationActivity[] = [];
       
-      // Process leads to add days since update
-      const processedLeads = (data || []).map(lead => {
-        const createdAt = new Date(lead.created_at);
-        const daysSinceUpdate = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      peopleData?.forEach(person => {
+        const companyName = person.companies?.name || 'Unknown Company';
         
-        return {
-          ...lead,
-          days_since_update: daysSinceUpdate
-        };
+        // Automation started
+        if (person.automation_started_at) {
+          activitiesList.push({
+            id: `${person.id}-automation-started`,
+            type: 'automation_started',
+            person_name: person.name,
+            company_name: companyName,
+            company_role: person.company_role,
+            occurred_at: person.automation_started_at,
+            details: `Automation started for ${person.name} at ${companyName}`,
+            stage: person.stage,
+            icon: <Bot className="h-4 w-4" />,
+            color: 'text-blue-600',
+            bgColor: 'bg-blue-50'
+          });
+        }
+
+        // Connection request sent
+        if (person.connection_request_date) {
+          activitiesList.push({
+            id: `${person.id}-connection-request`,
+            type: 'connection_request',
+            person_name: person.name,
+            company_name: companyName,
+            company_role: person.company_role,
+            occurred_at: person.connection_request_date,
+            details: `Connection request sent to ${person.name}`,
+            stage: person.stage,
+            icon: <UserPlus className="h-4 w-4" />,
+            color: 'text-green-600',
+            bgColor: 'bg-green-50'
+          });
+        }
+
+        // Message sent
+        if (person.message_sent_date) {
+          activitiesList.push({
+            id: `${person.id}-message-sent`,
+            type: 'message_sent',
+            person_name: person.name,
+            company_name: companyName,
+            company_role: person.company_role,
+            occurred_at: person.message_sent_date,
+            details: `Message sent to ${person.name}`,
+            stage: person.stage,
+            icon: <MessageSquare className="h-4 w-4" />,
+            color: 'text-purple-600',
+            bgColor: 'bg-purple-50'
+          });
+        }
+
+        // Response received
+        if (person.response_date) {
+          activitiesList.push({
+            id: `${person.id}-response-received`,
+            type: 'response_received',
+            person_name: person.name,
+            company_name: companyName,
+            company_role: person.company_role,
+            occurred_at: person.response_date,
+            details: `Response received from ${person.name}`,
+            stage: person.stage,
+            icon: <CheckCircle className="h-4 w-4" />,
+            color: 'text-emerald-600',
+            bgColor: 'bg-emerald-50'
+          });
+        }
+
+        // Meeting booked
+        if (person.meeting_booked === 'true' && person.meeting_date) {
+          activitiesList.push({
+            id: `${person.id}-meeting-booked`,
+            type: 'meeting_booked',
+            person_name: person.name,
+            company_name: companyName,
+            company_role: person.company_role,
+            occurred_at: person.meeting_date,
+            details: `Meeting booked with ${person.name}`,
+            stage: person.stage,
+            icon: <Calendar className="h-4 w-4" />,
+            color: 'text-orange-600',
+            bgColor: 'bg-orange-50'
+          });
+        }
+
+        // Email sent
+        if (person.email_sent_date) {
+          activitiesList.push({
+            id: `${person.id}-email-sent`,
+            type: 'email_sent',
+            person_name: person.name,
+            company_name: companyName,
+            company_role: person.company_role,
+            occurred_at: person.email_sent_date,
+            details: `Email sent to ${person.name}`,
+            stage: person.stage,
+            icon: <Mail className="h-4 w-4" />,
+            color: 'text-indigo-600',
+            bgColor: 'bg-indigo-50'
+          });
+        }
+
+        // Email reply
+        if (person.email_reply_date) {
+          activitiesList.push({
+            id: `${person.id}-email-reply`,
+            type: 'email_reply',
+            person_name: person.name,
+            company_name: companyName,
+            company_role: person.company_role,
+            occurred_at: person.email_reply_date,
+            details: `Email reply received from ${person.name}`,
+            stage: person.stage,
+            icon: <Mail className="h-4 w-4" />,
+            color: 'text-cyan-600',
+            bgColor: 'bg-cyan-50'
+          });
+        }
       });
-      
-      setLeads(processedLeads);
+
+      // Sort by occurred_at date
+      activitiesList.sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime());
+
+      setActivities(activitiesList);
+
+      // Calculate stats
+      const statsData = {
+        totalAutomations: peopleData?.length || 0,
+        activeAutomations: peopleData?.filter(p => p.automation_started_at).length || 0,
+        connectionsSent: activitiesList.filter(a => a.type === 'connection_request').length,
+        messagesSent: activitiesList.filter(a => a.type === 'message_sent').length,
+        responsesReceived: activitiesList.filter(a => a.type === 'response_received').length,
+        meetingsBooked: activitiesList.filter(a => a.type === 'meeting_booked').length
+      };
+
+      setStats(statsData);
+
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch automated leads",
-        variant: "destructive",
-      });
+      console.error('Error fetching automation activities:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLeads();
+    fetchAutomationActivities();
   }, []);
 
-  // Filter leads based on search term, status, and priority
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = !searchTerm || 
-      lead.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.Company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead["Email Address"]?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = !statusFilter || 
-      (lead.Stage === statusFilter) ||
-      (lead.stage_enum === statusFilter);
-      
-    const matchesPriority = !priorityFilter || 
-      lead.priority_enum === priorityFilter;
-    
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("");
-    setPriorityFilter("");
+  const getActivityTypeLabel = (type: string) => {
+    const labels = {
+      'automation_started': 'Automation Started',
+      'connection_request': 'Connection Request',
+      'message_sent': 'Message Sent',
+      'response_received': 'Response Received',
+      'meeting_booked': 'Meeting Booked',
+      'email_sent': 'Email Sent',
+      'email_reply': 'Email Reply',
+      'stage_updated': 'Stage Updated'
+    };
+    return labels[type as keyof typeof labels] || type;
   };
 
-  const handleAutomationAction = async (leadId: string, action: string) => {
-    try {
-      let updateData: any = {};
-      
-      switch (action) {
-        case "pause":
-          updateData = { automation_status_enum: "paused" };
-          break;
-        case "resume":
-          updateData = { automation_status_enum: "running" };
-          break;
-        case "stop":
-          updateData = { automation_status_enum: "completed" };
-          break;
-        case "restart":
-          updateData = { automation_status_enum: "queued" };
-          break;
-        default:
-          return;
-      }
-
-      const { error } = await supabase
-        .from("People")
-        .update(updateData)
-        .eq("id", leadId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: `Automation ${action}d successfully`,
-      });
-      
-      fetchLeads();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update automation",
-        variant: "destructive",
-      });
-    }
+  const getStageBadgeColor = (stage?: string) => {
+    const colors = {
+      'new': 'bg-gray-100 text-gray-800',
+      'connection_requested': 'bg-blue-100 text-blue-800',
+      'connected': 'bg-green-100 text-green-800',
+      'messaged': 'bg-purple-100 text-purple-800',
+      'replied': 'bg-emerald-100 text-emerald-800',
+      'meeting_booked': 'bg-orange-100 text-orange-800',
+      'meeting_held': 'bg-yellow-100 text-yellow-800',
+      'disqualified': 'bg-red-100 text-red-800',
+      'in queue': 'bg-indigo-100 text-indigo-800',
+      'lead_lost': 'bg-gray-100 text-gray-800'
+    };
+    return colors[stage as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const columns = [
-    {
-      key: "Name",
-      label: "Lead Name",
-      render: (lead: Lead) => (
-        <div className="flex flex-col">
-          <span className="font-medium text-sm">{lead.Name}</span>
-          <span className="text-xs text-muted-foreground">{lead["Company Role"] || "No role"}</span>
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="border-b pb-3">
+          <h1 className="text-base font-semibold tracking-tight">Automations</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Recent automation activities and performance metrics
+          </p>
         </div>
-      ),
-    },
-    {
-      key: "Company",
-      label: "Company",
-      render: (lead: Lead) => (
-        <div className="flex flex-col">
-          <span className="font-medium text-sm">{lead.Company || "-"}</span>
-          <span className="text-xs text-muted-foreground">{lead["Employee Location"] || ""}</span>
+        <div className="p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-sm text-muted-foreground">Loading automations...</p>
         </div>
-      ),
-    },
-    {
-      key: "Stage",
-      label: "Current Status",
-      render: (lead: Lead) => (
-        <StatusBadge status={lead.Stage || lead.stage_enum || "NEW LEAD"} size="sm" />
-      ),
-    },
-    {
-      key: "automation_status_enum",
-      label: "Automation Status",
-      render: (lead: Lead) => {
-        const status = lead.automation_status_enum || lead["Automation Status"] || "queued";
-        let icon = <Bot className="h-3 w-3" />;
-        let color = "bg-blue-100 text-blue-700";
-        
-        if (status === "running") {
-          icon = <Bot className="h-3 w-3" />;
-          color = "bg-green-100 text-green-700";
-        } else if (status === "completed") {
-          icon = <UserCheck className="h-3 w-3" />;
-          color = "bg-purple-100 text-purple-700";
-        } else if (status === "paused") {
-          icon = <Clock className="h-3 w-3" />;
-          color = "bg-orange-100 text-orange-700";
-        } else if (status === "failed") {
-          icon = <X className="h-3 w-3" />;
-          color = "bg-red-100 text-red-700";
-        } else if (status === "queued") {
-          icon = <Clock className="h-3 w-3" />;
-          color = "bg-yellow-100 text-yellow-700";
-        }
-        
-        return (
-          <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${color}`}>
-            {icon}
-            <span className="capitalize">{status}</span>
-          </div>
-        );
-      },
-    },
-    {
-      key: "days_since_update",
-      label: "Days Since Update",
-      render: (lead: Lead) => {
-        const days = lead.days_since_update || 0;
-        let color = "text-green-600";
-        if (days > 7) color = "text-orange-600";
-        if (days > 14) color = "text-red-600";
-        
-        return (
-          <span className={`text-sm font-medium ${color}`}>
-            {days} days
-          </span>
-        );
-      },
-    },
-    {
-      key: "actions",
-      label: "Automation Controls",
-      render: (lead: Lead) => {
-        const status = lead.automation_status_enum || lead["Automation Status"] || "queued";
-        
-        return (
-          <div className="flex gap-1">
-            {status === "running" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAutomationAction(lead.id, "pause");
-                }}
-                className="h-7 px-2 text-xs"
-              >
-                Pause
-              </Button>
-            )}
-            {status === "paused" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAutomationAction(lead.id, "resume");
-                }}
-                className="h-7 px-2 text-xs"
-              >
-                Resume
-              </Button>
-            )}
-            {(status === "running" || status === "paused") && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAutomationAction(lead.id, "stop");
-                }}
-                className="h-7 px-2 text-xs"
-              >
-                Stop
-              </Button>
-            )}
-            {(status === "completed" || status === "failed") && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAutomationAction(lead.id, "restart");
-                }}
-                className="h-7 px-2 text-xs"
-              >
-                Restart
-              </Button>
-            )}
-          </div>
-        );
-      },
-    },
-  ];
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-        <div className="border-b pb-3">
-          <h1 className="text-lg font-semibold tracking-tight">Automations</h1>
-        <p className="text-xs text-muted-foreground mt-1">
-          Manage automated outreach campaigns and sequences
-        </p>
-        </div>
-
-      {/* Search and Filter Controls */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search automations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-9 text-sm"
-          />
+      {/* Header with Stats in Top Right */}
+      <div className="grid grid-cols-12 gap-4 items-center border-b pb-3">
+        <div className="col-span-6">
+          <h1 className="text-base font-semibold tracking-tight">Automations</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Recent automation activities and performance metrics
+          </p>
         </div>
         
-          <DropdownSelect
-            options={[
-              { label: "All Statuses", value: "all" },
-              ...(leadStageOptions.length > 0 ? leadStageOptions : FALLBACK_LEAD_STAGE_OPTIONS)
-            ]}
-            value={statusFilter || "all"}
-            onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}
-            placeholder="Filter by status"
-            loading={leadStageLoading}
-          />
-          
-          <DropdownSelect
-            options={[
-              { label: "All Priorities", value: "all" },
-              ...(priorityOptions.length > 0 ? priorityOptions : FALLBACK_PRIORITY_OPTIONS)
-            ]}
-            value={priorityFilter || "all"}
-            onValueChange={(value) => setPriorityFilter(value === "all" ? "" : value)}
-            placeholder="Filter by priority"
-            loading={priorityLoading}
-          />
-        
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="h-9 px-3"
-          onClick={clearFilters}
-          disabled={!searchTerm && !statusFilter && !priorityFilter}
-        >
-          <X className="h-3 w-3 mr-1" />
-          Clear
-        </Button>
-        
-          <Button 
-            variant="outline"
-            className="h-9 px-4"
-            onClick={() => {
-              toast({
-                title: "Bulk Actions",
-                description: "Bulk automation actions will be available soon",
-              });
-            }}
-          >
-            <Bot className="h-4 w-4 mr-2" />
-            Bulk Actions
-          </Button>
+        {/* Stats Cards - Top Right */}
+        <div className="col-span-6 flex justify-end">
+          <div className="flex items-center gap-3">
+            <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm min-w-[120px]">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-900">{stats.totalAutomations}</span>
+                <span className="text-sm text-gray-600">Total</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm min-w-[120px]">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-900">{stats.activeAutomations}</span>
+                <span className="text-sm text-gray-600">Active</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm min-w-[120px]">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-900">{stats.connectionsSent}</span>
+                <span className="text-sm text-gray-600">Sent</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm min-w-[120px]">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-900">{stats.messagesSent}</span>
+                <span className="text-sm text-gray-600">Messages</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-        {/* Active Filters Display */}
-        {(statusFilter || priorityFilter) && (
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground">Active filters:</span>
-            {statusFilter && (
-              <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full">
-                <span>Status: {statusFilter}</span>
-                <button 
-                  onClick={() => setStatusFilter("")}
-                  className="hover:bg-primary/20 rounded-full p-0.5"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            )}
-            {priorityFilter && (
-              <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full">
-                <span>Priority: {priorityFilter}</span>
-                <button 
-                  onClick={() => setPriorityFilter("")}
-                  className="hover:bg-primary/20 rounded-full p-0.5"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            )}
+      {/* Activity Feed */}
+      {activities.length === 0 ? (
+        <div className="p-8 text-center">
+          <Bot className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No automation activities yet</h3>
+          <p className="text-gray-500">Automation activities will appear here as they occur.</p>
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-gray-50/50 px-4 py-3 border-b border-gray-200">
+            <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-600 uppercase tracking-wide">
+              <div className="col-span-1">Type</div>
+              <div className="col-span-3">Person</div>
+              <div className="col-span-3">Company</div>
+              <div className="col-span-2">Stage</div>
+              <div className="col-span-3">Time</div>
+            </div>
           </div>
-        )}
+          
+          {/* List Items */}
+          <div className="divide-y divide-gray-100">
+            {activities.map((activity) => (
+              <div key={activity.id} className="px-4 py-3 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 hover:scale-[1.01] hover:z-10 relative transition-all duration-200">
+                <div className="grid grid-cols-12 gap-4 items-center">
+                  {/* Type */}
+                  <div className="col-span-1">
+                    <div className={`p-1.5 rounded-full ${activity.bgColor} w-fit`}>
+                      <div className={activity.color}>
+                        {activity.icon}
+                      </div>
+                    </div>
+                  </div>
 
-        <DataTable
-          data={filteredLeads}
-          columns={columns}
-          loading={loading}
-          onRowClick={(lead) => {
-            toast({
-              title: "Lead Details",
-              description: "Detailed lead view will be available soon",
-            });
-          }}
-          showSearch={false}
-        />
+                  {/* Person */}
+                  <div className="col-span-3">
+                    <div className="text-sm font-medium text-gray-900 truncate">
+                      {activity.person_name}
+                    </div>
+                    {activity.company_role && (
+                      <div className="text-xs text-gray-500 truncate">
+                        {activity.company_role}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Company */}
+                  <div className="col-span-3">
+                    <div className="text-sm text-gray-600 truncate">
+                      {activity.company_name}
+                    </div>
+                  </div>
+
+                  {/* Stage */}
+                  <div className="col-span-2">
+                    {activity.stage ? (
+                      <Badge className={`text-xs ${getStageBadgeColor(activity.stage)}`}>
+                        {activity.stage.replace('_', ' ')}
+                      </Badge>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </div>
+
+                  {/* Time */}
+                  <div className="col-span-3">
+                    <div className="text-xs text-gray-500">
+                      {formatDistanceToNow(new Date(activity.occurred_at), { addSuffix: true })}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {new Date(activity.occurred_at).toLocaleString('en-AU', {
+                        timeZone: 'Australia/Sydney',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

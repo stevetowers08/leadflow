@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, MoreHorizontal, Download } from "lucide-react";
+import { MoreHorizontal, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TableSkeleton } from "@/components/LoadingSkeletons";
 import { PaginationControls } from "@/components/PaginationControls";
@@ -19,6 +19,7 @@ interface Column<T> {
   headerAlign?: "left" | "center" | "right";
   cellAlign?: "left" | "center" | "right";
   sortable?: boolean;
+  width?: string;
 }
 
 interface DataTableProps<T> {
@@ -28,7 +29,6 @@ interface DataTableProps<T> {
   loading?: boolean;
   addButton?: ReactNode;
   onRowClick?: (item: T) => void;
-  showSearch?: boolean;
   pagination?: {
     enabled: boolean;
     pageSize?: number;
@@ -44,14 +44,13 @@ interface DataTableProps<T> {
   exportFilename?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, any> & { id: string }>({
   title,
   data,
   columns,
   loading = false,
   addButton,
   onRowClick,
-  showSearch = true,
   pagination = { enabled: false },
   bulkActions = [],
   enableBulkActions = false,
@@ -60,18 +59,11 @@ export function DataTable<T extends Record<string, any>>({
   enableExport = false,
   exportFilename = 'export.csv',
 }: DataTableProps<T>) {
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const { toast } = useToast();
 
-  const filteredData = data.filter((item) => {
-    if (!searchTerm) return true;
-    
-    return Object.values(item).some((value) =>
-      String(value).toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  const filteredData = data;
 
   // Sorting logic
   const sortedData = [...filteredData].sort((a, b) => {
@@ -81,7 +73,13 @@ export function DataTable<T extends Record<string, any>>({
     const bValue = b[sortConfig.key];
     
     // Handle date sorting
-    if (sortConfig.key === 'created_at' || sortConfig.key === 'updated_at') {
+    if (sortConfig.key === 'created_at' || sortConfig.key === 'updated_at' || 
+        sortConfig.key === 'last_interaction_at' || sortConfig.key === 'connected_at' || 
+        sortConfig.key === 'last_reply_at' || sortConfig.key === 'meeting_date' ||
+        sortConfig.key === 'connection_request_date' || sortConfig.key === 'connection_accepted_date' ||
+        sortConfig.key === 'message_sent_date' || sortConfig.key === 'response_date' ||
+        sortConfig.key === 'email_sent_date' || sortConfig.key === 'email_reply_date' ||
+        sortConfig.key === 'stage_updated') {
       const aDate = new Date(aValue || 0);
       const bDate = new Date(bValue || 0);
       return sortConfig.direction === 'asc' ? aDate.getTime() - bDate.getTime() : bDate.getTime() - aDate.getTime();
@@ -165,38 +163,23 @@ export function DataTable<T extends Record<string, any>>({
         </div>
       )}
       
-      {showSearch && (
+      {enableExport && (
         <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder={`Search ${title?.toLowerCase() || 'items'}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-10 bg-background border-input"
-            />
-          </div>
-          <Button variant="outline" size="default" className="h-10 px-4">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
+          <Button 
+            variant="outline" 
+            size="default" 
+            className="h-10 px-4"
+            onClick={() => {
+              exportToCSV(filteredData, { filename: exportFilename });
+              toast({
+                title: "Export successful",
+                description: `Data exported to ${exportFilename}`,
+              });
+            }}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export
           </Button>
-          {enableExport && (
-            <Button 
-              variant="outline" 
-              size="default" 
-              className="h-10 px-4"
-              onClick={() => {
-                exportToCSV(filteredData, { filename: exportFilename });
-                toast({
-                  title: "Export successful",
-                  description: `Data exported to ${exportFilename}`,
-                });
-              }}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          )}
         </div>
       )}
 
@@ -214,10 +197,14 @@ export function DataTable<T extends Record<string, any>>({
         />
       )}
 
-      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-        <Table role="table" aria-label={title || "Data table"}>
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-x-auto relative group">
+        <div className="absolute top-0 right-0 bg-gradient-to-l from-background to-transparent w-6 h-full pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100 rounded-b-lg overflow-hidden">
+          <div className="h-full bg-blue-500 opacity-0 group-hover:opacity-30 transition-opacity duration-200" style={{ width: '30%' }} />
+        </div>
+        <Table role="table" aria-label={title || "Data table"} className="min-w-full">
           <TableHeader>
-            <TableRow className="border-b bg-muted/30">
+            <TableRow className="border-b border-gray-200 bg-gray-50/50">
               {(enableBulkActions || enableExport) && (
                 <TableHead className="h-12 px-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider w-12">
                   <input
@@ -235,11 +222,40 @@ export function DataTable<T extends Record<string, any>>({
                   className={cn(
                     "h-12 px-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider",
                     column.headerAlign === "center" && "text-center",
-                    column.headerAlign === "right" && "text-right"
+                    column.headerAlign === "right" && "text-right",
+                    column.sortable && "cursor-pointer hover:bg-muted/50 transition-colors",
+                    column.key === 'title' && "w-96 min-w-96",
+                    column.key === 'company' && "w-72 min-w-72",
+                    column.key === 'name' && "w-80 min-w-80",
+                    column.key === 'industry' && "w-64 min-w-64",
+                    column.key === 'location' && "w-48 min-w-48",
+                    column.key === 'head_office' && "w-56 min-w-56",
+                    column.key === 'leads' && "w-20 min-w-20",
+                    column.key === 'jobs' && "w-20 min-w-20"
                   )}
                   scope="col"
+                  onClick={column.sortable ? () => handleSort(column.key) : undefined}
                 >
-                  {column.label}
+                  <div className={cn(
+                    "flex items-center gap-2",
+                    column.headerAlign === "center" && "justify-center",
+                    column.headerAlign === "right" && "justify-end"
+                  )}>
+                    <span>{column.label}</span>
+                    {column.sortable && (
+                      <div className="flex items-center">
+                        {sortConfig?.key === column.key ? (
+                          sortConfig.direction === 'asc' ? (
+                            <ArrowUp className="h-3 w-3" />
+                          ) : (
+                            <ArrowDown className="h-3 w-3" />
+                          )
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 opacity-50" />
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </TableHead>
               ))}
             </TableRow>
@@ -254,12 +270,10 @@ export function DataTable<T extends Record<string, any>>({
                   <div className="flex flex-col items-center gap-2">
                     <div className="text-4xl opacity-20">📋</div>
                     <div className="font-medium">
-                      {searchTerm
-                        ? `No ${title?.toLowerCase() || 'items'} found matching "${searchTerm}"`
-                        : `No ${title?.toLowerCase() || 'items'} found`}
+                      {`No ${title?.toLowerCase() || 'items'} found`}
                     </div>
                     <div className="text-sm text-muted-foreground/60">
-                      {searchTerm ? "Try adjusting your search terms" : `Start by adding your first ${title?.toLowerCase().slice(0, -1) || 'item'}`}
+                      {`Start by adding your first ${title?.toLowerCase().slice(0, -1) || 'item'}`}
                     </div>
                   </div>
                 </TableCell>
@@ -269,8 +283,9 @@ export function DataTable<T extends Record<string, any>>({
                 <TableRow 
                   key={item.id || index} 
                   className={cn(
-                    "border-b border-border/50 hover:bg-muted/20 transition-colors duration-150",
+                    "border-b border-gray-100 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 transition-colors duration-200",
                     "group cursor-pointer",
+                    "relative",
                     selectedItems.some(selected => selected.id === item.id) && "bg-primary/5"
                   )}
                   onClick={() => onRowClick?.(item)}
@@ -286,7 +301,7 @@ export function DataTable<T extends Record<string, any>>({
                 >
                   {(enableBulkActions || enableExport) && (
                     <TableCell 
-                      className="px-6 py-4"
+                      className="px-6 py-3"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <input
@@ -302,9 +317,16 @@ export function DataTable<T extends Record<string, any>>({
                     <TableCell 
                       key={column.key} 
                       className={cn(
-                        "px-6 py-4",
+                        "px-6 py-3 border-r border-gray-50 last:border-r-0",
+                        "group-hover:border-r-gray-100 group-hover:last:border-r-0",
                         column.cellAlign === "center" && "text-center",
-                        column.cellAlign === "right" && "text-right"
+                        column.cellAlign === "right" && "text-right",
+                        column.key === 'title' && "w-96 min-w-96",
+                        column.key === 'company' && "w-72 min-w-72",
+                        column.key === 'name' && "w-80 min-w-80",
+                        column.key === 'industry' && "w-56 min-w-56",
+                        column.key === 'location' && "w-48 min-w-48",
+                        column.key === 'head_office' && "w-56 min-w-56"
                       )}
                     >
                       {column.render(item)}

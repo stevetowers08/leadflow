@@ -12,11 +12,13 @@ import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 
 // Pages
 import Index from "./pages/Index";
-import Opportunities from "./pages/Opportunities";
+import Pipeline from "./pages/Pipeline";
 import Leads from "./pages/Leads";
 import Companies from "./pages/Companies";
 import Jobs from "./pages/Jobs";
 import Reporting from "./pages/Reporting";
+import Automations from "./pages/Automations";
+import Settings from "./pages/Settings";
 import PersonalSettings from "./pages/PersonalSettings";
 import AdminUsers from "./pages/AdminUsers";
 import AdminSettings from "./pages/AdminSettings";
@@ -35,13 +37,6 @@ const queryClient = new QueryClient({
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
-  
-  // Initialize global error handling and performance monitoring
-  useGlobalErrorHandler();
-  usePerformanceMonitoring();
-  
-  // Initialize keyboard shortcuts
-  useKeyboardShortcuts();
 
   // Simplified loading state to prevent flickering
   if (loading) {
@@ -59,10 +54,11 @@ const AppRoutes = () => {
     <Layout>
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/opportunities" element={<Opportunities />} />
+        <Route path="/pipeline" element={<Pipeline />} />
         <Route path="/leads" element={<Leads />} />
         <Route path="/companies" element={<Companies />} />
         <Route path="/jobs" element={<Jobs />} />
+        <Route path="/automations" element={<Automations />} />
         <Route path="/reporting" element={<Reporting />} />
         <Route path="/settings" element={<PersonalSettings />} />
         <Route path="/admin" element={<Admin />} />

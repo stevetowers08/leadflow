@@ -155,7 +155,7 @@ const AdminSettings = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
+            <Users className="h-4 w-4" />
             User Management
           </CardTitle>
         </CardHeader>
@@ -215,7 +215,7 @@ const AdminSettings = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
+            <Database className="h-4 w-4" />
             Data & Security
           </CardTitle>
         </CardHeader>
@@ -264,7 +264,7 @@ const AdminSettings = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
+            <Bell className="h-4 w-4" />
             Notifications
           </CardTitle>
         </CardHeader>
@@ -287,7 +287,7 @@ const AdminSettings = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
+            <Shield className="h-4 w-4" />
             System Status
           </CardTitle>
         </CardHeader>
@@ -310,7 +310,7 @@ const AdminSettings = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5" />
+            <Globe className="h-4 w-4" />
             Company Information
           </CardTitle>
         </CardHeader>
