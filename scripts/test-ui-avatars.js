@@ -27,7 +27,7 @@ const getInitials = (name) => {
     .join('');
 };
 
-const getUIAvatarUrl = (name, size = 40, backgroundColor = '4f46e5', textColor = 'ffffff') => {
+const getUIAvatarUrl = (name, size = 32, backgroundColor = '4f46e5', textColor = 'ffffff') => {
   const initials = getInitials(name);
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=${size}&background=${backgroundColor}&color=${textColor}&format=png`;
 };
@@ -39,7 +39,7 @@ const testUIAvatar = async (name, index) => {
   const initials = getInitials(name);
   console.log(`Initials: ${initials}`);
   
-  const avatarUrl = getUIAvatarUrl(name, 40);
+  const avatarUrl = getUIAvatarUrl(name, 32);
   console.log(`Avatar URL: ${avatarUrl}`);
   
   try {

@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from './AuthContext';
 
 export interface Permission {
   id: string;
@@ -184,8 +183,14 @@ const DEFAULT_ROLES: Role[] = [
   }
 ];
 
-export function PermissionsProvider({ children }: { children: React.ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
+interface PermissionsProviderProps {
+  children: React.ReactNode;
+  user: any;
+  userProfile: any;
+  authLoading: boolean;
+}
+
+export function PermissionsProvider({ children, user, userProfile, authLoading }: PermissionsProviderProps) {
   const [roles] = useState<Role[]>(DEFAULT_ROLES);
   const [userPermissions, setUserPermissions] = useState<UserPermissions | null>(null);
   const [loading, setLoading] = useState(true);
@@ -197,21 +202,11 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
       return;
     }
 
-    if (user) {
-      // Check for explicit role in user metadata first
-      let userRole = user.user_metadata?.role;
+    if (user && userProfile) {
+      // Use role from user profile database record
+      const userRole = userProfile.role;
       
-      // TEMPORARY: Check for temporary owner role in localStorage
-      if (!userRole && localStorage.getItem('temp_owner_role') === 'true') {
-        userRole = 'owner';
-      }
-      
-      // TEMPORARY: If no role set, make everyone admin for testing
-      if (!userRole) {
-        userRole = 'admin'; // Everyone gets admin access by default
-      }
-      
-      const role = roles.find(r => r.id === userRole) || roles.find(r => r.id === 'admin');
+      const role = roles.find(r => r.id === userRole);
       
       if (role) {
         setUserPermissions({
@@ -219,13 +214,23 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
           roles: [role],
           permissions: role.permissions
         });
+      } else {
+        // If role not found, default to recruiter for safety
+        const defaultRole = roles.find(r => r.id === 'recruiter');
+        if (defaultRole) {
+          setUserPermissions({
+            userId: user.id,
+            roles: [defaultRole],
+            permissions: defaultRole.permissions
+          });
+        }
       }
     } else {
-      // No user, clear permissions
+      // No user or user profile, clear permissions
       setUserPermissions(null);
     }
     setLoading(false);
-  }, [user, roles, authLoading]);
+  }, [user, userProfile, roles, authLoading]);
 
   const hasPermission = (resource: string, action: string): boolean => {
     if (!userPermissions) return false;

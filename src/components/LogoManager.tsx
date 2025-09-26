@@ -4,13 +4,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { StatusBadge } from '@/components/StatusBadge';
+import { getStatusDisplayText } from '@/utils/statusUtils';
 import { 
   getClearbitLogo, 
   testLogoUrl, 
-  updateCompanyLogo, 
+  getCompanyLogoUrl,
+  updateCompanyLogo,
   batchUpdateLogos,
-  setCompanyLogoManually 
+  setCompanyLogoManually
 } from '@/utils/logoService';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, RefreshCw, Check, X, ExternalLink, Image as ImageIcon } from 'lucide-react';
@@ -291,12 +293,12 @@ export const LogoManager = () => {
             <Card key={company.id} className="cursor-pointer hover:shadow-md transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                     {company.profile_image_url ? (
                       <img 
                         src={company.profile_image_url} 
                         alt={company.name}
-                        className="w-12 h-12 rounded-full object-cover"
+                        className="w-8 h-8 rounded-full object-cover"
                         onError={(e) => {
                           console.log(`Failed to load logo for ${company.name}: ${company.profile_image_url}`);
                           e.currentTarget.style.display = 'none';
@@ -311,10 +313,10 @@ export const LogoManager = () => {
                       />
                     ) : null}
                     <div 
-                      className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-semibold"
+                      className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
                       style={{ display: company.profile_image_url ? 'none' : 'flex' }}
                     >
-                      {company.name.charAt(0).toUpperCase()}
+                      {getStatusDisplayText(company.name.charAt(0))}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -328,15 +330,9 @@ export const LogoManager = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex gap-1">
                     {company.profile_image_url ? (
-                      <Badge variant="default" className="text-xs">
-                        <Check className="h-3 w-3 mr-1" />
-                        Has Logo
-                      </Badge>
+                      <StatusBadge status="Has Logo" size="sm" />
                     ) : (
-                      <Badge variant="secondary" className="text-xs">
-                        <X className="h-3 w-3 mr-1" />
-                        No Logo
-                      </Badge>
+                      <StatusBadge status="No Logo" size="sm" />
                     )}
                   </div>
                   

@@ -1,0 +1,7 @@
+Do not add debugging onto the app
+Always fix for long term solutions
+You have access to the data via the Supabase MCP---
+description:
+globs:
+alwaysApply: true
+---

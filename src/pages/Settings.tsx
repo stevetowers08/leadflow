@@ -1,49 +1,114 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Automations from "./Automations";
-import Reporting from "./Reporting";
-import PersonalSettings from "./PersonalSettings";
-import { Bot, BarChart3, Settings } from "lucide-react";
+import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/contexts/PermissionsContext';
+import { useSidebar } from '@/contexts/SidebarContext';
+import SettingsNavigation from '@/components/SettingsNavigation';
+import PersonalSettings from './PersonalSettings';
+import AdminSettings from './AdminSettings';
+import { PermissionGuard } from '@/components/PermissionGuard';
+import { Settings as SettingsIcon } from 'lucide-react';
+import IntegrationsPage from '@/components/IntegrationsPage';
+import Accounts from './settings/Accounts';
+import Members from './settings/Members';
+import Billing from './settings/Billing';
+import VoiceCloner from './settings/VoiceCloner';
+import WhiteLabel from './settings/WhiteLabel';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const Settings = () => {
+  const { user } = useAuth();
+  const { hasRole } = usePermissions();
+  const { isCollapsed } = useSidebar();
+  const [activeSection, setActiveSection] = useState('profile-info');
+
+  // Set page meta tags
+  usePageMeta({
+    title: 'Settings - Empowr CRM',
+    description: 'Configure your CRM settings, manage integrations, billing, and customize your workspace preferences.',
+    keywords: 'settings, configuration, CRM settings, integrations, billing, preferences, workspace',
+    ogTitle: 'Settings - Empowr CRM',
+    ogDescription: 'Configure your CRM settings, manage integrations, billing, and customize your workspace preferences.',
+    twitterTitle: 'Settings - Empowr CRM',
+    twitterDescription: 'Configure your CRM settings, manage integrations, billing, and customize your workspace preferences.'
+  });
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'profile-info':
+      case 'notifications':
+      case 'preferences':
+      case 'security':
+        return <PersonalSettings activeSection={activeSection} />;
+      case 'accounts':
+        return (
+          <div className="p-6">
+            <PermissionGuard requiredRole={['admin', 'owner']}>
+              <Accounts />
+            </PermissionGuard>
+          </div>
+        );
+      case 'members':
+        return (
+          <div className="p-6">
+            <PermissionGuard requiredRole={['admin', 'owner']}>
+              <Members />
+            </PermissionGuard>
+          </div>
+        );
+      case 'billing':
+        return (
+          <div className="p-6">
+            <PermissionGuard requiredRole={['admin', 'owner']}>
+              <Billing />
+            </PermissionGuard>
+          </div>
+        );
+      case 'voice-cloner':
+        return (
+          <div className="p-6">
+            <PermissionGuard requiredRole={['admin', 'owner']}>
+              <VoiceCloner />
+            </PermissionGuard>
+          </div>
+        );
+      case 'white-label':
+        return (
+          <div className="p-6">
+            <PermissionGuard requiredRole={['admin', 'owner']}>
+              <WhiteLabel />
+            </PermissionGuard>
+          </div>
+        );
+      case 'webhooks':
+        return (
+          <div className="p-6">
+            <PermissionGuard requiredRole={['admin', 'owner']}>
+              <AdminSettings />
+            </PermissionGuard>
+          </div>
+        );
+      case 'integrations':
+        return <IntegrationsPage />;
+      default:
+        return <PersonalSettings />;
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="border-b pb-3">
-        <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Manage your automations, reports, and personal settings
-        </p>
+    <div className="fixed inset-0 bg-white">
+      {/* Settings Navigation */}
+      <SettingsNavigation 
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+      />
+      
+      {/* Main Content Area */}
+      <div className={`
+        bg-white min-h-screen transition-all duration-300
+        ${isCollapsed ? 'ml-[8rem]' : 'ml-[20rem]'}
+      `}>
+        {renderContent()}
       </div>
-
-      {/* Tabs */}
-      <Tabs defaultValue="automations" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="automations" className="flex items-center gap-2">
-            <Bot className="h-4 w-4" />
-            Automations
-          </TabsTrigger>
-          <TabsTrigger value="reporting" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Reporting
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Settings
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="automations" className="mt-6">
-          <Automations />
-        </TabsContent>
-
-        <TabsContent value="reporting" className="mt-6">
-          <Reporting />
-        </TabsContent>
-
-        <TabsContent value="settings" className="mt-6">
-          <PersonalSettings />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

@@ -11,9 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable } from '@/components/DataTable';
 import { LogoManager } from '@/components/LogoManager';
-import { Users, Building2, Crown, Plus, Save, Mail, UserPlus, Settings, Database, Upload } from 'lucide-react';
+import { StatusBadge } from '@/components/StatusBadge';
+import { Users, Building2, Crown, Plus, Save, Mail, UserPlus, Settings, Database, Upload, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
+import { getStatusDisplayText } from '@/utils/statusUtils';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface User {
   id: string;
@@ -48,6 +51,17 @@ const Admin: React.FC = () => {
   const { user } = useAuth();
   const { userPermissions, hasRole, loading } = usePermissions();
   const { toast } = useToast();
+
+  // Set page meta tags
+  usePageMeta({
+    title: 'Admin - Empowr CRM',
+    description: 'Administrative dashboard for managing users, organization settings, and system configuration.',
+    keywords: 'admin, administration, user management, organization settings, system configuration, CRM admin',
+    ogTitle: 'Admin - Empowr CRM',
+    ogDescription: 'Administrative dashboard for managing users, organization settings, and system configuration.',
+    twitterTitle: 'Admin - Empowr CRM',
+    twitterDescription: 'Administrative dashboard for managing users, organization settings, and system configuration.'
+  });
 
   // State
   const [users, setUsers] = useState<User[]>([]);
@@ -161,7 +175,7 @@ const Admin: React.FC = () => {
   const getRoleBadge = (role: string) => {
     return (
       <Badge className={getUnifiedStatusClass(role)}>
-        {role.charAt(0).toUpperCase() + role.slice(1)}
+        {getStatusDisplayText(role)}
       </Badge>
     );
   };
@@ -169,7 +183,7 @@ const Admin: React.FC = () => {
   const getInviteStatusBadge = (status: string) => {
     return (
       <Badge className={getUnifiedStatusClass(status)}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {getStatusDisplayText(status)}
       </Badge>
     );
   };
@@ -177,8 +191,18 @@ const Admin: React.FC = () => {
   // Show loading state if permissions are still loading
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="space-y-4">
+        <div className="border-b pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight">Organization Admin</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Manage users, roles, and system settings
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="text-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-sm text-muted-foreground">Loading permissions...</p>
         </div>
@@ -202,7 +226,7 @@ const Admin: React.FC = () => {
       key: "role",
       label: "Role",
       render: (user: User) => {
-        const isOwner = hasRole('Owner');
+        const isOwner = hasRole('owner');
         const isCurrentUser = user.id === user?.id; // Use user?.id instead of userPermissions?.userId
         
         // Always show role badge for non-owners
@@ -210,7 +234,7 @@ const Admin: React.FC = () => {
           return (
             <div className="flex items-center gap-2">
               {getRoleBadge(user.role)}
-              {isCurrentUser && <Badge variant="secondary" className="text-xs">You</Badge>}
+              {isCurrentUser && <StatusBadge status="You" size="sm" />}
             </div>
           );
         }
@@ -229,7 +253,7 @@ const Admin: React.FC = () => {
                 <SelectItem value="viewer">Viewer</SelectItem>
               </SelectContent>
             </Select>
-            {isCurrentUser && <Badge variant="secondary" className="text-xs">You</Badge>}
+            {isCurrentUser && <StatusBadge status="You" size="sm" />}
           </div>
         );
       },
@@ -238,9 +262,7 @@ const Admin: React.FC = () => {
       key: "status",
       label: "Status",
       render: (user: User) => (
-        <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-          {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
-        </Badge>
+        <StatusBadge status={user.status} size="sm" />
       ),
     },
     {
@@ -293,97 +315,58 @@ const Admin: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-          <h1 className="text-2xl font-bold tracking-tight">Organization Admin</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Organization Admin</h1>
           <p className="text-muted-foreground">Manage users, invites, and organization settings</p>
           <p className="text-sm text-muted-foreground mt-1">
             User limit: {users.length + invites.filter(i => i.status === 'pending').length} / {settings.maxUsers}
           </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className="bg-blue-100 text-blue-800">
-              <Building2 className="h-3 w-3 mr-1" />
-            {settings.companyName || "Organization"}
-          </Badge>
-          {hasRole('Owner') && (
-            <Badge className="bg-purple-100 text-purple-800">
-              <Crown className="h-3 w-3 mr-1" />
-              Owner
-            </Badge>
+            <StatusBadge status="Organization" size="sm" />
+          {hasRole('owner') && (
+            <StatusBadge status="Owner" size="sm" />
           )}
         </div>
       </div>
 
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Total Users
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-              <p className="text-xs text-muted-foreground">
-              {users.filter(u => u.status === 'active').length} active
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Pending Invites
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-            <div className="text-2xl font-bold">
-              {invites.filter(i => i.status === 'pending').length}
+        <div className="flex items-center gap-6 mb-4 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="text-muted-foreground">
+              <Users className="h-4 w-4" />
             </div>
-            <p className="text-xs text-muted-foreground">Awaiting response</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <span className="font-medium">{users.length} total users</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="text-muted-foreground">
+              <CheckCircle className="h-4 w-4" />
+            </div>
+            <span className="font-medium">{users.filter(u => u.status === 'active').length} active</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="text-muted-foreground">
               <UserPlus className="h-4 w-4" />
-              Recruiters
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-            <div className="text-2xl font-bold">
-              {users.filter(u => u.role === 'recruiter').length}
             </div>
-            <p className="text-xs text-muted-foreground">Active recruiters</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              System Health
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-            <div className="text-2xl font-bold text-green-600">Healthy</div>
-            <p className="text-xs text-muted-foreground">All systems operational</p>
-            </CardContent>
-          </Card>
+            <span className="font-medium">{users.filter(u => u.role === 'recruiter').length} recruiters</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="text-muted-foreground">
+              <Mail className="h-4 w-4" />
+            </div>
+            <span className="font-medium">{invites.filter(i => i.status === 'pending').length} pending invites</span>
+          </div>
         </div>
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="users" className="w-full">
-        <TabsList className={`grid w-full ${hasRole('Owner') ? 'grid-cols-6' : 'grid-cols-5'}`}>
+        <TabsList className={`grid w-full ${hasRole('owner') ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="invites">Invites</TabsTrigger>
           <TabsTrigger value="logos">Logos</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
-          {hasRole('Owner') && <TabsTrigger value="owner">Owner</TabsTrigger>}
+          {hasRole('owner') && <TabsTrigger value="owner">Owner</TabsTrigger>}
           </TabsList>
 
           {/* Users Tab */}
@@ -444,9 +427,7 @@ const Admin: React.FC = () => {
         <TabsContent value="invites" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Pending Invites</h2>
-            <Badge variant="outline">
-              {invites.filter(i => i.status === 'pending').length} pending
-            </Badge>
+            <StatusBadge status={`${invites.filter(i => i.status === 'pending').length} pending`} size="sm" />
           </div>
           <DataTable columns={inviteColumns} data={invites} showSearch={false} />
           </TabsContent>
@@ -504,7 +485,7 @@ const Admin: React.FC = () => {
                 </div>
                 <div>
                   <Label>Subscription Status</Label>
-                  <Badge variant="default">{settings.subscriptionStatus}</Badge>
+                  <StatusBadge status={settings.subscriptionStatus} size="sm" />
                 </div>
                 <div>
                   <Label>User Limit</Label>
@@ -535,7 +516,7 @@ const Admin: React.FC = () => {
                 </div>
                 <div>
                   <Label>Status</Label>
-                  <Badge variant="default">{settings.subscriptionStatus}</Badge>
+                  <StatusBadge status={settings.subscriptionStatus} size="sm" />
                 </div>
                 <div>
                   <Label>User Limit</Label>
@@ -567,14 +548,11 @@ const Admin: React.FC = () => {
         </TabsContent>
 
         {/* Owner Tab - Only visible to Owners */}
-        {hasRole('Owner') && (
+        {hasRole('owner') && (
           <TabsContent value="owner" className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Owner Controls</h2>
-              <Badge className="bg-purple-100 text-purple-800">
-                <Crown className="h-3 w-3 mr-1" />
-                Owner
-              </Badge>
+              <StatusBadge status="Owner" size="sm" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -626,7 +604,7 @@ const Admin: React.FC = () => {
                   </div>
                   <div>
                     <Label>Subscription Status</Label>
-                    <Badge variant="default">{settings.subscriptionStatus}</Badge>
+                    <StatusBadge status={settings.subscriptionStatus} size="sm" />
                   </div>
                   <div>
                     <Label>Billing Email</Label>

@@ -1,14 +1,19 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
-import { LeadDetailPopup } from "@/components/LeadDetailPopup";
+import { getStatusDisplayText } from "@/utils/statusUtils";
+import { usePopup } from "@/contexts/PopupContext";
 import { LeadsStatsCards } from "@/components/StatsCards";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { Search, ArrowUpDown } from "lucide-react";
+import { Search, ArrowUpDown, Mail } from "lucide-react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { getProfileImage } from '@/utils/linkedinProfileUtils';
+import { getCompanyLogoUrlSync } from '@/utils/logoService';
+import { getLabel } from '@/utils/labels';
+// import { EmailBulkActions } from '@/components/EmailBulkActions';
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -22,16 +27,27 @@ interface Company {
   name: string;
 }
 
-const Leads = () => {
+const Leads = React.memo(() => {
   const [leads, setLeads] = useState<Tables<"people">[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedLeads, setSelectedLeads] = useState<Tables<"people">[]>([]);
+  const { openLeadPopup } = usePopup();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
+
+  // Set page meta tags
+  usePageMeta({
+    title: 'Leads - Empowr CRM',
+    description: 'Manage your lead database and track candidate progress through your recruitment pipeline. View lead details, contact information, and engagement history.',
+    keywords: 'leads, candidates, recruitment, CRM, lead management, candidate tracking, pipeline',
+    ogTitle: 'Leads - Empowr CRM',
+    ogDescription: 'Manage your lead database and track candidate progress through your recruitment pipeline.',
+    twitterTitle: 'Leads - Empowr CRM',
+    twitterDescription: 'Manage your lead database and track candidate progress through your recruitment pipeline.'
+  });
 
   // Sort options
   const sortOptions = [
@@ -39,15 +55,15 @@ const Leads = () => {
     { label: "Name", value: "name" },
     { label: "Email", value: "email_address" },
     { label: "Location", value: "employee_location" },
-    { label: "Stage", value: "stage" },
-    { label: "Score", value: "lead_score" },
+    { label: getLabel('sort', 'status'), value: "stage" },
+    { label: getLabel('sort', 'ai_score'), value: "lead_score" },
     { label: "Last Contact", value: "last_interaction_at" },
   ];
 
   // Status filter options
   const statusOptions = [
     { label: "All Statuses", value: "all" },
-    { label: "New", value: "new" },
+    { label: "New Lead", value: "new" },
     { label: "In Queue", value: "in queue" },
     { label: "Connect Sent", value: "connection_requested" },
     { label: "Connected", value: "connected" },
@@ -199,7 +215,7 @@ const Leads = () => {
           connected_at,
           last_reply_at,
           favourite,
-          companies!inner(name, profile_image_url)
+          companies!inner(name, website)
         `)
         .order("created_at", { ascending: false });
 
@@ -209,7 +225,7 @@ const Leads = () => {
       const transformedData = data?.map((lead: any) => ({
         ...lead,
         company_name: lead.companies?.name || null,
-        company_logo_url: lead.companies?.profile_image_url || null
+        company_logo_url: getCompanyLogoUrlSync(lead.companies?.name || '', lead.companies?.website)
       })) || [];
       
       setLeads(transformedData as Lead[]);
@@ -238,7 +254,7 @@ const Leads = () => {
         return (
           <div className="min-w-0 max-w-80">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                 <img 
                   src={avatarUrl} 
                   alt={lead.name || 'Lead'}
@@ -252,7 +268,7 @@ const Leads = () => {
                   }}
                 />
                 <div 
-                  className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
+                  className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
                   style={{ display: 'none' }}
                 >
                   {initials}
@@ -260,9 +276,6 @@ const Leads = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium break-words leading-tight">{lead.name || "-"}</div>
-                <div className="text-xs text-muted-foreground break-words leading-tight">
-                  {lead.company_role || "No role specified"}
-                </div>
               </div>
             </div>
           </div>
@@ -282,23 +295,19 @@ const Leads = () => {
                   alt={lead.company_name || 'Company'}
                   className="w-8 h-8 rounded-full object-cover"
                   onError={(e) => {
-                    console.log(`Failed to load company logo for ${lead.company_name}: ${lead.company_logo_url}`);
                     e.currentTarget.style.display = 'none';
                     const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
                     if (nextElement) {
                       nextElement.style.display = 'flex';
                     }
                   }}
-                  onLoad={() => {
-                    console.log(`Successfully loaded company logo for ${lead.company_name}: ${lead.company_logo_url}`);
-                  }}
                 />
               ) : null}
               <div 
-                className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
+                className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
                 style={{ display: lead.company_logo_url ? 'none' : 'flex' }}
               >
-                {lead.company_name?.charAt(0)?.toUpperCase() || '?'}
+                {lead.company_name?.charAt(0) ? getStatusDisplayText(lead.company_name.charAt(0)) : '?'}
               </div>
             </div>
             <div className="text-sm font-medium break-words leading-tight">
@@ -309,12 +318,12 @@ const Leads = () => {
       ),
     },
     {
-      key: "email_address",
-      label: "Email",
+      key: "company_role",
+      label: "Role",
       render: (lead: Lead) => (
-        <div className="min-w-0 max-w-64">
-          <div className="text-xs text-muted-foreground break-words leading-tight">
-            {lead.email_address || "-"}
+        <div className="min-w-0 max-w-48">
+          <div className="text-sm text-muted-foreground break-words leading-tight">
+            {lead.company_role || "-"}
           </div>
         </div>
       ),
@@ -324,7 +333,7 @@ const Leads = () => {
       label: "Location",
       render: (lead: Lead) => (
         <div className="min-w-0 max-w-48">
-          <div className="text-xs text-muted-foreground break-words leading-tight">
+          <div className="text-sm text-muted-foreground break-words leading-tight">
             {lead.employee_location || "-"}
           </div>
         </div>
@@ -340,19 +349,66 @@ const Leads = () => {
               href={lead.linkedin_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-800 break-words leading-tight"
+              className="text-sm text-blue-600 hover:text-blue-800 break-words leading-tight"
             >
               View Profile
             </a>
           ) : (
-            <span className="text-xs text-muted-foreground">-</span>
+            <span className="text-sm text-muted-foreground">-</span>
           )}
         </div>
       ),
     },
     {
+      key: "confidence_level",
+      label: "Confidence",
+      render: (lead: Lead) => (
+        <div className="min-w-0 max-w-32">
+          <div className="text-sm text-muted-foreground break-words leading-tight">
+            {lead.confidence_level || "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "last_interaction_at",
+      label: "Last Contact",
+      render: (lead: Lead) => {
+        if (!lead.last_interaction_at) return <span className="text-sm text-muted-foreground">-</span>;
+        
+        try {
+          const date = new Date(lead.last_interaction_at);
+          return (
+            <span className="text-sm text-muted-foreground">
+              {date.toLocaleDateString()}
+            </span>
+          );
+        } catch (error) {
+          return <span className="text-sm text-muted-foreground">-</span>;
+        }
+      },
+    },
+    {
+      key: "connected_at",
+      label: "Connected",
+      render: (lead: Lead) => {
+        if (!lead.connected_at) return <span className="text-sm text-muted-foreground">-</span>;
+        
+        try {
+          const date = new Date(lead.connected_at);
+          return (
+            <span className="text-sm text-muted-foreground">
+              {date.toLocaleDateString()}
+            </span>
+          );
+        } catch (error) {
+          return <span className="text-sm text-muted-foreground">-</span>;
+        }
+      },
+    },
+    {
       key: "stage",
-      label: "Stage",
+      label: getLabel('table', 'status'),
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (lead: Lead) => (
@@ -364,21 +420,12 @@ const Leads = () => {
     },
     {
       key: "lead_score",
-      label: "Score",
+      label: getLabel('table', 'ai_score'),
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (lead: Lead) => (
-        <div className="flex items-center justify-center gap-2">
-          <div className={`w-3 h-3 rounded-full ${
-            lead.lead_score ? 
-              (parseInt(lead.lead_score) >= 80 ? 'bg-green-500' :
-               parseInt(lead.lead_score) >= 60 ? 'bg-yellow-500' :
-               parseInt(lead.lead_score) >= 40 ? 'bg-orange-500' : 'bg-red-500') :
-              'bg-gray-300'
-          }`} />
-          <span className="text-sm font-medium">
-            {lead.lead_score || "-"}
-          </span>
+        <div className="flex items-center justify-center">
+          <StatusBadge status={lead.lead_score || "Medium"} size="sm" />
         </div>
       ),
     },
@@ -407,39 +454,12 @@ const Leads = () => {
           return <span className="text-xs">-</span>;
         }
       },
-    },
-    {
-      key: "last_interaction_at",
-      label: "Last Contact",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (lead: Lead) => {
-        if (!lead.last_interaction_at) return <span className="text-xs">-</span>;
-        
-        try {
-          const date = new Date(lead.last_interaction_at);
-          const now = new Date();
-          const diffTime = Math.abs(now.getTime() - date.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
-          return (
-            <div className="text-center">
-              <div className="text-xs text-muted-foreground">
-                {diffDays === 1 ? '1 day ago' : `${diffDays} days ago`}
-              </div>
-            </div>
-          );
-        } catch {
-          return <span className="text-xs">-</span>;
-        }
-      },
-    },
+    }
   ];
 
-  const handleRowClick = (lead: Lead) => {
-    setSelectedLead(lead);
-    setIsDetailModalOpen(true);
-  };
+  const handleRowClick = useCallback((lead: Lead) => {
+    openLeadPopup(lead.id);
+  }, [openLeadPopup]);
 
   return (
     <>
@@ -450,7 +470,7 @@ const Leads = () => {
             <div>
               <h1 className="text-xl font-semibold tracking-tight">Leads</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Manage your recruitment leads and their stages
+                Manage your recruitment leads and their status
               </p>
             </div>
           </div>
@@ -504,18 +524,29 @@ const Leads = () => {
             />
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="px-2 py-1 text-sm border rounded hover:bg-gray-50"
+              className="px-2 py-1 text-sm border rounded hover:bg-muted transition-colors"
             >
               {sortOrder === "asc" ? "↑" : "↓"}
             </button>
           </div>
         </div>
 
+        {/* Email Bulk Actions */}
+        {/* {selectedLeads.length > 0 && (
+          <EmailBulkActions 
+            selectedLeads={selectedLeads}
+            onActionComplete={() => setSelectedLeads([])}
+          />
+        )} */}
+
         <DataTable
           data={filteredAndSortedLeads}
           columns={columns}
           loading={loading}
           onRowClick={handleRowClick}
+          enableBulkActions={true}
+          itemName="lead"
+          itemNamePlural="leads"
           pagination={{
             enabled: true,
             pageSize: 25,
@@ -526,16 +557,10 @@ const Leads = () => {
         />
       </div>
       
-      <LeadDetailPopup
-        lead={selectedLead}
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedLead(null);
-        }}
-      />
     </>
   );
-};
+});
+
+Leads.displayName = 'Leads';
 
 export default Leads;

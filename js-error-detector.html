@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Error Detector</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #1e293b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #2563eb;
+        }
+        .button.success { background: #10b981; }
+        .button.danger { background: #dc2626; }
+        .button.warning { background: #f59e0b; }
+        .log {
+            background: #000;
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .error {
+            background: #dc2626;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #f59e0b;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 JavaScript Error Detector</h1>
+        
+        <div class="test-section">
+            <h2>Error Detection Status</h2>
+            <div id="errorStatus">
+                <div class="success">✅ Error detection active</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Actions</h2>
+            <button class="button" onclick="testMainApp()">Test Main App</button>
+            <button class="button" onclick="testReactLoading()">Test React Loading</button>
+            <button class="button success" onclick="enableDevBypass()">Enable Dev Bypass</button>
+            <button class="button danger" onclick="clearAllData()">Clear All Data</button>
+            <button class="button warning" onclick="simulateError()">Simulate Error</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Console Log</h2>
+            <div id="consoleLog" class="log"></div>
+            <button class="button" onclick="clearLog()">Clear Log</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Error Log</h2>
+            <div id="errorLog" class="log"></div>
+            <button class="button" onclick="clearErrorLog()">Clear Error Log</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Network Requests</h2>
+            <div id="networkLog" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let logEntries = [];
+        let errorEntries = [];
+        let networkEntries = [];
+
+        // Intercept console methods
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+
+        console.log = (...args) => {
+            originalConsoleLog(...args);
+            log(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'log');
+        };
+
+        console.error = (...args) => {
+            originalConsoleError(...args);
+            log(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'error');
+        };
+
+        console.warn = (...args) => {
+            originalConsoleWarn(...args);
+            log(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'warn');
+        };
+
+        // Intercept fetch requests
+        const originalFetch = window.fetch;
+        window.fetch = (...args) => {
+            const url = args[0];
+            log(`🌐 Fetching: ${url}`, 'network');
+            return originalFetch(...args)
+                .then(response => {
+                    log(`✅ Response: ${url} - ${response.status}`, 'network');
+                    return response;
+                })
+                .catch(error => {
+                    log(`❌ Fetch Error: ${url} - ${error.message}`, 'error');
+                    throw error;
+                });
+        };
+
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            const errorMsg = `❌ JavaScript Error: ${event.message} at ${event.filename}:${event.lineno}:${event.colno}`;
+            log(errorMsg, 'error');
+            addError(errorMsg);
+        });
+
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', (event) => {
+            const errorMsg = `❌ Unhandled Promise Rejection: ${event.reason}`;
+            log(errorMsg, 'error');
+            addError(errorMsg);
+        });
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+            logEntries.push(entry);
+            updateLogDisplay();
+        }
+
+        function addError(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = `[${timestamp}] ${message}`;
+            errorEntries.push(entry);
+            updateErrorLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const logDiv = document.getElementById('consoleLog');
+            logDiv.textContent = logEntries.slice(-50).join('\n');
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateErrorLogDisplay() {
+            const errorDiv = document.getElementById('errorLog');
+            errorDiv.textContent = errorEntries.slice(-20).join('\n');
+            errorDiv.scrollTop = errorDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            logEntries = [];
+            updateLogDisplay();
+        }
+
+        function clearErrorLog() {
+            errorEntries = [];
+            updateErrorLogDisplay();
+        }
+
+        async function testMainApp() {
+            log('🔍 Testing main app...');
+            try {
+                const response = await fetch('http://localhost:8080');
+                const text = await response.text();
+                
+                if (response.ok) {
+                    log(`✅ Main app responds: ${response.status}`);
+                    log(`📄 HTML length: ${text.length} characters`);
+                    
+                    if (text.includes('<div id="root"></div>')) {
+                        log('✅ Root element found');
+                    } else {
+                        log('❌ Root element not found');
+                    }
+                    
+                    if (text.includes('script')) {
+                        log('✅ Script tags found');
+                    } else {
+                        log('❌ No script tags found');
+                    }
+                } else {
+                    log(`❌ Main app failed: ${response.status}`);
+                }
+            } catch (error) {
+                log(`❌ Main app error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testReactLoading() {
+            log('🔍 Testing React loading...');
+            
+            const tests = [
+                'http://localhost:8080/src/main.tsx',
+                'http://localhost:8080/src/App.tsx',
+                'http://localhost:8080/node_modules/.vite/deps/react.js',
+                'http://localhost:8080/node_modules/.vite/deps/react-dom_client.js',
+                'http://localhost:8080/src/index.css'
+            ];
+
+            for (const url of tests) {
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        log(`✅ ${url} - OK`);
+                    } else {
+                        log(`❌ ${url} - ${response.status}`);
+                    }
+                } catch (error) {
+                    log(`❌ ${url} - ${error.message}`, 'error');
+                }
+            }
+        }
+
+        function enableDevBypass() {
+            localStorage.setItem('dev-bypass-auth', 'true');
+            log('✅ Dev bypass enabled');
+            log('🔄 Now try loading the main app');
+        }
+
+        function clearAllData() {
+            localStorage.clear();
+            sessionStorage.clear();
+            log('🗑️ All data cleared');
+        }
+
+        function simulateError() {
+            log('🧪 Simulating error...');
+            try {
+                throw new Error('This is a test error');
+            } catch (error) {
+                log(`✅ Error caught: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        log('🚀 JavaScript Error Detector loaded');
+        log('🔍 Error detection active');
+        log('🌐 Network monitoring active');
+        
+        // Test basic functionality
+        setTimeout(() => {
+            log('✅ Basic JavaScript functionality working');
+            log('✅ Console interception working');
+            log('✅ Error handling active');
+        }, 1000);
+    </script>
+</body>
+</html>

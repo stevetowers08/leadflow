@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
+import { FloatingSuccessCard } from "@/components/FloatingSuccessCard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User, MessageSquare, CheckCircle, XCircle } from "lucide-react";
@@ -42,6 +43,7 @@ export function LinkedInAutomationModal({
 }: LinkedInAutomationModalProps) {
   const [automationLoading, setAutomationLoading] = useState(false);
   const [automationMessages, setAutomationMessages] = useState<{[key: string]: string}>({});
+  const [showSuccessCard, setShowSuccessCard] = useState(false);
   const { toast } = useToast();
 
   // Initialize automation messages when modal opens
@@ -184,10 +186,8 @@ export function LinkedInAutomationModal({
         });
       }
 
-      toast({
-        title: "Success",
-        description: `${selectedLeads.length} lead(s) added to automation queue and sent to n8n`,
-      });
+      // Show floating success card
+      setShowSuccessCard(true);
 
       // Close modal and reset
       onClose();
@@ -217,7 +217,7 @@ export function LinkedInAutomationModal({
   if (!selectedLeads || !Array.isArray(selectedLeads)) {
     console.error("❌ selectedLeads is not a valid array:", selectedLeads);
     return (
-      <div className="fixed inset-0 z-[99999] bg-black/50 flex items-center justify-center p-6">
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
         <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-red-600 mb-2">Error</h3>
@@ -395,6 +395,16 @@ export function LinkedInAutomationModal({
           </div>
         </div>
       </div>
+      
+      {/* Floating Success Card */}
+      <FloatingSuccessCard
+        isVisible={showSuccessCard}
+        onClose={() => setShowSuccessCard(false)}
+        title="Automation Started!"
+        description={`${selectedLeads.length} lead${selectedLeads.length !== 1 ? 's' : ''} successfully added to automation queue and sent to n8n for processing.`}
+        leadCount={selectedLeads.length}
+        duration={5000}
+      />
     </div>
   );
 }

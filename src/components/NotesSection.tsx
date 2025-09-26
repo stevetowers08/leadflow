@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { MessageSquare, Save, Edit3, Plus, Calendar, User } from "lucide-react";
 import { formatDistanceToNow, parseISO, format } from "date-fns";
@@ -153,9 +154,7 @@ export const NotesSection = ({ entityId, entityType, entityName, className }: No
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
               <span>Notes & Comments</span>
               {notes.length > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  {notes.length}
-                </Badge>
+                <StatusBadge status={`${notes.length}`} size="sm" />
               )}
             </div>
             {!isAdding && (

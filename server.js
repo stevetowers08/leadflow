@@ -1,0 +1,257 @@
+#!/usr/bin/env node
+
+// Official Supabase MCP Server for Render
+import { spawn } from 'child_process';
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+console.log('🚀 Starting Official Supabase MCP Server...');
+
+// Your Supabase credentials
+const SUPABASE_ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGZ1bmRmaHp5dHBuYmprc3BuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODM2MTk0MiwiZXhwIjoyMDczOTM3OTQyfQ.GpPDYihR_qSnN4cR0SXfgNa8AxB8iXCt7VkG1xYo44w';
+const SUPABASE_PROJECT_REF = process.env.SUPABASE_PROJECT_REF || 'jedfundfhzytpnbjkspn';
+
+console.log('🔑 Supabase Project Ref:', SUPABASE_PROJECT_REF);
+console.log('🔑 Access Token configured:', SUPABASE_ACCESS_TOKEN ? 'Yes' : 'No');
+
+// Start the official Supabase MCP server
+const mcpServer = spawn('npx', [
+  '-y', 
+  '@supabase/mcp-server-supabase@latest',
+  '--access-token', SUPABASE_ACCESS_TOKEN,
+  '--project-ref', SUPABASE_PROJECT_REF,
+  '--features', 'database,docs,account,debugging,development,functions'
+], {
+  stdio: ['pipe', 'pipe', 'pipe']
+});
+
+mcpServer.stdout.on('data', (data) => {
+  console.log('MCP Server:', data.toString());
+});
+
+mcpServer.stderr.on('data', (data) => {
+  console.error('MCP Server Error:', data.toString());
+});
+
+mcpServer.on('close', (code) => {
+  console.log(`MCP Server process exited with code ${code}`);
+});
+
+// HTTP endpoints for n8n compatibility
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Official Supabase MCP Server - HTTP Wrapper', 
+    version: '0.5.5',
+    project_ref: SUPABASE_PROJECT_REF,
+    endpoints: {
+      initialize: 'POST /mcp/initialize',
+      tools_list: 'POST /mcp/tools/list', 
+      tools_call: 'POST /mcp/tools/call',
+      sse: 'GET /mcp/sse'
+    },
+    features: 'database,docs,account,debugging,development,functions'
+  });
+});
+
+// Root POST endpoint for n8n
+app.post('/', (req, res) => {
+  console.log('Root POST request from n8n:', req.body);
+  res.json({
+    jsonrpc: '2.0',
+    result: {
+      protocolVersion: '2024-11-05',
+      capabilities: { 
+        tools: { listChanged: true } 
+      },
+      serverInfo: { 
+        name: 'supabase-mcp-server', 
+        version: '0.5.5' 
+      }
+    }
+  });
+});
+
+// SSE endpoint for n8n HTTP Streamable transport
+app.get('/mcp/sse', (req, res) => {
+  console.log('SSE connection request received');
+  
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control'
+  });
+  
+  // Send initial connection message
+  res.write('data: {"type":"connection","status":"connected"}\n\n');
+  
+  // Keep connection alive
+  const keepAlive = setInterval(() => {
+    res.write('data: {"type":"ping"}\n\n');
+  }, 30000);
+  
+  req.on('close', () => {
+    console.log('SSE connection closed');
+    clearInterval(keepAlive);
+  });
+});
+
+// MCP Protocol endpoints (simplified for n8n)
+app.post('/mcp/initialize', (req, res) => {
+  console.log('MCP Initialize request received');
+  res.json({
+    jsonrpc: '2.0',
+    result: {
+      protocolVersion: '2024-11-05',
+      capabilities: {
+        tools: { listChanged: true }
+      },
+      serverInfo: {
+        name: 'supabase-mcp-server',
+        version: '0.5.5'
+      }
+    }
+  });
+});
+
+app.post('/mcp/tools/list', (req, res) => {
+  console.log('MCP Tools list request received');
+  // Return the tools available from Supabase MCP
+  res.json({
+    jsonrpc: '2.0',
+    result: {
+      tools: [
+        {
+          name: 'list_tables',
+          description: 'Lists all tables within the specified schemas',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              schemas: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of schema names to include'
+              }
+            }
+          }
+        },
+        {
+          name: 'execute_sql',
+          description: 'Executes raw SQL in the database',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              query: {
+                type: 'string',
+                description: 'SQL query to execute'
+              }
+            },
+            required: ['query']
+          }
+        },
+        {
+          name: 'list_projects',
+          description: 'Lists all Supabase projects for the user',
+          inputSchema: {
+            type: 'object',
+            properties: {}
+          }
+        },
+        {
+          name: 'get_project',
+          description: 'Gets details for a project',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_ref: {
+                type: 'string',
+                description: 'Project reference ID'
+              }
+            },
+            required: ['project_ref']
+          }
+        },
+        {
+          name: 'search_docs',
+          description: 'Searches the Supabase documentation',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              query: {
+                type: 'string',
+                description: 'Search query for documentation'
+              }
+            },
+            required: ['query']
+          }
+        }
+      ]
+    }
+  });
+});
+
+app.post('/mcp/tools/call', async (req, res) => {
+  try {
+    const { name, arguments: args } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32602,
+          message: 'Invalid params: tool name is required'
+        }
+      });
+    }
+
+    console.log(`Executing Supabase tool: ${name} with args:`, args);
+    
+    // For now, return a placeholder response
+    // In a real implementation, you'd forward this to the stdio MCP server
+    res.json({
+      jsonrpc: '2.0',
+      result: {
+        content: [
+          {
+            type: 'text',
+            text: `Supabase MCP tool '${name}' executed with args: ${JSON.stringify(args)}. This is a placeholder response - the actual tool execution would be forwarded to the official Supabase MCP server.`
+          }
+        ]
+      }
+    });
+  } catch (error) {
+    console.error('Tool execution error:', error);
+    res.status(500).json({
+      jsonrpc: '2.0',
+      error: {
+        code: -32603,
+        message: `Internal error: ${error.message}`
+      }
+    });
+  }
+});
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    version: '0.5.5',
+    mcp_server_running: !mcpServer.killed
+  });
+});
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Official Supabase MCP Server HTTP Wrapper started!`);
+  console.log(`📡 Port: ${PORT}`);
+  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+  console.log(`📡 SSE endpoint: http://localhost:${PORT}/mcp/sse`);
+  console.log(`🔧 Using official @supabase/mcp-server-supabase@latest`);
+  console.log(`✅ Ready for n8n MCP Client Tool!`);
+});

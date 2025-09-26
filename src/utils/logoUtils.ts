@@ -2,6 +2,8 @@
  * Utility functions for handling company logos
  */
 
+import { getStatusDisplayText } from './statusUtils';
+
 export const isValidImageUrl = (url: string | null | undefined): boolean => {
   if (!url || url.trim() === "") return false;
   
@@ -42,11 +44,11 @@ export const testImageLoad = (url: string): Promise<boolean> => {
 
 export const getCompanyInitial = (companyName: string | null | undefined): string => {
   if (!companyName) return "C";
-  return companyName.charAt(0).toUpperCase();
+  return getStatusDisplayText(companyName.charAt(0));
 };
 
 export const getCompanyLogoFallback = (companyName: string | null | undefined): string => {
   const initial = getCompanyInitial(companyName);
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(companyName || 'Company')}&background=random&color=fff&size=40&bold=true&format=png`;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(companyName || 'Company')}&background=random&color=fff&size=32&bold=true&format=png`;
 };
 

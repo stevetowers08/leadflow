@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
-import { LeadDetailPopup } from "@/components/LeadDetailPopup";
+import { usePopup } from "@/contexts/PopupContext";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { User, Building2, Mail, MapPin, Star, TrendingUp, Eye, ChevronDown, MoreVertical, Target, MessageCircle, Users2, ArrowUpDown, Trash2 } from "lucide-react";
+import { User, Building2, Mail, MapPin, Star, TrendingUp, Eye, ChevronDown, MoreVertical, Target, MessageCircle, Users2, ArrowUpDown, Trash2, Users, CheckCircle } from "lucide-react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { getProfileImage } from '@/utils/linkedinProfileUtils';
+import { getLabel } from '@/utils/labels';
+import { getCompanyLogoUrlSync } from '@/utils/logoService';
 
 interface Lead {
   id: string;
@@ -52,15 +55,25 @@ const RECRUITING_STAGES = [
 
 // Remove color gradients - use clean design
 
-const Pipeline = () => {
+const Pipeline = React.memo(() => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [availableStages, setAvailableStages] = useState<string[]>(RECRUITING_STAGES.map(s => s.key));
   const [loading, setLoading] = useState(true);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const { openLeadPopup } = usePopup();
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const { toast } = useToast();
+
+  // Set page meta tags
+  usePageMeta({
+    title: 'Pipeline - Empowr CRM',
+    description: 'Visualize and manage your recruitment pipeline with kanban-style boards. Track candidate progress through different stages of the hiring process.',
+    keywords: 'pipeline, recruitment, kanban, candidate tracking, hiring process, stages, CRM',
+    ogTitle: 'Pipeline - Empowr CRM',
+    ogDescription: 'Visualize and manage your recruitment pipeline with kanban-style boards.',
+    twitterTitle: 'Pipeline - Empowr CRM',
+    twitterDescription: 'Visualize and manage your recruitment pipeline with kanban-style boards.'
+  });
 
   // Sort options
   const sortOptions = [
@@ -68,7 +81,7 @@ const Pipeline = () => {
     { label: "Name", value: "name" },
     { label: "Company", value: "company_name" },
     { label: "Stage", value: "stage" },
-    { label: "Score", value: "lead_score" },
+    { label: getLabel('sort', 'ai_score'), value: "lead_score" },
     { label: "Location", value: "employee_location" },
     { label: "Role", value: "company_role" },
   ];
@@ -81,7 +94,7 @@ const Pipeline = () => {
           id,
           name,
           company_id,
-          companies!inner(name, profile_image_url),
+          companies!inner(name, website, logo_url, logo_cached_at),
           email_address,
           employee_location, 
           company_role,
@@ -112,7 +125,11 @@ const Pipeline = () => {
       const transformedData = data?.map(lead => ({
         ...lead,
         company_name: lead.companies?.name || null,
-        company_logo_url: lead.companies?.profile_image_url || null
+        company_logo_url: getCompanyLogoUrlSync(
+          lead.companies?.name || '', 
+          lead.companies?.website,
+          lead.companies?.logo_url
+        )
       })) || [];
       
       console.log("Fetched leads:", transformedData);
@@ -167,8 +184,8 @@ const Pipeline = () => {
     }
   };
 
-  // Sort leads function
-  const sortLeads = (leads: Lead[]) => {
+  // Memoized sort leads function
+  const sortLeads = useCallback((leads: Lead[]) => {
     return leads.sort((a, b) => {
       let aValue: any;
       let bValue: any;
@@ -221,20 +238,22 @@ const Pipeline = () => {
         return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
       }
     });
-  };
+  }, [sortBy, sortOrder]);
 
-  const groupedLeads = availableStages.reduce((acc, stage) => {
-    const stageLeads = leads.filter(lead => {
-      const leadStage = lead.stage || 'new';
-      return leadStage === stage;
-    });
-    
-    // Sort the leads within this stage
-    const sortedStageLeads = sortLeads(stageLeads);
-    acc[stage] = sortedStageLeads;
-    console.log(`Stage ${stage}:`, sortedStageLeads.length, "leads");
-    return acc;
-  }, {} as Record<string, Lead[]>);
+  // Memoized grouped leads calculation
+  const groupedLeads = useMemo(() => {
+    return availableStages.reduce((acc, stage) => {
+      const stageLeads = leads.filter(lead => {
+        const leadStage = lead.stage || 'new';
+        return leadStage === stage;
+      });
+      
+      // Sort the leads within this stage
+      const sortedStageLeads = sortLeads(stageLeads);
+      acc[stage] = sortedStageLeads;
+      return acc;
+    }, {} as Record<string, Lead[]>);
+  }, [leads, availableStages, sortLeads]);
 
   // Debug: Log total leads and stage distribution
   console.log("Total leads:", leads.length);
@@ -248,26 +267,20 @@ const Pipeline = () => {
     console.log("No staged leads found, putting all in 'new' stage:", leads.length);
   }
 
-  const getRecruitingStats = () => {
+  // Memoized stats calculation
+  const { activeLeads, connectedLeads, totalCompanies } = useMemo(() => {
     const activeLeads = leads.filter(lead => !['lead_lost'].includes(lead.stage || ''));
     const connectedLeads = leads.filter(lead => ['connected', 'replied'].includes(lead.stage || ''));
     const totalCompanies = new Set(leads.map(lead => lead.company_id).filter(Boolean)).size;
     
-    return { 
-      activeLeads: activeLeads.length, 
-      connectedLeads: connectedLeads.length, 
-      totalCompanies 
-    };
-  };
+    return { activeLeads: activeLeads.length, connectedLeads: connectedLeads.length, totalCompanies };
+  }, [leads]);
 
-  const { activeLeads, connectedLeads, totalCompanies } = getRecruitingStats();
+  const handleLeadClick = useCallback((lead: Lead) => {
+    openLeadPopup(lead.id);
+  }, [openLeadPopup]);
 
-  const handleLeadClick = (lead: Lead) => {
-    setSelectedLead(lead);
-    setIsDetailModalOpen(true);
-  };
-
-  const handleDeleteLead = async (leadId: string, leadName: string | null) => {
+  const handleDeleteLead = useCallback(async (leadId: string, leadName: string | null) => {
     if (!confirm(`Are you sure you want to delete the lead "${leadName || 'Unknown'}"? This action cannot be undone.`)) {
       return;
     }
@@ -294,14 +307,14 @@ const Pipeline = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-base font-semibold tracking-tight text-foreground">Pipeline</h1>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Pipeline</h1>
             <p className="text-muted-foreground">Track your sales pipeline by stage</p>
           </div>
         </div>
@@ -322,38 +335,35 @@ const Pipeline = () => {
 
   return (
     <div className="space-y-4">
-      {/* Header with Stats in Top Right */}
+      {/* Header */}
       <div className="flex items-center justify-between border-b pb-3">
         <div>
-          <h1 className="text-base font-semibold tracking-tight">Sales Pipeline</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Sales Pipeline</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Track leads through your recruiting stages
           </p>
         </div>
-        
-        {/* Stats Cards - Top Right */}
-        <div className="flex items-center gap-3">
-          <div className="bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm hover:shadow-md hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 cursor-pointer">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-sm font-medium text-gray-900">{activeLeads}</span>
-              <span className="text-sm text-gray-600">Active Leads</span>
-            </div>
+      </div>
+      
+      {/* Stats Cards */}
+      <div className="flex items-center gap-6 mb-4 text-sm">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="text-muted-foreground">
+            <Users className="h-4 w-4" />
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm hover:shadow-md hover:border-green-300 hover:bg-green-50 transition-all duration-200 cursor-pointer">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm font-medium text-gray-900">{connectedLeads}</span>
-              <span className="text-sm text-gray-600">Connected</span>
-            </div>
+          <span className="font-medium">{activeLeads} active leads</span>
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="text-muted-foreground">
+            <CheckCircle className="h-4 w-4" />
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm hover:shadow-md hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 cursor-pointer">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span className="text-sm font-medium text-gray-900">{totalCompanies}</span>
-              <span className="text-sm text-gray-600">Companies</span>
-            </div>
+          <span className="font-medium">{connectedLeads} connected</span>
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="text-muted-foreground">
+            <Building2 className="h-4 w-4" />
           </div>
+          <span className="font-medium">{totalCompanies} companies</span>
         </div>
       </div>
       
@@ -371,7 +381,7 @@ const Pipeline = () => {
           />
           <button
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="px-2 py-1 text-sm border rounded hover:bg-gray-50 hover:border-gray-300 transition-colors"
+            className="px-2 py-1 text-sm border rounded hover:bg-muted hover:border-border transition-colors"
           >
             {sortOrder === "asc" ? "↑" : "↓"}
           </button>
@@ -388,11 +398,11 @@ const Pipeline = () => {
               const stageLabel = stageInfo?.label || stage;
               
               return (
-                <div key={stage} className="w-72 bg-gray-50 rounded-lg p-3 flex-shrink-0">
+                <div key={stage} className="w-72 bg-muted rounded-lg p-3 flex-shrink-0">
                   {/* Stage Header - Consistent with other pages */}
                   <div className="flex items-center justify-between mb-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-                    <h3 className="text-sm font-semibold text-gray-900">{stageLabel}</h3>
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full font-medium">
+                    <h3 className="text-sm font-semibold text-foreground">{stageLabel}</h3>
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full font-medium">
                       {stageLeads.length}
                     </span>
                   </div>
@@ -400,7 +410,7 @@ const Pipeline = () => {
                   {/* Enhanced Leads Container */}
                   <div className="space-y-3">
                     {stageLeads.length === 0 ? (
-                      <div className="text-center py-8 text-gray-400">
+                      <div className="text-center py-8 text-muted-foreground">
                         <p className="text-sm">No leads in this stage</p>
                       </div>
                     ) : (
@@ -425,13 +435,13 @@ const Pipeline = () => {
                               ) : (
                                 <div className="w-2 h-2 bg-gray-300 rounded-full" title="Standard"></div>
                               )}
-                              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                                 {stageLabel}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
                               {lead.lead_score && (
-                                <div className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-2 rounded-md">
+                                <div className="text-sm font-semibold text-foreground bg-muted px-3 py-2 rounded-md">
                                   {lead.lead_score}
                                 </div>
                               )}
@@ -468,7 +478,7 @@ const Pipeline = () => {
                                     }}
                                   />
                                   <div 
-                                    className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-semibold"
+                                    className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
                                     style={{ display: 'none' }}
                                   >
                                     {initials}
@@ -477,7 +487,7 @@ const Pipeline = () => {
                               );
                             })()}
                             <div className="flex-1 min-w-0">
-                              <div className="font-semibold text-sm text-gray-900 truncate">
+                              <div className="font-semibold text-sm text-foreground truncate">
                                 {lead.name}
                               </div>
                             </div>
@@ -485,14 +495,14 @@ const Pipeline = () => {
                           
                           {/* Company - Secondary */}
                           {lead.company_name && (
-                            <div className="text-sm text-gray-600 mb-1 truncate">
+                            <div className="text-sm text-muted-foreground mb-1 truncate">
                               {lead.company_name}
                             </div>
                           )}
                           
                           {/* Role - Tertiary */}
                           {lead.company_role && (
-                            <div className="text-xs text-gray-500 mb-2 truncate">
+                            <div className="text-xs text-muted-foreground mb-2 truncate">
                               {lead.company_role}
                             </div>
                           )}
@@ -500,12 +510,12 @@ const Pipeline = () => {
                           {/* Footer with Location and Owner */}
                           <div className="flex items-center justify-between pt-1 border-t border-gray-100">
                             {lead.employee_location && (
-                              <div className="text-xs text-gray-500 truncate max-w-20">
+                              <div className="text-xs text-muted-foreground truncate max-w-20">
                                 {lead.employee_location}
                               </div>
                             )}
                             {lead.owner_id && (
-                              <div className="text-xs text-gray-400 truncate max-w-20">
+                              <div className="text-xs text-muted-foreground truncate max-w-20">
                                 {lead.owner_id}
                               </div>
                             )}
@@ -521,16 +531,10 @@ const Pipeline = () => {
         </div>
       </div>
 
-      <LeadDetailPopup
-        lead={selectedLead}
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedLead(null);
-        }}
-      />
     </div>
   );
-};
+});
+
+Pipeline.displayName = 'Pipeline';
 
 export default Pipeline;

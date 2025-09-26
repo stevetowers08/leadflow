@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PermissionGuard } from "@/components/PermissionGuard";
 import { Search, X, Plus, Users, Shield, UserCheck, UserX, Mail, Calendar } from "lucide-react";
 import { getUnifiedStatusClass } from "@/utils/colorScheme";
+import { getStatusDisplayText } from "@/utils/statusUtils";
 
 interface User {
   id: string;
@@ -190,9 +191,9 @@ const AdminUsers = () => {
       label: "User",
       render: (user: User) => (
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
             <span className="text-sm font-medium">
-              {user.user_metadata?.full_name?.charAt(0) || user.email.charAt(0).toUpperCase()}
+              {user.user_metadata?.full_name?.charAt(0) || getStatusDisplayText(user.email.charAt(0))}
             </span>
           </div>
           <div>
@@ -214,8 +215,9 @@ const AdminUsers = () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="owner">Owner</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="user">User</SelectItem>
+            <SelectItem value="recruiter">Recruiter</SelectItem>
             <SelectItem value="viewer">Viewer</SelectItem>
           </SelectContent>
         </Select>
@@ -284,12 +286,12 @@ const AdminUsers = () => {
   ];
 
   return (
-    <PermissionGuard requiredRole="Administrator">
+    <PermissionGuard requiredRole="admin">
       <div className="space-y-4">
       <div className="flex items-center justify-between border-b pb-3">
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">User Management</h1>
-          <p className="text-xs text-muted-foreground mt-1">Manage users, roles, and access permissions</p>
+          <h1 className="text-xl font-semibold tracking-tight">User Management</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage users, roles, and access permissions</p>
         </div>
         <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
           <DialogTrigger asChild>
@@ -339,8 +341,9 @@ const AdminUsers = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="owner">Owner</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="recruiter">Recruiter</SelectItem>
                     <SelectItem value="viewer">Viewer</SelectItem>
                   </SelectContent>
                 </Select>
@@ -386,8 +389,9 @@ const AdminUsers = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All roles</SelectItem>
+            <SelectItem value="owner">Owner</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="user">User</SelectItem>
+            <SelectItem value="recruiter">Recruiter</SelectItem>
             <SelectItem value="viewer">Viewer</SelectItem>
           </SelectContent>
         </Select>

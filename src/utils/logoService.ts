@@ -1,15 +1,9 @@
 /**
  * Company Logo Service
- * Handles fetching and managing company logos
+ * Uses Clearbit API for company logos with fallback to initials
  */
 
 import { supabase } from '@/integrations/supabase/client';
-
-export interface LogoOptions {
-  companyId: string;
-  companyName: string;
-  website?: string;
-}
 
 /**
  * Get logo URL from Clearbit API
@@ -17,23 +11,31 @@ export interface LogoOptions {
 export const getClearbitLogo = (companyName: string, website?: string): string | null => {
   try {
     // Try website domain first (most reliable)
-    if (website) {
+    if (website && typeof website === 'string' && website.trim()) {
       const domain = website
         .replace(/^https?:\/\//, '') // Remove protocol
         .replace(/^www\./, '') // Remove www
         .split('/')[0] // Get domain only
         .split('?')[0]; // Remove query params
       
-      return `https://logo.clearbit.com/${domain}`;
+      if (domain && domain.length > 0) {
+        return `https://logo.clearbit.com/${domain}`;
+      }
     }
     
     // Fallback: try common domain patterns
-    const cleanName = companyName
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '') // Remove special chars
-      .replace(/\s+/g, ''); // Remove spaces
+    if (companyName && typeof companyName === 'string' && companyName.trim()) {
+      const cleanName = companyName
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '') // Remove special chars
+        .replace(/\s+/g, ''); // Remove spaces
+      
+      if (cleanName && cleanName.length > 0) {
+        return `https://logo.clearbit.com/${cleanName}.com`;
+      }
+    }
     
-    return `https://logo.clearbit.com/${cleanName}.com`;
+    return null;
   } catch (error) {
     console.error('Error generating Clearbit logo URL:', error);
     return null;
@@ -53,91 +55,100 @@ export const testLogoUrl = async (url: string): Promise<boolean> => {
 };
 
 /**
+ * Get company logo URL using Clearbit API
+ * This is the primary method for getting company logos
+ */
+export const getCompanyLogoUrl = (companyName: string, website?: string): string | null => {
+  try {
+    // Only use Clearbit if website exists and is valid
+    if (website && typeof website === 'string' && website.trim()) {
+      return getClearbitLogo(companyName || '', website);
+    }
+    
+    // Return null if no website (will fallback to initials in UI)
+    return null;
+  } catch (error) {
+    console.error('Error in getCompanyLogoUrl:', error);
+    return null;
+  }
+};
+
+/**
  * Update company logo in database
  */
-export const updateCompanyLogo = async (companyId: string, logoUrl: string): Promise<void> => {
-  const { error } = await supabase
-    .from('companies')
-    .update({ profile_image_url: logoUrl })
-    .eq('id', companyId);
-    
-  if (error) {
-    throw new Error(`Failed to update company logo: ${error.message}`);
-  }
-};
-
-/**
- * Batch update company logos using Clearbit
- */
-export const batchUpdateLogos = async (companies: Array<{id: string, name: string, website?: string}>): Promise<void> => {
-  const updates = [];
-  
-  for (const company of companies) {
-    const logoUrl = getClearbitLogo(company.name, company.website);
-    if (logoUrl) {
-      // Test if logo exists before updating
-      const isValid = await testLogoUrl(logoUrl);
-      if (isValid) {
-        updates.push(
-          supabase
-            .from('companies')
-            .update({ profile_image_url: logoUrl })
-            .eq('id', company.id)
-        );
-      }
-    }
-  }
-  
-  // Execute all updates
-  const results = await Promise.allSettled(updates);
-  
-  // Log any failures
-  results.forEach((result, index) => {
-    if (result.status === 'rejected') {
-      console.error(`Failed to update logo for company ${companies[index].name}:`, result.reason);
-    }
-  });
-};
-
-/**
- * Get company logo with fallback chain
- */
-export const getCompanyLogo = async (companyName: string, website?: string, existingUrl?: string): Promise<string | null> => {
-  // 1. Return existing URL if it's valid
-  if (existingUrl && await testLogoUrl(existingUrl)) {
-    return existingUrl;
-  }
-  
-  // 2. Try Clearbit
-  const clearbitUrl = getClearbitLogo(companyName, website);
-  if (clearbitUrl && await testLogoUrl(clearbitUrl)) {
-    return clearbitUrl;
-  }
-  
-  // 3. Return null (will fallback to initials in UI)
-  return null;
-};
-
-/**
- * Manual logo URL update (for admin use)
- */
-export const setCompanyLogoManually = async (companyId: string, logoUrl: string): Promise<void> => {
-  // Validate URL format
+export const updateCompanyLogo = async (companyId: string, logoUrl: string): Promise<boolean> => {
   try {
-    new URL(logoUrl);
-  } catch {
-    throw new Error('Invalid URL format');
+    const { error } = await supabase
+      .from('companies')
+      .update({ logo_url: logoUrl })
+      .eq('id', companyId);
+    
+    if (error) {
+      console.error('Error updating company logo:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating company logo:', error);
+    return false;
   }
-  
-  // Test if URL is accessible
-  const isValid = await testLogoUrl(logoUrl);
-  if (!isValid) {
-    throw new Error('Logo URL is not accessible');
-  }
-  
-  // Update database
-  await updateCompanyLogo(companyId, logoUrl);
 };
 
+/**
+ * Batch update logos for multiple companies
+ */
+export const batchUpdateLogos = async (updates: Array<{ companyId: string; logoUrl: string }>): Promise<boolean> => {
+  try {
+    const promises = updates.map(update => updateCompanyLogo(update.companyId, update.logoUrl));
+    const results = await Promise.all(promises);
+    return results.every(result => result);
+  } catch (error) {
+    console.error('Error batch updating logos:', error);
+    return false;
+  }
+};
 
+/**
+ * Set company logo manually (user-provided URL)
+ */
+export const setCompanyLogoManually = async (companyId: string, logoUrl: string): Promise<boolean> => {
+  try {
+    // Validate URL format
+    try {
+      new URL(logoUrl);
+    } catch {
+      console.error('Invalid logo URL format:', logoUrl);
+      return false;
+    }
+    
+    return await updateCompanyLogo(companyId, logoUrl);
+  } catch (error) {
+    console.error('Error setting manual logo:', error);
+    return false;
+  }
+};
 
+/**
+ * Synchronous version for UI components - uses cached URLs when available
+ * Falls back to Clearbit URL generation for new companies
+ */
+export const getCompanyLogoUrlSync = (companyName: string, website?: string, cachedLogoUrl?: string): string | null => {
+  try {
+    // 1. Use cached URL if available and valid
+    if (cachedLogoUrl && typeof cachedLogoUrl === 'string' && cachedLogoUrl.trim()) {
+      return cachedLogoUrl;
+    }
+    
+    // 2. Generate Clearbit URL if website exists
+    if (website && typeof website === 'string' && website.trim()) {
+      return getClearbitLogo(companyName || '', website);
+    }
+    
+    // 3. Return null if no website (will fallback to initials in UI)
+    return null;
+  } catch (error) {
+    console.error('Error in getCompanyLogoUrlSync:', error);
+    return null;
+  }
+};

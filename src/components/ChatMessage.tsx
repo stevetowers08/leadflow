@@ -30,7 +30,7 @@ export const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) =>
         <AvatarFallback className={cn(
           "text-xs font-semibold",
           isUser 
-            ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white" 
+            ? "bg-gradient-to-br from-primary to-primary/80 text-white" 
             : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700"
         )}>
           {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
@@ -44,7 +44,7 @@ export const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) =>
         <Card className={cn(
           "px-4 py-3 text-sm shadow-sm border-0",
           isUser 
-            ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl rounded-br-md" 
+            ? "bg-gradient-to-br from-primary to-primary/80 text-white rounded-2xl rounded-br-md" 
             : "bg-white text-gray-900 rounded-2xl rounded-bl-md border border-gray-100"
         )}>
           {message.isLoading ? (

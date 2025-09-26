@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Input } from "@/components/ui/input";
 import { 
   Bot, 
   UserPlus, 
@@ -9,14 +10,11 @@ import {
   Mail, 
   Calendar, 
   CheckCircle, 
-  Clock, 
-  Users,
-  Building2,
-  Zap,
-  Target,
-  TrendingUp
+  Search,
+  Filter,
+  Sparkles
 } from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow, format, isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
 
 interface AutomationActivity {
   id: string;
@@ -35,14 +33,9 @@ interface AutomationActivity {
 const Automations = () => {
   const [activities, setActivities] = useState<AutomationActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalAutomations: 0,
-    activeAutomations: 0,
-    connectionsSent: 0,
-    messagesSent: 0,
-    responsesReceived: 0,
-    meetingsBooked: 0
-  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [filterTime, setFilterTime] = useState("all");
 
   const fetchAutomationActivities = async () => {
     try {
@@ -215,14 +208,47 @@ const Automations = () => {
         meetingsBooked: activitiesList.filter(a => a.type === 'meeting_booked').length
       };
 
-      setStats(statsData);
-
     } catch (error) {
       console.error('Error fetching automation activities:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Group activities by day
+  const groupActivitiesByDay = (activities: AutomationActivity[]) => {
+    const grouped: { [key: string]: AutomationActivity[] } = {};
+    
+    activities.forEach(activity => {
+      const date = new Date(activity.occurred_at);
+      const dateKey = format(date, 'EEE, d MMMM yy').toUpperCase();
+      
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(activity);
+    });
+    
+    return grouped;
+  };
+
+  // Filter activities based on search and filters
+  const filteredActivities = activities.filter(activity => {
+    const matchesSearch = searchTerm === "" || 
+      activity.person_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      activity.company_name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesType = filterType === "all" || activity.type === filterType;
+    
+    const matchesTime = filterTime === "all" || 
+      (filterTime === "today" && isToday(new Date(activity.occurred_at))) ||
+      (filterTime === "week" && isThisWeek(new Date(activity.occurred_at))) ||
+      (filterTime === "month" && isThisMonth(new Date(activity.occurred_at)));
+    
+    return matchesSearch && matchesType && matchesTime;
+  });
+
+  const groupedActivities = groupActivitiesByDay(filteredActivities);
 
   useEffect(() => {
     fetchAutomationActivities();
@@ -244,7 +270,7 @@ const Automations = () => {
 
   const getStageBadgeColor = (stage?: string) => {
     const colors = {
-      'new': 'bg-gray-100 text-gray-800',
+      'new': 'bg-muted text-muted-foreground',
       'connection_requested': 'bg-blue-100 text-blue-800',
       'connected': 'bg-green-100 text-green-800',
       'messaged': 'bg-purple-100 text-purple-800',
@@ -253,19 +279,24 @@ const Automations = () => {
       'meeting_held': 'bg-yellow-100 text-yellow-800',
       'disqualified': 'bg-red-100 text-red-800',
       'in queue': 'bg-indigo-100 text-indigo-800',
-      'lead_lost': 'bg-gray-100 text-gray-800'
+      'lead_lost': 'bg-muted text-muted-foreground'
     };
-    return colors[stage as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[stage as keyof typeof colors] || 'bg-muted text-muted-foreground';
   };
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="border-b pb-3">
-          <h1 className="text-base font-semibold tracking-tight">Automations</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Recent automation activities and performance metrics
-          </p>
+          <div className="flex items-center gap-3">
+            <Bot className="h-6 w-6 text-purple-600" />
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight">Automations</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Recent automation activities and performance metrics
+              </p>
+            </div>
+          </div>
         </div>
         <div className="p-8 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -276,135 +307,143 @@ const Automations = () => {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header with Stats in Top Right */}
-      <div className="grid grid-cols-12 gap-4 items-center border-b pb-3">
-        <div className="col-span-6">
-          <h1 className="text-base font-semibold tracking-tight">Automations</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Recent automation activities and performance metrics
-          </p>
-        </div>
-        
-        {/* Stats Cards - Top Right */}
-        <div className="col-span-6 flex justify-end">
-          <div className="flex items-center gap-3">
-            <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm min-w-[120px]">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-900">{stats.totalAutomations}</span>
-                <span className="text-sm text-gray-600">Total</span>
-              </div>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm min-w-[120px]">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-900">{stats.activeAutomations}</span>
-                <span className="text-sm text-gray-600">Active</span>
-              </div>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm min-w-[120px]">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-900">{stats.connectionsSent}</span>
-                <span className="text-sm text-gray-600">Sent</span>
-              </div>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm min-w-[120px]">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-900">{stats.messagesSent}</span>
-                <span className="text-sm text-gray-600">Messages</span>
-              </div>
-            </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="border-b pb-3">
+        <div className="flex items-center gap-3">
+          <Bot className="h-6 w-6 text-purple-600" />
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">Automations</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Recent automation activities and performance metrics
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Activity Feed */}
-      {activities.length === 0 ? (
+      {/* Filters and Search */}
+      <div className="flex items-center gap-4">
+        <select 
+          value={filterType} 
+          onChange={(e) => setFilterType(e.target.value)}
+          className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
+        >
+          <option value="all">All automation types</option>
+          <option value="automation_started">Automation Started</option>
+          <option value="connection_request">Connection Request</option>
+          <option value="message_sent">Message Sent</option>
+          <option value="response_received">Response Received</option>
+          <option value="meeting_booked">Meeting Booked</option>
+          <option value="email_sent">Email Sent</option>
+          <option value="email_reply">Email Reply</option>
+        </select>
+        
+        <select 
+          value={filterTime} 
+          onChange={(e) => setFilterTime(e.target.value)}
+          className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
+        >
+          <option value="all">All time</option>
+          <option value="today">Today</option>
+          <option value="week">This week</option>
+          <option value="month">This month</option>
+        </select>
+
+        <Sparkles className="h-4 w-4 text-green-500" />
+        
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Activities grouped by day */}
+      {Object.keys(groupedActivities).length === 0 ? (
         <div className="p-8 text-center">
-          <Bot className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No automation activities yet</h3>
-          <p className="text-gray-500">Automation activities will appear here as they occur.</p>
+          <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No automation activities yet</h3>
+          <p className="text-muted-foreground">Automation activities will appear here as they occur.</p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          {/* Header */}
-          <div className="bg-gray-50/50 px-4 py-3 border-b border-gray-200">
-            <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-600 uppercase tracking-wide">
-              <div className="col-span-1">Type</div>
-              <div className="col-span-3">Person</div>
-              <div className="col-span-3">Company</div>
-              <div className="col-span-2">Stage</div>
-              <div className="col-span-3">Time</div>
-            </div>
-          </div>
-          
-          {/* List Items */}
-          <div className="divide-y divide-gray-100">
-            {activities.map((activity) => (
-              <div key={activity.id} className="px-4 py-3 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 hover:scale-[1.01] hover:z-10 relative transition-all duration-200">
-                <div className="grid grid-cols-12 gap-4 items-center">
-                  {/* Type */}
-                  <div className="col-span-1">
-                    <div className={`p-1.5 rounded-full ${activity.bgColor} w-fit`}>
-                      <div className={activity.color}>
-                        {activity.icon}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Person */}
-                  <div className="col-span-3">
-                    <div className="text-sm font-medium text-gray-900 truncate">
-                      {activity.person_name}
-                    </div>
-                    {activity.company_role && (
-                      <div className="text-xs text-gray-500 truncate">
-                        {activity.company_role}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Company */}
-                  <div className="col-span-3">
-                    <div className="text-sm text-gray-600 truncate">
-                      {activity.company_name}
-                    </div>
-                  </div>
-
-                  {/* Stage */}
-                  <div className="col-span-2">
-                    {activity.stage ? (
-                      <Badge className={`text-xs ${getStageBadgeColor(activity.stage)}`}>
-                        {activity.stage.replace('_', ' ')}
-                      </Badge>
-                    ) : (
-                      <span className="text-xs text-gray-400">-</span>
-                    )}
-                  </div>
-
-                  {/* Time */}
-                  <div className="col-span-3">
-                    <div className="text-xs text-gray-500">
-                      {formatDistanceToNow(new Date(activity.occurred_at), { addSuffix: true })}
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {new Date(activity.occurred_at).toLocaleString('en-AU', {
-                        timeZone: 'Australia/Sydney',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
-                    </div>
-                  </div>
-                </div>
+        <div className="space-y-6">
+          {Object.entries(groupedActivities).map(([date, dayActivities]) => (
+            <div key={date} className="space-y-3">
+              {/* Date Header */}
+              <div className="text-sm font-semibold text-foreground bg-muted px-4 py-2 rounded-lg">
+                {date}
               </div>
-            ))}
-          </div>
+              
+              {/* Activities for this day */}
+              <div className="space-y-2">
+                {dayActivities.map((activity) => (
+                  <div key={activity.id} className="bg-white border border-gray-200 rounded-lg px-4 py-1.5 hover:shadow-sm transition-shadow">
+                    <div className="grid grid-cols-12 gap-4 items-center">
+                      {/* Activity Icon */}
+                      <div className="col-span-1">
+                        <div className={`p-1 rounded-full ${activity.bgColor} w-fit`}>
+                          <div className={activity.color}>
+                            {activity.icon}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Activity Type */}
+                      <div className="col-span-2">
+                        <span className="font-medium text-foreground">
+                          {getActivityTypeLabel(activity.type)}
+                        </span>
+                      </div>
+                      
+                      {/* Person Name */}
+                      <div className="col-span-3">
+                        <div className="text-sm font-medium text-foreground truncate">
+                          {activity.person_name}
+                        </div>
+                        {activity.company_role && (
+                          <div className="text-xs text-muted-foreground truncate">
+                            {activity.company_role}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Company */}
+                      <div className="col-span-3">
+                        <div className="text-sm text-muted-foreground truncate">
+                          {activity.company_name}
+                        </div>
+                      </div>
+                      
+                      {/* Stage */}
+                      <div className="col-span-2">
+                        {activity.stage ? (
+                          <StatusBadge status={activity.stage} size="sm" />
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                      </div>
+                      
+                      {/* Time */}
+                      <div className="col-span-1 text-right">
+                        <div className="text-sm text-muted-foreground">
+                          {format(new Date(activity.occurred_at), 'dd/MM/yyyy')}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(activity.occurred_at), 'HH:mm')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

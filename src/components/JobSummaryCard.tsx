@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Brain, RefreshCw, FileText, Clock, TrendingUp, AlertCircle } from "lucide-react";
@@ -187,10 +188,7 @@ export function JobSummaryCard({ jobData, onSummaryUpdate }: JobSummaryCardProps
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Badge className={`${getUrgencyColor(summary.urgency_level)} border text-xs`}>
-                  <Clock className="h-3 w-3 mr-1" />
-                  {summary.urgency_level.toUpperCase()}
-                </Badge>
+                <StatusBadge status={summary.urgency_level} size="sm" />
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-xs">Urgency Level</p>
@@ -201,10 +199,7 @@ export function JobSummaryCard({ jobData, onSummaryUpdate }: JobSummaryCardProps
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Badge className={`${getDemandColor(summary.market_demand)} border text-xs`}>
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  {summary.market_demand.toUpperCase()} DEMAND
-                </Badge>
+                <StatusBadge status={`${summary.market_demand} demand`} size="sm" />
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-xs">Market Demand</p>

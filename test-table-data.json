@@ -1,0 +1,9 @@
+{
+  "name": "get_table_data",
+  "arguments": {
+    "table_name": "companies",
+    "limit": 3
+  }
+}
+
+

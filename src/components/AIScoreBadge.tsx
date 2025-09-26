@@ -31,13 +31,6 @@ export function AIScoreBadge({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Debug: Log what's being passed to the component
-  console.log('AIScoreBadge Debug:', {
-    leadName: leadData.name,
-    initialScore: initialScore,
-    initialScoreType: typeof initialScore,
-    aiServiceAvailable: aiService.isAvailable()
-  });
 
   const calculateScore = async () => {
     if (!aiService.isAvailable()) {
@@ -64,7 +57,7 @@ export function AIScoreBadge({
       // Use initial score as fallback
       setScore({
         score: initialScore,
-        reason: "Database Score",
+        reason: "AI Database Score",
         confidence: 0.8,
         factors: {
           company_size: 0.7,
@@ -109,7 +102,7 @@ export function AIScoreBadge({
           <RefreshCw className="h-3 w-3 animate-spin" />
         </Badge>
         <div className="text-xs text-muted-foreground text-center max-w-20 leading-tight">
-          Calculating...
+          AI Analyzing...
         </div>
       </div>
     );
@@ -135,7 +128,7 @@ export function AIScoreBadge({
         onClick={calculateScore}
         className="h-6 px-2 text-xs"
       >
-        Score
+        AI Score
       </Button>
     );
   }

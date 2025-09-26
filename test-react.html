@@ -1,0 +1,48 @@
+import { createRoot } from "react-dom/client";
+import React from "react";
+
+console.log('🚀 Test React app starting...');
+
+const TestApp = () => {
+  console.log('✅ TestApp component rendering');
+  return React.createElement('div', { 
+    style: { 
+      padding: '20px', 
+      backgroundColor: '#1e293b', 
+      color: 'white',
+      minHeight: '100vh',
+      fontFamily: 'Arial, sans-serif'
+    } 
+  }, [
+    React.createElement('h1', { key: 'title' }, '🚀 Empowr CRM - Test Mode'),
+    React.createElement('p', { key: 'status' }, 'React is working!'),
+    React.createElement('button', { 
+      key: 'button',
+      onClick: () => {
+        localStorage.setItem('dev-bypass-auth', 'true');
+        window.location.href = 'http://localhost:8080';
+      },
+      style: {
+        padding: '10px 20px',
+        backgroundColor: '#3b82f6',
+        color: 'white',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        marginTop: '10px'
+      }
+    }, 'Go to Main App')
+  ]);
+};
+
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  console.error('❌ Root element not found');
+  throw new Error("Root element not found");
+}
+
+console.log('✅ Root element found, creating React root...');
+const root = createRoot(rootElement);
+console.log('✅ React root created, rendering TestApp...');
+root.render(React.createElement(TestApp));
+console.log('✅ TestApp rendered');

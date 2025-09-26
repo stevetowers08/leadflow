@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FloatingSuccessCard } from "@/components/FloatingSuccessCard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User, MessageSquare, CheckCircle, XCircle } from "lucide-react";
@@ -53,6 +54,7 @@ export function LinkedInConfirmationModal({
   const [messages, setMessages] = useState<{[key: string]: string}>({});
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccessCard, setShowSuccessCard] = useState(false);
   const { toast } = useToast();
 
   console.log("🔍 LinkedInConfirmationModal render - isOpen:", isOpen, "selectedLeads:", selectedLeads?.length);
@@ -190,16 +192,15 @@ export function LinkedInConfirmationModal({
 
       // Show success animation
       setShowSuccess(true);
+      
+      // Show floating success card
+      setShowSuccessCard(true);
+      
       setTimeout(() => {
         setShowSuccess(false);
         onConfirm();
         onClose();
       }, 2000);
-
-      toast({
-        title: "Success",
-        description: `${selectedLeads.length} lead(s) added to automation queue and sent to n8n`,
-      });
     } catch (error) {
       toast({
         title: "Error",
@@ -351,6 +352,16 @@ export function LinkedInConfirmationModal({
           </div>
         </div>
       </DialogContent>
+      
+      {/* Floating Success Card */}
+      <FloatingSuccessCard
+        isVisible={showSuccessCard}
+        onClose={() => setShowSuccessCard(false)}
+        title="Automation Started!"
+        description={`${selectedLeads.length} lead${selectedLeads.length !== 1 ? 's' : ''} successfully added to automation queue and sent to n8n for processing.`}
+        leadCount={selectedLeads.length}
+        duration={5000}
+      />
     </Dialog>
   );
 }

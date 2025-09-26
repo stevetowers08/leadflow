@@ -217,7 +217,7 @@ export const getStatusInfo = (status: JobStatus | CompanyStatus) => {
   const statusInfo = {
     new: {
       color: getUnifiedStatusClass('new'),
-      label: 'New',
+      label: 'New Lead',
       description: 'Just entered the system'
     },
     active: {

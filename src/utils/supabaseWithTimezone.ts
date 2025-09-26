@@ -104,3 +104,5 @@ export class SupabaseWithTimezone {
 
 // Export a default instance
 export const supabaseWithTimezone = new SupabaseWithTimezone();
+
+

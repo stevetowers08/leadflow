@@ -1,0 +1,132 @@
+/**
+ * Standardized Font System
+ * Ensures consistent typography across the entire application
+ */
+
+/* Page Headers - Main page titles */
+.page-header {
+  @apply text-xl font-semibold tracking-tight text-foreground;
+}
+
+.page-subtitle {
+  @apply text-sm text-muted-foreground mt-1;
+}
+
+/* Card Headers - Section titles within cards */
+.card-header {
+  @apply text-lg font-semibold text-card-foreground;
+}
+
+.card-subheader {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+/* Data Display - Numbers and key metrics */
+.data-number {
+  @apply text-lg font-bold text-foreground;
+}
+
+.data-label {
+  @apply text-sm text-muted-foreground font-medium;
+}
+
+/* Table Headers */
+.table-header {
+  @apply text-sm font-medium text-foreground;
+}
+
+/* Table Data */
+.table-data {
+  @apply text-sm text-foreground;
+}
+
+.table-data-small {
+  @apply text-xs text-muted-foreground;
+}
+
+/* Modal Headers */
+.modal-title {
+  @apply text-lg font-semibold text-foreground;
+}
+
+.modal-subtitle {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+.modal-section-header {
+  @apply text-sm font-semibold text-foreground;
+}
+
+.modal-label {
+  @apply text-xs text-muted-foreground font-medium;
+}
+
+.modal-value {
+  @apply text-sm font-semibold text-foreground;
+}
+
+/* Form Elements */
+.form-label {
+  @apply text-sm font-medium text-foreground;
+}
+
+.form-input {
+  @apply text-sm text-foreground;
+}
+
+.form-help {
+  @apply text-xs text-muted-foreground;
+}
+
+/* Navigation */
+.nav-item {
+  @apply text-sm text-foreground;
+}
+
+.nav-title {
+  @apply text-lg font-semibold text-foreground;
+}
+
+/* Status Badges */
+.status-badge-sm {
+  @apply text-xs font-medium;
+}
+
+.status-badge-md {
+  @apply text-sm font-medium;
+}
+
+.status-badge-lg {
+  @apply text-sm font-medium;
+}
+
+/* Button Text */
+.btn-text-sm {
+  @apply text-xs font-medium;
+}
+
+.btn-text-md {
+  @apply text-sm font-medium;
+}
+
+.btn-text-lg {
+  @apply text-base font-medium;
+}
+
+/* Utility Classes */
+.text-primary-large {
+  @apply text-lg font-semibold;
+}
+
+.text-primary-medium {
+  @apply text-base font-semibold;
+}
+
+.text-secondary {
+  @apply text-sm text-gray-600;
+}
+
+.text-tertiary {
+  @apply text-xs text-gray-500;
+}
+

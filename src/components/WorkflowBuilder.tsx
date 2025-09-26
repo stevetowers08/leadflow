@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
+import { getLabel } from '@/utils/labels';
 import { 
   Plus, 
   Trash2, 
@@ -61,7 +62,7 @@ const WORKFLOW_TYPES = {
     { value: 'time_based', label: 'Time Based', icon: Clock },
   ],
   condition: [
-    { value: 'lead_score', label: 'Lead Score', icon: Target },
+    { value: 'lead_score', label: getLabel('workflow', 'ai_score'), icon: Target },
     { value: 'company_size', label: 'Company Size', icon: Users },
     { value: 'industry', label: 'Industry', icon: Building2 },
     { value: 'location', label: 'Location', icon: MapPin },
@@ -241,7 +242,7 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
               const IconComponent = getStepIcon(step);
               return (
                 <div key={step.id} className="flex items-center gap-4 mb-4">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm font-medium">
+                  <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-medium">
                     {index + 1}
                   </div>
                   <div 
@@ -396,7 +397,7 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
                       <SelectValue placeholder="Select field" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="lead_score">Lead Score</SelectItem>
+                      <SelectItem value="lead_score">{getLabel('workflow', 'ai_score')}</SelectItem>
                       <SelectItem value="company_size">Company Size</SelectItem>
                       <SelectItem value="industry">Industry</SelectItem>
                       <SelectItem value="stage">Stage</SelectItem>

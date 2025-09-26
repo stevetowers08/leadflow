@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Progress } from "@/components/ui/progress";
 import { 
   MessageSquare, 
@@ -505,9 +506,7 @@ export function OutreachAnalytics() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <Badge className={`${getStatusColor(activity.status)} border text-xs`}>
-                    {activity.action}
-                  </Badge>
+                  <StatusBadge status={activity.action} size="sm" />
                   <div className="text-xs text-muted-foreground mt-1">
                     {new Date(activity.date).toLocaleDateString()}
                   </div>

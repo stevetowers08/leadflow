@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Calendar, Clock, Mail, MessageCircle, UserCheck, Users, Phone, FileText } from "lucide-react";
 import { formatDistanceToNow, parseISO, format } from "date-fns";
 
@@ -293,9 +294,7 @@ export const ActivityTimeline = ({ leadId, leadName }: ActivityTimelineProps) =>
                     <h4 className="text-sm font-medium text-foreground">
                       {activity.title}
                     </h4>
-                    <Badge variant="outline" className="text-xs">
-                      {formatDistanceToNow(parseISO(activity.date), { addSuffix: true })}
-                    </Badge>
+                    <StatusBadge status={formatDistanceToNow(parseISO(activity.date), { addSuffix: true })} size="sm" />
                   </div>
                   
                   {activity.description && (

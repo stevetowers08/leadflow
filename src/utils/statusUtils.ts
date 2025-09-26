@@ -24,10 +24,11 @@ export function normalizeStatus(stage: string | null): string {
  * Converts uppercase to proper case
  */
 export function getStatusDisplayText(status: string): string {
-  // Convert uppercase to proper case
+  // Convert to proper case (first letter capitalized only)
   const displayMapping: Record<string, string> = {
+    // Lead stages - actual database values
     'NEW LEAD': 'New Lead',
-    'new': 'New',
+    'new': 'New Lead',
     'IN QUEUE': 'In Queue',
     'in queue': 'In Queue',
     'CONNECT SENT': 'Connect Sent',
@@ -40,7 +41,50 @@ export function getStatusDisplayText(status: string): string {
     'replied': 'Replied',
     'LEAD LOST': 'Lead Lost',
     'lead_lost': 'Lead Lost',
-    'contacted': 'Contacted'
+    'contacted': 'Contacted',
+    'meeting_booked': 'Meeting Booked',
+    'meeting_held': 'Meeting Held',
+    'disqualified': 'Disqualified',
+    
+    // Job priorities - actual database values (UPPERCASE)
+    'HIGH': 'High',
+    'MEDIUM': 'Medium',
+    'LOW': 'Low',
+    'VERY HIGH': 'Very High',
+    'very-high': 'Very High',
+    'very high': 'Very High',
+    
+    // Company status mappings - actual database values
+    'active': 'Active',
+    'qualified': 'Qualified',
+    'prospect': 'Prospect',
+    'low': 'Low',
+    'medium': 'Medium',
+    'high': 'High',
+    
+    // Job status mappings
+    'new job': 'New Job',
+    'automated': 'Automated',
+    'paused': 'Paused',
+    'completed': 'Completed',
+    'failed': 'Failed',
+    
+    // User roles and statuses
+    'owner': 'Owner',
+    'admin': 'Admin',
+    'recruiter': 'Recruiter',
+    'inactive': 'Inactive',
+    
+    // Additional status mappings
+    'assigned': 'Assigned',
+    'has logo': 'Has Logo',
+    'no logo': 'No Logo',
+    'sent': 'Sent',
+    'delivered': 'Delivered',
+    'pending': 'Pending',
+    'linkedin': 'LinkedIn',
+    'email': 'Email',
+    'unknown': 'Unknown'
   };
 
   return displayMapping[status] || status;

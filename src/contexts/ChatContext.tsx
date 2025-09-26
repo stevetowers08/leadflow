@@ -139,23 +139,36 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         },
       };
 
-      const response = await state.chatService.sendMessage(request);
+      // Always use streaming
+      let accumulatedContent = '';
+      
+      await state.chatService.sendMessageStream({
+        ...request,
+        stream: true,
+      }, (chunk) => {
+        if (chunk.conversationId && chunk.conversationId !== state.conversationId) {
+          dispatch({ type: 'SET_CONVERSATION_ID', payload: chunk.conversationId });
+        }
 
-      // Update conversation ID if provided
-      if (response.conversationId && response.conversationId !== state.conversationId) {
-        dispatch({ type: 'SET_CONVERSATION_ID', payload: response.conversationId });
-      }
+        if (chunk.content) {
+          accumulatedContent += chunk.content;
+          
+          // Update the loading message with accumulated content
+          const streamingMessage: ChatMessage = {
+            id: loadingMessage.id,
+            content: accumulatedContent,
+            role: 'assistant',
+            timestamp: new Date(),
+            isLoading: !chunk.done,
+          };
 
-      // Replace loading message with actual response
-      const assistantMessage: ChatMessage = {
-        id: loadingMessage.id,
-        content: response.message,
-        role: 'assistant',
-        timestamp: new Date(),
-        isLoading: false,
-      };
+          dispatch({ type: 'UPDATE_MESSAGE', payload: { id: loadingMessage.id, updates: streamingMessage } });
+        }
 
-      dispatch({ type: 'UPDATE_MESSAGE', payload: { id: loadingMessage.id, updates: assistantMessage } });
+        if (chunk.done) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      });
 
     } catch (error) {
       console.error('Failed to send message:', error);

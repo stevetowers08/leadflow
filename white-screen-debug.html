@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empowr CRM - White Screen Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #1e293b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #2563eb;
+        }
+        .success { background: #10b981; }
+        .danger { background: #dc2626; }
+        .warning { background: #f59e0b; }
+        .log {
+            background: #000;
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Empowr CRM - White Screen Debug</h1>
+        
+        <div class="test-section">
+            <h2>Quick Fixes</h2>
+            <button class="button success" onclick="enableDevBypass()">Enable Dev Bypass</button>
+            <button class="button" onclick="goToMainApp()">Go to Main App</button>
+            <button class="button danger" onclick="clearAllData()">Clear All Data</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Diagnostics</h2>
+            <button class="button" onclick="testServerConnection()">Test Server</button>
+            <button class="button" onclick="testLocalStorage()">Test Local Storage</button>
+            <button class="button" onclick="testConsole()">Test Console</button>
+            <button class="button warning" onclick="showDebugInfo()">Show Debug Info</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Console Log</h2>
+            <div id="consoleLog" class="log"></div>
+            <button class="button" onclick="clearLog()">Clear Log</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Debug Information</h2>
+            <div id="debugInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        let logEntries = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = `[${timestamp}] ${message}`;
+            logEntries.push(entry);
+            console.log(entry);
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const logDiv = document.getElementById('consoleLog');
+            logDiv.innerHTML = logEntries.slice(-20).join('<br>');
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            logEntries = [];
+            updateLogDisplay();
+        }
+
+        function enableDevBypass() {
+            localStorage.setItem('dev-bypass-auth', 'true');
+            log('✅ Dev bypass enabled');
+            showDebugInfo();
+        }
+
+        function goToMainApp() {
+            log('🚀 Redirecting to main app...');
+            window.location.href = 'http://localhost:8080';
+        }
+
+        function clearAllData() {
+            localStorage.clear();
+            sessionStorage.clear();
+            log('🗑️ All local data cleared');
+            showDebugInfo();
+        }
+
+        async function testServerConnection() {
+            try {
+                log('🔍 Testing server connection...');
+                const response = await fetch('http://localhost:8080');
+                const text = await response.text();
+                log(`✅ Server responding (${response.status})`);
+                log(`📄 HTML length: ${text.length} characters`);
+                
+                if (text.includes('<div id="root"></div>')) {
+                    log('✅ Root element found in HTML');
+                } else {
+                    log('❌ Root element NOT found in HTML');
+                }
+            } catch (error) {
+                log(`❌ Server test failed: ${error.message}`);
+            }
+        }
+
+        function testLocalStorage() {
+            log('🔍 Testing localStorage...');
+            const bypass = localStorage.getItem('dev-bypass-auth');
+            log(`Dev bypass: ${bypass || 'not set'}`);
+            log(`LocalStorage keys: ${Object.keys(localStorage).join(', ') || 'none'}`);
+        }
+
+        function testConsole() {
+            log('🔍 Testing console...');
+            console.log('✅ Console test message');
+            console.warn('⚠️ Console warning test');
+            console.error('❌ Console error test');
+            log('✅ Console tests sent - check browser console');
+        }
+
+        function showDebugInfo() {
+            const debugDiv = document.getElementById('debugInfo');
+            const bypass = localStorage.getItem('dev-bypass-auth');
+            const userAgent = navigator.userAgent;
+            const timestamp = new Date().toLocaleString();
+            
+            debugDiv.innerHTML = `
+                <div><strong>Timestamp:</strong> ${timestamp}</div>
+                <div><strong>Dev Bypass:</strong> ${bypass || 'not set'}</div>
+                <div><strong>User Agent:</strong> ${userAgent}</div>
+                <div><strong>Local Storage:</strong> ${JSON.stringify(localStorage, null, 2)}</div>
+                <div><strong>Session Storage:</strong> ${JSON.stringify(sessionStorage, null, 2)}</div>
+                <div><strong>URL:</strong> ${window.location.href}</div>
+                <div><strong>Protocol:</strong> ${window.location.protocol}</div>
+                <div><strong>Host:</strong> ${window.location.host}</div>
+            `;
+        }
+
+        // Initialize
+        log('🚀 Debug page loaded');
+        showDebugInfo();
+        testLocalStorage();
+        
+        // Auto-refresh debug info every 5 seconds
+        setInterval(showDebugInfo, 5000);
+    </script>
+</body>
+</html>

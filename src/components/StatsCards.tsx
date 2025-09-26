@@ -30,19 +30,26 @@ const StatItem: React.FC<StatItemProps> = ({ icon, value, label }) => {
 };
 
 // Jobs Stats Cards
-interface JobsStatsProps {
-  totalJobs: number;
-  activeJobs: number;
-  automatedJobs: number;
-  notAutomatedJobs: number;
+interface Job {
+  id: string;
+  priority?: string;
+  automation_active?: boolean;
+  lead_score_job?: number;
 }
 
-export const JobsStatsCards: React.FC<JobsStatsProps> = ({
-  totalJobs,
-  activeJobs,
-  automatedJobs,
-  notAutomatedJobs
-}) => {
+interface JobsStatsProps {
+  jobs: Job[];
+}
+
+export const JobsStatsCards: React.FC<JobsStatsProps> = ({ jobs }) => {
+  const totalJobs = jobs.length;
+  const highPriorityJobs = jobs.filter(job => job.priority === 'HIGH' || job.priority === 'VERY HIGH').length;
+  const automatedJobs = jobs.filter(job => job.automation_active).length;
+  const notAutomatedJobs = totalJobs - automatedJobs;
+  const avgLeadScore = jobs.length > 0 
+    ? Math.round(jobs.reduce((sum, job) => sum + (job.lead_score_job || 0), 0) / jobs.length)
+    : 0;
+
   return (
     <div className="flex items-center gap-6 mb-4 text-sm">
       <StatItem
@@ -51,9 +58,9 @@ export const JobsStatsCards: React.FC<JobsStatsProps> = ({
         label="jobs"
       />
       <StatItem
-        icon={<CheckCircle className="h-4 w-4" />}
-        value={activeJobs}
-        label="active"
+        icon={<Star className="h-4 w-4" />}
+        value={highPriorityJobs}
+        label="high priority"
       />
       <StatItem
         icon={<Zap className="h-4 w-4" />}
@@ -62,8 +69,8 @@ export const JobsStatsCards: React.FC<JobsStatsProps> = ({
       />
       <StatItem
         icon={<Target className="h-4 w-4" />}
-        value={notAutomatedJobs}
-        label="not automated"
+        value={avgLeadScore}
+        label="avg score"
       />
     </div>
   );

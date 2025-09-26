@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Console</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #console { background: #f5f5f5; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; height: 400px; overflow-y: auto; }
+        .error { color: red; }
+        .warn { color: orange; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Console Debug</h1>
+    <div id="console"></div>
+    
+    <script>
+        const consoleDiv = document.getElementById('console');
+        
+        function log(type, ...args) {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${args.join(' ')}`;
+            consoleDiv.appendChild(div);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        // Override console methods
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.log = function(...args) {
+            log('info', ...args);
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            log('error', ...args);
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            log('warn', ...args);
+            originalWarn.apply(console, args);
+        };
+        
+        // Capture unhandled errors
+        window.addEventListener('error', (event) => {
+            log('error', `Unhandled error: ${event.error?.message || event.message}`);
+            log('error', `Stack: ${event.error?.stack || 'No stack trace'}`);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            log('error', `Unhandled promise rejection: ${event.reason}`);
+        });
+        
+        // Test React app
+        setTimeout(() => {
+            log('info', 'Checking React app...');
+            
+            const root = document.getElementById('root');
+            if (root) {
+                log('info', `Root element found. Children: ${root.children.length}`);
+                log('info', `Root innerHTML length: ${root.innerHTML.length}`);
+                
+                if (root.innerHTML.length === 0) {
+                    log('error', 'Root element is empty - white screen detected');
+                } else {
+                    log('info', 'Root element has content');
+                }
+            } else {
+                log('error', 'Root element not found');
+            }
+        }, 2000);
+    </script>
+    
+    <script>
+        // Open the main app in an iframe to capture its console
+        const iframe = document.createElement('iframe');
+        iframe.src = 'http://localhost:8084/';
+        iframe.style.width = '100%';
+        iframe.style.height = '600px';
+        iframe.style.border = '1px solid #ccc';
+        document.body.appendChild(iframe);
+        
+        iframe.onload = () => {
+            log('info', 'Main app iframe loaded');
+        };
+        
+        iframe.onerror = () => {
+            log('error', 'Main app iframe failed to load');
+        };
+    </script>
+</body>
+</html>

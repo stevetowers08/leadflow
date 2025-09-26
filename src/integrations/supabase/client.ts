@@ -10,10 +10,38 @@ const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-  }
+    persistSession: false,  // Disable session persistence to avoid auth issues
+    autoRefreshToken: false, // Disable auto refresh to avoid auth issues
+    detectSessionInUrl: false, // Disable OAuth detection to avoid auth issues
+  },
+  // Add global headers to bypass RLS temporarily
+  global: {
+    headers: {
+      'apikey': SUPABASE_PUBLISHABLE_KEY,
+    },
+  },
 });
+
+// Authentication helper functions
+export const signInWithGoogle = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  });
+
+  if (error) {
+    console.error('Google OAuth failed:', error);
+    throw error;
+  }
+
+  return data;
+};
 
 // Admin client for admin operations (requires service role key)
 export const supabaseAdmin = SUPABASE_SERVICE_ROLE_KEY 

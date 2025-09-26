@@ -72,151 +72,236 @@ const mcpTools = [
   },
 ];
 
-// Tool execution functions
-async function executeSqlTool(args) {
-  try {
-    const { query } = args;
-    
-    // For security, we'll only allow SELECT queries
-    const trimmedQuery = query.trim().toLowerCase();
-    if (!trimmedQuery.startsWith('select')) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: 'Error: Only SELECT queries are allowed for security reasons',
-          },
-        ],
-      };
-    }
-    
-    // Use direct query execution
-    const { data, error } = await supabase.rpc('exec_sql', { query });
-    
-    if (error) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Error executing SQL: ${error.message}`,
-          },
-        ],
-      };
-    }
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `SQL executed successfully. Result: ${JSON.stringify(data, null, 2)}`,
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Error: ${error.message}`,
-        },
-      ],
-    };
-  }
-}
-
-async function listTablesTool(args) {
-  try {
-    // For now, return known tables from your CRM system
-    const knownTables = [
-      'companies',
-      'users', 
-      'leads',
-      'conversations',
-      'user_profiles',
-      'company_logos',
-      'system_settings',
-      'badges',
-      'user_badges',
-      'conversation_messages'
-    ];
-    
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Available tables: ${knownTables.join(', ')}`,
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Error: ${error.message}`,
-        },
-      ],
-    };
-  }
-}
-
-async function getTableDataTool(args) {
-  try {
-    const { table_name, limit = 10 } = args;
-    const { data, error } = await supabase
-      .from(table_name)
-      .select('*')
-      .limit(limit);
-
-    if (error) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Error getting table data: ${error.message}`,
-          },
-        ],
-      };
-    }
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Data from ${table_name} (${data.length} rows):\n${JSON.stringify(data, null, 2)}`,
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Error: ${error.message}`,
-        },
-      ],
-    };
-  }
-}
-
-// Tool execution mapping
+// Tool executors
 const toolExecutors = {
-  execute_sql: executeSqlTool,
-  list_tables: listTablesTool,
-  get_table_data: getTableDataTool,
+  async execute_sql(args) {
+    try {
+      const { query } = args;
+      const trimmedQuery = query.trim().toLowerCase();
+      
+      // Security: Only allow SELECT queries
+      if (!trimmedQuery.startsWith('select')) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'Error: Only SELECT queries are allowed for security reasons'
+            }
+          ]
+        };
+      }
+
+      console.log('Executing SQL:', query);
+      const { data, error } = await supabase.rpc('exec_sql', { query });
+      
+      if (error) {
+        console.error('SQL execution error:', error);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Error executing SQL: ${error.message}`
+            }
+          ]
+        };
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Query executed successfully. Results: ${JSON.stringify(data, null, 2)}`
+          }
+        ]
+      };
+    } catch (error) {
+      console.error('Error executing SQL:', error);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error executing SQL: ${error.message}`
+          }
+        ]
+      };
+    }
+  },
+
+  async list_tables(args) {
+    try {
+      // Return hardcoded list of known CRM tables
+      const knownTables = [
+        'companies', 'users', 'leads', 'conversations', 'user_profiles',
+        'company_logos', 'system_settings', 'badges', 'user_badges', 'conversation_messages'
+      ];
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Available tables: ${knownTables.join(', ')}`
+          }
+        ]
+      };
+    } catch (error) {
+      console.error('Error listing tables:', error);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error listing tables: ${error.message}`
+          }
+        ]
+      };
+    }
+  },
+
+  async get_table_data(args) {
+    try {
+      const { table_name, limit = 10 } = args;
+      
+      console.log(`Getting data from table: ${table_name}, limit: ${limit}`);
+      const { data, error } = await supabase
+        .from(table_name)
+        .select('*')
+        .limit(limit);
+      
+      if (error) {
+        console.error('Error getting table data:', error);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Error getting table data: ${error.message}`
+            }
+          ]
+        };
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Data from ${table_name}: ${JSON.stringify(data, null, 2)}`
+          }
+        ]
+      };
+    } catch (error) {
+      console.error('Error getting table data:', error);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error getting table data: ${error.message}`
+          }
+        ]
+      };
+    }
+  },
 };
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    message: 'Empowr CRM MCP Server is running',
-    protocol: 'MCP over HTTP'
+// MCP Protocol Endpoints
+
+// Initialize endpoint
+app.post('/mcp/initialize', (req, res) => {
+  console.log('MCP Initialize request received');
+  res.json({
+    jsonrpc: '2.0',
+    result: {
+      protocolVersion: '2024-11-05',
+      capabilities: {
+        tools: {}
+      },
+      serverInfo: {
+        name: 'empowr-crm-mcp-server',
+        version: '1.0.0'
+      }
+    }
   });
 });
 
-// MCP Tools list endpoint
+// List tools endpoint
+app.post('/mcp/tools/list', (req, res) => {
+  console.log('MCP Tools list request received');
+  res.json({
+    jsonrpc: '2.0',
+    result: {
+      tools: mcpTools
+    }
+  });
+});
+
+// Call tool endpoint
+app.post('/mcp/tools/call', async (req, res) => {
+  try {
+    const { name, arguments: args } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32602,
+          message: 'Invalid params: tool name is required'
+        }
+      });
+    }
+
+    if (!toolExecutors[name]) {
+      return res.status(400).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32601,
+          message: `Unknown tool: ${name}`
+        }
+      });
+    }
+
+    console.log(`Executing tool: ${name} with args:`, args);
+    const result = await toolExecutors[name](args || {});
+    
+    res.json({
+      jsonrpc: '2.0',
+      result: result
+    });
+  } catch (error) {
+    console.error('Tool execution error:', error);
+    res.status(500).json({
+      jsonrpc: '2.0',
+      error: {
+        code: -32603,
+        message: `Internal error: ${error.message}`
+      }
+    });
+  }
+});
+
+// SSE endpoint for n8n compatibility
+app.get('/mcp/sse', (req, res) => {
+  console.log('SSE connection request received');
+  
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control'
+  });
+
+  // Send initial connection message
+  res.write('data: {"type":"connection","status":"connected"}\n\n');
+
+  // Keep connection alive
+  const keepAlive = setInterval(() => {
+    res.write('data: {"type":"ping"}\n\n');
+  }, 30000);
+
+  req.on('close', () => {
+    console.log('SSE connection closed');
+    clearInterval(keepAlive);
+  });
+});
+
+// Legacy endpoints for backward compatibility
 app.get('/mcp/tools', (req, res) => {
   res.json({
     jsonrpc: '2.0',
@@ -226,24 +311,22 @@ app.get('/mcp/tools', (req, res) => {
   });
 });
 
-// MCP Tool call endpoint
 app.post('/mcp/call', async (req, res) => {
   try {
     const { name, arguments: args } = req.body;
     
-    // Validate request
     if (!name) {
       return res.status(400).json({
         jsonrpc: '2.0',
         error: {
-          code: -32600,
-          message: 'Invalid request: missing tool name'
+          code: -32602,
+          message: 'Invalid params: tool name is required'
         }
       });
     }
-    
+
     if (!toolExecutors[name]) {
-      return res.json({
+      return res.status(400).json({
         jsonrpc: '2.0',
         error: {
           code: -32601,
@@ -251,7 +334,7 @@ app.post('/mcp/call', async (req, res) => {
         }
       });
     }
-    
+
     console.log(`Executing tool: ${name} with args:`, args);
     const result = await toolExecutors[name](args || {});
     
@@ -260,72 +343,23 @@ app.post('/mcp/call', async (req, res) => {
       result: result
     });
   } catch (error) {
-    console.error('MCP tool call error:', error);
+    console.error('Tool execution error:', error);
     res.status(500).json({
       jsonrpc: '2.0',
       error: {
         code: -32603,
-        message: error.message
+        message: `Internal error: ${error.message}`
       }
     });
   }
 });
 
-// Legacy HTTP API endpoints (for backward compatibility)
-app.post('/tools', async (req, res) => {
-  try {
-    const { tool, parameters } = req.body;
-    
-    if (!toolExecutors[tool]) {
-      return res.json({
-        success: false,
-        error: `Unknown tool: ${tool}`
-      });
-    }
-    
-    const result = await toolExecutors[tool](parameters);
-    
-    // Convert MCP result to legacy format
-    if (result.content && result.content[0]) {
-      const text = result.content[0].text;
-      
-      if (text.includes('Error')) {
-        return res.json({
-          success: false,
-          error: text
-        });
-      } else {
-        return res.json({
-          success: true,
-          data: text
-        });
-      }
-    }
-    
-    res.json({
-      success: true,
-      data: result
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// Available tools endpoint (legacy)
-app.get('/tools', (req, res) => {
-  res.json({
-    tools: mcpTools.map(tool => ({
-      name: tool.name,
-      description: tool.description,
-      parameters: tool.inputSchema.properties
-    }))
-  });
-});
-
-// Global error handler for JSON parsing errors
+// Global error handler
 app.use((error, req, res, next) => {
   if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
     console.error('JSON parsing error:', error.message);
@@ -341,13 +375,15 @@ app.use((error, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const port = process.env.PORT || 8080;
+app.listen(port, '0.0.0.0', () => {
   console.log('🚀 Empowr CRM MCP Server Started!');
-  console.log(`📡 Port: ${PORT}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-  console.log(`🛠️  MCP Tools list: http://localhost:${PORT}/mcp/tools`);
-  console.log(`🔧 MCP Tool call: http://localhost:${PORT}/mcp/call`);
-  console.log(`📋 Legacy tools: http://localhost:${PORT}/tools`);
+  console.log('📡 Port:', port);
+  console.log('🏥 Health check: http://localhost:' + port + '/health');
+  console.log('🛠️  MCP Tools list: http://localhost:' + port + '/mcp/tools');
+  console.log('🔧 MCP Tool call: http://localhost:' + port + '/mcp/call');
+  console.log('📡 SSE endpoint: http://localhost:' + port + '/mcp/sse');
+  console.log('📋 Legacy tools: http://localhost:' + port + '/tools');
   console.log('✅ Ready to accept MCP requests!');
+  console.log('🔑 Using service role key - full database access');
 });

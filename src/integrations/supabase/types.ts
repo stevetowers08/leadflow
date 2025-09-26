@@ -107,7 +107,6 @@ export type Database = {
           loxo_company_id: string | null
           name: string
           priority: string | null
-          profile_image_url: string | null
           score_reason: string | null
           updated_at: string | null
           website: string | null
@@ -132,7 +131,6 @@ export type Database = {
           loxo_company_id?: string | null
           name: string
           priority?: string | null
-          profile_image_url?: string | null
           score_reason?: string | null
           updated_at?: string | null
           website?: string | null
@@ -157,12 +155,211 @@ export type Database = {
           loxo_company_id?: string | null
           name?: string
           priority?: string | null
-          profile_image_url?: string | null
           score_reason?: string | null
           updated_at?: string | null
           website?: string | null
         }
         Relationships: []
+      }
+      email_messages: {
+        Row: {
+          attachments: Json | null
+          bcc_emails: string[] | null
+          body_html: string | null
+          body_text: string | null
+          cc_emails: string[] | null
+          created_at: string | null
+          from_email: string
+          gmail_message_id: string
+          id: string
+          is_read: boolean | null
+          is_sent: boolean | null
+          person_id: string | null
+          received_at: string | null
+          sent_at: string | null
+          subject: string | null
+          sync_status: string | null
+          thread_id: string | null
+          to_emails: string[]
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          bcc_emails?: string[] | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[] | null
+          created_at?: string | null
+          from_email: string
+          gmail_message_id: string
+          id?: string
+          is_read?: boolean | null
+          is_sent?: boolean | null
+          person_id?: string | null
+          received_at?: string | null
+          sent_at?: string | null
+          subject?: string | null
+          sync_status?: string | null
+          thread_id?: string | null
+          to_emails: string[]
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          bcc_emails?: string[] | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[] | null
+          created_at?: string | null
+          from_email?: string
+          gmail_message_id?: string
+          id?: string
+          is_read?: boolean | null
+          is_sent?: boolean | null
+          person_id?: string | null
+          received_at?: string | null
+          sent_at?: string | null
+          subject?: string | null
+          sync_status?: string | null
+          thread_id?: string | null
+          to_emails?: string[]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_messages_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "email_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_sync_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          message_count: number | null
+          metadata: Json | null
+          operation_type: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message_count?: number | null
+          metadata?: Json | null
+          operation_type: string
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message_count?: number | null
+          metadata?: Json | null
+          operation_type?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          body_html: string
+          body_text: string | null
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          subject: string
+          updated_at: string | null
+        }
+        Insert: {
+          body_html: string
+          body_text?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject: string
+          updated_at?: string | null
+        }
+        Update: {
+          body_html?: string
+          body_text?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      email_threads: {
+        Row: {
+          created_at: string | null
+          gmail_thread_id: string
+          id: string
+          is_read: boolean | null
+          last_message_at: string | null
+          participants: Json
+          person_id: string | null
+          subject: string | null
+          sync_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          gmail_thread_id: string
+          id?: string
+          is_read?: boolean | null
+          last_message_at?: string | null
+          participants?: Json
+          person_id?: string | null
+          subject?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          gmail_thread_id?: string
+          id?: string
+          is_read?: boolean | null
+          last_message_at?: string | null
+          participants?: Json
+          person_id?: string | null
+          subject?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_threads_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       interactions: {
         Row: {
@@ -212,7 +409,7 @@ export type Database = {
         Row: {
           automation_active: boolean | null
           automation_started_at: string | null
-          company_id: string
+          company_id: string | null
           created_at: string | null
           description: string | null
           employment_type: string | null
@@ -235,7 +432,7 @@ export type Database = {
         Insert: {
           automation_active?: boolean | null
           automation_started_at?: string | null
-          company_id: string
+          company_id?: string | null
           created_at?: string | null
           description?: string | null
           employment_type?: string | null
@@ -258,7 +455,7 @@ export type Database = {
         Update: {
           automation_active?: boolean | null
           automation_started_at?: string | null
-          company_id?: string
+          company_id?: string | null
           created_at?: string | null
           description?: string | null
           employment_type?: string | null
@@ -278,7 +475,141 @@ export type Database = {
           updated_at?: string | null
           valid_through?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      linkedin_user_settings: {
+        Row: {
+          auto_sync_enabled: boolean | null
+          created_at: string | null
+          id: string
+          last_sync_at: string | null
+          sync_frequency_minutes: number | null
+          updated_at: string | null
+          user_id: string | null
+          webhook_enabled: boolean | null
+        }
+        Insert: {
+          auto_sync_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_sync_at?: string | null
+          sync_frequency_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          webhook_enabled?: boolean | null
+        }
+        Update: {
+          auto_sync_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_sync_at?: string | null
+          sync_frequency_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          webhook_enabled?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      linkedin_user_tokens: {
+        Row: {
+          access_token: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          linkedin_profile_id: string | null
+          refresh_token: string | null
+          scope: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_token: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          linkedin_profile_id?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_token?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          linkedin_profile_id?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_user_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      linkedin_user_webhook_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          linkedin_id: string
+          payload: Json
+          processed: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          linkedin_id: string
+          payload: Json
+          processed?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          linkedin_id?: string
+          payload?: Json
+          processed?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_user_webhook_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       people: {
         Row: {
@@ -311,6 +642,7 @@ export type Database = {
           linkedin_connected: string | null
           linkedin_connected_message: string | null
           linkedin_follow_up_message: string | null
+          linkedin_profile_id: string | null
           linkedin_request_message: string | null
           linkedin_responded: string | null
           linkedin_url: string | null
@@ -355,6 +687,7 @@ export type Database = {
           linkedin_connected?: string | null
           linkedin_connected_message?: string | null
           linkedin_follow_up_message?: string | null
+          linkedin_profile_id?: string | null
           linkedin_request_message?: string | null
           linkedin_responded?: string | null
           linkedin_url?: string | null
@@ -399,6 +732,7 @@ export type Database = {
           linkedin_connected?: string | null
           linkedin_connected_message?: string | null
           linkedin_follow_up_message?: string | null
+          linkedin_profile_id?: string | null
           linkedin_request_message?: string | null
           linkedin_responded?: string | null
           linkedin_url?: string | null
@@ -413,6 +747,104 @@ export type Database = {
           stage_updated?: string | null
           updated_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "people_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean | null
+          role: string | null
+          updated_at: string | null
+          user_limit: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          is_active?: boolean | null
+          role?: string | null
+          updated_at?: string | null
+          user_limit?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: string | null
+          updated_at?: string | null
+          user_limit?: number | null
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          notifications: Json | null
+          preferences: Json | null
+          security: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notifications?: Json | null
+          preferences?: Json | null
+          security?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notifications?: Json | null
+          preferences?: Json | null
+          security?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
         Relationships: []
       }
     }
@@ -420,6 +852,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      backfill_people_timestamps: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      get_dashboard_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          companies: number
+          expiring_jobs: number
+          jobs: number
+          leads: number
+          new_jobs_today: number
+        }[]
+      }
       get_dropdown_options: {
         Args: { dropdown_type: string }
         Returns: {
@@ -429,6 +875,38 @@ export type Database = {
       }
       get_enum_values: {
         Args: { enum_type: string }
+        Returns: string[]
+      }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
         Returns: string[]
       }
     }

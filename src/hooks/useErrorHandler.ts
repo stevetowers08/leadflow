@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useUserFeedback } from './useUserFeedback';
 
 export interface ErrorInfo {
   id: string;
@@ -22,6 +23,7 @@ export interface RetryOptions {
 export function useErrorHandler() {
   const [errors, setErrors] = useState<ErrorInfo[]>([]);
   const { toast } = useToast();
+  const { showError, showWarning } = useUserFeedback();
 
   const logError = useCallback((
     error: Error | string,
@@ -40,13 +42,11 @@ export function useErrorHandler() {
 
     setErrors(prev => [errorInfo, ...prev]);
 
-    // Show toast notification based on severity
+    // Show appropriate feedback based on severity
     if (severity === 'critical' || severity === 'high') {
-      toast({
-        title: "Error",
-        description: errorInfo.message,
-        variant: "destructive",
-      });
+      showError("Error", errorInfo.message);
+    } else if (severity === 'medium') {
+      showWarning("Warning", errorInfo.message);
     }
 
     // Log to console in development

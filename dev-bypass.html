@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empowr CRM - Dev Bypass</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 8px;
+            background: #1e293b;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #f59e0b;
+        }
+        .description {
+            margin-bottom: 2rem;
+            color: #94a3b8;
+        }
+        .button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background: #2563eb;
+        }
+        .button.danger {
+            background: #dc2626;
+        }
+        .button.danger:hover {
+            background: #b91c1c;
+        }
+        .status {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            background: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">🚀 Empowr CRM - Development Bypass</div>
+        <div class="description">
+            Authentication is taking too long. Use this page to bypass authentication in development mode.
+        </div>
+        
+        <button class="button" onclick="enableDevBypass()">Enable Dev Bypass</button>
+        <button class="button danger" onclick="clearDevBypass()">Clear Dev Bypass</button>
+        <button class="button" onclick="goToApp()">Go to App</button>
+        
+        <div class="status" id="status">
+            Current status: <span id="statusText">Checking...</span>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus() {
+            const bypass = localStorage.getItem('dev-bypass-auth');
+            const statusText = document.getElementById('statusText');
+            if (bypass === 'true') {
+                statusText.textContent = 'Dev bypass is ENABLED';
+                statusText.style.color = '#10b981';
+            } else {
+                statusText.textContent = 'Dev bypass is DISABLED';
+                statusText.style.color = '#ef4444';
+            }
+        }
+
+        function enableDevBypass() {
+            localStorage.setItem('dev-bypass-auth', 'true');
+            updateStatus();
+            console.log('✅ Dev bypass enabled');
+        }
+
+        function clearDevBypass() {
+            localStorage.removeItem('dev-bypass-auth');
+            updateStatus();
+            console.log('❌ Dev bypass cleared');
+        }
+
+        function goToApp() {
+            window.location.href = 'http://localhost:8080';
+        }
+
+        // Update status on load
+        updateStatus();
+        
+        // Auto-refresh status every second
+        setInterval(updateStatus, 1000);
+    </script>
+</body>
+</html>

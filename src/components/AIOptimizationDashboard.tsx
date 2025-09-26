@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Progress } from "@/components/ui/progress";
 import { Brain, TrendingUp, Target, Users, Clock, Zap, RefreshCw } from "lucide-react";
 import { aiService, LeadOptimization } from "@/services/aiService";
@@ -225,9 +226,7 @@ export function AIOptimizationDashboard({ leads, onOptimizationComplete }: AIOpt
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {stats.topPerformingActions.map((action, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {action}
-                </Badge>
+                <StatusBadge status={action} size="sm" />
               ))}
             </div>
           </CardContent>
@@ -246,12 +245,8 @@ export function AIOptimizationDashboard({ leads, onOptimizationComplete }: AIOpt
                 <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="space-y-1">
                     <div className="flex gap-2">
-                      <Badge className={`${getPriorityColor(opt.priority_level)} border text-xs`}>
-                        {opt.priority_level.toUpperCase()}
-                      </Badge>
-                      <Badge className={`${getMethodColor(opt.best_contact_method)} border text-xs`}>
-                        {opt.best_contact_method.toUpperCase()}
-                      </Badge>
+                      <StatusBadge status={opt.priority_level} size="sm" />
+                      <StatusBadge status={opt.best_contact_method} size="sm" />
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {opt.suggested_actions[0]}

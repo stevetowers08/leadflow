@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Hydration Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #1e293b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #2563eb;
+        }
+        .button.success { background: #10b981; }
+        .button.danger { background: #dc2626; }
+        .button.warning { background: #f59e0b; }
+        .log {
+            background: #000;
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        #hydration-test-root {
+            border: 2px solid #3b82f6;
+            min-height: 200px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 React Hydration Test</h1>
+        
+        <div class="test-section">
+            <h2>Hydration Test Root</h2>
+            <div id="hydration-test-root">
+                <p>This is the hydration test root. React should render here.</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Actions</h2>
+            <button class="button" onclick="testReactHydration()">Test React Hydration</button>
+            <button class="button" onclick="testReactCreateRoot()">Test React createRoot</button>
+            <button class="button" onclick="testReactRender()">Test React Render</button>
+            <button class="button success" onclick="enableDevBypass()">Enable Dev Bypass</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Hydration Log</h2>
+            <div id="hydrationLog" class="log"></div>
+            <button class="button" onclick="clearLog()">Clear Log</button>
+        </div>
+    </div>
+
+    <script>
+        let logEntries = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+            logEntries.push(entry);
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const logDiv = document.getElementById('hydrationLog');
+            logDiv.textContent = logEntries.slice(-100).join('\n');
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            logEntries = [];
+            updateLogDisplay();
+        }
+
+        async function testReactHydration() {
+            log('🔍 Testing React hydration...');
+            
+            try {
+                // Import React modules
+                const [reactModule, reactDomModule] = await Promise.all([
+                    import('http://localhost:8080/node_modules/.vite/deps/react.js'),
+                    import('http://localhost:8080/node_modules/.vite/deps/react-dom_client.js')
+                ]);
+                
+                log('✅ React modules imported');
+                
+                const React = reactModule.default || reactModule;
+                const { createRoot } = reactDomModule;
+                
+                log('✅ React and createRoot extracted');
+                
+                // Test basic React functionality
+                const testElement = React.createElement('div', {
+                    style: {
+                        padding: '20px',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        borderRadius: '8px',
+                        margin: '10px 0'
+                    }
+                }, '✅ React element created successfully!');
+                
+                log('✅ React element created');
+                
+                // Test hydration
+                const rootElement = document.getElementById('hydration-test-root');
+                if (!rootElement) {
+                    throw new Error('Root element not found');
+                }
+                
+                log('✅ Root element found');
+                
+                const root = createRoot(rootElement);
+                log('✅ React root created');
+                
+                root.render(testElement);
+                log('✅ React element rendered');
+                
+                // Check if element was actually rendered
+                setTimeout(() => {
+                    const renderedElement = rootElement.querySelector('div');
+                    if (renderedElement) {
+                        log('✅ Element successfully rendered in DOM');
+                        log(`Rendered content: ${renderedElement.textContent}`);
+                    } else {
+                        log('❌ Element not found in DOM after render', 'error');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                log(`❌ React hydration test failed: ${error.message}`, 'error');
+                log(`Error stack: ${error.stack}`, 'error');
+            }
+        }
+
+        async function testReactCreateRoot() {
+            log('🔍 Testing React createRoot specifically...');
+            
+            try {
+                const reactDomModule = await import('http://localhost:8080/node_modules/.vite/deps/react-dom_client.js');
+                const { createRoot } = reactDomModule;
+                
+                log('✅ createRoot imported');
+                
+                const rootElement = document.getElementById('hydration-test-root');
+                const root = createRoot(rootElement);
+                
+                log('✅ createRoot executed successfully');
+                
+                // Test with a simple element
+                const simpleElement = document.createElement('div');
+                simpleElement.textContent = '✅ createRoot test successful';
+                simpleElement.style.cssText = 'padding: 10px; background: #10b981; color: white; border-radius: 4px;';
+                
+                root.render(simpleElement);
+                log('✅ Simple element rendered with createRoot');
+                
+            } catch (error) {
+                log(`❌ createRoot test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testReactRender() {
+            log('🔍 Testing React render process...');
+            
+            try {
+                const [reactModule, reactDomModule] = await Promise.all([
+                    import('http://localhost:8080/node_modules/.vite/deps/react.js'),
+                    import('http://localhost:8080/node_modules/.vite/deps/react-dom_client.js')
+                ]);
+                
+                const React = reactModule.default || reactModule;
+                const { createRoot } = reactDomModule;
+                
+                // Create a more complex component
+                const TestComponent = () => {
+                    const [count, setCount] = React.useState(0);
+                    
+                    return React.createElement('div', {
+                        style: {
+                            padding: '20px',
+                            backgroundColor: '#1e293b',
+                            border: '2px solid #3b82f6',
+                            borderRadius: '8px',
+                            margin: '10px 0'
+                        }
+                    }, [
+                        React.createElement('h3', { key: 'title' }, 'React Component Test'),
+                        React.createElement('p', { key: 'count' }, `Count: ${count}`),
+                        React.createElement('button', {
+                            key: 'button',
+                            onClick: () => setCount(count + 1),
+                            style: {
+                                padding: '10px 20px',
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                            }
+                        }, 'Increment')
+                    ]);
+                };
+                
+                const rootElement = document.getElementById('hydration-test-root');
+                const root = createRoot(rootElement);
+                
+                root.render(React.createElement(TestComponent));
+                log('✅ Complex React component rendered');
+                
+            } catch (error) {
+                log(`❌ React render test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function enableDevBypass() {
+            localStorage.setItem('dev-bypass-auth', 'true');
+            log('✅ Dev bypass enabled');
+        }
+
+        // Initialize
+        log('🚀 React hydration test loaded');
+        
+        // Auto-run basic test
+        setTimeout(testReactHydration, 1000);
+    </script>
+</body>
+</html>

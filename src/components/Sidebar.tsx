@@ -1,12 +1,13 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Building2, Users, Briefcase, BarChart3, Target, Settings, LogOut, X, LogIn, Bot } from "lucide-react";
+import { Home, Building2, Users, Briefcase, BarChart3, Target, Settings, LogOut, X, LogIn, Bot, MessageSquare, CreditCard, Mic, Tag, Webhook, Plug, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionsContext";
+import { useSidebar } from "@/contexts/SidebarContext";
 
 const mainNavigation = [
   { name: "Dashboard", href: "/", icon: Home },
@@ -14,6 +15,7 @@ const mainNavigation = [
   { name: "People", href: "/leads", icon: Users },
   { name: "Companies", href: "/companies", icon: Building2 },
   { name: "Pipeline", href: "/pipeline", icon: Target },
+  { name: "Conversations", href: "/conversations", icon: MessageSquare },
 ];
 
 const secondaryNavigation = [
@@ -41,20 +43,22 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   const adminItems = React.useMemo(() => adminNavigation, []);
 
   return (
-    <aside className="w-52 bg-sidebar backdrop-blur border-r border-sidebar-border flex flex-col fixed left-0 top-0 h-screen z-40">
-      <div className="px-4 py-6 border-b border-sidebar-border">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-lg font-semibold text-sidebar-foreground">4Twenty CRM</h1>
-          {onClose && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="lg:hidden p-2 text-sidebar-foreground hover:bg-sidebar-accent"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+    <aside className="bg-sidebar border-r border-sidebar-border border-t-0 flex flex-col fixed left-0 top-0 h-screen z-40 transition-all duration-300 w-52">
+      <div className="px-4 h-20 border-b border-sidebar-border bg-sidebar flex items-center">
+        <div className="flex items-center justify-between w-full">
+          <h1 className="text-lg font-semibold text-sidebar-foreground">Empowr CRM</h1>
+          <div className="flex items-center gap-2">
+            {onClose && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="lg:hidden p-2 text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       
@@ -72,7 +76,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
                 isActive
                   ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -96,7 +100,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
                   isActive
                     ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -129,7 +133,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
                     isActive
                       ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -146,8 +150,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start p-2 h-auto hover:bg-transparent">
-                <div className="flex items-center gap-3 w-full">
+              <Button variant="ghost" className="w-full p-2 h-auto hover:bg-transparent justify-start">
+                <div className="flex items-center w-full gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.user_metadata?.avatar_url} />
                     <AvatarFallback className="text-xs">
@@ -157,10 +161,10 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-normal truncate text-white">
+                    <p className="text-sm font-normal truncate text-sidebar-foreground">
                       {user.user_metadata?.full_name || 'User'}
                     </p>
-                    <p className="text-xs text-white/70 truncate">
+                    <p className="text-xs text-sidebar-foreground/70 truncate">
                       {user.email}
                     </p>
                   </div>
@@ -178,10 +182,10 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
           <Button 
             onClick={() => signInWithGoogle()} 
             variant="ghost" 
-            className="w-full justify-start text-white hover:text-white hover:bg-transparent"
+            className="w-full justify-start text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
           >
-            <LogIn className="mr-2 h-4 w-4 text-white" />
-            <span className="text-white">Sign in with Google</span>
+            <LogIn className="mr-2 h-4 w-4 text-sidebar-foreground" />
+            <span className="text-sidebar-foreground">Sign in with Google</span>
           </Button>
         )}
       </div>

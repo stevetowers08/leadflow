@@ -15,7 +15,7 @@
  */
 export const getUIAvatarUrl = (
   name: string | null | undefined,
-  size: number = 40,
+  size: number = 32,
   backgroundColor: string = '4f46e5', // Indigo-600
   textColor: string = 'ffffff' // White
 ): string => {
@@ -52,7 +52,7 @@ export const getInitials = (name: string | null | undefined): string => {
  */
 export const getProfileImage = (
   name: string | null | undefined,
-  size: number = 40,
+  size: number = 32,
   backgroundColor: string = '4f46e5',
   textColor: string = 'ffffff'
 ) => {

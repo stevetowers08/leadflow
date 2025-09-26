@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { User, Users, UserCheck, UserX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 
 interface LeadAssignmentProps {
   leadId: string;
@@ -104,10 +105,7 @@ export const LeadAssignment = ({ leadId, currentOwner, leadName, onAssignmentCha
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              <UserCheck className="w-3 h-3 mr-1" />
-              Assigned
-            </Badge>
+            <StatusBadge status="Assigned" size="sm" />
             <Button
               variant="ghost"
               size="sm"

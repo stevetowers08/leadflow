@@ -1,207 +1,130 @@
-# 🚀 4Twenty CRM - B2B Lead Discovery & Outreach Management Platform
+# Empowr CRM - Company Logo System
 
-## Project Overview
-- **Name**: 4Twenty CRM
-- **Purpose**: B2B lead discovery and prospect management dashboard for outreach automation
-- **Goal**: Help businesses discover potential client companies from job postings, identify decision makers, and track outreach activities via LinkedIn/email automation tools
+This CRM application uses **Clearbit Logo API** for automatic company logo fetching and display.
 
-## 🌟 Current Features
+## Features
 
-### ✅ **Core Functionality**
-- **Dashboard** - Overview with key metrics and quick actions
-- **Lead Management** - Track prospects through pipeline stages
-- **Company Management** - Manage target companies and their information
-- **Job Tracking** - Monitor job postings for lead discovery opportunities
-- **Visual Pipeline** - Kanban-style opportunity management
+- ✅ **Clearbit Logo Integration** - Automatic logo fetching from company domains
+- ✅ **Fallback System** - Graceful fallback to company initials when logos unavailable
+- ✅ **Real-time Logo Updates** - Dynamic logo generation based on company websites
+- ✅ **Responsive Design** - Logos display consistently across all screen sizes
+- ✅ **Performance Optimized** - Lazy loading and error handling for logo display
 
-### ✅ **Advanced Features (Recently Added)**
+## Logo System Architecture
 
-#### 📈 **Activity Timeline**
-- **Visual timeline** showing all lead interactions
-- **Automatic tracking** of LinkedIn connections, email exchanges, meetings
-- **Timeline events**: Lead creation, connection requests, messages, responses
-- **Date formatting** with relative time display
+### Clearbit Integration
+The application uses [Clearbit Logo API](https://clearbit.com/logo) to automatically fetch company logos:
 
-#### 👥 **Lead Assignment System**  
-- **Team member management** with avatar display
-- **Lead assignment** and ownership tracking
-- **Performance metrics** by team member
-- **Visual assignment indicators** throughout the UI
+- **Primary Source**: `https://logo.clearbit.com/{domain}`
+- **Automatic Domain Processing**: Removes protocols, www prefixes, and query parameters
+- **Fallback Strategy**: Company initials when Clearbit logos unavailable
 
-#### 📋 **Deal/Opportunity Pipeline**
-- **Kanban board interface** with drag-and-drop-like functionality
-- **Pipeline stages**: NEW LEAD → IN QUEUE → CONNECT SENT → MSG SENT → CONNECTED → REPLIED → LEAD LOST
-- **Real-time stage updates** with dropdown controls
-- **Pipeline analytics** with conversion rates and metrics
-- **Owner assignments** visible on pipeline cards
+### Logo Display Sizes
+- **Small (32px)**: Dashboard cards, compact views
+- **Medium (40px)**: Table rows, standard cards  
+- **Large (48px)**: Company listings, detail views
+- **Extra Large (64px)**: Headers, modal views
 
-#### 💬 **Notes & Comments System**
-- **Rich notes section** for leads and companies  
-- **Threaded comments** with timestamps
-- **User avatars** and edit functionality
-- **Local storage** with export capabilities
+## Database Schema
 
-#### 📊 **Advanced Analytics & Reporting**
-- **Comprehensive dashboard** with KPIs and metrics
-- **Conversion rate tracking** and pipeline analysis
-- **Team performance metrics** and leaderboards
-- **Industry and stage distribution** charts
-- **Time-based filtering** (7d, 30d, 90d)
-- **Activity summaries** and trend analysis
+The `companies` table stores:
+- `name` - Company name
+- `website` - Company website URL (used for Clearbit logo generation)
+- ~~`profile_image_url`~~ - **REMOVED** (now using Clearbit exclusively)
 
-#### 🔍 **Enhanced Search & Filtering**
-- **Global search** across leads, companies, and jobs
-- **Advanced filters** with multiple criteria
-- **Real-time search results** with highlighting
-- **Filter persistence** and quick date ranges
-- **Multi-entity search** with type-based grouping
+## Logo Implementation
 
-## 🔗 URLs & Access
-- **Development**: https://8080-iel8oqvaaql96xtsxotlc-6532622b.e2b.dev
-- **GitHub Repository**: https://github.com/stevetowers08/empowr-crm.git
-- **Original Project**: https://lovable.dev/projects/1c51fd91-59e3-4818-9382-0845e113f866
+### Frontend Components
+- `OptimizedImage.tsx` - Base image component with lazy loading
+- `CompanyLogo.tsx` - Company-specific logo component
+- Logo fallback system with company initials
 
-## 🏗️ Data Architecture
+### Backend Services
+- `logoService.ts` - Clearbit URL generation and validation
+- `logoUtils.ts` - Utility functions for logo handling
 
-### **Database Schema (Supabase)**
-- **People Table**: Lead information, contact details, pipeline stages, assignments
-- **Companies Table**: Company profiles, industry data, scoring, priorities  
-- **Jobs Table**: Job postings, requirements, company associations
+## Usage Examples
 
-### **Key Data Models**
 ```typescript
-// Lead/Person Entity
-{
-  Name, Company, Email, LinkedIn, Stage, Owner,
-  "Lead Score", "Company Role", "Employee Location",
-  "Last Contact Date", "Meeting Date", etc.
-}
+// Generate Clearbit logo URL
+const logoUrl = `https://logo.clearbit.com/${domain}`;
 
-// Company Entity  
-{
-  "Company Name", Industry, Website, "Company Size", 
-  "Head Office", "Lead Score", Priority, STATUS
-}
-
-// Job Entity
-{
-  "Job Title", Company, "Job Location", Industry,
-  "Posted Date", "Valid Through", Priority
-}
+// In React components
+<img 
+  src={logoUrl} 
+  alt={companyName}
+  onError={(e) => {
+    // Fallback to initials
+    e.currentTarget.style.display = 'none';
+  }}
+/>
 ```
 
-### **Storage Services**
-- **Supabase PostgreSQL** - Primary database for all entities
-- **Local Storage** - Notes/comments and UI preferences
-- **Real-time subscriptions** - Live data updates
+## Performance Benefits
 
-## 📱 User Guide
+- **No Database Storage**: Logos fetched on-demand from Clearbit
+- **Automatic Updates**: Logos stay current without manual updates
+- **Reduced Storage**: No need to store logo files in database
+- **High Availability**: Clearbit's CDN ensures fast logo delivery
 
-### **Getting Started**
-1. **Dashboard** - View key metrics and recent activity
-2. **Add Leads** - Import or manually add prospect information  
-3. **Assign Ownership** - Distribute leads among team members
-4. **Track Pipeline** - Move leads through outreach stages
-5. **Monitor Analytics** - Review performance and conversion rates
+## API Limits
 
-### **Daily Workflow**
-1. **Check Dashboard** - Review new leads and activities
-2. **Pipeline Management** - Update lead stages based on outreach results
-3. **Activity Tracking** - Log interactions and schedule follow-ups
-4. **Notes Management** - Add context and collaboration notes
-5. **Performance Review** - Analyze team metrics and conversion rates
-
-### **Key Features Usage**
-- **Global Search**: Use the search bar in sidebar for quick lead/company lookup
-- **Pipeline View**: Access via Opportunities page for visual stage management
-- **Team Assignment**: Click on leads to assign ownership and track performance
-- **Activity Timeline**: View detailed interaction history in lead details
-- **Analytics**: Visit Reporting page for comprehensive performance insights
-
-## 🚀 Technical Stack
-
-### **Frontend**
-- **React 18** + **TypeScript** - Modern component-based UI
-- **Vite** - Fast development and building
-- **shadcn/ui** + **Radix UI** - Comprehensive UI component library  
-- **Tailwind CSS** - Utility-first styling
-- **TanStack Query** - Server state management
-- **React Router** - Client-side routing
-
-### **Backend & Database**
-- **Supabase** - PostgreSQL database with real-time subscriptions
-- **REST API** - Database operations and queries
-- **Row Level Security** - Data access control
-
-### **Development Tools**
-- **ESLint** + **TypeScript** - Code quality and type safety
-- **Date-fns** - Date formatting and manipulation
-- **Lucide React** - Icon library
-
-## 🔧 Development Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/stevetowers08/empowr-crm.git
-cd empowr-crm
-
-# Install dependencies  
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-## 📈 Deployment Status
-- ✅ **Frontend**: React SPA with modern tooling
-- ✅ **Database**: Supabase PostgreSQL with real-time features
-- ✅ **Hosting**: Ready for deployment to Vercel, Netlify, or similar platforms
-- ✅ **Version Control**: Git repository with regular commits
-- **Environment**: Development server running with hot reload
-
-## 🎯 Use Cases
-
-### **Primary Use Case: B2B Lead Discovery**
-- **Job Monitoring**: Track job postings to identify companies with specific needs
-- **Decision Maker Identification**: Find and profile key contacts at target companies
-- **Outreach Management**: Coordinate LinkedIn and email automation campaigns
-- **Pipeline Tracking**: Monitor lead progression through outreach stages
-
-### **Team Collaboration**
-- **Lead Assignment**: Distribute prospects among team members
-- **Activity Sharing**: Track team interactions and progress
-- **Performance Analytics**: Measure individual and team effectiveness
-- **Knowledge Sharing**: Collaborative notes and company intelligence
-
-## 🔮 Future Enhancements
-- **Email Integration**: Direct email sending and tracking
-- **LinkedIn Automation**: API integration for automated outreach
-- **Advanced AI Scoring**: Machine learning for lead prioritization  
-- **Custom Workflows**: Configurable automation rules
-- **Advanced Reporting**: Custom dashboards and export capabilities
+- **Clearbit**: Free tier with no authentication required
+- **Rate Limiting**: Built-in delays prevent API overwhelming
+- **Caching**: Browser caching reduces repeated requests
 
 ---
 
-## Original Lovable Project Information
+# Empowr MCP Server - Render Deployment
 
-This project was initially created with Lovable and enhanced with advanced B2B CRM functionality.
+This is a clean MCP server designed for Render deployment with Supabase integration.
 
-**Original Project URL**: https://lovable.dev/projects/1c51fd91-59e3-4818-9382-0845e113f866
+## Features
 
-For the original development workflow, you can still use Lovable for visual editing, or work locally with your preferred IDE.
+- ✅ Full MCP 2024-11-05 protocol support
+- ✅ n8n MCP Client Tool compatibility
+- ✅ Server-Sent Events (SSE) support
+- ✅ Supabase integration with your CRM data
+- ✅ Root POST endpoint for n8n compatibility
 
-### Local Development
-```sh
-npm install
-npm run dev
+## Environment Variables
+
+Set these in your Render dashboard:
+
+```
+SUPABASE_URL=https://jedfundfhzytpnbjkspn.supabase.co
+SUPABASE_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGZ1bmRmaHp5dHBuYmprc3BuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODM2MTk0MiwiZXhwIjoyMDczOTM3OTQyfQ.GpPDYihR_qSnN4cR0SXfgNa8AxB8iXCt7VkG1xYo44w
 ```
 
-The application will be available at `http://localhost:8080` with hot reloading enabled.
+## Deployment to Render
 
-**Last Updated**: September 24, 2025
+1. **Create GitHub Repository**
+   - Push this code to a GitHub repository
+
+2. **Deploy to Render**
+   - Go to [Render.com](https://render.com)
+   - Create new "Web Service"
+   - Connect your GitHub repository
+   - Set build command: `npm install`
+   - Set start command: `node server.js`
+   - Add environment variables above
+
+3. **Configure n8n**
+   - Use the Render URL as your MCP server endpoint
+   - Set Server Transport to "HTTP Streamable"
+
+## Available Tools
+
+- `execute_sql` - Execute SELECT queries on Supabase
+- `list_tables` - List available CRM tables
+- `get_table_data` - Get data from specific tables
+
+## Endpoints
+
+- `GET /` - Server info
+- `POST /` - Root MCP endpoint (for n8n)
+- `POST /mcp/initialize` - MCP initialization
+- `POST /mcp/tools/list` - List available tools
+- `POST /mcp/tools/call` - Execute tools
+- `GET /mcp/sse` - Server-Sent Events
+- `GET /health` - Health check

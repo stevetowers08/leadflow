@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
 
 interface SwipeableProps {
   children: React.ReactNode;
@@ -78,6 +79,12 @@ export const SwipeableComponent: React.FC<SwipeableProps> = ({
     setIsDragging(false);
   };
 
+  const handleTouchCancel = () => {
+    setStartX(null);
+    setStartY(null);
+    setIsDragging(false);
+  };
+
   return (
     <div
       ref={elementRef}
@@ -86,9 +93,16 @@ export const SwipeableComponent: React.FC<SwipeableProps> = ({
         isDragging && "cursor-grabbing",
         className
       )}
+      style={{
+        touchAction: 'pan-y pinch-zoom', // Allow vertical scroll and pinch zoom
+        WebkitTouchCallout: 'none', // Disable iOS callout
+        WebkitUserSelect: 'none', // Disable text selection
+        userSelect: 'none'
+      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
     >
       {children}
     </div>
@@ -141,12 +155,12 @@ export const MobileCard: React.FC<MobileCardProps> = ({
       {/* Background actions */}
       <div className="absolute inset-0 flex">
         {leftAction && (
-          <div className="flex-1 bg-blue-500 flex items-center justify-center text-white">
+          <div className="flex-1 bg-primary flex items-center justify-center text-white">
             {leftAction}
           </div>
         )}
         {rightAction && (
-          <div className="flex-1 bg-red-500 flex items-center justify-center text-white">
+          <div className="flex-1 bg-destructive flex items-center justify-center text-white">
             {rightAction}
           </div>
         )}
@@ -157,7 +171,7 @@ export const MobileCard: React.FC<MobileCardProps> = ({
         onSwipeLeft={handleSwipeLeft}
         onSwipeRight={handleSwipeRight}
         className={cn(
-          "relative bg-white transition-transform duration-200",
+          "relative bg-card transition-transform duration-200 border shadow-sm",
           className
         )}
         style={{
@@ -173,61 +187,36 @@ export const MobileCard: React.FC<MobileCardProps> = ({
 // Hook for mobile detection
 export const useMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [screenSize, setScreenSize] = useState('desktop');
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      const isMobileDevice = width < 768;
+      const isTabletDevice = width >= 768 && width < 1024;
+      
+      setIsMobile(isMobileDevice);
+      setIsTablet(isTabletDevice);
+      
+      if (isMobileDevice) {
+        setScreenSize('mobile');
+      } else if (isTabletDevice) {
+        setScreenSize('tablet');
+      } else {
+        setScreenSize('desktop');
+      }
     };
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
     
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  return isMobile;
+  return { isMobile, isTablet, screenSize };
 };
 
-// Mobile-optimized button with better touch targets
-interface MobileButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-}
-
-export const MobileButton: React.FC<MobileButtonProps> = ({
-  children,
-  variant = 'primary',
-  size = 'md',
-  className,
-  ...props
-}) => {
-  const baseClasses = "touch-manipulation select-none font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
-  
-  const variantClasses = {
-    primary: "bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary",
-    secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500",
-    danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
-  };
-  
-  const sizeClasses = {
-    sm: "px-3 py-2 text-sm min-h-[44px]", // Minimum touch target
-    md: "px-4 py-3 text-base min-h-[48px]",
-    lg: "px-6 py-4 text-lg min-h-[52px]",
-  };
-
-  return (
-    <button
-      className={cn(
-        baseClasses,
-        variantClasses[variant],
-        sizeClasses[size],
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-};
+// Re-export Button with mobile-optimized defaults
+export const MobileButton = Button;
 
