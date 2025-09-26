@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
+    "start": "node mcp-http-server.js",
+    "legacy": "node index.js",
     "mcp": "node mcp-server.js",
     "mcp-http": "node mcp-http-server.js"
   },
