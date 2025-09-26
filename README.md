@@ -1,130 +1,81 @@
-# Empowr CRM - Company Logo System
+# Empowr CRM
 
-This CRM application uses **Clearbit Logo API** for automatic company logo fetching and display.
+A comprehensive AI-powered recruitment platform built with React, TypeScript, and Supabase.
 
-## Features
+## 🚀 Quick Start
 
-- ✅ **Clearbit Logo Integration** - Automatic logo fetching from company domains
-- ✅ **Fallback System** - Graceful fallback to company initials when logos unavailable
-- ✅ **Real-time Logo Updates** - Dynamic logo generation based on company websites
-- ✅ **Responsive Design** - Logos display consistently across all screen sizes
-- ✅ **Performance Optimized** - Lazy loading and error handling for logo display
+1. **Environment Setup**: See [docs/SETUP/ENVIRONMENT_SETUP.md](docs/SETUP/ENVIRONMENT_SETUP.md)
+2. **Deployment**: See [docs/SETUP/DEPLOYMENT_GUIDE.md](docs/SETUP/DEPLOYMENT_GUIDE.md)
+3. **Security**: See [docs/SETUP/SECURITY_SETUP_GUIDE.md](docs/SETUP/SECURITY_SETUP_GUIDE.md)
 
-## Logo System Architecture
+## 📚 Documentation
 
-### Clearbit Integration
-The application uses [Clearbit Logo API](https://clearbit.com/logo) to automatically fetch company logos:
+### 🛠️ Setup & Configuration
+- [Environment Setup](docs/SETUP/ENVIRONMENT_SETUP.md)
+- [Deployment Guide](docs/SETUP/DEPLOYMENT_GUIDE.md)
+- [Security Setup](docs/SETUP/SECURITY_SETUP_GUIDE.md)
+- [Owner Setup](docs/SETUP/OWNER_SETUP.md)
 
-- **Primary Source**: `https://logo.clearbit.com/{domain}`
-- **Automatic Domain Processing**: Removes protocols, www prefixes, and query parameters
-- **Fallback Strategy**: Company initials when Clearbit logos unavailable
+### 🔌 Integrations
+- [LinkedIn Integration](docs/INTEGRATIONS/LINKEDIN_AUTH_SETUP.md)
+- [Gmail Integration](docs/INTEGRATIONS/GMAIL_INTEGRATION_SETUP.md)
+- [Google OAuth](docs/INTEGRATIONS/GOOGLE_OAUTH_SETUP.md)
+- [N8N Workflows](docs/INTEGRATIONS/N8N_INTEGRATION_GUIDE.md)
+- [Conversations Setup](docs/INTEGRATIONS/CONVERSATIONS_SETUP_GUIDE.md)
 
-### Logo Display Sizes
-- **Small (32px)**: Dashboard cards, compact views
-- **Medium (40px)**: Table rows, standard cards  
-- **Large (48px)**: Company listings, detail views
-- **Extra Large (64px)**: Headers, modal views
+### 🏗️ Architecture
+- [Database Schema](docs/ARCHITECTURE/DATABASE_SCHEMA.md) - Complete database structure and querying guide
+- [Company Logo System](docs/ARCHITECTURE/COMPANY_LOGO_SYSTEM.md)
+- [Badge System](docs/ARCHITECTURE/BADGE_SYSTEM_ARCHITECTURE.md)
+- [Scoring System](docs/ARCHITECTURE/SCORING_SYSTEM_DOCS.md)
+- [Popup System](docs/ARCHITECTURE/POPUP_SYSTEM_DOCUMENTATION.md)
+- [User Management](docs/ARCHITECTURE/USER_MANAGEMENT_PROCESS.md)
 
-## Database Schema
+### 💻 Development
+- [Project Rules](docs/DEVELOPMENT/PROJECT_RULES.md)
+- [Testing Guide](docs/DEVELOPMENT/TESTING_GUIDE.md)
+- [Accessibility Testing](docs/DEVELOPMENT/TOUCH_ACCESSIBILITY_TESTING_SUMMARY.md)
 
-The `companies` table stores:
-- `name` - Company name
-- `website` - Company website URL (used for Clearbit logo generation)
-- ~~`profile_image_url`~~ - **REMOVED** (now using Clearbit exclusively)
+### 🔧 Troubleshooting
+- [LinkedIn Troubleshooting](docs/TROUBLESHOOTING/LINKEDIN_API_KEY_TROUBLESHOOTING.md)
 
-## Logo Implementation
+## 📄 Project Files
 
-### Frontend Components
-- `OptimizedImage.tsx` - Base image component with lazy loading
-- `CompanyLogo.tsx` - Company-specific logo component
-- Logo fallback system with company initials
+- [LICENSE](LICENSE) - MIT License
+- [CHANGELOG](CHANGELOG.md) - Version history and changes
+- [SECURITY](SECURITY.md) - Security policy and reporting
 
-### Backend Services
-- `logoService.ts` - Clearbit URL generation and validation
-- `logoUtils.ts` - Utility functions for logo handling
+## 🛠️ Tech Stack
 
-## Usage Examples
+- **Frontend**: React 19, TypeScript, Vite
+- **UI**: Radix UI, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL)
+- **State Management**: React Query
+- **Authentication**: Supabase Auth
+- **Deployment**: Vercel
 
-```typescript
-// Generate Clearbit logo URL
-const logoUrl = `https://logo.clearbit.com/${domain}`;
+## 📋 Features
 
-// In React components
-<img 
-  src={logoUrl} 
-  alt={companyName}
-  onError={(e) => {
-    // Fallback to initials
-    e.currentTarget.style.display = 'none';
-  }}
-/>
+- **Pipeline Management** - Lead tracking and status management
+- **Company Management** - Company profiles with logo integration
+- **Job Management** - Job posting and tracking
+- **AI Integration** - AI-powered lead scoring and insights
+- **Real-time Updates** - Live data synchronization
+- **Mobile Responsive** - Touch accessibility support
+
+## 🚀 Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
 ```
 
-## Performance Benefits
+## 📄 License
 
-- **No Database Storage**: Logos fetched on-demand from Clearbit
-- **Automatic Updates**: Logos stay current without manual updates
-- **Reduced Storage**: No need to store logo files in database
-- **High Availability**: Clearbit's CDN ensures fast logo delivery
-
-## API Limits
-
-- **Clearbit**: Free tier with no authentication required
-- **Rate Limiting**: Built-in delays prevent API overwhelming
-- **Caching**: Browser caching reduces repeated requests
-
----
-
-# Empowr MCP Server - Render Deployment
-
-This is a clean MCP server designed for Render deployment with Supabase integration.
-
-## Features
-
-- ✅ Full MCP 2024-11-05 protocol support
-- ✅ n8n MCP Client Tool compatibility
-- ✅ Server-Sent Events (SSE) support
-- ✅ Supabase integration with your CRM data
-- ✅ Root POST endpoint for n8n compatibility
-
-## Environment Variables
-
-Set these in your Render dashboard:
-
-```
-SUPABASE_URL=https://jedfundfhzytpnbjkspn.supabase.co
-SUPABASE_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGZ1bmRmaHp5dHBuYmprc3BuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODM2MTk0MiwiZXhwIjoyMDczOTM3OTQyfQ.GpPDYihR_qSnN4cR0SXfgNa8AxB8iXCt7VkG1xYo44w
-```
-
-## Deployment to Render
-
-1. **Create GitHub Repository**
-   - Push this code to a GitHub repository
-
-2. **Deploy to Render**
-   - Go to [Render.com](https://render.com)
-   - Create new "Web Service"
-   - Connect your GitHub repository
-   - Set build command: `npm install`
-   - Set start command: `node server.js`
-   - Add environment variables above
-
-3. **Configure n8n**
-   - Use the Render URL as your MCP server endpoint
-   - Set Server Transport to "HTTP Streamable"
-
-## Available Tools
-
-- `execute_sql` - Execute SELECT queries on Supabase
-- `list_tables` - List available CRM tables
-- `get_table_data` - Get data from specific tables
-
-## Endpoints
-
-- `GET /` - Server info
-- `POST /` - Root MCP endpoint (for n8n)
-- `POST /mcp/initialize` - MCP initialization
-- `POST /mcp/tools/list` - List available tools
-- `POST /mcp/tools/call` - Execute tools
-- `GET /mcp/sse` - Server-Sent Events
-- `GET /health` - Health check
+This project is proprietary software developed for 4Twenty.
