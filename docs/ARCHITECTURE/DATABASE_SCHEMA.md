@@ -23,6 +23,60 @@ const supabase = createClient(
 )
 ```
 
+## Database Management Tools
+
+The application includes built-in database management components for monitoring and exploration:
+
+### DatabaseInfoCard Component
+**Location:** `src/components/DatabaseInfoCard.tsx`
+
+**Purpose:** Provides a dashboard overview of database health and data volume.
+
+**Features:**
+- Real-time table statistics (row counts, column counts)
+- Covers core tables: people, companies, jobs, conversations
+- Refresh functionality for live updates
+- Visual indicators for data volume
+
+**Usage:**
+```typescript
+import { DatabaseInfoCard } from '@/components/DatabaseInfoCard';
+
+// Use in admin dashboard or monitoring pages
+<DatabaseInfoCard />
+```
+
+### DatabaseExplorer Component
+**Location:** `src/components/DatabaseExplorer.tsx`
+
+**Purpose:** Comprehensive database exploration and schema management tool.
+
+**Features:**
+- Browse all database tables with search/filter
+- View detailed table schemas (columns, types, constraints)
+- Export database schema to markdown format
+- Sample data viewing capabilities
+- Real-time table information updates
+
+**Usage:**
+```typescript
+import { DatabaseExplorer } from '@/components/DatabaseExplorer';
+
+// Use in admin panel for database management
+<DatabaseExplorer />
+```
+
+**Key Functions:**
+- `loadTables()` - Loads all available tables
+- `loadTableInfo(tableName)` - Gets detailed schema for specific table
+- `handleExportSchema()` - Exports complete schema to markdown file
+- `handleTableSelect(tableName)` - Switches between table views
+
+**Dependencies:**
+- `@/utils/databaseSchema` - Schema utilities
+- `@/utils/databaseQuery` - Query utilities
+- `@/hooks/use-toast` - Toast notifications
+
 ## Core Tables
 
 ### 1. **Companies** (`companies`)

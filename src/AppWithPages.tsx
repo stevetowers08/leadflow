@@ -13,10 +13,6 @@ import { UnifiedPopup } from "./components/UnifiedPopup";
 
 // Import only the Index page first
 import Index from "./pages/Index";
-import IndexSimple from "./pages/IndexSimple";
-import IndexMinimal from "./pages/IndexMinimal";
-import IndexOptimized from "./pages/IndexOptimized";
-import IndexNoSupabase from "./pages/IndexNoSupabase";
 
 const queryClient = new QueryClient({
   defaultOptions: {
