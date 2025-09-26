@@ -44,8 +44,7 @@ export default defineConfig(({ mode }) => ({
           'components-modals': [
             './src/components/UnifiedPopup.tsx',
             './src/components/PopupErrorBoundary.tsx',
-            './src/components/VirtualizedList.tsx',
-            './src/components/OptimizedRelatedList.tsx'
+            './src/components/VirtualizedList.tsx'
           ]
         }
       }
