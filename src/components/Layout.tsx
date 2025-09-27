@@ -88,7 +88,9 @@ export const Layout = ({ children }: LayoutProps) => {
               <Menu className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2">
-              <FourTwentyLogo size={20} />
+              <div className="flex items-center justify-center">
+                <FourTwentyLogo size={18} />
+              </div>
               <h1 className="text-lg font-semibold text-foreground">Empowr CRM</h1>
             </div>
             <div className="w-11" /> {/* Spacer for centering */}

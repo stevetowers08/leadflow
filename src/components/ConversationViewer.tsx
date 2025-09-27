@@ -130,16 +130,26 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
 
   if (!conversation) {
     return (
-      <div className={cn("h-full flex flex-col", className)}>
+      <div className={cn("h-full flex flex-col bg-gradient-to-b from-background to-muted/20", className)}>
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-center text-gray-500">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageSquare className="h-10 w-10 text-gray-400" />
+          <div className="text-center text-muted-foreground">
+            <div className="w-24 h-24 bg-gradient-to-br from-primary/10 to-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-primary/10">
+              <MessageSquare className="h-12 w-12 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">No Conversation Selected</h3>
-            <p className="text-sm text-gray-500 max-w-sm">
-              Choose a conversation from the list to view messages and continue your LinkedIn outreach
+            <h3 className="text-xl font-bold text-foreground mb-3">No Conversation Selected</h3>
+            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+              Choose a conversation from the list to view messages, reply to leads, and continue your outreach efforts
             </p>
+            <div className="mt-6 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                <span>Email replies</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span>LinkedIn messages</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -147,23 +157,23 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
   }
 
   return (
-    <div className={cn("h-full flex flex-col", className)}>
-      {/* Modern Chat Header */}
-      <div className="p-6 border-b border-gray-200/60 bg-white/80 backdrop-blur-sm">
+    <div className={cn("h-full flex flex-col bg-gradient-to-b from-background to-muted/20", className)}>
+      {/* Enhanced Chat Header */}
+      <div className="p-6 border-b border-border bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-              <User className="h-6 w-6 text-blue-600" />
+            <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-primary/30 rounded-xl flex items-center justify-center shadow-sm border border-primary/20">
+              <User className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-xl font-bold text-foreground">
                 {conversation.person_name || 'Unknown Person'}
               </h2>
-              <div className="flex items-center gap-3 text-sm text-gray-600">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                 {conversation.person_company && (
                   <div className="flex items-center gap-1">
                     <Building2 className="h-4 w-4" />
-                    <span>{conversation.person_company}</span>
+                    <span className="font-medium">{conversation.person_company}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
@@ -174,19 +184,23 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {conversation.person_linkedin_url && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => window.open(conversation.person_linkedin_url, '_blank')}
-                className="bg-white border-gray-200 hover:bg-gray-50"
+                className="shadow-sm hover:shadow-md transition-shadow"
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 LinkedIn
               </Button>
             )}
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600">
+            <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
+              <Reply className="h-4 w-4 mr-2" />
+              Reply
+            </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </div>
@@ -207,29 +221,29 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
               <p className="text-xs text-gray-400">Messages will appear here</p>
             </div>
           ) : (
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-8">
               {messages.map((message, index) => (
                 <div key={message.id} className={cn(
-                  "flex gap-3",
+                  "flex gap-4",
                   message.sender_type === 'us' ? 'justify-end' : 'justify-start'
                 )}>
                   {/* Avatar for incoming messages */}
                   {message.sender_type !== 'us' && (
-                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                      <User className="h-4 w-4 text-gray-600" />
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-muted to-muted/80 rounded-xl flex items-center justify-center shadow-sm border border-border">
+                      <User className="h-5 w-5 text-muted-foreground" />
                     </div>
                   )}
                   
                   <div className={cn(
-                    "max-w-[70%] space-y-2",
+                    "max-w-[75%] space-y-3",
                     message.sender_type === 'us' ? 'items-end' : 'items-start'
                   )}>
                     {/* Message Header */}
                     <div className={cn(
-                      "flex items-center gap-2 text-xs text-gray-500",
+                      "flex items-center gap-2 text-xs text-muted-foreground",
                       message.sender_type === 'us' ? 'justify-end' : 'justify-start'
                     )}>
-                      <span className="font-medium">
+                      <span className="font-semibold">
                         {message.sender_type === 'us' ? 'You' : message.sender_name || 'Unknown'}
                       </span>
                       <span>•</span>
@@ -237,13 +251,21 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
                       {getMessageBadge(message)}
                     </div>
                     
-                    {/* Message Bubble */}
+                    {/* Modern Message Bubble */}
                     <div className={cn(
-                      "rounded-lg px-4 py-3 shadow-sm transition-all duration-200",
+                      "rounded-2xl px-5 py-4 shadow-sm transition-all duration-200 relative",
                       message.sender_type === 'us'
-                        ? "bg-blue-600 text-white"
-                        : "bg-white border border-gray-200"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card border border-border"
                     )}>
+                      {/* Chat bubble tail */}
+                      <div className={cn(
+                        "absolute top-4 w-0 h-0",
+                        message.sender_type === 'us' 
+                          ? "right-[-8px] border-l-[8px] border-l-primary border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"
+                          : "left-[-8px] border-r-[8px] border-r-card border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent"
+                      )} />
+                      
                       <div className="whitespace-pre-wrap text-sm leading-relaxed">
                         {message.content}
                       </div>
@@ -252,8 +274,8 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
                   
                   {/* Avatar for outgoing messages */}
                   {message.sender_type === 'us' && (
-                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
-                      <User className="h-4 w-4 text-blue-600" />
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/30 rounded-xl flex items-center justify-center shadow-sm border border-primary/20">
+                      <User className="h-5 w-5 text-primary" />
                     </div>
                   )}
                 </div>
@@ -263,18 +285,38 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
         </ScrollArea>
       </div>
 
-      {/* Modern Message Input */}
-      <div className="p-6 border-t border-gray-200/60 bg-white/80 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
+      {/* Enhanced Message Input */}
+      <div className="p-6 border-t border-border bg-gradient-to-r from-background to-muted/10 backdrop-blur-sm">
+        <div className="flex items-center gap-4">
           <div className="flex-1 relative">
             <input
               type="text"
-              placeholder="Type a message..."
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              placeholder="Type your reply..."
+              className="w-full px-5 py-4 bg-background border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 shadow-sm hover:shadow-md"
             />
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-6 py-3">
-            <Send className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
+              <Archive className="h-4 w-4" />
+            </Button>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-6 py-4 shadow-sm hover:shadow-md transition-all duration-200">
+              <Send className="h-4 w-4 mr-2" />
+              Send
+            </Button>
+          </div>
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="mt-4 flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Quick actions:</span>
+          <Button variant="ghost" size="sm" className="text-xs h-7 px-3">
+            Schedule follow-up
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs h-7 px-3">
+            Add to pipeline
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs h-7 px-3">
+            Mark as qualified
           </Button>
         </div>
       </div>

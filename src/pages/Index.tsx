@@ -167,55 +167,63 @@ const Index = () => {
       subtitle="Welcome to your recruitment dashboard"
     >
       {/* Key Metrics Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Leads</p>
-                <p className="text-2xl font-bold text-gray-900">{dashboardStats.totalLeads}</p>
-                <p className="text-xs text-green-600">+{dashboardStats.leadsThisWeek} this week</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Leads</p>
+                <p className="text-2xl font-bold text-foreground">{dashboardStats.totalLeads}</p>
+                <p className="text-xs text-green-600 font-medium">+{dashboardStats.leadsThisWeek} this week</p>
               </div>
-              <Users className="h-8 w-8 text-blue-600" />
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <Users className="h-6 w-6 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Jobs</p>
-                <p className="text-2xl font-bold text-gray-900">{dashboardStats.totalJobs}</p>
-                <p className="text-xs text-blue-600">Across {dashboardStats.totalCompanies} companies</p>
+                <p className="text-sm font-medium text-muted-foreground">Active Jobs</p>
+                <p className="text-2xl font-bold text-foreground">{dashboardStats.totalJobs}</p>
+                <p className="text-xs text-primary font-medium">Across {dashboardStats.totalCompanies} companies</p>
               </div>
-              <Briefcase className="h-8 w-8 text-green-600" />
+              <div className="p-3 bg-green-500/10 rounded-lg">
+                <Briefcase className="h-6 w-6 text-green-600" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
-                <p className="text-2xl font-bold text-gray-900">{dashboardStats.conversionRate}%</p>
-                <p className="text-xs text-green-600">Above target</p>
+                <p className="text-sm font-medium text-muted-foreground">Conversion Rate</p>
+                <p className="text-2xl font-bold text-foreground">{dashboardStats.conversionRate}%</p>
+                <p className="text-xs text-green-600 font-medium">Above target</p>
               </div>
-              <Target className="h-8 w-8 text-purple-600" />
+              <div className="p-3 bg-purple-500/10 rounded-lg">
+                <Target className="h-6 w-6 text-purple-600" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Automations</p>
-                <p className="text-2xl font-bold text-gray-900">{dashboardStats.activeAutomations}</p>
-                <p className="text-xs text-orange-600">Active workflows</p>
+                <p className="text-sm font-medium text-muted-foreground">Automations</p>
+                <p className="text-2xl font-bold text-foreground">{dashboardStats.activeAutomations}</p>
+                <p className="text-xs text-orange-600 font-medium">Active workflows</p>
               </div>
-              <Zap className="h-8 w-8 text-orange-600" />
+              <div className="p-3 bg-orange-500/10 rounded-lg">
+                <Zap className="h-6 w-6 text-orange-600" />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -224,10 +232,12 @@ const Index = () => {
       {/* Recent Activity */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Recent Leads Card */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Users className="h-4 w-4 text-blue-600" />
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Users className="h-4 w-4 text-primary" />
+              </div>
               Recent Leads
             </CardTitle>
           </CardHeader>
@@ -250,10 +260,12 @@ const Index = () => {
         </Card>
 
         {/* Recent Jobs Card */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Briefcase className="h-4 w-4 text-green-600" />
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <Briefcase className="h-4 w-4 text-green-600" />
+              </div>
               Recent Jobs
             </CardTitle>
           </CardHeader>

@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { variant?: 'default' | 'elevated' | 'outlined' | 'glass' }>(({ className, variant = 'default', ...props }, ref) => {
   const variants = {
-    default: "rounded-lg border bg-card text-card-foreground shadow-sm",
-    elevated: "rounded-lg border bg-card text-card-foreground shadow-md",
-    outlined: "rounded-lg border-2 bg-card text-card-foreground shadow-sm",
-    glass: "rounded-lg border bg-white/80 backdrop-blur-sm text-card-foreground shadow-sm"
+    default: "rounded-lg border border-border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow duration-200",
+    elevated: "rounded-lg border border-border bg-card text-card-foreground shadow-md hover:shadow-lg transition-shadow duration-200",
+    outlined: "rounded-lg border-2 border-border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow duration-200",
+    glass: "rounded-lg border border-border bg-white/80 backdrop-blur-sm text-card-foreground shadow-sm hover:shadow-md transition-shadow duration-200"
   };
   
   return (

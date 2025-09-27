@@ -384,17 +384,18 @@ const PipelineOptimized = React.memo(() => {
             Visualize and manage your lead progression through different stages
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
             disabled={isRefreshing}
+            className="shadow-sm hover:shadow-md transition-shadow"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button size="sm">
+          <Button size="sm" className="shadow-sm hover:shadow-md transition-shadow">
             <Plus className="h-4 w-4 mr-2" />
             Add Lead
           </Button>

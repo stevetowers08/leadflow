@@ -57,10 +57,10 @@ export const designTokens = {
   // Layout - Consistent patterns
   layout: {
     pageHeader: 'border-b pb-3',
-    pageContent: 'space-y-4',
-    statsContainer: 'flex items-center gap-6 mb-4 text-sm',
+    pageContent: 'space-y-6',
+    statsContainer: 'flex items-center gap-6 mb-6 text-sm',
     statsItem: 'flex items-center gap-2 text-muted-foreground',
-    cardGrid: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4',
+    cardGrid: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6',
     mobileCardGrid: 'grid grid-cols-2 gap-3',
   },
 
@@ -108,7 +108,7 @@ export const designTokens = {
     sm: 'shadow-sm',
     md: 'shadow-md',
     lg: 'shadow-lg',
-    card: 'shadow-sm hover:shadow-md transition-shadow',
+    card: 'shadow-sm hover:shadow-md transition-shadow duration-200',
     mobile: 'shadow-sm',
   },
 

@@ -322,7 +322,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
     <div className={cn("fixed bottom-6 right-6 z-50", className)}>
       {isOpen && (
         <Card className={cn(
-          "w-[480px] h-[600px] flex flex-col shadow-2xl border-0 bg-white/98 backdrop-blur-md rounded-3xl overflow-hidden",
+          "w-[480px] h-[600px] flex flex-col shadow-2xl border border-border bg-white/98 backdrop-blur-md rounded-3xl overflow-hidden",
           "ring-1 ring-white/20",
           "max-w-[calc(100vw-3rem)] max-h-[calc(100vh-3rem)]",
           "sm:w-[480px] sm:h-[600px]",

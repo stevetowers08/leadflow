@@ -40,7 +40,7 @@ export const ConversationsPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Conversation List - Modern Sidebar */}
         <div className="lg:col-span-5">
-          <Card className="h-[calc(100vh-200px)] border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+          <Card className="h-[calc(100vh-200px)] shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
             <ConversationList
               onConversationSelect={handleConversationSelect}
               selectedConversationId={selectedConversation?.id}
@@ -50,7 +50,7 @@ export const ConversationsPage: React.FC = () => {
         
         {/* Conversation Viewer - Modern Chat Interface */}
         <div className="lg:col-span-7">
-          <Card className="h-[calc(100vh-200px)] border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+          <Card className="h-[calc(100vh-200px)] shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
             <ConversationViewer conversation={selectedConversation} />
           </Card>
         </div>

@@ -258,7 +258,7 @@ export const useCompanies = (
   });
 };
 
-// Optimized dashboard stats query
+// Optimized dashboard stats query using performance views
 export const useDashboardStats = (options: QueryOptions = {}) => {
   return useQuery({
     queryKey: ['dashboard-stats'],
@@ -267,18 +267,14 @@ export const useDashboardStats = (options: QueryOptions = {}) => {
       const sydneyDate = new Date(today.toLocaleString("en-US", {timeZone: "Australia/Sydney"}));
       const todayDateString = sydneyDate.toISOString().split('T')[0];
 
-      // Fetch all stats in parallel with optimized queries
+      // Use materialized view for dashboard metrics and optimized queries
       const [
-        leadsCount,
-        companiesCount,
-        jobsCount,
+        dashboardMetrics,
         todayJobs,
         expiringJobs
       ] = await Promise.all([
-        // Count queries - very fast
-        supabase.from("people").select("id", { count: "exact", head: true }),
-        supabase.from("companies").select("id", { count: "exact", head: true }),
-        supabase.from("jobs").select("id", { count: "exact", head: true }),
+        // Get dashboard metrics from materialized view
+        supabase.from("dashboard_metrics").select("*").single(),
         
         // Today's jobs - optimized with limit
         supabase
@@ -314,12 +310,14 @@ export const useDashboardStats = (options: QueryOptions = {}) => {
       }).length || 0;
 
       return {
-        totalLeads: leadsCount.count || 0,
-        totalCompanies: companiesCount.count || 0,
-        totalJobs: jobsCount.count || 0,
+        totalLeads: dashboardMetrics.data?.total_leads || 0,
+        totalCompanies: dashboardMetrics.data?.total_companies || 0,
+        totalJobs: dashboardMetrics.data?.total_jobs || 0,
         newJobsToday: todayJobs.data?.length || 0,
         expiringJobs: expiringCount,
-        todayJobs: todayJobs.data || []
+        todayJobs: todayJobs.data || [],
+        activeAutomations: dashboardMetrics.data?.active_automations || 0,
+        avgLeadScore: dashboardMetrics.data?.avg_lead_score || 0
       };
     },
     enabled: options.enabled !== false,

@@ -167,12 +167,12 @@ const Pipeline = () => {
       title="Pipeline"
       subtitle="Track leads through recruitment stages"
     >
-      <div className="flex gap-2 mb-4">
-        <Button variant="outline" size="sm" onClick={fetchLeads}>
+      <div className="flex gap-3 mb-6">
+        <Button variant="outline" size="sm" onClick={fetchLeads} className="shadow-sm hover:shadow-md transition-shadow">
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>

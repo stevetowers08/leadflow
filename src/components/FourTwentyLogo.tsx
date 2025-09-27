@@ -12,7 +12,7 @@ export const FourTwentyLogo: React.FC<FourTwentyLogoProps> = ({
   showText = false 
 }) => {
   if (showText) {
-    // Full logo with text
+    // Full logo with text - using your official 4Twenty logo
     return (
       <svg
         width={size * 4.95} // 594/120.3 ratio
@@ -67,20 +67,19 @@ export const FourTwentyLogo: React.FC<FourTwentyLogoProps> = ({
     );
   }
 
-  // Just the geometric symbol
+  // Just the geometric symbol - adjusted for better alignment
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 100 120.3"
+      viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
       <polygon 
         fill="#C1CC54" 
-        points="0,78.5 40.7,0 67.7,0 30.8,71.8 63.3,71.8 63.3,113.8 75.3,113.8 75.3,72.2 91.7,72.2 91.7,60.2 
-        49.3,60.2 52.3,53.3 98.8,53.3 98.8,78.3 82.2,78.3 82.2,120.3 56.5,120.3 56.5,78.5 19.8,78.5 56.7,6.8 45,6.8 7.5,78.5 "
+        points="0,65 34,0 56,0 25,60 53,60 53,95 63,95 63,60 76,60 76,50 41,50 44,44 82,44 82,65 68,65 68,100 47,100 47,65 16,65 47,6 37,6 6,65 "
       />
     </svg>
   );

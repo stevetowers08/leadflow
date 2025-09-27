@@ -158,24 +158,30 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   });
 
   return (
-    <div className={cn("h-full flex flex-col", className)}>
-      {/* Modern Header */}
-      <div className="p-4 border-b border-gray-100 bg-white">
-        <div className="flex items-center justify-between mb-3">
+    <div className={cn("h-full flex flex-col bg-white", className)}>
+      {/* Modern Header with Gradient */}
+      <div className="p-6 border-b border-border bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Replies</h2>
-            <p className="text-sm text-gray-500">{filteredConversations.length} conversations</p>
+            <h2 className="text-xl font-bold text-foreground">Conversations</h2>
+            <p className="text-sm text-muted-foreground">{filteredConversations.length} active conversations</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="shadow-sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+            </Button>
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Enhanced Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search people..."
+            placeholder="Search conversations, people, or companies..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300 transition-all"
+            className="pl-12 pr-4 py-3 bg-background border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 rounded-xl"
           />
         </div>
       </div>
@@ -194,58 +200,95 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               <p className="text-xs text-gray-400">LinkedIn messages will appear here</p>
             </div>
           ) : (
-            <div className="p-3 space-y-2">
+            <div className="p-4 space-y-1">
               {filteredConversations.map((conversation) => (
                 <div
                   key={conversation.id}
                   className={cn(
-                    "group relative p-3 cursor-pointer rounded-lg transition-all duration-200",
-                    "hover:bg-gray-50",
+                    "group relative p-4 cursor-pointer rounded-xl transition-all duration-200 border",
+                    "hover:shadow-md hover:border-primary/20",
                     selectedConversationId === conversation.id
-                      ? "bg-blue-50 border border-blue-200"
-                      : "",
-                    !conversation.is_read && "bg-blue-50/50"
+                      ? "bg-primary/5 border-primary/30 shadow-sm"
+                      : "border-border hover:bg-muted/30",
+                    !conversation.is_read && "bg-primary/3 border-primary/20"
                   )}
                   onClick={() => onConversationSelect(conversation)}
                 >
                   {/* Unread indicator */}
                   {!conversation.is_read && (
-                    <div className="absolute left-3 top-3 w-2 h-2 bg-blue-500 rounded-full" />
+                    <div className="absolute left-4 top-4 w-3 h-3 bg-primary rounded-full shadow-sm" />
                   )}
                   
-                  <div className="flex items-start gap-3">
-                    {/* Avatar */}
+                  <div className="flex items-start gap-4">
+                    {/* Enhanced Avatar */}
                     <div className={cn(
-                      "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
+                      "flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-sm",
                       conversation.conversation_type === 'email' 
-                        ? "bg-emerald-100" 
-                        : "bg-blue-100"
+                        ? "bg-gradient-to-br from-emerald-100 to-emerald-200 border border-emerald-200" 
+                        : "bg-gradient-to-br from-blue-100 to-blue-200 border border-blue-200"
                     )}>
                       {conversation.conversation_type === 'email' ? (
-                        <Mail className="h-4 w-4 text-emerald-600" />
+                        <Mail className="h-5 w-5 text-emerald-600" />
                       ) : (
-                        <Linkedin className="h-4 w-4 text-blue-600" />
+                        <Linkedin className="h-5 w-5 text-blue-600" />
                       )}
                     </div>
                     
-                    {/* Content */}
+                    {/* Enhanced Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between mb-2">
                         <div className="flex-1 min-w-0">
                           <h3 className={cn(
-                            "text-sm font-medium truncate",
-                            !conversation.is_read ? "text-gray-900" : "text-gray-700"
+                            "text-base font-semibold truncate",
+                            !conversation.is_read ? "text-foreground" : "text-foreground/80"
                           )}>
                             {conversation.person_name || 'Unknown Person'}
                           </h3>
                           {conversation.person_company && (
-                            <p className="text-xs text-gray-500 truncate mt-0.5">
-                              {conversation.person_company}
-                            </p>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Building2 className="h-3 w-3 text-muted-foreground" />
+                              <p className="text-sm text-muted-foreground truncate">
+                                {conversation.person_company}
+                              </p>
+                            </div>
                           )}
                         </div>
-                        <div className="text-xs text-gray-400 ml-2">
-                          {formatDate(conversation.last_message_at)}
+                        <div className="flex flex-col items-end gap-1">
+                          <div className="text-xs text-muted-foreground font-medium">
+                            {formatDate(conversation.last_message_at)}
+                          </div>
+                          {!conversation.is_read && (
+                            <div className="w-2 h-2 bg-primary rounded-full" />
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Message Preview */}
+                      <div className="mt-2">
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                          {conversation.last_reply_message || 'No message preview available'}
+                        </p>
+                      </div>
+                      
+                      {/* Status Badge */}
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {conversation.conversation_type === 'email' ? (
+                            <Badge variant="secondary" className="text-xs">
+                              <Mail className="h-3 w-3 mr-1" />
+                              Email
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">
+                              <Linkedin className="h-3 w-3 mr-1" />
+                              LinkedIn
+                            </Badge>
+                          )}
+                          {!conversation.is_read && (
+                            <Badge className="text-xs bg-primary">
+                              New Reply
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>

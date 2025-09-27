@@ -44,11 +44,13 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   const adminItems = React.useMemo(() => adminNavigation, []);
 
   return (
-    <aside className="bg-sidebar border-r border-sidebar-border border-t-0 flex flex-col fixed left-0 top-0 h-screen z-40 transition-all duration-300 w-52">
+    <aside className="bg-sidebar border-r-2 border-sidebar-border flex flex-col fixed left-0 top-0 h-screen z-40 transition-all duration-300 w-52 shadow-sm">
       <div className="px-4 h-20 border-b border-sidebar-border bg-sidebar flex items-center">
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3">
-            <FourTwentyLogo size={24} />
+            <div className="flex items-center justify-center">
+              <FourTwentyLogo size={20} />
+            </div>
             <h1 className="text-lg font-semibold text-sidebar-foreground">Empowr CRM</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -77,10 +79,10 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               key={item.name}
               to={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer font-medium",
                 isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-sm"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -101,10 +103,10 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer font-medium",
                   isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-sm"
                 )}
               >
                 <Icon className="h-4 w-4" />

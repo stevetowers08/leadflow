@@ -19,7 +19,7 @@ import {
   Users,
   Building2
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ReportingService } from "@/services/reportingService";
 
 interface OutreachMetrics {
   totalLeads: number;
@@ -87,65 +87,28 @@ export function OutreachAnalytics() {
     try {
       setLoading(true);
       
-      // Fetch all leads with outreach data
-      const { data: leads, error } = await supabase
-        .from("People")
-        .select(`
-          id,
-          Name,
-          Company,
-          Stage,
-          stage_enum,
-          "Message Sent",
-          "Message Sent Date",
-          "Connection Request",
-          "Connection Request Date",
-          "Connection Accepted Date",
-          "LinkedIn Responded",
-          "Response Date",
-          "Email Sent",
-          "Email Sent Date",
-          "Email Reply",
-          "Email Reply Date",
-          "Meeting Booked",
-          "Meeting Date",
-          automation_status_enum,
-          "Automation Status",
-          created_at,
-          updated_at
-        `)
-        .order("updated_at", { ascending: false });
+      // Use the ReportingService for optimized outreach analytics
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30); // Last 30 days
+      
+      const outreachData = await ReportingService.getOutreachAnalytics(startDate);
 
-      if (error) throw error;
-
-      // Calculate metrics
-      const totalLeads = leads?.length || 0;
-      const messagesSent = leads?.filter(l => l["Message Sent"]).length || 0;
-      const connectionRequests = leads?.filter(l => l["Connection Request"]).length || 0;
-      const connectionsAccepted = leads?.filter(l => l["Connection Accepted Date"]).length || 0;
-      const responsesReceived = leads?.filter(l => l["LinkedIn Responded"] || l["Email Reply"]).length || 0;
-      const meetingsBooked = leads?.filter(l => l["Meeting Booked"]).length || 0;
-      const emailsSent = leads?.filter(l => l["Email Sent"]).length || 0;
-      const emailReplies = leads?.filter(l => l["Email Reply"]).length || 0;
-      const automatedLeads = leads?.filter(l => l.automation_status_enum && l.automation_status_enum !== 'idle').length || 0;
-      const activeAutomations = leads?.filter(l => l.automation_status_enum === 'running').length || 0;
-
-      // Calculate rates
-      const conversionRate = totalLeads > 0 ? (meetingsBooked / totalLeads) * 100 : 0;
-      const responseRate = totalLeads > 0 ? (responsesReceived / totalLeads) * 100 : 0;
-      const connectionRate = connectionRequests > 0 ? (connectionsAccepted / connectionRequests) * 100 : 0;
+      // Calculate additional metrics
+      const conversionRate = outreachData.conversionRate;
+      const responseRate = outreachData.responseRate;
+      const connectionRate = outreachData.messagesSent > 0 ? (outreachData.connectionsAccepted / outreachData.messagesSent) * 100 : 0;
 
       setMetrics({
-        totalLeads,
-        messagesSent,
-        connectionRequests,
-        connectionsAccepted,
-        responsesReceived,
-        meetingsBooked,
-        emailsSent,
-        emailReplies,
-        automatedLeads,
-        activeAutomations,
+        totalLeads: outreachData.totalLeads,
+        messagesSent: outreachData.messagesSent,
+        connectionRequests: outreachData.messagesSent, // Using messagesSent as proxy for connection requests
+        connectionsAccepted: outreachData.connectionsAccepted,
+        responsesReceived: outreachData.responsesReceived,
+        meetingsBooked: outreachData.meetingsBooked,
+        emailsSent: 0, // Not tracked in current service
+        emailReplies: 0, // Not tracked in current service
+        automatedLeads: outreachData.messagesSent, // Using messagesSent as proxy for automated leads
+        activeAutomations: outreachData.messagesSent, // Using messagesSent as proxy for active automations
         conversionRate,
         responseRate,
         connectionRate,
