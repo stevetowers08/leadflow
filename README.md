@@ -2,6 +2,12 @@
 
 A comprehensive AI-powered recruitment platform built with React, TypeScript, and Supabase.
 
+## 📍 Repository
+
+**GitHub**: [https://github.com/stevetowers08/empowr-crm](https://github.com/stevetowers08/empowr-crm)
+
+This is the main repository for the Empowr CRM project, containing the complete codebase, documentation, and deployment configurations.
+
 ## 🚀 Quick Start
 
 1. **Environment Setup**: See [docs/SETUP/ENVIRONMENT_SETUP.md](docs/SETUP/ENVIRONMENT_SETUP.md)

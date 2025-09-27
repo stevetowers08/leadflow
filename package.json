@@ -2,6 +2,11 @@
   "name": "empowr-crm",
   "version": "1.0.0",
   "description": "Empowr CRM - AI-powered recruitment platform",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stevetowers08/empowr-crm.git"
+  },
+  "homepage": "https://github.com/stevetowers08/empowr-crm#readme",
   "type": "module",
   "scripts": {
     "dev": "vite --port 8080 --host",
