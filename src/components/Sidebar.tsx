@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionsContext";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { FourTwentyLogo } from "./FourTwentyLogo";
 
 const mainNavigation = [
   { name: "Dashboard", href: "/", icon: Home },
@@ -46,7 +47,10 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
     <aside className="bg-sidebar border-r border-sidebar-border border-t-0 flex flex-col fixed left-0 top-0 h-screen z-40 transition-all duration-300 w-52">
       <div className="px-4 h-20 border-b border-sidebar-border bg-sidebar flex items-center">
         <div className="flex items-center justify-between w-full">
-          <h1 className="text-lg font-semibold text-sidebar-foreground">Empowr CRM</h1>
+          <div className="flex items-center gap-3">
+            <FourTwentyLogo size={24} />
+            <h1 className="text-lg font-semibold text-sidebar-foreground">Empowr CRM</h1>
+          </div>
           <div className="flex items-center gap-2">
             {onClose && (
               <Button

@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { EnhancedMobileNav, EnhancedMobileSidebar } from "./EnhancedMobileNav";
 import { cn } from "@/lib/utils";
+import { FourTwentyLogo } from "./FourTwentyLogo";
 
 interface LayoutProps {
   children: ReactNode;
@@ -86,7 +87,10 @@ export const Layout = ({ children }: LayoutProps) => {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold text-foreground">Empowr CRM</h1>
+            <div className="flex items-center gap-2">
+              <FourTwentyLogo size={20} />
+              <h1 className="text-lg font-semibold text-foreground">Empowr CRM</h1>
+            </div>
             <div className="w-11" /> {/* Spacer for centering */}
           </div>
         )}
