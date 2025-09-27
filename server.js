@@ -74,7 +74,7 @@ app.get('/', (req, res) => {
 });
 
 // Root POST endpoint for n8n
-app.post('/', (req, res) => {
+app.post('/', async (req, res) => {
   console.log('Root POST request from n8n:', req.body);
   
   const { method, id, params } = req.body;
