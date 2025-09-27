@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 // Official Supabase MCP Server for Render
-import { spawn } from 'child_process';
 import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
@@ -34,28 +33,7 @@ console.log('🔑 Access Token configured:', SUPABASE_ACCESS_TOKEN ? 'Yes' : 'No
 // Initialize Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_ACCESS_TOKEN);
 
-// Start the official Supabase MCP server
-const mcpServer = spawn('npx', [
-  '-y', 
-  '@supabase/mcp-server-supabase@latest',
-  '--access-token', SUPABASE_ACCESS_TOKEN,
-  '--project-ref', SUPABASE_PROJECT_REF,
-  '--features', 'database,docs,account,debugging,development,functions'
-], {
-  stdio: ['pipe', 'pipe', 'pipe']
-});
-
-mcpServer.stdout.on('data', (data) => {
-  console.log('MCP Server:', data.toString());
-});
-
-mcpServer.stderr.on('data', (data) => {
-  console.error('MCP Server Error:', data.toString());
-});
-
-mcpServer.on('close', (code) => {
-  console.log(`MCP Server process exited with code ${code}`);
-});
+// Using custom Supabase MCP implementation instead of spawning official server
 
 // HTTP endpoints for n8n compatibility
 app.get('/', (req, res) => {
