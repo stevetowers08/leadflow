@@ -11,8 +11,6 @@ export const FourTwentyLogo: React.FC<FourTwentyLogoProps> = ({
   className = '',
   showText = false 
 }) => {
-  const scale = size / 32;
-  
   if (showText) {
     // Full logo with text
     return (

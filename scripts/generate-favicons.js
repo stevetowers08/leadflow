@@ -1,33 +1,20 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Simple favicon generation script
-// This creates basic favicon files from our SVG design
+// This creates basic favicon files from our 4Twenty logo design
 
 const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="faviconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#8B5CF6" />
-      <stop offset="50%" stopColor="#7C3AED" />
-      <stop offset="100%" stopColor="#5B21B6" />
-    </linearGradient>
-  </defs>
-  
-  <!-- Simplified hexagonal shape -->
-  <path
-    d="M16 2L28 8L28 24L16 30L4 24L4 8L16 2Z"
-    fill="url(#faviconGradient)"
+<svg width="32" height="32" viewBox="0 0 100 120.3" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <polygon 
+    fill="#C1CC54" 
+    points="0,78.5 40.7,0 67.7,0 30.8,71.8 63.3,71.8 63.3,113.8 75.3,113.8 75.3,72.2 91.7,72.2 91.7,60.2 
+    49.3,60.2 52.3,53.3 98.8,53.3 98.8,78.3 82.2,78.3 82.2,120.3 56.5,120.3 56.5,78.5 19.8,78.5 56.7,6.8 45,6.8 7.5,78.5 "
   />
-  
-  <!-- Simplified rocket -->
-  <path
-    d="M16 6L20 10L20 18L22 20L20 22L20 26L16 28L12 26L12 22L10 20L12 18L12 10L16 6Z"
-    fill="white"
-  />
-  
-  <!-- Rocket center dot -->
-  <circle cx="16" cy="20" r="1.5" fill="white" />
 </svg>`;
 
 // Write the SVG favicon
