@@ -145,6 +145,166 @@ export class ReportingService {
   }
 
   /**
+   * Calculate real metrics from actual database data
+   */
+  private static calculateRealMetrics(
+    leads: any[],
+    companies: any[],
+    jobs: any[],
+    startDate: Date
+  ): ReportingMetrics {
+    console.log('Calculating real metrics from data...');
+    
+    // Basic counts
+    const totalLeads = leads.length;
+    const totalCompanies = companies.length;
+    const totalJobs = jobs.length;
+
+    // Lead stage analysis
+    const stageGroups = leads.reduce((acc, lead) => {
+      const stage = lead.stage_enum || 'new';
+      acc[stage] = (acc[stage] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Calculate lead categories
+    const activeLeads = leads.filter(lead => 
+      !['lead_lost', 'disqualified'].includes(lead.stage_enum || '')
+    ).length;
+    
+    const connectedLeads = leads.filter(lead => 
+      ['connected', 'messaged', 'replied'].includes(lead.stage_enum || '')
+    ).length;
+    
+    // Count actual replies - this is the key fix
+    const repliedLeads = leads.filter(lead => 
+      lead.last_reply_at || lead.stage_enum === 'replied'
+    ).length;
+    
+    const lostLeads = leads.filter(lead => 
+      ['lead_lost', 'disqualified'].includes(lead.stage_enum || '')
+    ).length;
+
+    // Conversion rate
+    const conversionRate = activeLeads > 0 ? ((connectedLeads + repliedLeads) / activeLeads * 100) : 0;
+
+    // Average AI lead score
+    const scoresSum = leads.reduce((sum, lead) => {
+      const score = parseInt(lead["Lead Score"] || "0");
+      return sum + (isNaN(score) ? 0 : score);
+    }, 0);
+    const averageAILeadScore = totalLeads > 0 ? scoresSum / totalLeads : 0;
+
+    // Time-based metrics
+    const oneWeekAgo = subWeeks(new Date(), 1);
+    const oneMonthAgo = subMonths(new Date(), 1);
+    
+    const leadsThisWeek = leads.filter(lead => 
+      new Date(lead.created_at) >= oneWeekAgo
+    ).length;
+    
+    const leadsThisMonth = leads.filter(lead => 
+      new Date(lead.created_at) >= oneMonthAgo
+    ).length;
+
+    // Automation metrics
+    const automationStarted = leads.filter(lead => 
+      lead.automation_started_at
+    ).length;
+    
+    const automationRate = totalLeads > 0 ? (automationStarted / totalLeads) * 100 : 0;
+
+    const automationByStage = Object.entries(stageGroups).map(([stage, count]) => ({
+      stage,
+      count,
+      automationActive: leads.filter(lead => 
+        lead.stage_enum === stage && lead.automation_started_at
+      ).length
+    }));
+
+    // Stage distribution
+    const stageDistribution = Object.entries(stageGroups).map(([stage, count]) => ({
+      stage,
+      count,
+      percentage: totalLeads > 0 ? (count / totalLeads) * 100 : 0
+    }));
+
+    // Industry distribution
+    const industryGroups = companies.reduce((acc, company) => {
+      const industry = company["Industry"] || 'Unknown';
+      acc[industry] = (acc[industry] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const industryDistribution = Object.entries(industryGroups).map(([industry, count]) => ({
+      industry,
+      count,
+      percentage: totalCompanies > 0 ? (count / totalCompanies) * 100 : 0
+    }));
+
+    // Top companies by lead count (count leads per company)
+    const companyLeadCounts = leads.reduce((acc, lead) => {
+      const companyName = lead["Company"] || 'Unknown';
+      acc[companyName] = (acc[companyName] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const topCompanies = Object.entries(companyLeadCounts)
+      .map(([companyName, leadCount]) => {
+        const company = companies.find(c => c["Company Name"] === companyName);
+        return {
+          companyName,
+          industry: company?.["Industry"] || 'Unknown',
+          leadCount,
+          automationActive: leads.filter(l => 
+            l["Company"] === companyName && l.automation_started_at
+          ).length
+        };
+      })
+      .sort((a, b) => b.leadCount - a.leadCount)
+      .slice(0, 10);
+
+    // Daily trends (last 30 days)
+    const dailyTrends = this.calculateDailyTrends(leads, startDate);
+
+    // Recent activity
+    const recentActivity = this.generateRecentActivity(leads, companies, jobs);
+
+    console.log('Calculated metrics:', {
+      totalLeads,
+      activeLeads,
+      connectedLeads,
+      repliedLeads,
+      conversionRate,
+      automationStarted
+    });
+
+    return {
+      totalLeads,
+      totalCompanies,
+      totalJobs,
+      activeLeads,
+      connectedLeads,
+      repliedLeads,
+      lostLeads,
+      conversionRate,
+      averageAILeadScore,
+      leadsThisWeek,
+      leadsThisMonth,
+      automationMetrics: {
+        totalAutomationStarted: automationStarted,
+        automationRate,
+        automationByStage
+      },
+      stageDistribution,
+      industryDistribution,
+      topCompanies,
+      dailyTrends,
+      recentActivity
+    };
+  }
+
+  /**
    * Get mock data for testing
    */
   private static getMockData(): ReportingMetrics {
@@ -206,6 +366,87 @@ export class ReportingService {
         { id: '5', type: 'company', description: 'New company: Manufacturing Co (3 leads)', timestamp: new Date(Date.now() - 14400000).toISOString() }
       ]
     };
+  }
+
+  /**
+   * Calculate daily trends for the specified period
+   */
+  private static calculateDailyTrends(leads: any[], startDate: Date): Array<{
+    date: string;
+    newLeads: number;
+    automationsStarted: number;
+  }> {
+    const trends = [];
+    const days = Math.ceil((new Date().getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
+      
+      const dayLeads = leads.filter(lead => 
+        lead.created_at && lead.created_at.startsWith(dateString)
+      );
+      
+      const dayAutomations = leads.filter(lead => 
+        lead.automation_started_at && lead.automation_started_at.startsWith(dateString)
+      );
+      
+      trends.push({
+        date: dateString,
+        newLeads: dayLeads.length,
+        automationsStarted: dayAutomations.length
+      });
+    }
+    
+    return trends;
+  }
+
+  /**
+   * Generate recent activity feed
+   */
+  private static generateRecentActivity(leads: any[], companies: any[], jobs: any[]): Array<{
+    id: string;
+    type: string;
+    description: string;
+    timestamp: string;
+  }> {
+    const activities = [];
+    
+    // Recent leads
+    leads.slice(0, 5).forEach(lead => {
+      activities.push({
+        id: lead.id,
+        type: 'lead',
+        description: `New lead: ${lead["Name"]} from ${lead["Company"] || 'Unknown Company'}`,
+        timestamp: lead.created_at
+      });
+    });
+    
+    // Recent companies
+    companies.slice(0, 3).forEach(company => {
+      const leadCount = leads.filter(l => l["Company"] === company["Company Name"]).length;
+      activities.push({
+        id: company.id,
+        type: 'company',
+        description: `New company: ${company["Company Name"]} (${leadCount} leads)`,
+        timestamp: company.created_at
+      });
+    });
+    
+    // Recent jobs
+    jobs.slice(0, 3).forEach(job => {
+      activities.push({
+        id: job.id,
+        type: 'job',
+        description: `New job: ${job["Job Title"]} at ${job["Company"] || 'Unknown Company'}`,
+        timestamp: job.created_at
+      });
+    });
+    
+    return activities
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 10);
   }
 
   /**
