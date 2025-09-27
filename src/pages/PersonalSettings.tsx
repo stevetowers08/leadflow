@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/contexts/PermissionsContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, User, Mail, Calendar, LogOut, Save, Bell, Palette, Database, Settings as SettingsIcon, Shield, Activity, Clock, Globe, Smartphone, Download, Upload, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, User, Mail, Calendar, LogOut, Save, Bell, Palette, Database, Settings as SettingsIcon, Shield, Activity, Clock, Globe, Smartphone, Download, Upload, Trash2, Eye, EyeOff, Users, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -22,6 +23,7 @@ interface PersonalSettingsProps {
 
 const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsProps) => {
   const { user, userProfile, updateProfile, signOut } = useAuth();
+  const { hasRole } = usePermissions();
   const [fullName, setFullName] = useState(userProfile?.full_name || user?.user_metadata?.full_name || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -641,6 +643,96 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
                       </>
                     )}
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* User Management - Admin Only */}
+          {activeSection === 'user-management' && hasRole(['admin', 'owner']) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  User Management
+                </CardTitle>
+                <CardDescription>
+                  Manage team members and send invitations (Admin access required)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <Alert>
+                  <Users className="h-4 w-4" />
+                  <AlertDescription>
+                    This section is only available to administrators. Use the Admin panel for full user management features.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Quick Invite</Label>
+                      <p className="text-sm text-muted-foreground">Send a quick invitation to a new team member</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Go to Admin Panel
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Email Address</Label>
+                      <Input
+                        type="email"
+                        placeholder="user@company.com"
+                        disabled
+                      />
+                      <p className="text-xs text-muted-foreground">Use Admin panel for invitations</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Role</Label>
+                      <Select disabled>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="recruiter">Recruiter</SelectItem>
+                          <SelectItem value="viewer">Viewer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <Button disabled className="w-full">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Send Invitation (Use Admin Panel)
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <h4 className="font-medium">Team Overview</h4>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">-</div>
+                      <div className="text-sm text-gray-600">Total Users</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">-</div>
+                      <div className="text-sm text-gray-600">Active Users</div>
+                    </div>
+                    <div className="text-center p-4 bg-orange-50 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">-</div>
+                      <div className="text-sm text-gray-600">Pending Invites</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Detailed user management is available in the Admin panel
+                  </p>
                 </div>
               </CardContent>
             </Card>

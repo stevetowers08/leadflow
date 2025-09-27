@@ -10,7 +10,6 @@ import { Settings as SettingsIcon } from 'lucide-react';
 import IntegrationsPage from '@/components/IntegrationsPage';
 import Accounts from './settings/Accounts';
 import Members from './settings/Members';
-import Billing from './settings/Billing';
 import VoiceCloner from './settings/VoiceCloner';
 import WhiteLabel from './settings/WhiteLabel';
 import { usePageMeta } from '@/hooks/usePageMeta';
@@ -37,8 +36,10 @@ const Settings = () => {
       case 'profile-info':
       case 'notifications':
       case 'preferences':
-      case 'security':
-        return <PersonalSettings activeSection={activeSection} />;
+          case 'security':
+            return <PersonalSettings activeSection={activeSection} />;
+          case 'user-management':
+            return <PersonalSettings activeSection={activeSection} />;
       case 'accounts':
         return (
           <div className="p-6">
@@ -52,14 +53,6 @@ const Settings = () => {
           <div className="p-6">
             <PermissionGuard requiredRole={['admin', 'owner']}>
               <Members />
-            </PermissionGuard>
-          </div>
-        );
-      case 'billing':
-        return (
-          <div className="p-6">
-            <PermissionGuard requiredRole={['admin', 'owner']}>
-              <Billing />
             </PermissionGuard>
           </div>
         );

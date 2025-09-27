@@ -6,7 +6,7 @@ import {
   Settings, 
   Users, 
   User, 
-  CreditCard, 
+  Building2, 
   Mic, 
   Tag, 
   Webhook, 
@@ -59,6 +59,13 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
       available: true
     },
     {
+      id: 'user-management',
+      label: 'User Management',
+      icon: Users,
+      description: 'Manage team members (Admin)',
+      available: isAdmin
+    },
+    {
       id: 'accounts',
       label: 'Accounts',
       icon: Users,
@@ -70,13 +77,6 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
       label: 'Members',
       icon: User,
       description: 'Team member management',
-      available: isAdmin
-    },
-    {
-      id: 'billing',
-      label: 'Billing',
-      icon: CreditCard,
-      description: 'Subscription and billing',
       available: isAdmin
     },
     {

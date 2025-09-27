@@ -152,6 +152,47 @@ const Admin: React.FC = () => {
     });
   };
 
+  const handleSendInvite = async () => {
+    if (!newInvite.email) {
+      toast({
+        title: "Error",
+        description: "Please enter an email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check user limit
+    const currentUsers = users.length;
+    const pendingInvites = invites.filter(i => i.status === 'pending').length;
+    if (currentUsers + pendingInvites >= settings.maxUsers) {
+      toast({
+        title: "User Limit Reached",
+        description: `Cannot invite more users. Current limit: ${settings.maxUsers}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newInviteData: Invite = {
+      id: Date.now().toString(),
+      email: newInvite.email,
+      role: newInvite.role,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+      invitedBy: user?.email || 'Unknown'
+    };
+
+    setInvites(prev => [...prev, newInviteData]);
+    setNewInvite({ email: '', role: 'recruiter' });
+
+    toast({
+      title: "Invite Sent",
+      description: `Invite sent to ${newInvite.email}`,
+    });
+  };
+
   const handleUpdateUserRole = async (userId: string, newRole: string) => {
     console.log('Updating role:', { userId, newRole, currentUsers: users });
     
@@ -358,7 +399,7 @@ const Admin: React.FC = () => {
           <TabsTrigger value="invites">Invites</TabsTrigger>
           <TabsTrigger value="logos">Logos</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
+          <TabsTrigger value="client-management">Client Management</TabsTrigger>
           {hasRole('owner') && <TabsTrigger value="owner">Owner</TabsTrigger>}
           </TabsList>
 
@@ -492,49 +533,96 @@ const Admin: React.FC = () => {
             </div>
           </TabsContent>
 
-        {/* Billing Tab */}
-        <TabsContent value="billing" className="space-y-4">
+        {/* Client Management Tab */}
+        <TabsContent value="client-management" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Billing Information</h2>
+            <h2 className="text-lg font-semibold">Client Management</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-              <CardHeader>
-                <CardTitle>Current Plan</CardTitle>
-                </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Plan</Label>
-                  <div className="text-lg font-semibold">{settings.currentPlan}</div>
-                </div>
-                <div>
-                  <Label>Status</Label>
-                  <StatusBadge status={settings.subscriptionStatus} size="sm" />
-                </div>
-                <div>
-                  <Label>User Limit</Label>
-                  <div className="text-lg font-semibold">{settings.maxUsers} users</div>
-                </div>
-                </CardContent>
-              </Card>
-              
             <Card>
               <CardHeader>
-                <CardTitle>Billing Details</CardTitle>
+                <CardTitle>User Limits</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Billing Email</Label>
-                  <div className="text-sm">{settings.billingEmail || 'Not set'}</div>
+                  <Label htmlFor="maxUsers">Maximum Users</Label>
+                  <Input
+                    id="maxUsers"
+                    type="number"
+                    value={settings.maxUsers}
+                    onChange={(e) => setSettings(prev => ({ ...prev, maxUsers: parseInt(e.target.value) }))}
+                    min="1"
+                    max="1000"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Current usage: {users.length + invites.filter(i => i.status === 'pending').length} users
+                  </p>
                 </div>
                 <div>
-                  <Label>Next Billing Date</Label>
-                  <div className="text-sm">January 1, 2025</div>
+                  <Label>Usage Breakdown</Label>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Active Users:</span>
+                      <span>{users.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Pending Invites:</span>
+                      <span>{invites.filter(i => i.status === 'pending').length}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold">
+                      <span>Total:</span>
+                      <span>{users.length + invites.filter(i => i.status === 'pending').length} / {settings.maxUsers}</span>
+                    </div>
+                  </div>
+                </div>
+                <Button onClick={handleSaveSettings} className="w-full">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Settings
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Invite</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="quickEmail">Email Address</Label>
+                  <Input
+                    id="quickEmail"
+                    type="email"
+                    value={newInvite.email}
+                    onChange={(e) => setNewInvite(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="user@company.com"
+                  />
                 </div>
                 <div>
-                  <Label>Usage This Month</Label>
-                  <div className="text-sm">{users.length} / {settings.maxUsers} users</div>
+                  <Label htmlFor="quickRole">Role</Label>
+                  <Select value={newInvite.role} onValueChange={(value: any) => setNewInvite(prev => ({ ...prev, role: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="recruiter">Recruiter</SelectItem>
+                      <SelectItem value="viewer">Viewer</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+                <Button 
+                  onClick={handleSendInvite} 
+                  className="w-full"
+                  disabled={users.length + invites.filter(i => i.status === 'pending').length >= settings.maxUsers}
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Send Invitation
+                </Button>
+                {users.length + invites.filter(i => i.status === 'pending').length >= settings.maxUsers && (
+                  <p className="text-sm text-red-600 text-center">
+                    Cannot send invitations. User limit reached.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
