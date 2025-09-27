@@ -8,7 +8,7 @@
         "--project-ref=jedfundfhzytpnbjkspn"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+        "SUPABASE_ACCESS_TOKEN": "sbp_ca2310f0c781f17e4ccb76218f091d5339875247"
       }
     },
     "github": {
@@ -18,7 +18,7 @@
         "@modelcontextprotocol/server-github@latest"
       ],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "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"
       }
     }
   }

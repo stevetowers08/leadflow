@@ -3,7 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { FloatingChatWidget } from "./FloatingChatWidget";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { useMobile } from "./MobileComponents";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { EnhancedMobileNav, EnhancedMobileSidebar } from "./EnhancedMobileNav";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isMobile } = useMobile();
+  const isMobile = useIsMobile();
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {

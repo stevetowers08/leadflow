@@ -197,3 +197,43 @@ export const CompaniesStatsCards: React.FC<CompaniesStatsProps> = ({
     </div>
   );
 };
+
+// Pipeline Stats Cards
+interface PipelineStatsProps {
+  leads: any[];
+}
+
+export const PipelineStatsCards: React.FC<PipelineStatsProps> = ({ leads }) => {
+  const totalLeads = leads.length;
+  const activeLeads = leads.filter(lead => lead.status !== 'CLOSED' && lead.status !== 'REJECTED').length;
+  const closedLeads = leads.filter(lead => lead.status === 'CLOSED').length;
+  const rejectedLeads = leads.filter(lead => lead.status === 'REJECTED').length;
+  const avgLeadScore = leads.length > 0 
+    ? Math.round(leads.reduce((sum, lead) => sum + (lead.lead_score || 0), 0) / leads.length)
+    : 0;
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <StatItem
+        icon={<Users className="h-4 w-4" />}
+        value={totalLeads}
+        label="total leads"
+      />
+      <StatItem
+        icon={<Target className="h-4 w-4" />}
+        value={activeLeads}
+        label="active"
+      />
+      <StatItem
+        icon={<CheckCircle className="h-4 w-4" />}
+        value={closedLeads}
+        label="closed"
+      />
+      <StatItem
+        icon={<Star className="h-4 w-4" />}
+        value={avgLeadScore}
+        label="avg score"
+      />
+    </div>
+  );
+};

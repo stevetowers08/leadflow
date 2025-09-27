@@ -1,10 +1,8 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
-import AppDebug from "./AppDebug.tsx";
-import AppWithPages from "./AppWithPages.tsx";
 import "./index.css";
 
-console.log('🚀 main.tsx starting...');
+console.log('🚀 Empowr CRM starting...');
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -15,5 +13,7 @@ if (!rootElement) {
 console.log('✅ Root element found, creating React root...');
 const root = createRoot(rootElement);
 console.log('✅ React root created, rendering App...');
-root.render(<AppWithPages />);
-console.log('✅ App rendered');
+
+// Full CRM Application - FIXED!
+root.render(<App />);
+console.log('✅ Full CRM App with FIXED DataTable rendered successfully');

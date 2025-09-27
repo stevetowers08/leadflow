@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { Page, StatItemProps } from '@/design-system/components';
 
 interface User {
   id: string;
@@ -210,6 +211,33 @@ const Admin: React.FC = () => {
     );
   }
 
+  const stats: StatItemProps[] = [
+    {
+      label: "Total Users",
+      value: users.length.toString(),
+      icon: Users,
+      trend: null,
+    },
+    {
+      label: "Active Users",
+      value: users.filter(u => u.status === 'active').length.toString(),
+      icon: CheckCircle,
+      trend: null,
+    },
+    {
+      label: "Pending Invites",
+      value: invites.filter(i => i.status === 'pending').length.toString(),
+      icon: Mail,
+      trend: null,
+    },
+    {
+      label: "User Limit",
+      value: `${users.length + invites.filter(i => i.status === 'pending').length} / ${settings.maxUsers}`,
+      icon: Settings,
+      trend: null,
+    },
+  ];
+
   // User columns for DataTable
   const userColumns = [
     {
@@ -311,52 +339,17 @@ const Admin: React.FC = () => {
   ];
 
   return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-          <h1 className="text-xl font-semibold tracking-tight">Organization Admin</h1>
-          <p className="text-muted-foreground">Manage users, invites, and organization settings</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            User limit: {users.length + invites.filter(i => i.status === 'pending').length} / {settings.maxUsers}
-          </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <StatusBadge status="Organization" size="sm" />
-          {hasRole('owner') && (
-            <StatusBadge status="Owner" size="sm" />
-          )}
-        </div>
+    <Page
+      title="Organization Admin"
+      subtitle="Manage users, invites, and organization settings"
+      stats={stats}
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <StatusBadge status="Organization" size="sm" />
+        {hasRole('owner') && (
+          <StatusBadge status="Owner" size="sm" />
+        )}
       </div>
-
-
-        {/* Stats Cards */}
-        <div className="flex items-center gap-6 mb-4 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <div className="text-muted-foreground">
-              <Users className="h-4 w-4" />
-            </div>
-            <span className="font-medium">{users.length} total users</span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <div className="text-muted-foreground">
-              <CheckCircle className="h-4 w-4" />
-            </div>
-            <span className="font-medium">{users.filter(u => u.status === 'active').length} active</span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <div className="text-muted-foreground">
-              <UserPlus className="h-4 w-4" />
-            </div>
-            <span className="font-medium">{users.filter(u => u.role === 'recruiter').length} recruiters</span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <div className="text-muted-foreground">
-              <Mail className="h-4 w-4" />
-            </div>
-            <span className="font-medium">{invites.filter(i => i.status === 'pending').length} pending invites</span>
-          </div>
-        </div>
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="users" className="w-full">
@@ -616,7 +609,7 @@ const Admin: React.FC = () => {
           </TabsContent>
         )}
         </Tabs>
-      </div>
+    </Page>
   );
 };
 

@@ -10,7 +10,7 @@ import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
 import { Search, ArrowUpDown, Plus, RefreshCw } from "lucide-react";
 import { usePageMeta } from "@/hooks/usePageMeta";
-import { getCompanyLogoUrlSync } from "@/utils/logoService";
+import { getClearbitLogo } from "@/utils/logoService";
 import { getLabel } from '@/utils/labels';
 import { useLeads, usePrefetchData, useCacheInvalidation } from "@/hooks/useSupabaseData";
 import { useDebouncedFetch } from "@/hooks/useDebouncedFetch";
@@ -97,10 +97,7 @@ const PipelineOptimized = React.memo(() => {
     return leadsData.data.map((lead: Lead) => ({
       ...lead,
       company_name: lead.companies?.name || null,
-      company_logo_url: getCompanyLogoUrlSync(
-        lead.companies?.name || '', 
-        lead.companies?.website
-      )
+      company_logo_url: lead.companies?.website ? getClearbitLogo(lead.companies.name, lead.companies.website) : null
     }));
   }, [leadsData?.data]);
 

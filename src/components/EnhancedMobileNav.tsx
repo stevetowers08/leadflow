@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useMobile } from "./MobileComponents";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavItem {
   to: string;
@@ -52,7 +52,7 @@ interface EnhancedMobileNavProps {
 export const EnhancedMobileNav: React.FC<EnhancedMobileNavProps> = ({ className }) => {
   const location = useLocation();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const { isMobile } = useMobile();
+  const isMobile = useIsMobile();
 
   // Close more menu when clicking outside
   useEffect(() => {

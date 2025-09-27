@@ -18,6 +18,8 @@ export interface Conversation {
   person_company?: string;
   person_linkedin_url?: string;
   message_count?: number;
+  // Message content
+  last_reply_message?: string;
 }
 
 export interface ConversationMessage {
@@ -133,70 +135,15 @@ export class ConversationService {
   }
 
   async getConversationMessages(conversationId: string): Promise<ConversationMessage[]> {
-    // Since conversation_messages table doesn't exist, get data from people table
-    const { data: person, error } = await supabase
-      .from('people')
-      .select(`
-        id,
-        name,
-        email_address,
-        stage,
-        last_reply_at,
-        last_reply_channel,
-        last_reply_message,
-        message_sent_date,
-        email_sent_date,
-        linkedin_request_message,
-        linkedin_follow_up_message,
-        linkedin_connected_message
-      `)
-      .eq('id', conversationId)
-      .single();
+    // Get messages from the conversation_messages table
+    const { data: messages, error } = await supabase
+      .from('conversation_messages')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('sent_at', { ascending: true });
 
     if (error) throw error;
-    if (!person) return [];
-
-    const messages: ConversationMessage[] = [];
-
-    // Add sent message
-    if (person.message_sent_date) {
-      messages.push({
-        id: `${person.id}-sent`,
-        conversation_id: person.id,
-        person_id: person.id,
-        sender_type: 'us',
-        sender_name: 'You',
-        sender_email: undefined,
-        content: person.linkedin_request_message || person.linkedin_follow_up_message || 'Message sent',
-        message_type: 'text',
-        is_read: true,
-        sent_at: person.message_sent_date,
-        received_at: person.message_sent_date,
-        created_at: person.message_sent_date,
-        updated_at: person.message_sent_date,
-      });
-    }
-
-    // Add reply message if exists (even if last_reply_at is null)
-    if (person.last_reply_message) {
-      messages.push({
-        id: `${person.id}-reply`,
-        conversation_id: person.id,
-        person_id: person.id,
-        sender_type: 'them',
-        sender_name: person.name,
-        sender_email: person.email_address,
-        content: person.last_reply_message,
-        message_type: 'reply',
-        is_read: true,
-        sent_at: person.last_reply_at || person.updated_at,
-        received_at: person.last_reply_at || person.updated_at,
-        created_at: person.last_reply_at || person.updated_at,
-        updated_at: person.last_reply_at || person.updated_at,
-      });
-    }
-
-    return messages.sort((a, b) => new Date(a.received_at).getTime() - new Date(b.received_at).getTime());
+    return messages || [];
   }
 
   async createConversation(conversationData: {
@@ -392,58 +339,78 @@ export class ConversationService {
     linkedinConversations: number;
     emailConversations: number;
   }> {
-    // OPTIMIZED: Use count queries instead of fetching all data
-    const today = new Date().toISOString().split('T')[0];
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    try {
+      // OPTIMIZED: Use count queries instead of fetching all data
+      const today = new Date().toISOString().split('T')[0];
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [
-      { count: totalConversations },
-      { count: unreadConversations },
-      { count: activeConversations },
-      { count: messagesToday },
-      { count: messagesThisWeek },
-      { count: linkedinConversations },
-      { count: emailConversations }
-    ] = await Promise.all([
-      // Total conversations
-      supabase.from('people').select('*', { count: 'exact', head: true })
-        .in('stage', ['messaged', 'replied', 'connected']),
-      
-      // Unread conversations
-      supabase.from('people').select('*', { count: 'exact', head: true })
-        .eq('stage', 'messaged')
-        .is('last_reply_message', null),
-      
-      // Active conversations
-      supabase.from('people').select('*', { count: 'exact', head: true })
-        .in('stage', ['messaged', 'replied']),
-      
-      // Messages today
-      supabase.from('people').select('*', { count: 'exact', head: true })
-        .gte('message_sent_date', today),
-      
-      // Messages this week
-      supabase.from('people').select('*', { count: 'exact', head: true })
-        .gte('message_sent_date', weekAgo),
-      
-      // LinkedIn conversations
-      supabase.from('people').select('*', { count: 'exact', head: true })
-        .in('stage', ['messaged', 'replied', 'connected']),
-      
-      // Email conversations
-      supabase.from('people').select('*', { count: 'exact', head: true })
-        .or('email_sent.eq.true,last_reply_channel.eq.email')
-    ]);
+      const [
+        { count: totalConversations },
+        { count: unreadConversations },
+        { count: activeConversations },
+        { count: messagesToday },
+        { count: messagesThisWeek },
+        { count: linkedinConversations },
+        { count: emailConversations }
+      ] = await Promise.all([
+        // Total conversations - people who have actually replied
+        supabase.from('people').select('*', { count: 'exact', head: true })
+          .not('last_reply_message', 'is', null)
+          .neq('last_reply_message', ''),
+        
+        // Unread conversations - people messaged but no reply yet
+        supabase.from('people').select('*', { count: 'exact', head: true })
+          .eq('stage', 'messaged')
+          .is('last_reply_at', null),
+        
+        // Active conversations - people who have replied (true conversations)
+        supabase.from('people').select('*', { count: 'exact', head: true })
+          .not('last_reply_message', 'is', null)
+          .neq('last_reply_message', ''),
+        
+        // Messages today - people with message sent today
+        supabase.from('people').select('*', { count: 'exact', head: true })
+          .gte('message_sent_date', today),
+        
+        // Messages this week - people with message sent this week
+        supabase.from('people').select('*', { count: 'exact', head: true })
+          .gte('message_sent_date', weekAgo),
+        
+        // LinkedIn conversations - people with LinkedIn replies
+        supabase.from('people').select('*', { count: 'exact', head: true })
+          .not('last_reply_message', 'is', null)
+          .neq('last_reply_message', '')
+          .eq('last_reply_channel', 'linkedin'),
+        
+        // Email conversations - people with email replies
+        supabase.from('people').select('*', { count: 'exact', head: true })
+          .not('last_reply_message', 'is', null)
+          .neq('last_reply_message', '')
+          .eq('last_reply_channel', 'email')
+      ]);
 
-    return {
-      totalConversations: totalConversations || 0,
-      unreadConversations: unreadConversations || 0,
-      activeConversations: activeConversations || 0,
-      messagesToday: messagesToday || 0,
-      messagesThisWeek: messagesThisWeek || 0,
-      linkedinConversations: linkedinConversations || 0,
-      emailConversations: emailConversations || 0,
-    };
+      return {
+        totalConversations: totalConversations || 0,
+        unreadConversations: unreadConversations || 0,
+        activeConversations: activeConversations || 0,
+        messagesToday: messagesToday || 0,
+        messagesThisWeek: messagesThisWeek || 0,
+        linkedinConversations: linkedinConversations || 0,
+        emailConversations: emailConversations || 0,
+      };
+    } catch (error) {
+      console.error('Error fetching conversation stats:', error);
+      // Return default values on error
+      return {
+        totalConversations: 0,
+        unreadConversations: 0,
+        activeConversations: 0,
+        messagesToday: 0,
+        messagesThisWeek: 0,
+        linkedinConversations: 0,
+        emailConversations: 0,
+      };
+    }
   }
 }
 

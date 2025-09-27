@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "vite --port 8080 --host",
     "build": "vite build",
-    "preview": "vite preview",
-    "start": "node server.js"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
@@ -21,8 +20,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
-    "@supabase/mcp-server-supabase": "latest",
-    "@supabase/supabase-js": "^2.58.0",
+    "@supabase/supabase-js": "^2.39.0",
     "@tanstack/react-query": "^5.90.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
@@ -31,9 +29,7 @@
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "cors": "^2.8.5",
-    "date-fns": "^4.1.0",
-    "express": "^4.21.2",
+    "date-fns": "^3.6.0",
     "lucide-react": "^0.544.0",
     "next-themes": "^0.4.6",
     "postcss": "^8.5.6",

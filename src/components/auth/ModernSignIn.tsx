@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Users } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { errorLogger, ErrorSeverity, ErrorCategory } from '@/utils/errorLogger';
 
 export const ModernSignIn: React.FC = () => {
   const [loading, setLoading] = useState<string | null>(null);
@@ -29,7 +30,13 @@ export const ModernSignIn: React.FC = () => {
       }
     } catch (err) {
       console.error('Google sign-in error:', err);
-      setError('An unexpected error occurred. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(errorMessage);
+      errorLogger.logAuthError(errorMessage, {
+        action: 'google_signin',
+        component: 'ModernSignIn',
+        metadata: { originalError: err }
+      });
       setLoading(null);
     }
   };
@@ -47,7 +54,13 @@ export const ModernSignIn: React.FC = () => {
       }
     } catch (err) {
       console.error('LinkedIn sign-in error:', err);
-      setError('An unexpected error occurred. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(errorMessage);
+      errorLogger.logAuthError(errorMessage, {
+        action: 'linkedin_signin',
+        component: 'ModernSignIn',
+        metadata: { originalError: err }
+      });
       setLoading(null);
     }
   };

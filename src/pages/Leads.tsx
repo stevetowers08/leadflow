@@ -1,19 +1,16 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
-import { getStatusDisplayText } from "@/utils/statusUtils";
-import { usePopup } from "@/contexts/PopupContext";
+import { LeadDetailPopup } from "@/components/LeadDetailPopup";
 import { LeadsStatsCards } from "@/components/StatsCards";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { Search, ArrowUpDown, Mail } from "lucide-react";
-import { usePageMeta } from "@/hooks/usePageMeta";
+import { Search, ArrowUpDown, Users, UserPlus, MessageSquare, CheckCircle, Calendar, Star } from "lucide-react";
 import { getProfileImage } from '@/utils/linkedinProfileUtils';
-import { getCompanyLogoUrlSync } from '@/utils/logoService';
-import { getLabel } from '@/utils/labels';
-// import { EmailBulkActions } from '@/components/EmailBulkActions';
+import { getClearbitLogo } from "@/utils/logoService";
+import { Page, StatItemProps } from "@/design-system/components";
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -27,27 +24,16 @@ interface Company {
   name: string;
 }
 
-const Leads = React.memo(() => {
+const Leads = () => {
   const [leads, setLeads] = useState<Tables<"people">[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedLeads, setSelectedLeads] = useState<Tables<"people">[]>([]);
-  const { openLeadPopup } = usePopup();
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
-
-  // Set page meta tags
-  usePageMeta({
-    title: 'Leads - Empowr CRM',
-    description: 'Manage your lead database and track candidate progress through your recruitment pipeline. View lead details, contact information, and engagement history.',
-    keywords: 'leads, candidates, recruitment, CRM, lead management, candidate tracking, pipeline',
-    ogTitle: 'Leads - Empowr CRM',
-    ogDescription: 'Manage your lead database and track candidate progress through your recruitment pipeline.',
-    twitterTitle: 'Leads - Empowr CRM',
-    twitterDescription: 'Manage your lead database and track candidate progress through your recruitment pipeline.'
-  });
 
   // Sort options
   const sortOptions = [
@@ -55,15 +41,15 @@ const Leads = React.memo(() => {
     { label: "Name", value: "name" },
     { label: "Email", value: "email_address" },
     { label: "Location", value: "employee_location" },
-    { label: getLabel('sort', 'status'), value: "stage" },
-    { label: getLabel('sort', 'ai_score'), value: "lead_score" },
+    { label: "Stage", value: "stage" },
+    { label: "Score", value: "lead_score" },
     { label: "Last Contact", value: "last_interaction_at" },
   ];
 
   // Status filter options
   const statusOptions = [
     { label: "All Statuses", value: "all" },
-    { label: "New Lead", value: "new" },
+    { label: "New", value: "new" },
     { label: "In Queue", value: "in queue" },
     { label: "Connect Sent", value: "connection_requested" },
     { label: "Connected", value: "connected" },
@@ -114,6 +100,7 @@ const Leads = React.memo(() => {
       qualifiedLeads
     };
   }, [leads]);
+
 
   // Filter and sort leads
   const filteredAndSortedLeads = useMemo(() => {
@@ -215,7 +202,7 @@ const Leads = React.memo(() => {
           connected_at,
           last_reply_at,
           favourite,
-          companies!inner(name, website)
+          companies!inner(name, logo_url, website)
         `)
         .order("created_at", { ascending: false });
 
@@ -225,7 +212,7 @@ const Leads = React.memo(() => {
       const transformedData = data?.map((lead: any) => ({
         ...lead,
         company_name: lead.companies?.name || null,
-        company_logo_url: getCompanyLogoUrlSync(lead.companies?.name || '', lead.companies?.website)
+        company_logo_url: lead.companies?.website ? getClearbitLogo(lead.companies.name, lead.companies.website) : null
       })) || [];
       
       setLeads(transformedData as Lead[]);
@@ -254,7 +241,7 @@ const Leads = React.memo(() => {
         return (
           <div className="min-w-0 max-w-80">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                 <img 
                   src={avatarUrl} 
                   alt={lead.name || 'Lead'}
@@ -268,7 +255,7 @@ const Leads = React.memo(() => {
                   }}
                 />
                 <div 
-                  className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
+                  className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
                   style={{ display: 'none' }}
                 >
                   {initials}
@@ -276,6 +263,9 @@ const Leads = React.memo(() => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium break-words leading-tight">{lead.name || "-"}</div>
+                <div className="text-xs text-muted-foreground break-words leading-tight">
+                  {lead.company_role || "No role specified"}
+                </div>
               </div>
             </div>
           </div>
@@ -283,31 +273,46 @@ const Leads = React.memo(() => {
       },
     },
     {
+      key: "company_role",
+      label: "Role",
+      render: (lead: Lead) => (
+        <div className="min-w-0 max-w-48">
+          <div className="text-xs text-muted-foreground break-words leading-tight">
+            {lead.company_role || "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
       key: "company_name",
       label: "Company",
       render: (lead: Lead) => (
         <div className="min-w-0 max-w-64">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
               {lead.company_logo_url ? (
                 <img 
                   src={lead.company_logo_url} 
                   alt={lead.company_name || 'Company'}
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-8 h-8 rounded-lg object-cover"
                   onError={(e) => {
+                    console.log(`Failed to load company logo for ${lead.company_name}: ${lead.company_logo_url}`);
                     e.currentTarget.style.display = 'none';
                     const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
                     if (nextElement) {
                       nextElement.style.display = 'flex';
                     }
                   }}
+                  onLoad={() => {
+                    console.log(`Successfully loaded company logo for ${lead.company_name}: ${lead.company_logo_url}`);
+                  }}
                 />
               ) : null}
               <div 
-                className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
+                className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
                 style={{ display: lead.company_logo_url ? 'none' : 'flex' }}
               >
-                {lead.company_name?.charAt(0) ? getStatusDisplayText(lead.company_name.charAt(0)) : '?'}
+                {lead.company_name?.charAt(0)?.toUpperCase() || '?'}
               </div>
             </div>
             <div className="text-sm font-medium break-words leading-tight">
@@ -318,97 +323,19 @@ const Leads = React.memo(() => {
       ),
     },
     {
-      key: "company_role",
-      label: "Role",
-      render: (lead: Lead) => (
-        <div className="min-w-0 max-w-48">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
-            {lead.company_role || "-"}
-          </div>
-        </div>
-      ),
-    },
-    {
       key: "employee_location",
       label: "Location",
       render: (lead: Lead) => (
         <div className="min-w-0 max-w-48">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
+          <div className="text-xs text-muted-foreground break-words leading-tight">
             {lead.employee_location || "-"}
           </div>
         </div>
       ),
     },
     {
-      key: "linkedin_url",
-      label: "LinkedIn",
-      render: (lead: Lead) => (
-        <div className="min-w-0 max-w-40">
-          {lead.linkedin_url ? (
-            <a 
-              href={lead.linkedin_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:text-blue-800 break-words leading-tight"
-            >
-              View Profile
-            </a>
-          ) : (
-            <span className="text-sm text-muted-foreground">-</span>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: "confidence_level",
-      label: "Confidence",
-      render: (lead: Lead) => (
-        <div className="min-w-0 max-w-32">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
-            {lead.confidence_level || "-"}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "last_interaction_at",
-      label: "Last Contact",
-      render: (lead: Lead) => {
-        if (!lead.last_interaction_at) return <span className="text-sm text-muted-foreground">-</span>;
-        
-        try {
-          const date = new Date(lead.last_interaction_at);
-          return (
-            <span className="text-sm text-muted-foreground">
-              {date.toLocaleDateString()}
-            </span>
-          );
-        } catch (error) {
-          return <span className="text-sm text-muted-foreground">-</span>;
-        }
-      },
-    },
-    {
-      key: "connected_at",
-      label: "Connected",
-      render: (lead: Lead) => {
-        if (!lead.connected_at) return <span className="text-sm text-muted-foreground">-</span>;
-        
-        try {
-          const date = new Date(lead.connected_at);
-          return (
-            <span className="text-sm text-muted-foreground">
-              {date.toLocaleDateString()}
-            </span>
-          );
-        } catch (error) {
-          return <span className="text-sm text-muted-foreground">-</span>;
-        }
-      },
-    },
-    {
       key: "stage",
-      label: getLabel('table', 'status'),
+      label: "Stage",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (lead: Lead) => (
@@ -420,12 +347,21 @@ const Leads = React.memo(() => {
     },
     {
       key: "lead_score",
-      label: getLabel('table', 'ai_score'),
+      label: "Score",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (lead: Lead) => (
-        <div className="flex items-center justify-center">
-          <StatusBadge status={lead.lead_score || "Medium"} size="sm" />
+        <div className="flex items-center justify-center gap-2">
+          <div className={`w-3 h-3 rounded-full ${
+            lead.lead_score ? 
+              (parseInt(lead.lead_score) >= 80 ? 'bg-green-500' :
+               parseInt(lead.lead_score) >= 60 ? 'bg-yellow-500' :
+               parseInt(lead.lead_score) >= 40 ? 'bg-orange-500' : 'bg-red-500') :
+              'bg-gray-300'
+          }`} />
+          <span className="text-sm font-medium">
+            {lead.lead_score || "-"}
+          </span>
         </div>
       ),
     },
@@ -454,38 +390,45 @@ const Leads = React.memo(() => {
           return <span className="text-xs">-</span>;
         }
       },
-    }
+    },
+    {
+      key: "last_interaction_at",
+      label: "Last Contact",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (lead: Lead) => {
+        if (!lead.last_interaction_at) return <span className="text-xs">-</span>;
+        
+        try {
+          const date = new Date(lead.last_interaction_at);
+          const now = new Date();
+          const diffTime = Math.abs(now.getTime() - date.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          return (
+            <div className="text-center">
+              <div className="text-xs text-muted-foreground">
+                {diffDays === 1 ? '1 day ago' : `${diffDays} days ago`}
+              </div>
+            </div>
+          );
+        } catch {
+          return <span className="text-xs">-</span>;
+        }
+      },
+    },
   ];
 
-  const handleRowClick = useCallback((lead: Lead) => {
-    openLeadPopup(lead.id);
-  }, [openLeadPopup]);
+  const handleRowClick = (lead: Lead) => {
+    setSelectedLead(lead);
+    setIsDetailModalOpen(true);
+  };
 
   return (
-    <>
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="border-b pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight">Leads</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Manage your recruitment leads and their status
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <LeadsStatsCards 
-          totalLeads={leadsStats.totalLeads}
-          newLeads={leadsStats.newLeads}
-          connectedLeads={leadsStats.connectedLeads}
-          messagedLeads={leadsStats.messagedLeads}
-          repliedLeads={leadsStats.repliedLeads}
-          meetingBookedLeads={leadsStats.meetingBookedLeads}
-          qualifiedLeads={leadsStats.qualifiedLeads}
-        />
+    <Page
+      title="Leads"
+      subtitle="Manage your recruitment leads and their stages"
+    >
 
         {/* Search, Filter and Sort Controls */}
         <div className="flex items-center justify-between gap-4 mb-4">
@@ -524,29 +467,18 @@ const Leads = React.memo(() => {
             />
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="px-2 py-1 text-sm border rounded hover:bg-muted transition-colors"
+              className="px-2 py-1 text-sm border rounded hover:bg-gray-50"
             >
               {sortOrder === "asc" ? "↑" : "↓"}
             </button>
           </div>
         </div>
 
-        {/* Email Bulk Actions */}
-        {/* {selectedLeads.length > 0 && (
-          <EmailBulkActions 
-            selectedLeads={selectedLeads}
-            onActionComplete={() => setSelectedLeads([])}
-          />
-        )} */}
-
         <DataTable
           data={filteredAndSortedLeads}
           columns={columns}
           loading={loading}
           onRowClick={handleRowClick}
-          enableBulkActions={true}
-          itemName="lead"
-          itemNamePlural="leads"
           pagination={{
             enabled: true,
             pageSize: 25,
@@ -555,12 +487,17 @@ const Leads = React.memo(() => {
             showItemCount: true,
           }}
         />
-      </div>
       
-    </>
+      <LeadDetailPopup
+        lead={selectedLead}
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedLead(null);
+        }}
+      />
+    </Page>
   );
-});
-
-Leads.displayName = 'Leads';
+};
 
 export default Leads;

@@ -33,9 +33,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 );
 
 interface StatItemProps {
-  icon: React.ReactNode;
+  icon: React.ComponentType<any>;
   value: number | string;
   label: string;
+  trend?: number | null;
 }
 
 interface StatsBarProps {
@@ -44,14 +45,17 @@ interface StatsBarProps {
 
 export const StatsBar: React.FC<StatsBarProps> = ({ stats }) => (
   <div className={designTokens.layout.statsContainer}>
-    {stats.map((stat, index) => (
-      <div key={index} className={designTokens.layout.statsItem}>
-        <div className={designTokens.icons.container}>
-          {stat.icon}
+    {stats.map((stat, index) => {
+      const IconComponent = stat.icon;
+      return (
+        <div key={index} className={designTokens.layout.statsItem}>
+          <div className={designTokens.icons.container}>
+            <IconComponent className="h-4 w-4" />
+          </div>
+          <span className="font-medium">{stat.value} {stat.label}</span>
         </div>
-        <span className="font-medium">{stat.value} {stat.label}</span>
-      </div>
-    ))}
+      );
+    })}
   </div>
 );
 

@@ -1,18 +1,16 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
-import { getStatusDisplayText } from "@/utils/statusUtils";
-import { usePopup } from "@/contexts/PopupContext";
+import { CompanyDetailPopup } from "@/components/CompanyDetailPopup";
 import { CompaniesStatsCards } from "@/components/StatsCards";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowUpDown, Trash2 } from "lucide-react";
-import { usePageMeta } from "@/hooks/usePageMeta";
-import { getCompanyLogoUrlSync } from "@/utils/logoService";
-import { getLabel } from '@/utils/labels';
+import { Search, ArrowUpDown, Trash2, Building2, Users, Briefcase, CheckCircle, Star, AlertCircle } from "lucide-react";
+import { getClearbitLogo } from "@/utils/logoService";
+import { Page } from "@/design-system/components";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Company = Tables<"companies"> & {
@@ -23,23 +21,13 @@ type Company = Tables<"companies"> & {
 const Companies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
-  const { openCompanyPopup } = usePopup();
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
-
-  // Set page meta tags
-  usePageMeta({
-    title: 'Companies - Empowr CRM',
-    description: 'Manage your company database and track business relationships. View company details, job opportunities, and lead connections.',
-    keywords: 'companies, business, CRM, company management, business relationships, job opportunities',
-    ogTitle: 'Companies - Empowr CRM',
-    ogDescription: 'Manage your company database and track business relationships.',
-    twitterTitle: 'Companies - Empowr CRM',
-    twitterDescription: 'Manage your company database and track business relationships.'
-  });
 
   // Sort options
   const sortOptions = [
@@ -47,8 +35,8 @@ const Companies = () => {
     { label: "Company Name", value: "name" },
     { label: "Industry", value: "industry" },
     { label: "Head Office", value: "head_office" },
-    { label: getLabel('sort', 'ai_score'), value: "lead_score" },
-    { label: getLabel('sort', 'priority'), value: "priority" },
+    { label: "Score", value: "lead_score" },
+    { label: "Priority", value: "priority" },
     { label: "Leads Count", value: "people_count" },
     { label: "Jobs Count", value: "jobs_count" },
   ];
@@ -59,7 +47,7 @@ const Companies = () => {
     { label: "Active", value: "active" },
     { label: "Qualified", value: "qualified" },
     { label: "Prospect", value: "prospect" },
-    { label: "New Lead", value: "new" },
+    { label: "New", value: "new" },
   ];
 
   // Calculate stats for stats cards
@@ -104,6 +92,7 @@ const Companies = () => {
       companiesWithJobs
     };
   }, [companies]);
+
 
   // Filter and sort companies
   const filteredAndSortedCompanies = useMemo(() => {
@@ -158,9 +147,9 @@ const Companies = () => {
           bValue = parseInt(b.lead_score || "0");
           break;
         case "priority":
-          const priorityOrder = { urgent: 4, HIGH: 3, MEDIUM: 2, LOW: 1, 'VERY HIGH': 5 };
-          aValue = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
-          bValue = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
+          aValue = priorityOrder[a.priority?.toLowerCase() as keyof typeof priorityOrder] || 0;
+          bValue = priorityOrder[b.priority?.toLowerCase() as keyof typeof priorityOrder] || 0;
           break;
         case "people_count":
           aValue = a.people_count || 0;
@@ -194,6 +183,7 @@ const Companies = () => {
       
       if (allError) throw allError;
       
+      console.log('Total companies fetched:', allCompanies?.length);
       
       // Get people count for each company
       const { data: peopleCounts, error: peopleError } = await supabase
@@ -234,6 +224,7 @@ const Companies = () => {
         jobs_count: companyJobsCount[company.id] || 0
       }));
 
+      console.log('Companies with counts:', companiesWithCounts.length);
 
       setCompanies(companiesWithCounts);
     } catch (error) {
@@ -256,33 +247,35 @@ const Companies = () => {
     {
       key: "name",
       label: "Company",
-      width: "200px",
       render: (company: Company) => (
         <div className="min-w-0 max-w-80">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-              {(() => {
-                const logoUrl = getCompanyLogoUrlSync(company.name, company.website);
-                return logoUrl ? (
-                  <img 
-                    src={logoUrl} 
-                    alt={company.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling.style.display = 'flex';
-                      }}
-                  />
-                ) : null;
-              })()}
+            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+              {company.website ? (
+                <img 
+                  src={getClearbitLogo(company.name, company.website)} 
+                  alt={company.name}
+                  className="w-8 h-8 rounded-lg object-cover"
+                  onError={(e) => {
+                    console.log(`Failed to load company logo for ${company.name}`);
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                  }}
+                  onLoad={() => {
+                    console.log(`Successfully loaded company logo for ${company.name}`);
+                  }}
+                />
+              ) : null}
               <div 
-                className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
-                style={{ display: getCompanyLogoUrlSync(company.name, company.website) ? 'none' : 'flex' }}
+                className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
+                style={{ display: company.website ? 'none' : 'flex' }}
               >
-                {company.name ? getStatusDisplayText(company.name.charAt(0)) : '?'}
+                <Building2 className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-sm font-medium break-words">{company.name || "-"}</div>
+            <div className="text-sm font-medium break-words leading-tight">
+              {company.name || "-"}
+            </div>
           </div>
         </div>
       ),
@@ -290,9 +283,8 @@ const Companies = () => {
     {
       key: "industry",
       label: "Industry",
-      width: "200px",
       render: (company: Company) => (
-        <div className="min-w-0 max-w-64">
+        <div className="min-w-0 max-w-32">
           <div className="text-sm text-muted-foreground break-words leading-tight">
             {company.industry || "-"}
           </div>
@@ -301,10 +293,9 @@ const Companies = () => {
     },
     {
       key: "head_office",
-      label: "Head Office",
-      width: "180px",
+      label: "Location",
       render: (company: Company) => (
-        <div className="min-w-0 max-w-56">
+        <div className="min-w-0 max-w-32">
           <div className="text-sm text-muted-foreground break-words leading-tight">
             {company.head_office || "-"}
           </div>
@@ -312,103 +303,17 @@ const Companies = () => {
       ),
     },
     {
-      key: "lead_score",
-      label: "AI Score",
-      width: "80px",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
+      key: "company_size",
+      label: "Size",
       render: (company: Company) => (
-        <div className="flex items-center justify-center">
-          <span className="text-sm font-bold text-foreground">
-            {company.lead_score || "-"}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "priority",
-      label: "Priority",
-      width: "100px",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (company: Company) => {
-        return <StatusBadge status={company.priority || "Medium"} size="sm" />;
-      },
-    },
-    {
-      key: "leads",
-      label: "Leads",
-      width: "80px",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (company: Company) => (
-        <div className="flex items-center justify-center">
-          <span className="text-sm font-bold text-foreground">
-            {(company as any).people_count || 0}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "jobs",
-      label: "Jobs",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (company: Company) => (
-        <div className="flex items-center justify-center">
-          <span className="text-sm font-bold text-foreground">
-            {(company as any).jobs_count || 0}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "lead_score",
-      label: getLabel('table', 'ai_score'),
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (company: Company) => (
-        <div className="flex items-center justify-center">
-          <span className="text-sm font-bold text-foreground">
-            {company.lead_score || "-"}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "priority",
-      label: getLabel('table', 'priority'),
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (company: Company) => {
-        return <StatusBadge status={company.priority || "Medium"} size="sm" />;
-      },
-    },
-    {
-      key: "leads",
-      label: "Leads",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (company: Company) => (
-        <div className="text-base font-semibold bg-muted px-3 py-2 rounded-md">
-          {company.people_count || 0}
-        </div>
-      ),
-    },
-    {
-      key: "jobs",
-      label: "Jobs",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (company: Company) => (
-        <div className="text-base font-semibold bg-muted px-3 py-2 rounded-md">
-          {company.jobs_count || 0}
+        <div className="text-sm text-muted-foreground">
+          {company.company_size || "-"}
         </div>
       ),
     },
     {
       key: "status",
-      label: getLabel('table', 'status'),
+      label: "Status",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (company: Company) => {
@@ -420,35 +325,76 @@ const Companies = () => {
         } else if (company.confidence_level === 'medium') {
           return <StatusBadge status="Prospect" size="sm" />;
         } else if (company.confidence_level === 'low') {
-          return <StatusBadge status="New Lead" size="sm" />;
+          return <StatusBadge status="New" size="sm" />;
         } else {
-          return <StatusBadge status="New Lead" size="sm" />;
+          return <StatusBadge status="New" size="sm" />;
         }
       },
     },
     {
-      key: "actions",
-      label: "Actions",
+      key: "lead_score",
+      label: "Score",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (company: Company) => (
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDeleteCompany(company.id, company.name);
-          }}
-          className="h-8 w-8 p-0"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center justify-center">
+          <span className="text-sm font-bold text-foreground">
+            {company.lead_score || "-"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "people_count",
+      label: "People",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (company: Company) => (
+        <div className="flex items-center justify-center">
+          <span className="text-sm text-muted-foreground">
+            {company.people_count || 0}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "jobs_count",
+      label: "Jobs",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (company: Company) => (
+        <div className="flex items-center justify-center">
+          <span className="text-sm text-muted-foreground">
+            {company.jobs_count || 0}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "automation_active",
+      label: "Auto",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (company: Company) => (
+        <div className="flex items-center justify-center">
+          <div className={`w-2 h-2 rounded-full ${company.automation_active ? 'bg-green-500' : 'bg-gray-300'}`} />
+        </div>
+      ),
+    },
+    {
+      key: "created_at",
+      label: "Created",
+      render: (company: Company) => (
+        <div className="text-sm text-muted-foreground">
+          {new Date(company.created_at).toLocaleDateString()}
+        </div>
       ),
     },
   ];
 
   const handleRowClick = (company: Company) => {
-    openCompanyPopup(company.id);
+    setSelectedCompany(company);
+    setIsDetailModalOpen(true);
   };
 
   const handleDeleteCompany = async (companyId: string, companyName: string) => {
@@ -481,30 +427,10 @@ const Companies = () => {
   };
 
   return (
-    <>
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="border-b pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight">Companies</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Manage your target companies and prospects
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <CompaniesStatsCards 
-          totalCompanies={companiesStats.totalCompanies}
-          activeCompanies={companiesStats.activeCompanies}
-          qualifiedCompanies={companiesStats.qualifiedCompanies}
-          prospectCompanies={companiesStats.prospectCompanies}
-          newCompanies={companiesStats.newCompanies}
-          companiesWithLeads={companiesStats.companiesWithLeads}
-          companiesWithJobs={companiesStats.companiesWithJobs}
-        />
+    <Page
+      title="Companies"
+      subtitle="Manage your target companies and prospects"
+    >
 
         {/* Search, Filter and Sort Controls */}
         <div className="flex items-center justify-between gap-4 mb-4">
@@ -543,7 +469,7 @@ const Companies = () => {
             />
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="px-2 py-1 text-sm border rounded hover:bg-muted transition-colors"
+              className="px-2 py-1 text-sm border rounded hover:bg-gray-50"
             >
               {sortOrder === "asc" ? "↑" : "↓"}
             </button>
@@ -563,9 +489,19 @@ const Companies = () => {
             showItemCount: true,
           }}
         />
-      </div>
 
-    </>
+      {/* Company Detail Modal */}
+      {selectedCompany && (
+        <CompanyDetailPopup
+          company={selectedCompany}
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedCompany(null);
+          }}
+        />
+      )}
+    </Page>
   );
 };
 

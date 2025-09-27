@@ -88,6 +88,92 @@ import './Component.css';
 - **Error States**: Provide clear error messages
 - **Empty States**: Handle empty data gracefully
 
+### **Dashboard Design Standards**
+- **Two-Tier Layout**: Key metrics overview (top) + Recent activity (bottom)
+- **Metrics Cards**: Label, Value, Trend/Context with icon
+- **Activity Cards**: Compact list items with clickable popups
+- **Responsive Grid**: 4-column desktop, 2-column tablet, single mobile
+
+### **Compact List Item Standards**
+- **Popup-Style Items**: Use exact styling for consistency across popups and lists
+- **Padding**: `px-4 py-2` (not `p-4`)
+- **Border**: `border border-gray-200 rounded-lg`
+- **Hover**: `hover:bg-gray-50 hover:border-gray-300`
+- **Avatar**: `w-8 h-8 rounded-lg bg-gray-100`
+- **Typography**: `font-semibold text-sm` primary, `text-xs text-gray-500` secondary
+- **Clickable**: Integrate with popup system using `openLeadPopup`/`openJobPopup`
+
+### **Logo Sizing Standards**
+- **Tables/Lists**: `w-8 h-8` (32px) - Standard size for data tables
+- **Compact Views**: `w-6 h-6` (24px) - Small logos for dense layouts
+- **Detail Views**: `w-10 h-10` (40px) - Large logos for popups/modals
+- **Headers**: `w-12 h-12` (48px) - Extra large logos for page headers
+- **Style**: All logos use `rounded-lg` (slightly rounded squares) for consistency
+- **Container**: `rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0`
+
+### **Page Component Standards**
+- **Design System Integration**: All pages use `Page` component from design system
+- **No Small Stats Bars**: Removed small stats bars from top of all pages site-wide
+- **Consistent Headers**: Use `Page` component with title and subtitle
+- **Icon Types**: Use `React.ComponentType<any>` for stats icons (not JSX elements)
+
+### **Line Chart Standards**
+- **Coordinate System**: Proper margin calculations to prevent cutoff
+- **Data Labels**: Show values on data points (hide for 0 values)
+- **Date Labels**: Show every 7th day (weekly) to reduce clutter
+- **Y-Axis Labels**: Include numerical values on left side
+- **Styling**: `rounded-lg` for data points and consistent colors
+
+### **Google Login Button Standards**
+- **Sidebar Integration**: Compact text "Google Sign In" (not "Sign in with Google")
+- **Styling**: `text-sm` for smaller text size
+- **Functionality**: Maintains all existing hover effects and click handlers
+
+### **Conversations Page Standards**
+- **Simplified Layout**: Removed stats and search functionality
+- **Card Styling**: Use `rounded-lg` for message bubbles and avatars
+- **Data Model**: Query `people` table for conversation data
+- **Message Display**: Create mock messages from conversation data
+
+### **Settings Page Standards**
+- **Routing**: Added `/settings` route to App.tsx
+- **Navigation**: Integrated with existing SettingsNavigation component
+- **Permissions**: Proper role-based access control for admin sections
+
+---
+
+## 📅 **Design System Updates**
+
+**Last Updated**: December 19, 2024
+
+### **Major Changes Applied**:
+1. **Dashboard Redesign**: Complete overhaul with metrics overview and recent activity
+2. **Logo Standardization**: All logos now use `w-8 h-8 rounded-lg` sizing
+3. **Compact Item Styling**: Standardized popup-style list items across all pages
+4. **Stats Bar Removal**: Removed small stats bars from all page headers
+5. **Line Chart Improvements**: Fixed coordinate calculations and added data labels
+6. **Google Login Optimization**: Made sidebar button more compact
+7. **Conversations Simplification**: Streamlined layout and data handling
+8. **Settings Integration**: Added proper routing and navigation
+
+### **Pages Updated**:
+- ✅ **Dashboard**: Complete redesign with metrics and clickable items
+- ✅ **Jobs**: Logo sizing, Page component integration, icon fixes
+- ✅ **Leads**: Logo sizing, Page component integration, icon fixes  
+- ✅ **Companies**: Logo sizing, Page component integration, icon fixes
+- ✅ **Pipeline**: Logo sizing, Page component integration, icon fixes
+- ✅ **Conversations**: Simplified layout, card styling, data model fixes
+- ✅ **Automations**: Page component integration, stats removal
+- ✅ **Reporting**: Page component integration, line chart fixes
+- ✅ **Settings**: Added routing and navigation integration
+- ✅ **Admin**: Page component integration
+
+### **Components Updated**:
+- ✅ **Design System**: Updated tokens and components for logo standards
+- ✅ **Popup System**: Verified integration with Dashboard clickable items
+- ✅ **Status Badges**: Consistent usage across all pages
+- ✅ **Card Components**: Standardized styling and responsive behavior
+
 ### **Responsive Design**
 - **Mobile-First**: Design for mobile, enhance for desktop
 - **Breakpoints**: Use Tailwind's responsive breakpoints

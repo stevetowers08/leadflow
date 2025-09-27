@@ -13,13 +13,22 @@ serve(async (req) => {
   }
 
   try {
+    // Validate environment variables
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Missing required Supabase environment variables')
+    }
+
     const webhookData = await req.json()
     
     console.log('Expandi webhook received:', webhookData)
 
     // Validate webhook data structure
-    if (!webhookData.messageId || !webhookData.conversationId) {
-      throw new Error('Missing required webhook fields: messageId, conversationId')
+    if (!webhookData.messageId && !webhookData.id) {
+      throw new Error('Missing required webhook fields: messageId or id')
+    }
+
+    if (!webhookData.conversationId && !webhookData.threadId) {
+      throw new Error('Missing required webhook fields: conversationId or threadId')
     }
 
     // Process the webhook data
@@ -28,7 +37,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       message: 'Webhook processed successfully',
-      data: result
+      data: result,
+      timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
@@ -36,12 +46,31 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Expandi webhook error:', error)
+    
+    // Log error to database for monitoring
+    try {
+      await supabase
+        .from('conversation_sync_logs')
+        .insert({
+          operation_type: 'webhook_error',
+          status: 'error',
+          error_message: error.message || 'Unknown error',
+          metadata: { 
+            error_type: error.constructor.name,
+            stack: error.stack 
+          }
+        })
+    } catch (logError) {
+      console.error('Failed to log error to database:', logError)
+    }
+    
     return new Response(JSON.stringify({ 
-      error: error.message,
-      success: false
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400
+      status: error.message?.includes('Missing required') ? 400 : 500
     })
   }
 })

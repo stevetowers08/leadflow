@@ -13,10 +13,21 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, accessToken, operation } = await req.json()
+    // Validate environment variables
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Missing required Supabase environment variables')
+    }
+
+    const requestBody = await req.json()
+    const { userId, accessToken, operation } = requestBody
     
+    // Validate required parameters
     if (!userId || !accessToken) {
       throw new Error('User ID and access token are required')
+    }
+
+    if (!operation) {
+      throw new Error('Operation type is required')
     }
 
     let result: any = {}
@@ -29,25 +40,52 @@ serve(async (req) => {
         result = await syncSentEmails(accessToken, userId)
         break
       case 'send_email':
-        const { emailData } = await req.json()
+        const { emailData } = requestBody
+        if (!emailData) {
+          throw new Error('Email data is required for send_email operation')
+        }
         result = await sendEmail(accessToken, emailData, userId)
         break
       default:
-        throw new Error(`Unknown operation: ${operation}`)
+        throw new Error(`Unknown operation: ${operation}. Supported operations: sync_inbox, sync_sent, send_email`)
     }
     
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify({
+      success: true,
+      data: result,
+      timestamp: new Date().toISOString()
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
     })
 
   } catch (error) {
     console.error('Gmail sync error:', error)
+    
+    // Log error to database for monitoring
+    try {
+      await supabase
+        .from('email_sync_logs')
+        .insert({
+          operation_type: 'function_error',
+          status: 'error',
+          error_message: error.message || 'Unknown error',
+          metadata: { 
+            error_type: error.constructor.name,
+            stack: error.stack 
+          }
+        })
+    } catch (logError) {
+      console.error('Failed to log error to database:', logError)
+    }
+    
     return new Response(JSON.stringify({ 
-      error: error.message 
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400
+      status: error.message?.includes('required') ? 400 : 500
     })
   }
 })

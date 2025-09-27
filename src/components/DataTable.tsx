@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow as UITableRow } from "@/components/ui/table";
 import { Download } from "lucide-react";
 import { TableSkeleton } from "@/components/LoadingSkeletons";
 import { PaginationControls } from "@/components/PaginationControls";
@@ -155,7 +155,7 @@ export function DataTable<T extends Record<string, any> & { id: string }>({
         </div>
         <Table role="table" aria-label={title || "Data table"} className="min-w-full">
           <TableHeader>
-            <TableRow className="border-b border-gray-200 bg-gray-50/50">
+            <UITableRow className="border-b border-gray-200 bg-gray-50/50">
               {(enableBulkActions || enableExport) && (
                 <TableHead className="h-12 px-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider w-12">
                   <input
@@ -172,11 +172,11 @@ export function DataTable<T extends Record<string, any> & { id: string }>({
                 onSort={handleSort}
                 sortConfig={sortConfig}
               />
-            </TableRow>
+            </UITableRow>
           </TableHeader>
           <TableBody>
             {displayData.length === 0 ? (
-              <TableRow>
+              <UITableRow>
                 <TableCell
                   colSpan={columns.length + ((enableBulkActions || enableExport) ? 1 : 0)}
                   className="text-center py-12 text-muted-foreground"
@@ -191,7 +191,7 @@ export function DataTable<T extends Record<string, any> & { id: string }>({
                     </div>
                   </div>
                 </TableCell>
-              </TableRow>
+              </UITableRow>
             ) : (
               displayData.map((item, index) => (
                 <TableRow

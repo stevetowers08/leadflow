@@ -46,8 +46,25 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
 
     try {
       setLoading(true);
-      const data = await conversationService.getConversationMessages(conversation.id);
-      setMessages(data);
+      
+      // Since we don't have a conversation_messages table, create a mock message from the conversation data
+      const mockMessage: ConversationMessage = {
+        id: `msg-${conversation.id}`,
+        conversation_id: conversation.id,
+        person_id: conversation.person_id,
+        sender_type: 'them',
+        sender_name: conversation.person_name || 'Unknown',
+        sender_email: conversation.person_email,
+        content: conversation.last_reply_message || 'No message content',
+        message_type: 'reply',
+        is_read: conversation.is_read,
+        sent_at: conversation.last_message_at,
+        received_at: conversation.last_message_at,
+        created_at: conversation.created_at,
+        updated_at: conversation.updated_at,
+      };
+      
+      setMessages([mockMessage]);
       
       // Auto-scroll to bottom after messages load
       setTimeout(() => {
@@ -135,7 +152,7 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
       <div className="p-6 border-b border-gray-200/60 bg-white/80 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
               <User className="h-6 w-6 text-blue-600" />
             </div>
             <div>
@@ -198,7 +215,7 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
                 )}>
                   {/* Avatar for incoming messages */}
                   {message.sender_type !== 'us' && (
-                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
                       <User className="h-4 w-4 text-gray-600" />
                     </div>
                   )}
@@ -222,10 +239,10 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
                     
                     {/* Message Bubble */}
                     <div className={cn(
-                      "rounded-2xl px-4 py-3 shadow-sm transition-all duration-200",
+                      "rounded-lg px-4 py-3 shadow-sm transition-all duration-200",
                       message.sender_type === 'us'
-                        ? "bg-blue-600 text-white rounded-br-md"
-                        : "bg-white border border-gray-200 rounded-bl-md"
+                        ? "bg-blue-600 text-white"
+                        : "bg-white border border-gray-200"
                     )}>
                       <div className="whitespace-pre-wrap text-sm leading-relaxed">
                         {message.content}

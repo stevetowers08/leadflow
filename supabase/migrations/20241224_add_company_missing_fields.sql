@@ -23,3 +23,4 @@ COMMENT ON COLUMN companies.profile_image_url IS 'URL to company logo/profile im
 COMMENT ON COLUMN companies.is_favourite IS 'User bookmark/favourite status';
 
 
+

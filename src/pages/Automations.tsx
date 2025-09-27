@@ -12,9 +12,12 @@ import {
   CheckCircle, 
   Search,
   Filter,
-  Sparkles
+  Sparkles,
+  XCircle,
+  TrendingUp
 } from "lucide-react";
 import { formatDistanceToNow, format, isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
+import { Page } from "@/design-system/components";
 
 interface AutomationActivity {
   id: string;
@@ -307,19 +310,10 @@ const Automations = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="border-b pb-3">
-        <div className="flex items-center gap-3">
-          <Bot className="h-6 w-6 text-purple-600" />
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">Automations</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Recent automation activities and performance metrics
-            </p>
-          </div>
-        </div>
-      </div>
+    <Page
+      title="Automations"
+      subtitle="Recent automation activities and performance metrics"
+    >
 
       {/* Filters and Search */}
       <div className="flex items-center gap-4">
@@ -446,7 +440,7 @@ const Automations = () => {
           ))}
         </div>
       )}
-    </div>
+    </Page>
   );
 };
 

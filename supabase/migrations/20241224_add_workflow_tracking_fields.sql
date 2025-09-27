@@ -25,3 +25,4 @@ COMMENT ON COLUMN people.linkedin_connected IS 'Whether LinkedIn connection has 
 COMMENT ON COLUMN people.linkedin_responded IS 'Whether LinkedIn contact has responded';
 COMMENT ON COLUMN people.campaign_finished IS 'Whether the campaign for this lead is finished';
 
+

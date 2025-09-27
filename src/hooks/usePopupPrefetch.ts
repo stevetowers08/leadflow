@@ -32,7 +32,7 @@ export const usePopupPrefetch = () => {
         if (data?.companies) {
           data.companies = {
             ...data.companies,
-            logo_url: data.companies?.profile_image_url || getClearbitLogo(data.companies?.name, data.companies?.website)
+            logo_url: data.companies?.website ? getClearbitLogo(data.companies?.name, data.companies?.website) : null
           };
         }
         
@@ -96,7 +96,7 @@ export const usePopupPrefetch = () => {
           if (companyError) throw companyError;
           company = { 
             ...companyData, 
-            logo_url: companyData?.profile_image_url || getClearbitLogo(companyData?.name, companyData?.website) 
+            logo_url: companyData?.website ? getClearbitLogo(companyData?.name, companyData?.website) : null 
           };
         }
 

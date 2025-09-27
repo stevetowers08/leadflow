@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow, subDays, subWeeks, subMonths } from "date-fns";
 import { getLabel } from '@/utils/labels';
+import { Page } from "@/design-system/components";
 
 interface ReportingStats {
   totalLeads: number;
@@ -450,64 +451,27 @@ const Reporting = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b pb-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Reporting & Analytics</h1>
-          <p className="text-sm text-muted-foreground mt-1">Performance metrics and business insights</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="90d">Last 90 days</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={fetchReportingData} size="sm" variant="outline">
-            <Activity className="h-3 w-3 mr-1" />
-            Refresh
-          </Button>
-        </div>
+    <Page
+      title="Reporting & Analytics"
+      subtitle="Performance metrics and business insights"
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7d">Last 7 days</SelectItem>
+            <SelectItem value="30d">Last 30 days</SelectItem>
+            <SelectItem value="90d">Last 90 days</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button onClick={fetchReportingData} size="sm" variant="outline">
+          <Activity className="h-3 w-3 mr-1" />
+          Refresh
+        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="flex items-center gap-6 mb-4 text-sm">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <div className="text-muted-foreground">
-            <Users className="h-4 w-4" />
-          </div>
-          <span className="font-medium">{stats.totalLeads} total leads</span>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <div className="text-muted-foreground">
-            <Building2 className="h-4 w-4" />
-          </div>
-          <span className="font-medium">{stats.totalCompanies} companies</span>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <div className="text-muted-foreground">
-            <Briefcase className="h-4 w-4" />
-          </div>
-          <span className="font-medium">{stats.totalJobs} jobs</span>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <div className="text-muted-foreground">
-            <Target className="h-4 w-4" />
-          </div>
-          <span className="font-medium">{stats.conversionRate.toFixed(1)}% conversion</span>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <div className="text-muted-foreground">
-            <Brain className="h-4 w-4" />
-          </div>
-          <span className="font-medium">{stats.averageAILeadScore.toFixed(1)} avg {getLabel('table', 'ai_score').toLowerCase()}</span>
-        </div>
-      </div>
 
       {/* Automation Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -666,53 +630,159 @@ const Reporting = () => {
           <div className="space-y-4">
             {/* Line Chart Visualization */}
             <div className="h-64 relative">
-              <svg className="w-full h-full" viewBox="0 0 800 200">
-                {/* Grid lines */}
-                <defs>
-                  <pattern id="grid" width="40" height="20" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 20" fill="none" stroke="#e5e7eb" strokeWidth="0.5"/>
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
-                
-                {/* New Leads Line */}
-                <polyline
-                  fill="none"
-                  stroke="#3b82f6"
-                  strokeWidth="2"
-                  points={stats.dailyTrends.map((trend, index) => 
-                    `${(index / (stats.dailyTrends.length - 1)) * 760 + 20},${200 - (trend.newLeads / Math.max(...stats.dailyTrends.map(t => t.newLeads))) * 160 + 20}`
-                  ).join(' ')}
-                />
-                
-                {/* Automation Line */}
-                <polyline
-                  fill="none"
-                  stroke="#10b981"
-                  strokeWidth="2"
-                  points={stats.dailyTrends.map((trend, index) => 
-                    `${(index / (stats.dailyTrends.length - 1)) * 760 + 20},${200 - (trend.automationsStarted / Math.max(...stats.dailyTrends.map(t => t.automationsStarted))) * 160 + 20}`
-                  ).join(' ')}
-                />
-                
-                {/* Data points */}
-                {stats.dailyTrends.map((trend, index) => (
-                  <g key={index}>
-                    <circle
-                      cx={(index / (stats.dailyTrends.length - 1)) * 760 + 20}
-                      cy={200 - (trend.newLeads / Math.max(...stats.dailyTrends.map(t => t.newLeads))) * 160 + 20}
-                      r="3"
-                      fill="#3b82f6"
-                    />
-                    <circle
-                      cx={(index / (stats.dailyTrends.length - 1)) * 760 + 20}
-                      cy={200 - (trend.automationsStarted / Math.max(...stats.dailyTrends.map(t => t.automationsStarted))) * 160 + 20}
-                      r="3"
-                      fill="#10b981"
-                    />
-                  </g>
-                ))}
-              </svg>
+              {stats?.dailyTrends && stats.dailyTrends.length > 0 ? (
+                <svg className="w-full h-full" viewBox="0 0 800 200">
+                  {/* Grid lines */}
+                  <defs>
+                    <pattern id="grid" width="40" height="20" patternUnits="userSpaceOnUse">
+                      <path d="M 40 0 L 0 0 0 20" fill="none" stroke="#e5e7eb" strokeWidth="0.5"/>
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grid)" />
+                  
+                  {/* Y-axis labels */}
+                  {(() => {
+                    const maxNewLeads = Math.max(...stats.dailyTrends.map(t => t.newLeads || 0));
+                    const maxAutomations = Math.max(...stats.dailyTrends.map(t => t.automationsStarted || 0));
+                    const totalMax = Math.max(maxNewLeads, maxAutomations, 1);
+                    const chartHeight = 160;
+                    const marginTop = 20;
+                    
+                    // Generate Y-axis labels
+                    const yLabels = [];
+                    for (let i = 0; i <= 4; i++) {
+                      const value = Math.round((totalMax / 4) * i);
+                      const y = marginTop + chartHeight - (i / 4) * chartHeight;
+                      yLabels.push({ value, y });
+                    }
+                    
+                    return yLabels.map((label, index) => (
+                      <text
+                        key={index}
+                        x="10"
+                        y={label.y + 4}
+                        fontSize="10"
+                        fill="#6b7280"
+                        textAnchor="start"
+                      >
+                        {label.value}
+                      </text>
+                    ));
+                  })()}
+                  
+                  {/* Calculate max values safely */}
+                  {(() => {
+                    const maxNewLeads = Math.max(...stats.dailyTrends.map(t => t.newLeads || 0));
+                    const maxAutomations = Math.max(...stats.dailyTrends.map(t => t.automationsStarted || 0));
+                    const totalMax = Math.max(maxNewLeads, maxAutomations, 1); // Ensure minimum of 1
+                    const length = stats.dailyTrends.length;
+                    const stepSize = length > 1 ? length - 1 : 1; // Prevent division by zero
+                    
+                    // Chart dimensions with proper margins
+                    const chartWidth = 760;
+                    const chartHeight = 160;
+                    const marginTop = 20;
+                    const marginBottom = 20;
+                    const marginLeft = 20;
+                    const marginRight = 20;
+                    
+                    return (
+                      <>
+                        {/* New Leads Line */}
+                        <polyline
+                          fill="none"
+                          stroke="#3b82f6"
+                          strokeWidth="2"
+                          points={stats.dailyTrends.map((trend, index) => 
+                            `${marginLeft + (index / stepSize) * chartWidth},${marginTop + chartHeight - ((trend.newLeads || 0) / totalMax) * chartHeight}`
+                          ).join(' ')}
+                        />
+                        
+                        {/* Automation Line */}
+                        <polyline
+                          fill="none"
+                          stroke="#10b981"
+                          strokeWidth="2"
+                          points={stats.dailyTrends.map((trend, index) => 
+                            `${marginLeft + (index / stepSize) * chartWidth},${marginTop + chartHeight - ((trend.automationsStarted || 0) / totalMax) * chartHeight}`
+                          ).join(' ')}
+                        />
+                        
+                        {/* Data points with labels */}
+                        {stats.dailyTrends.map((trend, index) => (
+                          <g key={index}>
+                            {/* New Leads data point */}
+                            <circle
+                              cx={marginLeft + (index / stepSize) * chartWidth}
+                              cy={marginTop + chartHeight - ((trend.newLeads || 0) / totalMax) * chartHeight}
+                              r="4"
+                              fill="#3b82f6"
+                              stroke="white"
+                              strokeWidth="2"
+                            />
+                            {/* New Leads value label - only show if not 0 */}
+                            {(trend.newLeads || 0) > 0 && (
+                              <text
+                                x={marginLeft + (index / stepSize) * chartWidth}
+                                y={marginTop + chartHeight - ((trend.newLeads || 0) / totalMax) * chartHeight - 8}
+                                textAnchor="middle"
+                                fontSize="10"
+                                fill="#3b82f6"
+                                fontWeight="bold"
+                              >
+                                {trend.newLeads}
+                              </text>
+                            )}
+                            
+                            {/* Automation data point */}
+                            <circle
+                              cx={marginLeft + (index / stepSize) * chartWidth}
+                              cy={marginTop + chartHeight - ((trend.automationsStarted || 0) / totalMax) * chartHeight}
+                              r="4"
+                              fill="#10b981"
+                              stroke="white"
+                              strokeWidth="2"
+                            />
+                            {/* Automation value label - only show if not 0 */}
+                            {(trend.automationsStarted || 0) > 0 && (
+                              <text
+                                x={marginLeft + (index / stepSize) * chartWidth}
+                                y={marginTop + chartHeight - ((trend.automationsStarted || 0) / totalMax) * chartHeight - 8}
+                                textAnchor="middle"
+                                fontSize="10"
+                                fill="#10b981"
+                                fontWeight="bold"
+                              >
+                                {trend.automationsStarted}
+                              </text>
+                            )}
+                            
+                            {/* Day label at bottom - only show every week (every 7th day) */}
+                            {index % 7 === 0 && (
+                              <text
+                                x={marginLeft + (index / stepSize) * chartWidth}
+                                y={marginTop + chartHeight + 15}
+                                textAnchor="middle"
+                                fontSize="9"
+                                fill="#6b7280"
+                              >
+                                {new Date(trend.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </text>
+                            )}
+                          </g>
+                        ))}
+                      </>
+                    );
+                  })()}
+                </svg>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <div className="text-center">
+                    <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No trend data available</p>
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Legend */}
@@ -834,7 +904,7 @@ const Reporting = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </Page>
   );
 };
 

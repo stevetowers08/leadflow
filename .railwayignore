@@ -1,0 +1,39 @@
+# Railway ignore file - exclude unnecessary files from deployment
+node_modules/
+dist/
+dist-ssr/
+.vercel/
+.vscode/
+.idea/
+*.log
+*.local
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Frontend build artifacts
+src/
+public/
+index.html
+vite.config.ts
+tailwind.config.ts
+postcss.config.js
+
+# Documentation
+README.md
+CHANGELOG.md
+SECURITY.md
+
+# Lock files (keep package.json but exclude lock files)
+package-lock.json
+bun.lockb
+yarn.lock
+pnpm-lock.yaml
+
+# Only include what's needed for the MCP server
+!server.js
+!package.json
+!Dockerfile

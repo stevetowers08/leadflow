@@ -12,6 +12,7 @@ import { EmailThreadViewer } from '../components/EmailThreadViewer';
 import { EmailStatsCards } from '../components/EmailStatsCards';
 import { gmailService, EmailThread } from '../services/gmailService';
 import { Tables } from '../integrations/supabase/types';
+import { Page, StatItemProps } from '@/design-system/components';
 
 export const EmailPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -84,22 +85,45 @@ export const EmailPage: React.FC = () => {
     setActiveTab('inbox');
   };
 
+  const stats: StatItemProps[] = [
+    {
+      label: "Total Emails",
+      value: emailStats.totalEmails.toString(),
+      icon: Mail,
+      trend: null,
+    },
+    {
+      label: "Unread Emails",
+      value: emailStats.unreadEmails.toString(),
+      icon: Inbox,
+      trend: null,
+    },
+    {
+      label: "Sent Today",
+      value: emailStats.sentToday.toString(),
+      icon: Plus,
+      trend: null,
+    },
+    {
+      label: "Last Sync",
+      value: emailStats.lastSync ? new Date(emailStats.lastSync).toLocaleDateString() : "Never",
+      icon: Search,
+      trend: null,
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Email</h1>
-          <p className="text-muted-foreground">
-            Manage your Gmail integration and email communications
-          </p>
-        </div>
+    <Page
+      title="Email"
+      subtitle="Manage your Gmail integration and email communications"
+      stats={stats}
+    >
+      <div className="flex items-center justify-between mb-4">
         <Button onClick={() => setActiveTab('compose')}>
           <Plus className="mr-2 h-4 w-4" />
           Compose
         </Button>
       </div>
-
-      <EmailStatsCards stats={emailStats} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
@@ -206,6 +230,6 @@ export const EmailPage: React.FC = () => {
         </TabsContent>
 
       </Tabs>
-    </div>
+    </Page>
   );
 };

@@ -78,6 +78,20 @@ import { designTokens } from "@/design-system/tokens";
 <h1 className={designTokens.typography.heading.h1}>
 ```
 
+### 3. Using Logo Tokens
+
+```tsx
+import { designTokens } from "@/design-system/tokens";
+
+// Standard logo sizing for tables and lists
+<div className={designTokens.logos.container}>
+  <img className={designTokens.logos.size} />
+  <div className={designTokens.logos.fallback}>
+    {companyName.charAt(0)}
+  </div>
+</div>
+```
+
 ## 🔧 Available Components
 
 ### `Page`
@@ -196,6 +210,38 @@ if (loading) {
 - ✅ **Developer Experience**: Less boilerplate, more focus on features
 - ✅ **Quality**: Automated checks prevent inconsistencies
 - ✅ **Scalability**: Easy to add new pages with consistent design
+
+## 📏 Logo Sizing Standards
+
+### Consistent Logo Sizing Across All Pages
+
+All company logos should use the standardized sizing tokens:
+
+- **Tables/Lists**: `w-8 h-8` (32px) - Standard size for data tables
+- **Compact Views**: `w-6 h-6` (24px) - Small logos for dense layouts  
+- **Detail Views**: `w-10 h-10` (40px) - Large logos for popups/modals
+- **Headers**: `w-12 h-12` (48px) - Extra large logos for page headers
+
+### Logo Container Standards
+
+```tsx
+// Standard logo container - slightly rounded squares
+<div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+  <img className="w-8 h-8 rounded-lg object-cover" />
+  <div className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-semibold">
+    {companyName.charAt(0)}
+  </div>
+</div>
+```
+
+### Pages Updated
+- ✅ **Jobs**: Company logos in table (w-8 h-8, rounded-lg)
+- ✅ **Leads**: Company logos in table (w-8 h-8, rounded-lg)  
+- ✅ **Companies**: Company logos in table (w-8 h-8, rounded-lg)
+- ✅ **Pipeline**: Lead avatars in cards (w-8 h-8, rounded-lg)
+
+### Logo Style Consistency
+All logos now use **slightly rounded squares** (`rounded-lg`) instead of circles (`rounded-full`) for a more modern, consistent appearance across all pages.
 
 ## 🔮 Future Enhancements
 

@@ -48,7 +48,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     try {
       setLoading(true);
       
-      // Fetch people with replies and company names
+      // Fetch people who have actually replied (true conversations)
       const { data, error } = await supabase
         .from('people')
         .select(`
@@ -67,7 +67,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           email_sent,
           created_at,
           updated_at,
-          companies!inner(
+          companies(
             name
           )
         `)
@@ -84,6 +84,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
       console.log('Raw data from Supabase:', data);
       console.log('Data length:', data?.length);
+      console.log('Error:', error);
 
       // Transform to conversation format
       const conversations = (data || []).map(person => ({
@@ -104,6 +105,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         person_company: person.companies?.name,
         person_linkedin_url: person.linkedin_url,
         message_count: 1,
+        // Add the actual message content
+        last_reply_message: person.last_reply_message,
       }));
 
       console.log('Transformed conversations:', conversations);
@@ -213,7 +216,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                   <div className="flex items-start gap-3">
                     {/* Avatar */}
                     <div className={cn(
-                      "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
+                      "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
                       conversation.conversation_type === 'email' 
                         ? "bg-emerald-100" 
                         : "bg-blue-100"

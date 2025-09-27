@@ -91,7 +91,7 @@ export const batchFetchDashboardData = async () => {
         priority,
         lead_score_job,
         created_at,
-        companies!inner(name, profile_image_url, website)
+        companies!inner(name, logo_url, website)
       `)
       .gte("created_at", today.toISOString().split('T')[0])
       .order("created_at", { ascending: false })
@@ -107,7 +107,7 @@ export const batchFetchDashboardData = async () => {
         stage,
         lead_score,
         created_at,
-        companies!inner(name, profile_image_url)
+        companies!inner(name, logo_url, website)
       `)
       .order("created_at", { ascending: false })
       .limit(5)

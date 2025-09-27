@@ -40,3 +40,4 @@ COMMENT ON COLUMN people.stage_updated IS 'When the lead stage was last updated'
 COMMENT ON COLUMN people.is_favourite IS 'User bookmark/favourite status';
 
 
+

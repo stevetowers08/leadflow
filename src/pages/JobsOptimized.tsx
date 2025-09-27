@@ -9,7 +9,7 @@ import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
 import { Search, ArrowUpDown, Plus, RefreshCw, Briefcase } from "lucide-react";
 import { usePageMeta } from "@/hooks/usePageMeta";
-import { getCompanyLogoUrlSync } from "@/utils/logoService";
+import { getClearbitLogo } from "@/utils/logoService";
 import { getLabel } from '@/utils/labels';
 import { useJobs, usePrefetchData, useCacheInvalidation } from "@/hooks/useSupabaseData";
 import { useDebouncedFetch } from "@/hooks/useDebouncedFetch";
@@ -100,10 +100,7 @@ const JobsOptimized = React.memo(() => {
       ...job,
       company_name: job.companies?.name || null,
       company_industry: job.companies?.industry || null,
-      company_logo_url: getCompanyLogoUrlSync(
-        job.companies?.name || '', 
-        job.companies?.website
-      )
+      company_logo_url: job.companies?.website ? getClearbitLogo(job.companies.name, job.companies.website) : null
     }));
   }, [jobsData?.data]);
 
@@ -189,54 +186,85 @@ const JobsOptimized = React.memo(() => {
   // Table columns
   const columns = useMemo(() => [
     {
+      key: "status",
+      label: "Status",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      width: "120px",
+      render: (job: Job) => {
+        if (job.automation_started_leads && job.automation_started_leads > 0) {
+          return (
+            <div className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 w-32 flex justify-center">
+              AUTOMATED ({job.automation_started_leads})
+            </div>
+          );
+        } else if (job.new_leads && job.new_leads > 0) {
+          return (
+            <div className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200 w-32 flex justify-center">
+              NEW JOB
+            </div>
+          );
+        } else {
+          return (
+            <div className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full border border-gray-200 w-32 flex justify-center">
+              -
+            </div>
+          );
+        }
+      },
+    },
+    {
       key: "title",
       label: "Job Title",
-      width: "250px",
       render: (job: Job) => (
-        <div className="min-w-0 max-w-80">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="text-sm font-medium break-words leading-tight">
-              {job.title || "-"}
-            </div>
-          </div>
+        <div className="min-w-0 w-80">
+          <div className="text-sm font-medium break-words leading-tight">{job.title || "-"}</div>
         </div>
       ),
     },
     {
       key: "companies.name",
       label: "Company",
-      width: "150px",
       render: (job: Job) => (
-        <div className="min-w-0 max-w-48">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-muted flex items-center justify-center flex-shrink-0">
-              {(() => {
-                const logoUrl = job.company_logo_url;
-                return logoUrl ? (
-                  <img 
-                    src={logoUrl} 
-                    alt={job.companies?.name}
-                    className="w-6 h-6 rounded object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.nextElementSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : null;
-              })()}
+        <div className="min-w-0 w-64">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+              {job.company_logo_url ? (
+                <img 
+                  src={job.company_logo_url} 
+                  alt={job.companies?.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                  onError={(e) => {
+                    console.log(`Failed to load company logo for ${job.companies?.name}: ${job.company_logo_url}`);
+                    e.currentTarget.style.display = 'none';
+                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (nextElement) {
+                      nextElement.style.display = 'flex';
+                    }
+                  }}
+                  onLoad={() => {
+                    console.log(`Successfully loaded company logo for ${job.companies?.name}: ${job.company_logo_url}`);
+                  }}
+                />
+              ) : null}
               <div 
-                className="w-6 h-6 rounded bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
-                style={{ display: job.company_logo_url ? 'none' : 'flex' }}
+                className={`w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold ${job.company_logo_url ? 'hidden' : 'flex'}`}
               >
                 {job.companies?.name ? job.companies.name.charAt(0).toUpperCase() : '?'}
               </div>
             </div>
-            <div className="text-sm text-muted-foreground break-words leading-tight">
-              {job.companies?.name || "-"}
-            </div>
+            <div className="text-sm font-medium break-words leading-tight">{job.companies?.name || "-"}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "company_industry",
+      label: "Industry",
+      render: (job: Job) => (
+        <div className="min-w-0 w-80">
+          <div className="text-sm text-muted-foreground break-words leading-tight">
+            {job.company_industry || "-"}
           </div>
         </div>
       ),
@@ -244,9 +272,8 @@ const JobsOptimized = React.memo(() => {
     {
       key: "location",
       label: "Location",
-      width: "120px",
       render: (job: Job) => (
-        <div className="min-w-0 max-w-32">
+        <div className="min-w-0 w-56">
           <div className="text-sm text-muted-foreground break-words leading-tight">
             {job.location || "-"}
           </div>
@@ -254,73 +281,140 @@ const JobsOptimized = React.memo(() => {
       ),
     },
     {
-      key: "priority",
-      label: "Priority",
-      width: "100px",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
+      key: "function",
+      label: "Function",
       render: (job: Job) => (
-        <StatusBadge 
-          status={job.priority || "Medium"} 
-          size="sm" 
-          className={getPriorityColor(job.priority || "Medium")}
-        />
+        <div className="min-w-0 w-64">
+          <div className="text-sm text-muted-foreground break-words leading-tight">
+            {job.function || "-"}
+          </div>
+        </div>
       ),
     },
     {
+      key: "priority",
+      label: "Priority",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (job: Job) => {
+        const priority = job.priority?.toLowerCase() || "medium";
+        const uppercasePriority = priority.toUpperCase();
+        return (
+          <div className="px-3 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full border border-orange-200 w-24 flex justify-center">
+            {uppercasePriority}
+          </div>
+        );
+      },
+    },
+    {
       key: "lead_score_job",
-      label: getLabel('table', 'ai_score'),
-      width: "80px",
+      label: "AI Score",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (job: Job) => (
         <div className="flex items-center justify-center">
-          <span className="text-sm font-bold text-foreground">
+          <span className="text-sm font-medium bg-gray-100 px-3 py-2 rounded-md hover:bg-gray-200 transition-colors">
             {job.lead_score_job || "-"}
           </span>
         </div>
       ),
     },
     {
-      key: "employment_type",
-      label: "Type",
-      width: "100px",
+      key: "total_leads",
+      label: "Leads",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
       render: (job: Job) => (
-        <div className="text-sm text-muted-foreground">
-          {job.employment_type || "-"}
-        </div>
-      ),
-    },
-    {
-      key: "salary",
-      label: "Salary",
-      width: "120px",
-      render: (job: Job) => (
-        <div className="text-sm text-muted-foreground">
-          {job.salary || "-"}
+        <div className="flex items-center justify-center">
+          <span className="text-sm font-medium bg-gray-100 px-3 py-2 rounded-md hover:bg-gray-200 transition-colors">
+            {job.total_leads || 0}
+          </span>
         </div>
       ),
     },
     {
       key: "posted_date",
       label: "Posted",
-      width: "100px",
-      render: (job: Job) => (
-        <div className="text-sm text-muted-foreground">
-          {job.posted_date ? formatDateForSydney(job.posted_date, 'date') : "-"}
-        </div>
-      ),
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (job: Job) => {
+        if (!job.posted_date) return <span className="text-sm">-</span>;
+        
+        try {
+          const date = new Date(job.posted_date);
+          const now = new Date();
+          const diffTime = Math.abs(now.getTime() - date.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          return (
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground">
+                {diffDays === 0 ? 'Today' : 
+                 diffDays === 1 ? '1 day ago' : 
+                 `${diffDays} days ago`}
+              </div>
+            </div>
+          );
+        } catch {
+          return <span className="text-sm">-</span>;
+        }
+      },
     },
     {
-      key: "automation_active",
-      label: "Auto",
-      width: "60px",
+      key: "valid_through",
+      label: "Expires",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (job: Job) => {
+        if (!job.valid_through) return <span className="text-sm">-</span>;
+        
+        try {
+          const expiryDate = new Date(job.valid_through);
+          const now = new Date();
+          const diffTime = expiryDate.getTime() - now.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          let className = "text-sm";
+          if (diffDays < 0) {
+            className += " text-red-600 font-medium";
+          } else if (diffDays <= 7) {
+            className += " text-yellow-600 font-medium";
+          } else {
+            className += " text-muted-foreground";
+          }
+          
+          return (
+            <div className="text-center">
+              <div className={className}>
+                {diffDays < 0 ? 'Expired' :
+                 diffDays === 0 ? 'Today' :
+                 diffDays === 1 ? 'Tomorrow' :
+                 `${diffDays} days`}
+              </div>
+            </div>
+          );
+        } catch {
+          return <span className="text-sm">-</span>;
+        }
+      },
+    },
+    {
+      key: "actions",
+      label: "Actions",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (job: Job) => (
-        <div className="flex items-center justify-center">
-          <div className={`w-2 h-2 rounded-full ${job.automation_active ? 'bg-green-500' : 'bg-gray-300'}`} />
-        </div>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteJob(job.id, job.title);
+          }}
+          className="h-8 w-8 p-0"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       ),
     },
   ], []);

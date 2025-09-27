@@ -122,6 +122,11 @@ export class GmailService {
 
   async authenticateWithGmail(): Promise<string> {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    
+    if (!clientId) {
+      throw new Error('Google OAuth is not configured. Please set VITE_GOOGLE_CLIENT_ID environment variable.');
+    }
+    
     const redirectUri = `${window.location.origin}/auth/gmail-callback`;
     
     const scope = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';

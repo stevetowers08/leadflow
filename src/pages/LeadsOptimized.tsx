@@ -10,7 +10,7 @@ import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
 import { Search, ArrowUpDown, Plus, RefreshCw } from "lucide-react";
 import { usePageMeta } from "@/hooks/usePageMeta";
-import { getCompanyLogoUrlSync } from "@/utils/logoService";
+import { getClearbitLogo } from "@/utils/logoService";
 import { getLabel } from '@/utils/labels';
 import { useLeads, usePrefetchData, useCacheInvalidation } from "@/hooks/useSupabaseData";
 import { useDebouncedFetch } from "@/hooks/useDebouncedFetch";
@@ -97,10 +97,7 @@ const LeadsOptimized = React.memo(() => {
     return leadsData.data.map((lead: Lead) => ({
       ...lead,
       company_name: lead.companies?.name || null,
-      company_logo_url: getCompanyLogoUrlSync(
-        lead.companies?.name || '', 
-        lead.companies?.website
-      )
+        company_logo_url: lead.companies?.website ? getClearbitLogo(lead.companies.name, lead.companies.website) : null
     }));
   }, [leadsData?.data]);
 
@@ -226,56 +223,91 @@ const LeadsOptimized = React.memo(() => {
       key: "name",
       label: "Lead",
       width: "200px",
-      render: (lead: Lead) => (
-        <div className="min-w-0 max-w-80">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-              {(() => {
-                const logoUrl = lead.company_logo_url;
-                return logoUrl ? (
-                  <img 
-                    src={logoUrl} 
-                    alt={lead.companies?.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.nextElementSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : null;
-              })()}
-              <div 
-                className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
-                style={{ display: lead.company_logo_url ? 'none' : 'flex' }}
-              >
-                {lead.companies?.name ? getStatusDisplayText(lead.companies.name.charAt(0)) : '?'}
+      render: (lead: Lead) => {
+        const { avatarUrl, initials } = getProfileImage(lead.name, 32);
+        
+        return (
+          <div className="min-w-0 max-w-80">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <img 
+                  src={avatarUrl} 
+                  alt={lead.name || 'Lead'}
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (nextElement) {
+                      nextElement.style.display = 'flex';
+                    }
+                  }}
+                />
+                <div 
+                  className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
+                  style={{ display: 'none' }}
+                >
+                  {initials}
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium break-words leading-tight">{lead.name || "-"}</div>
+                <div className="text-xs text-muted-foreground break-words leading-tight">
+                  {lead.company_role || "No role specified"}
+                </div>
               </div>
             </div>
-            <div className="text-sm font-medium break-words">{lead.name || "-"}</div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
-      key: "company_role",
-      label: "Role",
-      width: "150px",
-      render: (lead: Lead) => (
-        <div className="min-w-0 max-w-48">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
-            {lead.company_role || "-"}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "companies.name",
+      key: "company_name",
       label: "Company",
       width: "150px",
       render: (lead: Lead) => (
+        <div className="min-w-0 max-w-64">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+              {lead.company_logo_url ? (
+                <img 
+                  src={lead.company_logo_url} 
+                  alt={lead.company_name || 'Company'}
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={(e) => {
+                    console.log(`Failed to load company logo for ${lead.company_name}: ${lead.company_logo_url}`);
+                    e.currentTarget.style.display = 'none';
+                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (nextElement) {
+                      nextElement.style.display = 'flex';
+                    }
+                  }}
+                  onLoad={() => {
+                    console.log(`Successfully loaded company logo for ${lead.company_name}: ${lead.company_logo_url}`);
+                  }}
+                />
+              ) : null}
+              <div 
+                className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
+                style={{ display: lead.company_logo_url ? 'none' : 'flex' }}
+              >
+                {lead.company_name?.charAt(0)?.toUpperCase() || '?'}
+              </div>
+            </div>
+            <div className="text-sm font-medium break-words leading-tight">
+              {lead.company_name || "-"}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "employee_location",
+      label: "Location",
+      width: "120px",
+      render: (lead: Lead) => (
         <div className="min-w-0 max-w-48">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
-            {lead.companies?.name || "-"}
+          <div className="text-xs text-muted-foreground break-words leading-tight">
+            {lead.employee_location || "-"}
           </div>
         </div>
       ),
@@ -287,56 +319,86 @@ const LeadsOptimized = React.memo(() => {
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (lead: Lead) => (
-        <StatusBadge status={lead.stage || "new"} size="sm" />
+        <StatusBadge 
+          status={lead.stage || "new"} 
+          size="sm"
+        />
       ),
     },
     {
       key: "lead_score",
-      label: getLabel('table', 'ai_score'),
+      label: "Score",
       width: "80px",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (lead: Lead) => (
-        <div className="flex items-center justify-center">
-          <span className="text-sm font-bold text-foreground">
+        <div className="flex items-center justify-center gap-2">
+          <div className={`w-3 h-3 rounded-full ${
+            lead.lead_score ? 
+              (parseInt(lead.lead_score) >= 80 ? 'bg-green-500' :
+               parseInt(lead.lead_score) >= 60 ? 'bg-yellow-500' :
+               parseInt(lead.lead_score) >= 40 ? 'bg-orange-500' : 'bg-red-500') :
+              'bg-gray-300'
+          }`} />
+          <span className="text-sm font-medium">
             {lead.lead_score || "-"}
           </span>
         </div>
       ),
     },
     {
-      key: "email_address",
-      label: "Email",
-      width: "200px",
-      render: (lead: Lead) => (
-        <div className="min-w-0 max-w-64">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
-            {lead.email_address || "-"}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "employee_location",
-      label: "Location",
-      width: "120px",
-      render: (lead: Lead) => (
-        <div className="min-w-0 max-w-32">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
-            {lead.employee_location || "-"}
-          </div>
-        </div>
-      ),
-    },
-    {
       key: "created_at",
-      label: "Created",
+      label: "Added",
       width: "100px",
-      render: (lead: Lead) => (
-        <div className="text-sm text-muted-foreground">
-          {new Date(lead.created_at).toLocaleDateString()}
-        </div>
-      ),
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (lead: Lead) => {
+        if (!lead.created_at) return <span className="text-xs">-</span>;
+        
+        try {
+          const date = new Date(lead.created_at);
+          const now = new Date();
+          const diffTime = Math.abs(now.getTime() - date.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          return (
+            <div className="text-center">
+              <div className="text-xs text-muted-foreground">
+                {diffDays === 1 ? '1 day ago' : `${diffDays} days ago`}
+              </div>
+            </div>
+          );
+        } catch {
+          return <span className="text-xs">-</span>;
+        }
+      },
+    },
+    {
+      key: "last_interaction_at",
+      label: "Last Contact",
+      width: "120px",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      render: (lead: Lead) => {
+        if (!lead.last_interaction_at) return <span className="text-xs">-</span>;
+        
+        try {
+          const date = new Date(lead.last_interaction_at);
+          const now = new Date();
+          const diffTime = Math.abs(now.getTime() - date.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          return (
+            <div className="text-center">
+              <div className="text-xs text-muted-foreground">
+                {diffDays === 1 ? '1 day ago' : `${diffDays} days ago`}
+              </div>
+            </div>
+          );
+        } catch {
+          return <span className="text-xs">-</span>;
+        }
+      },
     },
   ], []);
 
@@ -466,3 +528,4 @@ const LeadsOptimized = React.memo(() => {
 LeadsOptimized.displayName = 'LeadsOptimized';
 
 export default LeadsOptimized;
+

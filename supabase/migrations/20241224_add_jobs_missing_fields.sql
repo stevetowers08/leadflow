@@ -26,3 +26,4 @@ COMMENT ON COLUMN jobs.linkedin_job_id IS 'LinkedIn job posting ID for integrati
 COMMENT ON COLUMN jobs.logo_url IS 'URL to company logo for this job';
 
 
+

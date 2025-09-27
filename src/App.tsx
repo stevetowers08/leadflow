@@ -1,132 +1,92 @@
-import React, { Suspense, lazy, useEffect } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
+
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
-import { PopupProvider } from "./contexts/PopupContext";
 import { SidebarProvider } from "./contexts/SidebarContext";
-import { Layout } from "./components/Layout";
+import { PopupProvider } from "./contexts/PopupContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { PopupErrorBoundary } from "./components/PopupErrorBoundary";
+import { Layout } from "./components/Layout";
+import { UnifiedPopup } from "./components/UnifiedPopup";
 import { AuthPage } from "./components/auth/AuthPage";
-import { Toaster } from "@/components/ui/sonner";
-import { usePopupKeyboardShortcuts } from "@/hooks/usePopupKeyboardShortcuts";
-import { LoadingSpinner } from "./components/LoadingSpinner";
-import { initializeBrowserCompatibility } from "@/utils/browserCompatibility";
-
-// Lazy load modal manager for better performance
-const ModalManager = lazy(() => import("./components/modals/ModalManager").then(module => ({ default: module.ModalManager })));
-
-// Component to handle popup keyboard shortcuts
-const PopupKeyboardShortcuts = () => {
-  usePopupKeyboardShortcuts();
-  return null;
-};
 
 // Pages
 import Index from "./pages/Index";
-import TestPage from "./pages/TestPage";
-import IndexDebug from "./pages/IndexDebug";
-import Pipeline from "./pages/Pipeline";
+import Jobs from "./pages/Jobs";
 import Leads from "./pages/Leads";
 import Companies from "./pages/Companies";
-import Jobs from "./pages/Jobs";
-import Reporting from "./pages/Reporting";
+import Pipeline from "./pages/Pipeline";
+import { ConversationsPage } from "./pages/Conversations";
 import Automations from "./pages/Automations";
-import Settings from "./pages/Settings";
-import PersonalSettings from "./pages/PersonalSettings";
+import Reporting from "./pages/Reporting";
+import Admin from "./pages/Admin";
 import AdminUsers from "./pages/AdminUsers";
 import AdminSettings from "./pages/AdminSettings";
-import Admin from "./pages/Admin";
-import { ConversationsPage } from "./pages/Conversations";
-import TouchAndAccessibilityTestPage from "./pages/TouchAndAccessibilityTestPage";
-import DataTest from "./components/DataTest";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
       retry: 1,
-      refetchOnWindowFocus: false,
     },
   },
 });
 
-const AuthenticatedApp = () => {
-  // TEMPORARY: Skip auth context usage
-  console.log('🔍 AuthenticatedApp rendering - bypassing auth context');
-  
-  // Mock user data for testing
-  const mockUser = {
-    id: 'f100f6bc-22d8-456f-bcce-44c7881b68ef',
-    email: 'stevetowers08@gmail.com',
-    user_metadata: {
-      full_name: 'Steve Towers',
-      name: 'Steve Towers'
-    },
-    aud: 'authenticated',
-    role: 'authenticated'
-  };
-  
-  const mockUserProfile = {
-    id: 'f100f6bc-22d8-456f-bcce-44c7881b68ef',
-    email: 'stevetowers08@gmail.com',
-    full_name: 'Steve Towers',
-    role: 'owner',
-    user_limit: 1000,
-    is_active: true
-  };
-  
+const AppRoutes = () => {
+  const { user, userProfile, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
+
   return (
-    <SidebarProvider>
-      <PermissionsProvider user={mockUser} userProfile={mockUserProfile} authLoading={false}>
+    <PermissionsProvider user={user} userProfile={userProfile} authLoading={loading}>
+      <SidebarProvider>
         <PopupProvider>
           <Layout>
             <Routes>
-              <Route path="/" element={<IndexDebug />} />
-              <Route path="/pipeline" element={<Pipeline />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/jobs" element={<Jobs />} />
               <Route path="/leads" element={<Leads />} />
               <Route path="/companies" element={<Companies />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/automations" element={<Automations />} />
+              <Route path="/pipeline" element={<Pipeline />} />
               <Route path="/conversations" element={<ConversationsPage />} />
+              <Route path="/automations" element={<Automations />} />
               <Route path="/reporting" element={<Reporting />} />
-              <Route path="/settings" element={<Settings />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
-              <Route path="/tests/touch-accessibility" element={<TouchAndAccessibilityTestPage />} />
-              <Route path="/test-data" element={<DataTest />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
-            <PopupErrorBoundary>
-              <Suspense fallback={<LoadingSpinner />}>
-                <ModalManager />
-              </Suspense>
-            </PopupErrorBoundary>
-            {/* <PopupKeyboardShortcuts /> */}
+            <UnifiedPopup />
           </Layout>
         </PopupProvider>
-      </PermissionsProvider>
-    </SidebarProvider>
+      </SidebarProvider>
+    </PermissionsProvider>
   );
 };
 
-const AppContent = () => {
-  // TEMPORARY: Skip auth check entirely
-  console.log('🔍 AppContent rendering - bypassing auth');
-  return <AuthenticatedApp />;
-};
-
 const App = () => {
-  console.log('🚀 App component mounted');
-
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
-            <AppContent />
+            <AppRoutes />
             <Toaster />
           </AuthProvider>
         </BrowserRouter>

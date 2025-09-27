@@ -13,21 +13,34 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    )
-
-    const { userId } = await req.json()
-
-    // Generate LinkedIn OAuth URL
+    // Validate environment variables
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
     const clientId = Deno.env.get('LINKEDIN_CLIENT_ID')
     const redirectUri = Deno.env.get('LINKEDIN_REDIRECT_URI')
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Missing required Supabase environment variables')
+    }
+
+    if (!clientId || !redirectUri) {
+      throw new Error('Missing required LinkedIn environment variables: LINKEDIN_CLIENT_ID, LINKEDIN_REDIRECT_URI')
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: { Authorization: req.headers.get('Authorization')! },
+      },
+    })
+
+    const requestBody = await req.json()
+    const { userId } = requestBody
+
+    if (!userId) {
+      throw new Error('User ID is required')
+    }
+
+    // Generate LinkedIn OAuth URL
     const state = btoa(JSON.stringify({ userId, timestamp: Date.now() }))
     const scopes = 'r_liteprofile,r_emailaddress,w_messaging'
 
@@ -39,7 +52,11 @@ serve(async (req) => {
       `scope=${scopes}`
 
     return new Response(
-      JSON.stringify({ authUrl }),
+      JSON.stringify({ 
+        success: true,
+        authUrl,
+        timestamp: new Date().toISOString()
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
@@ -47,11 +64,16 @@ serve(async (req) => {
     )
   } catch (error) {
     console.error('LinkedIn auth error:', error)
+    
     return new Response(
-      JSON.stringify({ error: 'Failed to generate LinkedIn auth URL' }),
+      JSON.stringify({ 
+        success: false,
+        error: error.message || 'Failed to generate LinkedIn auth URL',
+        timestamp: new Date().toISOString()
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: error.message?.includes('required') ? 400 : 500,
       },
     )
   }

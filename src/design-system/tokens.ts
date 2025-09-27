@@ -73,6 +73,16 @@ export const designTokens = {
     container: 'text-muted-foreground',
   },
 
+  // Logos - Consistent sizing across all pages
+  logos: {
+    size: 'w-8 h-8', // Standard logo size for tables and lists
+    sizeSm: 'w-6 h-6', // Small logos for compact views
+    sizeLg: 'w-10 h-10', // Large logos for detail views
+    sizeXl: 'w-12 h-12', // Extra large logos for headers
+    container: 'rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0', // Slightly rounded squares
+    fallback: 'bg-blue-500 text-white flex items-center justify-center text-xs font-semibold',
+  },
+
   // Colors - Semantic color tokens
   colors: {
     text: {

@@ -12,7 +12,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 const mainNavigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Jobs", href: "/jobs", icon: Briefcase },
-  { name: "People", href: "/leads", icon: Users },
+  { name: "Leads", href: "/leads", icon: Users },
   { name: "Companies", href: "/companies", icon: Building2 },
   { name: "Pipeline", href: "/pipeline", icon: Target },
   { name: "Conversations", href: "/conversations", icon: MessageSquare },
@@ -182,10 +182,10 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
           <Button 
             onClick={() => signInWithGoogle()} 
             variant="ghost" 
-            className="w-full justify-start text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+            className="w-full justify-start text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent text-sm"
           >
             <LogIn className="mr-2 h-4 w-4 text-sidebar-foreground" />
-            <span className="text-sidebar-foreground">Sign in with Google</span>
+            <span className="text-sidebar-foreground">Google Sign In</span>
           </Button>
         )}
       </div>
