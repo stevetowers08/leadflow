@@ -6,7 +6,6 @@ import {
   Settings, 
   Users, 
   User, 
-  Building2, 
   Mic, 
   Tag, 
   Webhook, 

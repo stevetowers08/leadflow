@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DataTable } from '@/components/DataTable';
 import { LogoManager } from '@/components/LogoManager';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Users, Building2, Crown, Plus, Save, Mail, UserPlus, Settings, Database, Upload, CheckCircle } from 'lucide-react';
+import { Users, Crown, Plus, Save, Mail, UserPlus, Settings, Database, Upload, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
 import { getStatusDisplayText } from '@/utils/statusUtils';
