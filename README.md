@@ -44,6 +44,7 @@ This is the main repository for the Empowr CRM project, containing the complete 
 
 ### 🔧 Troubleshooting
 - [LinkedIn Troubleshooting](docs/TROUBLESHOOTING/LINKEDIN_API_KEY_TROUBLESHOOTING.md)
+- [White Screen Issues](docs/TROUBLESHOOTING/WHITE_SCREEN_TROUBLESHOOTING.md)
 
 ## 📄 Project Files
 
