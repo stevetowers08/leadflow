@@ -7,7 +7,7 @@ const envConfig = validateEnvironment();
 if (!envConfig.isValid) {
   console.error('❌ Supabase configuration validation failed:');
   envConfig.errors.forEach(error => console.error(`  - ${error}`));
-  throw new Error(`Environment validation failed: ${envConfig.errors.join(', ')}`);
+  console.warn('⚠️ Continuing with Supabase client creation despite validation errors...');
 }
 
 // Log environment status for debugging

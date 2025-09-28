@@ -48,14 +48,6 @@ export const EnvironmentVerification: React.FC = () => {
                !import.meta.env.VITE_SUPABASE_ANON_KEY.startsWith('eyJ') ? 'Must be a valid JWT token' : undefined
       },
       {
-        name: 'SUPABASE_SERVICE_ROLE_KEY',
-        value: import.meta.env.SUPABASE_SERVICE_ROLE_KEY ? 
-               `${import.meta.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 20)}...` : 'NOT SET',
-        isValid: validateSupabaseKey(import.meta.env.SUPABASE_SERVICE_ROLE_KEY),
-        error: !import.meta.env.SUPABASE_SERVICE_ROLE_KEY ? 'Missing' :
-               !import.meta.env.SUPABASE_SERVICE_ROLE_KEY.startsWith('eyJ') ? 'Must be a valid JWT token' : undefined
-      },
-      {
         name: 'VITE_GOOGLE_CLIENT_ID',
         value: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'NOT SET (Optional)',
         isValid: true, // Optional
