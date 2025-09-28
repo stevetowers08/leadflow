@@ -6,8 +6,6 @@ import {
   Settings, 
   Users, 
   User, 
-  Mic, 
-  Tag, 
   Webhook, 
   Plug,
   Bell,
@@ -72,31 +70,10 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
       available: isAdmin
     },
     {
-      id: 'members',
-      label: 'Members',
-      icon: User,
-      description: 'Team member management',
-      available: isAdmin
-    },
-    {
-      id: 'voice-cloner',
-      label: 'Voice Cloner',
-      icon: Mic,
-      description: 'Voice cloning settings',
-      available: isAdmin
-    },
-    {
-      id: 'white-label',
-      label: 'White Label',
-      icon: Tag,
-      description: 'White label customization',
-      available: isAdmin
-    },
-    {
       id: 'webhooks',
-      label: 'Webhooks',
+      label: 'System Settings',
       icon: Webhook,
-      description: 'Webhook configurations',
+      description: 'System configuration',
       available: isAdmin
     },
     {

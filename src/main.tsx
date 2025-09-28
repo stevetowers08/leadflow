@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import SupabaseErrorBoundary from "./components/SupabaseErrorBoundary.tsx";
 import "./index.css";
 
 console.log('🚀 Empowr CRM starting...');
@@ -12,8 +13,12 @@ if (!rootElement) {
 
 console.log('✅ Root element found, creating React root...');
 const root = createRoot(rootElement);
-console.log('✅ React root created, rendering App...');
+console.log('✅ React root created, rendering full CRM app...');
 
-// Full CRM Application - FIXED!
-root.render(<App />);
-console.log('✅ Full CRM App with FIXED DataTable rendered successfully');
+// Full CRM Application with Error Boundaries
+root.render(
+  <SupabaseErrorBoundary>
+    <App />
+  </SupabaseErrorBoundary>
+);
+console.log('✅ Full CRM App with error boundaries rendered successfully');

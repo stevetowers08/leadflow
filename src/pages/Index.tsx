@@ -6,6 +6,8 @@ import { Users, Briefcase, User, Calendar, MapPin, Building2, TrendingUp, Target
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { usePopup } from "@/contexts/PopupContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/contexts/PermissionsContext";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Lead = Tables<"people"> & {
@@ -287,6 +289,7 @@ const Index = () => {
           </CardContent>
         </Card>
       </div>
+
     </Page>
   );
 };

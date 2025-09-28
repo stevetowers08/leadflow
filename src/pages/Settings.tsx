@@ -4,14 +4,10 @@ import { usePermissions } from '@/contexts/PermissionsContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import SettingsNavigation from '@/components/SettingsNavigation';
 import PersonalSettings from './PersonalSettings';
-import AdminSettings from './AdminSettings';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { Settings as SettingsIcon } from 'lucide-react';
 import IntegrationsPage from '@/components/IntegrationsPage';
 import Accounts from './settings/Accounts';
-import Members from './settings/Members';
-import VoiceCloner from './settings/VoiceCloner';
-import WhiteLabel from './settings/WhiteLabel';
 import { usePageMeta } from '@/hooks/usePageMeta';
 
 const Settings = () => {
@@ -31,15 +27,36 @@ const Settings = () => {
     twitterDescription: 'Configure your CRM settings, manage integrations, billing, and customize your workspace preferences.'
   });
 
+  // Don't render if user is not authenticated
+  if (!user) {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Please log in</h1>
+          <p className="text-gray-600">You need to be logged in to access settings.</p>
+        </div>
+      </div>
+    );
+  }
+
   const renderContent = () => {
     switch (activeSection) {
       case 'profile-info':
       case 'notifications':
       case 'preferences':
-          case 'security':
-            return <PersonalSettings activeSection={activeSection} />;
-          case 'user-management':
-            return <PersonalSettings activeSection={activeSection} />;
+      case 'security':
+        return <PersonalSettings activeSection={activeSection} />;
+      case 'user-management':
+        // Redirect to admin panel for user management
+        window.location.href = '/admin/users';
+        return (
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Redirecting to admin panel...</p>
+            </div>
+          </div>
+        );
       case 'accounts':
         return (
           <div className="p-6">
@@ -48,36 +65,15 @@ const Settings = () => {
             </PermissionGuard>
           </div>
         );
-      case 'members':
-        return (
-          <div className="p-6">
-            <PermissionGuard requiredRole={['admin', 'owner']}>
-              <Members />
-            </PermissionGuard>
-          </div>
-        );
-      case 'voice-cloner':
-        return (
-          <div className="p-6">
-            <PermissionGuard requiredRole={['admin', 'owner']}>
-              <VoiceCloner />
-            </PermissionGuard>
-          </div>
-        );
-      case 'white-label':
-        return (
-          <div className="p-6">
-            <PermissionGuard requiredRole={['admin', 'owner']}>
-              <WhiteLabel />
-            </PermissionGuard>
-          </div>
-        );
       case 'webhooks':
+        // Redirect to admin panel for system settings
+        window.location.href = '/admin/settings';
         return (
-          <div className="p-6">
-            <PermissionGuard requiredRole={['admin', 'owner']}>
-              <AdminSettings />
-            </PermissionGuard>
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Redirecting to admin settings...</p>
+            </div>
           </div>
         );
       case 'integrations':

@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableHead, TableHeader, TableRow as UITableRow } from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow as UITableRow, TableCell } from "@/components/ui/table";
 import { Download } from "lucide-react";
 import { TableSkeleton } from "@/components/LoadingSkeletons";
 import { PaginationControls } from "@/components/PaginationControls";

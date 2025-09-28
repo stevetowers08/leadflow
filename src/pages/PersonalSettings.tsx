@@ -72,11 +72,26 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
 
   const loadUserSettings = async () => {
     try {
-      const { data } = await supabase
+      if (!user?.id) {
+        console.log('No user ID available, skipping user settings load');
+        return;
+      }
+
+      const { data, error } = await supabase
         .from('user_settings')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .single();
+      
+      if (error) {
+        // If table doesn't exist or user has no settings, use defaults
+        if (error.code === 'PGRST116' || error.code === '42P01') {
+          console.log('No user settings found or table does not exist, using defaults');
+          return;
+        }
+        console.error('Error loading user settings:', error);
+        return;
+      }
       
       if (data) {
         setNotifications(data.notifications || notifications);
@@ -84,7 +99,7 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
         setSecurity(data.security || security);
       }
     } catch (error) {
-      console.log('No user settings found, using defaults');
+      console.log('Error loading user settings, using defaults:', error);
     }
   };
 
@@ -105,21 +120,34 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
   const saveUserSettings = async () => {
     setLoading(true);
     try {
+      if (!user?.id) {
+        toast.error('User not authenticated');
+        return;
+      }
+
       const { error } = await supabase
         .from('user_settings')
         .upsert({
-          user_id: user?.id,
+          user_id: user.id,
           notifications,
           preferences,
           security,
           updated_at: new Date().toISOString(),
         });
       
-      if (error) throw error;
+      if (error) {
+        // If table doesn't exist, just show a warning
+        if (error.code === '42P01') {
+          toast.error('Settings table not available. Please contact your administrator.');
+          return;
+        }
+        throw error;
+      }
       
       toast.success('Settings saved successfully!');
     } catch (error) {
-      toast.error('Failed to save settings');
+      console.error('Failed to save settings:', error);
+      toast.error('Failed to save settings. Please try again.');
     } finally {
       setLoading(false);
     }

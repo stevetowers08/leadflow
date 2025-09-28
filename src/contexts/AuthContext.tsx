@@ -1,18 +1,21 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { clearOAuthState, hasOAuthError, getOAuthError, cleanOAuthErrorFromUrl } from '@/utils/auth';
+import { supabase } from '../integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
   userProfile: any | null;
   session: Session | null;
   loading: boolean;
+  error: string | null;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signInWithLinkedIn: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   updateProfile: (updates: { full_name?: string; avatar_url?: string }) => Promise<{ error: AuthError | null }>;
   clearAuthState: () => Promise<boolean>;
+  forceReAuth: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+  retryAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,140 +32,364 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
+// Robust error handling and retry mechanism
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_DELAY = 1000; // 1 second
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<any | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    // Ultra-simplified auth initialization
-    const initAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-      } catch (error) {
-        // Silent error handling
+  // Enhanced profile loading with retry logic
+  const loadUserProfile = useCallback(async (userId: string, attempt: number = 1): Promise<any> => {
+    try {
+      console.log(`🔍 Loading user profile for: ${userId} (attempt ${attempt})`);
+
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error(`❌ Error loading profile (attempt ${attempt}):`, error);
+        
+        if (attempt < MAX_RETRY_ATTEMPTS) {
+          console.log(`🔄 Retrying profile load in ${RETRY_DELAY}ms...`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          return loadUserProfile(userId, attempt + 1);
+        }
+        
+        throw error;
       }
+
+      console.log('✅ Profile loaded successfully:', {
+        id: data.id,
+        email: data.email,
+        full_name: data.full_name,
+        role: data.role,
+        created_at: data.created_at
+      });
+      
+      setError(null); // Clear any previous errors
+      return data;
+    } catch (error) {
+      console.error(`❌ Profile loading failed after ${attempt} attempts:`, error);
+      
+      if (attempt >= MAX_RETRY_ATTEMPTS) {
+        setError(`Failed to load user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+      
+      return null;
+    }
+  }, []);
+
+  // Retry authentication mechanism
+  const retryAuth = useCallback(async () => {
+    if (retryCount >= MAX_RETRY_ATTEMPTS) {
+      console.error('❌ Max retry attempts reached');
+      setError('Authentication failed after multiple attempts. Please refresh the page.');
       setLoading(false);
+      return;
+    }
+
+    console.log(`🔄 Retrying authentication (attempt ${retryCount + 1})`);
+    setRetryCount(prev => prev + 1);
+    setError(null);
+    setLoading(true);
+
+    try {
+      // Clear existing state
+      setUser(null);
+      setUserProfile(null);
+      setSession(null);
+
+      // Wait a bit before retrying
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+
+      // Get fresh session
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error) {
+        throw error;
+      }
+
+      if (session?.user) {
+        setUser(session.user);
+        setSession(session);
+        
+        const profile = await loadUserProfile(session.user.id);
+        setUserProfile(profile);
+      }
+    } catch (error) {
+      console.error('❌ Retry auth error:', error);
+      setError(`Authentication retry failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [retryCount]);
+
+  // Initialize authentication with robust error handling
+  useEffect(() => {
+    let isMounted = true;
+    let authStateSubscription: any = null;
+
+    const initializeAuth = async () => {
+      try {
+        console.log('🔐 Initializing authentication...');
+        setError(null);
+
+        // Check if supabase client is properly initialized
+        if (!supabase || !supabase.auth) {
+          throw new Error('Supabase client not properly initialized. Check environment variables.');
+        }
+
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error('❌ Error getting initial session:', error);
+          throw error;
+        }
+
+        console.log('📋 Initial session:', {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          userEmail: session?.user?.email
+        });
+
+        if (isMounted) {
+          setUser(session?.user ?? null);
+          setSession(session);
+
+          if (session?.user) {
+            const profile = await loadUserProfile(session.user.id);
+            if (isMounted) {
+              setUserProfile(profile);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ Auth initialization error:', error);
+        if (isMounted) {
+          setError(`Authentication initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
 
-    // Immediate initialization
-    initAuth();
+    // Set up auth state listener
+    const setupAuthListener = () => {
+      if (!supabase || !supabase.auth) {
+        console.error('❌ Cannot setup auth listener - Supabase client not initialized');
+        return;
+      }
 
-    // Simple auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (!isMounted) return;
 
-    return () => subscription.unsubscribe();
-  }, []);
+          console.log('🔄 Auth state change:', event, session?.user?.id);
+
+          try {
+            setUser(session?.user ?? null);
+            setSession(session);
+            setError(null); // Clear errors on successful auth change
+
+            if (session?.user) {
+              const profile = await loadUserProfile(session.user.id);
+              if (isMounted) {
+                setUserProfile(profile);
+              }
+            } else {
+              if (isMounted) {
+                setUserProfile(null);
+              }
+            }
+          } catch (error) {
+            console.error('❌ Auth state change error:', error);
+            if (isMounted) {
+              setError(`Authentication state change failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+          }
+
+          if (isMounted) {
+            setLoading(false);
+          }
+        }
+      );
+
+      authStateSubscription = subscription;
+    };
+
+    // Initialize auth and set up listener
+    initializeAuth();
+    setupAuthListener();
+
+    return () => {
+      isMounted = false;
+      if (authStateSubscription) {
+        authStateSubscription.unsubscribe();
+      }
+    };
+  }, []); // ✅ Remove loadUserProfile dependency to prevent infinite loops
+
+  // Refresh profile function
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      console.log('🔄 Refreshing profile...');
+      const profile = await loadUserProfile(user.id);
+      setUserProfile(profile);
+    }
+  }, [user]);
 
   const signInWithGoogle = async () => {
     try {
+      setError(null);
+      
+      // Check if Google OAuth is configured
+      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!googleClientId || googleClientId.includes('your-google-client-id')) {
+        const authError = new Error('Google OAuth is not configured. Please contact your administrator.');
+        setError(authError.message);
+        return { error: authError };
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
       });
-      
-      if (error) {
-        // Handle specific error cases
-        if (error.message.includes('org_internal')) {
-          return { 
-            error: { 
-              message: 'Access blocked: This Google account is restricted to organization users only. Please use a different Google account or contact your administrator.' 
-            } as AuthError 
-          };
-        }
-        
-        if (error.message.includes('validation_failed')) {
-          return { 
-            error: { 
-              message: 'Google OAuth provider is not enabled in Supabase. Please contact your administrator to configure Google authentication.' 
-            } as AuthError 
-          };
-        }
-
-        if (error.message.includes('bad_oauth_state') || error.message.includes('invalid_request')) {
-          return { 
-            error: { 
-              message: 'OAuth state mismatch. Please try signing in again. If the issue persists, clear your browser cache and cookies.' 
-            } as AuthError 
-          };
-        }
-      }
-      
       return { error };
-    } catch (err) {
-      return { 
-        error: { 
-          message: 'Google OAuth provider is not enabled. Please contact your administrator to configure Google authentication.' 
-        } as AuthError 
-      };
+    } catch (error) {
+      const authError = error as AuthError;
+      setError(`Google sign-in failed: ${authError.message}`);
+      return { error: authError };
     }
   };
 
   const signInWithLinkedIn = async () => {
     try {
+      setError(null);
+      
+      // Check if LinkedIn OAuth is configured
+      const linkedinClientId = import.meta.env.LINKEDIN_CLIENT_ID;
+      if (!linkedinClientId || linkedinClientId.includes('your-linkedin-client-id')) {
+        const authError = new Error('LinkedIn OAuth is not configured. Please contact your administrator.');
+        setError(authError.message);
+        return { error: authError };
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin',
         options: {
-          redirectTo: `${window.location.origin}`,
-        },
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
       });
-      
-      if (error) {
-        // Handle specific error cases
-        if (error.message.includes('validation_failed')) {
-          return { 
-            error: { 
-              message: 'LinkedIn OAuth provider is not enabled in Supabase. Please contact your administrator to configure LinkedIn authentication.' 
-            } as AuthError 
-          };
-        }
-
-        if (error.message.includes('bad_oauth_state') || error.message.includes('invalid_request')) {
-          return { 
-            error: { 
-              message: 'OAuth state mismatch. Please try signing in again. If the issue persists, clear your browser cache and cookies.' 
-            } as AuthError 
-          };
-        }
-      }
-      
       return { error };
-    } catch (err) {
-      return { 
-        error: { 
-          message: 'LinkedIn OAuth provider is not enabled. Please contact your administrator to configure LinkedIn authentication.' 
-        } as AuthError 
-      };
+    } catch (error) {
+      const authError = error as AuthError;
+      setError(`LinkedIn sign-in failed: ${authError.message}`);
+      return { error: authError };
     }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      setError(null);
+      console.log('🚪 Signing out...');
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+
+      // Clear all state
+      setUser(null);
+      setUserProfile(null);
+      setSession(null);
+      
+      // Clear storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      console.log('✅ Sign out successful');
+      return { error: null };
+    } catch (error) {
+      const authError = error as AuthError;
+      console.error('❌ Sign out error:', authError);
+      
+      // Force clear state even if sign out fails
+      setUser(null);
+      setUserProfile(null);
+      setSession(null);
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      setError(`Sign out failed: ${authError.message}`);
+      return { error: authError };
+    }
   };
 
   const updateProfile = async (updates: { full_name?: string; avatar_url?: string }) => {
-    const { error } = await supabase.auth.updateUser({
-      data: updates,
-    });
-    return { error };
+    try {
+      setError(null);
+      const { error } = await supabase.auth.updateUser({
+        data: updates,
+      });
+      return { error };
+    } catch (error) {
+      const authError = error as AuthError;
+      setError(`Profile update failed: ${authError.message}`);
+      return { error: authError };
+    }
   };
 
   const clearAuthState = async () => {
-    return await clearOAuthState();
+    try {
+      setError(null);
+      await supabase.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      setUser(null);
+      setUserProfile(null);
+      setSession(null);
+      return true;
+    } catch (error) {
+      console.error('❌ Clear auth state error:', error);
+      setError(`Failed to clear auth state: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return false;
+    }
+  };
+
+  const forceReAuth = async () => {
+    try {
+      console.log('🔄 Forcing re-authentication...');
+      setError(null);
+      
+      await supabase.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Reset retry count
+      setRetryCount(0);
+      
+      // Reload page to start fresh
+      window.location.reload();
+    } catch (error) {
+      console.error('❌ Error during force re-auth:', error);
+      setError(`Force re-authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      window.location.reload();
+    }
   };
 
   const value = {
@@ -170,11 +397,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     userProfile,
     session,
     loading,
+    error,
     signInWithGoogle,
     signInWithLinkedIn,
     signOut,
     updateProfile,
     clearAuthState,
+    forceReAuth,
+    refreshProfile,
+    retryAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
-import { validateSupabaseConfig, logEnvironmentStatus } from '@/utils/envValidation';
+import { validateEnvironment, logEnvironmentStatus } from '@/utils/environmentValidation';
 
 // Validate environment configuration
-const configValidation = validateSupabaseConfig();
-if (!configValidation.isValid) {
-  console.warn(`⚠️ Supabase configuration warning: ${configValidation.error}`);
-  // Don't throw error, just log warning
+const envConfig = validateEnvironment();
+if (!envConfig.isValid) {
+  console.error('❌ Supabase configuration validation failed:');
+  envConfig.errors.forEach(error => console.error(`  - ${error}`));
+  throw new Error(`Environment validation failed: ${envConfig.errors.join(', ')}`);
 }
 
 // Log environment status for debugging
@@ -15,10 +16,12 @@ logEnvironmentStatus();
 // Environment variables for Supabase configuration
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 console.log('🔧 Supabase client config:', { 
   SUPABASE_URL, 
-  SUPABASE_PUBLISHABLE_KEY: SUPABASE_PUBLISHABLE_KEY ? SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...' : 'MISSING' 
+  SUPABASE_PUBLISHABLE_KEY: SUPABASE_PUBLISHABLE_KEY ? SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...' : 'MISSING',
+  SUPABASE_SERVICE_ROLE_KEY: SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING'
 });
 
 // Create client with proper auth configuration
@@ -57,14 +60,17 @@ try {
       signIn: () => Promise.resolve({ data: null, error: null }),
       signOut: () => Promise.resolve({ error: null }),
       getUser: () => Promise.resolve({ data: null, error: null }),
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
     }
   };
 }
 
 export { supabase };
 
-// Export supabaseAdmin as alias for admin operations
-export const supabaseAdmin = supabase;
+// Note: Service role key should only be used server-side
+// For client-side operations, use the anon key with proper authentication
+console.log('ℹ️ Using anon key for client-side operations (correct for React apps)');
 
 // Test connection on startup (only if client was created successfully)
 if (supabase && SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY) {

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/StatusBadge';
 import { getStatusDisplayText } from '@/utils/statusUtils';
+import { useToast } from '@/hooks/use-toast';
 import { 
   getClearbitLogo, 
   testLogoUrl, 

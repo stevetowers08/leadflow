@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabaseAdmin } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PermissionGuard } from "@/components/PermissionGuard";
 import { Search, X, Plus, Users, Shield, UserCheck, UserX, Mail, Calendar } from "lucide-react";
@@ -47,7 +47,14 @@ const AdminUsers = () => {
     try {
       // Check if service role key is available
       if (!supabaseAdmin) {
-        throw new Error("Service role key not configured. Admin functions require VITE_SUPABASE_SERVICE_ROLE_KEY environment variable.");
+        console.warn("Service role key not configured. Using fallback user management.");
+        toast({
+          title: "Limited Functionality",
+          description: "Service role key not configured. Some admin features may be limited. Contact your administrator.",
+          variant: "default",
+        });
+        setUsers([]);
+        return;
       }
 
       const { data, error } = await supabaseAdmin.auth.admin.listUsers();
@@ -92,7 +99,12 @@ const AdminUsers = () => {
   const handleAddUser = async () => {
     try {
       if (!supabaseAdmin) {
-        throw new Error("Service role key not configured.");
+        toast({
+          title: "Service Role Required",
+          description: "User creation requires service role key. Contact your administrator to configure VITE_SUPABASE_SERVICE_ROLE_KEY.",
+          variant: "destructive",
+        });
+        return;
       }
 
       const { data, error } = await supabaseAdmin.auth.admin.createUser({
@@ -128,7 +140,12 @@ const AdminUsers = () => {
   const handleToggleUserStatus = async (userId: string, isActive: boolean) => {
     try {
       if (!supabaseAdmin) {
-        throw new Error("Service role key not configured.");
+        toast({
+          title: "Service Role Required",
+          description: "User status management requires service role key. Contact your administrator.",
+          variant: "destructive",
+        });
+        return;
       }
 
       const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
@@ -156,7 +173,12 @@ const AdminUsers = () => {
   const handleUpdateUserRole = async (userId: string, role: string) => {
     try {
       if (!supabaseAdmin) {
-        throw new Error("Service role key not configured.");
+        toast({
+          title: "Service Role Required",
+          description: "User role management requires service role key. Contact your administrator.",
+          variant: "destructive",
+        });
+        return;
       }
 
       const user = users.find(u => u.id === userId);

@@ -38,6 +38,14 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   const { user, signOut, signInWithGoogle } = useAuth();
   const { hasRole } = usePermissions();
   
+  // Debug logging
+  console.log('Sidebar Debug:', {
+    user: user?.email,
+    hasAdminRole: hasRole('admin'),
+    hasOwnerRole: hasRole('owner'),
+    shouldShowAdmin: hasRole('admin') || hasRole('owner')
+  });
+  
   // Memoize the navigation to prevent re-renders
   const navigationItems = React.useMemo(() => mainNavigation, []);
   const secondaryItems = React.useMemo(() => secondaryNavigation, []);
@@ -119,7 +127,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
       </nav>
       
       {/* Admin Section - Only visible to administrators and owners - Bottom */}
-      {(hasRole('Administrator') || hasRole('Owner')) && (
+      {(hasRole('admin') || hasRole('owner')) && (
         <div className="px-3 py-2 border-t border-sidebar-border">
           <div className="space-y-2">
             <div className="px-3 py-1">

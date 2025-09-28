@@ -206,6 +206,13 @@ export function PermissionsProvider({ children, user, userProfile, authLoading }
       // Use role from user profile database record
       const userRole = userProfile.role;
       
+      console.log('PermissionsContext Debug:', {
+        userEmail: user.email,
+        userProfileRole: userRole,
+        userMetadataRole: user.user_metadata?.role,
+        userProfileExists: !!userProfile
+      });
+      
       const role = roles.find(r => r.id === userRole);
       
       if (role) {
@@ -225,8 +232,44 @@ export function PermissionsProvider({ children, user, userProfile, authLoading }
           });
         }
       }
+    } else if (user && !userProfile) {
+      // User exists but no profile - try to use metadata role as fallback
+      const metadataRole = user.user_metadata?.role;
+      console.log('PermissionsContext Debug: Using metadata role fallback', {
+        userEmail: user.email,
+        metadataRole: metadataRole
+      });
+      
+      if (metadataRole) {
+        const role = roles.find(r => r.id === metadataRole);
+        if (role) {
+          setUserPermissions({
+            userId: user.id,
+            roles: [role],
+            permissions: role.permissions
+          });
+        } else {
+          // Default to recruiter if metadata role not found
+          const defaultRole = roles.find(r => r.id === 'recruiter');
+          if (defaultRole) {
+            setUserPermissions({
+              userId: user.id,
+              roles: [defaultRole],
+              permissions: defaultRole.permissions
+            });
+          }
+        }
+      } else {
+        // No metadata role either, clear permissions
+        setUserPermissions(null);
+      }
     } else {
       // No user or user profile, clear permissions
+      console.log('PermissionsContext Debug: No user or userProfile', {
+        hasUser: !!user,
+        hasUserProfile: !!userProfile,
+        userEmail: user?.email
+      });
       setUserPermissions(null);
     }
     setLoading(false);
@@ -241,7 +284,9 @@ export function PermissionsProvider({ children, user, userProfile, authLoading }
 
   const hasRole = (roleName: string): boolean => {
     if (!userPermissions) return false;
-    return userPermissions.roles.some(role => role.name === roleName);
+    return userPermissions.roles.some(role => 
+      role.id === roleName || role.name === roleName
+    );
   };
 
   const canView = (resource: string): boolean => {
