@@ -11,7 +11,8 @@
   "scripts": {
     "dev": "vite --port 8081 --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "vercel-build": "vite build"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
