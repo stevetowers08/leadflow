@@ -37,6 +37,10 @@ const queryClient = new QueryClient({
 });
 
 const AppRoutes = () => {
+  // Enable error logging and performance monitoring
+  useGlobalErrorHandler();
+  usePerformanceMonitoring();
+  
   const { user, userProfile, loading } = useAuth();
 
   if (loading) {
@@ -82,10 +86,6 @@ const AppRoutes = () => {
 };
 
 const App = () => {
-  // Enable error logging and performance monitoring
-  useGlobalErrorHandler();
-  usePerformanceMonitoring();
-
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
