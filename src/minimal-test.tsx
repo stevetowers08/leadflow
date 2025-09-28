@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 
 console.log('🚀 Minimal React Test Starting...');
 console.log('React version:', React.version);
-console.log('React DOM available:', !!ReactDOM);
+console.log('React DOM available:', !!createRoot);
 
 // Check for React DevTools conflicts
 if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {

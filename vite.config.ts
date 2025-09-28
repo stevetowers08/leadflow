@@ -26,16 +26,17 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: undefined, // Disable manual chunking to prevent React scheduler issues
+        format: 'es', // Use ES modules format
       }
     },
     chunkSizeWarningLimit: 1000, // Increase limit
-    target: 'esnext',
-    minify: 'esbuild',
+    target: 'es2020', // Use older target for better compatibility
+    minify: false, // Disable minification to prevent React scheduler issues
     esbuild: {
       drop: mode === 'production' ? ['debugger'] : [], // Keep console logs for debugging
       treeShaking: false, // Disable tree shaking to prevent React scheduler issues
     },
     // Enable source maps for debugging in production
-    sourcemap: mode === 'development',
+    sourcemap: true, // Always enable source maps
   },
 }));
