@@ -7,7 +7,7 @@ import PersonalSettings from './PersonalSettings';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { Settings as SettingsIcon } from 'lucide-react';
 import IntegrationsPage from '@/components/IntegrationsPage';
-import Accounts from './settings/Accounts';
+import AdminSettingsTab from '@/components/AdminSettingsTab';
 import { usePageMeta } from '@/hooks/usePageMeta';
 
 const Settings = () => {
@@ -42,38 +42,15 @@ const Settings = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'profile-info':
-      case 'notifications':
       case 'preferences':
       case 'security':
         return <PersonalSettings activeSection={activeSection} />;
-      case 'user-management':
-        // Redirect to admin panel for user management
-        window.location.href = '/admin/users';
-        return (
-          <div className="flex items-center justify-center p-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Redirecting to admin panel...</p>
-            </div>
-          </div>
-        );
-      case 'accounts':
+      case 'admin':
         return (
           <div className="p-6">
             <PermissionGuard requiredRole={['admin', 'owner']}>
-              <Accounts />
+              <AdminSettingsTab />
             </PermissionGuard>
-          </div>
-        );
-      case 'webhooks':
-        // Redirect to admin panel for system settings
-        window.location.href = '/admin/settings';
-        return (
-          <div className="flex items-center justify-center p-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Redirecting to admin settings...</p>
-            </div>
           </div>
         );
       case 'integrations':

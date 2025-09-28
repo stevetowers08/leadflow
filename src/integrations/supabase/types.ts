@@ -106,6 +106,7 @@ export type Database = {
           linkedin_url: string | null
           loxo_company_id: string | null
           name: string
+          owner_id: string | null
           priority: string | null
           score_reason: string | null
           updated_at: string | null
@@ -130,6 +131,7 @@ export type Database = {
           linkedin_url?: string | null
           loxo_company_id?: string | null
           name: string
+          owner_id?: string | null
           priority?: string | null
           score_reason?: string | null
           updated_at?: string | null
@@ -143,9 +145,7 @@ export type Database = {
           confidence_level?:
             | Database["public"]["Enums"]["confidence_level_enum"]
             | null
-          created_at?: string | null
           head_office?: string | null
-          id?: string
           industry?: string | null
           industry_id?: string | null
           is_favourite?: boolean | null
@@ -154,6 +154,7 @@ export type Database = {
           linkedin_url?: string | null
           loxo_company_id?: string | null
           name?: string
+          owner_id?: string
           priority?: string | null
           score_reason?: string | null
           updated_at?: string | null
@@ -651,7 +652,7 @@ export type Database = {
           message_sent: string | null
           message_sent_date: string | null
           name: string
-          owner_id: string | null
+          owner_id: string | null | null
           response_date: string | null
           stage: Database["public"]["Enums"]["stage_enum"]
           stage_updated: string | null

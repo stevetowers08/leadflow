@@ -4,11 +4,8 @@ import { usePermissions } from '@/contexts/PermissionsContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { 
   Settings, 
-  Users, 
   User, 
-  Webhook, 
   Plug,
-  Bell,
   Palette,
   Shield
 } from 'lucide-react';
@@ -35,13 +32,6 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
       available: true
     },
     {
-      id: 'notifications',
-      label: 'Notifications',
-      icon: Bell,
-      description: 'Notification preferences',
-      available: true
-    },
-    {
       id: 'preferences',
       label: 'Preferences',
       icon: Palette,
@@ -56,24 +46,10 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
       available: true
     },
     {
-      id: 'user-management',
-      label: 'User Management',
-      icon: Users,
-      description: 'Manage team members (Admin)',
-      available: isAdmin
-    },
-    {
-      id: 'accounts',
-      label: 'Accounts',
-      icon: Users,
-      description: 'Manage user accounts',
-      available: isAdmin
-    },
-    {
-      id: 'webhooks',
-      label: 'System Settings',
-      icon: Webhook,
-      description: 'System configuration',
+      id: 'admin',
+      label: 'Admin',
+      icon: Settings,
+      description: 'System administration (Admin/Owner)',
       available: isAdmin
     },
     {

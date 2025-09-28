@@ -3,6 +3,7 @@ import { useRetryLogic, useNetworkRetry, useApiRetry, useDatabaseRetry } from '@
 import { useUserFeedback, useActionFeedback } from '@/hooks/useUserFeedback';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { supabase } from '@/integrations/supabase/client';
+import { insertCompanyWithOwner } from '@/utils/companyUtils';
 
 export interface ServiceOptions {
   enableRetry?: boolean;
@@ -68,6 +69,11 @@ export function useSupabaseService<T = any>(
   const createRecord = useAsyncMutation(
     async (record: Partial<T>) => {
       return executeWithRetry(async () => {
+        // Special handling for companies to ensure owner_id is set
+        if (tableName === 'companies') {
+          return await insertCompanyWithOwner(record);
+        }
+        
         const { data, error } = await supabase
           .from(tableName)
           .insert(record)
@@ -152,6 +158,16 @@ export function useSupabaseService<T = any>(
   const batchCreate = useAsyncMutation(
     async (records: Partial<T>[]) => {
       return executeWithRetry(async () => {
+        // Special handling for companies to ensure owner_id is set
+        if (tableName === 'companies') {
+          const results = [];
+          for (const record of records) {
+            const result = await insertCompanyWithOwner(record);
+            results.push(result[0]); // insertCompanyWithOwner returns an array
+          }
+          return results;
+        }
+        
         const { data, error } = await supabase
           .from(tableName)
           .insert(records)

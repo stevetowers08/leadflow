@@ -12,6 +12,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components/Layout";
 import { UnifiedPopup } from "./components/UnifiedPopup";
 import { AuthPage } from "./components/auth/AuthPage";
+import AuthCallback from "./components/auth/AuthCallback";
 
 // Pages
 import Index from "./pages/Index";
@@ -65,6 +66,8 @@ const AppRoutes = () => {
           <Layout>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/test-callback" element={<div className="p-8"><h1>Test Callback Route Works!</h1></div>} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/leads" element={<Leads />} />
               <Route path="/companies" element={<Companies />} />

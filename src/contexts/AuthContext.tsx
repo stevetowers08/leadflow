@@ -139,13 +139,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('🔐 Initializing authentication...');
         setError(null);
 
-        // Set a timeout to force loading to complete after 5 seconds
+        // Set a timeout to force loading to complete after 3 seconds
         timeoutId = setTimeout(() => {
           if (isMounted) {
             console.log('⏰ Auth initialization timeout - forcing loading to false');
             setLoading(false);
           }
-        }, 5000);
+        }, 3000);
 
         // Check if supabase client is properly initialized
         if (!supabase || !supabase.auth) {
@@ -173,21 +173,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (session?.user) {
             console.log('🔍 Creating fallback profile for user:', session.user.id);
             if (isMounted) {
-              // Use the known profile data from the database
+              // Use the actual user data from OAuth
               const fallbackProfile = {
                 id: session.user.id,
                 email: session.user.email,
-                full_name: 'Steve Towers',
+                full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
                 role: 'owner',
                 user_limit: 1000,
                 is_active: true,
-                created_at: '2025-09-28T08:23:00.300608+10:00',
-                updated_at: '2025-09-28T08:23:00.300608+10:00'
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
               };
               setUserProfile(fallbackProfile);
               setLoading(false);
               clearTimeout(timeoutId);
-              console.log('✅ Loading set to false with known profile data');
+              console.log('✅ Loading set to false with user profile data');
             }
           } else {
             if (isMounted) {
@@ -233,16 +233,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (session?.user) {
               console.log('🔄 Auth state change - creating fallback profile');
               if (isMounted) {
-                // Use the known profile data from the database
+                // Use the actual user data from OAuth
                 const fallbackProfile = {
                   id: session.user.id,
                   email: session.user.email,
-                  full_name: 'Steve Towers',
+                  full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
                   role: 'owner',
                   user_limit: 1000,
                   is_active: true,
-                  created_at: '2025-09-28T08:23:00.300608+10:00',
-                  updated_at: '2025-09-28T08:23:00.300608+10:00'
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
                 };
                 setUserProfile(fallbackProfile);
                 setLoading(false);
@@ -349,6 +349,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setError(null);
       console.log('🚪 Signing out...');
+      console.log('🔍 Current user before sign out:', user?.email);
       
       const { error } = await supabase.auth.signOut();
       
@@ -365,7 +366,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.clear();
       sessionStorage.clear();
       
-      console.log('✅ Sign out successful');
+      console.log('✅ Sign out successful - state cleared');
+      console.log('🔍 User after sign out:', user);
       return { error: null };
     } catch (error) {
       const authError = error as AuthError;

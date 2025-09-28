@@ -255,7 +255,7 @@ const Leads = () => {
                   }}
                 />
                 <div 
-                  className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
+                  className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold"
                   style={{ display: 'none' }}
                 >
                   {initials}
@@ -263,9 +263,6 @@ const Leads = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium break-words leading-tight">{lead.name || "-"}</div>
-                <div className="text-xs text-muted-foreground break-words leading-tight">
-                  {lead.company_role || "No role specified"}
-                </div>
               </div>
             </div>
           </div>
@@ -277,7 +274,7 @@ const Leads = () => {
       label: "Role",
       render: (lead: Lead) => (
         <div className="min-w-0 max-w-48">
-          <div className="text-xs text-muted-foreground break-words leading-tight">
+          <div className="text-sm text-muted-foreground break-words leading-tight">
             {lead.company_role || "-"}
           </div>
         </div>
@@ -309,7 +306,7 @@ const Leads = () => {
                 />
               ) : null}
               <div 
-                className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
+                className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center text-sm font-semibold"
                 style={{ display: lead.company_logo_url ? 'none' : 'flex' }}
               >
                 {lead.company_name?.charAt(0)?.toUpperCase() || '?'}
@@ -327,7 +324,7 @@ const Leads = () => {
       label: "Location",
       render: (lead: Lead) => (
         <div className="min-w-0 max-w-48">
-          <div className="text-xs text-muted-foreground break-words leading-tight">
+          <div className="text-sm text-muted-foreground break-words leading-tight">
             {lead.employee_location || "-"}
           </div>
         </div>
@@ -371,7 +368,7 @@ const Leads = () => {
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (lead: Lead) => {
-        if (!lead.created_at) return <span className="text-xs">-</span>;
+        if (!lead.created_at) return <span className="text-sm">-</span>;
         
         try {
           const date = new Date(lead.created_at);
@@ -381,13 +378,13 @@ const Leads = () => {
           
           return (
             <div className="text-center">
-              <div className="text-xs text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 {diffDays === 1 ? '1 day ago' : `${diffDays} days ago`}
               </div>
             </div>
           );
         } catch {
-          return <span className="text-xs">-</span>;
+          return <span className="text-sm">-</span>;
         }
       },
     },
@@ -397,7 +394,7 @@ const Leads = () => {
       headerAlign: "center" as const,
       cellAlign: "center" as const,
       render: (lead: Lead) => {
-        if (!lead.last_interaction_at) return <span className="text-xs">-</span>;
+        if (!lead.last_interaction_at) return <span className="text-sm">-</span>;
         
         try {
           const date = new Date(lead.last_interaction_at);
@@ -407,13 +404,13 @@ const Leads = () => {
           
           return (
             <div className="text-center">
-              <div className="text-xs text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 {diffDays === 1 ? '1 day ago' : `${diffDays} days ago`}
               </div>
             </div>
           );
         } catch {
-          return <span className="text-xs">-</span>;
+          return <span className="text-sm">-</span>;
         }
       },
     },

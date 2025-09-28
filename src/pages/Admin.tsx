@@ -25,12 +25,6 @@ const Admin: React.FC = () => {
   
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    activeUsers: 0,
-    adminUsers: 0,
-    ownerUsers: 0
-  });
 
   // Fetch users and stats
   const fetchUsers = async () => {
@@ -54,19 +48,6 @@ const Admin: React.FC = () => {
       }
 
       setUsers(profiles || []);
-      
-      // Calculate stats
-      const totalUsers = profiles?.length || 0;
-      const activeUsers = profiles?.filter(p => p.is_active).length || 0;
-      const adminUsers = profiles?.filter(p => p.role === 'admin').length || 0;
-      const ownerUsers = profiles?.filter(p => p.role === 'owner').length || 0;
-      
-      setStats({
-        totalUsers,
-        activeUsers,
-        adminUsers,
-        ownerUsers
-      });
       
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -141,56 +122,6 @@ const Admin: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* System Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-2xl font-bold">{stats.totalUsers}</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Users</p>
-                  <p className="text-2xl font-bold">{stats.activeUsers}</p>
-                </div>
-                <Shield className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Admins</p>
-                  <p className="text-2xl font-bold">{stats.adminUsers}</p>
-                </div>
-                <Settings className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Owners</p>
-                  <p className="text-2xl font-bold">{stats.ownerUsers}</p>
-                </div>
-                <Crown className="h-8 w-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* User Management */}
         <Card>

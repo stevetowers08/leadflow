@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { getClearbitLogo } from "@/utils/logoService";
 import { 
   User, 
   ExternalLink, 
@@ -39,7 +39,6 @@ export function LeadDetailPopup({ lead, isOpen, onClose }: LeadDetailPopupProps)
   const [showJobModal, setShowJobModal] = useState(false);
   const [showAutomationModal, setShowAutomationModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null);
-  const [selectedLeads, setSelectedLeads] = useState<any[]>([]);
 
   // Fetch company data
   const { data: companyData, isLoading: companyLoading } = useQuery({
@@ -143,8 +142,24 @@ export function LeadDetailPopup({ lead, isOpen, onClose }: LeadDetailPopupProps)
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center shadow-sm">
-                      <User className="h-4 w-4 text-purple-600" />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+                      {(() => {
+                        const logoUrl = getClearbitLogo(companyData?.name, companyData?.website);
+                        return logoUrl ? (
+                          <img 
+                            src={logoUrl} 
+                            alt={`${companyData?.name} logo`}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null;
+                      })()}
+                      <div className="w-full h-full bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center" style={{ display: getClearbitLogo(companyData?.name, companyData?.website) ? 'none' : 'flex' }}>
+                        <User className="h-4 w-4 text-purple-600" />
+                      </div>
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -178,7 +193,7 @@ export function LeadDetailPopup({ lead, isOpen, onClose }: LeadDetailPopupProps)
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto min-h-0 p-6 pt-4 pb-2 space-y-4">
+            <div className="flex-1 overflow-y-auto min-h-0 p-6 pt-4 pb-6 space-y-4">
                 {/* Lead Information Card */}
                 <Card>
                   <CardHeader className="pb-2">
@@ -190,7 +205,6 @@ export function LeadDetailPopup({ lead, isOpen, onClose }: LeadDetailPopupProps)
                       <Button 
                         size="sm" 
                         className="bg-blue-600 hover:bg-blue-700"
-                        disabled={selectedLeads.length === 0}
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -198,28 +212,12 @@ export function LeadDetailPopup({ lead, isOpen, onClose }: LeadDetailPopupProps)
                           setShowAutomationModal(true);
                         }}
                       >
-                        Automate ({selectedLeads.length})
+                        Automate
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <div className="flex items-center space-x-2 mb-4">
-                        <Checkbox 
-                          id="select-lead"
-                          checked={selectedLeads.some(l => l.id === lead.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedLeads([...selectedLeads, lead]);
-                            } else {
-                              setSelectedLeads(selectedLeads.filter(l => l.id !== lead.id));
-                            }
-                          }}
-                        />
-                        <label htmlFor="select-lead" className="text-sm font-medium">
-                          Select this lead for automation
-                        </label>
-                      </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <label className="text-xs text-gray-500 font-medium">Full Name</label>
@@ -454,9 +452,9 @@ export function LeadDetailPopup({ lead, isOpen, onClose }: LeadDetailPopupProps)
       )}
 
       {/* Automation Modal */}
-      {showAutomationModal && selectedLeads && selectedLeads.length > 0 && (
+      {showAutomationModal && (
         <LinkedInAutomationModal
-          selectedLeads={selectedLeads.map(lead => ({
+          selectedLeads={[{
             id: lead.id,
             Name: lead.name || "Unknown Name",
             Company: companyData?.name || "Unknown Company",
@@ -474,7 +472,7 @@ export function LeadDetailPopup({ lead, isOpen, onClose }: LeadDetailPopupProps)
             automation_status_enum: "not_started", // Default since automation_status doesn't exist
             "Automation Status": "Not Started", // Default since automation_status doesn't exist
             created_at: lead.created_at || new Date().toISOString()
-          }))}
+          }]}
           isOpen={showAutomationModal}
           onClose={() => setShowAutomationModal(false)}
         />

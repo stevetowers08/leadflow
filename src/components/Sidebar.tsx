@@ -41,6 +41,10 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   // Debug logging
   console.log('Sidebar Debug:', {
     user: user?.email,
+    userMetadata: user?.user_metadata,
+    avatarUrl: user?.user_metadata?.avatar_url,
+    picture: user?.user_metadata?.picture,
+    fullName: user?.user_metadata?.full_name,
     hasAdminRole: hasRole('admin'),
     hasOwnerRole: hasRole('owner'),
     shouldShowAdmin: hasRole('admin') || hasRole('owner')
@@ -167,7 +171,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               <Button variant="ghost" className="w-full p-2 h-auto hover:bg-transparent justify-start">
                 <div className="flex items-center w-full gap-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata?.avatar_url} />
+                    <AvatarImage src={user.user_metadata?.avatar_url || user.user_metadata?.picture} />
                     <AvatarFallback className="text-xs">
                       {user.user_metadata?.full_name
                         ? user.user_metadata.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)

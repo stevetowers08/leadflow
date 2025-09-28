@@ -5,6 +5,20 @@ import "./index.css";
 import "./debug-env.ts";
 
 console.log('🚀 Empowr CRM starting...');
+console.log('🔍 Environment Debug Info:');
+console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET');
+console.log('VITE_GOOGLE_CLIENT_ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID);
+console.log('All env vars:', import.meta.env);
+
+// Add global error handler
+window.addEventListener('error', (event) => {
+  console.error('🚨 Global Error:', event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('🚨 Unhandled Promise Rejection:', event.reason);
+});
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {

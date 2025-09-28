@@ -190,126 +190,154 @@ export function JobDetailPopup({ job, isOpen, onClose }: JobDetailPopupProps) {
       
       {/* Custom Job Detail Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-[99999] bg-black/50 flex items-center justify-center p-8">
-          <div className="bg-gray-100 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header with STATUS and AI SCORE in top right */}
-            <div className="p-6 pb-4 border-b border-gray-200">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
+        <div className="fixed inset-0 z-[99999] bg-black/50 flex items-center justify-center p-6" onClick={onClose}>
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="p-6 pb-4 border-b border-gray-100 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
-                    <Briefcase className="h-5 w-5 text-gray-600 mt-1" />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+                      {(() => {
+                        const logoUrl = getClearbitLogo(job.companies?.name, job.companies?.website);
+                        return logoUrl ? (
+                          <img 
+                            src={logoUrl} 
+                            alt={`${job.companies?.name} logo`}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null;
+                      })()}
+                      <div className="w-full h-full bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg flex items-center justify-center" style={{ display: getClearbitLogo(job.companies?.name, job.companies?.website) ? 'none' : 'flex' }}>
+                        <Briefcase className="h-4 w-4 text-orange-600" />
+                      </div>
+                    </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-base font-semibold text-black mb-1">{job.title}</div>
+                    <div className="text-base font-bold text-gray-900 leading-tight">{job.title}</div>
                     <div 
-                      className="text-sm font-medium text-gray-600 cursor-pointer hover:text-blue-600 transition-colors group"
+                      className="flex items-center gap-1 text-sm text-gray-600 cursor-pointer hover:text-blue-600 transition-colors group"
                       onClick={() => setShowCompanyModal(true)}
                     >
-                      {job.companies?.name || "Unknown Company"}
+                      <Building2 className="h-3 w-3 group-hover:text-blue-600" />
+                      <span className="font-medium">{job.companies?.name || "Unknown Company"}</span>
+                      <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100" />
+                      {job.location && (
+                        <>
+                          <span className="mx-1">•</span>
+                          <MapPin className="h-3 w-3" />
+                          <span>{job.location}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
-                
-                {/* STATUS and AI SCORE in top right */}
-                <div className="flex items-center gap-4 ml-6">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-gray-500" />
-                    <span className="text-xs font-medium text-gray-500">STATUS</span>
-                    <StatusBadge 
-                      status={job.priority?.charAt(0).toUpperCase() + job.priority?.slice(1) || "Medium"} 
-                      size="sm" 
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
-                    <Star className="h-4 w-4 text-gray-500" />
-                    <span className="text-xs font-medium text-gray-500">AI SCORE</span>
-                    <span className="text-sm font-bold text-black">
-                      {job.lead_score_job || "N/A"}
-                    </span>
-                  </div>
-                  <button 
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
+                <button 
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 rounded-full hover:bg-gray-100"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-6 pt-4 pb-6 space-y-5 flex-1 overflow-y-auto min-h-0">
+            <div className="flex-1 overflow-y-auto min-h-0 p-6 pt-4 pb-6 space-y-4">
               {/* Job Information Card */}
-              <div className="bg-white rounded-xl p-5">
-                <div className="pb-3">
-                  <h3 className="text-sm font-semibold text-black">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-orange-600" />
                     Job Information
-                  </h3>
-                  <div className="pt-3">
-                    <div className="w-full h-[1px] bg-gray-100"></div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium">Employment Type</label>
+                        <p className="text-sm font-semibold">{job.employment_type || "Not specified"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium">Seniority Level</label>
+                        <p className="text-sm font-semibold">{job.seniority_level || "Not specified"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium">Function</label>
+                        <p className="text-sm font-semibold">{job.function || "Not specified"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium">Posted Date</label>
+                        <p className="text-sm font-semibold">
+                          {job.posted_date ? formatDateForSydney(job.posted_date, 'date') : "Not specified"}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium">Valid Through</label>
+                        <p className="text-sm font-semibold">
+                          {job.valid_through ? formatDateForSydney(job.valid_through, 'date') : "Not specified"}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium">Salary</label>
+                        <p className="text-sm font-semibold">{job.salary || "Not specified"}</p>
+                      </div>
+                    </div>
+                    
+                    {job.linkedin_job_id && (
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium">LinkedIn Job</label>
+                        <p className="text-sm font-semibold">
+                          <a 
+                            href={`https://www.linkedin.com/jobs/view/${job.linkedin_job_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                          >
+                            View on LinkedIn
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-8">
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium">Priority</label>
+                        <StatusBadge 
+                          status={job.priority?.charAt(0).toUpperCase() + job.priority?.slice(1) || "Medium"} 
+                          size="sm" 
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium">AI Score</label>
+                        <span className="text-sm font-semibold bg-gray-100 px-2 py-1 rounded-md">
+                          {job.lead_score_job || "N/A"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="flex items-center gap-3">
-                      <Briefcase className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">{job.employment_type || "Not specified"}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Users className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">{job.seniority_level || "Not specified"}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Settings className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">{job.function || "Not specified"}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">
-                        {job.posted_date ? formatDateForSydney(job.posted_date, 'date') : "Not specified"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">
-                        {job.valid_through ? formatDateForSydney(job.valid_through, 'date') : "Not specified"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <DollarSign className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">{job.salary || "Not specified"}</span>
-                    </div>
-                  </div>
-                  
-                  {job.linkedin_job_id && (
-                    <div className="flex items-center gap-3">
-                      <ExternalLink className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                      <a 
-                        href={`https://www.linkedin.com/jobs/view/${job.linkedin_job_id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-black hover:text-blue-600 font-medium transition-colors"
-                      >
-                        linkedin.com/jobs/view/{job.linkedin_job_id}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
 
               {/* Related Leads Card */}
-              <div className="bg-white rounded-xl p-5">
-                <div className="pb-3">
+              <Card>
+                <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-black">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Users className="h-4 w-4 text-green-600" />
                       Related Leads ({relatedLeads?.length || 0})
-                    </h3>
+                    </CardTitle>
                     <Button 
                       size="sm" 
-                      className="bg-blue-600 hover:bg-blue-700 text-sm px-4 py-2"
+                      className="bg-blue-600 hover:bg-blue-700"
                       disabled={selectedLeads.length === 0}
                       onClick={(e) => {
                         e.preventDefault();
@@ -320,18 +348,18 @@ export function JobDetailPopup({ job, isOpen, onClose }: JobDetailPopupProps) {
                       Automate ({selectedLeads.length})
                     </Button>
                   </div>
-                </div>
-                <div>
+                </CardHeader>
+                <CardContent>
                   {leadsLoading ? (
-                    <div className="text-center py-6">
-                      <div className="text-sm text-gray-500">Loading leads...</div>
+                    <div className="text-center py-4">
+                      <div className="text-sm text-muted-foreground">Loading leads...</div>
                     </div>
                   ) : relatedLeads && relatedLeads.length > 0 ? (
                     <div className="space-y-3">
                       {relatedLeads.slice(0, 5).map((lead) => (
                         <div 
                           key={lead.id} 
-                          className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
                           <Checkbox
                             id={`lead-${lead.id}`}
@@ -364,131 +392,115 @@ export function JobDetailPopup({ job, isOpen, onClose }: JobDetailPopupProps) {
                       )}
                     </div>
                   ) : (
-                    <div className="text-center py-6">
+                    <div className="text-center py-4">
                       <Users className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                      <div className="text-sm text-gray-500">No leads found for this company</div>
+                      <div className="text-sm text-muted-foreground">No leads found for this company</div>
                     </div>
                   )}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
               {/* Company Information Card */}
               {job.companies && (
-                <div className="bg-white rounded-xl p-5">
-                  <div className="pb-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden">
-                        {(() => {
-                          const logoUrl = getClearbitLogo(job.companies.name, job.companies.website);
-                          return logoUrl ? (
-                            <img 
-                              src={logoUrl} 
-                              alt={`${job.companies.name} logo`}
-                              className="w-full h-full object-contain"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                e.currentTarget.nextElementSibling.style.display = 'flex';
-                              }}
-                            />
-                          ) : null;
-                        })()}
-                        <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center" style={{ display: getClearbitLogo(job.companies.name, job.companies.website) ? 'none' : 'flex' }}>
-                          <Building2 className="h-6 w-6 text-blue-600" />
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-blue-600" />
+                      Company Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Company Name</label>
+                          <p className="text-sm font-semibold">{job.companies.name}</p>
                         </div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-lg font-bold text-black">{job.companies.name}</div>
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
-                          {job.companies.head_office && (
-                            <span>{job.companies.head_office}</span>
-                          )}
-                          {job.companies.website && (
-                            <>
-                              {job.companies.head_office && <span>•</span>}
-                              <ExternalLink className="h-3 w-3" />
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Head Office</label>
+                          <p className="text-sm font-semibold">{job.companies.head_office || "Not specified"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Industry</label>
+                          <p className="text-sm font-semibold">{job.companies.industry || "Not specified"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Company Size</label>
+                          <p className="text-sm font-semibold">{job.companies.company_size || "Not specified"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Website</label>
+                          <p className="text-sm font-semibold">
+                            {job.companies.website ? (
                               <a 
                                 href={job.companies.website.startsWith('http') ? job.companies.website : `https://${job.companies.website}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hover:text-blue-600 transition-colors"
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
                               >
-                                {job.companies.website.replace(/^https?:\/\/(www\.)?/, '')}
+                                {job.companies.website.replace(/^https?:\/\//, '')}
+                                <ExternalLink className="h-3 w-3" />
                               </a>
-                            </>
-                          )}
+                            ) : "Not specified"}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">LinkedIn</label>
+                          <p className="text-sm font-semibold">
+                            {job.companies.linkedin_url ? (
+                              <a 
+                                href={job.companies.linkedin_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                              >
+                                View Profile
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            ) : "Not specified"}
+                          </p>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                  
-                  
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="flex items-center gap-3">
-                        <Flag className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{job.companies.industry || "Not specified"}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{job.companies.head_office || "Not specified"}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Users className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{job.companies.company_size || "Not specified"}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="flex items-center gap-3">
-                        <Star className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">AI Score</span>
-                        <span className="text-sm font-semibold bg-gray-100 px-2 py-1 rounded">
-                          {job.companies.lead_score || "N/A"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Activity className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">Priority</span>
-                        <StatusBadge 
-                          status={job.companies.priority?.charAt(0).toUpperCase() + job.companies.priority?.slice(1) || "Medium"} 
-                          size="sm" 
-                          className="!mx-0 w-fit"
-                        />
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Activity className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">Status</span>
-                        <StatusBadge 
-                          status={
-                            job.companies.automation_active ? "Active" :
-                            job.companies.confidence_level === 'high' ? "Qualified" :
-                            job.companies.confidence_level === 'medium' ? "Prospect" : "New"
-                          } 
-                          size="sm" 
-                          className="!mx-0 w-fit"
-                        />
-                      </div>
-                    </div>
-                    
-                    {job.companies.score_reason && (
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <TrendingUp className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm font-medium text-black">AI Analysis</span>
+
+                      <div className="flex gap-8">
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Priority</label>
+                          <StatusBadge 
+                            status={job.companies.priority?.charAt(0).toUpperCase() + job.companies.priority?.slice(1) || "Medium"} 
+                            size="sm" 
+                          />
                         </div>
-                        <p className="text-sm text-gray-600 leading-relaxed">
-                          {job.companies.score_reason}
-                        </p>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Status</label>
+                          <StatusBadge 
+                            status={
+                              job.companies.automation_active ? "Active" :
+                              job.companies.confidence_level === 'high' ? "Qualified" :
+                              job.companies.confidence_level === 'medium' ? "Prospect" : "New"
+                            } 
+                            size="sm" 
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">AI Score</label>
+                          <span className="text-sm font-semibold bg-gray-100 px-2 py-1 rounded-md">
+                            {job.companies.lead_score || "N/A"}
+                          </span>
+                        </div>
                       </div>
-                    )}
-                    {/* Debug: Show score reason status */}
-                    {console.log('🔍 Company score_reason debug:', {
-                      companyName: job.companies.name,
-                      score_reason: job.companies.score_reason,
-                      hasScoreReason: !!job.companies.score_reason
-                    })}
-                  </div>
-                </div>
+
+                      {/* AI Analysis */}
+                      {job.companies.score_reason && (
+                        <div className="space-y-2">
+                          <label className="text-xs text-gray-500 font-medium">AI Analysis</label>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            {job.companies.score_reason}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
 
@@ -536,3 +548,4 @@ export function JobDetailPopup({ job, isOpen, onClose }: JobDetailPopupProps) {
     </>
   );
 }
+

@@ -12,6 +12,16 @@ import { TableBulkActions } from "./table/TableBulkActions";
 import { TableRow } from "./table/TableRow";
 
 
+interface BulkAction<T> {
+  id: string;
+  label: string;
+  icon: React.ComponentType<any>;
+  action: (items: T[]) => Promise<void>;
+  variant?: 'default' | 'destructive' | 'secondary';
+  requiresConfirmation?: boolean;
+  confirmationMessage?: string;
+}
+
 interface Column<T> {
   key: string;
   label: string;
@@ -123,7 +133,7 @@ export function DataTable<T extends Record<string, any> & { id: string }>({
             size="default" 
             className="h-10 px-4"
             onClick={() => {
-              exportToCSV(filteredData, { filename: exportFilename });
+              exportToCSV(data, { filename: exportFilename });
               toast({
                 title: "Export successful",
                 description: `Data exported to ${exportFilename}`,

@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, User, Mail, Calendar, LogOut, Save, Bell, Palette, Database, Settings as SettingsIcon, Shield, Activity, Clock, Globe, Smartphone, Download, Upload, Trash2, Eye, EyeOff, Users, UserPlus } from 'lucide-react';
+import { Loader2, User, Mail, Calendar, LogOut, Save, Palette, Database, Settings as SettingsIcon, Shield, Clock, Globe, Smartphone, Download, Upload, Trash2, Eye, EyeOff, Users, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -29,16 +29,6 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   
-  // Personal settings state
-  const [notifications, setNotifications] = useState({
-    email: true,
-    browser: false,
-    weeklyReports: true,
-    marketingEmails: false,
-    newLeads: true,
-    jobMatches: true,
-    systemAlerts: true,
-  });
   
   const [preferences, setPreferences] = useState({
     timezone: 'Australia/Sydney',
@@ -57,17 +47,10 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
     passwordLastChanged: null,
   });
 
-  const [usageStats, setUsageStats] = useState({
-    totalLogins: 0,
-    lastLogin: null,
-    dataExported: 0,
-    apiCallsToday: 0,
-  });
 
   // Load user settings on mount
   useEffect(() => {
     loadUserSettings();
-    loadUsageStats();
   }, [userProfile]);
 
   const loadUserSettings = async () => {
@@ -94,7 +77,6 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
       }
       
       if (data) {
-        setNotifications(data.notifications || notifications);
         setPreferences(data.preferences || preferences);
         setSecurity(data.security || security);
       }
@@ -103,19 +85,6 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
     }
   };
 
-  const loadUsageStats = async () => {
-    try {
-      // Simulate usage stats - in real app, this would come from analytics
-      setUsageStats({
-        totalLogins: Math.floor(Math.random() * 100) + 50,
-        lastLogin: new Date().toISOString(),
-        dataExported: Math.floor(Math.random() * 10),
-        apiCallsToday: Math.floor(Math.random() * 1000) + 100,
-      });
-    } catch (error) {
-      console.error('Error loading usage stats:', error);
-    }
-  };
 
   const saveUserSettings = async () => {
     setLoading(true);
@@ -129,7 +98,6 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
         .from('user_settings')
         .upsert({
           user_id: user.id,
-          notifications,
           preferences,
           security,
           updated_at: new Date().toISOString(),
@@ -333,142 +301,9 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
                 </CardContent>
               </Card>
 
-              {/* Usage Statistics */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5" />
-                    Usage Statistics
-                  </CardTitle>
-                  <CardDescription>
-                    Your account activity and usage metrics
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">{usageStats.totalLogins}</div>
-                      <div className="text-sm text-muted-foreground">Total Logins</div>
-                    </div>
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{usageStats.apiCallsToday}</div>
-                      <div className="text-sm text-muted-foreground">API Calls Today</div>
-                    </div>
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{usageStats.dataExported}</div>
-                      <div className="text-sm text-muted-foreground">Data Exports</div>
-                    </div>
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-sm font-medium">
-                        {usageStats.lastLogin ? format(new Date(usageStats.lastLogin), 'MMM dd, yyyy') : 'Never'}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Last Login</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </>
           )}
 
-          {/* Notifications */}
-          {activeSection === 'notifications' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
-                  Notification Preferences
-                </CardTitle>
-                <CardDescription>
-                  Choose how you want to be notified about activities
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Email Notifications</Label>
-                      <p className="text-sm text-muted-foreground">Receive notifications via email</p>
-                    </div>
-                    <Switch
-                      checked={notifications.email}
-                      onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, email: checked }))}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Browser Notifications</Label>
-                      <p className="text-sm text-muted-foreground">Show browser notifications</p>
-                    </div>
-                    <Switch
-                      checked={notifications.browser}
-                      onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, browser: checked }))}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>New Leads</Label>
-                      <p className="text-sm text-muted-foreground">Get notified about new leads</p>
-                    </div>
-                    <Switch
-                      checked={notifications.newLeads}
-                      onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, newLeads: checked }))}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Job Matches</Label>
-                      <p className="text-sm text-muted-foreground">Get notified about job matches</p>
-                    </div>
-                    <Switch
-                      checked={notifications.jobMatches}
-                      onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, jobMatches: checked }))}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Weekly Reports</Label>
-                      <p className="text-sm text-muted-foreground">Receive weekly summary reports</p>
-                    </div>
-                    <Switch
-                      checked={notifications.weeklyReports}
-                      onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, weeklyReports: checked }))}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Marketing Emails</Label>
-                      <p className="text-sm text-muted-foreground">Receive marketing and promotional emails</p>
-                    </div>
-                    <Switch
-                      checked={notifications.marketingEmails}
-                      onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, marketingEmails: checked }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-4 border-t">
-                  <Button onClick={saveUserSettings} disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Notifications
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Preferences */}
           {activeSection === 'preferences' && (

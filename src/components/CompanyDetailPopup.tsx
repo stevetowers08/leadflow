@@ -124,335 +124,329 @@ export function CompanyDetailPopup({ company, isOpen, onClose }: CompanyDetailPo
     <>
       {/* Custom Company Detail Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-[99999] bg-black/50 flex items-center justify-center p-6">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header with STATUS and AI SCORE in top right */}
+        <div className="fixed inset-0 z-[99999] bg-black/50 flex items-center justify-center p-6" onClick={onClose}>
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
             <div className="p-6 pb-4 border-b border-gray-100 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center shadow-sm">
-                      {company.website ? (
-                        <img 
-                          src={getClearbitLogo(company.name, company.website)} 
-                          alt={company.name}
-                          className="w-12 h-12 rounded-lg object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                            if (nextElement) {
-                              nextElement.style.display = 'flex';
-                            }
-                          }}
-                        />
-                      ) : null}
-                      <div 
-                        className="w-12 h-12 rounded-lg bg-blue-500 text-white flex items-center justify-center text-lg font-semibold"
-                        style={{ display: company.website ? 'none' : 'flex' }}
-                      >
-                        {company.name.charAt(0).toUpperCase()}
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+                      {(() => {
+                        const logoUrl = getClearbitLogo(company.name, company.website);
+                        return logoUrl ? (
+                          <img 
+                            src={logoUrl} 
+                            alt={`${company.name} logo`}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null;
+                      })()}
+                      <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center" style={{ display: getClearbitLogo(company.name, company.website) ? 'none' : 'flex' }}>
+                        <Building2 className="h-4 w-4 text-blue-600" />
                       </div>
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-lg font-bold text-gray-900 leading-tight">{company.name}</div>
+                    <div className="text-base font-bold text-gray-900 leading-tight">{company.name}</div>
                     <div className="flex items-center gap-1 text-sm text-gray-600">
                       <MapPin className="h-3 w-3" />
                       <span>{company.head_office || "Location not specified"}</span>
                     </div>
                   </div>
                 </div>
-                
-                {/* STATUS and AI SCORE in top right */}
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm font-medium text-gray-700">STATUS</span>
-                    <StatusBadge 
-                      status={
-                        company.automation_active ? "Active" :
-                        company.confidence_level === 'high' ? "Qualified" :
-                        company.confidence_level === 'medium' ? "Prospect" : "New"
-                      } 
-                      size="sm" 
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm font-medium text-gray-700">AI SCORE</span>
-                    <span className="text-sm font-semibold bg-gray-100 px-2 py-1 rounded-md">
-                      {company.lead_score || "N/A"}
-                    </span>
-                  </div>
-                  <button 
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 rounded-full hover:bg-gray-100 ml-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
+                <button 
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 rounded-full hover:bg-gray-100"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto min-h-0 p-6 pt-4 pb-2 space-y-4">
-                {/* Company Description */}
-                {company.ai_info && (
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {company.ai_info.description || company.ai_info.summary || "No description available"}
-                    </p>
-                  </div>
-                )}
+            <div className="flex-1 overflow-y-auto min-h-0 p-6 pt-4 pb-6 space-y-4">
+                {/* Company Information Card */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-blue-600" />
+                      Company Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Company Name</label>
+                          <p className="text-sm font-semibold">{company.name}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Head Office</label>
+                          <p className="text-sm font-semibold">{company.head_office || "Not specified"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Industry</label>
+                          <p className="text-sm font-semibold">{company.industry || "Not specified"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Company Size</label>
+                          <p className="text-sm font-semibold">{company.company_size || "Not specified"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Website</label>
+                          <p className="text-sm font-semibold">
+                            {company.website ? (
+                              <a 
+                                href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                              >
+                                {company.website.replace(/^https?:\/\//, '')}
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            ) : "Not specified"}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">LinkedIn</label>
+                          <p className="text-sm font-semibold">
+                            {company.linkedin_url ? (
+                              <a 
+                                href={company.linkedin_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                              >
+                                View Profile
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            ) : "Not specified"}
+                          </p>
+                        </div>
+                      </div>
 
-                {/* Contact Information */}
-                <div className="flex items-center gap-6 mb-4">
-                  <div className="flex items-center gap-2 text-blue-600">
-                    <Phone className="h-4 w-4" />
-                    <span className="text-sm">Add phone</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-blue-600">
-                    <Mail className="h-4 w-4" />
-                    <span className="text-sm">Add email</span>
-                  </div>
-                </div>
+                      <div className="flex gap-8">
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Priority</label>
+                          <StatusBadge 
+                            status={company.priority?.charAt(0).toUpperCase() + company.priority?.slice(1) || "Medium"} 
+                            size="sm" 
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">Status</label>
+                          <StatusBadge 
+                            status={
+                              company.automation_active ? "Active" :
+                              company.confidence_level === 'high' ? "Qualified" :
+                              company.confidence_level === 'medium' ? "Prospect" : "New"
+                            } 
+                            size="sm" 
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 font-medium">AI Score</label>
+                          <span className="text-sm font-semibold bg-gray-100 px-2 py-1 rounded-md">
+                            {company.lead_score || "N/A"}
+                          </span>
+                        </div>
+                      </div>
 
-                {/* Data Points Grid */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  {/* Row 1 */}
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{company.company_size || "Unknown"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Flag className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{company.industry || "Unknown"}</span>
-                  </div>
-                  
-                  {/* Row 2 */}
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">
-                      {company.linkedin_url ? (
-                        <a 
-                          href={company.linkedin_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          LinkedIn Profile
-                        </a>
-                      ) : "No LinkedIn"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">
-                      {company.website ? (
-                        <a 
-                          href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          {company.website.replace(/^https?:\/\//, '')}
-                        </a>
-                      ) : "No website"}
-                    </span>
-                  </div>
-                  
-                  {/* Row 3 */}
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{company.jobs_count || 0} jobs</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Settings className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{company.created_at ? new Date(company.created_at).getFullYear() : "Unknown"}</span>
-                  </div>
-                </div>
-
-                {/* AI Analysis */}
-                {company.score_reason && (
-                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm font-medium text-gray-700">AI Analysis</span>
+                      {/* AI Analysis */}
+                      {company.score_reason && (
+                        <div className="space-y-2">
+                          <label className="text-xs text-gray-500 font-medium">AI Analysis</label>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            {company.score_reason}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {company.score_reason}
-                    </p>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
 
                 {/* Related Leads Section */}
-                <div className="border-t border-gray-100 pt-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-gray-500" />
-                      <h3 className="text-lg font-semibold text-gray-900">Related Leads ({relatedLeads?.length || 0})</h3>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Users className="h-4 w-4 text-green-600" />
+                        Related Leads ({relatedLeads?.length || 0})
+                      </CardTitle>
+                      <Button 
+                        size="sm" 
+                        className="bg-blue-600 hover:bg-blue-700"
+                        disabled={selectedLeads.length === 0}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log("🚀 Automate button clicked!");
+                          setShowAutomationModal(true);
+                        }}
+                      >
+                        Automate ({selectedLeads.length})
+                      </Button>
                     </div>
-                    <Button 
-                      size="sm" 
-                      className="bg-blue-600 hover:bg-blue-700"
-                      disabled={selectedLeads.length === 0}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log("🚀 Automate button clicked!");
-                        setShowAutomationModal(true);
-                      }}
-                    >
-                      Automate ({selectedLeads.length})
-                    </Button>
-                  </div>
-                  {leadsLoading ? (
-                    <div className="text-center py-4">
-                      <div className="text-sm text-muted-foreground">Loading leads...</div>
-                    </div>
-                  ) : relatedLeads && relatedLeads.length > 0 ? (
-                    <div className="space-y-3">
-                      {relatedLeads.slice(0, 5).map((lead) => {
-                        // Calculate days since last interaction
-                        const getDaysSinceLastInteraction = () => {
-                          if (!lead.last_interaction_at) return null;
-                          try {
-                            const date = new Date(lead.last_interaction_at);
-                            const now = new Date();
-                            const diffTime = Math.abs(now.getTime() - date.getTime());
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            return diffDays;
-                          } catch {
-                            return null;
-                          }
-                        };
-                        const daysSinceLastInteraction = getDaysSinceLastInteraction();
+                  </CardHeader>
+                  <CardContent>
+                    {leadsLoading ? (
+                      <div className="text-center py-4">
+                        <div className="text-sm text-muted-foreground">Loading leads...</div>
+                      </div>
+                    ) : relatedLeads && relatedLeads.length > 0 ? (
+                      <div className="space-y-3">
+                        {relatedLeads.slice(0, 5).map((lead) => {
+                          // Calculate days since last interaction
+                          const getDaysSinceLastInteraction = () => {
+                            if (!lead.last_interaction_at) return null;
+                            try {
+                              const date = new Date(lead.last_interaction_at);
+                              const now = new Date();
+                              const diffTime = Math.abs(now.getTime() - date.getTime());
+                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                              return diffDays;
+                            } catch {
+                              return null;
+                            }
+                          };
+                          const daysSinceLastInteraction = getDaysSinceLastInteraction();
 
-                        return (
-                          <div 
-                            key={lead.id} 
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="flex items-center space-x-3 flex-1">
-                              <Checkbox 
-                                checked={selectedLeads.some(l => l.id === lead.id)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedLeads([...selectedLeads, lead]);
-                                  } else {
-                                    setSelectedLeads(selectedLeads.filter(l => l.id !== lead.id));
-                                  }
-                                }}
-                              />
-                              <div 
-                                className="flex-1 cursor-pointer"
-                                onClick={() => {
-                                  setSelectedLead(lead);
-                                  setShowLeadModal(true);
-                                }}
-                              >
-                                <div className="font-medium text-sm">{lead.name}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {lead.company_role} • {lead.employee_location}
+                          return (
+                            <div 
+                              key={lead.id} 
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <div className="flex items-center space-x-3 flex-1">
+                                <Checkbox 
+                                  checked={selectedLeads.some(l => l.id === lead.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedLeads([...selectedLeads, lead]);
+                                    } else {
+                                      setSelectedLeads(selectedLeads.filter(l => l.id !== lead.id));
+                                    }
+                                  }}
+                                />
+                                <div 
+                                  className="flex-1 cursor-pointer"
+                                  onClick={() => {
+                                    setSelectedLead(lead);
+                                    setShowLeadModal(true);
+                                  }}
+                                >
+                                  <div className="font-medium text-sm">{lead.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {lead.company_role} • {lead.employee_location}
+                                  </div>
                                 </div>
                               </div>
+                              <div className="flex items-center gap-2">
+                                <StatusBadge status={lead.stage || "new"} size="sm" />
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <StatusBadge status={lead.stage || "new"} size="sm" />
-                            </div>
+                          );
+                        })}
+                        {relatedLeads.length > 5 && (
+                          <div className="text-xs text-muted-foreground text-center">
+                            +{relatedLeads.length - 5} more leads
                           </div>
-                        );
-                      })}
-                      {relatedLeads.length > 5 && (
-                        <div className="text-xs text-muted-foreground text-center">
-                          +{relatedLeads.length - 5} more leads
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <div className="text-sm text-muted-foreground">No leads found for this company</div>
-                    </div>
-                  )}
-                </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <div className="text-sm text-muted-foreground">No leads found for this company</div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
                 {/* Active Jobs Section */}
-                <div className="border-t border-gray-100 pt-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Briefcase className="h-5 w-5 text-gray-500" />
-                    <h3 className="text-lg font-semibold text-gray-900">Active Jobs ({relatedJobs?.length || 0})</h3>
-                  </div>
-                  {jobsLoading ? (
-                    <div className="text-sm text-muted-foreground">Loading jobs...</div>
-                  ) : relatedJobs && relatedJobs.length > 0 ? (
-                    <div className="space-y-3">
-                      {relatedJobs.slice(0, 3).map((job) => {
-                        // Calculate days since posted
-                        const getDaysSincePosted = () => {
-                          if (!job.posted_date) return null;
-                          try {
-                            const date = new Date(job.posted_date);
-                            const now = new Date();
-                            const diffTime = Math.abs(now.getTime() - date.getTime());
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            return diffDays;
-                          } catch {
-                            return null;
-                          }
-                        };
-                        const daysSincePosted = getDaysSincePosted();
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-blue-600" />
+                      Active Jobs ({relatedJobs?.length || 0})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {jobsLoading ? (
+                      <div className="text-sm text-muted-foreground">Loading jobs...</div>
+                    ) : relatedJobs && relatedJobs.length > 0 ? (
+                      <div className="space-y-3">
+                        {relatedJobs.slice(0, 3).map((job) => {
+                          // Calculate days since posted
+                          const getDaysSincePosted = () => {
+                            if (!job.posted_date) return null;
+                            try {
+                              const date = new Date(job.posted_date);
+                              const now = new Date();
+                              const diffTime = Math.abs(now.getTime() - date.getTime());
+                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                              return diffDays;
+                            } catch {
+                              return null;
+                            }
+                          };
+                          const daysSincePosted = getDaysSincePosted();
 
-                        return (
-                          <div 
-                            key={job.id} 
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                            onClick={() => {
-                              setSelectedJob(job);
-                              setShowJobModal(true);
-                            }}
-                          >
-                            <div className="flex-1">
-                              <div className="font-medium text-sm">{job.title}</div>
-                              <div className="text-xs text-muted-foreground mb-1">
-                                {job.location} • {job.function}
+                          return (
+                            <div 
+                              key={job.id} 
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                              onClick={() => {
+                                setSelectedJob(job);
+                                setShowJobModal(true);
+                              }}
+                            >
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">{job.title}</div>
+                                <div className="text-xs text-muted-foreground mb-1">
+                                  {job.location} • {job.function}
+                                </div>
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                  {daysSincePosted && (
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" />
+                                      <span>Posted {daysSincePosted}d ago</span>
+                                    </div>
+                                  )}
+                                  {job.valid_through && (
+                                    <div className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      <span>Expires {new Date(job.valid_through).toLocaleDateString()}</span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                {daysSincePosted && (
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    <span>Posted {daysSincePosted}d ago</span>
-                                  </div>
-                                )}
-                                {job.valid_through && (
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    <span>Expires {new Date(job.valid_through).toLocaleDateString()}</span>
-                                  </div>
-                                )}
+                              <div className="flex items-center gap-2">
+                                <StatusBadge 
+                                  status={job.priority?.charAt(0).toUpperCase() + job.priority?.slice(1) || "Medium"} 
+                                  size="sm" 
+                                />
+                                <div className="text-xs font-medium">{job.lead_score_job || "-"}</div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <StatusBadge 
-                                status={job.priority?.charAt(0).toUpperCase() + job.priority?.slice(1) || "Medium"} 
-                                size="sm" 
-                              />
-                              <div className="text-xs font-medium">{job.lead_score_job || "-"}</div>
-                            </div>
+                          );
+                        })}
+                        {relatedJobs.length > 3 && (
+                          <div className="text-xs text-muted-foreground text-center">
+                            +{relatedJobs.length - 3} more jobs
                           </div>
-                        );
-                      })}
-                      {relatedJobs.length > 3 && (
-                        <div className="text-xs text-muted-foreground text-center">
-                          +{relatedJobs.length - 3} more jobs
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">No jobs found for this company</div>
-                  )}
-                </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">No jobs found for this company</div>
+                    )}
+                  </CardContent>
+                </Card>
             </div>
           </div>
         </div>

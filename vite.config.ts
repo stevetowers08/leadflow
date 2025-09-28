@@ -4,6 +4,7 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: '/', // Ensure correct base path for Vercel
   server: {
     host: "::",
     port: 8081,
@@ -18,6 +19,13 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
+      external: (id) => {
+        // Prevent React from being bundled multiple times
+        if (id === 'react' || id === 'react-dom') {
+          return false; // Bundle React to avoid version conflicts
+        }
+        return false;
+      },
       output: {
         manualChunks: (id) => {
           // Core React libraries
