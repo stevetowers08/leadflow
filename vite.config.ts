@@ -6,8 +6,8 @@ import path from "path";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
-    strictPort: false, // Try another port if 8080 is in use
+    port: 8081,
+    strictPort: true, // Always use port 8081
     open: true, // Automatically open browser
   },
   plugins: [react()],

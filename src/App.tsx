@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
+import { useGlobalErrorHandler, usePerformanceMonitoring } from "./hooks/useGlobalErrorHandler";
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
@@ -81,6 +82,10 @@ const AppRoutes = () => {
 };
 
 const App = () => {
+  // Enable error logging and performance monitoring
+  useGlobalErrorHandler();
+  usePerformanceMonitoring();
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
