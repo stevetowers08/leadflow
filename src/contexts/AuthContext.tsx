@@ -137,11 +137,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     let isMounted = true;
     let authStateSubscription: any = null;
+    let timeoutId: any = null;
 
     const initializeAuth = async () => {
       try {
         console.log('🔐 Initializing authentication...');
         setError(null);
+
+        // Set a timeout to force loading to complete after 10 seconds
+        timeoutId = setTimeout(() => {
+          if (isMounted) {
+            console.log('⏰ Auth initialization timeout - forcing loading to false');
+            setLoading(false);
+          }
+        }, 10000);
 
         // Check if supabase client is properly initialized
         if (!supabase || !supabase.auth) {
@@ -167,9 +176,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setSession(session);
 
           if (session?.user) {
-            const profile = await loadUserProfile(session.user.id);
+            console.log('🔍 Attempting to load profile for user:', session.user.id);
+            try {
+              const profile = await loadUserProfile(session.user.id);
+              console.log('📋 Profile load result:', profile);
+              if (isMounted) {
+                setUserProfile(profile);
+                setLoading(false);
+                clearTimeout(timeoutId);
+                console.log('✅ Loading set to false after profile load');
+              }
+            } catch (profileError) {
+              console.error('❌ Profile load error in initializeAuth:', profileError);
+              if (isMounted) {
+                // Create a minimal profile if loading fails
+                const fallbackProfile = {
+                  id: session.user.id,
+                  email: session.user.email,
+                  full_name: session.user.user_metadata?.full_name || session.user.email,
+                  role: 'owner', // Default role
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                };
+                setUserProfile(fallbackProfile);
+                setLoading(false);
+                clearTimeout(timeoutId);
+                console.log('✅ Loading set to false with fallback profile');
+              }
+            }
+          } else {
             if (isMounted) {
-              setUserProfile(profile);
+              setLoading(false);
+              clearTimeout(timeoutId);
+              console.log('✅ Loading set to false - no user');
             }
           }
         }
@@ -177,10 +216,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error('❌ Auth initialization error:', error);
         if (isMounted) {
           setError(`Authentication initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          setLoading(false);
+          clearTimeout(timeoutId);
         }
       } finally {
         if (isMounted) {
           setLoading(false);
+          clearTimeout(timeoutId);
         }
       }
     };
@@ -204,13 +246,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setError(null); // Clear errors on successful auth change
 
             if (session?.user) {
-              const profile = await loadUserProfile(session.user.id);
-              if (isMounted) {
-                setUserProfile(profile);
+              console.log('🔄 Auth state change - attempting profile load');
+              try {
+                const profile = await loadUserProfile(session.user.id);
+                if (isMounted) {
+                  setUserProfile(profile);
+                  setLoading(false);
+                }
+              } catch (profileError) {
+                console.error('❌ Profile load error in auth state change:', profileError);
+                if (isMounted) {
+                  // Create a minimal profile if loading fails
+                  const fallbackProfile = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    full_name: session.user.user_metadata?.full_name || session.user.email,
+                    role: 'owner', // Default role
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  };
+                  setUserProfile(fallbackProfile);
+                  setLoading(false);
+                }
               }
             } else {
               if (isMounted) {
                 setUserProfile(null);
+                setLoading(false);
               }
             }
           } catch (error) {
@@ -238,8 +300,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (authStateSubscription) {
         authStateSubscription.unsubscribe();
       }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
-  }, []); // ✅ Remove loadUserProfile dependency to prevent infinite loops
+  }, []); // ✅ Empty dependency array to prevent infinite loops
 
   // Refresh profile function
   const refreshProfile = useCallback(async () => {
