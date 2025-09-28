@@ -12,9 +12,14 @@ export default defineConfig(({ mode }) => ({
     open: true, // Automatically open browser
   },
   plugins: [react()],
+  optimizeDeps: {
+    include: ['react', 'react-dom']
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      react: path.resolve(__dirname, "./node_modules/react"),
+      'react-dom': path.resolve(__dirname, "./node_modules/react-dom")
     },
   },
   build: {
