@@ -2,7 +2,6 @@
 export interface EnvironmentConfig {
   supabaseUrl: string;
   supabaseAnonKey: string;
-  supabaseServiceKey?: string;
   googleClientId?: string;
   isValid: boolean;
   errors: string[];
@@ -11,10 +10,9 @@ export interface EnvironmentConfig {
 export function validateEnvironment(): EnvironmentConfig {
   const errors: string[] = [];
   
-  // Safely check for required environment variables with fallbacks
+  // Safely check for required CLIENT-SIDE environment variables only
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
   // Only validate if we have values to validate
@@ -34,10 +32,8 @@ export function validateEnvironment(): EnvironmentConfig {
     errors.push('VITE_SUPABASE_ANON_KEY is required');
   }
 
-  // Service key is optional for basic operations
-  if (supabaseServiceKey && !supabaseServiceKey.startsWith('eyJ')) {
-    errors.push('VITE_SUPABASE_SERVICE_ROLE_KEY appears to be invalid');
-  }
+  // Service role key should NOT be exposed to client-side
+  // It's only used server-side and should not be validated here
 
   // Google client ID is optional
   if (googleClientId && !googleClientId.includes('.apps.googleusercontent.com')) {
@@ -47,7 +43,6 @@ export function validateEnvironment(): EnvironmentConfig {
   return {
     supabaseUrl,
     supabaseAnonKey,
-    supabaseServiceKey,
     googleClientId,
     isValid: errors.length === 0,
     errors
@@ -60,8 +55,8 @@ export function logEnvironmentStatus(): void {
   console.group('🔧 Environment Configuration');
   console.log('Supabase URL:', config.supabaseUrl ? '✅ Set' : '❌ Missing');
   console.log('Supabase Anon Key:', config.supabaseAnonKey ? '✅ Set' : '❌ Missing');
-  console.log('Supabase Service Key:', config.supabaseServiceKey ? '✅ Set' : '❌ Missing');
   console.log('Google Client ID:', config.googleClientId ? '✅ Set' : '❌ Missing');
+  console.log('ℹ️ Service Role Key: Not exposed to client-side (server-only)');
   
   if (!config.isValid) {
     console.error('❌ Environment validation failed:');

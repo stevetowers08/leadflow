@@ -13,15 +13,15 @@ if (!envConfig.isValid) {
 // Log environment status for debugging
 logEnvironmentStatus();
 
-// Environment variables for Supabase configuration
+// Environment variables for Supabase configuration (CLIENT-SIDE ONLY)
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+// Note: Service role key should NOT be exposed to client-side
 
 console.log('🔧 Supabase client config:', { 
   SUPABASE_URL, 
   SUPABASE_PUBLISHABLE_KEY: SUPABASE_PUBLISHABLE_KEY ? SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...' : 'MISSING',
-  SUPABASE_SERVICE_ROLE_KEY: SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING'
+  SERVICE_ROLE_KEY: 'Not exposed to client-side (server-only)'
 });
 
 // Create client with proper auth configuration
