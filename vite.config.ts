@@ -19,41 +19,70 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunks
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          'query-vendor': ['@tanstack/react-query'],
-          'utils-vendor': ['date-fns', 'clsx', 'tailwind-merge'],
-          'charts-vendor': ['recharts'],
-          'icons-vendor': ['lucide-react'],
+        manualChunks: (id) => {
+          // Core React libraries
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            return 'react-vendor';
+          }
           
-          // Feature chunks
-          'pages-admin': [
-            './src/pages/Admin.tsx',
-            './src/pages/AdminUsers.tsx', 
-            './src/pages/AdminSettings.tsx'
-          ],
-          'pages-main': [
-            './src/pages/Jobs.tsx',
-            './src/pages/Leads.tsx',
-            './src/pages/Companies.tsx',
-            './src/pages/Pipeline.tsx'
-          ],
-          'components-modals': [
-            './src/components/UnifiedPopup.tsx',
-            './src/components/PopupErrorBoundary.tsx',
-            './src/components/VirtualizedList.tsx'
-          ]
+          // UI libraries
+          if (id.includes('@radix-ui')) {
+            return 'ui-vendor';
+          }
+          
+          // Supabase
+          if (id.includes('@supabase')) {
+            return 'supabase-vendor';
+          }
+          
+          // React Query
+          if (id.includes('@tanstack')) {
+            return 'query-vendor';
+          }
+          
+          // Charts (lazy load)
+          if (id.includes('recharts')) {
+            return 'charts-vendor';
+          }
+          
+          // Icons (lazy load)
+          if (id.includes('lucide-react')) {
+            return 'icons-vendor';
+          }
+          
+          // Utils
+          if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
+            return 'utils-vendor';
+          }
+          
+          // Admin pages (lazy load)
+          if (id.includes('/pages/Admin')) {
+            return 'pages-admin';
+          }
+          
+          // Main pages
+          if (id.includes('/pages/') && !id.includes('/pages/Admin')) {
+            return 'pages-main';
+          }
+          
+          // Modal components (lazy load)
+          if (id.includes('/components/modals/') || id.includes('UnifiedPopup')) {
+            return 'components-modals';
+          }
+          
+          // Default chunk
+          return 'vendor';
         }
       }
     },
-    chunkSizeWarningLimit: 1000, // Increase limit to 1MB for better chunking
+    chunkSizeWarningLimit: 500, // Reduce to 500KB for better performance
     target: 'esnext',
-    minify: 'esbuild', // Use esbuild instead of terser
+    minify: 'esbuild',
     esbuild: {
-      drop: mode === 'production' ? ['console', 'debugger'] : [],
+      drop: mode === 'production' ? ['debugger'] : [], // Keep console logs for debugging
+      treeShaking: true, // Enable tree shaking
     },
+    // Enable source maps for debugging in production
+    sourcemap: mode === 'development',
   },
 }));
