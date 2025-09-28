@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import SupabaseErrorBoundary from "./components/SupabaseErrorBoundary.tsx";
 import "./index.css";
+import "./debug-env.ts";
 
 console.log('🚀 Empowr CRM starting...');
 
