@@ -14,7 +14,7 @@ export function validateEnvironment(): EnvironmentConfig {
   // Safely check for required environment variables with fallbacks
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '';
+  const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
   // Only validate if we have values to validate
