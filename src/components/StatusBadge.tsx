@@ -8,11 +8,11 @@ interface StatusBadgeProps {
   size?: "sm" | "md" | "lg";
 }
 
-// STANDARDIZED OVAL STYLING - Fixed width, taller, centered text for table display
+// STANDARDIZED STYLING - Fixed width, taller, centered text for table display
 const sizeStyles = {
-  sm: "h-7 text-xs font-medium rounded-full text-center px-3",
-  md: "h-8 text-sm font-medium rounded-full text-center px-3", 
-  lg: "h-9 text-sm font-medium rounded-full text-center px-4"
+  sm: "h-7 text-xs font-medium rounded-md text-center px-3",
+  md: "h-8 text-sm font-medium rounded-md text-center px-3", 
+  lg: "h-9 text-sm font-medium rounded-md text-center px-4"
 };
 
 export const StatusBadge = ({ status, className, size = "md" }: StatusBadgeProps) => {
@@ -25,12 +25,10 @@ export const StatusBadge = ({ status, className, size = "md" }: StatusBadgeProps
   // Fixed width for consistent sizing
   const fixedWidth = size === "sm" ? "110px" : size === "md" ? "120px" : "130px";
   
-  console.log("StatusBadge DEBUG width:", fixedWidth, "timestamp:", Date.now());
-  
   return (
     <div
       className={cn(
-        "border font-medium justify-center items-center flex rounded-full mx-auto",
+        "border font-medium justify-center items-center flex rounded-md mx-auto",
         styleClass,
         sizeStyles[size],
         className

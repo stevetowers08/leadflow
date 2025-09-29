@@ -151,17 +151,17 @@ export const PopupModal: React.FC<PopupModalProps> = ({
       }}
     >
       <div className={cn(
-        "bg-gray-100 rounded-xl shadow-2xl w-full max-h-[95vh] overflow-hidden flex flex-col",
+        "bg-gray-50 rounded-xl shadow-2xl w-full max-h-[95vh] overflow-hidden flex flex-col",
         "max-w-4xl", // Default size
         "sm:max-w-4xl", // Small screens
         "md:max-w-5xl", // Medium screens
-        "lg:max-w-6xl", // Large screens
+        "lg:max-w-5xl", // Large screens
         "transition-all duration-200 ease-in-out transform",
         isAnimating ? "scale-100 opacity-100" : "scale-95 opacity-0",
         className
       )}>
         {/* Header with responsive padding */}
-        <div className="px-4 sm:px-6 py-3 border-b border-gray-200">
+        <div className="px-4 sm:px-5 py-3 border-b border-gray-200">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3 flex-1 min-w-0">
               <div className="flex-shrink-0" aria-hidden="true">
@@ -172,17 +172,17 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 id="popup-title" className="text-lg font-semibold text-black mb-0.5">
+                <h2 id="popup-title" className="text-base font-semibold text-gray-900 mb-0.5">
                   {isLoading ? (
-                    <div className="h-6 bg-gray-200 rounded animate-pulse w-32" />
+                    <div className="h-5 bg-gray-200 rounded animate-pulse w-32" />
                   ) : (
                     title
                   )}
                 </h2>
                 {subtitle && (
-                  <p id="popup-description" className="text-sm font-medium text-gray-600">
+                  <p id="popup-description" className="text-xs font-medium text-gray-400">
                     {isLoading ? (
-                      <div className="h-4 bg-gray-200 rounded animate-pulse w-48" />
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-48" />
                     ) : (
                       subtitle
                     )}
@@ -192,7 +192,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
             </div>
 
             {/* Status and AI Score - responsive layout */}
-            <div className="flex items-center gap-2 sm:gap-4 ml-3 sm:ml-6">
+            <div className="flex items-center gap-2 sm:gap-3 ml-3 sm:ml-4">
               {isLoading ? (
                 <>
                   <div className="h-6 bg-gray-200 rounded animate-pulse w-16" />
@@ -201,8 +201,8 @@ export const PopupModal: React.FC<PopupModalProps> = ({
               ) : (
                 <>
                   {statusBadge && (
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <span className="text-xs font-medium text-gray-500 hidden sm:inline">{statusLabel}</span>
+                    <div className="flex items-center gap-1 sm:gap-1.5">
+                      <span className="text-xs font-medium text-gray-400 hidden sm:inline capitalize">{statusLabel}</span>
                       {statusBadge}
                     </div>
                   )}
@@ -212,8 +212,8 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                     const isLeadScore = scoringDisplay.type === 'lead_score';
                     
                     return (
-                      <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg">
-                        <span className="text-xs font-medium text-gray-500 hidden sm:inline">{scoringDisplay.label}</span>
+                      <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg">
+                        <span className="text-xs font-medium text-gray-400 hidden sm:inline capitalize">AI Score</span>
                         {isLeadScore ? (
                           // LEAD SCORE: Use StatusBadge for proper styling
                           <StatusBadge status={scoringDisplay.value as string} size="sm" />
@@ -225,7 +225,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                         ) : (
                           // BADGE DESIGN: Colored badge for words
                           <span className={cn(
-                            "text-sm font-bold px-2 py-1 rounded-md border",
+                            "text-sm font-bold px-1.5 py-0.5 rounded-md border",
                             scoringInfo.color
                           )}>
                             {scoringInfo.badge}
@@ -249,7 +249,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
         </div>
 
         {/* Content with responsive padding */}
-        <div className="px-4 sm:px-6 py-4 space-y-5 flex-1 overflow-y-auto min-h-0">
+        <div className="px-4 sm:px-5 py-4 space-y-4 flex-1 overflow-y-auto min-h-0">
           {error ? (
             <LoadingState
               isLoading={false}

@@ -1,5 +1,8 @@
 import React from 'react';
 import { InfoCard } from '../shared/InfoCard';
+import { StatusBadge } from '../StatusBadge';
+import { getScoreBadgeClasses, getPriorityBadgeClasses } from '@/utils/scoreUtils';
+import { cn } from '@/lib/utils';
 import { 
   Briefcase, 
   MapPin, 
@@ -49,53 +52,68 @@ export const JobInfoCard: React.FC<JobInfoCardProps> = ({ job }) => {
 
   return (
     <InfoCard title="Job Information" contentSpacing="space-y-4 pt-2">
-      {/* Basic Information */}
+      {/* Key Details Grid */}
       <div className="grid grid-cols-3 gap-4">
-        <InfoField icon={<Briefcase className="h-4 w-4" />} value={job.title} />
-        <InfoField icon={<MapPin className="h-4 w-4" />} value={job.location} />
-        <InfoField 
-          icon={<Calendar className="h-4 w-4" />} 
-          value={
-            job.created_at ? formatDateForSydney(job.created_at, 'date') : "Not specified"
-          } 
-        />
+        <InfoField label="Location" value={job.location} />
+        <InfoField label="Posted Date" value={job.created_at ? formatDateForSydney(job.created_at, 'date') : "Not specified"} />
+        <InfoField label="Employment Type" value={formatEmploymentType()} />
+        <InfoField label="Remote Status" value={formatRemoteStatus()} />
+        <InfoField label="Status" value={job.status || "Not specified"} />
+        <div className="space-y-1">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+            Priority
+          </div>
+          <div className="flex items-center justify-start">
+            <span className={cn(
+              "inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border",
+              getPriorityBadgeClasses(job.priority)
+            )}>
+              {job.priority || "Medium"}
+            </span>
+          </div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+            AI Score
+          </div>
+          <div className="flex items-center justify-start">
+            <span className={cn(
+              "inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border",
+              getScoreBadgeClasses(job.lead_score_job)
+            )}>
+              {job.lead_score_job || "-"}
+            </span>
+          </div>
+        </div>
+        <InfoField label="Function/Department" value={job.function || "Not specified"} />
       </div>
 
-      {/* Employment Details */}
-      <div className="grid grid-cols-3 gap-4">
-        <InfoField icon={<Clock className="h-4 w-4" />} value={formatEmploymentType()} />
-        <InfoField icon={<Building className="h-4 w-4" />} value={formatRemoteStatus()} />
-        <InfoField icon={<Target className="h-4 w-4" />} value={job.status || "Not specified"} />
-      </div>
-
-      {/* Financial & Priority */}
-      <div className="grid grid-cols-3 gap-4">
-        <InfoField icon={<DollarSign className="h-4 w-4" />} value={formatSalary()} />
-        <InfoField icon={<Zap className="h-4 w-4" />} value={job.priority || "Not specified"} />
-        <InfoField 
-          icon={<Activity className="h-4 w-4" />} 
-          value={job.lead_score_job ? `Score: ${job.lead_score_job}` : "No score"} 
-        />
-      </div>
-
-      {/* Function/Department */}
-      <div className="grid grid-cols-1 gap-4">
-        <InfoField icon={<Building className="h-4 w-4" />} value={job.function || "Not specified"} />
+      {/* Salary - Prominent */}
+      <div className="space-y-2">
+        <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+          Salary Range
+        </div>
+        <div className="text-sm text-gray-900 font-medium">
+          {formatSalary()}
+        </div>
       </div>
     </InfoCard>
   );
 };
 
 interface InfoFieldProps {
-  icon: React.ReactNode;
+  label: string;
   value: React.ReactNode;
+  className?: string;
 }
 
-const InfoField: React.FC<InfoFieldProps> = ({ icon, value }) => (
-  <div className="flex items-center gap-3">
-    <div className="text-muted-foreground flex-shrink-0">{icon}</div>
-    <span className="text-sm text-foreground">
+const InfoField: React.FC<InfoFieldProps> = ({ label, value, className = "" }) => (
+  <div className={`space-y-1 ${className}`}>
+    <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+      {label}
+    </div>
+    <div className="text-sm text-gray-900 font-medium">
       {value || "Not specified"}
-    </span>
+    </div>
   </div>
 );

@@ -25,9 +25,7 @@ const secondaryNavigation = [
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
-const adminNavigation = [
-  { name: "Admin", href: "/admin", icon: Users },
-];
+// Admin navigation removed - admin functionality moved to Settings tab
 
 interface SidebarProps {
   onClose?: () => void;
@@ -38,26 +36,27 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   const { user, signOut, signInWithGoogle } = useAuth();
   const { hasRole } = usePermissions();
   
-  // Debug logging
-  console.log('Sidebar Debug:', {
-    user: user?.email,
-    userMetadata: user?.user_metadata,
-    avatarUrl: user?.user_metadata?.avatar_url,
-    picture: user?.user_metadata?.picture,
-    fullName: user?.user_metadata?.full_name,
-    hasAdminRole: hasRole('admin'),
-    hasOwnerRole: hasRole('owner'),
-    shouldShowAdmin: hasRole('admin') || hasRole('owner')
-  });
+  // Debug logging - only in development
+  if (import.meta.env.DEV) {
+    console.log('Sidebar Debug:', {
+      user: user?.email,
+      userMetadata: user?.user_metadata,
+      avatarUrl: user?.user_metadata?.avatar_url,
+      picture: user?.user_metadata?.picture,
+      fullName: user?.user_metadata?.full_name,
+      hasAdminRole: hasRole('admin'),
+      hasOwnerRole: hasRole('owner'),
+      shouldShowAdmin: hasRole('admin') || hasRole('owner')
+    });
+  }
   
   // Memoize the navigation to prevent re-renders
   const navigationItems = React.useMemo(() => mainNavigation, []);
   const secondaryItems = React.useMemo(() => secondaryNavigation, []);
-  const adminItems = React.useMemo(() => adminNavigation, []);
 
   return (
-    <aside className="bg-sidebar border-r-2 border-sidebar-border flex flex-col fixed left-0 top-0 h-screen z-40 transition-all duration-300 w-52 shadow-sm">
-      <div className="px-4 h-20 border-b border-sidebar-border bg-sidebar flex items-center">
+    <aside className="bg-sidebar border-r border-sidebar-border flex flex-col fixed left-0 top-0 h-screen z-40 transition-all duration-300 w-52 shadow-lg">
+      <div className="px-4 h-20 border-b border-sidebar-border bg-sidebar/50 backdrop-blur-sm flex items-center">
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center">
@@ -91,10 +90,10 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               key={item.name}
               to={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer font-medium",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer font-medium group",
                 isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-sm"
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md ring-1 ring-sidebar-primary/20"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-sm hover:scale-[1.02]"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -115,10 +114,10 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer font-medium",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer font-medium group",
                   isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-sm"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md ring-1 ring-sidebar-primary/20"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-sm hover:scale-[1.02]"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -130,41 +129,9 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
         
       </nav>
       
-      {/* Admin Section - Only visible to administrators and owners - Bottom */}
-      {(hasRole('admin') || hasRole('owner')) && (
-        <div className="px-3 py-2 border-t border-sidebar-border">
-          <div className="space-y-2">
-            <div className="px-3 py-1">
-              <h3 className="text-xs font-normal text-sidebar-foreground/60 uppercase tracking-wider">
-                Admin
-              </h3>
-            </div>
-            {adminItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href;
-              
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer",
-                    isActive
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      )}
       
       {/* User Menu or Sign In */}
-      <div className="p-3 border-t border-sidebar-border">
+      <div className="p-3 border-t border-sidebar-border bg-sidebar/30 backdrop-blur-sm">
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -200,7 +167,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
           <Button 
             onClick={() => signInWithGoogle()} 
             variant="ghost" 
-            className="w-full justify-start text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent text-sm"
+            className="w-full justify-start text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent text-sm transition-all duration-200 hover:scale-[1.02]"
           >
             <LogIn className="mr-2 h-4 w-4 text-sidebar-foreground" />
             <span className="text-sidebar-foreground">Google Sign In</span>

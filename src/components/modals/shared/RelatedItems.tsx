@@ -113,7 +113,7 @@ export const RelatedItems: React.FC<RelatedItemsProps> = React.memo(({
                 onError={handleImageError}
               />
               <div 
-                className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center text-xs font-semibold text-blue-600" 
+                className="w-full h-full bg-gradient-to-br from-accent/10 to-accent/20 rounded-lg flex items-center justify-center text-xs font-semibold text-accent" 
                 style={{ display: 'none' }}
               >
                 {item.initials}
@@ -163,7 +163,7 @@ export const RelatedItems: React.FC<RelatedItemsProps> = React.memo(({
         showAutomateButton ? (
           <Button 
             size="sm" 
-            className="bg-blue-600 hover:bg-blue-700 text-sm px-6 py-1 !h-8 min-h-[32px]"
+            className="bg-primary hover:bg-primary/90 text-sm px-6 py-1 !h-8 min-h-[32px]"
             disabled={selectedLeads.length === 0}
           >
             Automate ({selectedLeads.length})

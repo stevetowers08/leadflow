@@ -1,9 +1,11 @@
-// Debug environment variables
-console.log('🔍 Environment Debug Info:');
-console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET');
-console.log('VITE_GOOGLE_CLIENT_ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID);
-console.log('All env vars:', import.meta.env);
+// Debug environment variables - only in development
+if (import.meta.env.DEV) {
+  console.log('🔍 Environment Debug Info:');
+  console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+  console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET');
+  console.log('VITE_GOOGLE_CLIENT_ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID);
+  console.log('All env vars:', import.meta.env);
+}
 
 export const debugEnv = () => {
   return {

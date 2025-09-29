@@ -18,14 +18,14 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   contentSpacing = "space-y-3"
 }) => {
   return (
-    <div className={`bg-card rounded-xl p-5 border shadow-sm ${className}`}>
-      <div className="pb-2">
+    <div className={`bg-card rounded-xl p-4 border shadow-sm ${className}`}>
+      <div className="pb-1.5">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-card-foreground">{title}</h3>
           {actionButton}
         </div>
         {showDivider && (
-          <div className="pt-2">
+          <div className="pt-1.5">
             <div className="w-full h-[0.5px] bg-gray-200"></div>
           </div>
         )}

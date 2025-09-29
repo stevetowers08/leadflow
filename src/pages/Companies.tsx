@@ -11,7 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Search, ArrowUpDown, Trash2, Building2, Users, Briefcase, CheckCircle, Star, AlertCircle } from "lucide-react";
 import { getClearbitLogo } from "@/utils/logoService";
 import { Page } from "@/design-system/components";
+import { cn } from "@/lib/utils";
+import { getScoreBadgeClasses } from "@/utils/scoreUtils";
 import type { Tables } from "@/integrations/supabase/types";
+import { OPTIMIZED_QUERIES } from "../utils/queryOptimizer";
 
 type Company = Tables<"companies"> & {
   people_count?: number;
@@ -178,7 +181,7 @@ const Companies = () => {
       // Fetch all companies
       const { data: allCompanies, error: allError } = await supabase
         .from("companies")
-        .select("*")
+        .select(OPTIMIZED_QUERIES.getCompaniesList())
         .order("created_at", { ascending: false });
       
       if (allError) throw allError;
@@ -245,29 +248,46 @@ const Companies = () => {
 
   const columns = [
     {
+      key: "status",
+      label: "Status",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      width: "140px",
+      render: (company: Company) => {
+        if (company.automation_active) {
+          return <StatusBadge status="Active" size="sm" />;
+        } else if (company.confidence_level === 'high') {
+          return <StatusBadge status="Qualified" size="sm" />;
+        } else if (company.confidence_level === 'medium') {
+          return <StatusBadge status="Prospect" size="sm" />;
+        } else if (company.confidence_level === 'low') {
+          return <StatusBadge status="New" size="sm" />;
+        } else {
+          return <StatusBadge status="New" size="sm" />;
+        }
+      },
+    },
+    {
       key: "name",
       label: "Company",
+      width: "320px",
       render: (company: Company) => (
-        <div className="min-w-0 max-w-80">
+        <div className="min-w-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
               {company.website ? (
                 <img 
-                  src={getClearbitLogo(company.name, company.website)} 
+                  src={`https://logo.clearbit.com/${company.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]}`}
                   alt={company.name}
                   className="w-8 h-8 rounded-lg object-cover"
                   onError={(e) => {
-                    console.log(`Failed to load company logo for ${company.name}`);
                     e.currentTarget.style.display = 'none';
                     e.currentTarget.nextElementSibling.style.display = 'flex';
-                  }}
-                  onLoad={() => {
-                    console.log(`Successfully loaded company logo for ${company.name}`);
                   }}
                 />
               ) : null}
               <div 
-                className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
+                className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center"
                 style={{ display: company.website ? 'none' : 'flex' }}
               >
                 <Building2 className="h-4 w-4" />
@@ -283,8 +303,9 @@ const Companies = () => {
     {
       key: "industry",
       label: "Industry",
+      width: "260px",
       render: (company: Company) => (
-        <div className="min-w-0 max-w-32">
+        <div className="min-w-0">
           <div className="text-sm text-muted-foreground break-words leading-tight">
             {company.industry || "-"}
           </div>
@@ -294,8 +315,9 @@ const Companies = () => {
     {
       key: "head_office",
       label: "Location",
+      width: "240px",
       render: (company: Company) => (
-        <div className="min-w-0 max-w-32">
+        <div className="min-w-0">
           <div className="text-sm text-muted-foreground break-words leading-tight">
             {company.head_office || "-"}
           </div>
@@ -305,6 +327,7 @@ const Companies = () => {
     {
       key: "company_size",
       label: "Size",
+      width: "140px",
       render: (company: Company) => (
         <div className="text-sm text-muted-foreground">
           {company.company_size || "-"}
@@ -312,34 +335,20 @@ const Companies = () => {
       ),
     },
     {
-      key: "status",
-      label: "Status",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (company: Company) => {
-        // Determine status based on confidence_level or automation status
-        if (company.automation_active) {
-          return <StatusBadge status="Active" size="sm" />;
-        } else if (company.confidence_level === 'high') {
-          return <StatusBadge status="Qualified" size="sm" />;
-        } else if (company.confidence_level === 'medium') {
-          return <StatusBadge status="Prospect" size="sm" />;
-        } else if (company.confidence_level === 'low') {
-          return <StatusBadge status="New" size="sm" />;
-        } else {
-          return <StatusBadge status="New" size="sm" />;
-        }
-      },
-    },
-    {
       key: "lead_score",
-      label: "Score",
+      label: "AI Score",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
+      width: "100px",
       render: (company: Company) => (
         <div className="flex items-center justify-center">
-          <span className="text-sm font-bold text-foreground">
-            {company.lead_score || "-"}
+          <span
+            className={cn(
+              "inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border",
+              getScoreBadgeClasses(company.lead_score ?? null)
+            )}
+          >
+            {company.lead_score ?? "-"}
           </span>
         </div>
       ),
@@ -349,9 +358,10 @@ const Companies = () => {
       label: "People",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
+      width: "100px",
       render: (company: Company) => (
         <div className="flex items-center justify-center">
-          <span className="text-sm text-muted-foreground">
+          <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 border border-gray-200">
             {company.people_count || 0}
           </span>
         </div>
@@ -362,9 +372,10 @@ const Companies = () => {
       label: "Jobs",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
+      width: "100px",
       render: (company: Company) => (
         <div className="flex items-center justify-center">
-          <span className="text-sm text-muted-foreground">
+          <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 border border-gray-200">
             {company.jobs_count || 0}
           </span>
         </div>
@@ -375,15 +386,19 @@ const Companies = () => {
       label: "Auto",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
+      width: "80px",
       render: (company: Company) => (
         <div className="flex items-center justify-center">
-          <div className={`w-2 h-2 rounded-full ${company.automation_active ? 'bg-green-500' : 'bg-gray-300'}`} />
+          <div className={`w-2.5 h-2.5 rounded-full ${company.automation_active ? 'bg-green-500' : 'bg-gray-300'}`} />
         </div>
       ),
     },
     {
       key: "created_at",
       label: "Created",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      width: "140px",
       render: (company: Company) => (
         <div className="text-sm text-muted-foreground">
           {new Date(company.created_at).toLocaleDateString()}

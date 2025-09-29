@@ -1,13 +1,14 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { designTokens } from "@/design-system/tokens";
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { variant?: 'default' | 'elevated' | 'outlined' | 'glass' }>(({ className, variant = 'default', ...props }, ref) => {
   const variants = {
-    default: "rounded-lg border border-border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow duration-200",
-    elevated: "rounded-lg border border-border bg-card text-card-foreground shadow-md hover:shadow-lg transition-shadow duration-200",
-    outlined: "rounded-lg border-2 border-border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow duration-200",
-    glass: "rounded-lg border border-border bg-white/80 backdrop-blur-sm text-card-foreground shadow-sm hover:shadow-md transition-shadow duration-200"
+    default: cn("rounded-lg border border-border bg-card text-card-foreground", designTokens.shadows.card),
+    elevated: cn("rounded-lg border border-border bg-card text-card-foreground", designTokens.shadows.md, designTokens.shadows.cardHover),
+    outlined: cn("rounded-lg border-2 border-border bg-card text-card-foreground", designTokens.shadows.card),
+    glass: cn("rounded-lg border border-border bg-white/80 backdrop-blur-sm text-card-foreground", designTokens.shadows.card)
   };
   
   return (
@@ -25,26 +26,26 @@ CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("text-2xl font-semibold leading-none tracking-tight", className)} {...props} />
+    <h3 ref={ref} className={cn(designTokens.typography.heading.h1, className)} {...props} />
   ),
 );
 CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
+    <p ref={ref} className={cn(designTokens.typography.body.muted, className)} {...props} />
   ),
 );
 CardDescription.displayName = "CardDescription";
 
 const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />,
+  ({ className, ...props }, ref) => <div ref={ref} className={cn(designTokens.spacing.cardPadding.default, "pt-0", className)} {...props} />,
 );
 CardContent.displayName = "CardContent";
 
 const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex items-center p-6 pt-0", className)} {...props} />
+    <div ref={ref} className={cn("flex items-center", designTokens.spacing.cardPadding.default, "pt-0", className)} {...props} />
   ),
 );
 CardFooter.displayName = "CardFooter";

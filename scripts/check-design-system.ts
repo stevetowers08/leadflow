@@ -5,6 +5,11 @@
 
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 interface HealthCheckResult {
   passed: boolean;
@@ -44,15 +49,19 @@ const checkStatsConsistency = (filePath: string): string[] => {
 const checkDesignSystemHealth = (): HealthCheckResult => {
   const issues: string[] = [];
   
-  // Check pages directory
-  const pagesDir = 'src/pages';
-  const files = readdirSync(pagesDir).filter(f => f.endsWith('.tsx'));
-  
-  files.forEach(file => {
-    const filePath = join(pagesDir, file);
-    issues.push(...checkHeaderConsistency(filePath));
-    issues.push(...checkStatsConsistency(filePath));
-  });
+  try {
+    // Check pages directory
+    const pagesDir = join(__dirname, '..', 'src', 'pages');
+    const files = readdirSync(pagesDir).filter(f => f.endsWith('.tsx'));
+    
+    files.forEach(file => {
+      const filePath = join(pagesDir, file);
+      issues.push(...checkHeaderConsistency(filePath));
+      issues.push(...checkStatsConsistency(filePath));
+    });
+  } catch (error) {
+    issues.push(`Error reading pages directory: ${error}`);
+  }
   
   return {
     passed: issues.length === 0,

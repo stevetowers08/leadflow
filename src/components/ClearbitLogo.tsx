@@ -64,7 +64,7 @@ export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
   if (!clearbitUrl || imageError) {
     return (
       <div className={cn(
-        'rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold',
+        'rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold',
         sizeClass,
         textSizeClass,
         className
@@ -80,7 +80,7 @@ export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
         src={clearbitUrl}
         alt={`${companyName} logo`}
         className={cn(
-          'rounded-full object-cover transition-opacity duration-200',
+          'rounded-lg object-cover transition-opacity duration-200',
           sizeClass,
           imageLoaded ? 'opacity-100' : 'opacity-0'
         )}
@@ -95,7 +95,7 @@ export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
       {/* Loading skeleton */}
       {!imageLoaded && !imageError && (
         <div className={cn(
-          'absolute inset-0 rounded-full bg-gray-200 animate-pulse',
+          'absolute inset-0 rounded-lg bg-gray-200 animate-pulse',
           sizeClass
         )} />
       )}
@@ -142,7 +142,7 @@ export const ClearbitLogoSync: React.FC<ClearbitLogoProps> = ({
   if (hasError || !clearbitUrl) {
     return (
       <div className={cn(
-        'rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold',
+        'rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold',
         sizeClass,
         textSizeClass,
         className
@@ -156,7 +156,7 @@ export const ClearbitLogoSync: React.FC<ClearbitLogoProps> = ({
     <img
       src={clearbitUrl}
       alt={`${companyName} logo`}
-      className={cn('rounded-full object-cover', sizeClass, className)}
+      className={cn('rounded-lg object-cover', sizeClass, className)}
       onError={handleImageError}
       loading="lazy"
     />

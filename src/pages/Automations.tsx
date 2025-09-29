@@ -173,8 +173,8 @@ const Automations = () => {
             details: `Email sent to ${person.name}`,
             stage: person.stage,
             icon: <Mail className="h-4 w-4" />,
-            color: 'text-indigo-600',
-            bgColor: 'bg-indigo-50'
+            color: 'text-accent',
+            bgColor: 'bg-accent/10'
           });
         }
 
@@ -190,8 +190,8 @@ const Automations = () => {
             details: `Email reply received from ${person.name}`,
             stage: person.stage,
             icon: <Mail className="h-4 w-4" />,
-            color: 'text-cyan-600',
-            bgColor: 'bg-cyan-50'
+            color: 'text-accent',
+            bgColor: 'bg-accent/10'
           });
         }
       });
@@ -281,7 +281,7 @@ const Automations = () => {
       'meeting_booked': 'bg-orange-100 text-orange-800',
       'meeting_held': 'bg-yellow-100 text-yellow-800',
       'disqualified': 'bg-red-100 text-red-800',
-      'in queue': 'bg-indigo-100 text-indigo-800',
+      'in queue': 'bg-accent/20 text-accent',
       'lead_lost': 'bg-muted text-muted-foreground'
     };
     return colors[stage as keyof typeof colors] || 'bg-muted text-muted-foreground';

@@ -8,6 +8,7 @@ import { formatDistanceToNow } from "date-fns";
 import { usePopup } from "@/contexts/PopupContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionsContext";
+import { designTokens } from "@/design-system/tokens";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Lead = Tables<"people"> & {
@@ -124,9 +125,6 @@ const Index = () => {
       onClick={() => handleLeadClick(lead)}
     >
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
-          <User className="h-4 w-4 text-blue-600" />
-        </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-sm truncate">{lead.name}</div>
           <div className="text-xs text-gray-500 truncate">
@@ -147,9 +145,6 @@ const Index = () => {
       onClick={() => handleJobClick(job)}
     >
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
-          <Briefcase className="h-4 w-4 text-green-600" />
-        </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-sm truncate">{job.title}</div>
           <div className="text-xs text-gray-500 truncate">
@@ -170,7 +165,7 @@ const Index = () => {
     >
       {/* Key Metrics Overview */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+        <Card className={designTokens.shadows.card}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -185,7 +180,7 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+        <Card className={designTokens.shadows.card}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -200,7 +195,7 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+        <Card className={designTokens.shadows.card}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -208,14 +203,14 @@ const Index = () => {
                 <p className="text-2xl font-bold text-foreground">{dashboardStats.conversionRate}%</p>
                 <p className="text-xs text-green-600 font-medium">Above target</p>
               </div>
-              <div className="p-3 bg-purple-500/10 rounded-lg">
-                <Target className="h-6 w-6 text-purple-600" />
+              <div className="p-3 bg-secondary/10 rounded-lg">
+                <Target className="h-6 w-6 text-secondary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+        <Card className={designTokens.shadows.card}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -234,7 +229,7 @@ const Index = () => {
       {/* Recent Activity */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Recent Leads Card */}
-        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+        <Card className={designTokens.shadows.card}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg font-semibold">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -262,7 +257,7 @@ const Index = () => {
         </Card>
 
         {/* Recent Jobs Card */}
-        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+        <Card className={designTokens.shadows.card}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg font-semibold">
               <div className="p-2 bg-green-500/10 rounded-lg">

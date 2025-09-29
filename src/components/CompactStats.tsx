@@ -14,6 +14,7 @@ import {
   TrendingDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { designTokens } from "@/design-system/tokens";
 
 interface StatsData {
   totalLeads: number;
@@ -33,9 +34,9 @@ export const CompactStats: React.FC<CompactStatsProps> = ({ stats, className }) 
     {
       title: "Leads",
       value: stats.totalLeads,
-      icon: <Users className="h-4 w-4 text-blue-600" />,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
+      icon: <Users className="h-4 w-4 text-primary" />,
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "Companies", 
@@ -47,9 +48,9 @@ export const CompactStats: React.FC<CompactStatsProps> = ({ stats, className }) 
     {
       title: "Jobs",
       value: stats.totalJobs,
-      icon: <Briefcase className="h-4 w-4 text-purple-600" />,
-      color: "text-purple-600", 
-      bgColor: "bg-purple-50"
+      icon: <Briefcase className="h-4 w-4 text-secondary" />,
+      color: "text-secondary", 
+      bgColor: "bg-secondary/10"
     },
     {
       title: "New Today",
@@ -65,8 +66,8 @@ export const CompactStats: React.FC<CompactStatsProps> = ({ stats, className }) 
       {/* Mobile: 2x2 Grid */}
       <div className="grid grid-cols-2 gap-3 md:hidden">
         {statsItems.map((item, index) => (
-          <Card key={index} variant="glass" className="shadow-sm">
-            <CardContent className="p-3">
+          <Card key={index} variant="glass" className={designTokens.shadows.cardStatic}>
+            <CardContent className={designTokens.spacing.cardPadding.compact}>
               <div className="flex items-center gap-2">
                 <div className={cn("p-1.5 rounded-md", item.bgColor)}>
                   {item.icon}
@@ -88,8 +89,8 @@ export const CompactStats: React.FC<CompactStatsProps> = ({ stats, className }) 
       {/* Desktop: Horizontal Layout */}
       <div className="hidden md:grid md:grid-cols-4 gap-4 lg:gap-6">
         {statsItems.map((item, index) => (
-          <Card key={index} variant="glass" className="shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-4 lg:p-6">
+          <Card key={index} variant="glass" className={designTokens.shadows.card}>
+            <CardContent className={designTokens.spacing.cardPadding.responsive}>
               <div className="flex items-center gap-3 lg:gap-4">
                 <div className={cn("p-2 rounded-lg", item.bgColor)}>
                   {item.icon}
@@ -120,17 +121,17 @@ interface UltraCompactStatsProps {
 export const UltraCompactStats: React.FC<UltraCompactStatsProps> = ({ stats, className }) => {
   return (
     <div className={cn("grid grid-cols-4 gap-2", className)}>
-      <div className="text-center p-2 bg-blue-50 rounded-lg">
-        <div className="text-lg font-bold text-blue-600">{stats.totalLeads}</div>
-        <div className="text-xs text-blue-600">Leads</div>
+      <div className="text-center p-2 bg-primary/10 rounded-lg">
+        <div className="text-lg font-bold text-primary">{stats.totalLeads}</div>
+        <div className="text-xs text-primary">Leads</div>
       </div>
       <div className="text-center p-2 bg-green-50 rounded-lg">
         <div className="text-lg font-bold text-green-600">{stats.totalCompanies}</div>
         <div className="text-xs text-green-600">Companies</div>
       </div>
-      <div className="text-center p-2 bg-purple-50 rounded-lg">
-        <div className="text-lg font-bold text-purple-600">{stats.totalJobs}</div>
-        <div className="text-xs text-purple-600">Jobs</div>
+      <div className="text-center p-2 bg-secondary/10 rounded-lg">
+        <div className="text-lg font-bold text-secondary">{stats.totalJobs}</div>
+        <div className="text-xs text-secondary">Jobs</div>
       </div>
       <div className="text-center p-2 bg-orange-50 rounded-lg">
         <div className="text-lg font-bold text-orange-600">{stats.newJobsToday}</div>
@@ -186,16 +187,16 @@ export const StatsWithTrends: React.FC<StatsWithTrendsProps> = ({ stats, trends,
 
   return (
     <div className={cn("grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6", className)}>
-      {statsItems.map((item, index) => (
-        <Card key={index} variant="glass" className="shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-3 lg:p-6">
+        {statsItems.map((item, index) => (
+          <Card key={index} variant="glass" className={designTokens.shadows.card}>
+            <CardContent className={designTokens.spacing.cardPadding.responsive}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 lg:gap-3">
                 <div className={cn(
                   "p-1.5 lg:p-2 rounded-md lg:rounded-lg",
-                  item.color === 'blue' && "bg-blue-50 text-blue-600",
+                  item.color === 'blue' && "bg-accent/20 text-accent",
                   item.color === 'green' && "bg-green-50 text-green-600", 
-                  item.color === 'purple' && "bg-purple-50 text-purple-600",
+                  item.color === 'purple' && "bg-secondary/10 text-secondary",
                   item.color === 'orange' && "bg-orange-50 text-orange-600"
                 )}>
                   {item.icon}

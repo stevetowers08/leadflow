@@ -16,12 +16,18 @@ import {
   Search,
   Filter,
   MoreHorizontal,
-  Linkedin
+  ChevronDown
 } from 'lucide-react';
 import { conversationService, Conversation } from '../services/conversationService';
 import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 interface ConversationListProps {
   onConversationSelect: (conversation: Conversation) => void;
@@ -37,7 +43,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   console.log('ConversationList component mounted');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [filter, setFilter] = useState<'all' | 'unread' | 'email' | 'linkedin'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -57,6 +63,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           email_address,
           company_id,
           linkedin_url,
+          company_role,
           stage,
           last_reply_at,
           last_reply_channel,
@@ -68,7 +75,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           created_at,
           updated_at,
           companies(
-            name
+            name,
+            website
           )
         `)
         .not('last_reply_message', 'is', null)
@@ -103,6 +111,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         person_name: person.name,
         person_email: person.email_address,
         person_company: person.companies?.name,
+        person_company_website: person.companies?.website,
+        person_job_title: person.company_role,
         person_linkedin_url: person.linkedin_url,
         message_count: 1,
         // Add the actual message content
@@ -129,7 +139,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     } else if (diffInHours < 24 * 7) {
       return date.toLocaleDateString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' });
     } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
   };
 
@@ -147,14 +157,30 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     return null;
   };
 
-  // Filter conversations based on search query
+  // Filter conversations based on search query and filter
   const filteredConversations = conversations.filter(conversation => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      conversation.person_name?.toLowerCase().includes(query) ||
-      conversation.person_company?.toLowerCase().includes(query)
-    );
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = (
+        conversation.person_name?.toLowerCase().includes(query) ||
+        conversation.person_company?.toLowerCase().includes(query)
+      );
+      if (!matchesSearch) return false;
+    }
+
+    // Apply type filter
+    switch (filter) {
+      case 'unread':
+        return !conversation.is_read;
+      case 'email':
+        return conversation.conversation_type === 'email';
+      case 'linkedin':
+        return conversation.conversation_type === 'linkedin';
+      case 'all':
+      default:
+        return true;
+    }
   });
 
   return (
@@ -167,10 +193,31 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             <p className="text-sm text-muted-foreground">{filteredConversations.length} active conversations</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="shadow-sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="shadow-sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  {filter === 'all' ? 'All' : 
+                   filter === 'unread' ? 'Unread' :
+                   filter === 'email' ? 'Email' : 'LinkedIn'}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setFilter('all')}>
+                  All Conversations
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilter('unread')}>
+                  Unread Only
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilter('email')}>
+                  Email Only
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilter('linkedin')}>
+                  LinkedIn Only
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -205,92 +252,45 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                 <div
                   key={conversation.id}
                   className={cn(
-                    "group relative p-4 cursor-pointer rounded-xl transition-all duration-200 border",
-                    "hover:shadow-md hover:border-primary/20",
-                    selectedConversationId === conversation.id
-                      ? "bg-primary/5 border-primary/30 shadow-sm"
-                      : "border-border hover:bg-muted/30",
-                    !conversation.is_read && "bg-primary/3 border-primary/20"
+                    "px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group",
+                    selectedConversationId === conversation.id && "bg-sidebar-primary/10 border-sidebar-primary/30",
+                    !conversation.is_read && "bg-sidebar-primary/5 border-sidebar-primary/20"
                   )}
                   onClick={() => onConversationSelect(conversation)}
                 >
-                  {/* Unread indicator */}
-                  {!conversation.is_read && (
-                    <div className="absolute left-4 top-4 w-3 h-3 bg-primary rounded-full shadow-sm" />
-                  )}
-                  
-                  <div className="flex items-start gap-4">
-                    {/* Enhanced Avatar */}
-                    <div className={cn(
-                      "flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-sm",
-                      conversation.conversation_type === 'email' 
-                        ? "bg-gradient-to-br from-emerald-100 to-emerald-200 border border-emerald-200" 
-                        : "bg-gradient-to-br from-blue-100 to-blue-200 border border-blue-200"
-                    )}>
+                  <div className="flex items-center gap-3">
+                    {/* Channel Icon */}
+                    <div className="flex-shrink-0">
                       {conversation.conversation_type === 'email' ? (
-                        <Mail className="h-5 w-5 text-emerald-600" />
+                        <Mail className="h-4 w-4 text-emerald-600" />
                       ) : (
-                        <Linkedin className="h-5 w-5 text-blue-600" />
+                        <svg className="h-4 w-4 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
                       )}
                     </div>
                     
-                    {/* Enhanced Content */}
+                    {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1 min-w-0">
-                          <h3 className={cn(
-                            "text-base font-semibold truncate",
-                            !conversation.is_read ? "text-foreground" : "text-foreground/80"
-                          )}>
-                            {conversation.person_name || 'Unknown Person'}
-                          </h3>
-                          {conversation.person_company && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <Building2 className="h-3 w-3 text-muted-foreground" />
-                              <p className="text-sm text-muted-foreground truncate">
-                                {conversation.person_company}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <div className="text-xs text-muted-foreground font-medium">
-                            {formatDate(conversation.last_message_at)}
-                          </div>
-                          {!conversation.is_read && (
-                            <div className="w-2 h-2 bg-primary rounded-full" />
-                          )}
-                        </div>
+                      <div className="font-semibold text-sm truncate">
+                        {conversation.person_name || 'Unknown Person'}
                       </div>
-                      
-                      {/* Message Preview */}
-                      <div className="mt-2">
-                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                          {conversation.last_reply_message || 'No message preview available'}
-                        </p>
+                      <div className="text-xs text-gray-500 truncate">
+                        {conversation.person_job_title && `${conversation.person_job_title} • `}
+                        {conversation.person_company || 'No company'}
                       </div>
-                      
-                      {/* Status Badge */}
-                      <div className="mt-3 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {conversation.conversation_type === 'email' ? (
-                            <Badge variant="secondary" className="text-xs">
-                              <Mail className="h-3 w-3 mr-1" />
-                              Email
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary" className="text-xs">
-                              <Linkedin className="h-3 w-3 mr-1" />
-                              LinkedIn
-                            </Badge>
-                          )}
-                          {!conversation.is_read && (
-                            <Badge className="text-xs bg-primary">
-                              New Reply
-                            </Badge>
-                          )}
-                        </div>
+                    </div>
+                    
+                    {/* Time and Badge */}
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs text-gray-500">
+                        {formatDate(conversation.last_message_at)}
                       </div>
+                      {!conversation.is_read && (
+                        <Badge className="text-xs bg-sidebar-primary text-sidebar-primary-foreground">
+                          New
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>

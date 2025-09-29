@@ -13,6 +13,7 @@ import { Layout } from "./components/Layout";
 import { UnifiedPopup } from "./components/UnifiedPopup";
 import { AuthPage } from "./components/auth/AuthPage";
 import AuthCallback from "./components/auth/AuthCallback";
+import { GmailCallback } from "./components/GmailCallback";
 
 // Pages
 import Index from "./pages/Index";
@@ -23,10 +24,8 @@ import Pipeline from "./pages/Pipeline";
 import { ConversationsPage } from "./pages/Conversations";
 import Automations from "./pages/Automations";
 import Reporting from "./pages/Reporting";
-import Admin from "./pages/Admin";
-import AdminUsers from "./pages/AdminUsers";
-import AdminSettings from "./pages/AdminSettings";
 import Settings from "./pages/Settings";
+import TabDesignsShowcase from "./pages/TabDesignsShowcase";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,7 +47,7 @@ const AppRoutes = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -67,6 +66,7 @@ const AppRoutes = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/auth/gmail-callback" element={<GmailCallback />} />
               <Route path="/test-callback" element={<div className="p-8"><h1>Test Callback Route Works!</h1></div>} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/leads" element={<Leads />} />
@@ -75,10 +75,8 @@ const AppRoutes = () => {
               <Route path="/conversations" element={<ConversationsPage />} />
               <Route path="/automations" element={<Automations />} />
               <Route path="/reporting" element={<Reporting />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/tab-designs" element={<TabDesignsShowcase />} />
             </Routes>
             <UnifiedPopup />
           </Layout>

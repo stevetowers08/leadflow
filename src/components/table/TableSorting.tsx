@@ -7,8 +7,16 @@ interface SortConfig {
   direction: 'asc' | 'desc';
 }
 
+interface TableColumn {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  headerAlign?: 'left' | 'center' | 'right';
+  width?: string;
+}
+
 interface TableSortingProps {
-  columns: Array<{ key: string; sortable?: boolean; label: string }>;
+  columns: TableColumn[];
   onSort: (key: string) => void;
   sortConfig: SortConfig | null;
 }
@@ -20,34 +28,51 @@ export const TableSorting: React.FC<TableSortingProps> = ({
 }) => {
   return (
     <>
-      {columns.map((column) => (
-        <th 
-          key={column.key} 
-          className={cn(
-            "h-12 px-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider",
-            column.sortable && "cursor-pointer hover:bg-muted/50 transition-colors"
-          )}
-          scope="col"
-          onClick={column.sortable ? () => onSort(column.key) : undefined}
-        >
-          <div className="flex items-center gap-2">
-            <span>{column.label}</span>
-            {column.sortable && (
-              <div className="flex items-center">
-                {sortConfig?.key === column.key ? (
-                  sortConfig.direction === 'asc' ? (
-                    <ArrowUp className="h-3 w-3" />
-                  ) : (
-                    <ArrowDown className="h-3 w-3" />
-                  )
-                ) : (
-                  <ArrowUpDown className="h-3 w-3 opacity-50" />
-                )}
-              </div>
+      {columns.map((column) => {
+        const headerAlignClass =
+          column.headerAlign === 'center'
+            ? 'text-center'
+            : column.headerAlign === 'right'
+              ? 'text-right'
+              : 'text-left';
+        const justifyClass =
+          column.headerAlign === 'center'
+            ? 'justify-center'
+            : column.headerAlign === 'right'
+              ? 'justify-end'
+              : 'justify-start';
+
+        return (
+          <th 
+            key={column.key} 
+            className={cn(
+              "h-12 px-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider",
+              column.sortable && "cursor-pointer hover:bg-muted/50 transition-colors",
+              headerAlignClass
             )}
-          </div>
-        </th>
-      ))}
+            scope="col"
+            onClick={column.sortable ? () => onSort(column.key) : undefined}
+            style={column.width ? { width: column.width, minWidth: column.width } : undefined}
+          >
+            <div className={cn("flex items-center gap-2", justifyClass)}>
+              <span>{column.label}</span>
+              {column.sortable && (
+                <div className="flex items-center">
+                  {sortConfig?.key === column.key ? (
+                    sortConfig.direction === 'asc' ? (
+                      <ArrowUp className="h-3 w-3" />
+                    ) : (
+                      <ArrowDown className="h-3 w-3" />
+                    )
+                  ) : (
+                    <ArrowUpDown className="h-3 w-3 opacity-50" />
+                  )}
+                </div>
+              )}
+            </div>
+          </th>
+        );
+      })}
     </>
   );
 };

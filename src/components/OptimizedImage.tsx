@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import { cn } from '@/lib/utils';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 
 interface OptimizedImageProps {
@@ -47,7 +48,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   if (!src || imageError) {
     return (
       <div className={cn(
-        'rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold',
+        'rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold',
         sizeClasses[size],
         className
       )}>
@@ -65,7 +66,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         onError={handleError}
         onLoad={handleLoad}
         className={cn(
-          'rounded-full object-cover transition-opacity duration-200',
+          'rounded-lg object-cover transition-opacity duration-200',
           sizeClasses[size],
           imageLoaded ? 'opacity-100' : 'opacity-0'
         )}
@@ -78,7 +79,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       {/* Loading skeleton */}
       {!imageLoaded && !imageError && (
         <div className={cn(
-          'absolute inset-0 rounded-full bg-gray-200 animate-pulse',
+          'absolute inset-0 rounded-lg bg-gray-200 animate-pulse',
           sizeClasses[size]
         )} />
       )}

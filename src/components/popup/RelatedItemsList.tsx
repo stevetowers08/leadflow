@@ -32,35 +32,12 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
 }) => {
   const renderItem = (item: any) => {
     if (itemType === 'lead') {
-      const { avatarUrl, initials } = getProfileImage(item.name, 32);
       return (
         <ListItem
           key={item.id}
           id={item.id}
           title={item.name}
           subtitle={item.company_role}
-          icon={
-            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
-              <img 
-                src={avatarUrl} 
-                alt={item.name || 'Lead'}
-                className="w-full h-full object-cover rounded-lg"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (nextElement) {
-                    nextElement.style.display = 'flex';
-                  }
-                }}
-              />
-              <div 
-                className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center text-xs font-semibold text-blue-600" 
-                style={{ display: 'none' }}
-              >
-                {initials}
-              </div>
-            </div>
-          }
           badge={<StatusBadge status={item.stage || "new"} size="sm" />}
           showCheckbox={showCheckbox}
           isSelected={selectedLeads.some(selected => selected.id === item.id)}
@@ -75,7 +52,6 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
           id={item.id}
           title={item.title}
           subtitle={`${item.location} • ${item.created_at ? formatDateForSydney(item.created_at, 'date') : "No date"}`}
-          icon={<Briefcase className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
           badge={<StatusBadge status={item.priority || "Medium"} size="sm" />}
           onClick={() => onItemClick(item.id)}
         />
@@ -104,7 +80,7 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
         showAutomateButton ? (
           <Button 
             size="sm" 
-            className="bg-blue-600 hover:bg-blue-700 text-sm px-6 py-1 !h-8 min-h-[32px]"
+            className="bg-primary hover:bg-primary/90 text-sm px-6 py-1 !h-8 min-h-[32px]"
             disabled={selectedLeads.length === 0}
           >
             Automate ({selectedLeads.length})

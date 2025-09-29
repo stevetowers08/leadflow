@@ -5,7 +5,12 @@ import { cn } from '@/lib/utils';
 interface TableRowProps<T> {
   item: T;
   index: number;
-  columns: Array<{ key: string; render: (item: T) => React.ReactNode }>;
+  columns: Array<{ 
+    key: string; 
+    render: (item: T) => React.ReactNode;
+    cellAlign?: 'left' | 'center' | 'right';
+    width?: string;
+  }>;
   onRowClick?: (item: T) => void;
   selectedItems: T[];
   onItemSelect: (item: T, checked: boolean) => void;
@@ -64,8 +69,11 @@ export function TableRow<T extends Record<string, any> & { id: string }>({
           key={column.key} 
           className={cn(
             "px-6 py-3 border-r border-gray-50 last:border-r-0",
-            "group-hover:border-r-gray-100 group-hover:last:border-r-0"
+            "group-hover:border-r-gray-100 group-hover:last:border-r-0",
+            column.cellAlign === 'center' && 'text-center',
+            column.cellAlign === 'right' && 'text-right'
           )}
+          style={column.width ? { width: column.width, minWidth: column.width } : undefined}
         >
           {column.render(item)}
         </TableCell>

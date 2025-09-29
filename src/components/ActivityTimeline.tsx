@@ -84,7 +84,7 @@ export const ActivityTimeline = ({ leadId, leadName }: ActivityTimelineProps) =>
           description: lead["Connection Request"] || "Connection request sent on LinkedIn",
           date: lead["Connection Request Date"],
           icon: UserCheck,
-          color: "bg-indigo-100 text-indigo-700"
+          color: "bg-accent/20 text-accent"
         });
       }
 
@@ -214,7 +214,7 @@ export const ActivityTimeline = ({ leadId, leadName }: ActivityTimelineProps) =>
           description: lead["Last Message"] || "Last contact with prospect",
           date: lead["Last Contact Date"],
           icon: Phone,
-          color: "bg-cyan-100 text-cyan-700"
+          color: "bg-accent/20 text-accent"
         });
       }
 

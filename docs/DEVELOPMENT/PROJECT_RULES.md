@@ -111,6 +111,17 @@ import './Component.css';
 - **Style**: All logos use `rounded-lg` (slightly rounded squares) for consistency
 - **Container**: `rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0`
 
+### **Badge System Standards**
+- **Design Principle**: **WORDS = StatusBadge, NUMBERS = Custom Styling**
+- **StatusBadge Usage**: Use for text-based values (Priority, Status, Text AI Scores)
+- **Custom Styling**: Use for numeric values (AI Scores, Count columns)
+- **Rounding**: All badges use `rounded-md` (moderate rounding)
+- **Typography**: All badges use `text-xs font-medium`
+- **Consistency**: All badges have proper borders and backgrounds
+- **Implementation**: 
+  - Words: `<StatusBadge status={value} size="sm" />`
+  - Numbers: Custom span with `getScoreBadgeClasses()` or gray styling
+
 ### **Page Component Standards**
 - **Design System Integration**: All pages use `Page` component from design system
 - **No Small Stats Bars**: Removed small stats bars from top of all pages site-wide

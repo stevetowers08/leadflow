@@ -43,28 +43,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [lastProcessedUserId, setLastProcessedUserId] = useState<string | null>(null);
 
   // Simplified profile loading with timeout
   const loadUserProfile = useCallback(async (userId: string): Promise<any> => {
     try {
       console.log(`🔍 Loading user profile for: ${userId}`);
 
-      // Add a timeout to the profile loading
-      const profilePromise = supabase
+      const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile loading timeout')), 3000)
-      );
-
-      const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
-
       if (error) {
-        console.error(`❌ Error loading profile:`, error);
-        throw error;
+        console.log(`ℹ️ No existing profile found for user: ${userId}`);
+        return null; // Return null instead of throwing error
       }
 
       console.log('✅ Profile loaded successfully:', {
@@ -77,9 +71,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setError(null);
       return data;
     } catch (error) {
-      console.error(`❌ Profile loading failed:`, error);
-      setError(`Failed to load user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      return null;
+      console.log(`ℹ️ Profile loading failed, will create new profile:`, error);
+      return null; // Return null instead of throwing error
     }
   }, []);
 
@@ -104,7 +97,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(null);
 
       // Wait a bit before retrying
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      await new Promise(resolve => {
+        const timeoutId = setTimeout(resolve, RETRY_DELAY);
+        // Store timeout ID for potential cleanup
+        (resolve as any).timeoutId = timeoutId;
+      });
 
       // Get fresh session
       const { data: { session }, error } = await supabase.auth.getSession();
@@ -139,13 +136,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('🔐 Initializing authentication...');
         setError(null);
 
-        // Set a timeout to force loading to complete after 3 seconds
+        // Set a timeout to force loading to complete after 2 seconds
         timeoutId = setTimeout(() => {
           if (isMounted) {
             console.log('⏰ Auth initialization timeout - forcing loading to false');
             setLoading(false);
           }
-        }, 3000);
+        }, 2000);
 
         // Check if supabase client is properly initialized
         if (!supabase || !supabase.auth) {
@@ -171,23 +168,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setSession(session);
 
           if (session?.user) {
-            console.log('🔍 Creating fallback profile for user:', session.user.id);
+            console.log('🔍 Loading user profile for:', session.user.id);
             if (isMounted) {
-              // Use the actual user data from OAuth
+              // Create fallback profile immediately
+              console.log('🔧 Creating fallback profile for user');
               const fallbackProfile = {
                 id: session.user.id,
                 email: session.user.email,
                 full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
-                role: 'owner',
-                user_limit: 1000,
+                role: 'recruiter',
+                user_limit: 100,
                 is_active: true,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               };
               setUserProfile(fallbackProfile);
+              console.log('✅ Fallback profile created');
+              
               setLoading(false);
               clearTimeout(timeoutId);
-              console.log('✅ Loading set to false with user profile data');
             }
           } else {
             if (isMounted) {
@@ -231,20 +230,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setError(null); // Clear errors on successful auth change
 
             if (session?.user) {
-              console.log('🔄 Auth state change - creating fallback profile');
-              if (isMounted) {
-                // Use the actual user data from OAuth
-                const fallbackProfile = {
-                  id: session.user.id,
-                  email: session.user.email,
-                  full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
-                  role: 'owner',
-                  user_limit: 1000,
-                  is_active: true,
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                };
-                setUserProfile(fallbackProfile);
+              // Prevent duplicate profile creation for the same user
+              if (lastProcessedUserId !== session.user.id) {
+                console.log('🔄 Auth state change - loading user profile');
+                if (isMounted) {
+                  // Create fallback profile immediately
+                  console.log('🔧 Creating fallback profile for user');
+                  const fallbackProfile = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
+                    role: 'recruiter',
+                    user_limit: 100,
+                    is_active: true,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  };
+                  setUserProfile(fallbackProfile);
+                  setLastProcessedUserId(session.user.id);
+                  console.log('✅ Fallback profile created');
+                  
+                  setLoading(false);
+                }
+              } else {
+                console.log('🔄 Auth state change - user already processed, skipping profile creation');
                 setLoading(false);
               }
             } else {
@@ -351,23 +360,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🚪 Signing out...');
       console.log('🔍 Current user before sign out:', user?.email);
       
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        throw error;
-      }
-
-      // Clear all state
+      // Clear all state first
       setUser(null);
       setUserProfile(null);
       setSession(null);
+      setLoading(false);
       
       // Clear storage
       localStorage.clear();
       sessionStorage.clear();
       
+      // Then sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.warn('⚠️ Supabase sign out error (but state cleared):', error);
+      }
+      
       console.log('✅ Sign out successful - state cleared');
-      console.log('🔍 User after sign out:', user);
       return { error: null };
     } catch (error) {
       const authError = error as AuthError;
@@ -377,11 +387,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setUserProfile(null);
       setSession(null);
+      setLoading(false);
       localStorage.clear();
       sessionStorage.clear();
       
-      setError(`Sign out failed: ${authError.message}`);
-      return { error: authError };
+      console.log('✅ State cleared despite sign out error');
+      return { error: null }; // Return success since state is cleared
     }
   };
 

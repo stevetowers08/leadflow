@@ -159,51 +159,56 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
   return (
     <div className={cn("h-full flex flex-col bg-gradient-to-b from-background to-muted/20", className)}>
       {/* Enhanced Chat Header */}
-      <div className="p-6 border-b border-border bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 backdrop-blur-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-primary/30 rounded-xl flex items-center justify-center shadow-sm border border-primary/20">
-              <User className="h-7 w-7 text-primary" />
+      <div className="p-4 border-b border-border bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {console.log('Company data:', conversation.person_company, conversation.person_company_website)}
+            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+              {conversation.person_company_website ? (
+                <img 
+                  src={`https://logo.clearbit.com/${conversation.person_company_website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]}`}
+                  alt={conversation.person_company}
+                  className="w-10 h-10 rounded-lg object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (nextElement) {
+                      nextElement.style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : null}
+              <div 
+                className={`w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold ${conversation.person_company_website ? 'hidden' : 'flex'}`}
+              >
+                {conversation.person_company ? conversation.person_company.charAt(0).toUpperCase() : '?'}
+              </div>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">
+              <h2 className="text-lg font-semibold text-foreground">
                 {conversation.person_name || 'Unknown Person'}
               </h2>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                {conversation.person_company && (
-                  <div className="flex items-center gap-1">
-                    <Building2 className="h-4 w-4" />
-                    <span className="font-medium">{conversation.person_company}</span>
-                  </div>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                {conversation.person_job_title && (
+                  <span className="font-medium">{conversation.person_job_title}</span>
                 )}
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>Last active {formatDate(conversation.last_message_at)}</span>
-                </div>
+                {conversation.person_company && (
+                  <>
+                    {conversation.person_job_title && <span>•</span>}
+                    <span className="font-medium">{conversation.person_company}</span>
+                  </>
+                )}
+                <span>•</span>
+                <span>Last active {formatDate(conversation.last_message_at)}</span>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            {conversation.person_linkedin_url && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(conversation.person_linkedin_url, '_blank')}
-                className="shadow-sm hover:shadow-md transition-shadow"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                LinkedIn
-              </Button>
-            )}
-            <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
-              <Reply className="h-4 w-4 mr-2" />
-              Reply
-            </Button>
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </div>
+                 <div className="flex items-center gap-2">
+                   <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                     <MoreHorizontal className="h-4 w-4" />
+                   </Button>
+                 </div>
         </div>
       </div>
 
@@ -299,26 +304,13 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
             <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
               <Archive className="h-4 w-4" />
             </Button>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-6 py-4 shadow-sm hover:shadow-md transition-all duration-200">
+            <Button className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground rounded-2xl px-6 py-4 shadow-sm hover:shadow-md transition-all duration-200">
               <Send className="h-4 w-4 mr-2" />
               Send
             </Button>
           </div>
         </div>
         
-        {/* Quick Actions */}
-        <div className="mt-4 flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Quick actions:</span>
-          <Button variant="ghost" size="sm" className="text-xs h-7 px-3">
-            Schedule follow-up
-          </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-7 px-3">
-            Add to pipeline
-          </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-7 px-3">
-            Mark as qualified
-          </Button>
-        </div>
       </div>
     </div>
   );

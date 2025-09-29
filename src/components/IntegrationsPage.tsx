@@ -1,15 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Settings as SettingsIcon, Mail, Linkedin } from 'lucide-react';
+import { Settings as SettingsIcon, Mail, Linkedin, Loader2 } from 'lucide-react';
+import { gmailService } from '@/services/gmailService';
+import { toast } from 'sonner';
 
 const IntegrationsPage = () => {
+  const [gmailConnected, setGmailConnected] = useState(false);
+  const [gmailLoading, setGmailLoading] = useState(false);
+
+  useEffect(() => {
+    checkGmailConnection();
+  }, []);
+
+  const checkGmailConnection = () => {
+    const token = localStorage.getItem('gmail_access_token');
+    setGmailConnected(!!token);
+  };
+
+  const handleConnectGmail = async () => {
+    setGmailLoading(true);
+    try {
+      await gmailService.authenticateWithGmail();
+      // The redirect will happen automatically
+    } catch (error) {
+      console.error('Gmail connection error:', error);
+      toast.error('Failed to connect to Gmail. Please try again.');
+      setGmailLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <div className="h-20 border-b border-gray-200 flex items-center justify-center">
         <div className="flex items-center gap-3">
-          <SettingsIcon className="h-6 w-6 text-purple-600" />
+          <SettingsIcon className="h-6 w-6 text-accent" />
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Integrations</h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -40,10 +66,23 @@ const IntegrationsPage = () => {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Status</span>
-              <Badge variant="secondary">Not Connected</Badge>
+              <Badge variant={gmailConnected ? "default" : "secondary"}>
+                {gmailConnected ? "Connected" : "Not Connected"}
+              </Badge>
             </div>
-            <Button className="w-full bg-red-600 hover:bg-red-700">
-              Connect Gmail
+            <Button 
+              className="w-full bg-red-600 hover:bg-red-700"
+              onClick={handleConnectGmail}
+              disabled={gmailLoading}
+            >
+              {gmailLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                gmailConnected ? "Reconnect Gmail" : "Connect Gmail"
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -52,8 +91,8 @@ const IntegrationsPage = () => {
         <Card className="h-full">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Linkedin className="h-6 w-6 text-blue-600" />
+              <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
+                <Linkedin className="h-6 w-6 text-accent" />
               </div>
               <div>
                 <CardTitle className="text-lg">LinkedIn</CardTitle>
@@ -68,7 +107,7 @@ const IntegrationsPage = () => {
               <span className="text-sm text-gray-600">Status</span>
               <Badge variant="secondary">Not Connected</Badge>
             </div>
-            <Button className="w-full bg-blue-600 hover:bg-blue-700">
+            <Button className="w-full bg-primary hover:bg-primary/90">
               Connect LinkedIn
             </Button>
           </CardContent>

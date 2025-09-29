@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Users, Building2, Mail, Phone, MapPin, Calendar, RefreshCw, Filter, TrendingUp, Target, CheckCircle } from "lucide-react";
 import { getClearbitLogo } from "@/utils/logoService";
 import { Page } from "@/design-system/components";
+import { designTokens } from "@/design-system/tokens";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Lead = Tables<"people"> & {
@@ -55,7 +56,7 @@ const Pipeline = () => {
           connected_at,
           last_reply_at,
           favourite,
-          companies!inner(name, logo_url, website)
+          companies(name, logo_url, website)
         `)
         .order("created_at", { ascending: false });
 
@@ -65,7 +66,7 @@ const Pipeline = () => {
       const transformedData = data?.map((lead: any) => ({
         ...lead,
         company_name: lead.companies?.name || null,
-        company_logo_url: lead.companies?.website ? getClearbitLogo(lead.companies.name, lead.companies.website) : null
+        company_logo_url: lead.companies?.website ? `https://logo.clearbit.com/${lead.companies.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]}` : null
       })) || [];
 
       setLeads(transformedData);
@@ -117,7 +118,7 @@ const Pipeline = () => {
               />
             ) : null}
             <div
-              className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-semibold"
+              className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
               style={{ display: lead.company_logo_url ? 'none' : 'flex' }}
             >
               {lead.name ? lead.name.charAt(0).toUpperCase() : '?'}
@@ -155,7 +156,7 @@ const Pipeline = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-primary mx-auto mb-4"></div>
           <p className="text-gray-600 font-medium">Loading pipeline...</p>
         </div>
       </div>
@@ -168,11 +169,11 @@ const Pipeline = () => {
       subtitle="Track leads through recruitment stages"
     >
       <div className="flex gap-3 mb-6">
-        <Button variant="outline" size="sm" onClick={fetchLeads} className="shadow-sm hover:shadow-md transition-shadow">
+        <Button variant="outline" size="sm" onClick={fetchLeads} className={designTokens.shadows.button}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
-        <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
+        <Button variant="outline" size="sm" className={designTokens.shadows.button}>
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>

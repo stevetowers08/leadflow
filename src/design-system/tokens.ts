@@ -44,6 +44,14 @@ export const designTokens = {
       lg: 'p-6',
       xl: 'p-8',
     },
+    // Card-specific padding patterns
+    cardPadding: {
+      default: 'p-6',
+      compact: 'p-3',
+      mobile: 'p-3',
+      desktop: 'p-6',
+      responsive: 'p-3 lg:p-6',
+    },
     // Margin scale
     margin: {
       xs: 'mb-1',
@@ -80,7 +88,7 @@ export const designTokens = {
     sizeLg: 'w-10 h-10', // Large logos for detail views
     sizeXl: 'w-12 h-12', // Extra large logos for headers
     container: 'rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0', // Slightly rounded squares
-    fallback: 'bg-blue-500 text-white flex items-center justify-center text-xs font-semibold',
+    fallback: 'bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold',
   },
 
   // Colors - Semantic color tokens
@@ -101,6 +109,14 @@ export const designTokens = {
       warning: 'bg-orange-50',
       error: 'bg-destructive/10',
     },
+    // Specific color combinations for common patterns
+    combinations: {
+      success: 'text-green-600 bg-green-50',
+      warning: 'text-orange-600 bg-orange-50',
+      error: 'text-red-600 bg-red-50',
+      info: 'text-accent bg-accent/10',
+      primary: 'text-primary bg-primary/10',
+    },
   },
 
   // Shadows - Consistent elevation
@@ -108,8 +124,14 @@ export const designTokens = {
     sm: 'shadow-sm',
     md: 'shadow-md',
     lg: 'shadow-lg',
+    xl: 'shadow-xl',
+    // Card-specific shadow patterns
     card: 'shadow-sm hover:shadow-md transition-shadow duration-200',
+    cardStatic: 'shadow-sm',
+    cardHover: 'hover:shadow-md transition-shadow duration-200',
     mobile: 'shadow-sm',
+    // Button shadows
+    button: 'shadow-sm hover:shadow-md',
   },
 
   // Transitions - Consistent timing

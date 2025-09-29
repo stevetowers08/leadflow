@@ -9,6 +9,7 @@ import { Settings as SettingsIcon } from 'lucide-react';
 import IntegrationsPage from '@/components/IntegrationsPage';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { cn } from '@/lib/utils';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -16,24 +17,17 @@ const Settings = () => {
   const { isCollapsed } = useSidebar();
   const [activeSection, setActiveSection] = useState('profile-info');
 
-  // Set page meta tags
   usePageMeta({
-    title: 'Settings - Empowr CRM',
-    description: 'Configure your CRM settings, manage integrations, billing, and customize your workspace preferences.',
-    keywords: 'settings, configuration, CRM settings, integrations, billing, preferences, workspace',
-    ogTitle: 'Settings - Empowr CRM',
-    ogDescription: 'Configure your CRM settings, manage integrations, billing, and customize your workspace preferences.',
-    twitterTitle: 'Settings - Empowr CRM',
-    twitterDescription: 'Configure your CRM settings, manage integrations, billing, and customize your workspace preferences.'
+    title: 'Settings',
+    description: 'Manage your account settings and preferences'
   });
 
-  // Don't render if user is not authenticated
   if (!user) {
     return (
-      <div className="fixed inset-0 bg-white flex items-center justify-center">
+      <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Please log in</h1>
-          <p className="text-gray-600">You need to be logged in to access settings.</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -43,14 +37,11 @@ const Settings = () => {
     switch (activeSection) {
       case 'profile-info':
       case 'preferences':
-      case 'security':
         return <PersonalSettings activeSection={activeSection} />;
       case 'admin':
         return (
           <div className="p-6">
-            <PermissionGuard requiredRole={['admin', 'owner']}>
-              <AdminSettingsTab />
-            </PermissionGuard>
+            <AdminSettingsTab />
           </div>
         );
       case 'integrations':
@@ -62,17 +53,17 @@ const Settings = () => {
 
   return (
     <div className="fixed inset-0 bg-white">
-      {/* Settings Navigation */}
+      {/* Settings Navigation Sidebar */}
       <SettingsNavigation 
-        activeSection={activeSection}
+        activeSection={activeSection} 
         onSectionChange={setActiveSection}
       />
-      
-      {/* Main Content Area */}
-      <div className={`
-        bg-white min-h-screen transition-all duration-300
-        ${isCollapsed ? 'ml-[8rem]' : 'ml-[20rem]'}
-      `}>
+
+      {/* Main Content Area - properly offset for sidebar */}
+      <div className={cn(
+        "h-screen overflow-y-auto transition-all duration-300",
+        isCollapsed ? "ml-32" : "ml-[416px]"
+      )}>
         {renderContent()}
       </div>
     </div>

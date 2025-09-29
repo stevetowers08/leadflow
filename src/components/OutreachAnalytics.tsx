@@ -341,7 +341,7 @@ export function OutreachAnalytics() {
           </CardContent>
         </Card>
 
-        <Card className="bg-indigo-50/50 border-indigo-200/50 shadow-sm hover:shadow-md transition-shadow duration-200">
+        <Card className="bg-accent/10 border-accent/30 shadow-sm hover:shadow-md transition-shadow duration-200">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Target className="h-4 w-4" />

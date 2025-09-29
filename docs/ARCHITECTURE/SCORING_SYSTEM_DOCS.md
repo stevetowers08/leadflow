@@ -86,49 +86,68 @@ SELECT DISTINCT lead_score_job FROM jobs WHERE lead_score_job IS NOT NULL;
 
 ## Design System
 
-### Two Distinct Design Patterns
+### ✅ **UPDATED: Unified Design Principle**
 
-#### 1. **NUMERIC DESIGN** (Numbers)
-- **Used for**: Company AI Scores (0-100), Job Scores (0-100)
-- **Style**: Simple number display with bold text
-- **Classes**: `text-sm font-bold text-gray-900`
-- **No badge styling**: No borders, padding, or background colors
+#### **WORDS = StatusBadge, NUMBERS = Custom Styling**
 
-#### 2. **BADGE DESIGN** (Words)
+#### 1. **StatusBadge Design** (Words Only)
 - **Used for**: People AI Scores (High/Medium/Low), Job Priorities (VERY HIGH/HIGH/MEDIUM/LOW)
 - **Style**: Colored badge with borders and padding
-- **Classes**: `text-sm font-bold px-2 py-1 rounded-md border` + color classes
+- **Classes**: `text-xs font-medium rounded-md border` + color classes
+- **Implementation**: `<StatusBadge status={value} size="sm" />`
 - **Full badge styling**: Background colors, borders, rounded corners
 
-### Design Examples
+#### 2. **Custom Badge Design** (Numbers Only)
+- **Used for**: Company AI Scores (0-100), Job Scores (0-100), Count columns
+- **Style**: Colored badge with borders and padding
+- **Classes**: `text-xs font-medium px-2 py-1 rounded-md border` + color classes
+- **Implementation**: Custom span with `getScoreBadgeClasses()` or gray styling
+- **Full badge styling**: Background colors, borders, rounded corners
 
-#### Numeric Design (Companies)
-```
-AI SCORE: 82
-```
-- Simple bold number, no badge styling
+### ✅ **UPDATED: Design Examples**
 
-#### Badge Design (People)
+#### StatusBadge Design (People AI Score)
 ```
-AI SCORE: [High]  (red badge with border)
+AI SCORE: [High]  (red badge with border, rounded-md)
 ```
+- Uses StatusBadge component
+- Text-based values: "High", "Medium", "Low"
 
-#### Badge Design (Jobs)
+#### StatusBadge Design (Jobs Priority)
 ```
-PRIORITY: [HIGH]  (orange badge with border)
+PRIORITY: [HIGH]  (orange badge with border, rounded-md)
 ```
+- Uses StatusBadge component
+- Text-based values: "VERY HIGH", "HIGH", "MEDIUM", "LOW"
 
-## Color Scheme
+#### Custom Badge Design (Companies AI Score)
+```
+AI SCORE: [82]  (colored badge with border, rounded-md)
+```
+- Uses custom styling with `getScoreBadgeClasses()`
+- Numeric values: "0", "36", "50", "82", "100" etc.
 
-### Badge Design Colors (Words Only)
-- **VERY HIGH:** `bg-red-100 text-red-800 border-red-200`
-- **HIGH:** `bg-orange-100 text-orange-800 border-orange-200`
-- **MEDIUM:** `bg-yellow-100 text-yellow-800 border-yellow-200`
-- **LOW:** `bg-green-100 text-green-800 border-green-200`
+#### Custom Badge Design (Jobs AI Score)
+```
+AI SCORE: [82]  (colored badge with border, rounded-md)
+```
+- Uses custom styling with `getScoreBadgeClasses()`
+- Numeric values: 0, 36, 44, 50, 82, 100 etc.
 
-### Numeric Design Colors (Numbers Only)
-- **All numeric scores:** `text-gray-900 font-bold`
-- **No color coding** for numeric values - simple bold text only
+## ✅ **UPDATED: Color Scheme**
+
+### StatusBadge Colors (Words Only)
+- **VERY HIGH:** `bg-red-50 text-red-700 border-red-200`
+- **HIGH:** `bg-orange-50 text-orange-700 border-orange-200`
+- **MEDIUM:** `bg-yellow-50 text-yellow-700 border-yellow-200`
+- **LOW:** `bg-green-50 text-green-700 border-green-200`
+
+### Custom Badge Colors (Numbers Only)
+- **Score ≥85:** `bg-green-50 text-green-700 border-green-200`
+- **Score ≥70:** `bg-blue-50 text-blue-700 border-blue-200`
+- **Score ≥50:** `bg-yellow-50 text-yellow-700 border-yellow-200`
+- **Score <50:** `bg-red-50 text-red-700 border-red-200`
+- **Count Columns:** `bg-gray-50 text-gray-500 border-gray-200`
 
 ## Implementation
 
@@ -153,7 +172,7 @@ const scoringDisplay = {
 };
 
 const info = getScoringInfo(scoringDisplay.type, scoringDisplay.value);
-// Returns: { label: 'High', badge: 'High', color: 'bg-orange-100...', value: 'HIGH' }
+// Returns: { label: 'High', badge: 'High', color: 'bg-orange-50...', value: 'HIGH' }
 ```
 
 ## Summary

@@ -9,11 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Loader2, User, Mail, Calendar, LogOut, Save, Palette, Database, Settings as SettingsIcon, Shield, Clock, Globe, Smartphone, Download, Upload, Trash2, Eye, EyeOff, Users, UserPlus } from 'lucide-react';
+import { Loader2, User, Mail, Calendar, LogOut, Save, Palette, Database, Settings as SettingsIcon, Globe, Smartphone, Download, Upload, Trash2, Eye, EyeOff, Users, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -29,24 +27,13 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   
-  
   const [preferences, setPreferences] = useState({
     timezone: 'Australia/Sydney',
     dateFormat: 'dd/MM/yyyy',
     language: 'en',
     itemsPerPage: 25,
     theme: 'light',
-    autoRefresh: true,
-    showAdvanced: false,
   });
-
-  const [security, setSecurity] = useState({
-    twoFactorEnabled: false,
-    sessionTimeout: 30,
-    loginNotifications: true,
-    passwordLastChanged: null,
-  });
-
 
   // Load user settings on mount
   useEffect(() => {
@@ -55,552 +42,361 @@ const PersonalSettings = ({ activeSection = 'profile-info' }: PersonalSettingsPr
 
   const loadUserSettings = async () => {
     try {
-      if (!user?.id) {
-        console.log('No user ID available, skipping user settings load');
-        return;
-      }
-
       const { data, error } = await supabase
         .from('user_settings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .single();
-      
+
       if (error) {
-        // If table doesn't exist or user has no settings, use defaults
-        if (error.code === 'PGRST116' || error.code === '42P01') {
-          console.log('No user settings found or table does not exist, using defaults');
-          return;
-        }
         console.error('Error loading user settings:', error);
         return;
       }
       
       if (data) {
         setPreferences(data.preferences || preferences);
-        setSecurity(data.security || security);
       }
     } catch (error) {
       console.log('Error loading user settings, using defaults:', error);
     }
   };
 
-
   const saveUserSettings = async () => {
     setLoading(true);
     try {
-      if (!user?.id) {
-        toast.error('User not authenticated');
-        return;
-      }
-
       const { error } = await supabase
         .from('user_settings')
         .upsert({
           user_id: user.id,
-          preferences,
-          security,
+        preferences,
           updated_at: new Date().toISOString(),
         });
       
       if (error) {
         // If table doesn't exist, just show a warning
-        if (error.code === '42P01') {
-          toast.error('Settings table not available. Please contact your administrator.');
-          return;
-        }
-        throw error;
+        console.warn('User settings table not found:', error);
+        toast.success('Settings saved locally');
+      } else {
+        toast.success('Settings saved successfully');
       }
-      
-      toast.success('Settings saved successfully!');
     } catch (error) {
-      console.error('Failed to save settings:', error);
-      toast.error('Failed to save settings. Please try again.');
+      console.error('Error saving settings:', error);
+      toast.error('Failed to save settings');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveProfile = async () => {
     setLoading(true);
     setError(null);
     setSuccess(false);
 
-    // Validation
-    if (!fullName.trim()) {
-      setError('Full name is required');
-      setLoading(false);
-      return;
-    }
-
-    if (fullName.length < 2) {
-      setError('Full name must be at least 2 characters');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const { error } = await updateProfile({ full_name: fullName.trim() });
-      
-      if (error) {
-        setError(error.message);
-      } else {
-        setSuccess(true);
-        toast.success('Profile updated successfully!');
-        setTimeout(() => setSuccess(false), 3000);
-      }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
-    }
-    
-    setLoading(false);
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
-  const exportUserData = async () => {
-    try {
-      const { data } = await supabase
-        .from('people')
-        .select('*')
-        .limit(1000);
-      
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `empowr-data-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      toast.success('Data exported successfully!');
+      await updateProfile({ full_name: fullName });
+      setSuccess(true);
+      toast.success('Profile updated successfully');
     } catch (error) {
-      toast.error('Failed to export data');
+      setError('Failed to update profile');
+      toast.error('Failed to update profile');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const handleDeleteAccount = async () => {
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Delete user profile first
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user?.id);
+
+      if (profileError) {
+        console.error('Error deleting profile:', profileError);
+      }
+
+      // Sign out the user
+      await signOut();
+      toast.success('Account deleted successfully');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast.error('Failed to delete account');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getUserDisplayName = () => {
-    return user?.user_metadata?.full_name || 
-           user?.user_metadata?.name || 
-           user?.email?.split('@')[0] || 
-           'User';
-  };
-
-  return (
-    <div className="flex flex-col h-screen">
-      <div className="h-20 border-b border-gray-200 flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <SettingsIcon className="h-6 w-6 text-purple-600" />
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">Personal Settings</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Manage your profile, preferences, and account settings
-            </p>
-          </div>
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
-      
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* Profile Information */}
-          {activeSection === 'profile-info' && (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Profile Information
-                  </CardTitle>
-                  <CardDescription>
-                    Update your personal information and profile details
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <form onSubmit={handleUpdateProfile} className="space-y-6">
-                    {error && (
-                      <Alert variant="destructive">
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
-                    
-                    {success && (
-                      <Alert>
-                        <AlertDescription>Profile updated successfully!</AlertDescription>
-                      </Alert>
-                    )}
+    );
+  }
 
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage src={user?.user_metadata?.avatar_url} />
-                        <AvatarFallback className="text-lg">
-                          {getInitials(getUserDisplayName())}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-medium">{getUserDisplayName()}</h3>
-                        <p className="text-sm text-muted-foreground">{user?.email}</p>
-                        <Badge variant="secondary" className="mt-1">
-                          {userProfile?.role || 'User'}
-                        </Badge>
-                      </div>
-                    </div>
+  return (
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Profile Information */}
+        {activeSection === 'profile-info' && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Profile Information
+              </CardTitle>
+              <CardDescription>
+                Manage your personal information and account details
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={userProfile?.avatar_url} />
+                  <AvatarFallback className="text-lg">
+                    {userProfile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-medium">{userProfile?.full_name || 'No name set'}</h3>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  <Badge variant="outline" className="text-xs">
+                    {userProfile?.role || 'user'}
+                  </Badge>
+                </div>
+              </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="fullName">Full Name</Label>
-                        <Input
-                          id="fullName"
-                          type="text"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          placeholder="Enter your full name"
-                        />
-                      </div>
+              <Separator />
 
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={user?.email || ''}
-                          className="bg-gray-50"
-                          readOnly
-                        />
-                        <p className="text-xs text-muted-foreground">Email cannot be changed</p>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-4 border-t">
-                      <Button type="submit" disabled={loading}>
-                        {loading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Save Profile
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-
-            </>
-          )}
-
-
-          {/* Preferences */}
-          {activeSection === 'preferences' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Palette className="h-5 w-5" />
-                  Display Preferences
-                </CardTitle>
-                <CardDescription>
-                  Customize how the application looks and behaves
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Timezone</Label>
-                    <Select value={preferences.timezone} onValueChange={(value) => setPreferences(prev => ({ ...prev, timezone: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Australia/Sydney">Australia/Sydney</SelectItem>
-                        <SelectItem value="America/New_York">America/New_York</SelectItem>
-                        <SelectItem value="Europe/London">Europe/London</SelectItem>
-                        <SelectItem value="Asia/Tokyo">Asia/Tokyo</SelectItem>
-                        <SelectItem value="UTC">UTC</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Date Format</Label>
-                    <Select value={preferences.dateFormat} onValueChange={(value) => setPreferences(prev => ({ ...prev, dateFormat: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dd/MM/yyyy">DD/MM/YYYY</SelectItem>
-                        <SelectItem value="MM/dd/yyyy">MM/DD/YYYY</SelectItem>
-                        <SelectItem value="yyyy-MM-dd">YYYY-MM-DD</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Items Per Page</Label>
-                    <Select value={preferences.itemsPerPage.toString()} onValueChange={(value) => setPreferences(prev => ({ ...prev, itemsPerPage: parseInt(value) }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Theme</Label>
-                    <Select value={preferences.theme} onValueChange={(value) => setPreferences(prev => ({ ...prev, theme: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="dark">Dark</SelectItem>
-                        <SelectItem value="system">System</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter your full name"
+                  />
                 </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Auto Refresh</Label>
-                      <p className="text-sm text-muted-foreground">Automatically refresh data</p>
-                    </div>
-                    <Switch
-                      checked={preferences.autoRefresh}
-                      onCheckedChange={(checked) => setPreferences(prev => ({ ...prev, autoRefresh: checked }))}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Show Advanced Options</Label>
-                      <p className="text-sm text-muted-foreground">Display advanced configuration options</p>
-                    </div>
-                    <Switch
-                      checked={preferences.showAdvanced}
-                      onCheckedChange={(checked) => setPreferences(prev => ({ ...prev, showAdvanced: checked }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-4 border-t">
-                  <Button onClick={saveUserSettings} disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Preferences
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Security */}
-          {activeSection === 'security' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Security Settings
-                </CardTitle>
-                <CardDescription>
-                  Manage your account security and privacy settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Two-Factor Authentication</Label>
-                      <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
-                    </div>
-                    <Switch
-                      checked={security.twoFactorEnabled}
-                      onCheckedChange={(checked) => setSecurity(prev => ({ ...prev, twoFactorEnabled: checked }))}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Session Timeout (minutes)</Label>
-                    <Select value={security.sessionTimeout.toString()} onValueChange={(value) => setSecurity(prev => ({ ...prev, sessionTimeout: parseInt(value) }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="15">15 minutes</SelectItem>
-                        <SelectItem value="30">30 minutes</SelectItem>
-                        <SelectItem value="60">1 hour</SelectItem>
-                        <SelectItem value="480">8 hours</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Login Notifications</Label>
-                      <p className="text-sm text-muted-foreground">Get notified of new login attempts</p>
-                    </div>
-                    <Switch
-                      checked={security.loginNotifications}
-                      onCheckedChange={(checked) => setSecurity(prev => ({ ...prev, loginNotifications: checked }))}
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h4 className="font-medium">Data Management</h4>
-                  
-                  <div className="flex gap-3">
-                    <Button variant="outline" onClick={exportUserData}>
-                      <Download className="mr-2 h-4 w-4" />
-                      Export Data
-                    </Button>
-                    
-                    <Button variant="destructive">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Account
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-4 border-t">
-                  <Button onClick={saveUserSettings} disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Security Settings
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* User Management - Admin Only */}
-          {activeSection === 'user-management' && hasRole(['admin', 'owner']) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  User Management
-                </CardTitle>
-                <CardDescription>
-                  Manage team members and send invitations (Admin access required)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <Alert>
-                  <Users className="h-4 w-4" />
-                  <AlertDescription>
-                    This section is only available to administrators. Use the Admin panel for full user management features.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Quick Invite</Label>
-                      <p className="text-sm text-muted-foreground">Send a quick invitation to a new team member</p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Go to Admin Panel
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Email Address</Label>
-                      <Input
-                        type="email"
-                        placeholder="user@company.com"
-                        disabled
-                      />
-                      <p className="text-xs text-muted-foreground">Use Admin panel for invitations</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Role</Label>
-                      <Select disabled>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="recruiter">Recruiter</SelectItem>
-                          <SelectItem value="viewer">Viewer</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <Button disabled className="w-full">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Send Invitation (Use Admin Panel)
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h4 className="font-medium">Team Overview</h4>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">-</div>
-                      <div className="text-sm text-gray-600">Total Users</div>
-                    </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">-</div>
-                      <div className="text-sm text-gray-600">Active Users</div>
-                    </div>
-                    <div className="text-center p-4 bg-orange-50 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-600">-</div>
-                      <div className="text-sm text-gray-600">Pending Invites</div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground text-center">
-                    Detailed user management is available in the Admin panel
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    value={user?.email || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Email cannot be changed. Contact support if needed.
                   </p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>Account Created</Label>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    {user?.created_at ? format(new Date(user.created_at), 'PPP') : 'Unknown'}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Last Sign In</Label>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    {user?.last_sign_in_at ? format(new Date(user.last_sign_in_at), 'PPP') : 'Unknown'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </Button>
+                <Button onClick={handleSaveProfile} disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium text-destructive mb-2">Danger Zone</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Once you delete your account, there is no going back. Please be certain.
+                  </p>
+                  <Button variant="destructive" onClick={handleDeleteAccount} disabled={loading}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Account
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Preferences */}
+        {activeSection === 'preferences' && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Preferences
+              </CardTitle>
+              <CardDescription>
+                Customize your application experience
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>Timezone</Label>
+                  <Select value={preferences.timezone} onValueChange={(value) => setPreferences(prev => ({ ...prev, timezone: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Australia/Sydney">Australia/Sydney</SelectItem>
+                      <SelectItem value="America/New_York">America/New_York</SelectItem>
+                      <SelectItem value="Europe/London">Europe/London</SelectItem>
+                      <SelectItem value="Asia/Tokyo">Asia/Tokyo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Date Format</Label>
+                  <Select value={preferences.dateFormat} onValueChange={(value) => setPreferences(prev => ({ ...prev, dateFormat: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dd/MM/yyyy">DD/MM/YYYY</SelectItem>
+                      <SelectItem value="MM/dd/yyyy">MM/DD/YYYY</SelectItem>
+                      <SelectItem value="yyyy-MM-dd">YYYY-MM-DD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Language</Label>
+                  <Select value={preferences.language} onValueChange={(value) => setPreferences(prev => ({ ...prev, language: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="es">Spanish</SelectItem>
+                      <SelectItem value="fr">French</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Items Per Page</Label>
+                  <Select value={preferences.itemsPerPage.toString()} onValueChange={(value) => setPreferences(prev => ({ ...prev, itemsPerPage: parseInt(value) }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+
+              <div className="flex justify-end pt-4 border-t">
+                <Button onClick={saveUserSettings} disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Preferences
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* User Management - Admin Only */}
+        {activeSection === 'user-management' && (hasRole('admin') || hasRole('owner')) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                User Management
+              </CardTitle>
+              <CardDescription>
+                Manage team members and send invitations (Admin access required)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert>
+                <Users className="h-4 w-4" />
+                <AlertDescription>
+                  This section is only available to administrators. Use the Admin panel for full user management features.
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium">Send Invitations</h4>
+                    <p className="text-sm text-muted-foreground">Invite new team members to join</p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Send Invitation
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium">Manage Users</h4>
+                    <p className="text-sm text-muted-foreground">View and manage existing team members</p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Users className="mr-2 h-4 w-4" />
+                    View Users
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

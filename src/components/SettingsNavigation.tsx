@@ -21,7 +21,7 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
 }) => {
   const { hasRole } = usePermissions();
   const { isCollapsed } = useSidebar();
-  const isAdmin = hasRole('admin') || hasRole('owner');
+  const isOwner = hasRole('owner');
 
   const settingsSections = [
     {
@@ -39,24 +39,17 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
       available: true
     },
     {
-      id: 'security',
-      label: 'Security',
-      icon: Shield,
-      description: 'Security and privacy settings',
-      available: true
-    },
-    {
-      id: 'admin',
-      label: 'Admin',
-      icon: Settings,
-      description: 'System administration (Admin/Owner)',
-      available: isAdmin
-    },
-    {
       id: 'integrations',
       label: 'Integrations',
       icon: Plug,
       description: 'Third-party integrations',
+      available: true
+    },
+    {
+      id: 'admin',
+      label: 'Users',
+      icon: Settings,
+      description: 'User management',
       available: true
     }
   ];

@@ -6,11 +6,12 @@ import { JobDetailPopup } from "@/components/JobDetailPopup";
 import { JobsStatsCards } from "@/components/StatsCards";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Clock, DollarSign, Bot, Users, Briefcase, Zap, Target, AlertTriangle, Trash2 } from "lucide-react";
 import { getClearbitLogo } from "@/utils/logoService";
 import { Page, StatItemProps } from "@/design-system/components";
+import { cn } from "@/lib/utils";
+import { getScoreBadgeClasses } from "@/utils/scoreUtils";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Job = Tables<"jobs"> & {
@@ -360,19 +361,19 @@ const Jobs = () => {
       render: (job: Job) => {
         if (job.automation_started_leads && job.automation_started_leads > 0) {
           return (
-            <div className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 w-32 flex justify-center">
+            <div className="px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-md border border-green-200 w-32 flex justify-center">
               AUTOMATED ({job.automation_started_leads})
             </div>
           );
         } else if (job.new_leads && job.new_leads > 0) {
           return (
-            <div className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200 w-32 flex justify-center">
+            <div className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-md border border-blue-200 w-32 flex justify-center">
               NEW JOB
             </div>
           );
         } else {
           return (
-            <div className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full border border-gray-200 w-32 flex justify-center">
+            <div className="px-3 py-1 bg-slate-50 text-slate-500 text-xs font-medium rounded-md border border-slate-200 w-32 flex justify-center">
               -
             </div>
           );
@@ -414,7 +415,7 @@ const Jobs = () => {
                 />
               ) : null}
               <div 
-                className={`w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-semibold ${job.company_logo_url ? 'hidden' : 'flex'}`}
+                className={`w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold ${job.company_logo_url ? 'hidden' : 'flex'}`}
               >
                 {job.company_name ? job.company_name.charAt(0).toUpperCase() : '?'}
               </div>
@@ -462,25 +463,31 @@ const Jobs = () => {
       label: "Priority",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
-      render: (job: Job) => {
-        const priority = job.priority?.toLowerCase() || "medium";
-        const uppercasePriority = priority.toUpperCase();
-        return (
-          <div className="px-3 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full border border-orange-200 w-24 flex justify-center">
-            {uppercasePriority}
-          </div>
-        );
-      },
+      width: "120px",
+      render: (job: Job) => (
+        <div className="flex items-center justify-center">
+          <StatusBadge 
+            status={job.priority || "Medium"} 
+            size="sm" 
+          />
+        </div>
+      ),
     },
     {
       key: "lead_score_job",
       label: "AI Score",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
+      width: "100px",
       render: (job: Job) => (
         <div className="flex items-center justify-center">
-          <span className="text-sm font-medium bg-gray-100 px-3 py-2 rounded-md hover:bg-gray-200 transition-colors">
-            {job.lead_score_job || "-"}
+          <span
+            className={cn(
+              "inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border",
+              getScoreBadgeClasses(job.lead_score_job ?? null)
+            )}
+          >
+            {job.lead_score_job ?? "-"}
           </span>
         </div>
       ),
@@ -490,9 +497,10 @@ const Jobs = () => {
       label: "Leads",
       headerAlign: "center" as const,
       cellAlign: "center" as const,
+      width: "100px",
       render: (job: Job) => (
         <div className="flex items-center justify-center">
-          <span className="text-sm font-medium bg-gray-100 px-3 py-2 rounded-md hover:bg-gray-200 transition-colors">
+          <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 border border-gray-200">
             {job.total_leads || 0}
           </span>
         </div>
@@ -640,40 +648,73 @@ const Jobs = () => {
 
         {/* Tabs and Controls Row */}
         <div className="flex items-center justify-between gap-4 mb-4">
-          {/* Navigation Tabs - Left Aligned */}
-          <Tabs value={statusFilter} onValueChange={setStatusFilter} className="flex-1">
-            <TabsList className="grid w-fit grid-cols-4 border border-gray-200">
-            <TabsTrigger value="recent" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              LAST 24HRS ({jobs.filter(job => {
-                const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-                const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
-                return job.created_at && new Date(job.created_at) >= oneDayAgo && isActiveJob;
-              }).length})
-            </TabsTrigger>
-            <TabsTrigger value="sales" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              SALES ROLES ({jobs.filter(job => {
-                const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
-                return job.title?.toLowerCase().includes('sales') && isActiveJob;
-              }).length})
-            </TabsTrigger>
-            <TabsTrigger value="not_automated" className="flex items-center gap-2">
-              <Bot className="h-4 w-4" />
-              NEW JOBS ({jobs.filter(job => {
-                const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
-                return job.new_leads && job.new_leads > 0 && job.automation_started_leads === 0 && isActiveJob;
-              }).length})
-            </TabsTrigger>
-            <TabsTrigger value="all" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              ALL JOBS ({jobs.filter(job => {
-                const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
-                return isActiveJob;
-              }).length})
-            </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          {/* Navigation Tabs - Design 7: Floating Pills */}
+          <div className="flex gap-3">
+            {[
+              { 
+                id: "recent", 
+                label: "LAST 24HRS", 
+                icon: Clock, 
+                count: jobs.filter(job => {
+                  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                  const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
+                  return job.created_at && new Date(job.created_at) >= oneDayAgo && isActiveJob;
+                }).length
+              },
+              { 
+                id: "sales", 
+                label: "SALES ROLES", 
+                icon: DollarSign, 
+                count: jobs.filter(job => {
+                  const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
+                  return job.title?.toLowerCase().includes('sales') && isActiveJob;
+                }).length
+              },
+              { 
+                id: "not_automated", 
+                label: "NEW JOBS", 
+                icon: Bot, 
+                count: jobs.filter(job => {
+                  const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
+                  return job.new_leads && job.new_leads > 0 && job.automation_started_leads === 0 && isActiveJob;
+                }).length
+              },
+              { 
+                id: "all", 
+                label: "ALL JOBS", 
+                icon: Briefcase, 
+                count: jobs.filter(job => {
+                  const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
+                  return isActiveJob;
+                }).length
+              }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 shadow-sm",
+                    statusFilter === tab.id
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md ring-1 ring-sidebar-primary/20"
+                      : "bg-white text-gray-700 border border-gray-200 hover:shadow-md hover:border-gray-300"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                  <span className={cn(
+                    "text-xs px-2 py-0.5 rounded-md",
+                    statusFilter === tab.id
+                      ? "bg-white/20 text-white"
+                      : "bg-gray-100 text-gray-600"
+                  )}>
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
           {/* Priority Filter and Sort Controls - Far Right */}
           <div className="flex items-center gap-3">

@@ -197,7 +197,7 @@ const Accounts = () => {
   const getRoleBadge = (role: string) => {
     const roleConfig = {
       owner: { label: 'Owner', className: 'bg-orange-100 text-orange-800', icon: Crown },
-      admin: { label: 'Admin', className: 'bg-blue-100 text-blue-800', icon: Shield },
+      admin: { label: 'Admin', className: 'bg-accent/20 text-accent', icon: Shield },
       recruiter: { label: 'Recruiter', className: 'bg-green-100 text-green-800', icon: User },
       viewer: { label: 'Viewer', className: 'bg-gray-100 text-gray-800', icon: User }
     };
@@ -248,7 +248,7 @@ const Accounts = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <UserPlus className="h-6 w-6 text-blue-600" />
+              <UserPlus className="h-6 w-6 text-primary" />
               <div>
                 <CardTitle>Invite New User</CardTitle>
                 <CardDescription>
@@ -295,7 +295,7 @@ const Accounts = () => {
                       </Select>
                     ) : (
                       <div className="flex items-center gap-2 p-3 border rounded-md bg-gray-50">
-                        <Shield className="h-4 w-4 text-blue-600" />
+                        <Shield className="h-4 w-4 text-primary" />
                         <span className="text-sm text-gray-600">
                           Only owners can assign roles. New users will be assigned as Recruiters by default.
                         </span>
@@ -383,7 +383,7 @@ const Accounts = () => {
         <CardContent>
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-gray-600">Loading users...</p>
             </div>
           ) : users.length > 0 ? (
