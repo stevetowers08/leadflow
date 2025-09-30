@@ -1,4 +1,7 @@
 // AI Service for lead scoring, job summaries, and optimization
+// Now supports both OpenAI and Google Gemini APIs
+import { geminiService, type GeminiJobSummary, type GeminiAnalysisResult } from './geminiService';
+
 export interface AIScore {
   score: number;
   reason: string;
@@ -28,13 +31,22 @@ export interface LeadOptimization {
   optimal_timing: string;
 }
 
-class AIService {
-  private apiKey: string;
-  private baseUrl: string;
+export interface AIServiceConfig {
+  provider: 'openai' | 'gemini' | 'auto';
+  fallbackProvider?: 'openai' | 'gemini';
+}
 
-  constructor() {
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
+class AIService {
+  private openaiApiKey: string;
+  private geminiApiKey: string;
+  private baseUrl: string;
+  private config: AIServiceConfig;
+
+  constructor(config: AIServiceConfig = { provider: 'auto' }) {
+    this.openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
+    this.geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
     this.baseUrl = 'https://api.openai.com/v1';
+    this.config = config;
   }
 
   // Calculate AI-powered lead score
@@ -112,55 +124,77 @@ class AIService {
     }
   }
 
-  // Generate job summary
+  // Generate job summary using best available provider
   async generateJobSummary(jobData: {
     title: string;
     company: string;
     description: string;
-    requirements: string;
+    requirements?: string;
     location: string;
     salary?: string;
   }): Promise<JobSummary> {
     try {
-      const prompt = `
-        Create a comprehensive job summary for this position:
-        
-        Title: ${jobData.title}
-        Company: ${jobData.company}
-        Description: ${jobData.description}
-        Requirements: ${jobData.requirements}
-        Location: ${jobData.location}
-        Salary: ${jobData.salary || 'Not specified'}
-        
-        Provide:
-        1. A concise 2-3 sentence summary
-        2. Top 5 key requirements
-        3. Ideal candidate profile
-        4. Urgency level (low/medium/high)
-        5. Market demand (low/medium/high)
-        
-        Return JSON format:
-        {
-          "summary": "string",
-          "key_requirements": ["string"],
-          "ideal_candidate": "string",
-          "urgency_level": "low|medium|high",
-          "market_demand": "low|medium|high"
-        }
-      `;
+      // Try Gemini first (free) if available
+      if (this.shouldUseGemini()) {
+        const geminiResult = await geminiService.generateJobSummary({
+          title: jobData.title,
+          company: jobData.company,
+          description: jobData.description,
+          location: jobData.location,
+          salary: jobData.salary,
+          employment_type: undefined,
+          seniority_level: undefined
+        });
 
-      const response = await this.callOpenAI(prompt);
-      return JSON.parse(response);
+        if (geminiResult.success && geminiResult.data) {
+          return {
+            summary: geminiResult.data.summary,
+            key_requirements: geminiResult.data.key_requirements,
+            ideal_candidate: geminiResult.data.ideal_candidate,
+            urgency_level: geminiResult.data.urgency_level,
+            market_demand: geminiResult.data.market_demand
+          };
+        }
+      }
+
+      // Fallback to OpenAI or manual generation
+      if (this.openaiApiKey) {
+        const prompt = `
+          Create a comprehensive job summary for this position:
+          
+          Title: ${jobData.title}
+          Company: ${jobData.company}
+          Description: ${jobData.description}
+          Requirements: ${jobData.requirements || 'Not specified'}
+          Location: ${jobData.location}
+          Salary: ${jobData.salary || 'Not specified'}
+          
+          Provide:
+          1. A concise 2-3 sentence summary
+          2. Top 5 key requirements
+          3. Ideal candidate profile
+          4. Urgency level (low/medium/high)
+          5. Market demand (low/medium/high)
+          
+          Return JSON format:
+          {
+            "summary": "string",
+            "key_requirements": ["string"],
+            "ideal_candidate": "string",
+            "urgency_level": "low|medium|high",
+            "market_demand": "low|medium|high"
+          }
+        `;
+
+        const response = await this.callOpenAI(prompt);
+        return JSON.parse(response);
+      }
+
+      // Manual fallback summary
+      return this.generateFallbackJobSummary(jobData);
     } catch (error) {
       console.error('AI job summary error:', error);
-      // Fallback summary
-      return {
-        summary: `${jobData.title} position at ${jobData.company} in ${jobData.location}`,
-        key_requirements: ['Experience in relevant field', 'Strong communication skills', 'Team collaboration'],
-        ideal_candidate: 'Experienced professional with relevant background',
-        urgency_level: 'medium',
-        market_demand: 'medium'
-      };
+      return this.generateFallbackJobSummary(jobData);
     }
   }
 
@@ -276,11 +310,60 @@ class AIService {
     return !!this.apiKey;
   }
 
-  // Get AI service status
-  getStatus(): { available: boolean; model: string; features: string[] } {
+  // Determine which provider to use
+  private shouldUseGemini(): boolean {
+    if (this.config.provider === 'gemini') return true;
+    if (this.config.provider === 'openai') return false;
+    if (this.config.provider === 'auto') {
+      return !!this.geminiApiKey; // Use Gemini if available (free)
+    }
+    return false;
+  }
+
+  // Generate fallback job summary
+  private generateFallbackJobSummary(jobData: {
+    title: string;
+    company: string;
+    description: string;
+    location: string;
+    salary?: string;
+  }): JobSummary {
     return {
-      available: this.isAvailable(),
-      model: 'gpt-3.5-turbo',
+      summary: `${jobData.title} position at ${jobData.company} in ${jobData.location}`,
+      key_requirements: ['Experience in relevant field', 'Strong communication skills', 'Team collaboration'],
+      ideal_candidate: 'Experienced professional with relevant background',
+      urgency_level: 'medium',
+      market_demand: 'medium'
+    };
+  }
+
+  // Get AI service status
+  getStatus(): { 
+    available: boolean; 
+    providers: {
+      openai: { available: boolean; model: string };
+      gemini: { available: boolean; model: string };
+    };
+    activeProvider: string;
+    features: string[];
+  } {
+    const openaiAvailable = !!this.openaiApiKey;
+    const geminiAvailable = !!this.geminiApiKey;
+    const activeProvider = this.shouldUseGemini() ? 'gemini' : 'openai';
+
+    return {
+      available: openaiAvailable || geminiAvailable,
+      providers: {
+        openai: { 
+          available: openaiAvailable, 
+          model: 'gpt-3.5-turbo' 
+        },
+        gemini: { 
+          available: geminiAvailable, 
+          model: 'gemini-1.5-flash' 
+        }
+      },
+      activeProvider,
       features: ['lead_scoring', 'job_summaries', 'outreach_optimization', 'batch_processing']
     };
   }

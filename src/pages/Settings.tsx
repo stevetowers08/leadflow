@@ -7,8 +7,8 @@ import PersonalSettings from './PersonalSettings';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { Settings as SettingsIcon } from 'lucide-react';
 import IntegrationsPage from '@/components/IntegrationsPage';
-import AdminSettingsTab from '@/components/AdminSettingsTab';
-import BusinessProfileSettings from '@/components/BusinessProfileSettings';
+import AdminSettingsTab from '@/components/crm/settings/AdminSettingsTab';
+import BusinessProfileSettings from '@/components/crm/settings/BusinessProfileSettings';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { cn } from '@/lib/utils';
 

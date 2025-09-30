@@ -10,9 +10,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { CompanyDetailPopup } from "./CompanyDetailPopup";
-import { LeadDetailPopup } from "./features/leads/LeadDetailPopup";
-import { LinkedInAutomationModal } from "./LinkedInAutomationModal";
+import { CompanyDetailPopup } from "../companies/CompanyDetailPopup";
+import { LeadDetailPopup } from "../../features/leads/LeadDetailPopup";
+import { LinkedInAutomationModal } from "../automation/LinkedInAutomationModal";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface JobDetailPopupProps {

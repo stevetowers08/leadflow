@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
-import { JobDetailPopup } from "@/components/JobDetailPopup";
+import { JobDetailPopup } from "@/components/crm/jobs/JobDetailPopup";
 import { JobsStatsCards } from "@/components/StatsCards";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownSelect } from "@/components/ui/dropdown-select";

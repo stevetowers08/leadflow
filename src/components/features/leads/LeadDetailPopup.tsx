@@ -11,9 +11,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { CompanyDetailPopup } from "../../CompanyDetailPopup";
-import { JobDetailPopup } from "../../JobDetailPopup";
-import { LinkedInAutomationModal } from "../../LinkedInAutomationModal";
+import { CompanyDetailPopup } from "../../crm/companies/CompanyDetailPopup";
+import { JobDetailPopup } from "../../crm/jobs/JobDetailPopup";
+import { LinkedInAutomationModal } from "../../crm/automation/LinkedInAutomationModal";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface LeadDetailPopupProps {
