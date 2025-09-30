@@ -7,6 +7,7 @@ interface InfoCardProps {
   className?: string;
   showDivider?: boolean;
   contentSpacing?: string;
+  compact?: boolean;
 }
 
 export const InfoCard: React.FC<InfoCardProps> = ({
@@ -15,10 +16,13 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   actionButton,
   className = "",
   showDivider = true,
-  contentSpacing = "space-y-3"
+  contentSpacing = "space-y-3",
+  compact = false
 }) => {
+  const paddingClass = compact ? "p-3" : "p-8";
+  
   return (
-    <div className={`bg-card rounded-xl p-8 border shadow-sm ${className}`}>
+    <div className={`bg-card rounded-xl ${paddingClass} border shadow-sm ${className}`}>
       <div className="pb-1.5">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-card-foreground">{title}</h3>

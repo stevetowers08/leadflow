@@ -1,35 +1,52 @@
 import { test, expect } from '@playwright/test';
+import { createConsoleInspector, withConsoleMonitoring } from '../src/test/console-inspection';
 
 test.describe('Empowr CRM - Authentication Flow', () => {
   test('should display sign-in page', async ({ page }) => {
+    const inspector = createConsoleInspector(page);
+    inspector.startMonitoring();
+    
     await page.goto('/');
     
     // Check if we're on the sign-in page
     await expect(page).toHaveTitle(/Empowr CRM/);
-    await expect(page.getByText('Welcome to Empowr CRM')).toBeVisible();
-    await expect(page.getByText('Sign in to access your CRM dashboard')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
+    await expect(page.getByText('Welcome back')).toBeVisible();
+    await expect(page.getByText('Continue with Google, LinkedIn or email')).toBeVisible();
     
     // Check for Google sign-in button
-    await expect(page.getByRole('button', { name: /Sign in with Google/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Continue with Google/i })).toBeVisible();
+    
+    // Assert no console errors during page load
+    inspector.assertNoErrors();
+    inspector.printSummary();
+    
+    inspector.stopMonitoring();
   });
 
   test('should handle authentication error gracefully', async ({ page }) => {
-    await page.goto('/');
-    
-    // Mock authentication failure
-    await page.route('**/auth/v1/token', route => {
-      route.fulfill({
-        status: 401,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'Invalid credentials' }),
+    const { inspector } = await withConsoleMonitoring(page, async () => {
+      await page.goto('/');
+      
+      // Mock authentication failure
+      await page.route('**/auth/v1/token', route => {
+        route.fulfill({
+          status: 401,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Invalid credentials' }),
+        });
       });
+
+      // Click sign-in button
+      await page.getByRole('button', { name: /Continue with Google/i }).click();
+      
+      // Should show error message
+      await expect(page.getByText(/error occurred/i)).toBeVisible();
     });
 
-    // Click sign-in button
-    await page.getByRole('button', { name: /Sign in with Google/i }).click();
-    
-    // Should show error message
-    await expect(page.getByText(/error occurred/i)).toBeVisible();
+    // Verify that authentication error was properly handled
+    // We expect some errors in console for this test case
+    inspector.printSummary();
   });
 });
 
@@ -235,10 +252,10 @@ test.describe('Empowr CRM - Responsive Design', () => {
     await page.goto('/');
     
     // Check mobile layout
-    await expect(page.getByText('Welcome to Empowr CRM')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
     
     // Sign-in button should be visible and clickable
-    const signInButton = page.getByRole('button', { name: /Sign in with Google/i });
+    const signInButton = page.getByRole('button', { name: /Continue with Google/i });
     await expect(signInButton).toBeVisible();
     await expect(signInButton).toBeEnabled();
   });
@@ -250,8 +267,8 @@ test.describe('Empowr CRM - Responsive Design', () => {
     await page.goto('/');
     
     // Check tablet layout
-    await expect(page.getByText('Welcome to Empowr CRM')).toBeVisible();
-    await expect(page.getByRole('button', { name: /Sign in with Google/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Continue with Google/i })).toBeVisible();
   });
 });
 
@@ -293,7 +310,7 @@ test.describe('Empowr CRM - Performance', () => {
     await page.goto('/');
     
     // Basic performance checks
-    await expect(page.getByText('Welcome to Empowr CRM')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
     
     // Check for performance issues
     const metrics = await page.evaluate(() => {
@@ -307,5 +324,6 @@ test.describe('Empowr CRM - Performance', () => {
     expect(metrics.domContentLoaded).toBeLessThan(1500);
   });
 });
+
 
 

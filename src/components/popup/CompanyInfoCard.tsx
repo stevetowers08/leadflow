@@ -1,189 +1,211 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { InfoCard } from '@/components/shared/InfoCard';
-import { StatusBadge } from '@/components/StatusBadge';
-import { LeadSourceDisplay } from '@/components/features/leads/LeadSourceDisplay';
+import { InfoField } from '@/components/shared/InfoField';
 import { TagDisplay } from '@/components/TagDisplay';
-import { TagSelector } from '@/components';
-import { getScoreBadgeClasses, getTextScoreBadgeClasses, getPriorityBadgeClasses } from '@/utils/scoreUtils';
-import { cn } from '@/lib/utils';
-import { 
-  Building2, 
-  MapPin, 
-  Settings, 
-  Users, 
-  Star, 
-  Activity, 
-  ExternalLink, 
-  Target,
-  Globe
-} from 'lucide-react';
-import { getClearbitLogo } from '@/utils/logoService';
+import { TagSelector } from '@/components/forms/TagSelector';
+import { Button } from '@/components/ui/button';
+import { Globe, Plus, Building2 } from 'lucide-react';
+import { getScoreBadgeClasses } from '@/utils/scoreUtils';
+
+interface Tag {
+  id: string;
+  name: string;
+  color: string;
+  description?: string;
+}
 
 interface CompanyInfoCardProps {
-  company: any;
-  title?: string;
+  company: {
+    id: string;
+    name: string;
+    industry?: string;
+    head_office?: string;
+    company_size?: string;
+    website?: string;
+    linkedin_url?: string;
+    lead_score?: string;
+    automation_active?: boolean;
+    score_reason?: string;
+    created_at?: string;
+    lead_source?: string;
+    logo_url?: string;
+    tags?: Tag[];
+  };
+  onCompanyClick?: (companyId: string, companyName: string) => void;
 }
 
 export const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ 
   company, 
-  title = "Company Information" 
+  onCompanyClick
 }) => {
-  if (!company) return null;
+  const [tags, setTags] = useState<Tag[]>(company.tags || []);
+  const [showTagSelector, setShowTagSelector] = useState(false);
 
-  // Get company logo using Clearbit
+  // Get company logo using Clearbit (same logic as CompanyCard)
   const getCompanyLogo = () => {
+    if (company.logo_url) return company.logo_url;
     if (!company.website) return null;
     const cleanWebsite = company.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
     return `https://logo.clearbit.com/${cleanWebsite}`;
   };
 
-  const logoUrl = getCompanyLogo();
+  const logo = getCompanyLogo();
+
+  if (!company) return null;
 
   return (
-    <InfoCard title={title} contentSpacing="space-y-6 pt-1.5">
-      {/* Header Section - Company name, logo and details */}
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden bg-white border border-gray-200">
-          {logoUrl ? (
-            <img 
-              src={logoUrl} 
-              alt={`${company.name} logo`}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                if (nextElement) {
-                  nextElement.style.display = 'flex';
-                }
-              }}
-            />
-          ) : null}
-          <div 
-            className="w-full h-full bg-gradient-to-br from-accent/10 to-accent/20 rounded-xl flex items-center justify-center" 
-            style={{ display: logoUrl ? 'none' : 'flex' }}
-          >
-            <Building2 className="h-6 w-6 text-accent" />
+    <InfoCard title="Company Information" contentSpacing="space-y-8" showDivider={false}>
+      {/* Section 1: Company Header */}
+      <div className="grid grid-cols-3 gap-3 items-center">
+        {/* Column 1 - Logo, Company Name, Head Office */}
+        <div className="flex items-center gap-3">
+          {/* Company Logo */}
+          <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+            {logo ? (
+              <img 
+                src={logo} 
+                alt={`${company.name} logo`}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <Building2 className={`w-10 h-10 text-gray-400 ${logo ? 'hidden' : ''}`} />
+          </div>
+          
+          {/* Company Info */}
+          <div className="min-w-0">
+            <div className="text-xl font-bold text-gray-900 leading-tight">{company.name}</div>
+            {company.head_office && (
+              <div className="text-sm text-gray-500 leading-tight">{company.head_office}</div>
+            )}
           </div>
         </div>
-        <div className="flex-1">
-          <div className="text-base font-semibold text-foreground">{company.name}</div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {company.head_office && <span>{company.head_office}</span>}
-            {/* Website and LinkedIn Links */}
-            <div className="flex items-center gap-2 ml-2">
-              {company.website && (
-                <a 
-                  href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1 rounded-md hover:bg-gray-100 transition-colors"
-                  title="Visit website"
-                >
-                  <Globe className="h-3 w-3 text-gray-500" />
-                </a>
-              )}
+
+        {/* Column 2 - AI Score */}
+        <div className="space-y-1">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">AI Score</div>
+          <div className="text-sm text-gray-900 font-medium">
+            <div className={`px-2 py-1 rounded-md border text-xs font-semibold w-fit ${getScoreBadgeClasses(company.lead_score)}`}>
+              {company.lead_score || "-"}
+            </div>
+          </div>
+        </div>
+
+        {/* Column 3 - LinkedIn and Website Icons */}
+        <div className="space-y-1">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide"></div>
+          <div className="text-sm text-gray-900 font-medium">
+            <div className="flex items-center gap-3">
               {company.linkedin_url && (
                 <a 
                   href={company.linkedin_url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+                  className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded hover:bg-blue-50"
                   title="View LinkedIn profile"
                 >
-                  <div className="w-3 h-3 bg-blue-600 rounded flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">in</span>
+                  <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">in</span>
                   </div>
+                </a>
+              )}
+              
+              {company.website && (
+                <a 
+                  href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded hover:bg-gray-100"
+                  title="Visit website"
+                >
+                  <Globe className="h-6 w-6" />
                 </a>
               )}
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Company Info Section */}
-      <div className="grid grid-cols-3 gap-3">
-        <InfoField label="Industry" value={company.industry} />
-        <InfoField label="Company Size" value={company.company_size} />
-        <InfoField label="Head Office" value={company.head_office} />
-        <InfoField label="Added Date" value={company.created_at ? new Date(company.created_at).toLocaleDateString() : "-"} />
-        {company.lead_source && (
-          <InfoField label="Lead Source" value={company.lead_source} />
-        )}
-        <div className="space-y-1">
-          <div className="text-xs font-semibold text-gray-600">
-            Status
-          </div>
-          <span className={cn(
-            "inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-semibold border shadow-sm",
-            company.automation_active 
-              ? "bg-green-50 text-green-700 border-green-200"
-              : company.confidence_level === 'high'
-              ? "bg-blue-50 text-blue-700 border-blue-200"
-              : company.confidence_level === 'medium'
-              ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-              : "bg-gray-50 text-gray-700 border-gray-200"
-          )}>
-            {company.automation_active 
-              ? "AUTOMATED" 
-              : company.confidence_level === 'high'
-              ? "QUALIFIED"
-              : company.confidence_level === 'medium'
-              ? "PROSPECT"
-              : "NEW LEAD"
-            }
-          </span>
-        </div>
-        <div className="space-y-1">
-          <div className="text-xs font-semibold text-gray-600">
-            AI Score
-          </div>
-          <span className={cn(
-            "inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-semibold border shadow-sm",
-            getScoreBadgeClasses(company.lead_score)
-          )}>
-            {company.lead_score || "-"}
-          </span>
+
+      {/* Section 2: Company Details */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-3 gap-3">
+          <InfoField label="Industry" value={company.industry} />
+          <InfoField label="Company Size" value={company.company_size} />
+          <InfoField label="Added Date" value={company.created_at ? new Date(company.created_at).toLocaleDateString() : "-"} />
         </div>
       </div>
-      
-      {/* AI Info Section */}
+
+      {/* Section 3: AI Analysis */}
       {company.score_reason && (
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="text-sm font-semibold text-blue-700 mb-2">AI Info</div>
+          <div className="text-sm font-semibold text-blue-700 mb-2">AI Analysis</div>
           <div className="text-sm text-blue-900 leading-relaxed">{company.score_reason}</div>
         </div>
       )}
-      
-      {/* Tags Section - At the bottom */}
-      {company.tags && company.tags.length > 0 && (
+        
+        {/* Company Tags */}
         <div className="space-y-2">
-          <div className="text-xs font-medium text-gray-400">
-            Tags
-          </div>
-          <TagDisplay 
-            tags={company.tags}
-            size="sm"
-            maxVisible={5}
-            showAll={true}
-          />
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">Tags</div>
+          
+          {tags.length > 0 ? (
+            <div className="space-y-2">
+              <TagDisplay 
+                tags={tags}
+                size="sm"
+                maxVisible={5}
+                showAll={true}
+              />
+              <button
+                onClick={() => setShowTagSelector(true)}
+                className="h-6 w-6 p-0 border border-gray-300 hover:bg-gray-100 rounded flex items-center justify-center"
+              >
+                <Plus className="h-3 w-3 text-gray-600" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <div className="text-xs text-gray-500">No tags added yet</div>
+              <button
+                onClick={() => setShowTagSelector(true)}
+                className="h-6 w-6 p-0 border border-gray-300 hover:bg-gray-100 rounded flex items-center justify-center"
+              >
+                <Plus className="h-3 w-3 text-gray-600" />
+              </button>
+            </div>
+          )}
+
+          {/* Tag Selector Modal */}
+          {showTagSelector && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Add Tags</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTagSelector(false)}
+                  >
+                    ×
+                  </Button>
+                </div>
+                <TagSelector
+                  entityId={company.id}
+                  entityType="company"
+                  selectedTags={tags}
+                  onTagsChange={setTags}
+                />
+                <div className="flex justify-end mt-4">
+                  <Button onClick={() => setShowTagSelector(false)}>
+                    Done
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
     </InfoCard>
   );
 };
-
-interface InfoFieldProps {
-  label: string;
-  value: React.ReactNode;
-}
-
-const InfoField: React.FC<InfoFieldProps> = ({ label, value }) => (
-  <div className="space-y-1">
-    <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-      {label}
-    </div>
-    <div className="text-sm text-gray-900 font-medium">
-      {value || "-"}
-    </div>
-  </div>
-);

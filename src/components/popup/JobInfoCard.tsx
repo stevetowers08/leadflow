@@ -1,23 +1,24 @@
 import React from 'react';
 import { InfoCard } from '@/components/shared/InfoCard';
-import { StatusBadge } from '@/components/StatusBadge';
-import { getScoreBadgeClasses, getPriorityBadgeClasses } from '@/utils/scoreUtils';
-import { cn } from '@/lib/utils';
-import { 
-  Briefcase, 
-  MapPin, 
-  Calendar, 
-  DollarSign, 
-  Clock, 
-  Activity,
-  Target,
-  Building,
-  Zap
-} from 'lucide-react';
+import { InfoField } from '@/components/shared/InfoField';
 import { formatDateForSydney } from '@/utils/timezoneUtils';
+import { AIJobSummary } from './AIJobSummary';
 
 interface JobInfoCardProps {
-  job: any;
+  job: {
+    id: string;
+    title: string;
+    location?: string;
+    function?: string;
+    employment_type?: string;
+    seniority_level?: string;
+    salary_min?: number;
+    salary_max?: number;
+    salary?: string;
+    created_at?: string;
+    description?: string;
+    company_name?: string;
+  };
 }
 
 export const JobInfoCard: React.FC<JobInfoCardProps> = ({ job }) => {
@@ -43,18 +44,15 @@ export const JobInfoCard: React.FC<JobInfoCardProps> = ({ job }) => {
     return job.employment_type.charAt(0).toUpperCase() + job.employment_type.slice(1).replace('_', ' ');
   };
 
-  // Format seniority level
-  const formatSeniorityLevel = () => {
-    if (!job.seniority_level) return "-";
-    return job.seniority_level;
-  };
-
   return (
-    <InfoCard title="Job Information" contentSpacing="space-y-6 pt-1.5">
-      {/* Job Info Section */}
+    <InfoCard title="Job Information" contentSpacing="space-y-6 pt-4">
+      {/* AI Job Summary */}
+      <AIJobSummary job={job} />
+      
+      {/* Job Details Grid */}
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1">
-          <div className="text-xs font-medium text-gray-400">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
             Salary Range
           </div>
           <div className="text-sm text-gray-900 font-medium">
@@ -64,26 +62,9 @@ export const JobInfoCard: React.FC<JobInfoCardProps> = ({ job }) => {
         <InfoField label="Location" value={job.location} />
         <InfoField label="Function/Department" value={job.function} />
         <InfoField label="Employment Type" value={formatEmploymentType()} />
-        <InfoField label="Seniority Level" value={formatSeniorityLevel()} />
+        <InfoField label="Seniority Level" value={job.seniority_level} />
         <InfoField label="Posted Date" value={job.created_at ? formatDateForSydney(job.created_at, 'date') : "-"} />
       </div>
     </InfoCard>
   );
 };
-
-interface InfoFieldProps {
-  label: string;
-  value: React.ReactNode;
-  className?: string;
-}
-
-const InfoField: React.FC<InfoFieldProps> = ({ label, value, className = "" }) => (
-  <div className={`space-y-1 ${className}`}>
-    <div className="text-xs font-medium text-gray-400">
-      {label}
-    </div>
-    <div className="text-sm text-gray-900 font-medium">
-      {value || "-"}
-    </div>
-  </div>
-);

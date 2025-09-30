@@ -1,20 +1,24 @@
 import React from 'react';
 import { InfoCard } from '@/components/shared/InfoCard';
+import { InfoField } from '@/components/shared/InfoField';
 import { StatusBadge } from '@/components/StatusBadge';
 import { LeadAssignment } from '@/components';
-import { 
-  User, 
-  Briefcase, 
-  MapPin, 
-  Mail, 
-  ExternalLink, 
-  Calendar 
-} from 'lucide-react';
 import { formatDateForSydney } from '@/utils/timezoneUtils';
 import { cn } from '@/lib/utils';
 
 interface LeadInfoCardProps {
-  lead: any;
+  lead: {
+    id: string;
+    name: string;
+    company_role?: string;
+    employee_location?: string;
+    email_address?: string;
+    linkedin_url?: string;
+    last_interaction_at?: string;
+    stage?: string;
+    lead_score?: number;
+    owner_id?: string;
+  };
 }
 
 export const LeadInfoCard: React.FC<LeadInfoCardProps> = ({ lead }) => {
@@ -29,8 +33,8 @@ export const LeadInfoCard: React.FC<LeadInfoCardProps> = ({ lead }) => {
   };
 
   return (
-    <InfoCard title="Lead Information" contentSpacing="space-y-6 pt-1.5">
-      {/* Lead Info Section */}
+    <InfoCard title="Lead Information" contentSpacing="space-y-6 pt-4">
+      {/* Lead Details Grid */}
       <div className="grid grid-cols-3 gap-3">
         <InfoField label="Name" value={lead.name} />
         <InfoField label="Title" value={lead.company_role} />
@@ -62,21 +66,13 @@ export const LeadInfoCard: React.FC<LeadInfoCardProps> = ({ lead }) => {
           } 
         />
         <div className="space-y-1">
-          <div className="text-xs font-semibold text-gray-600">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
             Status
           </div>
-          <span className={cn(
-            "inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-semibold border shadow-sm",
-            lead.stage === 'qualified' ? "bg-green-50 text-green-700 border-green-200" :
-            lead.stage === 'prospect' ? "bg-blue-50 text-blue-700 border-blue-200" :
-            lead.stage === 'contacted' ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
-            "bg-gray-50 text-gray-700 border-gray-200"
-          )}>
-            {lead.stage || "NEW"}
-          </span>
+          <StatusBadge status={lead.stage || "new"} size="sm" />
         </div>
         <div className="space-y-1">
-          <div className="text-xs font-semibold text-gray-600">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
             AI Score
           </div>
           <span className={cn(
@@ -99,19 +95,3 @@ export const LeadInfoCard: React.FC<LeadInfoCardProps> = ({ lead }) => {
     </InfoCard>
   );
 };
-
-interface InfoFieldProps {
-  label: string;
-  value: React.ReactNode;
-}
-
-const InfoField: React.FC<InfoFieldProps> = ({ label, value }) => (
-  <div className="space-y-1">
-    <div className="text-xs font-medium text-gray-400">
-      {label}
-    </div>
-    <div className="text-sm text-gray-900 font-medium">
-      {value || "-"}
-    </div>
-  </div>
-);

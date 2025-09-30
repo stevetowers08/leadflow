@@ -96,6 +96,12 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
     'active': { background: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
     'inactive': { background: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' },
     'prospect': { background: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    // Company pipeline stages
+    'new_lead': { background: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    'automated': { background: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    'replied': { background: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+    'meeting_scheduled': { background: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+    'closed_lost': { background: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
   },
 
   priorities: {
@@ -123,6 +129,10 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
     'queued': { background: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
     'running': { background: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
     'automation-completed': { background: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    'automated': { background: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    'Automated': { background: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    'pending': { background: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+    'Pending': { background: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
   },
 
   leadScores: {

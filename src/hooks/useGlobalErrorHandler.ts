@@ -90,14 +90,46 @@ export const usePerformanceMonitoring = () => {
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
         if (entry.entryType === 'navigation') {
-          console.log('Page Load Time:', entry.duration);
+          const navEntry = entry as PerformanceNavigationTiming;
+          console.log('Page Load Time:', navEntry.loadEventEnd - navEntry.loadEventStart);
+          
+          // Enhanced performance metrics
+          const metrics = {
+            loadTime: navEntry.loadEventEnd - navEntry.loadEventStart,
+            domContentLoaded: navEntry.domContentLoadedEventEnd - navEntry.domContentLoadedEventStart,
+            firstPaint: performance.getEntriesByName('first-paint')[0]?.startTime || 0,
+            firstContentfulPaint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 0,
+            largestContentfulPaint: performance.getEntriesByName('largest-contentful-paint')[0]?.startTime || 0,
+          };
+          
+          console.log('Performance Metrics:', metrics);
+          
+          // Performance thresholds
+          const thresholds = {
+            loadTime: { good: 2000, poor: 5000 },
+            firstContentfulPaint: { good: 1800, poor: 3000 },
+            largestContentfulPaint: { good: 2500, poor: 4000 },
+          };
+          
+          // Check performance against thresholds
+          Object.entries(thresholds).forEach(([metric, threshold]) => {
+            const value = metrics[metric as keyof typeof metrics];
+            if (value > threshold.poor) {
+              console.warn(`⚠️ Poor ${metric}: ${value}ms (threshold: ${threshold.poor}ms)`);
+            } else if (value > threshold.good) {
+              console.warn(`⚠️ Needs improvement ${metric}: ${value}ms (threshold: ${threshold.good}ms)`);
+            } else {
+              console.log(`✅ Good ${metric}: ${value}ms`);
+            }
+          });
+          
         } else if (entry.entryType === 'measure') {
           console.log('Custom Measure:', entry.name, entry.duration);
         }
       });
     });
     
-    observer.observe({ entryTypes: ['navigation', 'measure'] });
+    observer.observe({ entryTypes: ['navigation', 'measure', 'paint', 'largest-contentful-paint'] });
     
     return () => observer.disconnect();
   }, []);

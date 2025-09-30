@@ -1,13 +1,17 @@
-import React, { ReactNode, useState, useEffect } from "react";
+import React, { ReactNode, useState, useEffect, Suspense, lazy } from "react";
 import { Sidebar } from "./Sidebar";
-import { FloatingChatWidget } from "../ai/FloatingChatWidget";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/contexts/SidebarContext";
-import { EnhancedMobileNav, EnhancedMobileSidebar } from "../mobile/EnhancedMobileNav";
 import { cn } from "@/lib/utils";
 import { FourTwentyLogo } from "../FourTwentyLogo";
+
+// Lazy load heavy components
+const FloatingChatWidget = lazy(() => import("../ai/FloatingChatWidget").then(module => ({ default: module.FloatingChatWidget })));
+const MobileTestPanel = lazy(() => import("../mobile/MobileTestPanel").then(module => ({ default: module.MobileTestPanel })));
+const EnhancedMobileNav = lazy(() => import("../mobile/EnhancedMobileNav").then(module => ({ default: module.EnhancedMobileNav })));
+const EnhancedMobileSidebar = lazy(() => import("../mobile/EnhancedMobileNav").then(module => ({ default: module.EnhancedMobileSidebar })));
 
 interface LayoutProps {
   children: ReactNode;
@@ -107,18 +111,31 @@ export const Layout = ({ children }: LayoutProps) => {
       </main>
 
       {/* Floating Chat Widget */}
-      <FloatingChatWidget />
+      <Suspense fallback={null}>
+        <FloatingChatWidget />
+      </Suspense>
 
       {/* Enhanced Mobile Navigation */}
-      {isMobile && <EnhancedMobileNav />}
+      {isMobile && (
+        <Suspense fallback={null}>
+          <EnhancedMobileNav />
+        </Suspense>
+      )}
       
       {/* Enhanced Mobile Sidebar */}
       {isMobile && (
-        <EnhancedMobileSidebar 
-          isOpen={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)} 
-        />
+        <Suspense fallback={null}>
+          <EnhancedMobileSidebar 
+            isOpen={sidebarOpen} 
+            onClose={() => setSidebarOpen(false)} 
+          />
+        </Suspense>
       )}
+
+      {/* Mobile Test Panel (Development Only) */}
+      <Suspense fallback={null}>
+        <MobileTestPanel />
+      </Suspense>
     </div>
   );
 };

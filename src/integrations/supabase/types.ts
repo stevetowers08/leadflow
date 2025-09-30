@@ -107,6 +107,7 @@ export type Database = {
           loxo_company_id: string | null
           name: string
           owner_id: string | null
+          pipeline_stage: Database["public"]["Enums"]["company_pipeline_stage"] | null
           priority: string | null
           score_reason: string | null
           updated_at: string | null
@@ -132,6 +133,7 @@ export type Database = {
           loxo_company_id?: string | null
           name: string
           owner_id?: string | null
+          pipeline_stage?: Database["public"]["Enums"]["company_pipeline_stage"] | null
           priority?: string | null
           score_reason?: string | null
           updated_at?: string | null
@@ -155,6 +157,7 @@ export type Database = {
           loxo_company_id?: string | null
           name?: string
           owner_id?: string
+          pipeline_stage?: Database["public"]["Enums"]["company_pipeline_stage"] | null
           priority?: string | null
           score_reason?: string | null
           updated_at?: string | null
@@ -654,6 +657,7 @@ export type Database = {
           name: string
           owner_id: string | null | null
           response_date: string | null
+          reply_type: Database["public"]["Enums"]["reply_type"] | null
           stage: Database["public"]["Enums"]["stage_enum"]
           stage_updated: string | null
           updated_at: string | null
@@ -699,6 +703,7 @@ export type Database = {
           name: string
           owner_id?: string | null
           response_date?: string | null
+          reply_type?: Database["public"]["Enums"]["reply_type"] | null
           stage?: Database["public"]["Enums"]["stage_enum"]
           stage_updated?: string | null
           updated_at?: string | null
@@ -744,6 +749,7 @@ export type Database = {
           name?: string
           owner_id?: string | null
           response_date?: string | null
+          reply_type?: Database["public"]["Enums"]["reply_type"] | null
           stage?: Database["public"]["Enums"]["stage_enum"]
           stage_updated?: string | null
           updated_at?: string | null
@@ -913,6 +919,16 @@ export type Database = {
     }
     Enums: {
       campaign_status_enum: "draft" | "active" | "paused"
+      company_pipeline_stage:
+        | "new_lead"
+        | "automated"
+        | "replied"
+        | "meeting_scheduled"
+        | "proposal_sent"
+        | "negotiation"
+        | "closed_won"
+        | "closed_lost"
+        | "on_hold"
       confidence_level_enum: "low" | "medium" | "high"
       interaction_type_enum:
         | "linkedin_connection_request_sent"
@@ -925,6 +941,7 @@ export type Database = {
         | "meeting_held"
         | "disqualified"
         | "note"
+      reply_type: "interested" | "not_interested" | "maybe"
       stage_enum:
         | "new"
         | "connection_requested"

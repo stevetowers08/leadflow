@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface DropdownOption {
   value: string;
   label: string;
+  color?: string;
 }
 
 export interface ReferenceOption {

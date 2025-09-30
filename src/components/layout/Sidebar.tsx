@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Building2, Users, Briefcase, BarChart3, Target, Settings, LogOut, X, LogIn, Bot, MessageSquare, CreditCard, Mic, Tag, Webhook, Plug, ChevronLeft, ChevronRight, Megaphone } from "lucide-react";
+import { Home, Building2, Users, Briefcase, BarChart3, Target, Settings, LogOut, X, LogIn, Bot, MessageSquare, CreditCard, Mic, Tag, Webhook, Plug, ChevronLeft, ChevronRight, Megaphone, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -12,8 +12,9 @@ import { FourTwentyLogo } from "../FourTwentyLogo";
 
 const mainNavigation = [
   { name: "Dashboard", href: "/", icon: Home },
+  { name: "CRM Info", href: "/crm-info", icon: BookOpen },
   { name: "Jobs", href: "/jobs", icon: Briefcase },
-  { name: "Leads", href: "/leads", icon: Users },
+  { name: "People", href: "/people", icon: Users },
   { name: "Companies", href: "/companies", icon: Building2 },
   { name: "Pipeline", href: "/pipeline", icon: Target },
   { name: "Campaigns", href: "/campaigns", icon: Megaphone },
@@ -139,7 +140,13 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               <Button variant="ghost" className="w-full p-2 h-auto hover:bg-transparent justify-start">
                 <div className="flex items-center w-full gap-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata?.avatar_url || user.user_metadata?.picture} />
+                    <AvatarImage 
+                      src={user.user_metadata?.avatar_url || user.user_metadata?.picture} 
+                      onError={(e) => {
+                        // Hide the image and show fallback when it fails to load
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
                     <AvatarFallback className="text-xs">
                       {user.user_metadata?.full_name
                         ? user.user_metadata.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)

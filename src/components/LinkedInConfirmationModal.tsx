@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { FloatingSuccessCard } from "@/components/FloatingSuccessCard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { User, MessageSquare, CheckCircle, XCircle } from "lucide-react";
 
 interface Lead {
@@ -56,6 +57,7 @@ export function LinkedInConfirmationModal({
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSuccessCard, setShowSuccessCard] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   console.log("🔍 LinkedInConfirmationModal render - isOpen:", isOpen, "selectedLeads:", selectedLeads?.length);
 
@@ -159,6 +161,28 @@ export function LinkedInConfirmationModal({
 
       await Promise.all(updates);
       console.log("Database updates completed");
+
+      // Auto-assign company to current user when leads are sent to automation
+      if (user?.id) {
+        console.log("🔧 Auto-assigning company to current user:", user.id);
+        try {
+          const { error: companyError } = await supabase
+            .from("companies")
+            .update({ 
+              owner_id: user.id,
+              pipeline_stage: "automated" // Also update company stage to automated
+            })
+            .eq("name", companyName);
+
+          if (companyError) {
+            console.error("Error auto-assigning company:", companyError);
+          } else {
+            console.log("✅ Company auto-assigned to current user");
+          }
+        } catch (error) {
+          console.error("Error in company auto-assignment:", error);
+        }
+      }
 
       // Send each lead to webhook
       console.log("Sending webhooks for", selectedLeads.length, "leads");

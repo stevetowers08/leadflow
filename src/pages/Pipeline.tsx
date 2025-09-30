@@ -1,84 +1,209 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { StatusBadge } from "@/components/StatusBadge";
-import { LeadDetailPopup } from "@/components/crm/leads/LeadDetailPopup";
-import { PipelineStatsCards } from "@/components/StatsCards";
+import { EntityDetailPopup } from "@/components/crm/EntityDetailPopup";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
-import { NotesSection } from "@/components/NotesSection";
+import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Building2, Mail, Phone, MapPin, Calendar, RefreshCw, Filter, TrendingUp, Target, CheckCircle, Star } from "lucide-react";
-import { getClearbitLogo } from "@/utils/logoService";
 import { Page } from "@/design-system/components";
 import { designTokens } from "@/design-system/tokens";
+import { Building2, MapPin, Users, RefreshCw, Star, Filter, FileText, GripVertical, User, Move, CheckCircle, XCircle, Brain, Zap } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverEvent,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  KeyboardSensor,
+  TouchSensor,
+  closestCenter,
+  rectIntersection,
+} from '@dnd-kit/core';
+import {
+  useDraggable,
+} from '@dnd-kit/core';
+import {
+  useDroppable,
+} from '@dnd-kit/core';
+import {
+  CSS,
+} from '@dnd-kit/utilities';
 import type { Tables } from "@/integrations/supabase/types";
 
-type Lead = Tables<"people"> & {
-  company_name?: string | null;
-  company_logo_url?: string | null;
+type Company = Tables<"companies"> & {
+  people_count?: number;
+  jobs_count?: number;
+  reply_stats?: {
+    interested: number;
+    not_interested: number;
+    maybe: number;
+    total: number;
+  };
 };
 
 const Pipeline = () => {
-  const [leads, setLeads] = useState<Lead[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [hoveredCompanyId, setHoveredCompanyId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draggedOverId, setDraggedOverId] = useState<string | null>(null);
+  const [users, setUsers] = useState<{ id: string; full_name: string; role: string }[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showAllAssignedUsers, setShowAllAssignedUsers] = useState(false);
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [userDataCache, setUserDataCache] = useState<Record<string, { id: string; full_name: string; role: string }>>({});
   const { toast } = useToast();
 
-  // Define pipeline stages in order (matching database enum values)
+  // Optimized drag and drop sensors for maximum performance
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 2, // Reduced distance for more responsive dragging
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 25, // Reduced delay for faster touch response
+        tolerance: 5, // Reduced tolerance for more precise touch handling
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
+
+  // Define company pipeline stages in order (matching database enum values)
   const pipelineStages = [
-    { key: "new", label: "New Prospect", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "in queue", label: "Researching", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "connection_requested", label: "Initial Outreach", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "connected", label: "Connected", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "messaged", label: "Follow-up Sent", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "replied", label: "Responded", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "meeting_booked", label: "Meeting Scheduled", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "meeting_held", label: "Meeting Completed", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "disqualified", label: "Not Interested", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "lead_lost", label: "Lost Opportunity", color: "bg-gray-50 text-gray-700 border-gray-200" }
+    { key: "automated", label: "Automated", color: "bg-blue-50 text-blue-700 border-blue-200" },
+    { key: "replied", label: "Replied", color: "bg-green-50 text-green-700 border-green-200" },
+    { key: "meeting_scheduled", label: "Meeting Scheduled", color: "bg-purple-50 text-purple-700 border-purple-200" },
+    { key: "proposal_sent", label: "Proposal Sent", color: "bg-orange-50 text-orange-700 border-orange-200" },
+    { key: "negotiation", label: "Negotiation", color: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+    { key: "closed_won", label: "Closed Won", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    { key: "closed_lost", label: "Closed Lost", color: "bg-red-50 text-red-700 border-red-200" },
+    { key: "on_hold", label: "On Hold", color: "bg-gray-50 text-gray-700 border-gray-200" }
   ];
 
-  const fetchLeads = async () => {
+  // Valid stage transitions - moved to constant for better performance
+  const VALID_TRANSITIONS: Record<string, string[]> = {
+    'automated': ['replied'],
+    'replied': ['meeting_scheduled', 'proposal_sent', 'negotiation', 'closed_won', 'closed_lost', 'on_hold'],
+    'meeting_scheduled': ['proposal_sent', 'negotiation', 'closed_won', 'closed_lost', 'on_hold'],
+    'proposal_sent': ['negotiation', 'closed_won', 'closed_lost', 'on_hold'],
+    'negotiation': ['closed_won', 'closed_lost', 'on_hold'],
+    'on_hold': ['meeting_scheduled', 'proposal_sent', 'negotiation', 'closed_won', 'closed_lost'],
+  };
+
+  const fetchUsers = async () => {
+    try {
+      setUsersLoading(true);
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id, full_name, role')
+        .eq('is_active', true)
+        .order('full_name');
+
+      if (error) throw error;
+      
+      const usersData = data || [];
+      setUsers(usersData);
+      
+      // Create cache for quick lookups
+      const cache: Record<string, { id: string; full_name: string; role: string }> = {};
+      usersData.forEach(user => {
+        cache[user.id] = user;
+      });
+      setUserDataCache(cache);
+      
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch users",
+        variant: "destructive",
+      });
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const fetchCompanies = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("people")
+        .from("companies")
         .select(`
-          id, name, company_role, email_address, linkedin_url, employee_location, lead_score, stage, automation_started_at,
-          linkedin_request_message, linkedin_follow_up_message, linkedin_connected_message, connected_at,
-          message_sent, meeting_booked, email_sent, email_reply,
-          connection_request_date, connection_accepted_date, message_sent_date, response_date,
-          meeting_booked, meeting_date, email_sent_date, email_reply_date, stage_updated,
-          is_favourite,
-          jobs,
-          last_interaction_at,
-          connected_at,
-          last_reply_at,
-          favourite,
-          companies(name, logo_url, website)
+          id, name, industry, website, head_office, lead_score, pipeline_stage, 
+          automation_active, automation_started_at, confidence_level, priority,
+          is_favourite, owner_id, created_at, updated_at,
+          linkedin_url, company_size
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      // Transform data to include company information
-      const transformedData = data?.map((lead: any) => ({
-        ...lead,
-        company_name: lead.companies?.name || null,
-        company_logo_url: lead.companies?.website ? `https://logo.clearbit.com/${lead.companies.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]}` : null
-      })) || [];
+      // Get people count for each company
+      const { data: peopleCounts, error: peopleError } = await supabase
+        .from("people")
+        .select("company_id")
+        .not("company_id", "is", null);
 
-      setLeads(transformedData);
+      if (peopleError) throw peopleError;
+
+      // Get jobs count for each company
+      const { data: jobsCounts, error: jobsError } = await supabase
+        .from("jobs")
+        .select("company_id")
+        .not("company_id", "is", null);
+
+      if (jobsError) throw jobsError;
+
+      // Get reply type statistics for each company
+      const { data: replyStats, error: replyError } = await supabase
+        .from("people")
+        .select("company_id, reply_type")
+        .not("company_id", "is", null)
+        .not("reply_type", "is", null);
+
+      if (replyError) throw replyError;
+
+      // Count people per company
+      const companyPeopleCount: Record<string, number> = {};
+      peopleCounts?.forEach(person => {
+        if (person.company_id) {
+          companyPeopleCount[person.company_id] = (companyPeopleCount[person.company_id] || 0) + 1;
+        }
+      });
+
+      // Count jobs per company
+      const companyJobsCount: Record<string, number> = {};
+      jobsCounts?.forEach(job => {
+        if (job.company_id) {
+          companyJobsCount[job.company_id] = (companyJobsCount[job.company_id] || 0) + 1;
+        }
+      });
+
+      // Add counts to companies
+      const companiesWithCounts = (data || []).map(company => ({
+        ...company,
+        people_count: companyPeopleCount[company.id] || 0,
+        jobs_count: companyJobsCount[company.id] || 0,
+      }));
+
+      setCompanies(companiesWithCounts);
     } catch (error) {
-      console.error("Error fetching leads:", error);
+      console.error("Error fetching companies:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch leads",
+        description: "Failed to fetch companies",
         variant: "destructive",
       });
     } finally {
@@ -87,121 +212,443 @@ const Pipeline = () => {
   };
 
   useEffect(() => {
-    fetchLeads();
+    fetchCompanies();
+    fetchUsers();
   }, []);
 
-  // Group leads by stage and apply favorites filter
-  const leadsByStage = pipelineStages.reduce((acc, stage) => {
-    const stageLeads = leads.filter(lead => {
-      const matchesStage = lead.stage === stage.key;
-      const matchesFavorites = !showFavoritesOnly || lead.is_favourite;
-      return matchesStage && matchesFavorites;
+  // Enhanced company stage update with optimistic updates and error handling
+  const updateCompanyStage = useCallback(async (companyId: string, newStage: string) => {
+    const company = companies.find(c => c.id === companyId);
+    if (!company) return;
+
+    setIsUpdating(companyId);
+    
+    // Store original state for potential rollback
+    const originalCompanies = [...companies];
+    
+    // Optimistic update - ensure no duplicates by filtering out the company first
+    setCompanies(prev => {
+      const filteredCompanies = prev.filter(c => c.id !== companyId);
+      const updatedCompany = { ...company, pipeline_stage: newStage as any };
+      return [...filteredCompanies, updatedCompany];
     });
-    acc[stage.key] = stageLeads;
-    return acc;
-  }, {} as Record<string, Lead[]>);
 
-  const totalLeads = Object.values(leadsByStage).flat().length;
-  const favoriteCount = leads.filter(lead => lead.is_favourite).length;
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ 
+          pipeline_stage: newStage,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', companyId);
 
+      if (error) throw error;
 
-  const handleLeadClick = (lead: Lead) => {
-    setSelectedLead(lead);
+      toast({
+        title: "Success",
+        description: `Company moved to ${pipelineStages.find(s => s.key === newStage)?.label}`,
+      });
+    } catch (error) {
+      console.error("Error updating company stage:", error);
+      
+      // Revert optimistic update on error - restore original state
+      setCompanies(originalCompanies);
+
+      toast({
+        title: "Error",
+        description: "Failed to update company stage. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(null);
+    }
+  }, [companies, toast, pipelineStages]);
+
+  // Enhanced drag and drop event handlers with better validation and feedback
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const companyId = event.active.id as string;
+    const company = companies.find(c => c.id === companyId);
+    
+    if (!company) return;
+    
+    setActiveId(companyId);
+    
+    // Add haptic feedback for mobile devices
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
+  }, [companies]);
+
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    const { over } = event;
+    setDraggedOverId(over?.id as string || null);
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    setActiveId(null);
+    setDraggedOverId(null);
+    
+    if (!over || !active) return;
+
+    const companyId = active.id as string;
+    const targetStage = over.id as string;
+    const sourceCompany = companies.find(c => c.id === companyId);
+    
+    if (!sourceCompany) return;
+
+    const allowedStages = VALID_TRANSITIONS[sourceCompany.pipeline_stage] || [];
+    
+    if (!allowedStages.includes(targetStage)) {
+      toast({
+        title: "Invalid Move",
+        description: `Cannot move from ${pipelineStages.find(s => s.key === sourceCompany.pipeline_stage)?.label} to ${pipelineStages.find(s => s.key === targetStage)?.label}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Prevent moving to the same stage
+    if (sourceCompany.pipeline_stage === targetStage) {
+      return;
+    }
+
+    updateCompanyStage(companyId, targetStage);
+  }, [companies, updateCompanyStage, toast, pipelineStages]);
+
+  // Memoized companies grouping for better performance
+  const companiesByStage = useMemo(() => {
+    return pipelineStages.reduce((acc, stage) => {
+      const stageCompanies = companies.filter(company => {
+        const matchesStage = company.pipeline_stage === stage.key;
+        const matchesFavorites = !showFavoritesOnly || company.is_favourite;
+        
+        // Handle user filtering logic
+        let matchesUser = true;
+        if (selectedUserId) {
+          matchesUser = company.owner_id === selectedUserId;
+        } else if (showAllAssignedUsers) {
+          matchesUser = company.owner_id !== null; // Show only assigned companies
+        }
+        
+        return matchesStage && matchesFavorites && matchesUser;
+      });
+      acc[stage.key] = stageCompanies;
+      return acc;
+    }, {} as Record<string, Company[]>);
+  }, [companies, showFavoritesOnly, selectedUserId, showAllAssignedUsers]);
+
+  const totalCompanies = Object.values(companiesByStage).flat().length;
+  const favoriteCount = companies.filter(company => company.is_favourite).length;
+
+  const handleCompanyClick = (company: Company) => {
+    setSelectedCompany(company);
     setIsDetailModalOpen(true);
   };
 
-  const LeadCard = ({ lead }: { lead: Lead }) => (
-    <Card 
-      className="cursor-pointer hover:shadow-sm transition-all duration-200 border border-gray-200 bg-white"
-      onClick={() => handleLeadClick(lead)}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-            {lead.company_logo_url ? (
-              <img
-                src={lead.company_logo_url}
-                alt={lead.company_name || "Company"}
-                className="w-8 h-8 rounded-lg object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div
-              className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
-              style={{ display: lead.company_logo_url ? 'none' : 'flex' }}
-            >
-              {lead.name ? lead.name.charAt(0).toUpperCase() : '?'}
-            </div>
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between mb-1">
-              <h3 className="font-semibold text-sm text-gray-900 truncate">{lead.name}</h3>
-              <div onClick={(e) => e.stopPropagation()}>
-                <FavoriteToggle
-                  entityId={lead.id}
-                  entityType="lead"
-                  isFavorite={lead.is_favourite || false}
-                  onToggle={(isFavorite) => {
-                    setLeads(prev => prev.map(l => 
-                      l.id === lead.id ? { ...l, is_favourite: isFavorite } : l
-                    ));
+  // Enhanced Draggable Company Card Component with better accessibility and visual feedback
+  const DraggableCompanyCard = memo(({ company }: { company: Company }) => {
+    const isDraggable = VALID_TRANSITIONS[company.pipeline_stage]?.length > 0;
+    const isCurrentlyUpdating = isUpdating === company.id;
+    
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      isDragging,
+    } = useDraggable({
+      id: company.id,
+      disabled: !isDraggable || isCurrentlyUpdating,
+      data: {
+        company,
+        allowedStages: VALID_TRANSITIONS[company.pipeline_stage] || [],
+      },
+    });
+
+    const style = {
+      transform: CSS.Translate.toString(transform),
+      opacity: isDragging ? 0.5 : isCurrentlyUpdating ? 0.7 : 1,
+      // Enhanced hardware acceleration for smooth dragging
+      willChange: isDragging ? 'transform, opacity' : 'auto',
+      // Force GPU acceleration
+      transformStyle: 'preserve-3d' as const,
+      backfaceVisibility: 'hidden' as const,
+      // Optimize for smooth animations
+      transition: isDragging ? 'none' : 'all 0.2s ease-out',
+    };
+
+    return (
+      <div 
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className={`relative bg-white border border-gray-200/60 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300/80 transition-all duration-300 cursor-pointer group overflow-hidden !p-0 ${
+          isDraggable ? 'hover:shadow-lg cursor-grab active:cursor-grabbing' : 'cursor-pointer'
+        } ${isDragging ? 'shadow-xl scale-[1.02] z-50 border-blue-300' : ''} ${
+          isCurrentlyUpdating ? 'opacity-60 pointer-events-none' : ''
+        }`}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!isDragging) handleCompanyClick(company);
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Company: ${company.name}. Current stage: ${pipelineStages.find(s => s.key === company.pipeline_stage)?.label}. ${
+          isDraggable ? 'Drag to move to another stage.' : 'Click to view details.'
+        }`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (!isDragging) handleCompanyClick(company);
+          }
+        }}
+      >
+        {/* Card Header */}
+        <div className="p-4 pb-3">
+          {/* Company Logo and Name */}
+          <div className="flex items-start gap-3">
+            {/* Company Logo */}
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center ring-1 ring-gray-200/50">
+              {company.website ? (
+                <img
+                  src={`https://logo.clearbit.com/${company.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]}`}
+                  alt={company.name}
+                  className="w-10 h-10 rounded-xl object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    // Silently handle error and show fallback
+                    const img = e.currentTarget;
+                    img.style.display = 'none';
+                    const fallback = img.nextElementSibling as HTMLElement;
+                    if (fallback) {
+                      fallback.style.display = 'flex';
+                    }
                   }}
-                  size="sm"
+                  onLoad={(e) => {
+                    // Hide fallback when image loads successfully
+                    const img = e.currentTarget;
+                    const fallback = img.nextElementSibling as HTMLElement;
+                    if (fallback) {
+                      fallback.style.display = 'none';
+                    }
+                  }}
                 />
+              ) : null}
+              <div
+                className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center"
+                style={{ display: company.website ? 'none' : 'flex' }}
+              >
+                <Building2 className="h-5 w-5" />
               </div>
             </div>
-            <p className="text-xs text-gray-600 truncate font-medium">{lead.company_role}</p>
-            <p className="text-xs text-gray-500 truncate">{lead.company_name}</p>
             
-            <div className="flex items-center gap-2 mt-3">
-              {lead.lead_score && (
-                <Badge 
-                  variant="outline" 
-                  className="text-xs border-gray-300 text-gray-600 bg-gray-50"
-                >
-                  {lead.lead_score}
-                </Badge>
-              )}
-              {lead.employee_location && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+            {/* Company Name and Location */}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-gray-900 text-base truncate leading-tight">
+                {company.name}
+              </h3>
+              {/* Head Office - Below company name, smaller */}
+              {company.head_office && (
+                <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                   <MapPin className="h-3 w-3" />
-                  {lead.employee_location}
+                  <span className="truncate">{company.head_office}</span>
                 </div>
               )}
             </div>
+          </div>
+        </div>
+        
+        {/* Card Content */}
+        <div className="px-4 pb-4">
+          {/* Industry - On its own line */}
+          {company.industry && (
+            <div className="mb-4">
+              <span className="inline-block bg-gray-50 px-2 py-1 rounded-md text-sm text-gray-600">
+                {company.industry}
+              </span>
+            </div>
+          )}
+          
+          {/* Bottom Section */}
+          <div className="flex items-center gap-4">
+            {/* Badges with Icons */}
+            <div className="flex items-center gap-2">
+              {company.lead_score && (
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                  <Brain className="h-3 w-3 mr-1" />
+                  {company.lead_score}
+                </span>
+              )}
+              {company.automation_active && (
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                  <Zap className="h-3 w-3 mr-1" />
+                  Auto
+                </span>
+              )}
+              {isCurrentlyUpdating && (
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+                  <div className="animate-spin rounded-full h-3 w-3 border border-yellow-300 border-t-yellow-600 mr-1" />
+                  Moving
+                </span>
+              )}
+            </div>
             
-            {/* Owner Display */}
-            <div className="mt-2">
+            {/* People Count */}
+            <div className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+              <Users className="h-3 w-3 mr-1" />
+              <span className="font-medium">{company.people_count || 0}</span>
+            </div>
+            
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              {/* Notes Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedCompany(company);
+                  setIsDetailModalOpen(true);
+                }}
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                title="View notes"
+              >
+                <FileText className="h-4 w-4" />
+              </button>
+              
+              {/* Favorite Toggle */}
+              <FavoriteToggle
+                entityId={company.id}
+                entityType="company"
+                isFavorite={company.is_favourite}
+                size="sm"
+              />
+            </div>
+          </div>
+          
+          {/* Assignment */}
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 font-medium">Assigned to:</span>
               <OwnerDisplay 
-                ownerId={lead.owner_id} 
+                ownerId={company.owner_id} 
                 size="sm" 
                 showName={true}
                 showRole={false}
-              />
-            </div>
-            
-            {/* Lead Notes Section */}
-            <div className="mt-3 pt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center gap-2 mb-2">
-                <User className="h-3 w-3 text-gray-500" />
-                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Lead Notes</span>
-              </div>
-              <NotesSection 
-                entityId={lead.id} 
-                entityType="lead" 
-                entityName={lead.name || "Lead"}
-                className="text-xs"
+                userData={userDataCache[company.owner_id] || null}
+                isLoading={usersLoading}
               />
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
-  );
+      </div>
+    );
+  });
+
+  // Enhanced Droppable Stage Component with better visual feedback and accessibility
+  const DroppableStage = memo(({ stage, companies: stageCompanies }: { stage: any, companies: Company[] }) => {
+    const { isOver, setNodeRef } = useDroppable({
+      id: stage.key,
+    });
+
+    // Memoize expensive calculations
+    const isDropTarget = useMemo(() => 
+      Object.values(VALID_TRANSITIONS).some(stages => stages.includes(stage.key)),
+      [stage.key]
+    );
+    
+    const activeCompany = useMemo(() => 
+      activeId ? companies.find(c => c.id === activeId) : null,
+      [activeId, companies]
+    );
+    
+    const canAcceptDrop = useMemo(() => 
+      activeCompany && VALID_TRANSITIONS[activeCompany.pipeline_stage]?.includes(stage.key),
+      [activeCompany, stage.key]
+    );
+    
+    const isActiveDropTarget = isOver && isDropTarget && activeId;
+
+    return (
+      <div key={stage.key} className="flex-shrink-0 w-80">
+        {/* Stage Header */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-medium text-gray-900 text-sm">{stage.label}</h3>
+            <Badge variant="outline" className="text-xs">
+              {stageCompanies.length}
+            </Badge>
+          </div>
+          
+          {/* User Filter Indicator */}
+          {(selectedUserId || showAllAssignedUsers) && (
+            <div className="mb-3">
+              <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                <User className="h-3 w-3" />
+                <span>
+                  {showAllAssignedUsers 
+                    ? "Filtered by: All Assigned Users" 
+                    : `Filtered by: ${users.find(u => u.id === selectedUserId)?.full_name}`
+                  }
+                </span>
+              </div>
+            </div>
+          )}
+          
+          <div className="h-px bg-gray-200"></div>
+        </div>
+        
+        {/* Companies Column */}
+        <div 
+          ref={setNodeRef}
+          className={`space-y-4 min-h-[200px] transition-all duration-200 ${
+            isActiveDropTarget 
+              ? canAcceptDrop 
+                ? 'border-green-400 bg-green-50' 
+                : 'border-red-400 bg-red-50'
+              : ''
+          }`}
+          style={{
+            // Optimize for smooth transitions and hardware acceleration
+            willChange: isOver ? 'background-color, border-color' : 'auto',
+            transform: 'translateZ(0)', // Force hardware acceleration
+            backfaceVisibility: 'hidden',
+          }}
+          data-stage={stage.key}
+          role="region"
+          aria-label={`${stage.label} stage. ${stageCompanies.length} companies. ${
+            isDropTarget ? 'Drop zone for moving companies.' : ''
+          }`}
+        >
+          {/* Drop zone feedback */}
+          {isActiveDropTarget && (
+            <div className={`text-center text-sm py-2 rounded mb-2 ${
+              canAcceptDrop 
+                ? 'text-green-700 bg-green-100' 
+                : 'text-red-700 bg-red-100'
+            }`}>
+              {canAcceptDrop ? (
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Drop here to move company
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-2">
+                  <XCircle className="h-4 w-4" />
+                  Cannot move to this stage
+                </div>
+              )}
+            </div>
+          )}
+          
+          {stageCompanies.map((company) => (
+            <DraggableCompanyCard key={company.id} company={company} />
+          ))}
+        </div>
+      </div>
+    );
+  });
 
   if (loading) {
     return (
@@ -215,12 +662,13 @@ const Pipeline = () => {
   }
 
   return (
-    <Page
-      title="Pipeline"
-      subtitle="Track leads through recruitment stages"
-    >
-      <div className="flex gap-3 mb-6">
-        <Button variant="outline" size="sm" onClick={fetchLeads} className={designTokens.shadows.button}>
+    <div className="bg-gray-50 min-h-screen">
+      <Page
+        title="Company Pipeline"
+        subtitle="Track companies through sales stages"
+      >
+        <div className="flex gap-3 mb-6">
+        <Button variant="outline" size="sm" onClick={fetchCompanies} className={designTokens.shadows.button}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
@@ -233,62 +681,136 @@ const Pipeline = () => {
           <Star className="h-4 w-4 mr-2" />
           Favorites {favoriteCount > 0 && `(${favoriteCount})`}
         </Button>
+        
+        {/* Global User Filter */}
+        <div className="flex items-center gap-2">
+          <User className="h-4 w-4 text-gray-500" />
+          <DropdownSelect
+            options={[
+              { label: "All Companies", value: "all" },
+              { label: "All Assigned Users", value: "assigned" },
+              ...users.map(user => ({
+                label: user.full_name,
+                value: user.id
+              }))
+            ]}
+            value={showAllAssignedUsers ? "assigned" : (selectedUserId || "all")}
+            onValueChange={(value) => {
+              if (value === "all") {
+                setSelectedUserId(null);
+                setShowAllAssignedUsers(false);
+              } else if (value === "assigned") {
+                setSelectedUserId(null);
+                setShowAllAssignedUsers(true);
+              } else {
+                setSelectedUserId(value);
+                setShowAllAssignedUsers(false);
+              }
+            }}
+            placeholder="Filter by user..."
+            className="w-48"
+          />
+          {(selectedUserId || showAllAssignedUsers) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSelectedUserId(null);
+                setShowAllAssignedUsers(false);
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+        
         <Button variant="outline" size="sm" className={designTokens.shadows.button}>
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>
       </div>
 
-      {/* Single Horizontal Scrolling Pipeline Board */}
-      <div className="relative">
-        <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          <div className="flex gap-6 min-w-max">
-            {pipelineStages.map((stage) => {
-              const stageLeads = leadsByStage[stage.key] || [];
-              return (
-                <div key={stage.key} className="flex-shrink-0 w-80">
-                  {/* Stage Header */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-gray-900 text-sm">{stage.label}</h3>
-                      <Badge variant="outline" className="text-xs">
-                        {stageLeads.length}
-                      </Badge>
-                    </div>
-                    <div className="h-px bg-gray-200"></div>
-                  </div>
-                  
-                  {/* Leads Column - No individual scrolling */}
-                  <div className="space-y-3">
-                    {stageLeads.map((lead) => (
-                      <LeadCard key={lead.id} lead={lead} />
-                    ))}
-                    {stageLeads.length === 0 && (
-                      <div className="text-center text-gray-400 text-sm py-12 border border-dashed border-gray-200 rounded-lg">
-                        <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p>No leads in this stage</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+      {/* Enhanced Drag and Drop Context */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        {/* Single Horizontal Scrolling Pipeline Board */}
+        <div className="relative">
+          <div 
+            className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+            style={{
+              // Optimize scrolling performance
+              willChange: 'scroll-position',
+              transform: 'translateZ(0)', // Force hardware acceleration
+              backfaceVisibility: 'hidden',
+            }}
+          >
+            <div 
+              className="flex gap-6 min-w-max"
+              style={{
+                // Optimize for smooth drag and drop
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+              }}
+            >
+              {pipelineStages.map((stage) => {
+                const stageCompanies = companiesByStage[stage.key] || [];
+                return (
+                  <DroppableStage 
+                    key={stage.key} 
+                    stage={stage} 
+                    companies={stageCompanies} 
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Lead Detail Modal */}
-      {selectedLead && (
-        <LeadDetailPopup
-          lead={selectedLead}
+        {/* Optimized Drag Overlay */}
+        <DragOverlay>
+          {activeId ? (() => {
+            const activeCompany = companies.find(c => c.id === activeId);
+            if (!activeCompany) return null;
+            
+            return (
+              <div className="opacity-90 transform rotate-2 scale-105 shadow-2xl border-2 border-blue-400 rounded-xl">
+                <div className="bg-white rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-base">{activeCompany.name}</h3>
+                      <p className="text-xs text-gray-500">{pipelineStages.find(s => s.key === activeCompany.pipeline_stage)?.label}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })() : null}
+        </DragOverlay>
+      </DndContext>
+
+      {/* Company Detail Modal */}
+      {selectedCompany && (
+        <EntityDetailPopup
+          entityType="company"
+          entityId={selectedCompany.id}
           isOpen={isDetailModalOpen}
           onClose={() => {
             setIsDetailModalOpen(false);
-            setSelectedLead(null);
+            setSelectedCompany(null);
           }}
         />
       )}
-    </Page>
+      </Page>
+    </div>
   );
 };
 

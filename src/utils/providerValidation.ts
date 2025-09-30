@@ -134,7 +134,6 @@ export function withProviderValidation<P extends object>(
  * Common provider error patterns to watch for
  */
 export const PROVIDER_ERROR_PATTERNS = {
-  POPUP: 'usePopup must be used within a PopupProvider',
   AUTH: 'useAuth must be used within an AuthProvider',
   QUERY: 'useQuery must be used within a QueryClientProvider',
   ROUTER: 'useNavigate must be used within a Router',
@@ -158,9 +157,6 @@ export function isProviderError(error: Error): boolean {
 export function getProviderErrorSuggestions(error: Error): string[] {
   const suggestions: string[] = [];
   
-  if (error.message.includes(PROVIDER_ERROR_PATTERNS.POPUP)) {
-    suggestions.push('Wrap components using usePopup with <PopupProvider>');
-  }
   if (error.message.includes(PROVIDER_ERROR_PATTERNS.AUTH)) {
     suggestions.push('Wrap components using useAuth with <AuthProvider>');
   }

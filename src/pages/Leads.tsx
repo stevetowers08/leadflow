@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
-import { LeadDetailPopup } from "@/components/crm/leads/LeadDetailPopup";
-import { LeadsStatsCards } from "@/components/StatsCards";
+import { EntityDetailPopup } from "@/components/crm/EntityDetailPopup";
+import { PeopleStatsCards } from "@/components/StatsCards";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { useToast } from "@/hooks/use-toast";
@@ -44,7 +44,7 @@ const formatLeadLocation = (location?: string | null): string => {
   return parts.join(", ");
 };
 
-const Leads = () => {
+const People = () => {
   const [leads, setLeads] = useState<Tables<"people">[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -80,27 +80,27 @@ const Leads = () => {
   ];
 
   // Calculate stats for stats cards
-  const leadsStats = useMemo(() => {
-    let newLeads = 0;
-    let connectedLeads = 0;
-    let messagedLeads = 0;
-    let repliedLeads = 0;
+  const peopleStats = useMemo(() => {
+    let newPeople = 0;
+    let connectedPeople = 0;
+    let messagedPeople = 0;
+    let repliedPeople = 0;
     let meetingBookedLeads = 0;
     let qualifiedLeads = 0;
     
     leads.forEach(lead => {
       switch (lead.stage) {
         case 'new':
-          newLeads++;
+          newPeople++;
           break;
         case 'connected':
-          connectedLeads++;
+          connectedPeople++;
           break;
         case 'messaged':
-          messagedLeads++;
+          messagedPeople++;
           break;
         case 'replied':
-          repliedLeads++;
+          repliedPeople++;
           break;
         case 'meeting_booked':
           meetingBookedLeads++;
@@ -112,11 +112,11 @@ const Leads = () => {
     });
     
     return {
-      totalLeads: leads.length,
-      newLeads,
-      connectedLeads,
-      messagedLeads,
-      repliedLeads,
+      totalPeople: leads.length,
+      newPeople,
+      connectedPeople,
+      messagedPeople,
+      repliedPeople,
       meetingBookedLeads,
       qualifiedLeads
     };
@@ -293,7 +293,7 @@ const Leads = () => {
     },
     {
       key: "owner",
-      label: "Owner",
+      label: "Assigned To",
       width: "180px",
       render: (lead: Lead) => (
         <OwnerDisplay 
@@ -480,8 +480,8 @@ const Leads = () => {
 
   return (
     <Page
-      title="Leads"
-      subtitle="Manage your recruitment leads and their stages"
+      title="People"
+      subtitle="Manage your recruitment people and their stages"
     >
 
         {/* Search, Filter and Sort Controls */}
@@ -561,8 +561,9 @@ const Leads = () => {
           }}
         />
       
-      <LeadDetailPopup
-        lead={selectedLead}
+      <EntityDetailPopup
+        entityType="lead"
+        entityId={selectedLead?.id || ""}
         isOpen={isDetailModalOpen}
         onClose={() => {
           setIsDetailModalOpen(false);
@@ -573,4 +574,4 @@ const Leads = () => {
   );
 };
 
-export default Leads;
+export default People;

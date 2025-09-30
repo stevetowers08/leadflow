@@ -79,7 +79,13 @@ export const UserProfile: React.FC = () => {
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture} />
+                <AvatarImage 
+                  src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture} 
+                  onError={(e) => {
+                    // Hide the image and show fallback when it fails to load
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
                 <AvatarFallback className="text-lg">
                   {getInitials(getUserDisplayName())}
                 </AvatarFallback>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +14,7 @@ interface FavoriteToggleProps {
   className?: string;
 }
 
-export const FavoriteToggle = ({ 
+export const FavoriteToggle = memo(({ 
   entityId, 
   entityType, 
   isFavorite, 
@@ -25,7 +25,7 @@ export const FavoriteToggle = ({
   const [isToggling, setIsToggling] = useState(false);
   const { toast } = useToast();
 
-  const handleToggle = async () => {
+  const handleToggle = useCallback(async () => {
     if (isToggling) return;
 
     setIsToggling(true);
@@ -60,7 +60,7 @@ export const FavoriteToggle = ({
     } finally {
       setIsToggling(false);
     }
-  };
+  }, [isToggling, isFavorite, entityType, entityId, onToggle, toast]);
 
   const sizeClasses = {
     sm: "h-6 w-6",
@@ -71,7 +71,7 @@ export const FavoriteToggle = ({
   const iconSizeClasses = {
     sm: "h-3 w-3",
     md: "h-4 w-4",
-    lg: "h-5 w-5"
+    lg: "h-8 w-8"
   };
 
   return (
@@ -92,8 +92,8 @@ export const FavoriteToggle = ({
           iconSizeClasses[size],
           isFavorite ? "fill-current" : "",
           isToggling && "animate-pulse"
-        )} 
+        )}
       />
     </Button>
   );
-};
+});

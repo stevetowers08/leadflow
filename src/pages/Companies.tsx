@@ -2,13 +2,12 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
-import { CompanyDetailPopup } from "@/components/crm/companies/CompanyDetailPopup";
+import { EntityDetailPopup } from "@/components/crm/EntityDetailPopup";
 import { CompaniesStatsCards } from "@/components/StatsCards";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
-import { LeadSourceDisplay } from "@/components/crm/leads/LeadSourceDisplay";
-import { TagDisplay } from "@/components/TagDisplay";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
@@ -30,13 +29,20 @@ const Companies = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedCompanyForNavigation, setSelectedCompanyForNavigation] = useState<{id: string, name: string} | null>(null);
+  const [isCompanyNavigationModalOpen, setIsCompanyNavigationModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<string>('all');
+  const [users, setUsers] = useState<{id: string, full_name: string, role: string}[]>([]);
+  const [selectedCompanyForAssignment, setSelectedCompanyForAssignment] = useState<Company | null>(null);
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
+  const [isSavingAssignment, setIsSavingAssignment] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Sort options
   const sortOptions = [
@@ -52,34 +58,30 @@ const Companies = () => {
 
   // Status filter options
   const statusOptions = [
-    { label: "All Statuses", value: "all" },
-    { label: "Active", value: "active" },
-    { label: "Qualified", value: "qualified" },
-    { label: "Prospect", value: "prospect" },
-    { label: "New", value: "new" },
+    { label: "All Stages", value: "all" },
+    { label: "New Lead", value: "new_lead" },
+    { label: "Automated", value: "automated" },
+    { label: "Replied", value: "replied" },
+    { label: "Meeting Scheduled", value: "meeting_scheduled" },
+    { label: "Proposal Sent", value: "proposal_sent" },
+    { label: "Negotiation", value: "negotiation" },
+    { label: "Closed Won", value: "closed_won" },
+    { label: "Closed Lost", value: "closed_lost" },
+    { label: "On Hold", value: "on_hold" },
   ];
 
-  // Source filter options
-  const sourceOptions = [
-    { label: "All Sources", value: "all" },
-    { label: "LinkedIn", value: "LinkedIn" },
-    { label: "Website", value: "Website" },
-    { label: "Referral", value: "Referral" },
-    { label: "Cold Email", value: "Cold Email" },
-    { label: "Trade Show", value: "Trade Show" },
-    { label: "Social Media", value: "Social Media" },
-    { label: "Google Search", value: "Google Search" },
-    { label: "Industry Publication", value: "Industry Publication" },
-    { label: "Partnership", value: "Partnership" },
-    { label: "Other", value: "Other" },
-  ];
 
   // Calculate stats for stats cards
   const companiesStats = useMemo(() => {
-    let activeCompanies = 0;
-    let qualifiedCompanies = 0;
-    let prospectCompanies = 0;
-    let newCompanies = 0;
+    let newLeadCompanies = 0;
+    let automatedCompanies = 0;
+    let repliedCompanies = 0;
+    let meetingScheduledCompanies = 0;
+    let proposalSentCompanies = 0;
+    let negotiationCompanies = 0;
+    let closedWonCompanies = 0;
+    let closedLostCompanies = 0;
+    let onHoldCompanies = 0;
     let companiesWithLeads = 0;
     let companiesWithJobs = 0;
     
@@ -94,24 +96,51 @@ const Companies = () => {
         companiesWithJobs++;
       }
       
-      // Categorize by status
-      if (company.automation_active) {
-        activeCompanies++;
-      } else if (company.confidence_level === 'high') {
-        qualifiedCompanies++;
-      } else if (company.confidence_level === 'medium') {
-        prospectCompanies++;
-      } else {
-        newCompanies++;
+      // Categorize by pipeline_stage
+      switch (company.pipeline_stage) {
+        case 'new_lead':
+          newLeadCompanies++;
+          break;
+        case 'automated':
+          automatedCompanies++;
+          break;
+        case 'replied':
+          repliedCompanies++;
+          break;
+        case 'meeting_scheduled':
+          meetingScheduledCompanies++;
+          break;
+        case 'proposal_sent':
+          proposalSentCompanies++;
+          break;
+        case 'negotiation':
+          negotiationCompanies++;
+          break;
+        case 'closed_won':
+          closedWonCompanies++;
+          break;
+        case 'closed_lost':
+          closedLostCompanies++;
+          break;
+        case 'on_hold':
+          onHoldCompanies++;
+          break;
+        default:
+          newLeadCompanies++; // Default to new_lead if no stage set
       }
     });
     
     return {
       totalCompanies: companies.length,
-      activeCompanies,
-      qualifiedCompanies,
-      prospectCompanies,
-      newCompanies,
+      newLeadCompanies,
+      automatedCompanies,
+      repliedCompanies,
+      meetingScheduledCompanies,
+      proposalSentCompanies,
+      negotiationCompanies,
+      closedWonCompanies,
+      closedLostCompanies,
+      onHoldCompanies,
       companiesWithLeads,
       companiesWithJobs
     };
@@ -120,7 +149,7 @@ const Companies = () => {
 
   // Filter and sort companies
   const filteredAndSortedCompanies = useMemo(() => {
-    // Filter by search term, status, and favorites
+    // Filter by search term, status, favorites, and tab/user selection
     const filtered = companies.filter(company => {
       // Search filter
       const matchesSearch = !searchTerm || (() => {
@@ -133,21 +162,15 @@ const Companies = () => {
       })();
 
       // Status filter
-      const matchesStatus = statusFilter === "all" || (() => {
-        if (company.automation_active) return statusFilter === "active";
-        else if (company.confidence_level === 'high') return statusFilter === "qualified";
-        else if (company.confidence_level === 'medium') return statusFilter === "prospect";
-        else if (company.confidence_level === 'low') return statusFilter === "new";
-        else return statusFilter === "new";
-      })();
+      const matchesStatus = statusFilter === "all" || company.pipeline_stage === statusFilter;
 
       // Favorites filter
       const matchesFavorites = !showFavoritesOnly || company.is_favourite;
       
-      // Source filter
-      const matchesSource = sourceFilter === "all" || company.lead_source === sourceFilter;
+      // User filter
+      const matchesUser = selectedUser === 'all' || company.owner_id === selectedUser;
 
-      return matchesSearch && matchesStatus && matchesFavorites && matchesSource;
+      return matchesSearch && matchesStatus && matchesFavorites && matchesUser;
     });
 
     // Sort the filtered results
@@ -199,7 +222,7 @@ const Companies = () => {
         return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
       }
     });
-  }, [companies, searchTerm, sortBy, sortOrder, statusFilter, sourceFilter, showFavoritesOnly]);
+  }, [companies, searchTerm, sortBy, sortOrder, statusFilter, showFavoritesOnly, selectedUser]);
 
   const fetchCompanies = async () => {
     try {
@@ -302,8 +325,30 @@ const Companies = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id, full_name, role')
+        .eq('is_active', true)
+        .order('full_name');
+
+      if (error) throw error;
+
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch users",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchCompanies();
+    fetchUsers();
   }, []);
 
   const columns = [
@@ -314,89 +359,56 @@ const Companies = () => {
       cellAlign: "center" as const,
       width: "140px",
       render: (company: Company) => {
-        if (company.automation_active) {
-          return <StatusBadge status="Active" size="sm" />;
-        } else if (company.confidence_level === 'high') {
-          return <StatusBadge status="Qualified" size="sm" />;
-        } else if (company.confidence_level === 'medium') {
-          return <StatusBadge status="Prospect" size="sm" />;
-        } else if (company.confidence_level === 'low') {
-          return <StatusBadge status="New" size="sm" />;
-        } else {
-          return <StatusBadge status="New" size="sm" />;
+        switch (company.pipeline_stage) {
+          case 'new_lead':
+            return <StatusBadge status="New Lead" size="sm" />;
+          case 'automated':
+            return <StatusBadge status="Automated" size="sm" />;
+          case 'replied':
+            return <StatusBadge status="Replied" size="sm" />;
+          case 'meeting_scheduled':
+            return <StatusBadge status="Meeting Scheduled" size="sm" />;
+          case 'proposal_sent':
+            return <StatusBadge status="Proposal Sent" size="sm" />;
+          case 'negotiation':
+            return <StatusBadge status="Negotiation" size="sm" />;
+          case 'closed_won':
+            return <StatusBadge status="Closed Won" size="sm" />;
+          case 'closed_lost':
+            return <StatusBadge status="Closed Lost" size="sm" />;
+          case 'on_hold':
+            return <StatusBadge status="On Hold" size="sm" />;
+          default:
+            return <StatusBadge status="New Lead" size="sm" />;
         }
       },
     },
     {
-      key: "favorite",
-      label: "",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      width: "60px",
-      render: (company: Company) => (
-        <div onClick={(e) => e.stopPropagation()}>
-          <FavoriteToggle
-            entityId={company.id}
-            entityType="company"
-            isFavorite={company.is_favourite || false}
-            onToggle={(isFavorite) => {
-              setCompanies(prev => prev.map(c => 
-                c.id === company.id ? { ...c, is_favourite: isFavorite } : c
-              ));
-            }}
-            size="sm"
-          />
-        </div>
-      ),
-    },
-    {
-      key: "owner",
-      label: "Owner",
-      width: "180px",
-      render: (company: Company) => (
-        <OwnerDisplay 
-          ownerId={company.owner_id} 
-          size="sm"
-          showName={true}
-          showRole={false}
-        />
-      ),
-    },
-    {
-      key: "source",
-      label: "Lead Source",
-      width: "160px",
-      render: (company: Company) => (
-        <LeadSourceDisplay 
-          source={company.lead_source}
-          sourceDetails={company.source_details}
-          sourceDate={company.source_date}
-          size="sm"
-          showDetails={false}
-          showDate={false}
-        />
-      ),
-    },
-    {
-      key: "tags",
-      label: "Tags",
-      width: "200px",
-      render: (company: Company) => (
-        <TagDisplay 
-          tags={company.tags || []}
-          size="sm"
-          maxVisible={2}
-          showAll={false}
-        />
-      ),
-    },
-    {
       key: "name",
       label: "Company",
-      width: "320px",
+      width: "280px",
       render: (company: Company) => (
-        <div className="min-w-0">
+        <div 
+          className="min-w-0 cursor-pointer hover:bg-gray-50 rounded-md p-2 -m-2 transition-colors duration-150"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleRowClick(company);
+          }}
+        >
           <div className="flex items-center gap-3">
+            <div onClick={(e) => e.stopPropagation()}>
+              <FavoriteToggle
+                entityId={company.id}
+                entityType="company"
+                isFavorite={company.is_favourite || false}
+                onToggle={(isFavorite) => {
+                  setCompanies(prev => prev.map(c => 
+                    c.id === company.id ? { ...c, is_favourite: isFavorite } : c
+                  ));
+                }}
+                size="sm"
+              />
+            </div>
             <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
               {company.website ? (
                 <img 
@@ -405,7 +417,10 @@ const Companies = () => {
                   className="w-8 h-8 rounded-lg object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (nextElement) {
+                      nextElement.style.display = 'flex';
+                    }
                   }}
                 />
               ) : null}
@@ -416,29 +431,19 @@ const Companies = () => {
                 <Building2 className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-sm font-medium break-words leading-tight">
-              {company.name || "-"}
+            <div className="flex flex-col min-w-0 flex-1">
+              <div className="text-sm font-medium break-words leading-tight hover:text-primary transition-colors duration-150">
+                {company.name || "-"}
+              </div>
             </div>
           </div>
         </div>
       ),
     },
     {
-      key: "industry",
-      label: "Industry",
-      width: "260px",
-      render: (company: Company) => (
-        <div className="min-w-0">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
-            {company.industry || "-"}
-          </div>
-        </div>
-      ),
-    },
-    {
       key: "head_office",
-      label: "Location",
-      width: "240px",
+      label: "Head Office",
+      width: "200px",
       render: (company: Company) => (
         <div className="min-w-0">
           <div className="text-sm text-muted-foreground break-words leading-tight">
@@ -448,12 +453,47 @@ const Companies = () => {
       ),
     },
     {
+      key: "industry",
+      label: "Industry",
+      width: "400px",
+      render: (company: Company) => (
+        <div className="min-w-0">
+          <div className="text-sm text-muted-foreground break-words leading-tight">
+            {company.industry || "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
       key: "company_size",
       label: "Size",
-      width: "140px",
+      width: "200px",
       render: (company: Company) => (
         <div className="text-sm text-muted-foreground">
           {company.company_size || "-"}
+        </div>
+      ),
+    },
+    {
+      key: "owner",
+      label: "Assigned To",
+      width: "180px",
+      render: (company: Company) => (
+        <div 
+          className="cursor-pointer hover:bg-gray-50 rounded-md p-2 -m-2 transition-colors duration-150"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedCompanyForAssignment(company);
+            setIsAssignmentModalOpen(true);
+          }}
+        >
+          <OwnerDisplay 
+            key={`${company.id}-${company.owner_id}`}
+            ownerId={company.owner_id} 
+            size="sm"
+            showName={true}
+            showRole={false}
+          />
         </div>
       ),
     },
@@ -505,18 +545,6 @@ const Companies = () => {
       ),
     },
     {
-      key: "automation_active",
-      label: "Auto",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      width: "80px",
-      render: (company: Company) => (
-        <div className="flex items-center justify-center">
-          <div className={`w-2.5 h-2.5 rounded-full ${company.automation_active ? 'bg-green-500' : 'bg-gray-300'}`} />
-        </div>
-      ),
-    },
-    {
       key: "created_at",
       label: "Created",
       headerAlign: "center" as const,
@@ -533,6 +561,14 @@ const Companies = () => {
   const handleRowClick = (company: Company) => {
     setSelectedCompany(company);
     setIsDetailModalOpen(true);
+  };
+
+  const handleCompanyNavigation = (companyId: string, companyName: string) => {
+    // Close current company modal and open new company modal
+    setIsDetailModalOpen(false);
+    setSelectedCompany(null);
+    setSelectedCompanyForNavigation({ id: companyId, name: companyName });
+    setIsCompanyNavigationModalOpen(true);
   };
 
   const handleDeleteCompany = async (companyId: string, companyName: string) => {
@@ -593,14 +629,21 @@ const Companies = () => {
               className="min-w-32 bg-white"
             />
             
-            {/* Source Filter */}
+            {/* Assignment Filter */}
             <DropdownSelect
-              options={sourceOptions}
-              value={sourceFilter}
-              onValueChange={(value) => setSourceFilter(value)}
-              placeholder="All Sources"
-              className="min-w-32 bg-white"
+              options={[
+                { label: "All Users", value: "all" },
+                ...users.map(userItem => ({
+                  label: userItem.id === user?.id ? `${userItem.full_name} (me)` : userItem.full_name,
+                  value: userItem.id
+                }))
+              ]}
+              value={selectedUser}
+              onValueChange={(value) => setSelectedUser(value)}
+              placeholder="Filter by user"
+              className="min-w-40 bg-white"
             />
+            
 
             {/* Favorites Filter */}
             <button
@@ -658,14 +701,108 @@ const Companies = () => {
 
       {/* Company Detail Modal */}
       {selectedCompany && (
-        <CompanyDetailPopup
-          company={selectedCompany}
+        <EntityDetailPopup
+          entityType="company"
+          entityId={selectedCompany.id}
           isOpen={isDetailModalOpen}
           onClose={() => {
             setIsDetailModalOpen(false);
             setSelectedCompany(null);
           }}
         />
+      )}
+
+      {/* Assignment Modal */}
+      {selectedCompanyForAssignment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <h3 className="text-lg font-semibold mb-4">Assign Company</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Assign "{selectedCompanyForAssignment.name}" to a user
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Select User</label>
+                <DropdownSelect
+                  disabled={isSavingAssignment}
+                  options={[
+                    { label: "Unassigned", value: null },
+                    ...users.map(user => ({
+                      label: user.full_name,
+                      value: user.id
+                    }))
+                  ]}
+                  value={selectedCompanyForAssignment.owner_id}
+                  onValueChange={(value) => {
+                    setSelectedCompanyForAssignment(prev => 
+                      prev ? { ...prev, owner_id: value } : null
+                    );
+                  }}
+                  placeholder="Select a user..."
+                />
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  disabled={isSavingAssignment}
+                  onClick={() => {
+                    setIsAssignmentModalOpen(false);
+                    setSelectedCompanyForAssignment(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  disabled={isSavingAssignment}
+                  onClick={async () => {
+                    if (!selectedCompanyForAssignment) return;
+                    
+                    setIsSavingAssignment(true);
+                    try {
+                      const { data, error } = await supabase
+                        .from('companies')
+                        .update({ owner_id: selectedCompanyForAssignment.owner_id })
+                        .eq('id', selectedCompanyForAssignment.id)
+                        .select();
+
+                      if (error) throw error;
+
+                      // Update local state
+                      setCompanies(prev => 
+                        prev.map(company => 
+                          company.id === selectedCompanyForAssignment.id 
+                            ? { ...company, owner_id: selectedCompanyForAssignment.owner_id }
+                            : company
+                        )
+                      );
+
+                      toast({
+                        title: "Success",
+                        description: `Company assigned successfully`,
+                      });
+
+                      setIsAssignmentModalOpen(false);
+                      setSelectedCompanyForAssignment(null);
+                    } catch (error) {
+                      console.error('Error assigning company:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to assign company",
+                        variant: "destructive",
+                      });
+                    } finally {
+                      setIsSavingAssignment(false);
+                    }
+                  }}
+                >
+                  {isSavingAssignment ? "Saving..." : "Save Assignment"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </Page>
   );

@@ -97,7 +97,7 @@ export class QueryOptimizer {
    */
   static getEssentialColumns(tableName: keyof typeof TABLE_COLUMNS): string {
     const essentialMap = {
-      companies: 'id, name, website, industry, head_office, company_size, priority, logo_url, lead_score',
+      companies: 'id, name, website, industry, head_office, company_size, priority, logo_url, lead_score, owner_id, pipeline_stage, is_favourite, automation_active, confidence_level, created_at',
       people: 'id, name, company_id, email_address, company_role, stage, lead_score',
       jobs: 'id, title, company_id, location, employment_type, seniority_level, priority',
       interactions: 'id, person_id, interaction_type, occurred_at, subject',

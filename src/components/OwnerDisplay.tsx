@@ -9,13 +9,16 @@ interface OwnerDisplayProps {
   showName?: boolean;
   showRole?: boolean;
   className?: string;
+  // Pre-loaded user data to avoid individual API calls
+  userData?: OwnerInfo | null;
+  // Loading state from parent component
+  isLoading?: boolean;
 }
 
 interface OwnerInfo {
   id: string;
   full_name: string;
   role: string;
-  avatar_url?: string;
 }
 
 export const OwnerDisplay = ({ 
@@ -23,12 +26,20 @@ export const OwnerDisplay = ({
   size = "sm", 
   showName = true, 
   showRole = false,
-  className 
+  className,
+  userData,
+  isLoading = false
 }: OwnerDisplayProps) => {
-  const [ownerInfo, setOwnerInfo] = useState<OwnerInfo | null>(null);
+  const [ownerInfo, setOwnerInfo] = useState<OwnerInfo | null>(userData || null);
   const [loading, setLoading] = useState(false);
 
+  // Use pre-loaded data if available, otherwise fetch individually
   useEffect(() => {
+    if (userData !== undefined) {
+      setOwnerInfo(userData);
+      return;
+    }
+
     if (!ownerId) {
       setOwnerInfo(null);
       return;
@@ -39,7 +50,7 @@ export const OwnerDisplay = ({
       try {
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('id, full_name, role, avatar_url')
+          .select('id, full_name, role')
           .eq('id', ownerId)
           .single();
 
@@ -55,9 +66,9 @@ export const OwnerDisplay = ({
     };
 
     fetchOwnerInfo();
-  }, [ownerId]);
+  }, [ownerId, userData]);
 
-  if (!ownerId || loading) {
+  if (!ownerId || loading || isLoading) {
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <div className={cn(
@@ -80,7 +91,7 @@ export const OwnerDisplay = ({
             size === "md" && "text-sm",
             size === "lg" && "text-base"
           )}>
-            {loading ? "Loading..." : "Unassigned"}
+            {loading || isLoading ? "Loading..." : "Unassigned"}
           </span>
         )}
       </div>

@@ -76,61 +76,61 @@ export const JobsStatsCards: React.FC<JobsStatsProps> = ({ jobs }) => {
   );
 };
 
-// Leads Stats Cards
-interface LeadsStatsProps {
-  totalLeads: number;
-  newLeads: number;
-  connectedLeads: number;
-  messagedLeads: number;
-  repliedLeads: number;
-  meetingBookedLeads: number;
-  qualifiedLeads: number;
+// People Stats Cards
+interface PeopleStatsProps {
+  totalPeople: number;
+  newPeople: number;
+  connectedPeople: number;
+  messagedPeople: number;
+  repliedPeople: number;
+  meetingBookedPeople: number;
+  qualifiedPeople: number;
 }
 
-export const LeadsStatsCards: React.FC<LeadsStatsProps> = ({
-  totalLeads,
-  newLeads,
-  connectedLeads,
-  messagedLeads,
-  repliedLeads,
-  meetingBookedLeads,
-  qualifiedLeads
+export const PeopleStatsCards: React.FC<PeopleStatsProps> = ({
+  totalPeople,
+  newPeople,
+  connectedPeople,
+  messagedPeople,
+  repliedPeople,
+  meetingBookedPeople,
+  qualifiedPeople
 }) => {
   return (
     <div className="flex items-center gap-6 mb-4 text-sm">
       <StatItem
         icon={<Users className="h-4 w-4" />}
-        value={totalLeads}
-        label="leads"
+        value={totalPeople}
+        label="people"
       />
       <StatItem
         icon={<Target className="h-4 w-4" />}
-        value={newLeads}
+        value={newPeople}
         label="new prospects"
       />
       <StatItem
         icon={<CheckCircle className="h-4 w-4" />}
-        value={connectedLeads}
+        value={connectedPeople}
         label="connected"
       />
       <StatItem
         icon={<Zap className="h-4 w-4" />}
-        value={messagedLeads}
+        value={messagedPeople}
         label="follow-ups sent"
       />
       <StatItem
         icon={<CheckCircle className="h-4 w-4" />}
-        value={repliedLeads}
+        value={repliedPeople}
         label="responded"
       />
       <StatItem
         icon={<Calendar className="h-4 w-4" />}
-        value={meetingBookedLeads}
+        value={meetingBookedPeople}
         label="meetings scheduled"
       />
       <StatItem
         icon={<Star className="h-4 w-4" />}
-        value={qualifiedLeads}
+        value={qualifiedPeople}
         label="qualified"
       />
     </div>

@@ -75,6 +75,11 @@ export function getStatusDisplayText(status: string): string {
     'recruiter': 'Recruiter',
     'inactive': 'Inactive',
     
+    // Company pipeline stages
+    'new_lead': 'New Lead',
+    'meeting_scheduled': 'Meeting Scheduled',
+    'closed_lost': 'Closed Lost',
+    
     // Additional status mappings
     'assigned': 'Assigned',
     'has logo': 'Has Logo',

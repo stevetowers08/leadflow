@@ -55,19 +55,22 @@ const Settings = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-white">
-      {/* Settings Navigation Sidebar */}
-      <SettingsNavigation 
-        activeSection={activeSection} 
-        onSectionChange={setActiveSection}
-      />
-
-      {/* Main Content Area - properly offset for sidebar */}
-      <div className={cn(
-        "h-screen overflow-y-auto transition-all duration-300",
-        isCollapsed ? "ml-32" : "ml-[416px]"
-      )}>
-        {renderContent()}
+    <div className="min-h-screen bg-background">
+      <div className="flex flex-col lg:flex-row min-h-screen">
+        {/* Settings Navigation */}
+        <div className="w-full lg:w-64 border-r bg-card">
+          <SettingsNavigation 
+            activeSection={activeSection} 
+            onSectionChange={setActiveSection}
+          />
+        </div>
+        
+        {/* Settings Content */}
+        <div className="flex-1 overflow-auto">
+          <div className="p-4 sm:p-6">
+            {renderContent()}
+          </div>
+        </div>
       </div>
     </div>
   );

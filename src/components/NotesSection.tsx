@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Save, Edit3, Plus, Calendar, User, Trash2 } from "lucide-react";
+import { MessageSquare, Save, Edit3, Plus, Calendar, User, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { formatDistanceToNow, parseISO, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -15,6 +15,7 @@ interface NotesSectionProps {
   entityType: "lead" | "company" | "job";
   entityName?: string;
   className?: string;
+  defaultExpanded?: boolean;
 }
 
 interface Note {
@@ -26,34 +27,57 @@ interface Note {
   updated_at?: string;
 }
 
-export const NotesSection = ({ entityId, entityType, entityName, className }: NotesSectionProps) => {
+export const NotesSection = ({ entityId, entityType, entityName, className, defaultExpanded = true }: NotesSectionProps) => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [newNoteContent, setNewNoteContent] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [noteCount, setNoteCount] = useState<number | null>(null);
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
 
-  // Load notes from Supabase
+
+  // Load notes data - optimized to combine count and data queries
   useEffect(() => {
     const fetchNotes = async () => {
       if (!entityId) return;
       
+      // If not expanded, just get count
+      if (!isExpanded) {
+        try {
+          const { count } = await supabase
+            .from('notes')
+            .select('*', { count: 'exact', head: true })
+            .eq('entity_id', entityId)
+            .eq('entity_type', entityType);
+          
+          setNoteCount(count || 0);
+        } catch (error) {
+          console.error('Error fetching note count:', error);
+          setNoteCount(0);
+        }
+        return;
+      }
+
+      // If expanded and not loaded, get full data
+      if (hasLoaded) return;
+      
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data, error, count } = await supabase
           .from('notes')
           .select(`
             id,
             content,
             author_id,
             created_at,
-            updated_at,
-            user_profiles!notes_author_id_fkey(full_name)
-          `)
+            updated_at
+          `, { count: 'exact' })
           .eq('entity_id', entityId)
           .eq('entity_type', entityType)
           .order('created_at', { ascending: false });
@@ -68,16 +92,29 @@ export const NotesSection = ({ entityId, entityType, entityName, className }: No
           return;
         }
 
+        // Set count from the same query
+        setNoteCount(count || 0);
+
+        // Fetch author names separately
+        const authorIds = [...new Set(data?.map(note => note.author_id) || [])];
+        const { data: authors } = await supabase
+          .from('user_profiles')
+          .select('id, full_name')
+          .in('id', authorIds);
+
+        const authorMap = new Map(authors?.map(author => [author.id, author.full_name]) || []);
+
         const formattedNotes: Note[] = data?.map(note => ({
           id: note.id,
           content: note.content,
           author_id: note.author_id,
-          author_name: note.user_profiles?.full_name || 'Unknown User',
+          author_name: authorMap.get(note.author_id) || 'Unknown User',
           created_at: note.created_at,
           updated_at: note.updated_at
         })) || [];
 
         setNotes(formattedNotes);
+        setHasLoaded(true);
       } catch (error) {
         console.error('Error fetching notes:', error);
         toast({
@@ -91,7 +128,7 @@ export const NotesSection = ({ entityId, entityType, entityName, className }: No
     };
 
     fetchNotes();
-  }, [entityId, entityType, toast]);
+  }, [entityId, entityType, isExpanded, hasLoaded, toast]);
 
   const addNote = async () => {
     if (!newNoteContent.trim() || !user) return;
@@ -111,23 +148,30 @@ export const NotesSection = ({ entityId, entityType, entityName, className }: No
           content,
           author_id,
           created_at,
-          updated_at,
-          user_profiles!notes_author_id_fkey(full_name)
+          updated_at
         `)
         .single();
 
       if (error) throw error;
 
+      // Get author name
+      const { data: authorData } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('id', data.author_id)
+        .single();
+
       const newNote: Note = {
         id: data.id,
         content: data.content,
         author_id: data.author_id,
-        author_name: data.user_profiles?.full_name || 'Unknown User',
+        author_name: authorData?.full_name || 'Unknown User',
         created_at: data.created_at,
         updated_at: data.updated_at
       };
 
       setNotes(prev => [newNote, ...prev]);
+      setNoteCount(prev => (prev || 0) + 1);
       setNewNoteContent("");
       setIsAdding(false);
 
@@ -162,7 +206,7 @@ export const NotesSection = ({ entityId, entityType, entityName, className }: No
           author_id,
           created_at,
           updated_at,
-          user_profiles!notes_author_id_fkey(full_name)
+          user_profiles!inner(full_name)
         `)
         .single();
 
@@ -250,17 +294,41 @@ export const NotesSection = ({ entityId, entityType, entityName, className }: No
     return user && note.author_id === user.id;
   };
 
+  // If not expanded, show just the notes icon/counter
+  if (!isExpanded) {
+    return (
+      <div className={className}>
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+          title={`${noteCount || 0} notes - Click to view`}
+        >
+          <MessageSquare className="h-3 w-3" />
+          <span className="font-medium">
+            {noteCount !== null ? noteCount : '...'}
+          </span>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
       <Card>
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center justify-between text-sm font-medium">
             <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-              <span>Notes & Comments</span>
-              {notes.length > 0 && (
-                <StatusBadge status={`${notes.length}`} size="sm" />
-              )}
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="flex items-center gap-2 hover:text-gray-600 transition-colors"
+              >
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <span>Notes & Comments</span>
+                {noteCount !== null && noteCount > 0 && (
+                  <StatusBadge status={`${noteCount}`} size="sm" />
+                )}
+              </button>
             </div>
             {!isAdding && (
               <Button

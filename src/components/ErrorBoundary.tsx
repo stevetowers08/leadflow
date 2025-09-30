@@ -1,4 +1,9 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { enhancedErrorLogger } from '@/services/supabaseErrorService';
+import { ErrorSeverity, ErrorCategory } from '@/utils/errorLogger';
 
 interface Props {
   children: ReactNode;
@@ -33,14 +38,27 @@ export class ErrorBoundary extends Component<Props, State> {
     this.logErrorToService(error, errorInfo);
   }
 
-  logErrorToService = (error: Error, errorInfo: ErrorInfo) => {
-    // You can integrate with error reporting services here
-    // e.g., Sentry, LogRocket, etc.
-    console.error('Error logged to service:', {
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack
-    });
+  logErrorToService = async (error: Error, errorInfo: ErrorInfo) => {
+    try {
+      // Log to Supabase with enhanced error logging
+      await enhancedErrorLogger.logError(
+        error,
+        ErrorSeverity.HIGH,
+        ErrorCategory.UI,
+        {
+          component: 'react_error_boundary',
+          action: 'component_error',
+          metadata: {
+            componentStack: errorInfo.componentStack,
+            errorBoundary: true,
+            url: window.location.href,
+            userAgent: window.navigator.userAgent,
+          }
+        }
+      );
+    } catch (loggingError) {
+      console.error('Failed to log error to service:', loggingError);
+    }
   };
 
   handleRetry = () => {
@@ -61,20 +79,22 @@ export class ErrorBoundary extends Component<Props, State> {
       // Default error UI
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center max-w-md mx-auto p-6">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <Card className="max-w-md mx-auto">
+            <CardHeader className="text-center">
               <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
-                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
+                <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
-              <h2 className="text-lg font-semibold text-red-800 mb-2">Something went wrong</h2>
-              <p className="text-red-700 mb-4 text-sm">
+              <CardTitle className="text-lg font-semibold text-red-800">
+                Something went wrong
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-red-700 mb-6 text-sm">
                 The application encountered an unexpected error. This has been logged and we're working to fix it.
               </p>
               
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className="mb-4 text-left">
+                <details className="mb-6 text-left">
                   <summary className="cursor-pointer text-sm text-red-600 font-medium">
                     Error Details (Development)
                   </summary>
@@ -98,22 +118,26 @@ export class ErrorBoundary extends Component<Props, State> {
                 </details>
               )}
               
-              <div className="space-x-2">
-                <button 
+              <div className="flex gap-2 justify-center">
+                <Button 
                   onClick={this.handleRetry}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                  variant="destructive"
+                  size="sm"
                 >
+                  <RefreshCw className="w-4 h-4 mr-2" />
                   Try Again
-                </button>
-                <button 
+                </Button>
+                <Button 
                   onClick={this.handleReload}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                  variant="outline"
+                  size="sm"
                 >
+                  <Home className="w-4 h-4 mr-2" />
                   Reload Page
-                </button>
+                </Button>
               </div>
               
-              <div className="mt-4 text-xs text-red-600">
+              <div className="mt-6 text-xs text-red-600">
                 <p>If the problem persists:</p>
                 <ul className="list-disc list-inside mt-1">
                   <li>Clear your browser cache</li>
@@ -121,8 +145,8 @@ export class ErrorBoundary extends Component<Props, State> {
                   <li>Contact support if the issue continues</li>
                 </ul>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }

@@ -142,12 +142,12 @@
         {
           "title": "Empowr CRM - Authentication Flow",
           "file": "auth.spec.ts",
-          "line": 3,
+          "line": 4,
           "column": 6,
           "specs": [
             {
               "title": "should display sign-in page",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -160,63 +160,159 @@
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 17294,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  getByText('Welcome to Empowr CRM')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Welcome to Empowr CRM')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  getByText('Welcome to Empowr CRM')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Welcome to Empowr CRM')\u001b[22m\n\n    at C:\\Users\\tower\\OneDrive\\Documents\\4Twenty\\empowr-crm-main\\e2e\\auth.spec.ts:9:59",
-                        "location": {
-                          "file": "C:\\Users\\tower\\OneDrive\\Documents\\4Twenty\\empowr-crm-main\\e2e\\auth.spec.ts",
-                          "column": 59,
-                          "line": 9
-                        },
-                        "snippet": "   7 |     // Check if we're on the sign-in page\n   8 |     await expect(page).toHaveTitle(/Empowr CRM/);\n>  9 |     await expect(page.getByText('Welcome to Empowr CRM')).toBeVisible();\n     |                                                           ^\n  10 |     await expect(page.getByText('Sign in to access your CRM dashboard')).toBeVisible();\n  11 |     \n  12 |     // Check for Google sign-in button"
-                      },
-                      "errors": [
+                      "status": "passed",
+                      "duration": 1389,
+                      "errors": [],
+                      "stdout": [
                         {
-                          "location": {
-                            "file": "C:\\Users\\tower\\OneDrive\\Documents\\4Twenty\\empowr-crm-main\\e2e\\auth.spec.ts",
-                            "column": 59,
-                            "line": 9
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  getByText('Welcome to Empowr CRM')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Welcome to Empowr CRM')\u001b[22m\n\n\n   7 |     // Check if we're on the sign-in page\n   8 |     await expect(page).toHaveTitle(/Empowr CRM/);\n>  9 |     await expect(page.getByText('Welcome to Empowr CRM')).toBeVisible();\n     |                                                           ^\n  10 |     await expect(page.getByText('Sign in to access your CRM dashboard')).toBeVisible();\n  11 |     \n  12 |     // Check for Google sign-in button\n    at C:\\Users\\tower\\OneDrive\\Documents\\4Twenty\\empowr-crm-main\\e2e\\auth.spec.ts:9:59"
+                          "text": "[BROWSER DEBUG] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "[BROWSER DEBUG] [vite] connected.\n"
+                        },
+                        {
+                          "text": "[BROWSER INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER STARTGROUP] 🔧 Environment Configuration\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] Supabase URL: ✅ Set\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] Supabase Anon Key: ✅ Set\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] Google Client ID: ✅ Set\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ℹ️ Service Role Key: Not exposed to client-side (server-only)\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ✅ All environment variables are valid\n"
+                        },
+                        {
+                          "text": "[BROWSER ENDGROUP] console.groupEnd\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] 🔧 Supabase client config: {SUPABASE_URL: https://jedfundfhzytpnbjkspn.supabase.co, SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIs..., SERVICE_ROLE_KEY: Not exposed to client-side (server-only)}\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ✅ Supabase client created successfully\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ℹ️ Using anon key for client-side operations (correct for React apps)\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] 🔍 Environment Debug Info:\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] VITE_SUPABASE_URL: https://jedfundfhzytpnbjkspn.supabase.co\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] VITE_SUPABASE_ANON_KEY: SET\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] VITE_GOOGLE_CLIENT_ID: 431821374966-6g222eg7q4hsish5e8ln7mmh7t72dgc2.apps.googleusercontent.com\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] All env vars: {BASE_URL: /, DEV: true, MODE: development, PROD: false, SSR: false}\n"
+                        },
+                        {
+                          "text": "[BROWSER INFO] [INFO] 🚀 Empowr CRM starting...\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] [DEBUG] 🔍 Environment Debug Info:\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] [DEBUG] VITE_SUPABASE_URL: https://jedfundfhzytpnbjkspn.supabase.co\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] [DEBUG] VITE_SUPABASE_ANON_KEY: SET\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] [DEBUG] VITE_GOOGLE_CLIENT_ID: 431821374966-6g222eg7q4hsish5e8ln7mmh7t72dgc2.apps.googleusercontent.com\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] [DEBUG] All env vars: {BASE_URL: /, DEV: true, MODE: development, PROD: false, SSR: false}\n"
+                        },
+                        {
+                          "text": "[BROWSER INFO] [INFO] ✅ Root element found, creating React root...\n"
+                        },
+                        {
+                          "text": "[BROWSER INFO] [INFO] ✅ React root created, rendering full CRM app...\n"
+                        },
+                        {
+                          "text": "[BROWSER INFO] [INFO] ✅ Full CRM App with error boundaries rendered successfully\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] 🔐 Initializing authentication...\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] 📋 Initial session: {hasSession: false, hasUser: false, userEmail: undefined}\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ✅ Loading set to false - no user\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] 🔄 Auth state change: INITIAL_SESSION undefined\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ✅ Error handling system initialized\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ✅ Global error handlers set up\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] Page Load Time: 0\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] Performance Metrics: {loadTime: 0, domContentLoaded: 0.10000002384185791, firstPaint: 564, firstContentfulPaint: 636, largestContentfulPaint: 0}\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ✅ Good loadTime: 0ms\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ✅ Good firstContentfulPaint: 636ms\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ✅ Good largestContentfulPaint: 0ms\n"
+                        },
+                        {
+                          "text": "[BROWSER LOG] ✅ Supabase connected successfully. Companies count: 0\n"
+                        },
+                        {
+                          "text": "\n=== CONSOLE INSPECTION SUMMARY ===\n"
+                        },
+                        {
+                          "text": "Total logs: 39\n"
+                        },
+                        {
+                          "text": "Errors: 0\n"
+                        },
+                        {
+                          "text": "Warnings: 0\n"
+                        },
+                        {
+                          "text": "Info: 5\n"
+                        },
+                        {
+                          "text": "Debug: 2\n"
                         }
                       ],
-                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-09-30T03:00:34.551Z",
+                      "startTime": "2025-09-30T13:48:39.599Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\tower\\OneDrive\\Documents\\4Twenty\\empowr-crm-main\\test-results\\auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\tower\\OneDrive\\Documents\\4Twenty\\empowr-crm-main\\test-results\\auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\tower\\OneDrive\\Documents\\4Twenty\\empowr-crm-main\\test-results\\auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\tower\\OneDrive\\Documents\\4Twenty\\empowr-crm-main\\e2e\\auth.spec.ts",
-                        "column": 59,
-                        "line": 9
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "d748ac400d08b85935ef-0f802621ffeb87e2c34b",
               "file": "auth.spec.ts",
-              "line": 4,
+              "line": 5,
               "column": 3
             }
           ]
@@ -226,11 +322,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-09-30T03:00:29.630Z",
-    "duration": 24166.834000000003,
-    "expected": 0,
+    "startTime": "2025-09-30T13:48:37.244Z",
+    "duration": 4144.664,
+    "expected": 1,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 0,
     "flaky": 0
   }
 }

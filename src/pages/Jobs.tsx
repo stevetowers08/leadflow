@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
-import { JobDetailPopup } from "@/components/crm/jobs/JobDetailPopup";
+import { EntityDetailPopup } from "@/components/crm/EntityDetailPopup";
 import { JobsStatsCards } from "@/components/StatsCards";
+import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ type Job = Tables<"jobs"> & {
   company_confidence_level?: string;
   company_linkedin_url?: string;
   company_score_reason?: string;
+  company_is_favourite?: boolean;
   total_leads?: number;
   new_leads?: number;
   automation_started_leads?: number;
@@ -37,6 +39,8 @@ const Jobs = () => {
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<{id: string, name: string} | null>(null);
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("posted_date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -283,6 +287,7 @@ const Jobs = () => {
           company_confidence_level: company?.confidence_level,
           company_linkedin_url: company?.linkedin_url,
           company_score_reason: company?.score_reason,
+          company_is_favourite: company?.is_favourite,
           total_leads: leads.length,
           new_leads: newLeadsCount,
           automation_started_leads: automatedLeadsCount
@@ -393,7 +398,16 @@ const Jobs = () => {
       key: "company_name",
       label: "Company",
       render: (job: Job) => (
-        <div className="min-w-0 w-64">
+        <div 
+          className="min-w-0 w-64 cursor-pointer hover:bg-gray-50 rounded-md p-2 -m-2 transition-colors duration-150"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (job.company_id) {
+              setSelectedCompany({ id: job.company_id, name: job.company_name || 'Unknown Company' });
+              setIsCompanyModalOpen(true);
+            }
+          }}
+        >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
               {job.company_logo_url ? (
@@ -420,7 +434,26 @@ const Jobs = () => {
                 {job.company_name ? job.company_name.charAt(0).toUpperCase() : '?'}
               </div>
             </div>
-            <div className="text-sm font-medium break-words leading-tight">{job.company_name || "-"}</div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <div className="text-sm font-medium break-words leading-tight hover:text-primary transition-colors duration-150">
+                {job.company_name || "-"}
+              </div>
+            </div>
+            {job.company_id && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <FavoriteToggle
+                  entityId={job.company_id}
+                  entityType="company"
+                  isFavorite={job.company_is_favourite || false}
+                  onToggle={(isFavorite) => {
+                    setJobs(prev => prev.map(j => 
+                      j.company_id === job.company_id ? { ...j, company_is_favourite: isFavorite } : j
+                    ));
+                  }}
+                  size="sm"
+                />
+              </div>
+            )}
           </div>
         </div>
       ),
@@ -596,6 +629,14 @@ const Jobs = () => {
   const handleRowClick = (job: Job) => {
     setSelectedJob(job);
     setIsDetailModalOpen(true);
+  };
+
+  const handleCompanyNavigation = (companyId: string, companyName: string) => {
+    // Close job modal and open company modal
+    setIsDetailModalOpen(false);
+    setSelectedJob(null);
+    setSelectedCompany({ id: companyId, name: companyName });
+    setIsCompanyModalOpen(true);
   };
 
   const handleDeleteJob = async (jobId: string, jobTitle: string) => {
@@ -778,30 +819,30 @@ const Jobs = () => {
             company_linkedin_url: selectedJob.company_linkedin_url,
             total_leads: selectedJob.total_leads
           })}
-          <JobDetailPopup
-          job={{
-            ...selectedJob,
-            companies: {
-              name: selectedJob.company_name,
-              industry: selectedJob.company_industry,
-              head_office: selectedJob.company_head_office,
-              company_size: selectedJob.company_size,
-              website: selectedJob.company_website,
-              lead_score: selectedJob.company_lead_score,
-              priority: selectedJob.company_priority,
-              automation_active: selectedJob.company_automation_active,
-              confidence_level: selectedJob.company_confidence_level,
-              people_count: selectedJob.total_leads,
-              score_reason: selectedJob.company_score_reason
-            }
-          }}
-          isOpen={isDetailModalOpen}
+          <EntityDetailPopup
+            entityType="job"
+            entityId={selectedJob.id}
+            isOpen={isDetailModalOpen}
+            onClose={() => {
+              setIsDetailModalOpen(false);
+              setSelectedJob(null);
+            }}
+            onNavigateToCompany={handleCompanyNavigation}
+          />
+        </>
+      )}
+
+      {/* Company Detail Modal */}
+      {selectedCompany && (
+        <EntityDetailPopup
+          entityType="company"
+          entityId={selectedCompany.id}
+          isOpen={isCompanyModalOpen}
           onClose={() => {
-            setIsDetailModalOpen(false);
-            setSelectedJob(null);
+            setIsCompanyModalOpen(false);
+            setSelectedCompany(null);
           }}
         />
-        </>
       )}
     </Page>
   );

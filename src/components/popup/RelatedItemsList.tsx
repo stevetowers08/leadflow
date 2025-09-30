@@ -3,9 +3,10 @@ import { InfoCard } from '../shared/InfoCard';
 import { Button } from '@/components/ui/button';
 import { ListItem } from '../shared/ListItem';
 import { StatusBadge } from '../StatusBadge';
+import { AssignedUserBadge } from '../AssignedUserBadge';
 import { getProfileImage } from '@/utils/linkedinProfileUtils';
 import { formatDateForSydney } from '@/utils/timezoneUtils';
-import { User, Users, Briefcase } from 'lucide-react';
+import { User, Users } from 'lucide-react';
 
 interface RelatedItemsListProps {
   title: string;
@@ -17,6 +18,7 @@ interface RelatedItemsListProps {
   showCheckbox?: boolean;
   showAutomateButton?: boolean;
   itemType: 'lead' | 'job';
+  onAutomationClick?: () => void;
 }
 
 export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
@@ -28,7 +30,8 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
   onToggleSelection,
   showCheckbox = false,
   showAutomateButton = false,
-  itemType
+  itemType,
+  onAutomationClick
 }) => {
   const renderItem = (item: any) => {
     if (itemType === 'lead') {
@@ -38,7 +41,15 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
           id={item.id}
           title={item.name}
           subtitle={item.company_role}
-          badge={<StatusBadge status={item.stage || "new"} size="sm" />}
+          badge={
+            <div className="flex items-center gap-2">
+              <StatusBadge status={item.stage || "new"} size="sm" />
+              <AssignedUserBadge 
+                ownerId={item.owner_id} 
+                automationStatus={null} 
+              />
+            </div>
+          }
           showCheckbox={showCheckbox}
           isSelected={selectedLeads.some(selected => selected.id === item.id)}
           onSelect={onToggleSelection ? (id: string, checked: boolean) => onToggleSelection(item.id) : undefined}
@@ -59,17 +70,6 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
     }
   };
 
-  const renderEmptyState = () => {
-    const Icon = itemType === 'lead' ? User : Briefcase;
-    const message = itemType === 'lead' ? 'No related leads found' : 'No related jobs found';
-    
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        <Icon className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-        <p className="text-sm">{message}</p>
-      </div>
-    );
-  };
 
   return (
     <InfoCard 
@@ -82,6 +82,7 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
             size="sm" 
             className="bg-primary hover:bg-primary/90 text-sm px-6 py-1 !h-8 min-h-[32px]"
             disabled={selectedLeads.length === 0}
+            onClick={onAutomationClick}
           >
             Automate ({selectedLeads.length})
           </Button>
@@ -97,7 +98,8 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
           {items.slice(0, 5).map(renderItem)}
         </div>
       ) : (
-        renderEmptyState()
+        // Empty state - just show empty content, no text or icon
+        <div></div>
       )}
     </InfoCard>
   );

@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { User, Users, UserCheck, UserX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/contexts/PermissionsContext";
 
 interface LeadAssignmentProps {
   leadId: string;
@@ -28,6 +30,8 @@ export const LeadAssignment = ({ leadId, currentOwner, leadName, onAssignmentCha
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { hasRole } = usePermissions();
 
   // Fetch team members from user_profiles table
   useEffect(() => {
@@ -108,7 +112,7 @@ export const LeadAssignment = ({ leadId, currentOwner, leadName, onAssignmentCha
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Users className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm font-medium">Lead Assignment</span>
+        <span className="text-sm font-medium">Outreach Assignment</span>
       </div>
 
       {/* Current Assignment Display */}
@@ -145,6 +149,22 @@ export const LeadAssignment = ({ leadId, currentOwner, leadName, onAssignmentCha
             <div className="text-sm">Unassigned</div>
             <div className="text-xs">This lead is not assigned to anyone</div>
           </div>
+        </div>
+      )}
+
+      {/* Quick Self-Assignment */}
+      {user && !currentOwnerInfo && (
+        <div className="space-y-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleAssignment(user.id)}
+            disabled={isAssigning}
+            className="w-full"
+          >
+            <UserCheck className="w-4 h-4 mr-2" />
+            Assign to Me
+          </Button>
         </div>
       )}
 

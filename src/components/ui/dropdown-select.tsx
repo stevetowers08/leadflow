@@ -51,7 +51,10 @@ export const DropdownSelect = ({
             <SelectItem
               key={optionValue}
               value={optionValue}
-              className="cursor-pointer hover:bg-accent/50 focus:bg-accent/50"
+              className={cn(
+                "cursor-pointer hover:bg-accent/50 focus:bg-accent/50",
+                !isReferenceOption(option) && option.color
+              )}
             >
               {optionLabel}
             </SelectItem>

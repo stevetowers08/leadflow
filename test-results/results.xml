@@ -1,48 +1,53 @@
-<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="24.166834">
-<testsuite name="auth.spec.ts" timestamp="2025-09-30T03:00:32.063Z" hostname="chromium" tests="1" failures="1" skipped="0" time="17.294" errors="0">
-<testcase name="Empowr CRM - Authentication Flow › should display sign-in page" classname="auth.spec.ts" time="17.294">
-<failure message="auth.spec.ts:4:3 should display sign-in page" type="FAILURE">
-<![CDATA[  [chromium] › auth.spec.ts:4:3 › Empowr CRM - Authentication Flow › should display sign-in page ───
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator:  getByText('Welcome to Empowr CRM')
-    Expected: visible
-    Received: <element(s) not found>
-    Timeout:  5000ms
-
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for getByText('Welcome to Empowr CRM')
-
-
-       7 |     // Check if we're on the sign-in page
-       8 |     await expect(page).toHaveTitle(/Empowr CRM/);
-    >  9 |     await expect(page.getByText('Welcome to Empowr CRM')).toBeVisible();
-         |                                                           ^
-      10 |     await expect(page.getByText('Sign in to access your CRM dashboard')).toBeVisible();
-      11 |     
-      12 |     // Check for Google sign-in button
-        at C:\Users\tower\OneDrive\Documents\4Twenty\empowr-crm-main\e2e\auth.spec.ts:9:59
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ..\test-results\auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ..\test-results\auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ..\test-results\auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\error-context.md
-]]>
-</failure>
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="4.144664">
+<testsuite name="auth.spec.ts" timestamp="2025-09-30T13:48:37.784Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.389" errors="0">
+<testcase name="Empowr CRM - Authentication Flow › should display sign-in page" classname="auth.spec.ts" time="1.389">
 <system-out>
-<![CDATA[
-[[ATTACHMENT|auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\test-failed-1.png]]
+<![CDATA[[BROWSER DEBUG] [vite] connecting...
+[BROWSER DEBUG] [vite] connected.
+[BROWSER INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[BROWSER STARTGROUP] 🔧 Environment Configuration
+[BROWSER LOG] Supabase URL: ✅ Set
+[BROWSER LOG] Supabase Anon Key: ✅ Set
+[BROWSER LOG] Google Client ID: ✅ Set
+[BROWSER LOG] ℹ️ Service Role Key: Not exposed to client-side (server-only)
+[BROWSER LOG] ✅ All environment variables are valid
+[BROWSER ENDGROUP] console.groupEnd
+[BROWSER LOG] 🔧 Supabase client config: {SUPABASE_URL: https://jedfundfhzytpnbjkspn.supabase.co, SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIs..., SERVICE_ROLE_KEY: Not exposed to client-side (server-only)}
+[BROWSER LOG] ✅ Supabase client created successfully
+[BROWSER LOG] ℹ️ Using anon key for client-side operations (correct for React apps)
+[BROWSER LOG] 🔍 Environment Debug Info:
+[BROWSER LOG] VITE_SUPABASE_URL: https://jedfundfhzytpnbjkspn.supabase.co
+[BROWSER LOG] VITE_SUPABASE_ANON_KEY: SET
+[BROWSER LOG] VITE_GOOGLE_CLIENT_ID: 431821374966-6g222eg7q4hsish5e8ln7mmh7t72dgc2.apps.googleusercontent.com
+[BROWSER LOG] All env vars: {BASE_URL: /, DEV: true, MODE: development, PROD: false, SSR: false}
+[BROWSER INFO] [INFO] 🚀 Empowr CRM starting...
+[BROWSER LOG] [DEBUG] 🔍 Environment Debug Info:
+[BROWSER LOG] [DEBUG] VITE_SUPABASE_URL: https://jedfundfhzytpnbjkspn.supabase.co
+[BROWSER LOG] [DEBUG] VITE_SUPABASE_ANON_KEY: SET
+[BROWSER LOG] [DEBUG] VITE_GOOGLE_CLIENT_ID: 431821374966-6g222eg7q4hsish5e8ln7mmh7t72dgc2.apps.googleusercontent.com
+[BROWSER LOG] [DEBUG] All env vars: {BASE_URL: /, DEV: true, MODE: development, PROD: false, SSR: false}
+[BROWSER INFO] [INFO] ✅ Root element found, creating React root...
+[BROWSER INFO] [INFO] ✅ React root created, rendering full CRM app...
+[BROWSER INFO] [INFO] ✅ Full CRM App with error boundaries rendered successfully
+[BROWSER LOG] 🔐 Initializing authentication...
+[BROWSER LOG] 📋 Initial session: {hasSession: false, hasUser: false, userEmail: undefined}
+[BROWSER LOG] ✅ Loading set to false - no user
+[BROWSER LOG] 🔄 Auth state change: INITIAL_SESSION undefined
+[BROWSER LOG] ✅ Error handling system initialized
+[BROWSER LOG] ✅ Global error handlers set up
+[BROWSER LOG] Page Load Time: 0
+[BROWSER LOG] Performance Metrics: {loadTime: 0, domContentLoaded: 0.10000002384185791, firstPaint: 564, firstContentfulPaint: 636, largestContentfulPaint: 0}
+[BROWSER LOG] ✅ Good loadTime: 0ms
+[BROWSER LOG] ✅ Good firstContentfulPaint: 636ms
+[BROWSER LOG] ✅ Good largestContentfulPaint: 0ms
+[BROWSER LOG] ✅ Supabase connected successfully. Companies count: 0
 
-[[ATTACHMENT|auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\video.webm]]
-
-[[ATTACHMENT|auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\error-context.md]]
+=== CONSOLE INSPECTION SUMMARY ===
+Total logs: 39
+Errors: 0
+Warnings: 0
+Info: 5
+Debug: 2
 ]]>
 </system-out>
 </testcase>

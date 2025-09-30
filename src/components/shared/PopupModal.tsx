@@ -1,15 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, AlertCircle } from 'lucide-react';
+import { X } from 'lucide-react';
 import { LoadingState } from '@/components/loading/LoadingStates';
 import { cn } from '@/lib/utils';
-import { getScoringInfo } from '@/utils/scoringSystem';
-import { StatusBadge } from '@/components/StatusBadge';
-
-interface ScoringDisplay {
-  label: string;
-  value: string | number;
-  type: 'priority' | 'lead_score' | 'company_score' | 'job_score';
-}
+import { DropdownSelect } from '@/components/ui/dropdown-select';
+import { DropdownOption } from '@/hooks/useDropdownOptions';
+import { UserAssignmentDisplay } from './UserAssignmentDisplay';
 
 interface PopupModalProps {
   isOpen: boolean;
@@ -18,15 +13,31 @@ interface PopupModalProps {
   subtitle?: string;
   icon: React.ReactNode;
   children: React.ReactNode;
-  statusBadge?: React.ReactNode;
-  statusLabel?: string;
-  scoringDisplay?: ScoringDisplay | null;
   className?: string;
   isLoading?: boolean;
   error?: Error | null;
   onRetry?: (() => void) | null;
   companyLogo?: string;
   companyName?: string;
+  actionButton?: React.ReactNode;
+  // Company-specific props
+  entityType?: 'company' | 'lead' | 'job';
+  entityId?: string;
+  currentStatus?: string;
+  currentPriority?: string;
+  currentPipelineStage?: string;
+  onStatusChange?: (status: string) => void;
+  onPriorityChange?: (priority: string) => void;
+  onPipelineStageChange?: (stage: string) => void;
+  // Favorite icon props
+  favoriteButton?: React.ReactNode;
+  // Automation badge props
+  automationStatus?: 'automated' | 'pending' | 'manual';
+  // Pipeline stage restrictions
+  canChangeStage?: boolean;
+  // User assignment props
+  ownerId?: string | null;
+  onAssignmentChange?: () => void;
 }
 
 export const PopupModal: React.FC<PopupModalProps> = ({
@@ -36,19 +47,59 @@ export const PopupModal: React.FC<PopupModalProps> = ({
   subtitle,
   icon,
   children,
-  statusBadge,
-  statusLabel = "Status",
-  scoringDisplay,
   className = "",
   isLoading = false,
   error = null,
   onRetry = null,
   companyLogo,
-  companyName
+  companyName,
+  actionButton,
+  entityType,
+  entityId,
+  currentStatus,
+  currentPriority,
+  currentPipelineStage,
+  onStatusChange,
+  onPriorityChange,
+  onPipelineStageChange,
+  favoriteButton,
+  automationStatus,
+  canChangeStage,
+  ownerId,
+  onAssignmentChange
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // Company status options (aligned with pipeline)
+  const companyStatusOptions: DropdownOption[] = [
+    { value: 'new', label: 'New' },
+    { value: 'prospect', label: 'Prospect' },
+    { value: 'qualified', label: 'Qualified' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' }
+  ];
+
+  const pipelineStageOptions: DropdownOption[] = [
+    { value: 'new_lead', label: 'New Lead' },
+    { value: 'automated', label: 'Automated' },
+    { value: 'replied', label: 'Replied' },
+    { value: 'meeting_scheduled', label: 'Meeting Scheduled' },
+    { value: 'proposal_sent', label: 'Proposal Sent' },
+    { value: 'negotiation', label: 'Negotiation' },
+    { value: 'closed_won', label: 'Closed Won' },
+    { value: 'closed_lost', label: 'Closed Lost' },
+    { value: 'on_hold', label: 'On Hold' }
+  ];
+
+  // Priority options
+  const priorityOptions: DropdownOption[] = [
+    { value: 'LOW', label: 'Low' },
+    { value: 'MEDIUM', label: 'Medium' },
+    { value: 'HIGH', label: 'High' },
+    { value: 'VERY HIGH', label: 'Very High' }
+  ];
 
   // Focus management
   useEffect(() => {
@@ -156,22 +207,20 @@ export const PopupModal: React.FC<PopupModalProps> = ({
     >
       <div className={cn(
         "bg-gray-100 rounded-xl shadow-2xl w-full max-h-[95vh] overflow-hidden flex flex-col",
-        "max-w-4xl", // Default size
-        "sm:max-w-4xl", // Small screens
-        "md:max-w-5xl", // Medium screens
-        "lg:max-w-5xl", // Large screens
+        "max-w-5xl w-[90vw]", // Fixed width for consistency
         "transition-all duration-200 ease-in-out transform",
         isAnimating ? "scale-100 opacity-100" : "scale-95 opacity-0",
         className
       )}>
-        {/* Header with responsive padding */}
-        <div className="px-8 sm:px-10 py-4 border-b border-gray-200">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start gap-4 flex-1 min-w-0">
-              {/* Company Logo */}
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
+        {/* Modern Header Design */}
+        <div className="pl-0 pr-8 py-4 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between">
+            {/* Left Side - Entity Info */}
+            <div className="flex items-center gap-4 flex-1 min-w-0 pl-8 sm:pl-10">
+              {/* Company Logo - Square */}
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
                 {isLoading ? (
-                  <div className="w-12 h-12 bg-gray-200 rounded animate-pulse" />
+                  <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />
                 ) : companyLogo ? (
                   <img 
                     src={companyLogo} 
@@ -189,15 +238,15 @@ export const PopupModal: React.FC<PopupModalProps> = ({
               </div>
               
               <div className="flex-1 min-w-0">
-                <h2 id="popup-title" className="text-xl font-bold text-gray-900 mb-0">
+                <h2 id="popup-title" className="text-lg font-semibold text-gray-900 leading-tight truncate">
                   {isLoading ? (
-                    <div className="h-6 bg-gray-200 rounded animate-pulse w-40" />
+                    <div className="h-5 bg-gray-200 rounded animate-pulse w-40" />
                   ) : (
                     title
                   )}
                 </h2>
                 {subtitle && (
-                  <p id="popup-description" className="text-sm font-medium text-gray-500 -mt-1">
+                  <p id="popup-description" className="text-sm text-gray-500 leading-tight truncate">
                     {isLoading ? (
                       <div className="h-4 bg-gray-200 rounded animate-pulse w-56" />
                     ) : (
@@ -206,67 +255,109 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                   </p>
                 )}
               </div>
-            </div>
-
-            {/* Status and AI Score - responsive layout */}
-            <div className="flex items-center gap-2 sm:gap-3 ml-3 sm:ml-4">
-              {isLoading ? (
-                <>
-                  <div className="h-6 bg-gray-200 rounded animate-pulse w-16" />
-                  <div className="h-8 bg-gray-200 rounded animate-pulse w-20" />
-                </>
-              ) : (
-                <>
-                  {statusBadge && (
-                    <div className="flex items-center gap-1 sm:gap-1.5">
-                      <span className="text-xs font-medium text-gray-400 hidden sm:inline capitalize">{statusLabel}</span>
-                      {statusBadge}
-                    </div>
-                  )}
-                  {scoringDisplay && (() => {
-                    const scoringInfo = getScoringInfo(scoringDisplay.type, scoringDisplay.value);
-                    const isNumeric = scoringDisplay.type === 'company_score' || scoringDisplay.type === 'job_score';
-                    const isLeadScore = scoringDisplay.type === 'lead_score';
-                    
-                    return (
-                      <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg">
-                        <span className="text-xs font-medium text-gray-400 hidden sm:inline capitalize">AI Score</span>
-                        {isLeadScore ? (
-                          // LEAD SCORE: Use StatusBadge for proper styling
-                          <StatusBadge status={scoringDisplay.value as string} size="sm" />
-                        ) : isNumeric ? (
-                          // NUMERIC DESIGN: Simple number display
-                          <span className={cn("text-sm font-bold", scoringInfo.color)}>
-                            {scoringInfo.badge}
-                          </span>
-                        ) : (
-                          // BADGE DESIGN: Colored badge for words
-                          <span className={cn(
-                            "text-sm font-bold px-1.5 py-0.5 rounded-md border",
-                            scoringInfo.color
-                          )}>
-                            {scoringInfo.badge}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </>
+              
+              {/* User Assignment Display (only for companies) */}
+              {entityType === 'company' && (
+                <div className="flex-shrink-0 h-10 flex items-center">
+                  <UserAssignmentDisplay
+                    ownerId={ownerId}
+                    entityId={entityId || ''}
+                    entityType={entityType}
+                    onAssignmentChange={onAssignmentChange}
+                  />
+                </div>
               )}
+              
+
+              {/* Favorite Button - Same height as dropdowns */}
+              <div className="flex-shrink-0 h-10 flex items-center">
+                {favoriteButton}
+              </div>
+            </div>
+            
+            {/* Remove the separate favorite button container */}
+
+            {/* Center - Pipeline Stage, Priority Dropdowns and Automation Badge (only for companies) */}
+            {entityType === 'company' && (
+              <div className="flex items-center gap-3">
+                {/* Pipeline Stage Badge - Always visible, clickable only when allowed */}
+                <div className={cn(
+                  "w-40 px-3 py-2 rounded-md text-sm font-medium h-10 flex items-center justify-center cursor-pointer transition-colors border",
+                  canChangeStage 
+                    ? "bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-800" 
+                    : "bg-gray-100 border-gray-200 text-gray-600 cursor-default"
+                )}
+                onClick={canChangeStage ? () => {
+                  // Logical stage progression based on current stage
+                  const stageMap = {
+                    'new_lead': 'New Lead',
+                    'automated': 'Automated', 
+                    'replied': 'Replied',
+                    'meeting_scheduled': 'Meeting Scheduled',
+                    'proposal_sent': 'Proposal Sent',
+                    'negotiation': 'Negotiation',
+                    'closed_won': 'Closed Won',
+                    'closed_lost': 'Closed Lost',
+                    'on_hold': 'On Hold'
+                  };
+                  
+                  const currentStage = currentPipelineStage || 'new_lead';
+                  let nextStage = '';
+                  
+                  // Define logical next stages
+                  switch (currentStage) {
+                    case 'new_lead':
+                      nextStage = 'replied'; // Skip automated, go directly to replied
+                      break;
+                    case 'automated':
+                      nextStage = 'replied';
+                      break;
+                    case 'replied':
+                      nextStage = 'meeting_scheduled';
+                      break;
+                    case 'meeting_scheduled':
+                      nextStage = 'proposal_sent';
+                      break;
+                    case 'proposal_sent':
+                      nextStage = 'negotiation';
+                      break;
+                    case 'negotiation':
+                      nextStage = 'closed_won';
+                      break;
+                    default:
+                      return; // Don't allow changes from advanced stages
+                  }
+                  
+                  if (window.confirm(`Move from "${stageMap[currentStage]}" to "${stageMap[nextStage]}"?`)) {
+                    onPipelineStageChange?.(nextStage);
+                  }
+                } : undefined}
+                >
+                  {(() => {
+                    console.log('PopupModal received pipeline stage:', currentPipelineStage);
+                    return currentPipelineStage?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'New Lead';
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* Right Side - Actions */}
+            <div className="flex items-center gap-2 ml-4">
+              {actionButton}
               <button
                 onClick={handleClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
                 aria-label="Close dialog"
                 disabled={isLoading}
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
 
         {/* Content with responsive padding */}
-        <div className="px-8 sm:px-10 py-8 space-y-4 flex-1 overflow-y-auto min-h-0">
+        <div className="px-8 sm:px-10 py-8 space-y-4 flex-1 overflow-y-auto min-h-[400px]">
           {error ? (
             <LoadingState
               isLoading={false}

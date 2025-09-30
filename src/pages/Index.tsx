@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Page } from "@/design-system/components";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Users, Briefcase, User, Calendar, MapPin, Building2, TrendingUp, Target, CheckCircle, Activity, Zap, Star, Filter, Plus, BarChart3, Clock } from "lucide-react";
+import { Users, Briefcase, User, Calendar, MapPin, Building2, TrendingUp, Target, CheckCircle, Activity, Zap, Star, Filter, Plus, BarChart3, Clock, MessageSquare, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
-import { usePopup } from "@/contexts/PopupContext";
+import { EntityDetailPopup } from "@/components/crm/EntityDetailPopup";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionsContext";
 import { designTokens } from "@/design-system/tokens";
@@ -21,9 +21,21 @@ type Job = Tables<"jobs"> & {
   company_logo_url?: string | null;
 };
 
+type Note = Tables<"notes"> & {
+  author_name?: string | null;
+  entity_name?: string | null;
+};
+
+type Interaction = Tables<"interactions"> & {
+  person_name?: string | null;
+  company_name?: string | null;
+};
+
 const Index = () => {
   const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
+  const [recentNotes, setRecentNotes] = useState<Note[]>([]);
+  const [recentActivities, setRecentActivities] = useState<Interaction[]>([]);
   const [dashboardStats, setDashboardStats] = useState({
     totalLeads: 0,
     totalJobs: 0,
@@ -38,7 +50,10 @@ const Index = () => {
     unassignedLeads: 0
   });
   const [loading, setLoading] = useState(true);
-  const { openLeadPopup, openJobPopup } = usePopup();
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [showJobModal, setShowJobModal] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -55,6 +70,8 @@ const Index = () => {
         companiesCount, 
         recentLeadsData, 
         recentJobsData,
+        recentNotesData,
+        recentActivitiesData,
         pipelineData,
         sourcesData,
         ownersData,
@@ -81,6 +98,25 @@ const Index = () => {
           priority,
           created_at,
           companies(name)
+        `).order("created_at", { ascending: false }).limit(5),
+        supabase.from("notes").select(`
+          id,
+          content,
+          entity_type,
+          created_at,
+          user_profiles!notes_author_id_fkey(full_name),
+          people(name),
+          companies(name),
+          jobs(title)
+        `).order("created_at", { ascending: false }).limit(5),
+        supabase.from("interactions").select(`
+          id,
+          interaction_type,
+          subject,
+          content,
+          occurred_at,
+          created_at,
+          people(name, companies(name))
         `).order("created_at", { ascending: false }).limit(5),
         // Pipeline breakdown
         supabase.from("people").select("stage").not("stage", "is", null),
@@ -155,6 +191,24 @@ const Index = () => {
       }));
       setRecentJobs(jobsWithCompany);
 
+      // Process notes data
+      const notesWithDetails = (recentNotesData.data || []).map(note => ({
+        ...note,
+        author_name: note.user_profiles?.full_name || 'Unknown',
+        entity_name: note.entity_type === 'lead' ? note.people?.name : 
+                    note.entity_type === 'company' ? note.companies?.name :
+                    note.entity_type === 'job' ? note.jobs?.title : 'Unknown'
+      }));
+      setRecentNotes(notesWithDetails);
+
+      // Process activities data
+      const activitiesWithDetails = (recentActivitiesData.data || []).map(activity => ({
+        ...activity,
+        person_name: activity.people?.name || 'Unknown',
+        company_name: activity.people?.companies?.name || null
+      }));
+      setRecentActivities(activitiesWithDetails);
+
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
@@ -163,11 +217,13 @@ const Index = () => {
   };
 
   const handleLeadClick = (lead: Lead) => {
-    openLeadPopup(lead.id);
+    setSelectedLead(lead);
+    setShowLeadModal(true);
   };
 
   const handleJobClick = (job: Job) => {
-    openJobPopup(job.id);
+    setSelectedJob(job);
+    setShowJobModal(true);
   };
 
   const renderLeadItem = (lead: Lead) => (
@@ -210,13 +266,69 @@ const Index = () => {
     </div>
   );
 
+  const renderNoteItem = (note: Note) => (
+    <div 
+      key={note.id} 
+      className="px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+    >
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-blue-500/10 rounded-lg flex-shrink-0">
+          <FileText className="h-4 w-4 text-blue-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium text-gray-900 mb-1">
+            Note on {note.entity_name}
+          </div>
+          <div className="text-sm text-gray-600 mb-2 line-clamp-2">
+            {note.content}
+          </div>
+          <div className="text-xs text-gray-500">
+            by {note.author_name} • {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderActivityItem = (activity: Interaction) => (
+    <div 
+      key={activity.id} 
+      className="px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+    >
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-green-500/10 rounded-lg flex-shrink-0">
+          <Activity className="h-4 w-4 text-green-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium text-gray-900 mb-1">
+            {activity.interaction_type} with {activity.person_name}
+          </div>
+          {activity.subject && (
+            <div className="text-sm text-gray-600 mb-1 font-medium">
+              {activity.subject}
+            </div>
+          )}
+          {activity.content && (
+            <div className="text-sm text-gray-600 mb-2 line-clamp-2">
+              {activity.content}
+            </div>
+          )}
+          <div className="text-xs text-gray-500">
+            {activity.company_name && `${activity.company_name} • `}
+            {formatDistanceToNow(new Date(activity.occurred_at || activity.created_at), { addSuffix: true })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <Page
       title="Dashboard"
       subtitle="Welcome to your recruitment dashboard"
     >
       {/* Key Metrics Overview */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
         <Card className={designTokens.shadows.card}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -279,7 +391,7 @@ const Index = () => {
       </div>
 
       {/* Enhanced Analytics */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-6 sm:mb-8">
         {/* Pipeline Breakdown */}
         <Card className={designTokens.shadows.card}>
           <CardHeader className="pb-4">
@@ -448,6 +560,90 @@ const Index = () => {
         </Card>
       </div>
 
+      {/* Recent Notes and Activities */}
+      <div className="grid gap-6 md:grid-cols-2 mb-6 sm:mb-8">
+        {/* Recent Notes Card */}
+        <Card className={designTokens.shadows.card}>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <FileText className="h-4 w-4 text-blue-600" />
+              </div>
+              Recent Notes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="text-sm text-muted-foreground">Loading...</div>
+              </div>
+            ) : recentNotes.length > 0 ? (
+              <div className="space-y-3">
+                {recentNotes.map(renderNoteItem)}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No recent notes found</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Activities Card */}
+        <Card className={designTokens.shadows.card}>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <Activity className="h-4 w-4 text-green-600" />
+              </div>
+              Recent Activities
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="text-sm text-muted-foreground">Loading...</div>
+              </div>
+            ) : recentActivities.length > 0 ? (
+              <div className="space-y-3">
+                {recentActivities.map(renderActivityItem)}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Activity className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No recent activities found</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Lead Detail Modal */}
+      {selectedLead && (
+        <EntityDetailPopup
+          entityType="lead"
+          entityId={selectedLead.id}
+          isOpen={showLeadModal}
+          onClose={() => {
+            setShowLeadModal(false);
+            setSelectedLead(null);
+          }}
+        />
+      )}
+
+      {/* Job Detail Modal */}
+      {selectedJob && (
+        <EntityDetailPopup
+          entityType="job"
+          entityId={selectedJob.id}
+          isOpen={showJobModal}
+          onClose={() => {
+            setShowJobModal(false);
+            setSelectedJob(null);
+          }}
+        />
+      )}
     </Page>
   );
 };

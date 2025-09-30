@@ -11,13 +11,13 @@ import {
   Building2, 
   Briefcase, 
   Settings, 
-  Menu,
   X,
   ChevronRight,
   MoreHorizontal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavItem {
@@ -165,20 +165,7 @@ export const EnhancedMobileNav: React.FC<EnhancedMobileNavProps> = ({ className 
         </div>
       </nav>
 
-      {/* Mobile Header with Hamburger Menu */}
-      <header className="sticky top-0 z-30 flex items-center justify-between bg-background border-b px-4 py-3 lg:hidden">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Open navigation menu"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
-        
-        <h1 className="text-lg font-semibold text-foreground">Empowr CRM</h1>
-        
-        <div className="w-11" /> {/* Spacer for centering */}
-      </header>
+      {/* Mobile Header with Hamburger Menu - Removed as it's handled in Layout.tsx */}
     </>
   );
 };
