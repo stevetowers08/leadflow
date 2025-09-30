@@ -18,7 +18,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   contentSpacing = "space-y-3"
 }) => {
   return (
-    <div className={`bg-card rounded-xl p-4 border shadow-sm ${className}`}>
+    <div className={`bg-card rounded-xl p-8 border shadow-sm ${className}`}>
       <div className="pb-1.5">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-card-foreground">{title}</h3>

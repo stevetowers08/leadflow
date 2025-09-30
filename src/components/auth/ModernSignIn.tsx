@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Alert, AlertDescription } from '../ui/alert';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Loader2, Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Users } from 'lucide-react';
-import { Separator } from '../ui/separator';
+import { Separator } from '@/components/ui/separator';
 
 export const ModernSignIn: React.FC = () => {
   const [loading, setLoading] = useState<string | null>(null);

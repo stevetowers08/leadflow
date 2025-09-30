@@ -1,6 +1,7 @@
 import { PopupModal } from "@/components/shared/PopupModal";
 import { CompanyInfoCard } from "@/components/popup/CompanyInfoCard";
 import { RelatedItemsList } from "@/components/popup/RelatedItemsList";
+import { NotesSection } from "@/components/NotesSection";
 import { StatusBadge } from "@/components/StatusBadge";
 import { 
   Building2, 
@@ -11,10 +12,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { JobDetailPopup } from "./JobDetailPopup";
-import { LeadDetailPopup } from "./LeadDetailPopup";
+import { LeadDetailPopup } from "./features/leads/LeadDetailPopup";
 import { LinkedInAutomationModal } from "./LinkedInAutomationModal";
 import type { Tables } from "@/integrations/supabase/types";
-import { SelectedLead, PopupJob, PopupLead } from "../types/popup";
+import { SelectedLead, PopupJob, PopupLead } from "@/types/popup";
 
 interface CompanyDetailPopupProps {
   company: (Tables<"companies"> & {
@@ -143,6 +144,19 @@ export function CompanyDetailPopup({ company, isOpen, onClose }: CompanyDetailPo
       <div className="space-y-4">
         {/* Company Information Card */}
         <CompanyInfoCard company={company} />
+
+        {/* Company Notes Section */}
+        <div className="bg-gray-50 p-4 rounded-lg border">
+          <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Company Notes
+          </h3>
+          <NotesSection 
+            entityId={company.id} 
+            entityType="company" 
+            entityName={company.name || "Company"} 
+          />
+        </div>
 
         {/* Related Jobs */}
         {jobsData && jobsData.length > 0 && (

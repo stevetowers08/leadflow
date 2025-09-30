@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Page } from "@/design-system/components";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Users, Briefcase, User, Calendar, MapPin, Building2, TrendingUp, Target, CheckCircle, Activity, Zap } from "lucide-react";
+import { Users, Briefcase, User, Calendar, MapPin, Building2, TrendingUp, Target, CheckCircle, Activity, Zap, Star, Filter, Plus, BarChart3, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { usePopup } from "@/contexts/PopupContext";
@@ -30,7 +30,12 @@ const Index = () => {
     totalCompanies: 0,
     activeAutomations: 0,
     conversionRate: 0,
-    leadsThisWeek: 0
+    leadsThisWeek: 0,
+    pipelineBreakdown: {} as Record<string, number>,
+    leadSources: {} as Record<string, number>,
+    ownerStats: {} as Record<string, number>,
+    favoriteLeads: 0,
+    unassignedLeads: 0
   });
   const [loading, setLoading] = useState(true);
   const { openLeadPopup, openJobPopup } = usePopup();
@@ -44,7 +49,18 @@ const Index = () => {
       setLoading(true);
       
       // Fetch dashboard stats
-      const [leadsCount, jobsCount, companiesCount, recentLeadsData, recentJobsData] = await Promise.all([
+      const [
+        leadsCount, 
+        jobsCount, 
+        companiesCount, 
+        recentLeadsData, 
+        recentJobsData,
+        pipelineData,
+        sourcesData,
+        ownersData,
+        favoritesData,
+        unassignedData
+      ] = await Promise.all([
         supabase.from("people").select("*", { count: 'exact', head: true }),
         supabase.from("jobs").select("*", { count: 'exact', head: true }),
         supabase.from("companies").select("*", { count: 'exact', head: true }),
@@ -65,7 +81,17 @@ const Index = () => {
           priority,
           created_at,
           companies(name)
-        `).order("created_at", { ascending: false }).limit(5)
+        `).order("created_at", { ascending: false }).limit(5),
+        // Pipeline breakdown
+        supabase.from("people").select("stage").not("stage", "is", null),
+        // Lead sources
+        supabase.from("people").select("lead_source").not("lead_source", "is", null),
+        // Owner stats
+        supabase.from("people").select("owner_id").not("owner_id", "is", null),
+        // Favorites
+        supabase.from("people").select("*", { count: 'exact', head: true }).eq("is_favourite", true),
+        // Unassigned
+        supabase.from("people").select("*", { count: 'exact', head: true }).is("owner_id", null)
       ]);
 
       // Calculate stats
@@ -81,13 +107,39 @@ const Index = () => {
         .select("*", { count: 'exact', head: true })
         .gte('created_at', weekAgo.toISOString());
 
+      // Process pipeline breakdown
+      const pipelineBreakdown: Record<string, number> = {};
+      pipelineData.data?.forEach(lead => {
+        const stage = lead.stage || 'unassigned';
+        pipelineBreakdown[stage] = (pipelineBreakdown[stage] || 0) + 1;
+      });
+
+      // Process lead sources
+      const leadSources: Record<string, number> = {};
+      sourcesData.data?.forEach(lead => {
+        const source = lead.lead_source || 'Unknown';
+        leadSources[source] = (leadSources[source] || 0) + 1;
+      });
+
+      // Process owner stats
+      const ownerStats: Record<string, number> = {};
+      ownersData.data?.forEach(lead => {
+        const ownerId = lead.owner_id || 'unassigned';
+        ownerStats[ownerId] = (ownerStats[ownerId] || 0) + 1;
+      });
+
       setDashboardStats({
         totalLeads,
         totalJobs,
         totalCompanies,
         activeAutomations: Math.floor(totalLeads * 0.3), // Mock calculation
         conversionRate: 12.5, // Mock calculation
-        leadsThisWeek: leadsThisWeek || 0
+        leadsThisWeek: leadsThisWeek || 0,
+        pipelineBreakdown,
+        leadSources,
+        ownerStats,
+        favoriteLeads: favoritesData.count || 0,
+        unassignedLeads: unassignedData.count || 0
       });
 
       // Set recent data
@@ -220,6 +272,117 @@ const Index = () => {
               </div>
               <div className="p-3 bg-orange-500/10 rounded-lg">
                 <Zap className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Enhanced Analytics */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        {/* Pipeline Breakdown */}
+        <Card className={designTokens.shadows.card}>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <BarChart3 className="h-4 w-4 text-blue-600" />
+              </div>
+              Pipeline Breakdown
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="text-sm text-muted-foreground">Loading...</div>
+              </div>
+            ) : Object.keys(dashboardStats.pipelineBreakdown).length > 0 ? (
+              <div className="space-y-3">
+                {Object.entries(dashboardStats.pipelineBreakdown).map(([stage, count]) => (
+                  <div key={stage} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={stage} size="sm" />
+                    </div>
+                    <span className="font-semibold text-sm">{count}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                <Target className="h-6 w-6 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No pipeline data</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Lead Sources */}
+        <Card className={designTokens.shadows.card}>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <Filter className="h-4 w-4 text-green-600" />
+              </div>
+              Lead Sources
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="text-sm text-muted-foreground">Loading...</div>
+              </div>
+            ) : Object.keys(dashboardStats.leadSources).length > 0 ? (
+              <div className="space-y-3">
+                {Object.entries(dashboardStats.leadSources)
+                  .sort(([,a], [,b]) => b - a)
+                  .slice(0, 5)
+                  .map(([source, count]) => (
+                  <div key={source} className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{source}</span>
+                    <span className="font-semibold text-sm">{count}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                <Filter className="h-6 w-6 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No source data</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Stats */}
+        <Card className={designTokens.shadows.card}>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <div className="p-2 bg-purple-500/10 rounded-lg">
+                <Star className="h-4 w-4 text-purple-600" />
+              </div>
+              Quick Stats
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  <span className="text-sm font-medium">Favorite Leads</span>
+                </div>
+                <span className="font-semibold text-sm">{dashboardStats.favoriteLeads}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium">Unassigned</span>
+                </div>
+                <span className="font-semibold text-sm">{dashboardStats.unassignedLeads}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm font-medium">This Week</span>
+                </div>
+                <span className="font-semibold text-sm">{dashboardStats.leadsThisWeek}</span>
               </div>
             </div>
           </CardContent>

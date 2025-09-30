@@ -8,6 +8,7 @@ import { PermissionGuard } from '@/components/PermissionGuard';
 import { Settings as SettingsIcon } from 'lucide-react';
 import IntegrationsPage from '@/components/IntegrationsPage';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
+import BusinessProfileSettings from '@/components/BusinessProfileSettings';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { cn } from '@/lib/utils';
 
@@ -38,6 +39,8 @@ const Settings = () => {
       case 'profile-info':
       case 'preferences':
         return <PersonalSettings activeSection={activeSection} />;
+      case 'targeting-profiles':
+        return <BusinessProfileSettings />;
       case 'admin':
         return (
           <div className="p-6">

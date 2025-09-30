@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DataTable } from "@/components/DataTable";
+import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
-import { LeadDetailPopup } from "@/components/LeadDetailPopup";
+import { LeadDetailPopup } from "@/components";
 import { LeadsStatsCards } from "@/components/StatsCards";
+import { FavoriteToggle } from "@/components/FavoriteToggle";
+import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
@@ -51,6 +53,7 @@ const Leads = () => {
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { toast } = useToast();
 
   // Sort options
@@ -67,13 +70,13 @@ const Leads = () => {
   // Status filter options
   const statusOptions = [
     { label: "All Statuses", value: "all" },
-    { label: "New", value: "new" },
-    { label: "In Queue", value: "in queue" },
-    { label: "Connect Sent", value: "connection_requested" },
+    { label: "New Prospect", value: "new" },
+    { label: "Researching", value: "in queue" },
+    { label: "Initial Outreach", value: "connection_requested" },
     { label: "Connected", value: "connected" },
-    { label: "Messaged", value: "messaged" },
-    { label: "Replied", value: "replied" },
-    { label: "Lead Lost", value: "lead_lost" },
+    { label: "Follow-up Sent", value: "messaged" },
+    { label: "Responded", value: "replied" },
+    { label: "Lost Opportunity", value: "lead_lost" },
   ];
 
   // Calculate stats for stats cards
@@ -122,7 +125,7 @@ const Leads = () => {
 
   // Filter and sort leads
   const filteredAndSortedLeads = useMemo(() => {
-    // Filter by search term and status
+    // Filter by search term, status, and favorites
     const filtered = leads.filter(lead => {
       // Search filter
       const matchesSearch = !searchTerm || (() => {
@@ -138,7 +141,10 @@ const Leads = () => {
       // Status filter
       const matchesStatus = statusFilter === "all" || lead.stage === statusFilter;
 
-      return matchesSearch && matchesStatus;
+      // Favorites filter
+      const matchesFavorites = !showFavoritesOnly || lead.is_favourite;
+
+      return matchesSearch && matchesStatus && matchesFavorites;
     });
 
     // Sort the filtered results
@@ -260,6 +266,41 @@ const Leads = () => {
         <StatusBadge
           status={lead.stage || "new"}
           size="sm"
+        />
+      ),
+    },
+    {
+      key: "favorite",
+      label: "",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      width: "60px",
+      render: (lead: Lead) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <FavoriteToggle
+            entityId={lead.id}
+            entityType="lead"
+            isFavorite={lead.is_favourite || false}
+            onToggle={(isFavorite) => {
+              setLeads(prev => prev.map(l => 
+                l.id === lead.id ? { ...l, is_favourite: isFavorite } : l
+              ));
+            }}
+            size="sm"
+          />
+        </div>
+      ),
+    },
+    {
+      key: "owner",
+      label: "Owner",
+      width: "180px",
+      render: (lead: Lead) => (
+        <OwnerDisplay 
+          ownerId={lead.owner_id} 
+          size="sm" 
+          showName={true}
+          showRole={false}
         />
       ),
     },
@@ -465,6 +506,25 @@ const Leads = () => {
               placeholder="All Statuses"
               className="min-w-32 bg-white"
             />
+
+            {/* Favorites Filter */}
+            <button
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                showFavoritesOnly 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-white text-muted-foreground hover:text-foreground border border-border"
+              )}
+            >
+              <Star className={cn("h-4 w-4", showFavoritesOnly && "fill-current")} />
+              Favorites
+              {leads.filter(lead => lead.is_favourite).length > 0 && (
+                <span className="ml-1 text-xs bg-white/20 px-1.5 py-0.5 rounded-full">
+                  {leads.filter(lead => lead.is_favourite).length}
+                </span>
+              )}
+            </button>
           </div>
           
           {/* Sort Controls - Far Right */}

@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DataTable } from "@/components/DataTable";
+import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CompanyDetailPopup } from "@/components/CompanyDetailPopup";
 import { CompaniesStatsCards } from "@/components/StatsCards";
+import { FavoriteToggle } from "@/components/FavoriteToggle";
+import { OwnerDisplay } from "@/components/OwnerDisplay";
+import { LeadSourceDisplay } from "@/components/features/leads/LeadSourceDisplay";
+import { TagDisplay } from "@/components/TagDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
@@ -14,7 +18,7 @@ import { Page } from "@/design-system/components";
 import { cn } from "@/lib/utils";
 import { getScoreBadgeClasses } from "@/utils/scoreUtils";
 import type { Tables } from "@/integrations/supabase/types";
-import { OPTIMIZED_QUERIES } from "../utils/queryOptimizer";
+import { OPTIMIZED_QUERIES } from "@/utils/queryOptimizer";
 
 type Company = Tables<"companies"> & {
   people_count?: number;
@@ -30,6 +34,8 @@ const Companies = () => {
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { toast } = useToast();
 
   // Sort options
@@ -51,6 +57,21 @@ const Companies = () => {
     { label: "Qualified", value: "qualified" },
     { label: "Prospect", value: "prospect" },
     { label: "New", value: "new" },
+  ];
+
+  // Source filter options
+  const sourceOptions = [
+    { label: "All Sources", value: "all" },
+    { label: "LinkedIn", value: "LinkedIn" },
+    { label: "Website", value: "Website" },
+    { label: "Referral", value: "Referral" },
+    { label: "Cold Email", value: "Cold Email" },
+    { label: "Trade Show", value: "Trade Show" },
+    { label: "Social Media", value: "Social Media" },
+    { label: "Google Search", value: "Google Search" },
+    { label: "Industry Publication", value: "Industry Publication" },
+    { label: "Partnership", value: "Partnership" },
+    { label: "Other", value: "Other" },
   ];
 
   // Calculate stats for stats cards
@@ -99,7 +120,7 @@ const Companies = () => {
 
   // Filter and sort companies
   const filteredAndSortedCompanies = useMemo(() => {
-    // Filter by search term and status
+    // Filter by search term, status, and favorites
     const filtered = companies.filter(company => {
       // Search filter
       const matchesSearch = !searchTerm || (() => {
@@ -120,7 +141,13 @@ const Companies = () => {
         else return statusFilter === "new";
       })();
 
-      return matchesSearch && matchesStatus;
+      // Favorites filter
+      const matchesFavorites = !showFavoritesOnly || company.is_favourite;
+      
+      // Source filter
+      const matchesSource = sourceFilter === "all" || company.lead_source === sourceFilter;
+
+      return matchesSearch && matchesStatus && matchesFavorites && matchesSource;
     });
 
     // Sort the filtered results
@@ -172,7 +199,7 @@ const Companies = () => {
         return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
       }
     });
-  }, [companies, searchTerm, sortBy, sortOrder, statusFilter]);
+  }, [companies, searchTerm, sortBy, sortOrder, statusFilter, sourceFilter, showFavoritesOnly]);
 
   const fetchCompanies = async () => {
     try {
@@ -204,6 +231,22 @@ const Companies = () => {
 
       if (jobsError) throw jobsError;
 
+      // Get tags for each company
+      const { data: companyTags, error: tagsError } = await supabase
+        .from("entity_tags")
+        .select(`
+          entity_id,
+          tags!inner (
+            id,
+            name,
+            color,
+            description
+          )
+        `)
+        .eq("entity_type", "company");
+
+      if (tagsError) throw tagsError;
+
       // Count people per company
       const companyPeopleCount: Record<string, number> = {};
       peopleCounts?.forEach(person => {
@@ -220,11 +263,28 @@ const Companies = () => {
         }
       });
 
+      // Group tags per company
+      const companyTagsMap: Record<string, any[]> = {};
+      companyTags?.forEach(item => {
+        if (item.entity_id) {
+          if (!companyTagsMap[item.entity_id]) {
+            companyTagsMap[item.entity_id] = [];
+          }
+          companyTagsMap[item.entity_id].push({
+            id: item.tags.id,
+            name: item.tags.name,
+            color: item.tags.color,
+            description: item.tags.description,
+          });
+        }
+      });
+
       // Add counts to companies
       const companiesWithCounts = (allCompanies || []).map(company => ({
         ...company,
         people_count: companyPeopleCount[company.id] || 0,
-        jobs_count: companyJobsCount[company.id] || 0
+        jobs_count: companyJobsCount[company.id] || 0,
+        tags: companyTagsMap[company.id] || [],
       }));
 
       console.log('Companies with counts:', companiesWithCounts.length);
@@ -266,6 +326,69 @@ const Companies = () => {
           return <StatusBadge status="New" size="sm" />;
         }
       },
+    },
+    {
+      key: "favorite",
+      label: "",
+      headerAlign: "center" as const,
+      cellAlign: "center" as const,
+      width: "60px",
+      render: (company: Company) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <FavoriteToggle
+            entityId={company.id}
+            entityType="company"
+            isFavorite={company.is_favourite || false}
+            onToggle={(isFavorite) => {
+              setCompanies(prev => prev.map(c => 
+                c.id === company.id ? { ...c, is_favourite: isFavorite } : c
+              ));
+            }}
+            size="sm"
+          />
+        </div>
+      ),
+    },
+    {
+      key: "owner",
+      label: "Owner",
+      width: "180px",
+      render: (company: Company) => (
+        <OwnerDisplay 
+          ownerId={company.owner_id} 
+          size="sm"
+          showName={true}
+          showRole={false}
+        />
+      ),
+    },
+    {
+      key: "source",
+      label: "Lead Source",
+      width: "160px",
+      render: (company: Company) => (
+        <LeadSourceDisplay 
+          source={company.lead_source}
+          sourceDetails={company.source_details}
+          sourceDate={company.source_date}
+          size="sm"
+          showDetails={false}
+          showDate={false}
+        />
+      ),
+    },
+    {
+      key: "tags",
+      label: "Tags",
+      width: "200px",
+      render: (company: Company) => (
+        <TagDisplay 
+          tags={company.tags || []}
+          size="sm"
+          maxVisible={2}
+          showAll={false}
+        />
+      ),
     },
     {
       key: "name",
@@ -469,6 +592,34 @@ const Companies = () => {
               placeholder="All Statuses"
               className="min-w-32 bg-white"
             />
+            
+            {/* Source Filter */}
+            <DropdownSelect
+              options={sourceOptions}
+              value={sourceFilter}
+              onValueChange={(value) => setSourceFilter(value)}
+              placeholder="All Sources"
+              className="min-w-32 bg-white"
+            />
+
+            {/* Favorites Filter */}
+            <button
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                showFavoritesOnly 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-white text-muted-foreground hover:text-foreground border border-border"
+              )}
+            >
+              <Star className={cn("h-4 w-4", showFavoritesOnly && "fill-current")} />
+              Favorites
+              {companies.filter(company => company.is_favourite).length > 0 && (
+                <span className="ml-1 text-xs bg-white/20 px-1.5 py-0.5 rounded-full">
+                  {companies.filter(company => company.is_favourite).length}
+                </span>
+              )}
+            </button>
           </div>
           
           {/* Sort Controls - Far Right */}

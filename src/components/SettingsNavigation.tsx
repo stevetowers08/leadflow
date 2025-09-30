@@ -7,7 +7,8 @@ import {
   User, 
   Plug,
   Palette,
-  Shield
+  Shield,
+  Building2
 } from 'lucide-react';
 
 interface SettingsNavigationProps {
@@ -29,6 +30,13 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
       label: 'Profile',
       icon: User,
       description: 'Manage your profile information',
+      available: true
+    },
+    {
+      id: 'targeting-profiles',
+      label: 'Targeting Profiles',
+      icon: Building2,
+      description: 'Configure targeting criteria for lead filtering',
       available: true
     },
     {

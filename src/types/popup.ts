@@ -3,7 +3,7 @@
  * Replaces any[] types with proper type definitions
  */
 
-import { Tables } from '../integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
 
 // Base types from Supabase
 export type Company = Tables<'companies'>;
@@ -172,3 +172,4 @@ export interface OptimizationStats {
   topPerformingActions: string[];
   aiInsights: string[];
 }
+

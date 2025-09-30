@@ -1,6 +1,6 @@
 import React from 'react';
-import { InfoCard } from '../shared/InfoCard';
-import { StatusBadge } from '../StatusBadge';
+import { InfoCard } from '@/components/shared/InfoCard';
+import { StatusBadge } from '@/components/StatusBadge';
 import { getScoreBadgeClasses, getPriorityBadgeClasses } from '@/utils/scoreUtils';
 import { cn } from '@/lib/utils';
 import { 
@@ -34,68 +34,38 @@ export const JobInfoCard: React.FC<JobInfoCardProps> = ({ job }) => {
     } else if (job.salary_max) {
       return `Up to $${job.salary_max.toLocaleString()}`;
     }
-    return "Not specified";
+    return "-";
   };
 
   // Format employment type
   const formatEmploymentType = () => {
-    if (!job.type) return "Not specified";
-    return job.type.charAt(0).toUpperCase() + job.type.slice(1).replace('-', ' ');
+    if (!job.employment_type) return "-";
+    return job.employment_type.charAt(0).toUpperCase() + job.employment_type.slice(1).replace('_', ' ');
   };
 
-  // Format remote status
-  const formatRemoteStatus = () => {
-    if (job.remote === true) return "Remote";
-    if (job.remote === false) return "On-site";
-    return "Not specified";
+  // Format seniority level
+  const formatSeniorityLevel = () => {
+    if (!job.seniority_level) return "-";
+    return job.seniority_level;
   };
 
   return (
-    <InfoCard title="Job Information" contentSpacing="space-y-4 pt-2">
-      {/* Key Details Grid */}
-      <div className="grid grid-cols-3 gap-4">
+    <InfoCard title="Job Information" contentSpacing="space-y-6 pt-1.5">
+      {/* Job Info Section */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="space-y-1">
+          <div className="text-xs font-medium text-gray-400">
+            Salary Range
+          </div>
+          <div className="text-sm text-gray-900 font-medium">
+            {formatSalary()}
+          </div>
+        </div>
         <InfoField label="Location" value={job.location} />
-        <InfoField label="Posted Date" value={job.created_at ? formatDateForSydney(job.created_at, 'date') : "Not specified"} />
+        <InfoField label="Function/Department" value={job.function} />
         <InfoField label="Employment Type" value={formatEmploymentType()} />
-        <InfoField label="Remote Status" value={formatRemoteStatus()} />
-        <InfoField label="Status" value={job.status || "Not specified"} />
-        <div className="space-y-1">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-            Priority
-          </div>
-          <div className="flex items-center justify-start">
-            <span className={cn(
-              "inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border",
-              getPriorityBadgeClasses(job.priority)
-            )}>
-              {job.priority || "Medium"}
-            </span>
-          </div>
-        </div>
-        <div className="space-y-1">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-            AI Score
-          </div>
-          <div className="flex items-center justify-start">
-            <span className={cn(
-              "inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border",
-              getScoreBadgeClasses(job.lead_score_job)
-            )}>
-              {job.lead_score_job || "-"}
-            </span>
-          </div>
-        </div>
-        <InfoField label="Function/Department" value={job.function || "Not specified"} />
-      </div>
-
-      {/* Salary - Prominent */}
-      <div className="space-y-2">
-        <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-          Salary Range
-        </div>
-        <div className="text-sm text-gray-900 font-medium">
-          {formatSalary()}
-        </div>
+        <InfoField label="Seniority Level" value={formatSeniorityLevel()} />
+        <InfoField label="Posted Date" value={job.created_at ? formatDateForSydney(job.created_at, 'date') : "-"} />
       </div>
     </InfoCard>
   );
@@ -109,11 +79,11 @@ interface InfoFieldProps {
 
 const InfoField: React.FC<InfoFieldProps> = ({ label, value, className = "" }) => (
   <div className={`space-y-1 ${className}`}>
-    <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+    <div className="text-xs font-medium text-gray-400">
       {label}
     </div>
     <div className="text-sm text-gray-900 font-medium">
-      {value || "Not specified"}
+      {value || "-"}
     </div>
   </div>
 );

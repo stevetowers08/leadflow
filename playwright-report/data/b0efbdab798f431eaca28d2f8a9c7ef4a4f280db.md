@@ -1,0 +1,41 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]: "[plugin:vite:import-analysis]"
+    - generic [ref=e6]: Failed to resolve import "./CompanyDetailPopup" from "src/components/features/leads/LeadDetailPopup.tsx". Does the file exist?
+  - generic [ref=e7]:
+    - text: "C:"
+    - generic [ref=e8] [cursor=pointer]: /Users/tower/OneDrive/Documents/4Twenty/empowr-crm-main/src/components/features/leads/LeadDetailPopup.tsx:14:35
+  - generic [ref=e9]: "12 | import { useQuery } from \"@tanstack/react-query\"; 13 | import { useState } from \"react\"; 14 | import { CompanyDetailPopup } from \"./CompanyDetailPopup\"; | ^ 15 | import { JobDetailPopup } from \"./JobDetailPopup\"; 16 | import { LinkedInAutomationModal } from \"./LinkedInAutomationModal\";"
+  - generic [ref=e10]:
+    - text: at TransformPluginContext._formatLog (
+    - generic [ref=e11] [cursor=pointer]: file:///C:/Users/tower/OneDrive/Documents/4Twenty/empowr-crm-main/node_modules/vite/dist/node/chunks/dep-Bm2ujbhY.js:31185:43
+    - text: ) at TransformPluginContext.error (
+    - generic [ref=e12] [cursor=pointer]: file:///C:/Users/tower/OneDrive/Documents/4Twenty/empowr-crm-main/node_modules/vite/dist/node/chunks/dep-Bm2ujbhY.js:31182:14
+    - text: ) at normalizeUrl (
+    - generic [ref=e13] [cursor=pointer]: file:///C:/Users/tower/OneDrive/Documents/4Twenty/empowr-crm-main/node_modules/vite/dist/node/chunks/dep-Bm2ujbhY.js:29665:18
+    - text: ) at process.processTicksAndRejections (node:internal
+    - generic [ref=e14] [cursor=pointer]: /process/task_queues:105:5
+    - text: ) at async
+    - generic [ref=e15] [cursor=pointer]: file:///C:/Users/tower/OneDrive/Documents/4Twenty/empowr-crm-main/node_modules/vite/dist/node/chunks/dep-Bm2ujbhY.js:29723:32
+    - text: at async Promise.all (index 10) at async TransformPluginContext.transform (
+    - generic [ref=e16] [cursor=pointer]: file:///C:/Users/tower/OneDrive/Documents/4Twenty/empowr-crm-main/node_modules/vite/dist/node/chunks/dep-Bm2ujbhY.js:29691:4
+    - text: ) at async EnvironmentPluginContainer.transform (
+    - generic [ref=e17] [cursor=pointer]: file:///C:/Users/tower/OneDrive/Documents/4Twenty/empowr-crm-main/node_modules/vite/dist/node/chunks/dep-Bm2ujbhY.js:30984:14
+    - text: ) at async loadAndTransform (
+    - generic [ref=e18] [cursor=pointer]: file:///C:/Users/tower/OneDrive/Documents/4Twenty/empowr-crm-main/node_modules/vite/dist/node/chunks/dep-Bm2ujbhY.js:26116:26
+    - text: )
+  - generic [ref=e19]:
+    - text: Click outside, press
+    - generic [ref=e20]: Esc
+    - text: key, or fix the code to dismiss.
+    - text: You can also disable this overlay by setting
+    - code [ref=e21]: server.hmr.overlay
+    - text: to
+    - code [ref=e22]: "false"
+    - text: in
+    - code [ref=e23]: vite.config.ts
+    - text: .
+```

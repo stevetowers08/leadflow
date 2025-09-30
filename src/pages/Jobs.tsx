@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DataTable } from "@/components/DataTable";
+import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
 import { JobDetailPopup } from "@/components/JobDetailPopup";
 import { JobsStatsCards } from "@/components/StatsCards";

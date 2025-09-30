@@ -25,6 +25,8 @@ interface PopupModalProps {
   isLoading?: boolean;
   error?: Error | null;
   onRetry?: (() => void) | null;
+  companyLogo?: string;
+  companyName?: string;
 }
 
 export const PopupModal: React.FC<PopupModalProps> = ({
@@ -40,7 +42,9 @@ export const PopupModal: React.FC<PopupModalProps> = ({
   className = "",
   isLoading = false,
   error = null,
-  onRetry = null
+  onRetry = null,
+  companyLogo,
+  companyName
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -151,7 +155,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
       }}
     >
       <div className={cn(
-        "bg-gray-50 rounded-xl shadow-2xl w-full max-h-[95vh] overflow-hidden flex flex-col",
+        "bg-gray-100 rounded-xl shadow-2xl w-full max-h-[95vh] overflow-hidden flex flex-col",
         "max-w-4xl", // Default size
         "sm:max-w-4xl", // Small screens
         "md:max-w-5xl", // Medium screens
@@ -161,28 +165,41 @@ export const PopupModal: React.FC<PopupModalProps> = ({
         className
       )}>
         {/* Header with responsive padding */}
-        <div className="px-4 sm:px-5 py-3 border-b border-gray-200">
+        <div className="px-8 sm:px-10 py-4 border-b border-gray-200">
           <div className="flex items-start justify-between">
-            <div className="flex items-start gap-3 flex-1 min-w-0">
-              <div className="flex-shrink-0" aria-hidden="true">
+            <div className="flex items-start gap-4 flex-1 min-w-0">
+              {/* Company Logo */}
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
                 {isLoading ? (
-                  <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
+                  <div className="w-12 h-12 bg-gray-200 rounded animate-pulse" />
+                ) : companyLogo ? (
+                  <img 
+                    src={companyLogo} 
+                    alt={`${companyName} logo`}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
                 ) : (
-                  icon
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                    <span className="text-xs text-gray-400 font-medium">Logo</span>
+                  </div>
                 )}
               </div>
+              
               <div className="flex-1 min-w-0">
-                <h2 id="popup-title" className="text-base font-semibold text-gray-900 mb-0.5">
+                <h2 id="popup-title" className="text-xl font-bold text-gray-900 mb-0">
                   {isLoading ? (
-                    <div className="h-5 bg-gray-200 rounded animate-pulse w-32" />
+                    <div className="h-6 bg-gray-200 rounded animate-pulse w-40" />
                   ) : (
                     title
                   )}
                 </h2>
                 {subtitle && (
-                  <p id="popup-description" className="text-xs font-medium text-gray-400">
+                  <p id="popup-description" className="text-sm font-medium text-gray-500 -mt-1">
                     {isLoading ? (
-                      <div className="h-3 bg-gray-200 rounded animate-pulse w-48" />
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-56" />
                     ) : (
                       subtitle
                     )}
@@ -249,7 +266,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
         </div>
 
         {/* Content with responsive padding */}
-        <div className="px-4 sm:px-5 py-4 space-y-4 flex-1 overflow-y-auto min-h-0">
+        <div className="px-8 sm:px-10 py-8 space-y-4 flex-1 overflow-y-auto min-h-0">
           {error ? (
             <LoadingState
               isLoading={false}

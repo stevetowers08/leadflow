@@ -75,7 +75,7 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
     <InfoCard 
       title={`${title} (${items?.length || 0})`}
       showDivider={false}
-      contentSpacing="space-y-3 pt-3"
+      contentSpacing="space-y-6 pt-1.5"
       actionButton={
         showAutomateButton ? (
           <Button 

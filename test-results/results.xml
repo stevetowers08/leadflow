@@ -1,0 +1,50 @@
+<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="24.166834">
+<testsuite name="auth.spec.ts" timestamp="2025-09-30T03:00:32.063Z" hostname="chromium" tests="1" failures="1" skipped="0" time="17.294" errors="0">
+<testcase name="Empowr CRM - Authentication Flow › should display sign-in page" classname="auth.spec.ts" time="17.294">
+<failure message="auth.spec.ts:4:3 should display sign-in page" type="FAILURE">
+<![CDATA[  [chromium] › auth.spec.ts:4:3 › Empowr CRM - Authentication Flow › should display sign-in page ───
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  getByText('Welcome to Empowr CRM')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByText('Welcome to Empowr CRM')
+
+
+       7 |     // Check if we're on the sign-in page
+       8 |     await expect(page).toHaveTitle(/Empowr CRM/);
+    >  9 |     await expect(page.getByText('Welcome to Empowr CRM')).toBeVisible();
+         |                                                           ^
+      10 |     await expect(page.getByText('Sign in to access your CRM dashboard')).toBeVisible();
+      11 |     
+      12 |     // Check for Google sign-in button
+        at C:\Users\tower\OneDrive\Documents\4Twenty\empowr-crm-main\e2e\auth.spec.ts:9:59
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\video.webm]]
+
+[[ATTACHMENT|auth-Empowr-CRM---Authenti-46f2f-should-display-sign-in-page-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

@@ -106,7 +106,7 @@ export const LeadsStatsCards: React.FC<LeadsStatsProps> = ({
       <StatItem
         icon={<Target className="h-4 w-4" />}
         value={newLeads}
-        label="new"
+        label="new prospects"
       />
       <StatItem
         icon={<CheckCircle className="h-4 w-4" />}
@@ -116,17 +116,17 @@ export const LeadsStatsCards: React.FC<LeadsStatsProps> = ({
       <StatItem
         icon={<Zap className="h-4 w-4" />}
         value={messagedLeads}
-        label="messaged"
+        label="follow-ups sent"
       />
       <StatItem
         icon={<CheckCircle className="h-4 w-4" />}
         value={repliedLeads}
-        label="replied"
+        label="responded"
       />
       <StatItem
         icon={<Calendar className="h-4 w-4" />}
         value={meetingBookedLeads}
-        label="meetings booked"
+        label="meetings scheduled"
       />
       <StatItem
         icon={<Star className="h-4 w-4" />}

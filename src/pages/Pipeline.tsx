@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge } from "@/components/StatusBadge";
-import { LeadDetailPopup } from "@/components/LeadDetailPopup";
+import { LeadDetailPopup } from "@/components";
 import { PipelineStatsCards } from "@/components/StatsCards";
+import { FavoriteToggle } from "@/components/FavoriteToggle";
+import { OwnerDisplay } from "@/components/OwnerDisplay";
+import { NotesSection } from "@/components/NotesSection";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Building2, Mail, Phone, MapPin, Calendar, RefreshCw, Filter, TrendingUp, Target, CheckCircle } from "lucide-react";
+import { Users, Building2, Mail, Phone, MapPin, Calendar, RefreshCw, Filter, TrendingUp, Target, CheckCircle, Star } from "lucide-react";
 import { getClearbitLogo } from "@/utils/logoService";
 import { Page } from "@/design-system/components";
 import { designTokens } from "@/design-system/tokens";
@@ -23,20 +26,21 @@ const Pipeline = () => {
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { toast } = useToast();
 
   // Define pipeline stages in order (matching database enum values)
   const pipelineStages = [
-    { key: "new", label: "New Lead", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "in queue", label: "In Queue", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "connection_requested", label: "Connection Requested", color: "bg-gray-50 text-gray-700 border-gray-200" },
+    { key: "new", label: "New Prospect", color: "bg-gray-50 text-gray-700 border-gray-200" },
+    { key: "in queue", label: "Researching", color: "bg-gray-50 text-gray-700 border-gray-200" },
+    { key: "connection_requested", label: "Initial Outreach", color: "bg-gray-50 text-gray-700 border-gray-200" },
     { key: "connected", label: "Connected", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "messaged", label: "Messaged", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "replied", label: "Replied", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "meeting_booked", label: "Meeting Booked", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "meeting_held", label: "Meeting Held", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "disqualified", label: "Disqualified", color: "bg-gray-50 text-gray-700 border-gray-200" },
-    { key: "lead_lost", label: "Lead Lost", color: "bg-gray-50 text-gray-700 border-gray-200" }
+    { key: "messaged", label: "Follow-up Sent", color: "bg-gray-50 text-gray-700 border-gray-200" },
+    { key: "replied", label: "Responded", color: "bg-gray-50 text-gray-700 border-gray-200" },
+    { key: "meeting_booked", label: "Meeting Scheduled", color: "bg-gray-50 text-gray-700 border-gray-200" },
+    { key: "meeting_held", label: "Meeting Completed", color: "bg-gray-50 text-gray-700 border-gray-200" },
+    { key: "disqualified", label: "Not Interested", color: "bg-gray-50 text-gray-700 border-gray-200" },
+    { key: "lead_lost", label: "Lost Opportunity", color: "bg-gray-50 text-gray-700 border-gray-200" }
   ];
 
   const fetchLeads = async () => {
@@ -86,11 +90,19 @@ const Pipeline = () => {
     fetchLeads();
   }, []);
 
-  // Group leads by stage
+  // Group leads by stage and apply favorites filter
   const leadsByStage = pipelineStages.reduce((acc, stage) => {
-    acc[stage.key] = leads.filter(lead => lead.stage === stage.key);
+    const stageLeads = leads.filter(lead => {
+      const matchesStage = lead.stage === stage.key;
+      const matchesFavorites = !showFavoritesOnly || lead.is_favourite;
+      return matchesStage && matchesFavorites;
+    });
+    acc[stage.key] = stageLeads;
     return acc;
   }, {} as Record<string, Lead[]>);
+
+  const totalLeads = Object.values(leadsByStage).flat().length;
+  const favoriteCount = leads.filter(lead => lead.is_favourite).length;
 
 
   const handleLeadClick = (lead: Lead) => {
@@ -126,7 +138,22 @@ const Pipeline = () => {
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm text-gray-900 truncate mb-1">{lead.name}</h3>
+            <div className="flex items-start justify-between mb-1">
+              <h3 className="font-semibold text-sm text-gray-900 truncate">{lead.name}</h3>
+              <div onClick={(e) => e.stopPropagation()}>
+                <FavoriteToggle
+                  entityId={lead.id}
+                  entityType="lead"
+                  isFavorite={lead.is_favourite || false}
+                  onToggle={(isFavorite) => {
+                    setLeads(prev => prev.map(l => 
+                      l.id === lead.id ? { ...l, is_favourite: isFavorite } : l
+                    ));
+                  }}
+                  size="sm"
+                />
+              </div>
+            </div>
             <p className="text-xs text-gray-600 truncate font-medium">{lead.company_role}</p>
             <p className="text-xs text-gray-500 truncate">{lead.company_name}</p>
             
@@ -145,6 +172,30 @@ const Pipeline = () => {
                   {lead.employee_location}
                 </div>
               )}
+            </div>
+            
+            {/* Owner Display */}
+            <div className="mt-2">
+              <OwnerDisplay 
+                ownerId={lead.owner_id} 
+                size="sm" 
+                showName={true}
+                showRole={false}
+              />
+            </div>
+            
+            {/* Lead Notes Section */}
+            <div className="mt-3 pt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-2 mb-2">
+                <User className="h-3 w-3 text-gray-500" />
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Lead Notes</span>
+              </div>
+              <NotesSection 
+                entityId={lead.id} 
+                entityType="lead" 
+                entityName={lead.name || "Lead"}
+                className="text-xs"
+              />
             </div>
           </div>
         </div>
@@ -172,6 +223,15 @@ const Pipeline = () => {
         <Button variant="outline" size="sm" onClick={fetchLeads} className={designTokens.shadows.button}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
+        </Button>
+        <Button 
+          variant={showFavoritesOnly ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          className={designTokens.shadows.button}
+        >
+          <Star className="h-4 w-4 mr-2" />
+          Favorites {favoriteCount > 0 && `(${favoriteCount})`}
         </Button>
         <Button variant="outline" size="sm" className={designTokens.shadows.button}>
           <Filter className="h-4 w-4 mr-2" />

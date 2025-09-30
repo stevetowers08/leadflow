@@ -9,7 +9,7 @@ import { PermissionsProvider } from "./contexts/PermissionsContext";
 import { SidebarProvider } from "./contexts/SidebarContext";
 import { PopupProvider } from "./contexts/PopupContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Layout } from "./components/Layout";
+import { Layout } from "./components";
 import { UnifiedPopup } from "./components/UnifiedPopup";
 import { AuthPage } from "./components/auth/AuthPage";
 import AuthCallback from "./components/auth/AuthCallback";
@@ -25,6 +25,7 @@ import { ConversationsPage } from "./pages/Conversations";
 import Automations from "./pages/Automations";
 import Reporting from "./pages/Reporting";
 import Settings from "./pages/Settings";
+import Campaigns from "./pages/Campaigns";
 import TabDesignsShowcase from "./pages/TabDesignsShowcase";
 
 const queryClient = new QueryClient({
@@ -72,6 +73,7 @@ const AppRoutes = () => {
               <Route path="/leads" element={<Leads />} />
               <Route path="/companies" element={<Companies />} />
               <Route path="/pipeline" element={<Pipeline />} />
+              <Route path="/campaigns" element={<Campaigns />} />
               <Route path="/conversations" element={<ConversationsPage />} />
               <Route path="/automations" element={<Automations />} />
               <Route path="/reporting" element={<Reporting />} />

@@ -1,190 +1,125 @@
-# 🧪 Admin Functionality Testing Guide
+# Testing Guide
 
-## ✅ **All Critical Issues Fixed!**
+This project uses **Vitest** as the testing framework with **React Testing Library** for component testing.
 
-The following components have been completely fixed and are ready for testing:
+## Quick Start
 
-### **Fixed Components:**
-- ✅ **User Management** (`/admin/users`) - Full CRUD operations
-- ✅ **System Settings** (`/admin/settings`) - Persistent configuration
-- ✅ **Google Login** - Better error handling
-- ✅ **Permission System** - Role-based access control
-- ✅ **Admin Client** - Proper Supabase service role integration
-
----
-
-## 🚀 **Setup Instructions**
-
-### **Step 1: Get Supabase Service Role Key**
-1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
-2. Select project: `jedfundfhzytpnbjkspn`
-3. Navigate to **Settings** → **API**
-4. Copy the **service_role** key (NOT the anon key)
-
-### **Step 2: Create Environment File**
-Create `.env.local` in project root:
 ```bash
-VITE_SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+# Run tests once
+npm run test:run
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests with UI
+npm run test:ui
 ```
 
-### **Step 3: Run Database Migration**
-```bash
-# Apply the system_settings migration
-# (You may need to run this in Supabase SQL editor)
+## Test Structure
+
+```
+src/
+├── __tests__/           # Global test files
+├── components/
+│   └── shared/
+│       └── __tests__/    # Component-specific tests
+└── test/
+    ├── setup.ts         # Test environment setup
+    ├── utils.tsx        # Testing utilities
+    └── mocks.ts         # Mock implementations
 ```
 
-### **Step 4: Restart Development Server**
-```bash
-npm run dev
+## Writing Tests
+
+### Component Tests
+
+```tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { MyComponent } from './MyComponent';
+
+describe('MyComponent', () => {
+  it('renders correctly', () => {
+    render(<MyComponent />);
+    expect(screen.getByText('Hello')).toBeInTheDocument();
+  });
+
+  it('handles user interaction', () => {
+    const mockFn = vi.fn();
+    render(<MyComponent onClick={mockFn} />);
+    
+    fireEvent.click(screen.getByRole('button'));
+    expect(mockFn).toHaveBeenCalled();
+  });
+});
 ```
 
----
+### Testing Hooks
 
-## 🧪 **Testing Checklist**
+```tsx
+import { renderHook, act } from '@testing-library/react';
+import { useMyHook } from './useMyHook';
 
-### **1. Google Authentication**
-- [ ] **Test**: Click "Sign in with Google" in sidebar
-- [ ] **Expected**: Redirects to Google OAuth, then back to app
-- [ ] **Expected**: User profile appears in sidebar
-- [ ] **Expected**: No error messages
+describe('useMyHook', () => {
+  it('returns initial state', () => {
+    const { result } = renderHook(() => useMyHook());
+    expect(result.current.value).toBe(0);
+  });
+});
+```
 
-### **2. Permission Guards**
-- [ ] **Test**: Navigate to `/admin/users` without admin role
-- [ ] **Expected**: "Access Denied" message with shield icon
-- [ ] **Test**: Navigate to `/admin/settings` without admin role  
-- [ ] **Expected**: "Access Denied" message with shield icon
+### Testing with Context
 
-### **3. User Management (Admin Only)**
-- [ ] **Test**: Navigate to `/admin/users` with admin role
-- [ ] **Expected**: User list loads successfully
-- [ ] **Test**: Click "Add User" button
-- [ ] **Expected**: Modal opens with form fields
-- [ ] **Test**: Fill form and create user
-- [ ] **Expected**: Success message, user appears in list
-- [ ] **Test**: Change user role via dropdown
-- [ ] **Expected**: Role updates immediately
-- [ ] **Test**: Click "Activate/Deactivate" button
-- [ ] **Expected**: Status changes, success message
+```tsx
+import { render } from 'src/test/utils'; // Uses custom render with providers
 
-### **4. System Settings (Admin Only)**
-- [ ] **Test**: Navigate to `/admin/settings` with admin role
-- [ ] **Expected**: Settings load from database
-- [ ] **Test**: Change any setting value
-- [ ] **Expected**: Value updates in UI
-- [ ] **Test**: Click "Save Settings" button
-- [ ] **Expected**: Success message, loading spinner
-- [ ] **Test**: Refresh page
-- [ ] **Expected**: Settings persist (not reset to defaults)
+describe('Component with Context', () => {
+  it('renders with context', () => {
+    render(<MyComponent />);
+    // Test will have access to QueryClient and other providers
+  });
+});
+```
 
-### **5. Error Handling**
-- [ ] **Test**: Access admin pages without service role key
-- [ ] **Expected**: Clear error message about missing configuration
-- [ ] **Test**: Try invalid Google OAuth
-- [ ] **Expected**: Proper error message, loading state resets
+## Mock Data
 
----
+Use the provided mock data generators:
 
-## 🔍 **What to Look For**
+```tsx
+import { mockLead, mockCompany, mockJob } from 'src/test/utils';
 
-### **✅ Success Indicators:**
-- No console errors
-- Smooth loading states
-- Proper permission checks
-- Settings persist after refresh
-- User operations work without errors
-- Clear success/error messages
+describe('LeadComponent', () => {
+  it('displays lead information', () => {
+    render(<LeadComponent lead={mockLead} />);
+    expect(screen.getByText(mockLead.name)).toBeInTheDocument();
+  });
+});
+```
 
-### **❌ Failure Indicators:**
-- "Service role key not configured" errors
-- "Access Denied" when you should have access
-- Settings reset to defaults after save
-- Console errors about permissions
-- Infinite loading states
+## Testing Best Practices
 
----
+1. **Test behavior, not implementation**
+2. **Use semantic queries** (`getByRole`, `getByLabelText`)
+3. **Test accessibility** (ARIA attributes, keyboard navigation)
+4. **Mock external dependencies** (APIs, localStorage, etc.)
+5. **Keep tests focused** (one concept per test)
+6. **Use descriptive test names**
 
-## 🐛 **Troubleshooting**
+## Coverage Goals
 
-### **"Service role key not configured"**
-- Check `.env.local` file exists
-- Verify key name is exactly `VITE_SUPABASE_SERVICE_ROLE_KEY`
-- Restart dev server after adding variable
+- **Statements**: > 80%
+- **Branches**: > 75%
+- **Functions**: > 80%
+- **Lines**: > 80%
 
-### **"Access Denied" for Admin Pages**
-- Sign in with Google first
-- Check user has admin role in Supabase
-- Verify permission system is working
+## CI/CD Integration
 
-### **Settings Don't Persist**
-- Check database migration was applied
-- Verify `system_settings` table exists
-- Check browser console for errors
+Tests run automatically on:
+- Push to main/master/develop branches
+- Pull requests
+- Multiple Node.js versions (18.x, 20.x)
 
-### **User Management Not Working**
-- Verify service role key is correct
-- Check Supabase project is active
-- Look for API errors in console
-
----
-
-## 📊 **Expected Results**
-
-### **With Service Role Key:**
-- ✅ Full admin functionality
-- ✅ User management works
-- ✅ Settings persist
-- ✅ Proper error handling
-
-### **Without Service Role Key:**
-- ✅ Clear error messages
-- ✅ Graceful degradation
-- ✅ No crashes or infinite loading
-
-### **With Non-Admin User:**
-- ✅ Permission guards work
-- ✅ Access denied messages
-- ✅ No unauthorized access
-
----
-
-## 🎯 **Test Scenarios**
-
-### **Scenario 1: Complete Admin Workflow**
-1. Sign in with Google (admin account)
-2. Navigate to User Management
-3. Add a new user
-4. Change their role
-5. Navigate to System Settings
-6. Update company name
-7. Save settings
-8. Refresh page
-9. Verify settings persisted
-
-### **Scenario 2: Permission Testing**
-1. Sign in with non-admin account
-2. Try to access `/admin/users`
-3. Verify access denied
-4. Try to access `/admin/settings`
-5. Verify access denied
-
-### **Scenario 3: Error Handling**
-1. Remove service role key
-2. Restart server
-3. Try admin functions
-4. Verify error messages
-5. Restore service role key
-6. Verify functionality returns
-
----
-
-## 🏆 **Success Criteria**
-
-All tests pass when:
-- [ ] Admin pages load with proper permissions
-- [ ] User management functions work completely
-- [ ] Settings persist across page refreshes
-- [ ] Permission guards block unauthorized access
-- [ ] Error handling provides clear feedback
-- [ ] No console errors or crashes
-
-**The admin functionality is now production-ready!** 🎉
+Coverage reports are uploaded to Codecov for tracking.

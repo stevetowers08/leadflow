@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { CompanyDetailPopup } from "./CompanyDetailPopup";
-import { LeadDetailPopup } from "./LeadDetailPopup";
+import { LeadDetailPopup } from "./features/leads/LeadDetailPopup";
 import { LinkedInAutomationModal } from "./LinkedInAutomationModal";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -67,7 +67,10 @@ export function JobDetailPopup({ job, isOpen, onClose }: JobDetailPopupProps) {
           automation_active,
           confidence_level,
           linkedin_url,
-          score_reason
+          score_reason,
+          is_favourite,
+          lead_source,
+          created_at
         `)
         .eq("id", job.company_id)
         .single();
@@ -131,20 +134,35 @@ export function JobDetailPopup({ job, isOpen, onClose }: JobDetailPopupProps) {
     });
   };
 
+  // Get company logo
+  const getCompanyLogo = () => {
+    if (!companyData || !companyData.website) {
+      console.log("No company data or website:", { companyData });
+      return null;
+    }
+    
+    const cleanWebsite = companyData.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
+    const logo = `https://logo.clearbit.com/${cleanWebsite}`;
+    
+    console.log("Company logo generation:", {
+      companyName: companyData.name,
+      originalWebsite: companyData.website,
+      cleanWebsite,
+      logoUrl: logo
+    });
+    
+    return logo;
+  };
+
   return (
     <PopupModal
       isOpen={isOpen}
       onClose={onClose}
       title={job.title || "Job"}
       subtitle={`${job.location} • ${companyData?.name || "Unknown Company"}`}
-      icon={<Briefcase className="h-5 w-5 text-gray-600" />}
-      statusBadge={<StatusBadge status={job.status || "active"} size="sm" />}
-      statusLabel="Status"
-      scoringDisplay={{
-        type: "job_score",
-        value: job.lead_score_job || "0",
-        label: "AI Score"
-      }}
+      icon={<Briefcase className="h-6 w-6 text-gray-600" />}
+      companyLogo={getCompanyLogo()}
+      companyName={companyData?.name}
     >
       <div className="space-y-4">
         {/* Job Information Card */}

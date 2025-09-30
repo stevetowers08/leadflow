@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '../integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
+
+type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 interface AuthContextType {
   user: User | null;
-  userProfile: any | null;
+  userProfile: UserProfile | null;
   session: Session | null;
   loading: boolean;
   error: string | null;
@@ -38,7 +41,7 @@ const RETRY_DELAY = 1000; // 1 second
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<any | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [lastProcessedUserId, setLastProcessedUserId] = useState<string | null>(null);
 
   // Simplified profile loading with timeout
-  const loadUserProfile = useCallback(async (userId: string): Promise<any> => {
+  const loadUserProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
     try {
       console.log(`🔍 Loading user profile for: ${userId}`);
 
