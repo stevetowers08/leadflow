@@ -1,11 +1,11 @@
 import React, { ReactNode, useState, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import { FloatingChatWidget } from "../FloatingChatWidget";
+import { FloatingChatWidget } from "../ai/FloatingChatWidget";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/contexts/SidebarContext";
-import { EnhancedMobileNav, EnhancedMobileSidebar } from "../EnhancedMobileNav";
+import { EnhancedMobileNav, EnhancedMobileSidebar } from "../mobile/EnhancedMobileNav";
 import { cn } from "@/lib/utils";
 import { FourTwentyLogo } from "../FourTwentyLogo";
 

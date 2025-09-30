@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Send, Users, X } from 'lucide-react';
-import { Tables } from '../integrations/supabase/types';
+import { Tables } from '../../../integrations/supabase/types';
 import { EmailAutomationModal } from './EmailAutomationModal';
 
 interface EmailBulkActionsProps {

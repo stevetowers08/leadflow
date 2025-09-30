@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
-import { LoadingState } from '@/components/LoadingStates';
+import { LoadingState } from '@/components/loading/LoadingStates';
 import { cn } from '@/lib/utils';
 import { getScoringInfo } from '@/utils/scoringSystem';
 import { StatusBadge } from '@/components/StatusBadge';

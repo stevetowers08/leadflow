@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
-import { FloatingSuccessCard } from "@/components/FloatingSuccessCard";
+import { FloatingSuccessCard } from "@/components/utils/FloatingSuccessCard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User, MessageSquare, CheckCircle, XCircle } from "lucide-react";

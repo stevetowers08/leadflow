@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
-import SupabaseErrorBoundary from "./components/SupabaseErrorBoundary.tsx";
+import SupabaseErrorBoundary from "./components/diagnostics/SupabaseErrorBoundary.tsx";
 import { logger } from "./utils/logger";
 import "./index.css";
 

@@ -1,5 +1,5 @@
 // Utility functions for integrating Gemini AI with Supabase job data
-import { geminiService, type GeminiAnalysisResult, type GeminiJobSummary } from './geminiService';
+import { geminiService, type GeminiAnalysisResult, type GeminiJobSummary } from '../services/geminiService';
 import { supabase } from '../integrations/supabase/client';
 
 export interface JobSummaryUpdate {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ErrorBoundary, ComponentErrorBoundary, FeatureErrorBoundary, PageErrorBoundary } from '@/components/ErrorBoundary';
-import { LoadingState, InlineLoading, CardLoading, LoadingOverlay } from '@/components/LoadingStates';
+import { LoadingState, InlineLoading, CardLoading, LoadingOverlay } from '@/components/loading/LoadingStates';
 import { RetryIndicator } from '@/hooks/useRetryLogic';
 import { InlineFeedback, FloatingFeedback, useUserFeedback } from '@/hooks/useUserFeedback';
 import { useAsyncOperation, useAsyncData, useAsyncMutation } from '@/hooks/useAsyncOperation';

@@ -18,8 +18,8 @@ import {
   MoreHorizontal,
   ChevronDown
 } from 'lucide-react';
-import { conversationService, Conversation } from '../services/conversationService';
-import { Input } from './ui/input';
+import { conversationService, Conversation } from '../../../services/conversationService';
+import { Input } from '../../ui/input';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -27,7 +27,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu';
+} from '../../ui/dropdown-menu';
 
 interface ConversationListProps {
   onConversationSelect: (conversation: Conversation) => void;

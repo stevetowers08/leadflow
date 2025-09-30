@@ -1,5 +1,5 @@
 import React from 'react';
-import { BulkActions, BulkAction } from '../BulkActions';
+import { BulkActions, BulkAction } from '../utils/BulkActions';
 
 interface TableBulkActionsProps<T> {
   selectedItems: T[];

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { StatusBadge } from './StatusBadge';
-import { Button } from './ui/button';
-import { ScrollArea } from './ui/scroll-area';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
+import { Badge } from '../../ui/badge';
+import { StatusBadge } from '../../StatusBadge';
+import { Button } from '../../ui/button';
+import { ScrollArea } from '../../ui/scroll-area';
 import { 
   MessageSquare, 
   Clock, 
@@ -18,7 +18,7 @@ import {
   Forward,
   Archive
 } from 'lucide-react';
-import { conversationService, Conversation, ConversationMessage } from '../services/conversationService';
+import { conversationService, Conversation, ConversationMessage } from '../../../services/conversationService';
 import { cn } from '@/lib/utils';
 
 interface ConversationViewerProps {

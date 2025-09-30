@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Mail, MailOpen, Clock, User } from 'lucide-react';
-import { gmailService, EmailThread, EmailMessage } from '../services/gmailService';
+import { gmailService, EmailThread, EmailMessage } from '../../../services/gmailService';
 
 interface EmailThreadViewerProps {
   threadId: string;

@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
 import { SidebarProvider } from "./contexts/SidebarContext";
 import { PopupProvider } from "./contexts/PopupContext";
+import { AIProvider } from "./contexts/AIContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components";
 import { UnifiedPopup } from "./components/UnifiedPopup";
@@ -61,9 +62,10 @@ const AppRoutes = () => {
 
   return (
     <PermissionsProvider user={user} userProfile={userProfile} authLoading={loading}>
-      <SidebarProvider>
-        <PopupProvider>
-          <Layout>
+      <AIProvider>
+        <SidebarProvider>
+          <PopupProvider>
+            <Layout>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
@@ -81,9 +83,10 @@ const AppRoutes = () => {
               <Route path="/tab-designs" element={<TabDesignsShowcase />} />
             </Routes>
             <UnifiedPopup />
-          </Layout>
-        </PopupProvider>
-      </SidebarProvider>
+            </Layout>
+          </PopupProvider>
+        </SidebarProvider>
+      </AIProvider>
     </PermissionsProvider>
   );
 };

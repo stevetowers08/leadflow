@@ -6,8 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Send, Paperclip } from 'lucide-react';
-import { gmailService, SendEmailRequest } from '../services/gmailService';
-import { Tables } from '../integrations/supabase/types';
+import { gmailService, SendEmailRequest } from '../../../services/gmailService';
+import { Tables } from '../../../integrations/supabase/types';
 
 interface EmailComposerProps {
   selectedPerson?: Tables<'people'>;

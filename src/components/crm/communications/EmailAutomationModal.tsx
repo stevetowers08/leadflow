@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Clock, Mail } from 'lucide-react';
-import { gmailService, EmailTemplate } from '../services/gmailService';
+import { gmailService, EmailTemplate } from '../../../services/gmailService';
 
 interface EmailAutomationModalProps {
   isOpen: boolean;
