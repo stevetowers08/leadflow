@@ -100,45 +100,42 @@ export const ModernSignIn: React.FC = () => {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-xl mb-3 shadow-md">
-            <Shield className="w-6 h-6 text-primary-foreground" />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+      {/* Company Logo - Top Left */}
+      <div className="absolute top-6 left-6">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+            <Shield className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-            Sign in
-          </h1>
+          <span className="text-xl font-bold text-gray-800">EMPOWR</span>
         </div>
+      </div>
 
-        {/* Main Card */}
-        <Card className="shadow-lg border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-lg font-semibold text-center">
-              Welcome back
-            </CardTitle>
-            <CardDescription className="text-center">
-              Continue with Google, LinkedIn or email
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
+      {/* Main Login Card */}
+      <div className="w-full max-w-md">
+        <Card className="bg-white shadow-xl border-0 rounded-2xl">
+          <CardContent className="p-8">
+            {/* Login Title */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-purple-800 mb-2">Log in</h1>
+            </div>
+
             {/* Error Alert */}
             {error && (
-              <Alert variant="destructive" className="border-red-200 bg-red-50 dark:bg-red-900/20">
-                <AlertDescription className="text-red-800 dark:text-red-200">
+              <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50">
+                <AlertDescription className="text-red-800">
                   {error}
                 </AlertDescription>
               </Alert>
             )}
 
             {/* Social Login Buttons */}
-            <div className="space-y-2.5">
+            <div className="space-y-3 mb-6">
+              {/* Google Button */}
               <Button 
                 onClick={handleGoogleSignIn} 
                 variant="outline"
-                className="w-full h-10 font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-600"
+                className="w-full h-12 font-medium text-gray-700 hover:bg-gray-50 border-gray-200 rounded-lg flex items-center justify-center"
                 disabled={loading !== null}
               >
                 {loading === 'google' ? (
@@ -159,91 +156,87 @@ export const ModernSignIn: React.FC = () => {
                 )}
               </Button>
 
+              {/* Facebook Button */}
               <Button 
-                onClick={handleLinkedInSignIn} 
-                className="w-full h-10 bg-[#0077B5] hover:bg-[#005885] text-white font-medium shadow-sm"
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg flex items-center justify-center"
                 disabled={loading !== null}
               >
-                {loading === 'linkedin' ? (
-                  <>
-                    <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                    Signing in with LinkedIn...
-                  </>
-                ) : (
-                  <>
-                    <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                    </svg>
-                    Continue with LinkedIn
-                  </>
-                )}
+                <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                Continue with Facebook
+              </Button>
+
+              {/* GitHub Button */}
+              <Button 
+                className="w-full h-12 bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-lg flex items-center justify-center"
+                disabled={loading !== null}
+              >
+                <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                Continue with GitHub
               </Button>
             </div>
 
             {/* Divider */}
-            <div className="relative -my-1">
+            <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
+                <div className="w-full border-t border-gray-200"></div>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-slate-800 px-2 text-slate-500">
-                  Or continue with email
-                </span>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">or</span>
               </div>
             </div>
 
             {/* Email/Password Form */}
-            <form onSubmit={handleEmailSignIn} className="space-y-3">
+            <form onSubmit={handleEmailSignIn} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                   Email address
                 </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-10 border-slate-200 dark:border-slate-600 focus:border-primary focus:ring-primary"
-                    disabled={loading !== null}
-                    required
-                  />
-                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
+                  disabled={loading !== null}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-10 border-slate-200 dark:border-slate-600 focus:border-primary focus:ring-primary"
+                    className="h-12 pr-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                     disabled={loading !== null}
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     disabled={loading !== null}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end">
+              <div className="flex items-center justify-start">
                 <button
                   type="button"
-                  className="text-xs text-primary hover:text-primary/80 font-medium"
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
                   disabled={loading !== null}
                 >
                   Forgot password?
@@ -252,28 +245,34 @@ export const ModernSignIn: React.FC = () => {
 
               <Button
                 type="submit"
-                className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg"
                 disabled={loading !== null}
               >
                 {loading === 'email' ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Signing in...
                   </>
                 ) : (
-                  <>
-                    Sign in
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
+                  'Log in'
                 )}
               </Button>
             </form>
 
-            {/* Minimal footer for compact layout */}
+            {/* Additional Links */}
+            <div className="mt-8 space-y-3 text-center">
+              <button className="block w-full text-sm text-purple-600 hover:text-purple-700 font-medium">
+                Can't Access Your Account?
+              </button>
+              <div className="text-sm text-gray-600">
+                Don't have an account?{' '}
+                <button className="text-purple-600 hover:text-purple-700 font-medium">
+                  Sign Up
+                </button>
+              </div>
+            </div>
           </CardContent>
         </Card>
-
-        {/* Removed extra bottom links to prevent scroll */}
       </div>
     </div>
   );
