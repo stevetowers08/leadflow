@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
-import { LeadDetailPopup } from "@/components";
+import { LeadDetailPopup } from "@/components/crm/leads/LeadDetailPopup";
 import { LeadsStatsCards } from "@/components/StatsCards";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";

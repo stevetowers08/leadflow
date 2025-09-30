@@ -1,6 +1,6 @@
 // AI Service for lead scoring, job summaries, and optimization
-// Now supports both OpenAI and Google Gemini APIs
-import { geminiService, type GeminiJobSummary, type GeminiAnalysisResult } from './geminiService';
+// Now uses SECURE server-side processing via Supabase Edge Functions
+import { serverAIService, type ServerAIJobSummary, type ServerAIResponse } from './serverAIService';
 
 export interface AIScore {
   score: number;
@@ -124,8 +124,9 @@ class AIService {
     }
   }
 
-  // Generate job summary using best available provider
+  // Generate job summary using SECURE server-side processing
   async generateJobSummary(jobData: {
+    id: string; // Required for server-side processing
     title: string;
     company: string;
     description: string;
@@ -134,63 +135,30 @@ class AIService {
     salary?: string;
   }): Promise<JobSummary> {
     try {
-      // Try Gemini first (free) if available
-      if (this.shouldUseGemini()) {
-        const geminiResult = await geminiService.generateJobSummary({
-          title: jobData.title,
-          company: jobData.company,
-          description: jobData.description,
-          location: jobData.location,
-          salary: jobData.salary,
-          employment_type: undefined,
-          seniority_level: undefined
-        });
+      // Use server-side AI processing (SECURE)
+      const serverResult = await serverAIService.generateJobSummary({
+        id: jobData.id,
+        title: jobData.title,
+        company: jobData.company,
+        description: jobData.description,
+        location: jobData.location,
+        salary: jobData.salary,
+        employment_type: undefined,
+        seniority_level: undefined
+      });
 
-        if (geminiResult.success && geminiResult.data) {
-          return {
-            summary: geminiResult.data.summary,
-            key_requirements: geminiResult.data.key_requirements,
-            ideal_candidate: geminiResult.data.ideal_candidate,
-            urgency_level: geminiResult.data.urgency_level,
-            market_demand: geminiResult.data.market_demand
-          };
-        }
+      if (serverResult.success && serverResult.data) {
+        return {
+          summary: serverResult.data.summary,
+          key_requirements: serverResult.data.key_requirements,
+          ideal_candidate: serverResult.data.ideal_candidate,
+          urgency_level: serverResult.data.urgency_level,
+          market_demand: serverResult.data.market_demand
+        };
       }
 
-      // Fallback to OpenAI or manual generation
-      if (this.openaiApiKey) {
-        const prompt = `
-          Create a comprehensive job summary for this position:
-          
-          Title: ${jobData.title}
-          Company: ${jobData.company}
-          Description: ${jobData.description}
-          Requirements: ${jobData.requirements || 'Not specified'}
-          Location: ${jobData.location}
-          Salary: ${jobData.salary || 'Not specified'}
-          
-          Provide:
-          1. A concise 2-3 sentence summary
-          2. Top 5 key requirements
-          3. Ideal candidate profile
-          4. Urgency level (low/medium/high)
-          5. Market demand (low/medium/high)
-          
-          Return JSON format:
-          {
-            "summary": "string",
-            "key_requirements": ["string"],
-            "ideal_candidate": "string",
-            "urgency_level": "low|medium|high",
-            "market_demand": "low|medium|high"
-          }
-        `;
-
-        const response = await this.callOpenAI(prompt);
-        return JSON.parse(response);
-      }
-
-      // Manual fallback summary
+      // Fallback to manual generation if server fails
+      console.warn('Server-side AI failed, using fallback:', serverResult.error);
       return this.generateFallbackJobSummary(jobData);
     } catch (error) {
       console.error('AI job summary error:', error);

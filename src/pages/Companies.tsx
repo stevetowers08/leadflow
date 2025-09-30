@@ -6,7 +6,7 @@ import { CompanyDetailPopup } from "@/components/crm/companies/CompanyDetailPopu
 import { CompaniesStatsCards } from "@/components/StatsCards";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
-import { LeadSourceDisplay } from "@/components/features/leads/LeadSourceDisplay";
+import { LeadSourceDisplay } from "@/components/crm/leads/LeadSourceDisplay";
 import { TagDisplay } from "@/components/TagDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";

@@ -8,8 +8,8 @@ export * from './tables';
 // Layout
 export * from './layout';
 
-// Features
-export * from './features/leads';
+// CRM Components
+export * from './crm/leads';
 
 // Shared Components
 export { InfoCard } from './shared/InfoCard';
