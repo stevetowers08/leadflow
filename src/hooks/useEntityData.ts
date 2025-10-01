@@ -35,20 +35,45 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
       console.log('🔍 useEntityData queryFn called for:', { entityType, entityId });
       const tableName = entityType === 'lead' ? 'people' : entityType === 'company' ? 'companies' : 'jobs';
       
-      const { data, error } = await supabase
+      // Add timeout to prevent hanging queries
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000);
+      });
+      
+      // Test direct query without authentication checks first
+      console.log('🔍 Testing direct query without auth checks...');
+      
+      const queryPromise = supabase
         .from(tableName)
         .select(OPTIMIZED_SELECTIONS[tableName])
         .eq('id', entityId)
         .single();
 
-      if (error) {
-        console.error(`❌ Error fetching ${entityType}:`, error);
+      try {
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        const { data, error } = result as any;
+
+        if (error) {
+          console.error(`❌ Error fetching ${entityType}:`, error);
+          
+          // If it's an RLS policy error, try to provide more context
+          if (error.message?.includes('permission denied') || error.message?.includes('RLS')) {
+            console.error('🔒 RLS Policy Error - User may not have proper permissions');
+            console.error('🔍 User ID:', user?.id, 'User Role:', user?.role);
+          }
+          
+          throw error;
+        }
+        console.log('🔍 useEntityData queryFn success:', { entityType, data });
+        return data;
+      } catch (error) {
+        console.error(`❌ Query failed for ${entityType}:`, error);
         throw error;
       }
-      console.log('🔍 useEntityData queryFn success:', { entityType, data });
-      return data;
     },
-    enabled: !!entityId && isOpen
+    enabled: !!entityId && isOpen,
+    retry: 1, // Only retry once
+    retryDelay: 1000 // Wait 1 second before retry
   });
 
   // Fetch company data (for leads and jobs) - now runs in parallel
