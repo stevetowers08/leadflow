@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import SettingsNavigation from '@/components/SettingsNavigation';
-import PersonalSettings from './PersonalSettings';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { Settings as SettingsIcon } from 'lucide-react';
-import IntegrationsPage from '@/components/IntegrationsPage';
-import AdminSettingsTab from '@/components/crm/settings/AdminSettingsTab';
-import BusinessProfileSettings from '@/components/crm/settings/BusinessProfileSettings';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { cn } from '@/lib/utils';
+
+// Lazy load heavy components
+const PersonalSettings = lazy(() => import('./PersonalSettings'));
+const IntegrationsPage = lazy(() => import('@/components/IntegrationsPage'));
+const AdminSettingsTab = lazy(() => import('@/components/crm/settings/AdminSettingsTab'));
+const BusinessProfileSettings = lazy(() => import('@/components/crm/settings/BusinessProfileSettings'));
 
 const Settings = () => {
   const { user } = useAuth();
@@ -38,19 +40,72 @@ const Settings = () => {
     switch (activeSection) {
       case 'profile-info':
       case 'preferences':
-        return <PersonalSettings activeSection={activeSection} />;
+        return (
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading settings...</p>
+              </div>
+            </div>
+          }>
+            <PersonalSettings activeSection={activeSection} />
+          </Suspense>
+        );
       case 'targeting-profiles':
-        return <BusinessProfileSettings />;
+        return (
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading business profile...</p>
+              </div>
+            </div>
+          }>
+            <BusinessProfileSettings />
+          </Suspense>
+        );
       case 'admin':
         return (
           <div className="p-6">
-            <AdminSettingsTab />
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading admin settings...</p>
+                </div>
+              </div>
+            }>
+              <AdminSettingsTab />
+            </Suspense>
           </div>
         );
       case 'integrations':
-        return <IntegrationsPage />;
+        return (
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading integrations...</p>
+              </div>
+            </div>
+          }>
+            <IntegrationsPage />
+          </Suspense>
+        );
       default:
-        return <PersonalSettings />;
+        return (
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading settings...</p>
+              </div>
+            </div>
+          }>
+            <PersonalSettings />
+          </Suspense>
+        );
     }
   };
 

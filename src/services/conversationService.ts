@@ -279,7 +279,7 @@ export class ConversationService {
 
     } catch (error) {
       console.error('Failed to process Expandi webhook:', error);
-      await this.logSyncOperation('webhook_received', 'error', 0, error.message);
+      await this.logSyncOperation('webhook_received', 'error', 0, error instanceof Error ? error.message : 'Unknown error');
       throw error;
     }
   }

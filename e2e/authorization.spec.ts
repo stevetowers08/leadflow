@@ -138,6 +138,10 @@ test.describe('Authorization E2E Tests', () => {
     test.beforeEach(async ({ page }) => {
       await mockAuthState(page, testUsers.owner);
       await mockApiResponses(page, testUsers.owner);
+      
+      // Set faster timeouts for better performance
+      page.setDefaultTimeout(10000);
+      page.setDefaultNavigationTimeout(15000);
     });
 
     test('should have full access to all features', async ({ page }) => {
@@ -187,6 +191,9 @@ test.describe('Authorization E2E Tests', () => {
       // Should be able to assign to any user
       await assignButton.click();
       
+      // Wait for dropdown to be visible before checking users
+      await page.waitForSelector('[role="listbox"], [role="menu"], .dropdown-menu', { timeout: 5000 });
+      
       // Should see all users in assignment dropdown
       await expect(page.getByText('Admin User')).toBeVisible();
       await expect(page.getByText('Recruiter User')).toBeVisible();
@@ -211,6 +218,10 @@ test.describe('Authorization E2E Tests', () => {
     test.beforeEach(async ({ page }) => {
       await mockAuthState(page, testUsers.admin);
       await mockApiResponses(page, testUsers.admin);
+      
+      // Set faster timeouts for better performance
+      page.setDefaultTimeout(10000);
+      page.setDefaultNavigationTimeout(15000);
     });
 
     test('should have access to most features', async ({ page }) => {
@@ -245,6 +256,9 @@ test.describe('Authorization E2E Tests', () => {
       // Should be able to assign to any user
       await assignButton.click();
       
+      // Wait for dropdown to be visible before checking users
+      await page.waitForSelector('[role="listbox"], [role="menu"], .dropdown-menu', { timeout: 5000 });
+      
       // Should see all users in assignment dropdown
       await expect(page.getByText('Owner User')).toBeVisible();
       await expect(page.getByText('Recruiter User')).toBeVisible();
@@ -269,6 +283,10 @@ test.describe('Authorization E2E Tests', () => {
     test.beforeEach(async ({ page }) => {
       await mockAuthState(page, testUsers.recruiter);
       await mockApiResponses(page, testUsers.recruiter);
+      
+      // Set faster timeouts for better performance
+      page.setDefaultTimeout(10000);
+      page.setDefaultNavigationTimeout(15000);
     });
 
     test('should have access to CRM features', async ({ page }) => {
@@ -327,6 +345,9 @@ test.describe('Authorization E2E Tests', () => {
       // Should be able to assign to other users
       await assignButton.click();
       
+      // Wait for dropdown to be visible before checking users
+      await page.waitForSelector('[role="listbox"], [role="menu"], .dropdown-menu', { timeout: 5000 });
+      
       // Should see other users in assignment dropdown
       await expect(page.getByText('Admin User')).toBeVisible();
       await expect(page.getByText('Owner User')).toBeVisible();
@@ -344,6 +365,10 @@ test.describe('Authorization E2E Tests', () => {
     test.beforeEach(async ({ page }) => {
       await mockAuthState(page, testUsers.viewer);
       await mockApiResponses(page, testUsers.viewer);
+      
+      // Set faster timeouts for better performance
+      page.setDefaultTimeout(10000);
+      page.setDefaultNavigationTimeout(15000);
     });
 
     test('should have read-only access', async ({ page }) => {
@@ -534,6 +559,10 @@ test.describe('Authorization E2E Tests', () => {
       // Try to assign
       const assignButton = page.getByRole('button', { name: /assign/i });
       await assignButton.click();
+      
+      // Wait for dropdown and select a user quickly
+      await page.waitForSelector('[role="listbox"], [role="menu"], .dropdown-menu', { timeout: 5000 });
+      await page.getByText('Recruiter User').click();
       
       // Should show error message
       await expect(page.getByText(/already assigned/i)).toBeVisible();

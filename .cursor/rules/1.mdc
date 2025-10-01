@@ -1,3 +1,6 @@
+---
+alwaysApply: true
+---
 Do not add debugging onto the app
 Always fix for long term solutions
 You have access to the data via the Supabase MCP
@@ -25,7 +28,7 @@ You have access to the data via the Supabase MCP
 - Verify deployment status and URL after deployment
 
 ---
-description:
+description: rules
 globs:
 alwaysApply: true
 ---

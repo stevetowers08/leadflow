@@ -162,7 +162,6 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
       <div className="p-4 border-b border-border bg-gradient-to-r from-primary/5 via-primary/3 to-primary/5 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {console.log('Company data:', conversation.person_company, conversation.person_company_website)}
             <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
               {conversation.person_company_website ? (
                 <img 

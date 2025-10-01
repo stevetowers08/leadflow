@@ -123,7 +123,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
       setConversations(conversations);
     } catch (error) {
       console.error('Failed to load conversations:', error);
-      alert('Failed to load conversations: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert('Failed to load conversations: ' + errorMessage);
     } finally {
       setLoading(false);
     }

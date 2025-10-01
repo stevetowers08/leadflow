@@ -32,6 +32,13 @@ export default defineConfig({
     
     /* Record video on failure */
     video: 'retain-on-failure',
+    
+    /* Performance optimizations */
+    actionTimeout: 10000,
+    navigationTimeout: 15000,
+    
+    /* Disable animations for faster tests */
+    reducedMotion: 'reduce',
   },
 
   /* Configure projects for major browsers */

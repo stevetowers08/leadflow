@@ -221,11 +221,11 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
     companyLoading: companyQuery.isLoading,
     companyError: companyQuery.error,
     
-    leadsData: leadsQuery.data,
+    leadsData: leadsQuery.data || [],
     leadsLoading: leadsQuery.isLoading,
     leadsError: leadsQuery.error,
     
-    jobsData: jobsQuery.data,
+    jobsData: jobsQuery.data || [],
     jobsLoading: jobsQuery.isLoading,
     jobsError: jobsQuery.error,
     

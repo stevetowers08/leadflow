@@ -5,7 +5,7 @@ import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { useToast } from "@/hooks/use-toast";
-import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
+import { usePopup } from "@/contexts/OptimizedPopupContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ const Pipeline = () => {
   const [showAllAssignedUsers, setShowAllAssignedUsers] = useState(false);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const { toast } = useToast();
-  const { openPopup } = usePopupNavigation();
+  const { openPopup } = usePopup();
   const queryClient = useQueryClient();
 
   // Use React Query for data fetching with caching

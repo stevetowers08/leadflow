@@ -11,7 +11,7 @@
  * - Direct data fetching
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, Suspense } from 'react';
 import { PopupModal } from "@/components/shared/PopupModal";
 import { LeadInfoCard } from "@/components/popup/LeadInfoCard";
 import { CompanyInfoCard } from "@/components/popup/CompanyInfoCard";
@@ -185,7 +185,10 @@ export function OptimizedPopup({
               <RelatedItemsList
                 title="Related Jobs"
                 items={jobsData}
-                type="job"
+                isLoading={isLoading}
+                selectedLeads={[]}
+                onItemClick={(id) => onNavigateToEntity?.('job', id, '')}
+                itemType="job"
               />
             )}
           </div>
@@ -199,16 +202,22 @@ export function OptimizedPopup({
             />
             {leadsData && leadsData.length > 0 && (
               <RelatedItemsList
-                title="Related Leads"
+                title="Employees"
                 items={leadsData}
-                type="lead"
+                isLoading={isLoading}
+                selectedLeads={[]}
+                onItemClick={(id) => onNavigateToEntity?.('lead', id, '')}
+                itemType="lead"
               />
             )}
             {jobsData && jobsData.length > 0 && (
               <RelatedItemsList
                 title="Related Jobs"
                 items={jobsData}
-                type="job"
+                isLoading={isLoading}
+                selectedLeads={[]}
+                onItemClick={(id) => onNavigateToEntity?.('job', id, '')}
+                itemType="job"
               />
             )}
           </div>
@@ -229,9 +238,12 @@ export function OptimizedPopup({
             )}
             {leadsData && leadsData.length > 0 && (
               <RelatedItemsList
-                title="Related Leads"
+                title="Employees"
                 items={leadsData}
-                type="lead"
+                isLoading={isLoading}
+                selectedLeads={[]}
+                onItemClick={(id) => onNavigateToEntity?.('lead', id, '')}
+                itemType="lead"
               />
             )}
           </div>

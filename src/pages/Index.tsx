@@ -21,10 +21,6 @@ type Job = Tables<"jobs"> & {
   company_logo_url?: string | null;
 };
 
-type Note = Tables<"notes"> & {
-  author_name?: string | null;
-  entity_name?: string | null;
-};
 
 type Interaction = Tables<"interactions"> & {
   person_name?: string | null;
@@ -34,7 +30,6 @@ type Interaction = Tables<"interactions"> & {
 const Index = () => {
   const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
-  const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [recentActivities, setRecentActivities] = useState<Interaction[]>([]);
   const [dashboardStats, setDashboardStats] = useState({
     totalLeads: 0,
@@ -52,7 +47,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { hasPermission } = usePermissions();
-  const { openPopup } = usePopupNavigation();
+  const { openPopup } = usePopup();
 
   useEffect(() => {
     fetchDashboardData();
@@ -69,7 +64,6 @@ const Index = () => {
         companiesCount, 
         recentLeadsData, 
         recentJobsData,
-        recentNotesData,
         recentActivitiesData,
         pipelineData,
         sourcesData,
@@ -97,14 +91,6 @@ const Index = () => {
           priority,
           created_at,
           companies(name)
-        `).order("created_at", { ascending: false }).limit(5),
-        supabase.from("notes").select(`
-          id,
-          content,
-          entity_type,
-          created_at,
-          author_id,
-          entity_id
         `).order("created_at", { ascending: false }).limit(5),
         supabase.from("interactions").select(`
           id,
@@ -188,15 +174,6 @@ const Index = () => {
       }));
       setRecentJobs(jobsWithCompany);
 
-      // Process notes data
-      const notesWithDetails = (recentNotesData.data || []).map(note => ({
-        ...note,
-        author_name: note.user_profiles?.full_name || 'Unknown',
-        entity_name: note.entity_type === 'lead' ? note.people?.name : 
-                    note.entity_type === 'company' ? note.companies?.name :
-                    note.entity_type === 'job' ? note.jobs?.title : 'Unknown'
-      }));
-      setRecentNotes(notesWithDetails);
 
       // Process activities data
       const activitiesWithDetails = (recentActivitiesData.data || []).map(activity => ({
@@ -267,29 +244,6 @@ const Index = () => {
     </div>
   );
 
-  const renderNoteItem = (note: Note) => (
-    <div 
-      key={note.id} 
-      className="px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-    >
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-blue-500/10 rounded-lg flex-shrink-0">
-          <FileText className="h-4 w-4 text-blue-600" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-gray-900 mb-1">
-            Note on {note.entity_name}
-          </div>
-          <div className="text-sm text-gray-600 mb-2 line-clamp-2">
-            {note.content}
-          </div>
-          <div className="text-xs text-gray-500">
-            by {note.author_name} • {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
   const renderActivityItem = (activity: Interaction) => (
     <div 
@@ -561,36 +515,8 @@ const Index = () => {
         </Card>
       </div>
 
-      {/* Recent Notes and Activities */}
-      <div className="grid gap-6 md:grid-cols-2 mb-6 sm:mb-8">
-        {/* Recent Notes Card */}
-        <Card className={designTokens.shadows.card}>
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <FileText className="h-4 w-4 text-blue-600" />
-              </div>
-              Recent Notes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-4">
-                <div className="text-sm text-muted-foreground">Loading...</div>
-              </div>
-            ) : recentNotes.length > 0 ? (
-              <div className="space-y-3">
-                {recentNotes.map(renderNoteItem)}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No recent notes found</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
+      {/* Recent Activities */}
+      <div className="grid gap-6 md:grid-cols-1 mb-6 sm:mb-8">
         {/* Recent Activities Card */}
         <Card className={designTokens.shadows.card}>
           <CardHeader className="pb-4">
