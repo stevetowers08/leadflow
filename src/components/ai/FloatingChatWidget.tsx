@@ -12,7 +12,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessageComponent, ChatMessage } from '@/components/ai/ChatMessage';
 import { ChatInput } from '@/components/ai/ChatInput';
 import { ChatService, ChatServiceConfig, AI_SERVICE_CONFIGS } from '@/services/chatService';
-import { MessageSquare, X, Settings, TestTube, CheckCircle, XCircle, Bot, Minimize2, Maximize2 } from 'lucide-react';
+import { dataAwareGeminiChatService, ChatContext } from '@/services/dataAwareGeminiChatService';
+import { MessageSquare, X, Settings, TestTube, CheckCircle, XCircle, Bot, Minimize2, Maximize2, Database } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -43,6 +44,11 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
   });
   const [selectedService, setSelectedService] = useState<string>('n8n');
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [chatMode, setChatMode] = useState<'mcp' | 'internal'>('mcp');
+  const [chatContext, setChatContext] = useState<ChatContext>({
+    conversationId: dataAwareGeminiChatService.generateConversationId(),
+    messages: []
+  });
 
   const generateMessageId = () => `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -56,25 +62,41 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
     }
   }, [messages]);
 
-  // Initialize chat service with n8n configuration on mount
+  // Initialize chat service based on mode
   useEffect(() => {
     const initializeChatService = async () => {
       try {
-        console.log('Initializing chat service with config:', config);
-        const service = new ChatService(config);
-        setChatService(service);
-        console.log('Chat service created:', service);
-        
-        // Test connection
-        console.log('Testing connection...');
-        const connected = await service.testConnection();
-        console.log('Connection test result:', connected);
-        setIsConnected(connected);
-        
-        if (connected) {
-          console.log('Chat service connected to n8n webhook');
+        if (chatMode === 'internal') {
+          // Use data-aware Gemini service
+          console.log('Initializing internal data-aware chat service');
+          setChatService(null); // No ChatService needed for internal mode
+          const connected = dataAwareGeminiChatService.isAvailable();
+          console.log('Internal service available:', connected);
+          setIsConnected(connected);
+          
+          if (connected) {
+            console.log('Data-aware chat service ready');
+          } else {
+            console.log('Data-aware chat service not available - check Gemini API key');
+          }
         } else {
-          console.log('Chat service failed to connect to webhook');
+          // Use MCP/webhook service
+          console.log('Initializing MCP chat service with config:', config);
+          const service = new ChatService(config);
+          setChatService(service);
+          console.log('Chat service created:', service);
+          
+          // Test connection
+          console.log('Testing MCP connection...');
+          const connected = await service.testConnection();
+          console.log('MCP connection test result:', connected);
+          setIsConnected(connected);
+          
+          if (connected) {
+            console.log('Chat service connected to MCP webhook');
+          } else {
+            console.log('Chat service failed to connect to webhook');
+          }
         }
       } catch (error) {
         console.error('Failed to initialize chat service:', error);
@@ -83,7 +105,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
     };
 
     initializeChatService();
-  }, []);
+  }, [chatMode, config]);
 
   const handleServiceChange = (service: string) => {
     setSelectedService(service);
@@ -175,11 +197,11 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
 
   const handleSendMessage = async (content: string) => {
     console.log('handleSendMessage called with:', content);
-    console.log('chatService:', chatService);
+    console.log('chatMode:', chatMode);
     console.log('isConnected:', isConnected);
     
-    if (!chatService || !content.trim()) {
-      console.log('Early return: chatService or content missing');
+    if (!content.trim()) {
+      console.log('Early return: content missing');
       return;
     }
 
@@ -203,45 +225,104 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
       setIsLoading(true);
       setError(null);
 
-      // Always use streaming
-      let accumulatedContent = '';
-      
-      console.log('Calling sendMessageStream...');
-      await chatService.sendMessageStream({
-        message: content.trim(),
-        conversationId: conversationId || undefined,
-        context: {
-          timestamp: new Date().toISOString(),
-          messageCount: messages.length,
-        },
-        stream: true,
-      }, (chunk) => {
-        console.log('Received chunk:', chunk);
-        if (chunk.conversationId && chunk.conversationId !== conversationId) {
-          setConversationId(chunk.conversationId);
+      if (chatMode === 'internal') {
+        // Use data-aware Gemini service
+        console.log('Using internal data-aware service...');
+        
+        // Update chat context with new message
+        const updatedContext: ChatContext = {
+          ...chatContext,
+          messages: [...chatContext.messages, userMessage]
+        };
+        setChatContext(updatedContext);
+        
+        const response = await dataAwareGeminiChatService.chatWithData(
+          content.trim(), 
+          updatedContext,
+          (chunk) => {
+            // Handle streaming updates
+            const streamingMessage: ChatMessage = {
+              id: loadingMessage.id,
+              content: chunk.content,
+              role: 'assistant',
+              timestamp: new Date(),
+              isLoading: !chunk.done,
+              dataContext: chunk.dataContext,
+            };
+
+            setMessages(prev => prev.map(msg => 
+              msg.id === loadingMessage.id ? streamingMessage : msg
+            ));
+          }
+        );
+        
+        // Final message update (in case streaming didn't work)
+        const responseMessage: ChatMessage = {
+          id: loadingMessage.id,
+          content: response.message,
+          role: 'assistant',
+          timestamp: new Date(),
+          isLoading: false,
+          dataContext: response.dataContext,
+          error: response.error,
+          errorType: response.errorType as any,
+        };
+
+        setMessages(prev => prev.map(msg => 
+          msg.id === loadingMessage.id ? responseMessage : msg
+        ));
+
+        // Update chat context with response
+        setChatContext(prev => ({
+          ...prev,
+          messages: [...prev.messages, responseMessage]
+        }));
+
+      } else {
+        // Use MCP/webhook service
+        if (!chatService) {
+          throw new Error('MCP chat service not available');
         }
 
-        if (chunk.content) {
-          accumulatedContent += chunk.content;
-          
-          // Update the loading message with accumulated content
-          const streamingMessage: ChatMessage = {
-            id: loadingMessage.id,
-            content: accumulatedContent,
-            role: 'assistant',
-            timestamp: new Date(),
-            isLoading: !chunk.done,
-          };
+        console.log('Using MCP service...');
+        let accumulatedContent = '';
+        
+        await chatService.sendMessageStream({
+          message: content.trim(),
+          conversationId: conversationId || undefined,
+          context: {
+            timestamp: new Date().toISOString(),
+            messageCount: messages.length,
+          },
+          stream: true,
+        }, (chunk) => {
+          console.log('Received chunk:', chunk);
+          if (chunk.conversationId && chunk.conversationId !== conversationId) {
+            setConversationId(chunk.conversationId);
+          }
 
-          setMessages(prev => prev.map(msg => 
-            msg.id === loadingMessage.id ? streamingMessage : msg
-          ));
-        }
+          if (chunk.content) {
+            accumulatedContent += chunk.content;
+            
+            // Update the loading message with accumulated content
+            const streamingMessage: ChatMessage = {
+              id: loadingMessage.id,
+              content: accumulatedContent,
+              role: 'assistant',
+              timestamp: new Date(),
+              isLoading: !chunk.done,
+            };
 
-        if (chunk.done) {
-          setIsLoading(false);
-        }
-      });
+            setMessages(prev => prev.map(msg => 
+              msg.id === loadingMessage.id ? streamingMessage : msg
+            ));
+          }
+
+          if (chunk.done) {
+            setIsLoading(false);
+          }
+        });
+      }
 
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -263,7 +344,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
       
       toast({
         title: "Chat Error",
-        description: "Failed to send message. Please check your webhook configuration.",
+        description: `Failed to send message. ${chatMode === 'internal' ? 'Check your Gemini API key.' : 'Please check your webhook configuration.'}`,
         variant: "destructive",
       });
     } finally {
@@ -292,8 +373,12 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
           </h3>
           <p className="text-xs sm:text-sm text-gray-600 max-w-xs sm:max-w-sm leading-relaxed mb-4 sm:mb-6">
             {isConnected 
-              ? "Ask me anything about your CRM data, leads, companies, or jobs. I can help you analyze trends, find insights, and answer questions about your recruitment pipeline."
-              : "Configure your AI webhook to start chatting and get intelligent insights about your CRM data."
+              ? (chatMode === 'internal' 
+                  ? "Ask me anything about your CRM data, leads, companies, or jobs. I can help you analyze trends, find insights, and answer questions about your recruitment pipeline."
+                  : "Ask me anything and I'll help you with your questions using the configured AI service.")
+              : (chatMode === 'internal' 
+                  ? "Configure your Gemini API key to start chatting with your CRM data."
+                  : "Configure your AI webhook to start chatting and get intelligent insights.")
             }
           </p>
           {isConnected && (
@@ -344,9 +429,14 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
                     )} />
                   </div>
                   <div>
-                    <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 tracking-tight">AI Assistant</CardTitle>
+                    <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 tracking-tight">
+                      AI Assistant
+                      <span className="ml-2 text-xs font-normal text-gray-500">
+                        ({chatMode === 'internal' ? 'Data-Aware' : 'MCP'})
+                      </span>
+                    </CardTitle>
                     <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                      {isConnected ? "Ready to help" : "Configure to start"}
+                      {isConnected ? "Ready to help" : chatMode === 'internal' ? "Check Gemini API key" : "Configure to start"}
                     </p>
                   </div>
                 </div>
@@ -363,69 +453,112 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
                         <DialogTitle className="text-sm">Chat Configuration</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
-                        {/* Service Selection */}
+                        {/* Chat Mode Selection */}
                         <div className="space-y-2">
-                          <Label htmlFor="service" className="text-xs">AI Service</Label>
-                          <Select value={selectedService} onValueChange={handleServiceChange}>
+                          <Label htmlFor="chatMode" className="text-xs">Chat Mode</Label>
+                          <Select value={chatMode} onValueChange={(value: 'mcp' | 'internal') => setChatMode(value)}>
                             <SelectTrigger className="h-8">
-                              <SelectValue placeholder="Select service" />
+                              <SelectValue placeholder="Select chat mode" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="custom">Custom Webhook</SelectItem>
-                              <SelectItem value="openai">OpenAI</SelectItem>
-                              <SelectItem value="anthropic">Anthropic</SelectItem>
+                              <SelectItem value="mcp">
+                                <div className="flex items-center gap-2">
+                                  <MessageSquare className="w-3 h-3" />
+                                  MCP (External)
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="internal">
+                                <div className="flex items-center gap-2">
+                                  <Database className="w-3 h-3" />
+                                  Internal (Data-Aware)
+                                </div>
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
-                        {/* Webhook URL */}
-                        <div className="space-y-2">
-                          <Label htmlFor="webhookUrl" className="text-xs">Webhook URL</Label>
-                          <Input
-                            id="webhookUrl"
-                            type="url"
-                            placeholder="https://your-webhook-url.com/chat"
-                            value={config.webhookUrl}
-                            onChange={(e) => setConfig(prev => ({ ...prev, webhookUrl: e.target.value }))}
-                            className="h-8 text-xs"
-                          />
-                        </div>
+                        {/* MCP Service Selection - Only show for MCP mode */}
+                        {chatMode === 'mcp' && (
+                          <div className="space-y-2">
+                            <Label htmlFor="service" className="text-xs">MCP Service</Label>
+                            <Select value={selectedService} onValueChange={handleServiceChange}>
+                              <SelectTrigger className="h-8">
+                                <SelectValue placeholder="Select service" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="custom">Custom Webhook</SelectItem>
+                                <SelectItem value="openai">OpenAI</SelectItem>
+                                <SelectItem value="anthropic">Anthropic</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
 
-                        {/* API Key */}
-                        <div className="space-y-2">
-                          <Label htmlFor="apiKey" className="text-xs">API Key (Optional)</Label>
-                          <Input
-                            id="apiKey"
-                            type="password"
-                            placeholder="Your API key"
-                            value={config.apiKey}
-                            onChange={(e) => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
-                            className="h-8 text-xs"
-                          />
-                        </div>
+                        {/* Webhook URL - Only show for MCP mode */}
+                        {chatMode === 'mcp' && (
+                          <div className="space-y-2">
+                            <Label htmlFor="webhookUrl" className="text-xs">Webhook URL</Label>
+                            <Input
+                              id="webhookUrl"
+                              type="url"
+                              placeholder="https://your-webhook-url.com/chat"
+                              value={config.webhookUrl}
+                              onChange={(e) => setConfig(prev => ({ ...prev, webhookUrl: e.target.value }))}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                        )}
+
+                        {/* API Key - Only show for MCP mode */}
+                        {chatMode === 'mcp' && (
+                          <div className="space-y-2">
+                            <Label htmlFor="apiKey" className="text-xs">API Key (Optional)</Label>
+                            <Input
+                              id="apiKey"
+                              type="password"
+                              placeholder="Your API key"
+                              value={config.apiKey}
+                              onChange={(e) => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                        )}
+
+                        {/* Internal Mode Info */}
+                        {chatMode === 'internal' && (
+                          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="text-xs font-semibold text-blue-700 mb-1">Internal Data-Aware Chat</div>
+                            <div className="text-xs text-blue-900">
+                              This mode uses Google Gemini AI with direct access to your CRM data. 
+                              Make sure VITE_GEMINI_API_KEY is configured in your environment.
+                            </div>
+                          </div>
+                        )}
 
                         <Separator />
 
-                        {/* Action Buttons */}
-                        <div className="space-y-2">
-                          <Button
-                            onClick={handleTestConnection}
-                            disabled={isTestingConnection || !config.webhookUrl.trim()}
-                            className="w-full h-8 text-xs"
-                            variant="outline"
-                          >
-                            <TestTube className="w-3 h-3 mr-1" />
-                            {isTestingConnection ? "Testing..." : "Test Connection"}
-                          </Button>
-                          
-                          <Button
-                            onClick={handleSaveConfig}
-                            disabled={!config.webhookUrl.trim()}
-                            className="w-full h-8 text-xs"
-                          >
-                            Save Configuration
-                          </Button>
-                        </div>
+                        {/* Action Buttons - Only show for MCP mode */}
+                        {chatMode === 'mcp' && (
+                          <div className="space-y-2">
+                            <Button
+                              onClick={handleTestConnection}
+                              disabled={isTestingConnection || !config.webhookUrl.trim()}
+                              className="w-full h-8 text-xs"
+                              variant="outline"
+                            >
+                              <TestTube className="w-3 h-3 mr-1" />
+                              {isTestingConnection ? "Testing..." : "Test Connection"}
+                            </Button>
+                            
+                            <Button
+                              onClick={handleSaveConfig}
+                              disabled={!config.webhookUrl.trim()}
+                              className="w-full h-8 text-xs"
+                            >
+                              Save Configuration
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -465,7 +598,11 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
                   onSendMessage={handleSendMessage}
                   isLoading={isLoading}
                   disabled={!isConnected}
-                  placeholder={isConnected ? "Ask me anything about your CRM data..." : "Configure AI webhook to start chatting..."}
+                  placeholder={
+                    isConnected 
+                      ? (chatMode === 'internal' ? "Ask me anything about your CRM data..." : "Ask me anything...")
+                      : (chatMode === 'internal' ? "Configure Gemini API key to start..." : "Configure AI webhook to start chatting...")
+                  }
                   className="p-3 sm:p-4"
                 />
               </div>

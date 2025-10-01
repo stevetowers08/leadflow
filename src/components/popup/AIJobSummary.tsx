@@ -2,7 +2,6 @@
 import React, { useState, useCallback } from 'react';
 import { useAIJobSummary } from '../../hooks/useAI';
 import { useAI } from '../../contexts/AIContext';
-import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Loader2, Sparkles, TrendingUp, Users, Clock, DollarSign, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
@@ -48,19 +47,22 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
   };
 
   const handleGenerate = useCallback(async () => {
-    if (!job.description) {
+    if (!job?.description || !job?.title) {
+      console.warn('AIJobSummary: Missing required job data', job);
       return;
     }
 
     setIsGenerating(true);
     try {
       await generateSummary({
-        title: job.title,
+        title: job.title || 'Unknown Job',
         company: job.company_name || 'Unknown Company',
         description: job.description,
-        location: job.location,
+        location: job.location || '',
         salary: formatSalary()
       });
+    } catch (error) {
+      console.error('AIJobSummary: Error generating summary', error);
     } finally {
       setIsGenerating(false);
     }
@@ -71,8 +73,8 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
     return null;
   }
 
-  // Don't render if no job description
-  if (!job.description) {
+  // Don't render if no job or missing required data
+  if (!job || !job.description || !job.title) {
     return null;
   }
 
@@ -82,20 +84,18 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-blue-500" />
-          <span className="text-sm font-medium text-gray-700">AI Analysis</span>
+          <span className="text-sm font-medium text-gray-700">AI Job Summary</span>
         </div>
         
         {!lastResult && (
-          <Button
-            size="sm"
-            variant="outline"
+          <button
             onClick={handleGenerate}
             disabled={isLoading || isGenerating}
-            className="h-7 px-3 text-xs"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md h-8 px-3"
           >
             {(isLoading || isGenerating) && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
             Generate
-          </Button>
+          </button>
         )}
       </div>
 
@@ -163,11 +163,9 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
 
           {/* Expandable Section */}
           <div>
-            <Button
-              size="sm"
-              variant="ghost"
+            <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 text-blue-600 hover:text-blue-700"
             >
               {isExpanded ? (
                 <>
@@ -180,7 +178,7 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
                   Show More
                 </>
               )}
-            </Button>
+            </button>
 
             {isExpanded && (
               <div className="mt-3 space-y-3 pt-3 border-t border-blue-200">

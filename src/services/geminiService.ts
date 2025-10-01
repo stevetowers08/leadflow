@@ -20,7 +20,7 @@ export interface GeminiAnalysisResult {
 class GeminiService {
   private apiKey: string;
   private baseUrl: string = 'https://generativelanguage.googleapis.com/v1beta';
-  private model: string = 'gemini-1.5-flash'; // Free tier model
+  private model: string = 'gemini-2.5-flash'; // Latest stable model
 
   constructor() {
     this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';

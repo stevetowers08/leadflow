@@ -213,9 +213,9 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
       {/* Assignment Display - Match pipeline stage badge design */}
       <div 
         className={cn(
-          "w-40 px-3 py-2 rounded-md text-sm font-medium h-10 flex items-center justify-center cursor-pointer transition-colors border",
+          "px-2 py-1 rounded-md text-xs font-medium h-8 flex items-center justify-center cursor-pointer transition-colors border",
           currentOwnerId 
-            ? "bg-green-50 border-green-200 hover:bg-green-100 text-green-800" 
+            ? "bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-800" 
             : "bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-600",
           isUpdating && "opacity-50 pointer-events-none"
         )}

@@ -10,6 +10,9 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   timestamp: Date;
   isLoading?: boolean;
+  dataContext?: any;
+  error?: string;
+  errorType?: 'config' | 'network' | 'quota' | 'api' | 'unknown';
 }
 
 interface ChatMessageProps {
@@ -45,7 +48,9 @@ export const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) =>
           "px-4 py-3 text-sm shadow-sm border-0",
           isUser 
             ? "bg-gradient-to-br from-primary to-primary/80 text-white rounded-2xl rounded-br-md" 
-            : "bg-white text-gray-900 rounded-2xl rounded-bl-md border border-gray-100"
+            : message.error 
+              ? "bg-red-50 text-red-800 rounded-2xl rounded-bl-md border border-red-200"
+              : "bg-white text-gray-900 rounded-2xl rounded-bl-md border border-gray-100"
         )}>
           {message.isLoading ? (
             <div className="flex items-center gap-3">
@@ -59,6 +64,11 @@ export const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) =>
           ) : (
             <div className="whitespace-pre-wrap break-words leading-relaxed">
               {message.content}
+              {message.error && (
+                <div className="mt-2 text-xs opacity-75">
+                  Error type: {message.errorType || 'unknown'}
+                </div>
+              )}
             </div>
           )}
         </Card>

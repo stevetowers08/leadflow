@@ -214,7 +214,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
         className
       )}>
         {/* Modern Header Design */}
-        <div className="pl-0 pr-8 py-4 border-b border-gray-200 bg-white">
+        <div className="pl-0 pr-8 py-6 border-b border-gray-200 bg-white">
           <div className="flex items-center justify-between">
             {/* Left Side - Entity Info */}
             <div className="flex items-center gap-4 flex-1 min-w-0 pl-8 sm:pl-10">
@@ -257,9 +257,9 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                 )}
               </div>
               
-              {/* User Assignment Display (for all entity types) */}
-              {entityType && (
-                <div className="flex-shrink-0 h-10 flex items-center">
+              {/* User Assignment Display (for all entity types except leads) */}
+              {entityType && entityType !== 'lead' && (
+                <div className="flex-shrink-0 h-8 flex items-center">
                   <UserAssignmentDisplay
                     ownerId={ownerId}
                     entityId={entityId || ''}
@@ -271,7 +271,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
               
 
               {/* Favorite Button - Same height as dropdowns */}
-              <div className="flex-shrink-0 h-10 flex items-center">
+              <div className="flex-shrink-0 h-8 flex items-center">
                 {favoriteButton}
               </div>
             </div>
@@ -290,7 +290,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
               <div className="flex items-center gap-3">
                 {/* Pipeline Stage Badge - Always visible, clickable only when allowed */}
                 <div className={cn(
-                  "w-40 px-3 py-2 rounded-md text-sm font-medium h-10 flex items-center justify-center cursor-pointer transition-colors border",
+                  "w-40 px-3 py-2 rounded-md text-sm font-medium h-8 flex items-center justify-center cursor-pointer transition-colors border",
                   canChangeStage 
                     ? "bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-800" 
                     : "bg-gray-100 border-gray-200 text-gray-600 cursor-default"

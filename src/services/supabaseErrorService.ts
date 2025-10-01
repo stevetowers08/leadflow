@@ -58,7 +58,7 @@ class SupabaseErrorService {
         .from('error_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       // Handle case where error_settings table doesn't exist yet
       if (error && error.code === 'PGRST116') {

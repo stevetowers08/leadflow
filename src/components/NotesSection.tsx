@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -331,15 +330,13 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
               </button>
             </div>
             {!isAdding && (
-              <Button
-                variant="outline"
-                size="sm"
+              <button
                 onClick={() => setIsAdding(true)}
-                className="h-8 px-3"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md h-8 px-3"
               >
-                <Plus className="h-3 w-3 mr-1" />
+                <Plus className="h-3 w-3" />
                 Add Note
-              </Button>
+              </button>
             )}
           </CardTitle>
         </CardHeader>
@@ -356,24 +353,23 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
                 className="resize-none"
               />
               <div className="flex gap-2">
-                <Button
+                <button
                   onClick={addNote}
                   disabled={!newNoteContent.trim() || isSaving}
-                  size="sm"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 shadow-sm hover:shadow-md h-8 px-3"
                 >
-                  <Save className="h-3 w-3 mr-1" />
+                  <Save className="h-3 w-3" />
                   {isSaving ? "Saving..." : "Save Note"}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
+                </button>
+                <button
                   onClick={() => {
                     setIsAdding(false);
                     setNewNoteContent("");
                   }}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md h-8 px-3"
                 >
                   Cancel
-                </Button>
+                </button>
               </div>
             </div>
           )}

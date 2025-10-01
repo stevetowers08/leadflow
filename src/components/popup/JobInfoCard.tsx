@@ -45,26 +45,64 @@ export const JobInfoCard: React.FC<JobInfoCardProps> = ({ job }) => {
   };
 
   return (
-    <InfoCard title="Job Information" contentSpacing="space-y-6 pt-4">
-      {/* AI Job Summary */}
-      <AIJobSummary job={job} />
-      
-      {/* Job Details Grid */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="space-y-1">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-            Salary Range
+    <InfoCard title="Job Information" contentSpacing="space-y-4 pt-4" showDivider={true}>
+      {/* Section 1: Job Header - Prominent Title and Key Details */}
+      <div className="space-y-4">
+        {/* Job Title - Large and Prominent */}
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 leading-tight">{job.title}</h2>
+          {job.company_name && (
+            <p className="text-base text-gray-600 mt-1">{job.company_name}</p>
+          )}
+        </div>
+
+        {/* Key Details Row - Same size as other info fields */}
+        <div className="grid grid-cols-3 gap-3">
+          {/* Salary */}
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-gray-400">Salary Range</div>
+            <div className="text-sm text-gray-900 font-medium">
+              <span>{formatSalary()}</span>
+            </div>
           </div>
-          <div className="text-sm text-gray-900 font-medium">
-            {formatSalary()}
+
+          {/* Location */}
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-gray-400">Location</div>
+            <div className="text-sm text-gray-900 font-medium">
+              {job.location ? (
+                <span>{job.location}</span>
+              ) : (
+                <span className="text-gray-400">-</span>
+              )}
+            </div>
+          </div>
+
+          {/* Employment Type */}
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-gray-400">Employment Type</div>
+            <div className="text-sm text-gray-900 font-medium">
+              <span>{formatEmploymentType()}</span>
+            </div>
           </div>
         </div>
-        <InfoField label="Location" value={job.location} />
+      </div>
+
+      {/* Section 2: Additional Job Details - Smaller text */}
+      <div className="grid grid-cols-3 gap-3">
         <InfoField label="Function/Department" value={job.function} />
-        <InfoField label="Employment Type" value={formatEmploymentType()} />
         <InfoField label="Seniority Level" value={job.seniority_level} />
         <InfoField label="Posted Date" value={job.created_at ? formatDateForSydney(job.created_at, 'date') : "-"} />
       </div>
+
+      {/* Section 3: AI Job Summary - Moved to bottom like company card */}
+      {job.description && job.title ? (
+        <AIJobSummary job={job} />
+      ) : (
+        <div className="text-center py-4 text-gray-500 text-sm">
+          AI Job Summary not available - missing job description or title
+        </div>
+      )}
     </InfoCard>
   );
 };

@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { EntityType } from "@/components/crm/EntityDetailPopup";
 import { COMMON_SELECTIONS } from "@/types/databaseSchema";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UseEntityDataProps {
   entityType: EntityType;
@@ -21,6 +22,8 @@ interface UseEntityDataProps {
 export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: UseEntityDataProps) {
   console.log('🔍 useEntityData called:', { entityType, entityId, isOpen, refreshTrigger });
   
+  const { user, isLoading: authLoading } = useAuth();
+  
   // Optimized selections for popup performance
   const OPTIMIZED_SELECTIONS = {
     people: 'id, name, company_id, email_address, linkedin_url, employee_location, company_role, lead_score, stage, connected_at, last_reply_at, last_interaction_at, owner_id, created_at, confidence_level, is_favourite, lead_source',
@@ -30,18 +33,58 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
   
   // Fetch entity data based on type
   const entityQuery = useQuery({
-    queryKey: [`${entityType}-detail`, entityId, refreshTrigger],
+    queryKey: [`${entityType}-detail`, entityId, refreshTrigger, user?.id],
     queryFn: async () => {
-      console.log('🔍 useEntityData queryFn called for:', { entityType, entityId });
+      console.log('🔍 useEntityData queryFn called for:', { entityType, entityId, userId: user?.id });
+      
+      // Wait for authentication to complete
+      if (authLoading) {
+        console.log('🔍 Waiting for authentication...');
+        return new Promise((resolve) => {
+          const checkAuth = () => {
+            if (!authLoading) {
+              resolve(null);
+            } else {
+              setTimeout(checkAuth, 100);
+            }
+          };
+          checkAuth();
+        });
+      }
+      
+      // Check if user is authenticated
+      if (!user?.id) {
+        console.error('❌ User not authenticated, cannot fetch data');
+        throw new Error('User not authenticated');
+      }
+      
       const tableName = entityType === 'lead' ? 'people' : entityType === 'company' ? 'companies' : 'jobs';
       
-      // Add timeout to prevent hanging queries
+      // Reduced timeout to 5 seconds for better UX
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000);
+        setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000);
       });
       
-      // Test direct query without authentication checks first
-      console.log('🔍 Testing direct query without auth checks...');
+      console.log('🔍 Executing authenticated query for:', { tableName, entityId, userId: user.id });
+      
+      // Check Supabase session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log('🔍 Supabase session check:', { 
+        hasSession: !!sessionData.session, 
+        userId: sessionData.session?.user?.id,
+        expiresAt: sessionData.session?.expires_at,
+        sessionError
+      });
+      
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError);
+        throw new Error(`Session error: ${sessionError.message}`);
+      }
+      
+      if (!sessionData.session) {
+        console.error('❌ No active session found');
+        throw new Error('No active Supabase session');
+      }
       
       const queryPromise = supabase
         .from(tableName)
@@ -71,20 +114,33 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
         throw error;
       }
     },
-    enabled: !!entityId && isOpen,
-    retry: 1, // Only retry once
-    retryDelay: 1000 // Wait 1 second before retry
+    enabled: !!entityId && isOpen && !authLoading && !!user?.id,
+    retry: 1, // Reduced retries
+    retryDelay: 1000, // Fixed retry delay
+    staleTime: 2 * 60 * 1000, // Reduced to 2 minutes
+    gcTime: 5 * 60 * 1000 // Reduced to 5 minutes
   });
 
-  // Fetch company data (for leads and jobs) - now runs in parallel
+  // Fetch company data (for leads and jobs) - optimized with timeout
   const companyQuery = useQuery({
-    queryKey: [`${entityType}-company`, entityQuery.data?.company_id, refreshTrigger],
+    queryKey: [`${entityType}-company`, entityQuery.data?.company_id, refreshTrigger, user?.id],
     queryFn: async () => {
       if (!entityQuery.data?.company_id) {
         return null;
       }
       
-      const { data, error } = await supabase
+      // Check if user is authenticated
+      if (!user?.id) {
+        console.error('❌ User not authenticated, cannot fetch company data');
+        throw new Error('User not authenticated');
+      }
+      
+      // Add timeout for company query
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Company query timeout after 5 seconds')), 5000);
+      });
+      
+      const queryPromise = supabase
         .from("companies")
         .select(`
           id,
@@ -106,18 +162,30 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
         .eq("id", entityQuery.data.company_id)
         .single();
 
-      if (error) {
-        console.error("❌ Error fetching company:", error);
+      try {
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        const { data, error } = result as any;
+
+        if (error) {
+          console.error("❌ Error fetching company:", error);
+          throw error;
+        }
+        return data;
+      } catch (error) {
+        console.error("❌ Company query failed:", error);
         throw error;
       }
-      return data;
     },
-    enabled: !!entityQuery.data?.company_id && isOpen
+    enabled: !!entityQuery.data?.company_id && isOpen && !authLoading && !!user?.id,
+    retry: 1,
+    retryDelay: 1000,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000
   });
 
-  // Fetch related leads (for companies and jobs) - optimized for parallel execution
+  // Fetch related leads (for companies and jobs) - optimized with timeout
   const leadsQuery = useQuery({
-    queryKey: [`${entityType}-leads`, entityQuery.data?.company_id || entityId, entityId, refreshTrigger],
+    queryKey: [`${entityType}-leads`, entityQuery.data?.company_id || entityId, entityId, refreshTrigger, user?.id],
     queryFn: async () => {
       // For companies, use entityId directly. For leads/jobs, use company_id from the entity
       const companyId = entityType === 'company' ? entityId : entityQuery.data?.company_id;
@@ -125,6 +193,17 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
       if (!companyId) {
         return [];
       }
+
+      // Check if user is authenticated
+      if (!user?.id) {
+        console.error('❌ User not authenticated, cannot fetch leads data');
+        throw new Error('User not authenticated');
+      }
+
+      // Add timeout for leads query
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Leads query timeout after 5 seconds')), 5000);
+      });
 
       let query = supabase
         .from("people")
@@ -154,20 +233,32 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
         query = query.neq("id", entityId);
       }
 
-      const { data, error } = await query.order("created_at", { ascending: false });
+      const queryPromise = query.order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("❌ Error fetching leads:", error);
+      try {
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        const { data, error } = result as any;
+
+        if (error) {
+          console.error("❌ Error fetching leads:", error);
+          throw error;
+        }
+        return data || [];
+      } catch (error) {
+        console.error("❌ Leads query failed:", error);
         throw error;
       }
-      return data || [];
     },
-    enabled: (!!entityQuery.data?.company_id || entityType === 'company') && isOpen
+    enabled: (!!entityQuery.data?.company_id || entityType === 'company') && isOpen && !authLoading && !!user?.id,
+    retry: 1,
+    retryDelay: 1000,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000
   });
 
-  // Fetch related jobs (for companies and leads) - optimized for parallel execution
+  // Fetch related jobs (for companies and leads) - optimized with timeout
   const jobsQuery = useQuery({
-    queryKey: [`${entityType}-jobs`, entityQuery.data?.company_id || entityId, refreshTrigger],
+    queryKey: [`${entityType}-jobs`, entityQuery.data?.company_id || entityId, refreshTrigger, user?.id],
     queryFn: async () => {
       // For companies, use entityId directly. For leads/jobs, use company_id from the entity
       const companyId = entityType === 'company' ? entityId : entityQuery.data?.company_id;
@@ -176,7 +267,18 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
         return [];
       }
 
-      const { data, error } = await supabase
+      // Check if user is authenticated
+      if (!user?.id) {
+        console.error('❌ User not authenticated, cannot fetch jobs data');
+        throw new Error('User not authenticated');
+      }
+
+      // Add timeout for jobs query
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Jobs query timeout after 5 seconds')), 5000);
+      });
+
+      const queryPromise = supabase
         .from("jobs")
         .select(`
           id,
@@ -191,13 +293,25 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
         .eq("company_id", companyId)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("❌ Error fetching jobs:", error);
+      try {
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        const { data, error } = result as any;
+
+        if (error) {
+          console.error("❌ Error fetching jobs:", error);
+          throw error;
+        }
+        return data || [];
+      } catch (error) {
+        console.error("❌ Jobs query failed:", error);
         throw error;
       }
-      return data || [];
     },
-    enabled: (!!entityQuery.data?.company_id || entityType === 'company') && isOpen
+    enabled: (!!entityQuery.data?.company_id || entityType === 'company') && isOpen && !authLoading && !!user?.id,
+    retry: 1,
+    retryDelay: 1000,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000
   });
 
 
@@ -229,7 +343,7 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
     jobsLoading: jobsQuery.isLoading,
     jobsError: jobsQuery.error,
     
-    isLoading: entityQuery.isLoading || companyQuery.isLoading || leadsQuery.isLoading || jobsQuery.isLoading,
+    isLoading: authLoading || entityQuery.isLoading || companyQuery.isLoading || leadsQuery.isLoading || jobsQuery.isLoading,
     hasError
   };
 

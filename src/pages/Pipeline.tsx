@@ -5,7 +5,7 @@ import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { useToast } from "@/hooks/use-toast";
-import { usePopup } from "@/contexts/OptimizedPopupContext";
+import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ const Pipeline = () => {
   const [showAllAssignedUsers, setShowAllAssignedUsers] = useState(false);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const { toast } = useToast();
-  const { openPopup } = usePopup();
+  const { openPopup } = usePopupNavigation();
   const queryClient = useQueryClient();
 
   // Use React Query for data fetching with caching
@@ -325,10 +325,7 @@ const Pipeline = () => {
   const favoriteCount = companies.filter(company => company.is_favourite).length;
 
   const handleCompanyClick = (company: Company) => {
-    console.log('🔍 Company clicked:', company.name, company.id);
-    console.log('🔍 openPopup function:', openPopup);
     openPopup('company', company.id, company.name);
-    console.log('🔍 openPopup called');
   };
 
   // Enhanced Draggable Company Card Component with better accessibility and visual feedback

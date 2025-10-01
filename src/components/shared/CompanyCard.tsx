@@ -73,7 +73,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
         <div className="flex items-center gap-2">
           <StatusBadge status={company.pipeline_stage || "new_lead"} size="sm" />
           <span className={cn(
-            "inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-semibold border",
+            "inline-flex items-center justify-center px-3 py-2 rounded-md text-xs font-semibold border",
             company.lead_score === "High" && "bg-green-50 text-green-700 border-green-200",
             company.lead_score === "Medium" && "bg-yellow-50 text-yellow-700 border-yellow-200", 
             company.lead_score === "Low" && "bg-red-50 text-red-700 border-red-200",

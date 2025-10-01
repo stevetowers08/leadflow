@@ -7,7 +7,7 @@ import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePopup } from "@/contexts/OptimizedPopupContext";
+import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ const Companies = () => {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { openPopup } = usePopup();
+  const { openPopup } = usePopupNavigation();
 
   // Sort options
   const sortOptions = [
@@ -516,7 +516,7 @@ const Companies = () => {
         <div className="flex items-center justify-center">
           <span
             className={cn(
-              "inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border",
+              "inline-flex items-center justify-center px-3 py-2 rounded-md text-xs font-medium border",
               getScoreBadgeClasses(company.lead_score ?? null)
             )}
           >

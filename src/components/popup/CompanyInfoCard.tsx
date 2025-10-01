@@ -3,9 +3,7 @@ import { InfoCard } from '@/components/shared/InfoCard';
 import { InfoField } from '@/components/shared/InfoField';
 import { TagDisplay } from '@/components/TagDisplay';
 import { TagSelector } from '@/components/forms/TagSelector';
-import { Button } from '@/components/ui/button';
-import { Clickable } from '@/components/shared/Clickable';
-import { Globe, Plus, Building2 } from 'lucide-react';
+import { Plus, Building2, Globe } from 'lucide-react';
 import { getScoreBadgeClasses } from '@/utils/scoreUtils';
 
 interface Tag {
@@ -60,113 +58,80 @@ export const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({
   if (!company) return null;
 
   return (
-    <InfoCard title={showTitle ? "Company Information" : undefined} contentSpacing="space-y-8" showDivider={false}>
-      {/* Section 1: Company Header */}
+    <InfoCard title={showTitle ? "Company Information" : undefined} contentSpacing="space-y-4 pt-1" showDivider={false}>
+      {/* Section 1: Company Header - Aligned with Lead Card */}
       <div className="grid grid-cols-3 gap-3 items-center">
-        {/* Column 1 - Logo, Company Name, Head Office */}
-        {handleCompanyClick ? (
-          <Clickable
-            onClick={handleCompanyClick}
-            variant="card"
-            size="md"
-            aria-label={`View ${company.name} company details`}
-            aria-describedby={`company-${company.id}-description`}
-          >
-            {/* Company Logo */}
-            <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
-              {logo ? (
-                <img 
-                  src={logo} 
-                  alt={`${company.name} logo`}
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                  }}
-                />
-              ) : null}
-              <Building2 className={`w-10 h-10 text-gray-400 ${logo ? 'hidden' : ''}`} />
-            </div>
-            
-            {/* Company Info */}
-            <div className="min-w-0">
-              <div className="text-xl font-bold text-gray-900 leading-tight">{company.name}</div>
-              {company.head_office && (
-                <div className="text-sm text-gray-500 leading-tight">{company.head_office}</div>
-              )}
-            </div>
-          </Clickable>
-        ) : (
-          <div className="flex items-center gap-4">
-            {/* Company Logo */}
-            <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
-              {logo ? (
-                <img 
-                  src={logo} 
-                  alt={`${company.name} logo`}
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                  }}
-                />
-              ) : null}
-              <Building2 className={`w-10 h-10 text-gray-400 ${logo ? 'hidden' : ''}`} />
-            </div>
-            
-            {/* Company Info */}
-            <div className="min-w-0">
-              <div className="text-xl font-bold text-gray-900 leading-tight">{company.name}</div>
-              {company.head_office && (
-                <div className="text-sm text-gray-500 leading-tight">{company.head_office}</div>
-              )}
-            </div>
+        {/* Column 1 - Logo, Company Name with Icons, Head Office */}
+        <div 
+          className={`flex items-center gap-3 ${handleCompanyClick ? 'cursor-pointer hover:bg-gray-50 transition-colors duration-200 rounded-lg p-2' : ''}`}
+          onClick={handleCompanyClick}
+          role={handleCompanyClick ? 'button' : undefined}
+          tabIndex={handleCompanyClick ? 0 : undefined}
+          aria-label={handleCompanyClick ? `View ${company.name} company details` : undefined}
+          aria-describedby={handleCompanyClick ? `company-${company.id}-description` : undefined}
+        >
+          {/* Company Logo - Aligned with Lead Card */}
+          <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+            {logo ? (
+              <img 
+                src={logo} 
+                alt={`${company.name} logo`}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <Building2 className={`w-8 h-8 text-gray-400 ${logo ? 'hidden' : ''}`} />
           </div>
-        )}
-
-        {/* Column 2 - AI Score */}
-        <div className="space-y-1">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">AI Score</div>
-          <div className="text-sm text-gray-900 font-medium">
-            <div className={`px-2 py-1 rounded-md border text-xs font-semibold w-fit ${getScoreBadgeClasses(company.lead_score)}`}>
-              {company.lead_score || "-"}
-            </div>
-          </div>
-        </div>
-
-        {/* Column 3 - LinkedIn and Website Icons */}
-        <div className="space-y-1">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide"></div>
-          <div className="text-sm text-gray-900 font-medium">
-            <div className="flex items-center gap-3">
+          
+          {/* Company Info */}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="text-lg font-bold text-gray-900 leading-tight">{company.name}</div>
               {company.linkedin_url && (
                 <a 
                   href={company.linkedin_url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded hover:bg-blue-50"
+                  className="text-blue-600 hover:text-blue-800 transition-colors"
                   title="View LinkedIn profile"
                 >
-                  <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">in</span>
-                  </div>
+                  <img src="https://logo.clearbit.com/linkedin.com" alt="LinkedIn" className="h-4 w-4" />
                 </a>
               )}
-              
               {company.website && (
                 <a 
                   href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded hover:bg-gray-100"
+                  className="text-blue-600 hover:text-blue-800 transition-colors"
                   title="Visit website"
                 >
-                  <Globe className="h-6 w-6" />
+                  <Globe className="h-4 w-4" />
                 </a>
               )}
             </div>
+            {company.head_office && (
+              <div className="text-sm text-gray-500 leading-tight">{company.head_office}</div>
+            )}
           </div>
         </div>
+
+        {/* Column 2 - AI Score */}
+        <div className="space-y-1">
+          <div className="text-xs font-medium text-gray-400">AI Score</div>
+          <div className="text-sm text-gray-900 font-medium">
+            <div className={`h-7 px-2 rounded-md border text-xs font-semibold w-fit flex items-center justify-center ${getScoreBadgeClasses(company.lead_score)}`}>
+              {company.lead_score || "-"}
+            </div>
+          </div>
+        </div>
+
+        {/* Column 3 - Empty (for consistent 3-column layout) */}
+        <div></div>
+
       </div>
 
       {/* Section 2: Company Details */}
@@ -188,7 +153,7 @@ export const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({
         
         {/* Company Tags */}
         <div className="space-y-2">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">Tags</div>
+          <div className="text-xs font-medium text-gray-400">Tags</div>
           
           {tags.length > 0 ? (
             <div className="space-y-2">
@@ -223,13 +188,12 @@ export const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({
               <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold">Add Tags</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <button
                     onClick={() => setShowTagSelector(false)}
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2"
                   >
                     ×
-                  </Button>
+                  </button>
                 </div>
                 <TagSelector
                   entityId={company.id}
@@ -238,9 +202,12 @@ export const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({
                   onTagsChange={setTags}
                 />
                 <div className="flex justify-end mt-4">
-                  <Button onClick={() => setShowTagSelector(false)}>
+                  <button 
+                    onClick={() => setShowTagSelector(false)}
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 shadow-sm hover:shadow-md h-8 px-3"
+                  >
                     Done
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>

@@ -10,6 +10,7 @@ import { InfoField } from "@/components/shared/InfoField";
 import { JobInfoCard } from "@/components/popup/JobInfoCard";
 import { RelatedItemsList } from "@/components/popup/RelatedItemsList";
 import { StatusBadge } from "@/components/StatusBadge";
+import { UserAssignmentDisplay } from "@/components/shared/UserAssignmentDisplay";
 import { Button } from "@/components/ui/button";
 import {
   User,
@@ -53,7 +54,6 @@ interface EntityDetailPopupProps {
 export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNavigateToEntity, onNavigateToCompany }: EntityDetailPopupProps) {
   // console.log('🔍 EntityDetailPopup render:', { entityType, entityId, isOpen });
   
-  try {
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [showJobModal, setShowJobModal] = useState(false);
@@ -400,8 +400,8 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
           return allowedStages.includes(currentStage);
         })()}
         favoriteButton={null}
-        ownerId={entityData?.owner_id}
-        onAssignmentChange={handleAssignmentChange}
+        ownerId={entityType === 'lead' ? null : entityData?.owner_id} // Don't show assignment in header for leads
+        onAssignmentChange={entityType === 'lead' ? undefined : handleAssignmentChange} // Don't handle assignment in header for leads
       actionButton={
         <div className="flex items-center gap-4">
           {/* Favorite Toggle - Same size as other action icons */}
@@ -423,7 +423,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
                   console.error('Error toggling favorite:', error);
                 }
               }}
-              className="text-gray-500 hover:text-gray-700 transition-colors p-1.5 border border-gray-300 rounded hover:border-gray-400 hover:bg-gray-50"
+              className="text-gray-500 hover:text-gray-700 transition-colors p-2 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
             >
               <Star 
                 className={cn(
@@ -438,7 +438,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
           {(entityType === 'lead' || entityType === 'company') && (
             <button 
               onClick={() => setShowAddNoteModal(true)}
-              className="text-gray-500 hover:text-gray-700 transition-colors p-1.5 border border-gray-300 rounded hover:border-gray-400 hover:bg-gray-50"
+              className="text-gray-500 hover:text-gray-700 transition-colors p-2 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
             >
               <MessageSquare className="h-4 w-4" />
             </button>
@@ -447,21 +447,21 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
           {/* Activity Button - Smaller with subtle border */}
           <button 
             onClick={handleActivityClick}
-            className="text-gray-500 hover:text-gray-700 transition-colors p-1.5 border border-gray-300 rounded hover:border-gray-400 hover:bg-gray-50"
+            className="text-gray-500 hover:text-gray-700 transition-colors p-2 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
           >
             <Activity className="h-4 w-4" />
           </button>
 
-          {/* Automation Button - Only for leads */}
+          {/* User Assignment Display - Only for leads in header */}
           {entityType === 'lead' && (
-            <Button
-              onClick={handleCurrentLeadAutomation}
-              size="sm"
-              className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground px-4 py-1.5 h-8 text-sm font-medium flex items-center justify-center"
-            >
-              <Zap className="h-4 w-4 mr-1.5" />
-              Automate
-            </Button>
+            <div className="flex-shrink-0">
+              <UserAssignmentDisplay
+                ownerId={entityData?.owner_id}
+                entityId={entityId || ''}
+                entityType={entityType}
+                onAssignmentChange={handleAssignmentChange}
+              />
+            </div>
           )}
         </div>
       }
@@ -470,7 +470,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
 
         {entityType === 'lead' && (
           <>
-            <LeadInfoCard lead={entityData} />
+            <LeadInfoCard lead={entityData} onAutomate={handleCurrentLeadAutomation} />
             {companyData && (
               <InfoCard title="Company Information" contentSpacing="space-y-6 pt-4" showDivider={true}>
                 {/* Replace first section with clickable CompanyCard */}
@@ -701,10 +701,4 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
     </PopupModal>
     </div>
   );
-  } catch (error) {
-    console.error('🔍 EntityDetailPopup error:', error);
-    // If there's an error, close the popup
-    onClose();
-    return null;
-  }
 }
