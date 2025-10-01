@@ -5,7 +5,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { JobsStatsCards } from "@/components/StatsCards";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { useToast } from "@/hooks/use-toast";
-import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
+import { usePopup } from "@/contexts/OptimizedPopupContext";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Clock, DollarSign, Bot, Users, Briefcase, Zap, Target, AlertTriangle, Trash2 } from "lucide-react";
@@ -43,7 +43,7 @@ const Jobs = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const { toast } = useToast();
-  const { openPopup } = usePopupNavigation();
+  const { openPopup } = usePopup();
   
   // Sort options
   const sortOptions = [

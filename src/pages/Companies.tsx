@@ -7,7 +7,7 @@ import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
+import { usePopup } from "@/contexts/OptimizedPopupContext";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ const Companies = () => {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { openPopup } = usePopupNavigation();
+  const { openPopup } = usePopup();
 
   // Sort options
   const sortOptions = [

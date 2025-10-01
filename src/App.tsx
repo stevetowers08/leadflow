@@ -9,10 +9,10 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
 import { SidebarProvider } from "./contexts/SidebarContext";
 import { AIProvider } from "./contexts/AIContext";
-import { PopupNavigationProvider } from "./contexts/PopupNavigationContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components";
-import { UnifiedPopup } from "./components/UnifiedPopup";
+import { PopupProvider } from "./contexts/OptimizedPopupContext";
+import { SimplePopupManager } from "./components/SimplePopupManager";
 import { AuthPage } from "./components/auth/AuthPage";
 import AuthCallback from "./components/auth/AuthCallback";
 import { GmailCallback } from "./components/GmailCallback";
@@ -66,7 +66,7 @@ const AppRoutes = () => {
     <PermissionsProvider user={user} userProfile={userProfile} authLoading={loading}>
       <AIProvider>
         <SidebarProvider>
-          <PopupNavigationProvider>
+          <PopupProvider>
             <Layout>
               <Suspense fallback={
                 <div className="min-h-screen flex items-center justify-center">
@@ -96,11 +96,11 @@ const AppRoutes = () => {
               </Suspense>
             </Layout>
             
-            {/* Popup System */}
+            {/* Simplified Popup System */}
             <Suspense fallback={null}>
-              <UnifiedPopup />
+              <SimplePopupManager />
             </Suspense>
-          </PopupNavigationProvider>
+          </PopupProvider>
         </SidebarProvider>
       </AIProvider>
     </PermissionsProvider>

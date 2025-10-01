@@ -6,7 +6,7 @@ import { PeopleStatsCards } from "@/components/StatsCards";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { useToast } from "@/hooks/use-toast";
-import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
+import { usePopup } from "@/contexts/OptimizedPopupContext";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Search, ArrowUpDown, Users, UserPlus, MessageSquare, CheckCircle, Calendar, Star } from "lucide-react";
@@ -49,7 +49,7 @@ const People = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("created_at");
-  const { openPopup } = usePopupNavigation();
+  const { openPopup } = usePopup();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);

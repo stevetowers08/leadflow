@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionsContext";
-import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
+import { usePopup } from "@/contexts/OptimizedPopupContext";
 import { designTokens } from "@/design-system/tokens";
 import type { Tables } from "@/integrations/supabase/types";
 

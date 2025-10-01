@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AssignmentHistoryModal } from './AssignmentHistoryModal';
 import { useAssignmentState } from '@/hooks/useAssignmentState';
+import { useAssignmentRefresh } from '@/hooks/useAssignmentRefresh';
 
 interface UserAssignmentDisplayProps {
   ownerId: string | null;
@@ -37,6 +38,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
   const { user } = useAuth();
   const permissionsContext = usePermissions();
   const { hasRole, loading: permissionsLoading } = permissionsContext;
+  const { refreshAssignmentLists, refreshSpecificEntity } = useAssignmentRefresh();
 
   // Map entityType to database table name
   const tableName = entityType === 'lead' ? 'people' : entityType === 'company' ? 'companies' : 'jobs';
@@ -64,6 +66,11 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
     entityType: tableName as 'people' | 'companies' | 'jobs',
     entityId,
     onSuccess: () => {
+      // Trigger refresh of all assignment lists
+      refreshAssignmentLists();
+      // Also refresh specific entity
+      refreshSpecificEntity(tableName as 'people' | 'companies' | 'jobs', entityId);
+      // Call the original callback
       onAssignmentChange?.();
       setShowUserList(false);
     },
