@@ -28,6 +28,8 @@ const LinkedInAutomationModal = lazy(() => import("./automation/LinkedInAutomati
 const AddNoteModal = lazy(() => import("./AddNoteModal").then(module => ({ default: module.AddNoteModal })));
 import { useEntityData } from "@/hooks/useEntityData";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
+import { useAssignmentRefresh } from '@/hooks/useAssignmentRefresh';
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -64,6 +66,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
   const [isFavorite, setIsFavorite] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { onAssignmentChange } = usePopupNavigation();
+  const { refreshAssignmentLists, refreshSpecificEntity } = useAssignmentRefresh();
 
   const { user } = useAuth();
 
@@ -244,6 +247,10 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
 
   const handleAssignmentChange = () => {
     setRefreshTrigger(prev => prev + 1);
+    // Trigger refresh of all assignment lists
+    refreshAssignmentLists();
+    // Also refresh specific entity
+    refreshSpecificEntity(entityType === 'lead' ? 'people' : entityType === 'company' ? 'companies' : 'jobs', entityId);
     // Notify the popup navigation context about the assignment change
     onAssignmentChange?.();
   };
