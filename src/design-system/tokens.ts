@@ -88,7 +88,7 @@ export const designTokens = {
     sizeLg: 'w-10 h-10', // Large logos for detail views
     sizeXl: 'w-12 h-12', // Extra large logos for headers
     container: 'rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0', // Slightly rounded squares
-    fallback: 'bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold',
+    fallback: 'bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-xs font-semibold',
   },
 
   // Colors - Semantic color tokens
@@ -96,7 +96,7 @@ export const designTokens = {
     text: {
       primary: 'text-foreground',
       secondary: 'text-muted-foreground',
-      accent: 'text-primary',
+      accent: 'text-sidebar-primary',
       success: 'text-green-600',
       warning: 'text-orange-600',
       error: 'text-destructive',
@@ -115,7 +115,7 @@ export const designTokens = {
       warning: 'text-orange-600 bg-orange-50',
       error: 'text-red-600 bg-red-50',
       info: 'text-accent bg-accent/10',
-      primary: 'text-primary bg-primary/10',
+      primary: 'text-sidebar-primary bg-sidebar-primary/10',
     },
   },
 
@@ -144,7 +144,7 @@ export const designTokens = {
 
   // Loading States
   loading: {
-    spinner: 'animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4',
+    spinner: 'animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary mx-auto mb-4',
     text: 'text-sm text-muted-foreground mt-2',
     container: 'text-center py-12',
   },

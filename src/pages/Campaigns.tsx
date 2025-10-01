@@ -85,6 +85,7 @@ const STATUS_COLORS = {
 };
 
 export default function Campaigns() {
+  console.log('🚀 Campaigns component loaded');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [formData, setFormData] = useState<CampaignFormData>({
@@ -581,7 +582,7 @@ export default function Campaigns() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-2">
-                      <IconComponent className="h-5 w-5 text-primary" />
+                      <IconComponent className="h-5 w-5 text-sidebar-primary" />
                       <div>
                         <CardTitle className="text-lg">{campaign.name}</CardTitle>
                         <CardDescription>

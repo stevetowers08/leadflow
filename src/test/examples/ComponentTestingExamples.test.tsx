@@ -25,9 +25,9 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   const baseClasses = 'font-medium rounded-md transition-colors focus:outline-none focus:ring-2';
   const variantClasses = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    primary: 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 focus:ring-sidebar-primary',
+    secondary: 'bg-muted text-muted-foreground hover:bg-muted/80 focus:ring-muted',
+    danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive',
   };
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm',
@@ -243,6 +243,8 @@ describe('Component Integration Tests', () => {
     });
   });
 });
+
+
 
 
 

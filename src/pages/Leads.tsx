@@ -2,17 +2,17 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
-import { EntityDetailPopup } from "@/components/crm/EntityDetailPopup";
 import { PeopleStatsCards } from "@/components/StatsCards";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { useToast } from "@/hooks/use-toast";
+import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Search, ArrowUpDown, Users, UserPlus, MessageSquare, CheckCircle, Calendar, Star } from "lucide-react";
 import { getProfileImage } from '@/utils/linkedinProfileUtils';
 import { getClearbitLogo } from "@/utils/logoService";
-import { Page, StatItemProps } from "@/design-system/components";
+import { Page } from "@/design-system/components";
 import { cn } from "@/lib/utils";
 
 import type { Tables } from "@/integrations/supabase/types";
@@ -47,13 +47,14 @@ const formatLeadLocation = (location?: string | null): string => {
 const People = () => {
   const [leads, setLeads] = useState<Tables<"people">[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("created_at");
+  const { openPopup } = usePopupNavigation();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const { toast } = useToast();
 
   // Sort options
@@ -314,7 +315,7 @@ const People = () => {
         return (
           <div className="min-w-0">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                 <img 
                   src={avatarUrl} 
                   alt={lead.name || 'Lead'}
@@ -328,7 +329,7 @@ const People = () => {
                   }}
                 />
                 <div 
-                  className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold"
+                  className="w-8 h-8 rounded-full bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-sm font-semibold"
                   style={{ display: 'none' }}
                 >
                   {initials}
@@ -361,7 +362,7 @@ const People = () => {
       render: (lead: Lead) => (
         <div className="min-w-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
               {lead.company_logo_url ? (
                 <img 
                   src={lead.company_logo_url} 
@@ -377,7 +378,7 @@ const People = () => {
                 />
               ) : null}
               <div 
-                className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold"
+                className="w-8 h-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-sm font-semibold"
                 style={{ display: lead.company_logo_url ? 'none' : 'flex' }}
               >
                 {lead.company_name?.charAt(0)?.toUpperCase() || '?'}
@@ -474,8 +475,15 @@ const People = () => {
   ];
 
   const handleRowClick = (lead: Lead) => {
-    setSelectedLead(lead);
-    setIsDetailModalOpen(true);
+    console.log('🔍 Lead clicked:', lead.name, lead.id);
+    console.log('🔍 openPopup function:', openPopup);
+    openPopup('lead', lead.id, lead.name);
+    console.log('🔍 openPopup called');
+  };
+
+  const handleAssignmentChange = () => {
+    // Refresh the leads list when assignment changes
+    fetchLeads();
   };
 
   return (
@@ -494,7 +502,7 @@ const People = () => {
                 placeholder="Search leads..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-9 text-sm w-64 bg-white"
+                className="pl-10 h-9 text-sm w-64 bg-background"
               />
             </div>
             
@@ -504,7 +512,7 @@ const People = () => {
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value)}
               placeholder="All Statuses"
-              className="min-w-32 bg-white"
+              className="min-w-32 bg-background"
             />
 
             {/* Favorites Filter */}
@@ -513,7 +521,7 @@ const People = () => {
               className={cn(
                 "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                 showFavoritesOnly 
-                  ? "bg-primary text-primary-foreground" 
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground" 
                   : "bg-white text-muted-foreground hover:text-foreground border border-border"
               )}
             >
@@ -536,7 +544,7 @@ const People = () => {
               value={sortBy}
               onValueChange={(value) => setSortBy(value)}
               placeholder="Select sort"
-              className="min-w-32 bg-white"
+              className="min-w-32 bg-background"
             />
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
@@ -561,15 +569,7 @@ const People = () => {
           }}
         />
       
-      <EntityDetailPopup
-        entityType="lead"
-        entityId={selectedLead?.id || ""}
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedLead(null);
-        }}
-      />
+      {/* Lead Detail Modal - Now handled by UnifiedPopup */}
     </Page>
   );
 };

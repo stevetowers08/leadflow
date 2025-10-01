@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { User, UserPlus, UserX } from 'lucide-react';
+import { User, UserPlus, UserX, History } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { AssignmentHistoryModal } from './AssignmentHistoryModal';
+import { useAssignmentState } from '@/hooks/useAssignmentState';
 
 interface UserAssignmentDisplayProps {
   ownerId: string | null;
@@ -29,47 +31,65 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
   onAssignmentChange,
   className
 }) => {
-  const [assignedUser, setAssignedUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [isAssigning, setIsAssigning] = useState(false);
   const [showUserList, setShowUserList] = useState(false);
   const [teamMembers, setTeamMembers] = useState<UserProfile[]>([]);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const { user } = useAuth();
-  const { hasRole } = usePermissions();
+  const permissionsContext = usePermissions();
+  const { hasRole, loading: permissionsLoading } = permissionsContext;
 
-  // Check if user can assign
-  const canAssign = hasRole('admin') || hasRole('owner') || true; // Temporarily always true for testing
+  // Map entityType to database table name
+  const tableName = entityType === 'lead' ? 'people' : entityType === 'company' ? 'companies' : 'jobs';
 
+  // Don't render anything while permissions are loading
+  if (permissionsLoading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sidebar-primary"></div>
+        Loading permissions...
+      </div>
+    );
+  }
 
-  // Fetch assigned user details
-  useEffect(() => {
-    if (!ownerId) {
-      setAssignedUser(null);
-      return;
-    }
+  // Use unified assignment state management
+  const {
+    ownerId: currentOwnerId,
+    ownerName: currentOwnerName,
+    isLoading,
+    isUpdating,
+    error,
+    canAssign,
+    assignToUser,
+  } = useAssignmentState({
+    entityType: tableName as 'people' | 'companies' | 'jobs',
+    entityId,
+    onSuccess: () => {
+      onAssignmentChange?.();
+      setShowUserList(false);
+    },
+    onError: (error) => {
+      console.error('Assignment error:', error);
+    },
+  });
 
-    const fetchAssignedUser = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('id, full_name, email, role')
-          .eq('id', ownerId)
-          .single();
-
-        if (error) throw error;
-        setAssignedUser(data);
-      } catch (error) {
-        console.error('Error fetching assigned user:', error);
-        setAssignedUser(null);
-      }
-    };
-
-    fetchAssignedUser();
-  }, [ownerId]);
+  // Debug logging
+  console.log('🔍 UserAssignmentDisplay Debug:', {
+    entityType,
+    tableName,
+    entityId,
+    canAssign,
+    isLoading,
+    isUpdating,
+    error,
+    currentOwnerId,
+    currentOwnerName,
+    teamMembersCount: teamMembers.length,
+    permissionsLoading,
+    userRole: permissionsContext?.userRole || 'unknown'
+  });
 
   // Fetch team members for assignment
   const fetchTeamMembers = async () => {
-    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -85,8 +105,6 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
       setTeamMembers(data || []);
     } catch (error) {
       console.error('❌ Error fetching team members:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -101,7 +119,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
     if (!canAssign) return;
     
     const newOwner = teamMembers.find(m => m.id === newOwnerId);
-    const currentOwner = assignedUser?.full_name;
+    const currentOwner = currentOwnerName;
     
     // Confirmation dialog
     const confirmMessage = currentOwner 
@@ -112,29 +130,13 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
       return;
     }
     
-    setIsAssigning(true);
-    try {
-      const tableName = entityType === 'lead' ? 'people' : entityType === 'company' ? 'companies' : 'jobs';
-      const { error } = await supabase
-        .from(tableName)
-        .update({ owner_id: newOwnerId })
-        .eq('id', entityId);
-
-      if (error) throw error;
-      
-      onAssignmentChange?.();
-      setShowUserList(false);
-    } catch (error) {
-      console.error('Error assigning user:', error);
-    } finally {
-      setIsAssigning(false);
-    }
+    assignToUser(newOwnerId);
   };
 
   const handleUnassign = async () => {
     if (!canAssign) return;
     
-    const currentOwner = assignedUser?.full_name;
+    const currentOwner = currentOwnerName;
     
     // Confirmation dialog
     const confirmMessage = `Are you sure you want to unassign ${currentOwner} from this ${entityType}?`;
@@ -143,39 +145,44 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
       return;
     }
     
-    setIsAssigning(true);
-    try {
-      const tableName = entityType === 'lead' ? 'people' : entityType === 'company' ? 'companies' : 'jobs';
-      const { error } = await supabase
-        .from(tableName)
-        .update({ owner_id: null })
-        .eq('id', entityId);
-
-      if (error) throw error;
-      
-      onAssignmentChange?.();
-    } catch (error) {
-      console.error('Error unassigning user:', error);
-    } finally {
-      setIsAssigning(false);
-    }
+    assignToUser(null);
   };
 
   const handleClick = () => {
-    if (!canAssign) return;
+    console.log('🔍 Assignment Click Debug:', {
+      canAssign,
+      teamMembersCount: teamMembers.length,
+      showUserList,
+      entityType,
+      entityId
+    });
+    
+    if (!canAssign) {
+      console.log('❌ Cannot assign - permission denied');
+      return;
+    }
     
     // If team members haven't been fetched yet, fetch them
     if (teamMembers.length === 0) {
+      console.log('🔄 Fetching team members...');
       fetchTeamMembers();
     }
     
     setShowUserList(!showUserList);
   };
 
-
   if (!canAssign) {
     // Read-only view
-    if (!assignedUser) {
+    if (isLoading) {
+      return (
+        <div className={cn("flex items-center gap-2 text-gray-400", className)}>
+          <User className="w-4 h-4 animate-pulse" />
+          <span className="text-sm">Loading...</span>
+        </div>
+      );
+    }
+
+    if (!currentOwnerId) {
       return (
         <div className={cn("flex items-center gap-2 text-gray-400", className)}>
           <User className="w-4 h-4" />
@@ -189,7 +196,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
         <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
           <User className="w-3 h-3 text-blue-600" />
         </div>
-        <span className="text-sm font-medium text-gray-700">{assignedUser.full_name}</span>
+        <span className="text-sm font-medium text-gray-700">{currentOwnerName || 'Loading...'}</span>
       </div>
     );
   }
@@ -200,9 +207,10 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
       <div 
         className={cn(
           "w-40 px-3 py-2 rounded-md text-sm font-medium h-10 flex items-center justify-center cursor-pointer transition-colors border",
-          assignedUser 
+          currentOwnerId 
             ? "bg-green-50 border-green-200 hover:bg-green-100 text-green-800" 
-            : "bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-600"
+            : "bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-600",
+          isUpdating && "opacity-50 pointer-events-none"
         )}
         onClick={(e) => {
           e.preventDefault();
@@ -210,10 +218,15 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
           handleClick();
         }}
       >
-        {assignedUser ? (
+        {isLoading ? (
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 flex-shrink-0 animate-pulse" />
+            <span className="text-sm">Loading...</span>
+          </div>
+        ) : currentOwnerId ? (
           <div className="flex items-center gap-2 min-w-0">
             <User className="w-4 h-4 flex-shrink-0" />
-            <span className="truncate text-sm">{assignedUser.full_name}</span>
+            <span className="truncate text-sm">{currentOwnerName || 'Loading...'}</span>
           </div>
         ) : (
           <div className="flex items-center gap-2">
@@ -231,47 +244,54 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
             <div className="p-3 border-b border-border">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Assign to User</h3>
-                {assignedUser && (
+                <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleUnassign}
-                    disabled={isAssigning}
-                    className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => setShowHistoryModal(true)}
+                    className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    title="View assignment history"
                   >
-                    <UserX className="w-3 h-3" />
+                    <History className="w-3 h-3" />
                   </Button>
-                )}
+                  {currentOwnerId && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleUnassign}
+                      disabled={isUpdating}
+                      className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <UserX className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             
             {/* User List */}
             <div className="p-1 max-h-64 overflow-y-auto">
-              {loading ? (
+              {teamMembers.length === 0 ? (
                 <div className="p-3 text-center text-sm text-muted-foreground">
                   Loading team members...
-                </div>
-              ) : teamMembers.length === 0 ? (
-                <div className="p-3 text-center text-sm text-muted-foreground">
-                  No team members found
                 </div>
               ) : (
                 teamMembers.map((member) => (
                   <button
                     key={member.id}
                     onClick={() => handleAssign(member.id)}
-                    disabled={isAssigning}
+                    disabled={isUpdating}
                     className={cn(
                       "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors",
                       "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                      assignedUser?.id === member.id && "bg-accent text-accent-foreground",
-                      isAssigning && "opacity-50 pointer-events-none"
+                      currentOwnerId === member.id && "bg-accent text-accent-foreground",
+                      isUpdating && "opacity-50 pointer-events-none"
                     )}
                   >
                     {/* Check indicator for current assignment */}
                     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                      {assignedUser?.id === member.id && (
-                        <div className="h-2 w-2 rounded-full bg-primary" />
+                      {currentOwnerId === member.id && (
+                        <div className="h-2 w-2 rounded-full bg-sidebar-primary" />
                       )}
                     </span>
                     
@@ -292,6 +312,15 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
           </div>
         </div>
       )}
+
+      {/* Assignment History Modal */}
+      <AssignmentHistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        entityType={tableName as 'people' | 'companies' | 'jobs'}
+        entityId={entityId}
+        entityName={`${entityType} ${entityId}`}
+      />
     </div>
   );
 };

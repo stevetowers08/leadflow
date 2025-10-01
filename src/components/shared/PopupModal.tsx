@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { DropdownSelect } from '@/components/ui/dropdown-select';
 import { DropdownOption } from '@/hooks/useDropdownOptions';
 import { UserAssignmentDisplay } from './UserAssignmentDisplay';
+import { StatusBadge } from '@/components/StatusBadge';
 
 interface PopupModalProps {
   isOpen: boolean;
@@ -206,8 +207,8 @@ export const PopupModal: React.FC<PopupModalProps> = ({
       }}
     >
       <div className={cn(
-        "bg-gray-100 rounded-xl shadow-2xl w-full max-h-[95vh] overflow-hidden flex flex-col",
-        "max-w-5xl w-[90vw]", // Fixed width for consistency
+        "bg-gray-100 rounded-xl shadow-2xl w-full max-h-[90vh] overflow-hidden flex flex-col",
+        "max-w-5xl w-[90vw]", // Moderately large popup size - increased from max-w-4xl and w-[85vw]
         "transition-all duration-200 ease-in-out transform",
         isAnimating ? "scale-100 opacity-100" : "scale-95 opacity-0",
         className
@@ -256,8 +257,8 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                 )}
               </div>
               
-              {/* User Assignment Display (only for companies) */}
-              {entityType === 'company' && (
+              {/* User Assignment Display (for all entity types) */}
+              {entityType && (
                 <div className="flex-shrink-0 h-10 flex items-center">
                   <UserAssignmentDisplay
                     ownerId={ownerId}
@@ -276,6 +277,13 @@ export const PopupModal: React.FC<PopupModalProps> = ({
             </div>
             
             {/* Remove the separate favorite button container */}
+
+            {/* Center - Status Badge for leads */}
+            {entityType === 'lead' && (
+              <div className="flex items-center gap-3">
+                <StatusBadge status={currentStatus || "new"} size="sm" />
+              </div>
+            )}
 
             {/* Center - Pipeline Stage, Priority Dropdowns and Automation Badge (only for companies) */}
             {entityType === 'company' && (
@@ -333,10 +341,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                   }
                 } : undefined}
                 >
-                  {(() => {
-                    console.log('PopupModal received pipeline stage:', currentPipelineStage);
-                    return currentPipelineStage?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'New Lead';
-                  })()}
+                  {currentPipelineStage?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'New Lead'}
                 </div>
               </div>
             )}

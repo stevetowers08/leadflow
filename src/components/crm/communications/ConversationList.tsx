@@ -253,8 +253,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                   key={conversation.id}
                   className={cn(
                     "px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group",
-                    selectedConversationId === conversation.id && "bg-sidebar-primary/10 border-sidebar-primary/30",
-                    !conversation.is_read && "bg-sidebar-primary/5 border-sidebar-primary/20"
+                    selectedConversationId === conversation.id && "bg-sidebar-primary/10",
+                    !conversation.is_read && "bg-sidebar-primary/5"
                   )}
                   onClick={() => onConversationSelect(conversation)}
                 >

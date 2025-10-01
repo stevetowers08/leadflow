@@ -139,13 +139,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('🔐 Initializing authentication...');
         setError(null);
 
-        // Set a timeout to force loading to complete after 2 seconds
+        // Set a timeout to force loading to complete after 5 seconds
         timeoutId = setTimeout(() => {
           if (isMounted) {
             console.log('⏰ Auth initialization timeout - forcing loading to false');
             setLoading(false);
           }
-        }, 2000);
+        }, 5000);
 
         // Check if supabase client is properly initialized
         if (!supabase || !supabase.auth) {
@@ -173,20 +173,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (session?.user) {
             console.log('🔍 Loading user profile for:', session.user.id);
             if (isMounted) {
-              // Create fallback profile immediately
-              console.log('🔧 Creating fallback profile for user');
-              const fallbackProfile = {
-                id: session.user.id,
-                email: session.user.email,
-                full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
-                role: 'recruiter',
-                user_limit: 100,
-                is_active: true,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              };
-              setUserProfile(fallbackProfile);
-              console.log('✅ Fallback profile created');
+              // Try to fetch actual user profile from database first
+              try {
+                const { data: existingProfile, error: profileError } = await supabase
+                  .from('user_profiles')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .single();
+
+                if (existingProfile && !profileError) {
+                  console.log('✅ Found existing user profile:', existingProfile);
+                  console.log('🔍 User role from database:', existingProfile.role);
+                  setUserProfile(existingProfile);
+                } else {
+                  console.log('🔧 No existing profile found, creating fallback profile');
+                  const fallbackProfile = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
+                    role: 'recruiter',
+                    user_limit: 100,
+                    is_active: true,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  };
+                  setUserProfile(fallbackProfile);
+                }
+              } catch (error) {
+                console.error('❌ Error fetching user profile:', error);
+                // Fallback to creating a profile
+                const fallbackProfile = {
+                  id: session.user.id,
+                  email: session.user.email,
+                  full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
+                  role: 'recruiter',
+                  user_limit: 100,
+                  is_active: true,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                };
+                setUserProfile(fallbackProfile);
+              }
               
               setLoading(false);
               clearTimeout(timeoutId);
@@ -237,22 +264,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               if (lastProcessedUserId !== session.user.id) {
                 console.log('🔄 Auth state change - loading user profile');
                 if (isMounted) {
-                  // Create fallback profile immediately
-                  console.log('🔧 Creating fallback profile for user');
-                  const fallbackProfile = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
-                    role: 'recruiter',
-                    user_limit: 100,
-                    is_active: true,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                  };
-                  setUserProfile(fallbackProfile);
-                  setLastProcessedUserId(session.user.id);
-                  console.log('✅ Fallback profile created');
+                  // Try to fetch actual user profile from database first
+                  try {
+                    const { data: existingProfile, error: profileError } = await supabase
+                      .from('user_profiles')
+                      .select('*')
+                      .eq('id', session.user.id)
+                      .single();
+
+                    if (existingProfile && !profileError) {
+                      console.log('✅ Found existing user profile:', existingProfile);
+                      console.log('🔍 User role from database:', existingProfile.role);
+                      setUserProfile(existingProfile);
+                    } else {
+                      console.log('🔧 No existing profile found, creating fallback profile');
+                      const fallbackProfile = {
+                        id: session.user.id,
+                        email: session.user.email,
+                        full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
+                        role: 'recruiter',
+                        user_limit: 100,
+                        is_active: true,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                      };
+                      setUserProfile(fallbackProfile);
+                    }
+                  } catch (error) {
+                    console.error('❌ Error fetching user profile:', error);
+                    // Fallback to creating a profile
+                    const fallbackProfile = {
+                      id: session.user.id,
+                      email: session.user.email,
+                      full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
+                      role: 'recruiter',
+                      user_limit: 100,
+                      is_active: true,
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString()
+                    };
+                    setUserProfile(fallbackProfile);
+                  }
                   
+                  setLastProcessedUserId(session.user.id);
+                  console.log('✅ User profile loaded');
                   setLoading(false);
                 }
               } else {

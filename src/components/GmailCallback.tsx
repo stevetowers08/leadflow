@@ -58,7 +58,7 @@ export const GmailCallback: React.FC = () => {
         <CardContent className="space-y-4">
           {status === 'loading' && (
             <div className="text-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-sidebar-primary" />
               <p>Connecting to Gmail...</p>
             </div>
           )}

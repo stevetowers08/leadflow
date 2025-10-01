@@ -127,8 +127,8 @@ export function AddNoteModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Plus className="w-4 h-4 text-blue-600" />
+            <div className="w-8 h-8 bg-sidebar-primary/10 rounded-lg flex items-center justify-center">
+              <Plus className="w-4 h-4 text-sidebar-primary" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Add Note</h2>
@@ -190,7 +190,7 @@ export function AddNoteModal({
           <Button
             onClick={handleSubmit}
             disabled={!noteText.trim() || isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-sidebar-primary hover:bg-sidebar-primary/90"
           >
             {isSubmitting ? 'Adding...' : 'Add Note'}
           </Button>

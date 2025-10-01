@@ -151,10 +151,8 @@ export function LinkedInConfirmationModal({
           .from("people")
           .update({
             linkedin_request_message: messages[lead.id],
-            automation_status: "PENDING",
-            automation_status_enum: "queued",
-            stage: "contacted",
-            stage_enum: "contacted"
+            automation_started_at: new Date().toISOString(),
+            stage: "contacted"
           })
           .eq("id", lead.id)
       );
@@ -238,7 +236,7 @@ export function LinkedInConfirmationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden relative bg-white" style={{ zIndex: 99999 }}>
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden relative bg-white" style={{ zIndex: 99999 }}>
         {/* Success Animation Overlay */}
         {showSuccess && (
           <div className="absolute inset-0 bg-green-50/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
@@ -255,7 +253,7 @@ export function LinkedInConfirmationModal({
         )}
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2 text-lg">
-            <MessageSquare className="h-4 w-4 text-primary" />
+            <MessageSquare className="h-4 w-4 text-sidebar-primary" />
             LinkedIn Automation
             <span className="text-sm font-normal text-muted-foreground">
               ({selectedLeads.length} lead{selectedLeads.length !== 1 ? 's' : ''})

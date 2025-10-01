@@ -2,7 +2,6 @@ import React from 'react';
 import { InfoCard } from '@/components/shared/InfoCard';
 import { InfoField } from '@/components/shared/InfoField';
 import { StatusBadge } from '@/components/StatusBadge';
-import { LeadAssignment } from '@/components';
 import { formatDateForSydney } from '@/utils/timezoneUtils';
 import { cn } from '@/lib/utils';
 
@@ -67,12 +66,6 @@ export const LeadInfoCard: React.FC<LeadInfoCardProps> = ({ lead }) => {
         />
         <div className="space-y-1">
           <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-            Status
-          </div>
-          <StatusBadge status={lead.stage || "new"} size="sm" />
-        </div>
-        <div className="space-y-1">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">
             AI Score
           </div>
           <span className={cn(
@@ -82,15 +75,6 @@ export const LeadInfoCard: React.FC<LeadInfoCardProps> = ({ lead }) => {
             {lead.lead_score || "-"}
           </span>
         </div>
-      </div>
-      
-      {/* Lead Assignment */}
-      <div>
-        <LeadAssignment 
-          leadId={lead.id} 
-          currentOwnerId={lead.owner_id} 
-          entityType="lead"
-        />
       </div>
     </InfoCard>
   );

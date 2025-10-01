@@ -22,6 +22,18 @@ This is the main repository for the Empowr CRM project, containing the complete 
 - [Security Setup](docs/SETUP/SECURITY_SETUP_GUIDE.md)
 - [Owner Setup](docs/SETUP/OWNER_SETUP.md)
 
+### 🗄️ Database & Development
+- [Database Best Practices](docs/DATABASE_BEST_PRACTICES.md) 📚 **Central Source of Truth**
+- [Database Schema Reference](src/types/databaseSchema.ts) 🔧 **TypeScript Definitions**
+- [Query Utilities](src/utils/databaseQueries.ts) 🛠️ **Safe Query Helpers**
+
+**Quick Database Reference:**
+```bash
+npm run db:schema              # Show all tables
+npm run db:schema people       # Show people table fields
+npm run db:schema companies name  # Show field type
+```
+
 ### 🔌 Integrations
 - [LinkedIn Integration](docs/INTEGRATIONS/LINKEDIN_AUTH_SETUP.md)
 - [Gmail Integration](docs/INTEGRATIONS/GMAIL_INTEGRATION_SETUP.md)

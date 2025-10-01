@@ -211,7 +211,8 @@ export function PermissionsProvider({ children, user, userProfile, authLoading }
           userEmail: user.email,
           userProfileRole: userRole,
           userMetadataRole: user.user_metadata?.role,
-          userProfileExists: !!userProfile
+          userProfileExists: !!userProfile,
+          userProfileData: userProfile
         });
       }
       
@@ -338,6 +339,7 @@ export function PermissionsProvider({ children, user, userProfile, authLoading }
 export function usePermissions() {
   const context = useContext(PermissionsContext);
   if (context === undefined) {
+    console.error('usePermissions called outside PermissionsProvider');
     throw new Error('usePermissions must be used within a PermissionsProvider');
   }
   return context;

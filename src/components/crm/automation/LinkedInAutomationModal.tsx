@@ -50,29 +50,15 @@ export function LinkedInAutomationModal({
 
   // Initialize automation messages when modal opens
   useEffect(() => {
-    console.log("🔍 LinkedInAutomationModal useEffect triggered:", {
-      isOpen,
-      selectedLeads,
-      selectedLeadsLength: selectedLeads?.length,
-      selectedLeadsType: typeof selectedLeads
-    });
-    
     if (isOpen && selectedLeads && Array.isArray(selectedLeads) && selectedLeads.length > 0) {
-      console.log("✅ Initializing messages for leads:", selectedLeads);
       const initialMessages: {[key: string]: string} = {};
       selectedLeads.forEach(lead => {
-        const defaultMessage = lead["LinkedIn Request Message"] || 
+        const hasLinkedInMessage = lead["LinkedIn Request Message"] && lead["LinkedIn Request Message"].trim();
+        const defaultMessage = hasLinkedInMessage || 
           `Hi ${lead.Name?.split(' ')[0] || 'there'},\n\nI came across your profile and noticed your experience as a ${lead["Company Role"] || 'professional'} at ${lead.Company || companyName}. ${jobTitle ? `We have an exciting opportunity for a ${jobTitle} role that might interest you.` : 'I\'d love to connect and discuss potential opportunities.'}\n\nWould you be open to a brief conversation?\n\nBest regards`;
         initialMessages[lead.id] = defaultMessage;
       });
       setAutomationMessages(initialMessages);
-    } else {
-      console.log("❌ Not initializing messages:", {
-        isOpen,
-        hasSelectedLeads: !!selectedLeads,
-        isArray: Array.isArray(selectedLeads),
-        length: selectedLeads?.length
-      });
     }
   }, [isOpen, selectedLeads, jobTitle, companyName]);
 
@@ -111,7 +97,7 @@ export function LinkedInAutomationModal({
       }
     };
 
-    console.log("Sending webhook for lead:", lead.Name, "Payload:", webhookPayload);
+    // Send webhook payload
 
     try {
       const response = await fetch(webhookUrl, {
@@ -136,8 +122,6 @@ export function LinkedInAutomationModal({
 
   // Handle automation confirmation
   const handleAutomationConfirm = async () => {
-    console.log("🚀 Starting automation for:", selectedLeads);
-    console.log("🚀 Messages:", automationMessages);
     setAutomationLoading(true);
     
     try {
@@ -147,20 +131,16 @@ export function LinkedInAutomationModal({
           .from("people")
           .update({
             linkedin_request_message: automationMessages[lead.id],
-            automation_status: "PENDING",
-            automation_status_enum: "queued",
-            stage: "contacted",
-            stage_enum: "contacted"
+            automation_started_at: new Date().toISOString(),
+            stage: "contacted"
           })
           .eq("id", lead.id)
       );
 
       await Promise.all(updates);
-      console.log("Database updates completed");
 
       // Auto-assign company to current user when leads are sent to automation
       if (user?.id && companyName) {
-        console.log("🔧 Auto-assigning company to current user:", user.id);
         try {
           const { error: companyError } = await supabase
             .from("companies")
@@ -172,8 +152,6 @@ export function LinkedInAutomationModal({
 
           if (companyError) {
             console.error("Error auto-assigning company:", companyError);
-          } else {
-            console.log("✅ Company auto-assigned to current user");
           }
         } catch (error) {
           console.error("Error in company auto-assignment:", error);
@@ -181,7 +159,6 @@ export function LinkedInAutomationModal({
       }
 
       // Send each lead to webhook
-      console.log("Sending webhooks for", selectedLeads.length, "leads");
       const webhookPromises = selectedLeads.map(lead => 
         sendToWebhook(lead, automationMessages[lead.id])
       );
@@ -190,8 +167,6 @@ export function LinkedInAutomationModal({
         const webhookResults = await Promise.allSettled(webhookPromises);
         const successful = webhookResults.filter(result => result.status === 'fulfilled').length;
         const failed = webhookResults.filter(result => result.status === 'rejected').length;
-        
-        console.log(`Webhook results: ${successful} successful, ${failed} failed`);
         
         if (failed > 0) {
           console.error('Failed webhooks:', webhookResults.filter(result => result.status === 'rejected'));
@@ -230,13 +205,6 @@ export function LinkedInAutomationModal({
 
   if (!isOpen) return null;
 
-  console.log("🎨 LinkedInAutomationModal rendering:", {
-    isOpen,
-    selectedLeads,
-    selectedLeadsLength: selectedLeads?.length,
-    selectedLeadsType: typeof selectedLeads
-  });
-
   // Safety check for selectedLeads
   if (!selectedLeads || !Array.isArray(selectedLeads)) {
     console.error("❌ selectedLeads is not a valid array:", selectedLeads);
@@ -266,13 +234,13 @@ export function LinkedInAutomationModal({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                <MessageSquare className="h-6 w-6 text-blue-600" />
+                <MessageSquare className="h-6 w-6 text-sidebar-primary" />
                 LinkedIn Automation
               </h3>
               <p className="text-sm text-gray-600 mt-1">
                 {selectedLeads.length} lead{selectedLeads.length !== 1 ? 's' : ''} selected for automation
                 {jobTitle && (
-                  <span className="ml-2 text-blue-600 font-medium">
+                  <span className="ml-2 text-sidebar-primary font-medium">
                     • Job: {jobTitle} at {companyName}
                   </span>
                 )}
@@ -297,8 +265,8 @@ export function LinkedInAutomationModal({
                 {/* Lead Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-sidebar-primary/10 rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-sidebar-primary" />
                     </div>
                     <div>
                       <div className="font-semibold text-lg text-gray-900">{lead.Name}</div>
@@ -355,7 +323,7 @@ export function LinkedInAutomationModal({
                     <textarea
                       className="w-full p-4 border border-gray-300 rounded-lg text-sm bg-gray-50 resize-none"
                       rows={3}
-                      value={lead["LinkedIn Connected Message"] || `Thank you for connecting! I'd love to learn more about your experience at ${lead.Company || 'your company'}.`}
+                      value={(lead["LinkedIn Connected Message"] && lead["LinkedIn Connected Message"].trim()) || `Thank you for connecting! I'd love to learn more about your experience at ${lead.Company || 'your company'}.`}
                       readOnly
                       style={{ minHeight: '80px' }}
                     />
@@ -372,7 +340,7 @@ export function LinkedInAutomationModal({
                     <textarea
                       className="w-full p-4 border border-gray-300 rounded-lg text-sm bg-gray-50 resize-none"
                       rows={3}
-                      value={lead["LinkedIn Follow Up Message"] || `Following up on our connection. I hope you're doing well!`}
+                      value={(lead["LinkedIn Follow Up Message"] && lead["LinkedIn Follow Up Message"].trim()) || `Following up on our connection. I hope you're doing well!`}
                       readOnly
                       style={{ minHeight: '80px' }}
                     />
@@ -404,7 +372,7 @@ export function LinkedInAutomationModal({
               <button
                 onClick={handleAutomationConfirm}
                 disabled={automationLoading}
-                className="px-6 py-3 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors min-w-[160px]"
+                className="px-6 py-3 text-sm bg-sidebar-primary text-sidebar-primary-foreground rounded-lg hover:bg-sidebar-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors min-w-[160px]"
               >
                 {automationLoading ? (
                   <div className="flex items-center gap-2">

@@ -1,6 +1,15 @@
+/**
+ * Entity Data Hook
+ * 
+ * 📚 Database schema reference: src/types/databaseSchema.ts
+ * 📖 Best practices: docs/DATABASE_BEST_PRACTICES.md
+ * 🔧 Query utilities: src/utils/databaseQueries.ts
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { EntityType } from "@/components/crm/EntityDetailPopup";
+import { COMMON_SELECTIONS } from "@/types/databaseSchema";
 
 interface UseEntityDataProps {
   entityType: EntityType;
@@ -10,15 +19,25 @@ interface UseEntityDataProps {
 }
 
 export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: UseEntityDataProps) {
+  console.log('🔍 useEntityData called:', { entityType, entityId, isOpen, refreshTrigger });
+  
+  // Optimized selections for popup performance
+  const OPTIMIZED_SELECTIONS = {
+    people: 'id, name, company_id, email_address, linkedin_url, employee_location, company_role, lead_score, stage, connected_at, last_reply_at, last_interaction_at, owner_id, created_at, confidence_level, is_favourite, lead_source',
+    companies: 'id, name, website, linkedin_url, head_office, industry, company_size, confidence_level, lead_score, score_reason, automation_active, is_favourite, created_at, priority, logo_url, owner_id, pipeline_stage',
+    jobs: 'id, title, company_id, location, description, employment_type, seniority_level, automation_active, created_at, priority, lead_score_job, salary, function, logo_url, owner_id'
+  };
+  
   // Fetch entity data based on type
   const entityQuery = useQuery({
     queryKey: [`${entityType}-detail`, entityId, refreshTrigger],
     queryFn: async () => {
+      console.log('🔍 useEntityData queryFn called for:', { entityType, entityId });
       const tableName = entityType === 'lead' ? 'people' : entityType === 'company' ? 'companies' : 'jobs';
       
       const { data, error } = await supabase
         .from(tableName)
-        .select('*')
+        .select(OPTIMIZED_SELECTIONS[tableName])
         .eq('id', entityId)
         .single();
 
@@ -26,6 +45,7 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
         console.error(`❌ Error fetching ${entityType}:`, error);
         throw error;
       }
+      console.log('🔍 useEntityData queryFn success:', { entityType, data });
       return data;
     },
     enabled: !!entityId && isOpen
@@ -54,7 +74,6 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
           linkedin_url,
           score_reason,
           created_at,
-          lead_source,
           logo_url,
           pipeline_stage,
           owner_id
@@ -73,7 +92,7 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
 
   // Fetch related leads (for companies and jobs) - optimized for parallel execution
   const leadsQuery = useQuery({
-    queryKey: [`${entityType}-leads`, entityQuery.data?.company_id || entityId, refreshTrigger],
+    queryKey: [`${entityType}-leads`, entityQuery.data?.company_id || entityId, entityId, refreshTrigger],
     queryFn: async () => {
       // For companies, use entityId directly. For leads/jobs, use company_id from the entity
       const companyId = entityType === 'company' ? entityId : entityQuery.data?.company_id;
@@ -82,28 +101,40 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
         return [];
       }
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("people")
         .select(`
           id,
           name,
+          company_id,
           email_address,
-          company_role,
           employee_location,
+          company_role,
           stage,
-          automation_started_at,
-          created_at,
+          lead_score,
           linkedin_url,
-          owner_id
+          linkedin_request_message,
+          linkedin_connected_message,
+          linkedin_follow_up_message,
+          automation_started_at,
+          owner_id,
+          last_interaction_at,
+          created_at,
+          updated_at
         `)
-        .eq("company_id", companyId)
-        .order("created_at", { ascending: false });
+        .eq("company_id", companyId);
+
+      // For lead popups, exclude the current lead from the employees list
+      if (entityType === 'lead') {
+        query = query.neq("id", entityId);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) {
         console.error("❌ Error fetching leads:", error);
         throw error;
       }
-      console.log("✅ Fetched leads:", data);
       return data || [];
     },
     enabled: (!!entityQuery.data?.company_id || entityType === 'company') && isOpen
@@ -139,14 +170,24 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
         console.error("❌ Error fetching jobs:", error);
         throw error;
       }
-      console.log("✅ Fetched jobs:", data);
       return data || [];
     },
     enabled: (!!entityQuery.data?.company_id || entityType === 'company') && isOpen
   });
 
 
-  return {
+  const hasError = !!(entityQuery.error || companyQuery.error || leadsQuery.error || jobsQuery.error);
+  
+  if (hasError) {
+    console.error('🔍 useEntityData errors:', {
+      entityError: entityQuery.error,
+      companyError: companyQuery.error,
+      leadsError: leadsQuery.error,
+      jobsError: jobsQuery.error
+    });
+  }
+
+  const result = {
     entityData: entityQuery.data,
     entityLoading: entityQuery.isLoading,
     entityError: entityQuery.error,
@@ -164,6 +205,16 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
     jobsError: jobsQuery.error,
     
     isLoading: entityQuery.isLoading || companyQuery.isLoading || leadsQuery.isLoading || jobsQuery.isLoading,
-    hasError: !!(entityQuery.error || companyQuery.error || leadsQuery.error || jobsQuery.error)
+    hasError
   };
+
+  console.log('🔍 useEntityData returning:', {
+    entityData: result.entityData,
+    isLoading: result.isLoading,
+    hasError: result.hasError,
+    entityQueryStatus: entityQuery.status,
+    entityQueryData: entityQuery.data
+  });
+
+  return result;
 }

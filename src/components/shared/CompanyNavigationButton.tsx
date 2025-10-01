@@ -26,12 +26,12 @@ export const CompanyNavigationButton: React.FC<CompanyNavigationButtonProps> = (
   const baseClasses = "inline-flex items-center gap-2 font-medium transition-all duration-200";
   
   const variantClasses = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md",
-    secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300",
-    minimal: "text-blue-600 hover:text-blue-700 hover:bg-blue-50",
-    ghost: "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-    link: "text-blue-600 hover:text-blue-700 underline-offset-4 hover:underline",
-    subtle: "text-gray-500 hover:text-gray-700 hover:bg-gray-50/50"
+    primary: "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 shadow-sm hover:shadow-md",
+    secondary: "bg-muted text-muted-foreground hover:bg-muted/80 border border-border",
+    minimal: "text-sidebar-primary hover:text-sidebar-primary/80 hover:bg-sidebar-primary/10",
+    ghost: "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+    link: "text-sidebar-primary hover:text-sidebar-primary/80 underline-offset-4 hover:underline",
+    subtle: "text-muted-foreground hover:text-foreground hover:bg-muted/50"
   };
   
   const sizeClasses = {
@@ -81,7 +81,7 @@ export const CompanyNavigationLink: React.FC<Omit<CompanyNavigationButtonProps, 
     <button
       onClick={onClick}
       className={cn(
-        "text-blue-600 hover:text-blue-700 underline-offset-4 hover:underline transition-colors duration-200 text-sm font-medium",
+        "text-sidebar-primary hover:text-sidebar-primary/80 underline-offset-4 hover:underline transition-colors duration-200 text-sm font-medium",
         className
       )}
       title={`View ${companyName} details`}

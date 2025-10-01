@@ -11,14 +11,18 @@ import {
   Building2, 
   Briefcase, 
   Settings, 
-  X,
-  ChevronRight,
+  Target,
+  MessageSquare,
+  Bot,
+  BarChart3,
   MoreHorizontal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import { usePermissions } from "@/contexts/PermissionsContext";
 
 interface NavItem {
   to: string;
@@ -26,23 +30,20 @@ interface NavItem {
   icon: React.ReactNode;
   badge?: number;
   isPrimary?: boolean;
+  permission?: string; // Resource name for permission checking
 }
 
-// Primary navigation items (most important)
-const primaryItems: NavItem[] = [
+// All possible navigation items
+const allNavItems: NavItem[] = [
   { to: "/", label: "Dashboard", icon: <Home className="h-5 w-5" />, isPrimary: true },
-  { to: "/leads", label: "Leads", icon: <Users className="h-5 w-5" />, isPrimary: true },
-  { to: "/companies", label: "Companies", icon: <Building2 className="h-5 w-5" />, isPrimary: true },
-  { to: "/jobs", label: "Jobs", icon: <Briefcase className="h-5 w-5" />, isPrimary: true },
-];
-
-// Secondary navigation items (less frequently used)
-const secondaryItems: NavItem[] = [
-  { to: "/pipeline", label: "Pipeline", icon: <ChevronRight className="h-5 w-5" /> },
-  { to: "/conversations", label: "Messages", icon: <MoreHorizontal className="h-5 w-5" /> },
-  { to: "/automations", label: "Automations", icon: <MoreHorizontal className="h-5 w-5" /> },
-  { to: "/reporting", label: "Reports", icon: <MoreHorizontal className="h-5 w-5" /> },
-  { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" /> },
+  { to: "/leads", label: "Leads", icon: <Users className="h-5 w-5" />, isPrimary: true, permission: "leads" },
+  { to: "/companies", label: "Companies", icon: <Building2 className="h-5 w-5" />, isPrimary: true, permission: "companies" },
+  { to: "/jobs", label: "Jobs", icon: <Briefcase className="h-5 w-5" />, isPrimary: true, permission: "jobs" },
+  { to: "/pipeline", label: "Pipeline", icon: <Target className="h-5 w-5" />, permission: "leads" },
+  { to: "/conversations", label: "Messages", icon: <MessageSquare className="h-5 w-5" /> },
+  { to: "/automations", label: "Automations", icon: <Bot className="h-5 w-5" />, permission: "workflows" },
+  { to: "/reporting", label: "Reports", icon: <BarChart3 className="h-5 w-5" />, permission: "reports" },
+  { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, permission: "settings" },
 ];
 
 interface EnhancedMobileNavProps {
@@ -53,6 +54,17 @@ export const EnhancedMobileNav: React.FC<EnhancedMobileNavProps> = ({ className 
   const location = useLocation();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const isMobile = useIsMobile();
+  const { lightHaptic, mediumHaptic } = useHapticFeedback();
+  const { canView } = usePermissions();
+
+  // Filter navigation items based on user permissions
+  const filteredNavItems = allNavItems.filter(item => 
+    !item.permission || canView(item.permission)
+  );
+
+  // Separate into primary and secondary items
+  const primaryItems = filteredNavItems.filter(item => item.isPrimary);
+  const secondaryItems = filteredNavItems.filter(item => !item.isPrimary);
 
   // Close more menu when clicking outside
   useEffect(() => {
@@ -81,34 +93,49 @@ export const EnhancedMobileNav: React.FC<EnhancedMobileNavProps> = ({ className 
         className={cn(
           "fixed bottom-0 inset-x-0 z-30 border-t bg-background/95 backdrop-blur",
           "supports-[backdrop-filter]:bg-background/60 lg:hidden",
+          "safe-area-pb", // Add safe area padding for devices with home indicators
           className
         )}
         role="navigation"
         aria-label="Main navigation"
       >
-        <div className="flex items-center justify-around px-2 py-1">
+        {/* Visual indicator for active state */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 transition-opacity duration-300" />
+        
+        <div className="flex items-center justify-around px-2 py-3">
           {primaryItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) => cn(
-                "flex flex-col items-center justify-center gap-1 py-2 px-3",
-                "text-xs transition-colors select-none touch-manipulation",
-                "min-h-[44px] min-w-[44px] rounded-lg",
-                "hover:bg-accent/50 active:bg-accent",
+                "flex flex-col items-center justify-center gap-1.5 py-3 px-3",
+                "text-xs transition-all duration-200 select-none touch-manipulation",
+                "min-h-[56px] min-w-[56px] rounded-xl relative",
+                "hover:bg-accent/50 active:bg-accent active:scale-95",
+                "focus:outline-none focus:ring-2 focus:ring-primary/20",
+                "border border-transparent hover:border-accent/20",
+                "group relative overflow-hidden",
                 isActive 
-                  ? "text-primary bg-primary/10" 
+                  ? "text-sidebar-primary bg-sidebar-primary/10 scale-105 shadow-sm" 
                   : "text-muted-foreground hover:text-foreground"
               )}
               aria-current={location.pathname === item.to ? 'page' : undefined}
+              aria-label={`Navigate to ${item.label}`}
+              title={item.label}
             >
-              {item.icon}
-              <span className="leading-none font-medium">{item.label}</span>
-              {item.badge && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {item.badge}
-                </span>
-              )}
+              <div className="relative">
+                {item.icon}
+                {item.badge && (
+                  <span className="absolute -top-1 -right-1 bg-sidebar-primary text-sidebar-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium animate-pulse">
+                    {item.badge}
+                  </span>
+                )}
+                {/* Active state indicator */}
+                {location.pathname === item.to && (
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-sidebar-primary rounded-full animate-pulse" />
+                )}
+              </div>
+              <span className="leading-none font-medium text-center">{item.label}</span>
             </NavLink>
           ))}
           
@@ -117,47 +144,69 @@ export const EnhancedMobileNav: React.FC<EnhancedMobileNavProps> = ({ className 
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              onClick={() => {
+                mediumHaptic();
+                setShowMoreMenu(!showMoreMenu);
+              }}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 py-2 px-3",
-                "text-xs transition-colors select-none touch-manipulation",
-                "min-h-[44px] min-w-[44px] rounded-lg",
-                "hover:bg-accent/50 active:bg-accent",
-                showMoreMenu ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
+                "flex flex-col items-center justify-center gap-1.5 py-3 px-3",
+                "text-xs transition-all duration-200 select-none touch-manipulation",
+                "min-h-[56px] min-w-[56px] rounded-xl",
+                "hover:bg-accent/50 active:bg-accent active:scale-95",
+                "focus:outline-none focus:ring-2 focus:ring-primary/20",
+                "border border-transparent hover:border-accent/20",
+                showMoreMenu 
+                  ? "text-sidebar-primary bg-sidebar-primary/10 scale-105 shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
               data-more-button
               aria-label="More options"
               aria-expanded={showMoreMenu}
             >
               <MoreHorizontal className="h-5 w-5" />
-              <span className="leading-none font-medium">More</span>
+              <span className="leading-none font-medium text-center">More</span>
             </Button>
 
             {/* More Menu Dropdown */}
             {showMoreMenu && (
               <div 
-                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-background border rounded-lg shadow-lg z-40"
+                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-64 bg-background/95 border border-border/50 rounded-2xl shadow-2xl z-40 backdrop-blur-md animate-in slide-in-from-bottom-2 duration-200"
                 data-more-menu
                 role="menu"
                 aria-label="Additional navigation options"
               >
                 <div className="py-2">
-                  {secondaryItems.map((item) => (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setShowMoreMenu(false)}
-                      className={({ isActive }) => cn(
-                        "flex items-center gap-3 px-4 py-3 text-sm transition-colors",
-                        "hover:bg-accent active:bg-accent/80",
-                        isActive ? "text-primary bg-primary/10" : "text-foreground"
-                      )}
-                      role="menuitem"
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </NavLink>
-                  ))}
+                  <div className="px-3 py-2 border-b border-border/20">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      More Options
+                    </h3>
+                  </div>
+                  <div className="py-2">
+                    {secondaryItems.map((item) => (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => {
+                          lightHaptic();
+                          setShowMoreMenu(false);
+                        }}
+                        className={({ isActive }) => cn(
+                          "flex items-center gap-3 px-4 py-3 text-sm transition-all duration-200",
+                          "hover:bg-accent active:bg-accent/80 active:scale-98",
+                          "touch-manipulation min-h-[48px] rounded-xl mx-2",
+                          "focus:outline-none focus:ring-2 focus:ring-primary/20",
+                          "border border-transparent hover:border-accent/20",
+                          isActive 
+                            ? "text-sidebar-primary bg-sidebar-primary/10 shadow-sm" 
+                            : "text-foreground"
+                        )}
+                        role="menuitem"
+                      >
+                        <div className="flex-shrink-0">{item.icon}</div>
+                        <span className="font-medium">{item.label}</span>
+                      </NavLink>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -170,112 +219,6 @@ export const EnhancedMobileNav: React.FC<EnhancedMobileNavProps> = ({ className 
   );
 };
 
-// Enhanced Sidebar for Mobile (Slide-out drawer)
-interface EnhancedMobileSidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export const EnhancedMobileSidebar: React.FC<EnhancedMobileSidebarProps> = ({ 
-  isOpen, 
-  onClose 
-}) => {
-  const location = useLocation();
-
-  if (!isOpen) return null;
-
-  return (
-    <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      
-      {/* Sidebar */}
-      <aside 
-        className="fixed inset-y-0 left-0 z-50 w-80 bg-background border-r transform transition-transform duration-300 ease-in-out lg:hidden"
-        role="navigation"
-        aria-label="Main navigation"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold text-foreground">Navigation</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="p-2 min-h-[44px] min-w-[44px]"
-            aria-label="Close navigation"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Navigation Items */}
-        <nav className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-2">
-            {/* Primary Items */}
-            <div className="space-y-1">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2">
-                Main
-              </h3>
-              {primaryItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={onClose}
-                  className={({ isActive }) => cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition-colors",
-                    "touch-manipulation min-h-[44px]",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-accent hover:text-accent-foreground"
-                  )}
-                  aria-current={location.pathname === item.to ? 'page' : undefined}
-                >
-                  {item.icon}
-                  <span className="font-medium">{item.label}</span>
-                  {item.badge && (
-                    <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {item.badge}
-                    </span>
-                  )}
-                </NavLink>
-              ))}
-            </div>
-
-            {/* Secondary Items */}
-            <div className="space-y-1 pt-4">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2">
-                More
-              </h3>
-              {secondaryItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={onClose}
-                  className={({ isActive }) => cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition-colors",
-                    "touch-manipulation min-h-[44px]",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-accent hover:text-accent-foreground"
-                  )}
-                  aria-current={location.pathname === item.to ? 'page' : undefined}
-                >
-                  {item.icon}
-                  <span className="font-medium">{item.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          </div>
-        </nav>
-      </aside>
-    </>
-  );
-};
 
 // Compact Stats Cards for Mobile
 interface CompactStatsCardProps {

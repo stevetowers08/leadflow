@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, Suspense, lazy } from 'react';
 import { PopupModal } from "@/components/shared/PopupModal";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { NotesSection } from "@/components/NotesSection";
@@ -10,6 +10,7 @@ import { InfoField } from "@/components/shared/InfoField";
 import { JobInfoCard } from "@/components/popup/JobInfoCard";
 import { RelatedItemsList } from "@/components/popup/RelatedItemsList";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Button } from "@/components/ui/button";
 import {
   User,
   Building2,
@@ -18,14 +19,15 @@ import {
   MessageSquare,
   Star,
   Activity,
-  Plus
+  Plus,
+  Zap
 } from "lucide-react";
-import { LinkedInAutomationModal } from "./automation/LinkedInAutomationModal";
-import { ActivityTimeline } from "./ActivityTimeline";
-import { AddNoteModal } from "./AddNoteModal";
+// Lazy load heavy components for better performance
+const ActivityTimeline = lazy(() => import("./ActivityTimeline").then(module => ({ default: module.ActivityTimeline })));
+const LinkedInAutomationModal = lazy(() => import("./automation/LinkedInAutomationModal").then(module => ({ default: module.LinkedInAutomationModal })));
+const AddNoteModal = lazy(() => import("./AddNoteModal").then(module => ({ default: module.AddNoteModal })));
 import { useEntityData } from "@/hooks/useEntityData";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -42,10 +44,14 @@ interface EntityDetailPopupProps {
   entityId: string;
   isOpen: boolean;
   onClose: () => void;
-  onNavigateToCompany?: (companyId: string, companyName: string) => void;
+  onNavigateToEntity?: (entityType: EntityType, entityId: string, entityName?: string) => void;
+  onNavigateToCompany?: (companyId: string, companyName: string) => void; // Keep for backward compatibility
 }
 
-export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNavigateToCompany }: EntityDetailPopupProps) {
+export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNavigateToEntity, onNavigateToCompany }: EntityDetailPopupProps) {
+  // console.log('🔍 EntityDetailPopup render:', { entityType, entityId, isOpen });
+  
+  try {
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [showJobModal, setShowJobModal] = useState(false);
@@ -57,8 +63,16 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
   const [selectedLeads, setSelectedLeads] = useState<any[]>([]);
   const [isFavorite, setIsFavorite] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { onAssignmentChange } = usePopupNavigation();
 
   const { user } = useAuth();
+
+  const entityDataParams = useMemo(() => ({
+    entityType,
+    entityId,
+    isOpen,
+    refreshTrigger
+  }), [entityType, entityId, isOpen, refreshTrigger]);
 
   // Use custom hook for data fetching
   const {
@@ -68,7 +82,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
     jobsData,
     isLoading,
     hasError
-  } = useEntityData({ entityType, entityId, isOpen, refreshTrigger });
+  } = useEntityData(entityDataParams);
 
   // Update favorite state when entityData changes
   React.useEffect(() => {
@@ -77,37 +91,79 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
     }
   }, [entityData]);
 
-  // Navigation handlers
+  // Reset selected leads when popup opens or entityId changes
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedLeads([]);
+    }
+  }, [isOpen, entityId]);
+
+  // Simple navigation handlers
   const handleCompanyClick = (companyId: string, companyName: string) => {
-    if (onNavigateToCompany) {
-      // Use parent's navigation handler to replace the current popup
+    // Use unified navigation if available, otherwise fall back to company-specific navigation
+    if (onNavigateToEntity) {
+      onNavigateToEntity('company', companyId, companyName);
+    } else if (onNavigateToCompany) {
       onNavigateToCompany(companyId, companyName);
-    } else {
-      // Fallback to nested modal for backward compatibility
-      setShowCompanyModal(true);
     }
   };
 
   const handleLeadClick = (leadId: string) => {
     const lead = leadsData?.find(l => l.id === leadId);
     if (lead) {
-      setSelectedLead(lead);
-      setShowLeadModal(true);
+      if (onNavigateToEntity) {
+        onNavigateToEntity('lead', leadId, lead.name);
+      } else if (onNavigateToCompany) {
+        // Fallback to company navigation pattern for backward compatibility
+        onNavigateToCompany(leadId, lead.name);
+      }
     }
   };
 
   const handleJobClick = (jobId: string) => {
     const job = jobsData?.find(j => j.id === jobId);
     if (job) {
-      setSelectedJob(job);
-      setShowJobModal(true);
+      if (onNavigateToEntity) {
+        onNavigateToEntity('job', jobId, job.title);
+      } else if (onNavigateToCompany) {
+        // Fallback to company navigation pattern for backward compatibility
+        onNavigateToCompany(jobId, job.title);
+      }
     }
+  };
+
+  const handleKeyDown = () => {
+    // Simple keyboard handler - just close on Escape
+    // Could be enhanced later
   };
 
   const handleAutomationClick = () => {
     if (selectedLeads.length > 0) {
       setShowAutomationModal(true);
     }
+  };
+
+  const handleCurrentLeadAutomation = () => {
+    // Create a single lead array with the current lead for automation
+    // Use the same structure as the database to avoid double mapping
+    const currentLead = {
+      id: entityData?.id || "",
+      name: entityData?.name || "Unknown Name",
+      company_role: entityData?.company_role || "Unknown Role",
+      email_address: entityData?.email_address || null,
+      employee_location: entityData?.employee_location || "Unknown Location",
+      linkedin_url: entityData?.linkedin_url || null,
+      linkedin_request_message: entityData?.linkedin_request_message || "",
+      linkedin_connected_message: entityData?.linkedin_connected_message || "",
+      linkedin_follow_up_message: entityData?.linkedin_follow_up_message || "",
+      stage: entityData?.stage || "new",
+      lead_score: entityData?.lead_score || 0,
+      automation_started_at: entityData?.automation_started_at || null,
+      created_at: entityData?.created_at || new Date().toISOString()
+    };
+    
+    setSelectedLeads([currentLead]);
+    setShowAutomationModal(true);
   };
 
   const handleActivityClick = () => {
@@ -144,7 +200,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
         return;
       }
       
-      console.log('Pipeline stage updated to:', stage);
+      // Pipeline stage updated successfully
       // The useEntityData hook should automatically refetch and update the UI
     } catch (error) {
       console.error('Error updating pipeline stage:', error);
@@ -172,11 +228,14 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
     return 'manual'; // No automation started on any leads
   };
 
-  const handleToggleSelection = (lead: any) => {
+  const handleToggleSelection = (leadId: string) => {
     setSelectedLeads(prev => {
-      const isSelected = prev.some(selected => selected.id === lead.id);
+      const lead = leadsData?.find(l => l.id === leadId);
+      if (!lead) return prev;
+      
+      const isSelected = prev.some(selected => selected.id === leadId);
       if (isSelected) {
-        return prev.filter(selected => selected.id !== lead.id);
+        return prev.filter(selected => selected.id !== leadId);
       } else {
         return [...prev, lead];
       }
@@ -185,6 +244,8 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
 
   const handleAssignmentChange = () => {
     setRefreshTrigger(prev => prev + 1);
+    // Notify the popup navigation context about the assignment change
+    onAssignmentChange?.();
   };
 
   // Get popup configuration based on entity type
@@ -239,7 +300,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
 
   const config = getPopupConfig();
 
-  // Get company logo for jobs and companies
+  // Get company logo for jobs, companies, and leads
   const getCompanyLogo = () => {
     if (entityType === 'job' && companyData?.website) {
       const cleanWebsite = companyData.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
@@ -249,46 +310,91 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
       const cleanWebsite = entityData.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
       return `https://logo.clearbit.com/${cleanWebsite}`;
     }
+    if (entityType === 'lead' && companyData?.website) {
+      const cleanWebsite = companyData.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
+      return `https://logo.clearbit.com/${cleanWebsite}`;
+    }
     return null;
   };
 
-  if (!entityData) return null;
+  // Show loading state while data is being fetched
+  if (isLoading) {
+    console.log('🔍 EntityDetailPopup: Showing loading state');
+    return (
+      <PopupModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Loading..."
+        subtitle="Please wait while we load the data"
+        icon={<User className="h-6 w-6 text-gray-600" />}
+        isLoading={true}
+      >
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary"></div>
+        </div>
+      </PopupModal>
+    );
+  }
+
+  // Show error state if there's an error
+  if (hasError) {
+    console.log('🔍 EntityDetailPopup: Showing error state');
+    return (
+      <PopupModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Error"
+        subtitle="Failed to load data"
+        icon={<User className="h-6 w-6 text-red-600" />}
+        error={new Error('Failed to load entity data')}
+        onRetry={() => setRefreshTrigger(prev => prev + 1)}
+      >
+        <div className="flex items-center justify-center p-8">
+          <p className="text-red-600">Failed to load entity data. Please try again.</p>
+        </div>
+      </PopupModal>
+    );
+  }
+
+  // Show nothing if no entity data (this should not happen with proper loading states)
+  if (!entityData) {
+    console.warn('🔍 EntityDetailPopup: No entity data available, but not loading or error state');
+    return null;
+  }
+
 
 
   return (
-    <PopupModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={config.title}
-      subtitle={config.subtitle}
-      icon={config.icon}
-      companyLogo={getCompanyLogo()}
-      companyName={companyData?.name}
-      entityType={entityType}
-      entityId={entityId}
-      currentStatus={entityData?.confidence_level || entityData?.stage}
-      currentPriority={entityData?.priority}
-      currentPipelineStage={entityData?.pipeline_stage}
-      onStatusChange={(status) => {
-        // TODO: Implement status update
-      }}
-      onPriorityChange={(priority) => {
-        // TODO: Implement priority update
-      }}
-      onPipelineStageChange={handlePipelineStageChange}
-      automationStatus={(() => {
-        const status = getAutomationStatus();
-        console.log('Automation status being passed to PopupModal:', status);
-        return status;
-      })()}
-      canChangeStage={(() => {
-        const currentStage = entityData?.pipeline_stage;
-        const allowedStages = ['new_lead', 'automated', 'replied'];
-        return allowedStages.includes(currentStage);
-      })()}
-      favoriteButton={null}
-      ownerId={entityType === 'company' ? entityData?.owner_id : undefined}
-      onAssignmentChange={handleAssignmentChange}
+    <div onKeyDown={handleKeyDown}>
+      <PopupModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={config.title}
+        subtitle={config.subtitle}
+        icon={config.icon}
+        companyLogo={getCompanyLogo()}
+        companyName={companyData?.name}
+        entityType={entityType}
+        entityId={entityId}
+        currentStatus={entityData?.confidence_level || entityData?.stage}
+        currentPriority={entityData?.priority}
+        currentPipelineStage={entityData?.pipeline_stage}
+        onStatusChange={(status) => {
+          // TODO: Implement status update
+        }}
+        onPriorityChange={(priority) => {
+          // TODO: Implement priority update
+        }}
+        onPipelineStageChange={handlePipelineStageChange}
+        automationStatus={getAutomationStatus()}
+        canChangeStage={(() => {
+          const currentStage = entityData?.pipeline_stage;
+          const allowedStages = ['new_lead', 'automated', 'replied'];
+          return allowedStages.includes(currentStage);
+        })()}
+        favoriteButton={null}
+        ownerId={entityData?.owner_id}
+        onAssignmentChange={handleAssignmentChange}
       actionButton={
         <div className="flex items-center gap-4">
           {/* Favorite Toggle - Same size as other action icons */}
@@ -331,13 +437,25 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
             </button>
           )}
           
-           {/* Activity Button - Smaller with subtle border */}
-           <button 
-             onClick={handleActivityClick}
-             className="text-gray-500 hover:text-gray-700 transition-colors p-1.5 border border-gray-300 rounded hover:border-gray-400 hover:bg-gray-50"
-           >
-             <Activity className="h-4 w-4" />
-           </button>
+          {/* Activity Button - Smaller with subtle border */}
+          <button 
+            onClick={handleActivityClick}
+            className="text-gray-500 hover:text-gray-700 transition-colors p-1.5 border border-gray-300 rounded hover:border-gray-400 hover:bg-gray-50"
+          >
+            <Activity className="h-4 w-4" />
+          </button>
+
+          {/* Automation Button - Only for leads */}
+          {entityType === 'lead' && (
+            <Button
+              onClick={handleCurrentLeadAutomation}
+              size="sm"
+              className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground px-4 py-1.5 h-8 text-sm font-medium flex items-center justify-center"
+            >
+              <Zap className="h-4 w-4 mr-1.5" />
+              Automate
+            </Button>
+          )}
         </div>
       }
     >
@@ -347,7 +465,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
           <>
             <LeadInfoCard lead={entityData} />
             {companyData && (
-              <InfoCard contentSpacing="space-y-6 pt-4" showDivider={true}>
+              <InfoCard title="Company Information" contentSpacing="space-y-6 pt-4" showDivider={true}>
                 {/* Replace first section with clickable CompanyCard */}
                 <CompanyCard 
                   company={{
@@ -391,7 +509,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
             )}
             {leadsData && leadsData.length > 0 && (
               <RelatedItemsList
-                title="Employees"
+                title="Other Company Employees"
                 items={leadsData}
                 isLoading={isLoading}
                 selectedLeads={selectedLeads}
@@ -417,7 +535,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
           <>
             <CompanyInfoCard 
               company={entityData} 
-              onCompanyClick={handleCompanyClick}
+              showTitle={false}
             />
             <RelatedItemsList
               title="Employees"
@@ -513,64 +631,34 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
         )}
       </div>
 
-      {/* Nested Modals */}
-      {showCompanyModal && entityData?.company_id && (
-        <EntityDetailPopup
-          entityType="company"
-          entityId={entityData.company_id}
-          isOpen={showCompanyModal}
-          onClose={() => setShowCompanyModal(false)}
-        />
-      )}
-
-      {showLeadModal && selectedLead && (
-        <EntityDetailPopup
-          entityType="lead"
-          entityId={selectedLead.id}
-          isOpen={showLeadModal}
-          onClose={() => {
-            setShowLeadModal(false);
-            setSelectedLead(null);
-          }}
-        />
-      )}
-
-      {showJobModal && selectedJob && (
-        <EntityDetailPopup
-          entityType="job"
-          entityId={selectedJob.id}
-          isOpen={showJobModal}
-          onClose={() => {
-            setShowJobModal(false);
-            setSelectedJob(null);
-          }}
-        />
-      )}
+      {/* Nested Modals - Removed in favor of unified navigation */}
 
       {/* Automation Modal */}
       {showAutomationModal && (
         <LinkedInAutomationModal
-          selectedLeads={[{
-            id: selectedLead?.id || "unknown",
-            Name: selectedLead?.name || "Unknown Name",
+          selectedLeads={selectedLeads.map(lead => ({
+            id: lead.id,
+            Name: lead.name,
             Company: companyData?.name || "Unknown Company",
-            "Company Role": selectedLead?.company_role || "Unknown Role",
-            "Email Address": selectedLead?.email_address || null,
-            "Employee Location": selectedLead?.employee_location || "Unknown Location",
-            "LinkedIn URL": selectedLead?.linkedin_url || null,
-            "LinkedIn Request Message": "",
-            "LinkedIn Connected Message": "",
-            "LinkedIn Follow Up Message": "",
-            Stage: selectedLead?.stage || "new",
-            stage_enum: selectedLead?.stage || "new",
-            priority_enum: "medium",
-            "Lead Score": "0",
-            automation_status_enum: "not_started",
-            "Automation Status": "Not Started",
-            created_at: selectedLead?.created_at || new Date().toISOString()
-          }]}
+            "Company Role": lead.company_role || "Unknown Role",
+            "Email Address": lead.email_address || null,
+            "Employee Location": lead.employee_location || "Unknown Location",
+            "LinkedIn URL": lead.linkedin_url || null,
+            "LinkedIn Request Message": lead.linkedin_request_message || "",
+            "LinkedIn Connected Message": lead.linkedin_connected_message || "",
+            "LinkedIn Follow Up Message": lead.linkedin_follow_up_message || "",
+            Stage: lead.stage || "new",
+            stage_enum: lead.stage || "new",
+            priority_enum: "medium", // Default value since priority field doesn't exist
+            "Lead Score": lead.lead_score?.toString() || "0",
+            automation_status_enum: lead.automation_started_at ? "running" : "not_started",
+            "Automation Status": lead.automation_started_at ? "Running" : "Not Started",
+            created_at: lead.created_at || new Date().toISOString()
+          }))}
           isOpen={showAutomationModal}
           onClose={() => setShowAutomationModal(false)}
+          jobTitle={entityType === 'lead' ? entityData?.company_role : undefined}
+          companyName={companyData?.name}
         />
       )}
 
@@ -600,10 +688,16 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
         entityId={entityId}
         entityName={entityData?.name || 'Unknown'}
         onNoteAdded={() => {
-          // Optionally refresh data or show success message
-          console.log('Note added successfully');
+          // Note added successfully - data will refresh automatically
         }}
       />
     </PopupModal>
+    </div>
   );
+  } catch (error) {
+    console.error('🔍 EntityDetailPopup error:', error);
+    // If there's an error, close the popup
+    onClose();
+    return null;
+  }
 }

@@ -2,15 +2,15 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
-import { EntityDetailPopup } from "@/components/crm/EntityDetailPopup";
 import { JobsStatsCards } from "@/components/StatsCards";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { useToast } from "@/hooks/use-toast";
+import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Clock, DollarSign, Bot, Users, Briefcase, Zap, Target, AlertTriangle, Trash2 } from "lucide-react";
 import { getClearbitLogo } from "@/utils/logoService";
-import { Page, StatItemProps } from "@/design-system/components";
+import { Page } from "@/design-system/components";
 import { cn } from "@/lib/utils";
 import { getScoreBadgeClasses } from "@/utils/scoreUtils";
 import type { Tables } from "@/integrations/supabase/types";
@@ -37,16 +37,13 @@ type Job = Tables<"jobs"> & {
 const Jobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<{id: string, name: string} | null>(null);
-  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("posted_date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const { toast } = useToast();
+  const { openPopup } = usePopupNavigation();
   
   // Sort options
   const sortOptions = [
@@ -429,13 +426,13 @@ const Jobs = () => {
                 />
               ) : null}
               <div 
-                className={`w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold ${job.company_logo_url ? 'hidden' : 'flex'}`}
+                className={`w-8 h-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-xs font-semibold ${job.company_logo_url ? 'hidden' : 'flex'}`}
               >
                 {job.company_name ? job.company_name.charAt(0).toUpperCase() : '?'}
               </div>
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <div className="text-sm font-medium break-words leading-tight hover:text-primary transition-colors duration-150">
+              <div className="text-sm font-medium break-words leading-tight hover:text-sidebar-primary transition-colors duration-150">
                 {job.company_name || "-"}
               </div>
             </div>
@@ -627,16 +624,14 @@ const Jobs = () => {
   ];
 
   const handleRowClick = (job: Job) => {
-    setSelectedJob(job);
-    setIsDetailModalOpen(true);
+    console.log('🔍 Job clicked:', job.title, job.id);
+    console.log('🔍 openPopup function:', openPopup);
+    openPopup('job', job.id, job.title);
+    console.log('🔍 openPopup called');
   };
 
   const handleCompanyNavigation = (companyId: string, companyName: string) => {
-    // Close job modal and open company modal
-    setIsDetailModalOpen(false);
-    setSelectedJob(null);
-    setSelectedCompany({ id: companyId, name: companyName });
-    setIsCompanyModalOpen(true);
+    openPopup('company', companyId, companyName);
   };
 
   const handleDeleteJob = async (jobId: string, jobTitle: string) => {
@@ -803,47 +798,7 @@ const Jobs = () => {
           }}
         />
       
-      {/* Job Detail Modal */}
-      {selectedJob && (
-        <>
-          {console.log('🔍 Selected Job Data:', {
-            company_name: selectedJob.company_name,
-            company_industry: selectedJob.company_industry,
-            company_head_office: selectedJob.company_head_office,
-            company_size: selectedJob.company_size,
-            company_website: selectedJob.company_website,
-            company_lead_score: selectedJob.company_lead_score,
-            company_priority: selectedJob.company_priority,
-            company_automation_active: selectedJob.company_automation_active,
-            company_confidence_level: selectedJob.company_confidence_level,
-            company_linkedin_url: selectedJob.company_linkedin_url,
-            total_leads: selectedJob.total_leads
-          })}
-          <EntityDetailPopup
-            entityType="job"
-            entityId={selectedJob.id}
-            isOpen={isDetailModalOpen}
-            onClose={() => {
-              setIsDetailModalOpen(false);
-              setSelectedJob(null);
-            }}
-            onNavigateToCompany={handleCompanyNavigation}
-          />
-        </>
-      )}
-
-      {/* Company Detail Modal */}
-      {selectedCompany && (
-        <EntityDetailPopup
-          entityType="company"
-          entityId={selectedCompany.id}
-          isOpen={isCompanyModalOpen}
-          onClose={() => {
-            setIsCompanyModalOpen(false);
-            setSelectedCompany(null);
-          }}
-        />
-      )}
+      {/* Job Detail Modal - Now handled by UnifiedPopup */}
     </Page>
   );
 };

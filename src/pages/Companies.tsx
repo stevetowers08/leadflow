@@ -2,12 +2,12 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components";
 import { StatusBadge } from "@/components/StatusBadge";
-import { EntityDetailPopup } from "@/components/crm/EntityDetailPopup";
 import { CompaniesStatsCards } from "@/components/StatsCards";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
@@ -27,10 +27,6 @@ type Company = Tables<"companies"> & {
 const Companies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedCompanyForNavigation, setSelectedCompanyForNavigation] = useState<{id: string, name: string} | null>(null);
-  const [isCompanyNavigationModalOpen, setIsCompanyNavigationModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string>('all');
   const [users, setUsers] = useState<{id: string, full_name: string, role: string}[]>([]);
   const [selectedCompanyForAssignment, setSelectedCompanyForAssignment] = useState<Company | null>(null);
@@ -43,6 +39,7 @@ const Companies = () => {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { openPopup } = usePopupNavigation();
 
   // Sort options
   const sortOptions = [
@@ -234,7 +231,10 @@ const Companies = () => {
         .select(OPTIMIZED_QUERIES.getCompaniesList())
         .order("created_at", { ascending: false });
       
-      if (allError) throw allError;
+      if (allError) {
+        console.error('Error fetching companies:', allError);
+        throw allError;
+      }
       
       console.log('Total companies fetched:', allCompanies?.length);
       
@@ -244,7 +244,10 @@ const Companies = () => {
         .select("company_id")
         .not("company_id", "is", null);
 
-      if (peopleError) throw peopleError;
+      if (peopleError) {
+        console.error('Error fetching people counts:', peopleError);
+        throw peopleError;
+      }
 
       // Get jobs count for each company
       const { data: jobsCounts, error: jobsError } = await supabase
@@ -252,7 +255,10 @@ const Companies = () => {
         .select("company_id")
         .not("company_id", "is", null);
 
-      if (jobsError) throw jobsError;
+      if (jobsError) {
+        console.error('Error fetching jobs counts:', jobsError);
+        throw jobsError;
+      }
 
       // Get tags for each company
       const { data: companyTags, error: tagsError } = await supabase
@@ -268,7 +274,10 @@ const Companies = () => {
         `)
         .eq("entity_type", "company");
 
-      if (tagsError) throw tagsError;
+      if (tagsError) {
+        console.error('Error fetching company tags:', tagsError);
+        throw tagsError;
+      }
 
       // Count people per company
       const companyPeopleCount: Record<string, number> = {};
@@ -389,7 +398,7 @@ const Companies = () => {
       width: "280px",
       render: (company: Company) => (
         <div 
-          className="min-w-0 cursor-pointer hover:bg-gray-50 rounded-md p-2 -m-2 transition-colors duration-150"
+          className="min-w-0 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors duration-150"
           onClick={(e) => {
             e.stopPropagation();
             handleRowClick(company);
@@ -409,7 +418,7 @@ const Companies = () => {
                 size="sm"
               />
             </div>
-            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
               {company.website ? (
                 <img 
                   src={`https://logo.clearbit.com/${company.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]}`}
@@ -425,14 +434,14 @@ const Companies = () => {
                 />
               ) : null}
               <div 
-                className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center"
+                className="w-8 h-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center"
                 style={{ display: company.website ? 'none' : 'flex' }}
               >
                 <Building2 className="h-4 w-4" />
               </div>
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <div className="text-sm font-medium break-words leading-tight hover:text-primary transition-colors duration-150">
+              <div className="text-sm font-medium break-words leading-tight hover:text-sidebar-primary transition-colors duration-150">
                 {company.name || "-"}
               </div>
             </div>
@@ -559,16 +568,10 @@ const Companies = () => {
   ];
 
   const handleRowClick = (company: Company) => {
-    setSelectedCompany(company);
-    setIsDetailModalOpen(true);
-  };
-
-  const handleCompanyNavigation = (companyId: string, companyName: string) => {
-    // Close current company modal and open new company modal
-    setIsDetailModalOpen(false);
-    setSelectedCompany(null);
-    setSelectedCompanyForNavigation({ id: companyId, name: companyName });
-    setIsCompanyNavigationModalOpen(true);
+    console.log('🔍 Company clicked:', company.name, company.id);
+    console.log('🔍 openPopup function:', openPopup);
+    openPopup('company', company.id, company.name);
+    console.log('🔍 openPopup called');
   };
 
   const handleDeleteCompany = async (companyId: string, companyName: string) => {
@@ -605,6 +608,16 @@ const Companies = () => {
       title="Companies"
       subtitle="Manage your target companies and prospects"
     >
+      {/* Stats Cards */}
+      <CompaniesStatsCards
+        totalCompanies={companiesStats.totalCompanies}
+        activeCompanies={companiesStats.automatedCompanies}
+        qualifiedCompanies={companiesStats.closedWonCompanies}
+        prospectCompanies={companiesStats.meetingScheduledCompanies + companiesStats.proposalSentCompanies + companiesStats.negotiationCompanies}
+        newCompanies={companiesStats.newLeadCompanies}
+        companiesWithLeads={companiesStats.companiesWithLeads}
+        companiesWithJobs={companiesStats.companiesWithJobs}
+      />
 
         {/* Search, Filter and Sort Controls */}
         <div className="flex items-center justify-between gap-4 mb-4">
@@ -626,7 +639,7 @@ const Companies = () => {
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value)}
               placeholder="All Statuses"
-              className="min-w-32 bg-white"
+              className="min-w-32 bg-background"
             />
             
             {/* Assignment Filter */}
@@ -651,7 +664,7 @@ const Companies = () => {
               className={cn(
                 "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                 showFavoritesOnly 
-                  ? "bg-primary text-primary-foreground" 
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground" 
                   : "bg-white text-muted-foreground hover:text-foreground border border-border"
               )}
             >
@@ -674,7 +687,7 @@ const Companies = () => {
               value={sortBy}
               onValueChange={(value) => setSortBy(value)}
               placeholder="Select sort"
-              className="min-w-32 bg-white"
+              className="min-w-32 bg-background"
             />
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
@@ -699,18 +712,7 @@ const Companies = () => {
           }}
         />
 
-      {/* Company Detail Modal */}
-      {selectedCompany && (
-        <EntityDetailPopup
-          entityType="company"
-          entityId={selectedCompany.id}
-          isOpen={isDetailModalOpen}
-          onClose={() => {
-            setIsDetailModalOpen(false);
-            setSelectedCompany(null);
-          }}
-        />
-      )}
+      {/* Company Detail Modal - Now handled by UnifiedPopup */}
 
       {/* Assignment Modal */}
       {selectedCompanyForAssignment && (

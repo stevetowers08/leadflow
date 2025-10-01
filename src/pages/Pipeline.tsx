@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { EntityDetailPopup } from "@/components/crm/EntityDetailPopup";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { useToast } from "@/hooks/use-toast";
+import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,33 +49,117 @@ type Company = Tables<"companies"> & {
 };
 
 const Pipeline = () => {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  console.log('🚀 Pipeline component loaded');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [hoveredCompanyId, setHoveredCompanyId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedOverId, setDraggedOverId] = useState<string | null>(null);
-  const [users, setUsers] = useState<{ id: string; full_name: string; role: string }[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showAllAssignedUsers, setShowAllAssignedUsers] = useState(false);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
-  const [usersLoading, setUsersLoading] = useState(true);
-  const [userDataCache, setUserDataCache] = useState<Record<string, { id: string; full_name: string; role: string }>>({});
   const { toast } = useToast();
+  const { openPopup } = usePopupNavigation();
+  const queryClient = useQueryClient();
+
+  // Use React Query for data fetching with caching
+  const { data: companies = [], isLoading: companiesLoading, refetch: refetchCompanies } = useQuery<Company[]>({
+    queryKey: ['pipeline-companies'],
+    queryFn: async () => {
+      // Use Promise.all to fetch all data in parallel
+      const [
+        { data: companiesData, error: companiesError },
+        { data: peopleCounts, error: peopleError },
+        { data: jobsCounts, error: jobsError }
+      ] = await Promise.all([
+        supabase
+          .from("companies")
+          .select(`
+            id, name, industry, website, head_office, lead_score, pipeline_stage, 
+            automation_active, automation_started_at, confidence_level, priority,
+            is_favourite, owner_id, created_at, updated_at,
+            linkedin_url, company_size
+          `)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("people")
+          .select("company_id")
+          .not("company_id", "is", null),
+        supabase
+          .from("jobs")
+          .select("company_id")
+          .not("company_id", "is", null)
+      ]);
+
+      // Check for errors
+      if (companiesError) throw companiesError;
+      if (peopleError) throw peopleError;
+      if (jobsError) throw jobsError;
+
+      // Count people per company
+      const companyPeopleCount: Record<string, number> = {};
+      peopleCounts?.forEach(person => {
+        if (person.company_id) {
+          companyPeopleCount[person.company_id] = (companyPeopleCount[person.company_id] || 0) + 1;
+        }
+      });
+
+      // Count jobs per company
+      const companyJobsCount: Record<string, number> = {};
+      jobsCounts?.forEach(job => {
+        if (job.company_id) {
+          companyJobsCount[job.company_id] = (companyJobsCount[job.company_id] || 0) + 1;
+        }
+      });
+
+      // Add counts to companies
+      return (companiesData || []).map(company => ({
+        ...company,
+        people_count: companyPeopleCount[company.id] || 0,
+        jobs_count: companyJobsCount[company.id] || 0,
+      }));
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const { data: users = [], isLoading: usersLoading } = useQuery<{ id: string; full_name: string; role: string }[]>({
+    queryKey: ['pipeline-users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id, full_name, role')
+        .eq('is_active', true)
+        .order('full_name');
+
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Create user data cache for quick lookups
+  const userDataCache = useMemo(() => {
+    const cache: Record<string, { id: string; full_name: string; role: string }> = {};
+    users.forEach(user => {
+      cache[user.id] = user;
+    });
+    return cache;
+  }, [users]);
+
+  const loading = companiesLoading || usersLoading;
 
   // Optimized drag and drop sensors for maximum performance
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 2, // Reduced distance for more responsive dragging
+        distance: 8, // Increased distance to prevent accidental drags
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 25, // Reduced delay for faster touch response
-        tolerance: 5, // Reduced tolerance for more precise touch handling
+        delay: 100, // Increased delay for better touch handling
+        tolerance: 8, // Increased tolerance for more stable touch handling
       },
     }),
     useSensor(KeyboardSensor)
@@ -102,119 +187,6 @@ const Pipeline = () => {
     'on_hold': ['meeting_scheduled', 'proposal_sent', 'negotiation', 'closed_won', 'closed_lost'],
   };
 
-  const fetchUsers = async () => {
-    try {
-      setUsersLoading(true);
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('id, full_name, role')
-        .eq('is_active', true)
-        .order('full_name');
-
-      if (error) throw error;
-      
-      const usersData = data || [];
-      setUsers(usersData);
-      
-      // Create cache for quick lookups
-      const cache: Record<string, { id: string; full_name: string; role: string }> = {};
-      usersData.forEach(user => {
-        cache[user.id] = user;
-      });
-      setUserDataCache(cache);
-      
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch users",
-        variant: "destructive",
-      });
-    } finally {
-      setUsersLoading(false);
-    }
-  };
-
-  const fetchCompanies = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("companies")
-        .select(`
-          id, name, industry, website, head_office, lead_score, pipeline_stage, 
-          automation_active, automation_started_at, confidence_level, priority,
-          is_favourite, owner_id, created_at, updated_at,
-          linkedin_url, company_size
-        `)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      
-      // Get people count for each company
-      const { data: peopleCounts, error: peopleError } = await supabase
-        .from("people")
-        .select("company_id")
-        .not("company_id", "is", null);
-
-      if (peopleError) throw peopleError;
-
-      // Get jobs count for each company
-      const { data: jobsCounts, error: jobsError } = await supabase
-        .from("jobs")
-        .select("company_id")
-        .not("company_id", "is", null);
-
-      if (jobsError) throw jobsError;
-
-      // Get reply type statistics for each company
-      const { data: replyStats, error: replyError } = await supabase
-        .from("people")
-        .select("company_id, reply_type")
-        .not("company_id", "is", null)
-        .not("reply_type", "is", null);
-
-      if (replyError) throw replyError;
-
-      // Count people per company
-      const companyPeopleCount: Record<string, number> = {};
-      peopleCounts?.forEach(person => {
-        if (person.company_id) {
-          companyPeopleCount[person.company_id] = (companyPeopleCount[person.company_id] || 0) + 1;
-        }
-      });
-
-      // Count jobs per company
-      const companyJobsCount: Record<string, number> = {};
-      jobsCounts?.forEach(job => {
-        if (job.company_id) {
-          companyJobsCount[job.company_id] = (companyJobsCount[job.company_id] || 0) + 1;
-        }
-      });
-
-      // Add counts to companies
-      const companiesWithCounts = (data || []).map(company => ({
-        ...company,
-        people_count: companyPeopleCount[company.id] || 0,
-        jobs_count: companyJobsCount[company.id] || 0,
-      }));
-
-      setCompanies(companiesWithCounts);
-    } catch (error) {
-      console.error("Error fetching companies:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch companies",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCompanies();
-    fetchUsers();
-  }, []);
 
   // Enhanced company stage update with optimistic updates and error handling
   const updateCompanyStage = useCallback(async (companyId: string, newStage: string) => {
@@ -223,14 +195,14 @@ const Pipeline = () => {
 
     setIsUpdating(companyId);
     
-    // Store original state for potential rollback
-    const originalCompanies = [...companies];
-    
-    // Optimistic update - ensure no duplicates by filtering out the company first
-    setCompanies(prev => {
-      const filteredCompanies = prev.filter(c => c.id !== companyId);
-      const updatedCompany = { ...company, pipeline_stage: newStage as any };
-      return [...filteredCompanies, updatedCompany];
+    // Optimistic update using React Query
+    queryClient.setQueryData(['pipeline-companies'], (oldData: Company[] | undefined) => {
+      if (!oldData) return oldData;
+      return oldData.map(c => 
+        c.id === companyId 
+          ? { ...c, pipeline_stage: newStage as any, updated_at: new Date().toISOString() }
+          : c
+      );
     });
 
     try {
@@ -251,8 +223,8 @@ const Pipeline = () => {
     } catch (error) {
       console.error("Error updating company stage:", error);
       
-      // Revert optimistic update on error - restore original state
-      setCompanies(originalCompanies);
+      // Revert optimistic update on error
+      refetchCompanies();
 
       toast({
         title: "Error",
@@ -262,7 +234,7 @@ const Pipeline = () => {
     } finally {
       setIsUpdating(null);
     }
-  }, [companies, toast, pipelineStages]);
+  }, [companies, toast, pipelineStages, refetchCompanies]);
 
   // Enhanced drag and drop event handlers with better validation and feedback
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -319,32 +291,44 @@ const Pipeline = () => {
 
   // Memoized companies grouping for better performance
   const companiesByStage = useMemo(() => {
-    return pipelineStages.reduce((acc, stage) => {
-      const stageCompanies = companies.filter(company => {
-        const matchesStage = company.pipeline_stage === stage.key;
-        const matchesFavorites = !showFavoritesOnly || company.is_favourite;
-        
-        // Handle user filtering logic
-        let matchesUser = true;
-        if (selectedUserId) {
-          matchesUser = company.owner_id === selectedUserId;
-        } else if (showAllAssignedUsers) {
-          matchesUser = company.owner_id !== null; // Show only assigned companies
+    const result: Record<string, Company[]> = {};
+    
+    // Initialize all stages
+    pipelineStages.forEach(stage => {
+      result[stage.key] = [];
+    });
+    
+    // Group companies by stage
+    companies.forEach(company => {
+      const matchesFavorites = !showFavoritesOnly || company.is_favourite;
+      
+      // Handle user filtering logic
+      let matchesUser = true;
+      if (selectedUserId) {
+        matchesUser = company.owner_id === selectedUserId;
+      } else if (showAllAssignedUsers) {
+        matchesUser = company.owner_id !== null; // Show only assigned companies
+      }
+      
+      if (matchesFavorites && matchesUser && company.pipeline_stage) {
+        const stage = company.pipeline_stage;
+        if (result[stage]) {
+          result[stage].push(company);
         }
-        
-        return matchesStage && matchesFavorites && matchesUser;
-      });
-      acc[stage.key] = stageCompanies;
-      return acc;
-    }, {} as Record<string, Company[]>);
+      }
+    });
+    
+    return result;
   }, [companies, showFavoritesOnly, selectedUserId, showAllAssignedUsers]);
 
   const totalCompanies = Object.values(companiesByStage).flat().length;
   const favoriteCount = companies.filter(company => company.is_favourite).length;
 
   const handleCompanyClick = (company: Company) => {
-    setSelectedCompany(company);
-    setIsDetailModalOpen(true);
+    console.log('🔍 Company clicked:', company.name, company.id);
+    console.log('🔍 openPopup function:', openPopup);
+    openPopup('company', company.id, company.name);
+    console.log('🔍 openPopup called');
   };
 
   // Enhanced Draggable Company Card Component with better accessibility and visual feedback
@@ -508,8 +492,7 @@ const Pipeline = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedCompany(company);
-                  setIsDetailModalOpen(true);
+                  openPopup('company', company.id, company.name);
                 }}
                 className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-200"
                 title="View notes"
@@ -545,6 +528,9 @@ const Pipeline = () => {
       </div>
     );
   });
+
+  // Add display name for better debugging
+  DraggableCompanyCard.displayName = 'DraggableCompanyCard';
 
   // Enhanced Droppable Stage Component with better visual feedback and accessibility
   const DroppableStage = memo(({ stage, companies: stageCompanies }: { stage: any, companies: Company[] }) => {
@@ -650,6 +636,9 @@ const Pipeline = () => {
     );
   });
 
+  // Add display name for better debugging
+  DroppableStage.displayName = 'DroppableStage';
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -668,7 +657,7 @@ const Pipeline = () => {
         subtitle="Track companies through sales stages"
       >
         <div className="flex gap-3 mb-6">
-        <Button variant="outline" size="sm" onClick={fetchCompanies} className={designTokens.shadows.button}>
+        <Button variant="outline" size="sm" onClick={() => refetchCompanies()} className={designTokens.shadows.button}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
@@ -797,18 +786,7 @@ const Pipeline = () => {
         </DragOverlay>
       </DndContext>
 
-      {/* Company Detail Modal */}
-      {selectedCompany && (
-        <EntityDetailPopup
-          entityType="company"
-          entityId={selectedCompany.id}
-          isOpen={isDetailModalOpen}
-          onClose={() => {
-            setIsDetailModalOpen(false);
-            setSelectedCompany(null);
-          }}
-        />
-      )}
+      {/* Company Detail Modal - Now handled by UnifiedPopup */}
       </Page>
     </div>
   );

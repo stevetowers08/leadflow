@@ -5,9 +5,9 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Users, Briefcase, User, Calendar, MapPin, Building2, TrendingUp, Target, CheckCircle, Activity, Zap, Star, Filter, Plus, BarChart3, Clock, MessageSquare, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
-import { EntityDetailPopup } from "@/components/crm/EntityDetailPopup";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionsContext";
+import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { designTokens } from "@/design-system/tokens";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -50,10 +50,9 @@ const Index = () => {
     unassignedLeads: 0
   });
   const [loading, setLoading] = useState(true);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [showLeadModal, setShowLeadModal] = useState(false);
-  const [showJobModal, setShowJobModal] = useState(false);
+  const { user } = useAuth();
+  const { hasPermission } = usePermissions();
+  const { openPopup } = usePopupNavigation();
 
   useEffect(() => {
     fetchDashboardData();
@@ -104,10 +103,8 @@ const Index = () => {
           content,
           entity_type,
           created_at,
-          user_profiles!notes_author_id_fkey(full_name),
-          people(name),
-          companies(name),
-          jobs(title)
+          author_id,
+          entity_id
         `).order("created_at", { ascending: false }).limit(5),
         supabase.from("interactions").select(`
           id,
@@ -217,13 +214,17 @@ const Index = () => {
   };
 
   const handleLeadClick = (lead: Lead) => {
-    setSelectedLead(lead);
-    setShowLeadModal(true);
+    console.log('🔍 Lead clicked:', lead.name, lead.id);
+    console.log('🔍 openPopup function:', openPopup);
+    openPopup('lead', lead.id, lead.name);
+    console.log('🔍 openPopup called');
   };
 
   const handleJobClick = (job: Job) => {
-    setSelectedJob(job);
-    setShowJobModal(true);
+    console.log('🔍 Job clicked:', job.title, job.id);
+    console.log('🔍 openPopup function:', openPopup);
+    openPopup('job', job.id, job.title);
+    console.log('🔍 openPopup called');
   };
 
   const renderLeadItem = (lead: Lead) => (
@@ -337,8 +338,8 @@ const Index = () => {
                 <p className="text-2xl font-bold text-foreground">{dashboardStats.totalLeads}</p>
                 <p className="text-xs text-green-600 font-medium">+{dashboardStats.leadsThisWeek} this week</p>
               </div>
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Users className="h-6 w-6 text-primary" />
+              <div className="p-3 bg-sidebar-primary/10 rounded-lg">
+                <Users className="h-6 w-6 text-sidebar-primary" />
               </div>
             </div>
           </CardContent>
@@ -350,7 +351,7 @@ const Index = () => {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active Jobs</p>
                 <p className="text-2xl font-bold text-foreground">{dashboardStats.totalJobs}</p>
-                <p className="text-xs text-primary font-medium">Across {dashboardStats.totalCompanies} companies</p>
+                <p className="text-xs text-sidebar-primary font-medium">Across {dashboardStats.totalCompanies} companies</p>
               </div>
               <div className="p-3 bg-green-500/10 rounded-lg">
                 <Briefcase className="h-6 w-6 text-green-600" />
@@ -507,8 +508,8 @@ const Index = () => {
         <Card className={designTokens.shadows.card}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Users className="h-4 w-4 text-primary" />
+              <div className="p-2 bg-sidebar-primary/10 rounded-lg">
+                <Users className="h-4 w-4 text-sidebar-primary" />
               </div>
               Recent Leads
             </CardTitle>
@@ -619,31 +620,7 @@ const Index = () => {
         </Card>
       </div>
 
-      {/* Lead Detail Modal */}
-      {selectedLead && (
-        <EntityDetailPopup
-          entityType="lead"
-          entityId={selectedLead.id}
-          isOpen={showLeadModal}
-          onClose={() => {
-            setShowLeadModal(false);
-            setSelectedLead(null);
-          }}
-        />
-      )}
-
-      {/* Job Detail Modal */}
-      {selectedJob && (
-        <EntityDetailPopup
-          entityType="job"
-          entityId={selectedJob.id}
-          isOpen={showJobModal}
-          onClose={() => {
-            setShowJobModal(false);
-            setSelectedJob(null);
-          }}
-        />
-      )}
+      {/* Lead and Job Detail Modals - Now handled by UnifiedPopup */}
     </Page>
   );
 };

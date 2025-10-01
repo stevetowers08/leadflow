@@ -270,5 +270,3 @@ The server returns proper MCP error responses:
 4. **Monitor Usage**: Check Railway logs for any issues
 
 Your MCP server is now ready for production use with n8n! 🚀
-
-

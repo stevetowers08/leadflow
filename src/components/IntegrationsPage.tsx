@@ -107,7 +107,7 @@ const IntegrationsPage = () => {
               <span className="text-sm text-gray-600">Status</span>
               <Badge variant="secondary">Not Connected</Badge>
             </div>
-            <Button className="w-full bg-primary hover:bg-primary/90">
+            <Button className="w-full bg-sidebar-primary hover:bg-sidebar-primary/90">
               Connect LinkedIn
             </Button>
           </CardContent>

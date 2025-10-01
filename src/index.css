@@ -34,8 +34,8 @@ All colors MUST be HSL.
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
-    /* 4Twenty Accent Color */
-    --accent: 240 31% 38%;
+    /* 4Twenty Accent Color - Old Purple-Blue */
+    --accent: 262 83% 58%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
@@ -47,15 +47,15 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Modern Professional Sidebar - 4Twenty Main Color */
+    /* Modern Professional Sidebar - Neutral Grey */
     --sidebar-background: 240 28% 23%;
     --sidebar-foreground: 240 4% 95%;
-    --sidebar-primary: 262 83% 58%;
-    --sidebar-primary-foreground: 240 4% 95%;
-    --sidebar-accent: 240 31% 45%;
+    --sidebar-primary: 201 100% 35%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 5% 35%;
     --sidebar-accent-foreground: 240 4% 95%;
     --sidebar-border: 240 5.9% 85%;
-    --sidebar-ring: 262 83% 58%;
+    --sidebar-ring: 240 5% 35%;
 
     /* Shadow System */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -205,8 +205,8 @@ All colors MUST be HSL.
     [role="button"],
     input[type="button"],
     input[type="submit"] {
-      min-height: 44px;
-      min-width: 44px;
+      min-height: 48px;
+      min-width: 48px;
     }
     
     /* Prevent horizontal scroll */
@@ -233,6 +233,25 @@ All colors MUST be HSL.
     [role="button"]:active {
       transform: scale(0.98);
       transition: transform 0.1s ease;
+    }
+    
+    /* Enhanced touch interactions */
+    .touch-manipulation {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Improved focus indicators for touch */
+    button:focus-visible,
+    [role="button"]:focus-visible,
+    a:focus-visible {
+      outline: 2px solid hsl(var(--ring));
+      outline-offset: 2px;
+    }
+    
+    /* Override focus outline for sidebar navigation links */
+    .sidebar a:focus-visible {
+      outline: none;
     }
   }
 }

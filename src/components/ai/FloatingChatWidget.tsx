@@ -284,8 +284,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
     if (messages.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-center p-6 sm:p-8">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary/15 to-primary/25 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-4 sm:mb-6 shadow-lg ring-1 ring-primary/10">
-            <Bot className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-sidebar-primary/15 to-sidebar-primary/25 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-4 sm:mb-6 shadow-lg ring-1 ring-sidebar-primary/10">
+            <Bot className="w-8 h-8 sm:w-10 sm:h-10 text-sidebar-primary" />
           </div>
           <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 tracking-tight">
             Talk to your data
@@ -298,13 +298,13 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
           </p>
           {isConnected && (
             <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center">
-              <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/10 text-primary text-xs sm:text-sm rounded-full font-medium ring-1 ring-primary/20">
+              <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-sidebar-primary/10 text-sidebar-primary text-xs sm:text-sm rounded-full font-medium ring-1 ring-sidebar-primary/20">
                 Lead Analysis
               </span>
               <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-emerald-50 text-emerald-700 text-xs sm:text-sm rounded-full font-medium ring-1 ring-emerald-200">
                 Company Insights
               </span>
-              <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/10 text-primary text-xs sm:text-sm rounded-full font-medium ring-1 ring-primary/20">
+              <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-sidebar-primary/10 text-sidebar-primary text-xs sm:text-sm rounded-full font-medium ring-1 ring-sidebar-primary/20">
                 Job Trends
               </span>
             </div>
@@ -332,10 +332,10 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
           {!isMinimized && (
             <>
               {/* Header */}
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 sm:p-6 bg-gradient-to-r from-primary/8 via-primary/5 to-primary/8 border-b border-primary/10">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 sm:p-6 bg-gradient-to-r from-sidebar-primary/8 via-sidebar-primary/5 to-sidebar-primary/8 border-b border-sidebar-primary/10">
                 <div className="flex items-center gap-3 sm:gap-4">
                   <div className="relative">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary via-primary to-primary/90 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-primary/20">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-sidebar-primary via-sidebar-primary to-sidebar-primary/90 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-sidebar-primary/20">
                       <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                     </div>
                     <div className={cn(
@@ -460,7 +460,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
               </CardContent>
 
               {/* Input */}
-              <div className="border-t border-primary/10 bg-white/95 backdrop-blur-sm">
+              <div className="border-t border-sidebar-primary/10 bg-white/95 backdrop-blur-sm">
                 <ChatInput
                   onSendMessage={handleSendMessage}
                   isLoading={isLoading}
@@ -496,7 +496,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
                 </div>
                 <span className="text-sm font-semibold text-gray-900">AI Assistant</span>
                 {messages.length > 0 && (
-                  <Badge variant="secondary" className="text-xs px-2.5 py-1 bg-primary/10 text-primary font-medium">
+                  <Badge variant="secondary" className="text-xs px-2.5 py-1 bg-sidebar-primary/10 text-sidebar-primary font-medium">
                     {messages.length}
                   </Badge>
                 )}
@@ -518,7 +518,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className="h-16 w-16 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 bg-gradient-to-br from-primary via-primary to-primary/90 hover:from-primary/95 hover:to-primary/80 border-0 ring-2 ring-primary/20 hover:ring-primary/30 hover:scale-105 sm:h-16 sm:w-16 xs:h-14 xs:w-14"
+          className="h-16 w-16 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 bg-gradient-to-br from-sidebar-primary via-sidebar-primary to-sidebar-primary/90 hover:from-sidebar-primary/95 hover:to-sidebar-primary/80 border-0 ring-2 ring-sidebar-primary/20 hover:ring-sidebar-primary/30 hover:scale-105 sm:h-16 sm:w-16 xs:h-14 xs:w-14"
           size="sm"
         >
           <MessageSquare className="h-7 w-7 text-white sm:h-7 sm:w-7 xs:h-6 xs:w-6" />

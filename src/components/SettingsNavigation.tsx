@@ -66,11 +66,11 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
 
   return (
     <div className={cn(
-      "bg-white border-r border-gray-200 border-t-0 h-screen flex flex-col fixed z-30 transition-all duration-300",
+      "bg-background border-r border-border border-t-0 h-screen flex flex-col fixed z-30 transition-all duration-300",
       isCollapsed ? "w-16 left-16" : "w-52 left-52"
     )}>
       {/* Header */}
-      <div className="px-4 h-20 border-b border-gray-200 flex items-center">
+      <div className="px-4 h-20 border-b border-border flex items-center">
         <div className="flex items-center justify-between w-full">
           {!isCollapsed && <div></div>}
         </div>
@@ -79,7 +79,7 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
       {/* Settings Title */}
       {!isCollapsed && (
         <div className="px-4 h-16 flex items-center">
-          <h2 className="text-lg font-semibold text-gray-900">Settings</h2>
+          <h2 className="text-lg font-semibold text-foreground">Settings</h2>
         </div>
       )}
 
@@ -95,10 +95,10 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
               onClick={() => onSectionChange(section.id)}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 cursor-pointer w-full text-left",
-                "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                "hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                 isActive 
-                  ? "bg-primary/10 text-primary border border-primary/20" 
-                  : "text-gray-700 hover:text-gray-900",
+                  ? "bg-sidebar-primary/10 text-sidebar-primary" 
+                  : "text-muted-foreground hover:text-foreground",
                 isCollapsed ? "justify-center" : ""
               )}
               title={isCollapsed ? section.label : undefined}
@@ -106,7 +106,7 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
               <Icon 
                 className={cn(
                   "h-4 w-4",
-                  isActive ? "text-primary" : "text-gray-500"
+                  isActive ? "text-sidebar-primary" : "text-muted-foreground"
                 )} 
               />
               {!isCollapsed && <span className="font-medium">{section.label}</span>}

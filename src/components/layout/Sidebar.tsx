@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionsContext";
-import { useSidebar } from "@/contexts/SidebarContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { FourTwentyLogo } from "../FourTwentyLogo";
 
 const mainNavigation = [
@@ -37,6 +37,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   const location = useLocation();
   const { user, signOut, signInWithGoogle } = useAuth();
   const { hasRole } = usePermissions();
+  const isMobile = useIsMobile();
   
   // Debug logging - only in development
   if (import.meta.env.DEV) {
@@ -91,15 +92,18 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
             <Link
               key={item.name}
               to={item.href}
+              onClick={isMobile ? onClose : undefined}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer font-medium group",
+                "flex items-center gap-3 px-3 rounded-lg text-sm transition-all duration-200 cursor-pointer font-medium group",
+                "focus:outline-none",
+                isMobile ? "py-4 touch-manipulation min-h-[56px]" : "py-2.5",
                 isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md ring-1 ring-sidebar-primary/20"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-sm hover:scale-[1.02]"
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-sm hover:scale-[1.02] active:scale-98"
               )}
             >
-              <Icon className="h-4 w-4" />
-              {item.name}
+              <Icon className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{item.name}</span>
             </Link>
           );
         })}
@@ -115,15 +119,18 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               <Link
                 key={item.name}
                 to={item.href}
+                onClick={isMobile ? onClose : undefined}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer font-medium group",
+                  "flex items-center gap-3 px-3 rounded-lg text-sm transition-all duration-200 cursor-pointer font-medium group",
+                  "focus:outline-none",
+                  isMobile ? "py-4 touch-manipulation min-h-[56px]" : "py-2.5",
                   isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md ring-1 ring-sidebar-primary/20"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-sm hover:scale-[1.02]"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-sm hover:scale-[1.02] active:scale-98"
                 )}
               >
-                <Icon className="h-4 w-4" />
-                {item.name}
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{item.name}</span>
               </Link>
             );
           })}
@@ -137,9 +144,15 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full p-2 h-auto hover:bg-transparent justify-start">
+              <Button 
+                variant="ghost" 
+                className={cn(
+                  "w-full h-auto hover:bg-transparent justify-start focus:outline-none",
+                  isMobile ? "p-4 touch-manipulation min-h-[56px]" : "p-2"
+                )}
+              >
                 <div className="flex items-center w-full gap-3">
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-8 w-8 flex-shrink-0">
                     <AvatarImage 
                       src={user.user_metadata?.avatar_url || user.user_metadata?.picture} 
                       onError={(e) => {
@@ -175,9 +188,12 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
           <Button 
             onClick={() => signInWithGoogle()} 
             variant="ghost" 
-            className="w-full justify-start text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent text-sm transition-all duration-200 hover:scale-[1.02]"
+            className={cn(
+              "w-full justify-start text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent text-sm transition-all duration-200 hover:scale-[1.02] focus:outline-none",
+              isMobile ? "touch-manipulation min-h-[56px] p-4" : "p-2"
+            )}
           >
-            <LogIn className="mr-2 h-4 w-4 text-sidebar-foreground" />
+            <LogIn className="mr-2 h-4 w-4 text-sidebar-foreground flex-shrink-0" />
             <span className="text-sidebar-foreground">Google Sign In</span>
           </Button>
         )}

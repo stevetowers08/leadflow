@@ -50,7 +50,7 @@ export const FallbackAuth: React.FC = () => {
     <div className="flex flex-col h-screen">
       <div className="h-20 border-b border-gray-200 flex items-center justify-center">
         <div className="flex items-center gap-3">
-          <div className="inline-flex items-center justify-center w-8 h-8 bg-primary rounded-lg">
+          <div className="inline-flex items-center justify-center w-8 h-8 bg-sidebar-primary rounded-lg">
             <svg className="w-5 h-5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
@@ -114,7 +114,7 @@ export const FallbackAuth: React.FC = () => {
               {/* LinkedIn Sign In */}
               <Button 
                 onClick={handleLinkedInSignIn} 
-                className="w-full h-11 bg-[#0077B5] hover:bg-[#005885] text-white font-medium"
+                className="w-full h-11 bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground font-medium"
                 disabled={loading !== null}
               >
                 {loading === 'linkedin' ? (
@@ -138,11 +138,11 @@ export const FallbackAuth: React.FC = () => {
           <div className="text-center mt-6">
             <p className="text-xs text-muted-foreground">
               By signing in, you agree to our{' '}
-              <a href="#" className="text-primary hover:text-primary/80 font-medium underline-offset-4 hover:underline">
+              <a href="#" className="text-sidebar-primary hover:text-sidebar-primary/80 font-medium underline-offset-4 hover:underline">
                 Terms of Service
               </a>{' '}
               and{' '}
-              <a href="#" className="text-primary hover:text-primary/80 font-medium underline-offset-4 hover:underline">
+              <a href="#" className="text-sidebar-primary hover:text-sidebar-primary/80 font-medium underline-offset-4 hover:underline">
                 Privacy Policy
               </a>
             </p>

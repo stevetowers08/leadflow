@@ -13,14 +13,14 @@ const TabDesignsShowcase = () => {
   ];
 
   return (
-    <div className="p-8 space-y-12 bg-gray-50 min-h-screen">
+    <div className="p-8 space-y-12 bg-muted min-h-screen">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Modern Tab Designs</h1>
-        <p className="text-gray-600">Choose your favorite design for the Jobs page tabs</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Modern Tab Designs</h1>
+        <p className="text-muted-foreground">Choose your favorite design for the Jobs page tabs</p>
       </div>
 
       {/* Design 1: Minimal Pills */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-background p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Design 1: Minimal Pills</h3>
         <div className="flex gap-2">
           {tabs.map((tab) => {
@@ -32,13 +32,13 @@ const TabDesignsShowcase = () => {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
                   activeTab === tab.id
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
               >
                 <Icon className="h-4 w-4" />
                 {tab.label}
-                <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full">
+                <span className="bg-primary-foreground/20 text-xs px-2 py-0.5 rounded-full">
                   {tab.count}
                 </span>
               </button>
@@ -48,7 +48,7 @@ const TabDesignsShowcase = () => {
       </div>
 
       {/* Design 2: Underline Style */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-background p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Design 2: Underline Style</h3>
         <div className="flex gap-8 border-b border-gray-200">
           {tabs.map((tab) => {
@@ -79,7 +79,7 @@ const TabDesignsShowcase = () => {
       </div>
 
       {/* Design 3: Card Style */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-background p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Design 3: Card Style</h3>
         <div className="flex gap-3">
           {tabs.map((tab) => {
@@ -107,7 +107,7 @@ const TabDesignsShowcase = () => {
       </div>
 
       {/* Design 4: Segmented Control */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-background p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Design 4: Segmented Control</h3>
         <div className="bg-gray-100 p-1 rounded-lg inline-flex">
           {tabs.map((tab) => {
@@ -135,7 +135,7 @@ const TabDesignsShowcase = () => {
       </div>
 
       {/* Design 5: Modern Glass */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-background p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Design 5: Modern Glass</h3>
         <div className="flex gap-2 bg-gray-50 p-2 rounded-xl">
           {tabs.map((tab) => {
@@ -163,7 +163,7 @@ const TabDesignsShowcase = () => {
       </div>
 
       {/* Design 6: Minimal Lines */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-background p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Design 6: Minimal Lines</h3>
         <div className="flex gap-6">
           {tabs.map((tab) => {
@@ -192,7 +192,7 @@ const TabDesignsShowcase = () => {
       </div>
 
       {/* Design 7: Floating Pills */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-background p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Design 7: Floating Pills</h3>
         <div className="flex gap-3">
           {tabs.map((tab) => {
@@ -225,7 +225,7 @@ const TabDesignsShowcase = () => {
       </div>
 
       {/* Design 8: Clean Buttons */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-background p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Design 8: Clean Buttons</h3>
         <div className="flex gap-2">
           {tabs.map((tab) => {
@@ -253,7 +253,7 @@ const TabDesignsShowcase = () => {
       </div>
 
       {/* Design 9: Gradient Accent */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-background p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Design 9: Gradient Accent</h3>
         <div className="flex gap-2">
           {tabs.map((tab) => {
@@ -271,7 +271,7 @@ const TabDesignsShowcase = () => {
               >
                 <Icon className="h-4 w-4" />
                 {tab.label}
-                <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full">
+                <span className="bg-primary-foreground/20 text-xs px-2 py-0.5 rounded-full">
                   {tab.count}
                 </span>
               </button>
@@ -281,7 +281,7 @@ const TabDesignsShowcase = () => {
       </div>
 
       {/* Design 10: Sleek Modern */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-background p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Design 10: Sleek Modern</h3>
         <div className="flex gap-1 bg-gray-50 p-1 rounded-xl">
           {tabs.map((tab) => {
@@ -293,13 +293,13 @@ const TabDesignsShowcase = () => {
                 className={cn(
                   "flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex-1 justify-center",
                   activeTab === tab.id
-                    ? "bg-white text-gray-900 shadow-sm border border-gray-200"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                    ? "bg-background text-foreground shadow-sm border border-border"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                 )}
               >
                 <Icon className="h-4 w-4" />
                 <span className="hidden sm:inline">{tab.label}</span>
-                <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full ml-1">
+                <span className="bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full ml-1">
                   {tab.count}
                 </span>
               </button>
@@ -308,15 +308,17 @@ const TabDesignsShowcase = () => {
         </div>
       </div>
 
-      <div className="text-center mt-8 p-6 bg-blue-50 rounded-lg">
-        <h3 className="text-lg font-semibold text-blue-900 mb-2">Which design do you prefer?</h3>
-        <p className="text-blue-700">Let me know which design looks best and I'll implement it on the Jobs page!</p>
+      <div className="text-center mt-8 p-6 bg-sidebar-primary/10 rounded-lg">
+        <h3 className="text-lg font-semibold text-sidebar-primary mb-2">Which design do you prefer?</h3>
+        <p className="text-sidebar-primary/80">Let me know which design looks best and I'll implement it on the Jobs page!</p>
       </div>
     </div>
   );
 };
 
 export default TabDesignsShowcase;
+
+
 
 
 

@@ -14,6 +14,11 @@
   }
 }
 
+/* Safe area padding for bottom navigation */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Prevent zoom on input focus */
 @media screen and (max-width: 767px) {
   input[type="text"],
@@ -24,8 +29,13 @@
   input[type="url"],
   textarea,
   select {
-    font-size: 16px !important;
+    font-size: 16px;
     transform: translateZ(0); /* Force hardware acceleration */
+  }
+  
+  /* Override Tailwind's text-sm for mobile inputs */
+  .mobile-input {
+    font-size: 16px;
   }
 }
 
@@ -36,8 +46,8 @@
   input[type="button"],
   input[type="submit"],
   a {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 48px;
+    min-width: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -58,6 +68,25 @@
   a:active {
     transform: scale(0.98);
     transition: transform 0.1s ease;
+  }
+  
+  /* Enhanced touch interactions */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Improved focus indicators for touch */
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  a:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+  
+  /* Override focus outline for sidebar navigation links */
+  .sidebar a:focus-visible {
+    outline: none;
   }
 }
 
@@ -221,10 +250,10 @@
 
 /* Mobile performance optimizations */
 @media (max-width: 767px) {
-  /* Reduce animations on mobile */
+  /* Reduce animations on mobile for better performance */
   * {
-    animation-duration: 0.2s !important;
-    transition-duration: 0.2s !important;
+    animation-duration: 0.15s !important;
+    transition-duration: 0.15s !important;
   }
   
   /* Optimize scrolling */
@@ -236,6 +265,27 @@
   /* Reduce shadows for better performance */
   .mobile-shadow {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Optimize sidebar animations */
+  .sidebar {
+    will-change: transform;
+    transform: translateZ(0); /* Force hardware acceleration */
+  }
+  
+  /* Optimize mobile navigation */
+  .mobile-nav {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+  
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 

@@ -4,6 +4,7 @@ import { InfoField } from '@/components/shared/InfoField';
 import { TagDisplay } from '@/components/TagDisplay';
 import { TagSelector } from '@/components/forms/TagSelector';
 import { Button } from '@/components/ui/button';
+import { Clickable } from '@/components/shared/Clickable';
 import { Globe, Plus, Building2 } from 'lucide-react';
 import { getScoreBadgeClasses } from '@/utils/scoreUtils';
 
@@ -32,14 +33,19 @@ interface CompanyInfoCardProps {
     tags?: Tag[];
   };
   onCompanyClick?: (companyId: string, companyName: string) => void;
+  showTitle?: boolean;
 }
 
 export const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ 
   company, 
-  onCompanyClick
+  onCompanyClick,
+  showTitle = true
 }) => {
   const [tags, setTags] = useState<Tag[]>(company.tags || []);
   const [showTagSelector, setShowTagSelector] = useState(false);
+  
+  // Simple click handler
+  const handleCompanyClick = onCompanyClick ? () => onCompanyClick(company.id, company.name) : undefined;
 
   // Get company logo using Clearbit (same logic as CompanyCard)
   const getCompanyLogo = () => {
@@ -54,35 +60,69 @@ export const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({
   if (!company) return null;
 
   return (
-    <InfoCard title="Company Information" contentSpacing="space-y-8" showDivider={false}>
+    <InfoCard title={showTitle ? "Company Information" : undefined} contentSpacing="space-y-8" showDivider={false}>
       {/* Section 1: Company Header */}
       <div className="grid grid-cols-3 gap-3 items-center">
         {/* Column 1 - Logo, Company Name, Head Office */}
-        <div className="flex items-center gap-3">
-          {/* Company Logo */}
-          <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
-            {logo ? (
-              <img 
-                src={logo} 
-                alt={`${company.name} logo`}
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <Building2 className={`w-10 h-10 text-gray-400 ${logo ? 'hidden' : ''}`} />
+        {handleCompanyClick ? (
+          <Clickable
+            onClick={handleCompanyClick}
+            variant="card"
+            size="md"
+            aria-label={`View ${company.name} company details`}
+            aria-describedby={`company-${company.id}-description`}
+          >
+            {/* Company Logo */}
+            <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+              {logo ? (
+                <img 
+                  src={logo} 
+                  alt={`${company.name} logo`}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <Building2 className={`w-10 h-10 text-gray-400 ${logo ? 'hidden' : ''}`} />
+            </div>
+            
+            {/* Company Info */}
+            <div className="min-w-0">
+              <div className="text-xl font-bold text-gray-900 leading-tight">{company.name}</div>
+              {company.head_office && (
+                <div className="text-sm text-gray-500 leading-tight">{company.head_office}</div>
+              )}
+            </div>
+          </Clickable>
+        ) : (
+          <div className="flex items-center gap-4">
+            {/* Company Logo */}
+            <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+              {logo ? (
+                <img 
+                  src={logo} 
+                  alt={`${company.name} logo`}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <Building2 className={`w-10 h-10 text-gray-400 ${logo ? 'hidden' : ''}`} />
+            </div>
+            
+            {/* Company Info */}
+            <div className="min-w-0">
+              <div className="text-xl font-bold text-gray-900 leading-tight">{company.name}</div>
+              {company.head_office && (
+                <div className="text-sm text-gray-500 leading-tight">{company.head_office}</div>
+              )}
+            </div>
           </div>
-          
-          {/* Company Info */}
-          <div className="min-w-0">
-            <div className="text-xl font-bold text-gray-900 leading-tight">{company.name}</div>
-            {company.head_office && (
-              <div className="text-sm text-gray-500 leading-tight">{company.head_office}</div>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* Column 2 - AI Score */}
         <div className="space-y-1">

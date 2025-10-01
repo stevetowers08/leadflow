@@ -381,7 +381,7 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
           {/* Notes list */}
           {isLoading ? (
             <div className="text-center py-6 text-muted-foreground">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary mx-auto mb-2"></div>
               <div className="text-sm">Loading notes...</div>
             </div>
           ) : notes.length === 0 && !isAdding ? (
@@ -432,7 +432,7 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
                       <>
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
                               {note.author_name.split(' ').map(n => n[0]).join('').toUpperCase()}
                             </div>
                             <div>

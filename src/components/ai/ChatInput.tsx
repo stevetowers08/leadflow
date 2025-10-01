@@ -62,7 +62,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled || isLoading}
-          className="min-h-[48px] max-h-[120px] resize-none pr-12 rounded-2xl border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary bg-gray-50/50"
+          className="min-h-[48px] max-h-[120px] resize-none pr-12 rounded-2xl border-gray-200 focus:border-sidebar-primary focus:ring-1 focus:ring-sidebar-primary bg-gray-50/50"
           rows={1}
         />
         <div className="absolute bottom-3 right-3 text-xs text-gray-400 font-medium">
@@ -74,7 +74,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         type="submit"
         size="sm"
         disabled={!canSend}
-        className="h-12 w-12 p-0 flex-shrink-0 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+        className="h-12 w-12 p-0 flex-shrink-0 rounded-full bg-sidebar-primary hover:bg-sidebar-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
       >
         {isLoading ? (
           <Loader2 className="h-5 w-5 animate-spin text-white" />

@@ -52,7 +52,7 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
           }
           showCheckbox={showCheckbox}
           isSelected={selectedLeads.some(selected => selected.id === item.id)}
-          onSelect={onToggleSelection ? (id: string, checked: boolean) => onToggleSelection(item.id) : undefined}
+          onSelect={onToggleSelection ? (id: string, checked: boolean) => onToggleSelection(id) : undefined}
           onClick={() => onItemClick(item.id)}
         />
       );
@@ -80,7 +80,7 @@ export const RelatedItemsList: React.FC<RelatedItemsListProps> = ({
         showAutomateButton ? (
           <Button 
             size="sm" 
-            className="bg-primary hover:bg-primary/90 text-sm px-6 py-1 !h-8 min-h-[32px]"
+            className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground text-sm px-6 py-1 !h-8 min-h-[32px]"
             disabled={selectedLeads.length === 0}
             onClick={onAutomationClick}
           >

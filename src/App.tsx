@@ -9,8 +9,10 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
 import { SidebarProvider } from "./contexts/SidebarContext";
 import { AIProvider } from "./contexts/AIContext";
+import { PopupNavigationProvider } from "./contexts/PopupNavigationContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components";
+import { UnifiedPopup } from "./components/UnifiedPopup";
 import { AuthPage } from "./components/auth/AuthPage";
 import AuthCallback from "./components/auth/AuthCallback";
 import { GmailCallback } from "./components/GmailCallback";
@@ -49,7 +51,7 @@ const AppRoutes = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sidebar-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -64,34 +66,41 @@ const AppRoutes = () => {
     <PermissionsProvider user={user} userProfile={userProfile} authLoading={loading}>
       <AIProvider>
         <SidebarProvider>
-          <Layout>
-            <Suspense fallback={
-              <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading page...</p>
+          <PopupNavigationProvider>
+            <Layout>
+              <Suspense fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sidebar-primary mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading page...</p>
+                  </div>
                 </div>
-              </div>
-            }>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/crm-info" element={<CRMInfo />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route path="/auth/gmail-callback" element={<GmailCallback />} />
-                <Route path="/test-callback" element={<div className="p-8"><h1>Test Callback Route Works!</h1></div>} />
-                <Route path="/jobs" element={<Jobs />} />
-                <Route path="/people" element={<People />} />
-                <Route path="/companies" element={<Companies />} />
-                <Route path="/pipeline" element={<Pipeline />} />
-                <Route path="/campaigns" element={<Campaigns />} />
-                <Route path="/conversations" element={<ConversationsPage />} />
-                <Route path="/automations" element={<Automations />} />
-                <Route path="/reporting" element={<Reporting />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/tab-designs" element={<TabDesignsShowcase />} />
-              </Routes>
+              }>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/crm-info" element={<CRMInfo />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
+                  <Route path="/auth/gmail-callback" element={<GmailCallback />} />
+                  <Route path="/test-callback" element={<div className="p-8"><h1>Test Callback Route Works!</h1></div>} />
+                  <Route path="/jobs" element={<Jobs />} />
+                  <Route path="/people" element={<People />} />
+                  <Route path="/companies" element={<Companies />} />
+                  <Route path="/pipeline" element={<Pipeline />} />
+                  <Route path="/campaigns" element={<Campaigns />} />
+                  <Route path="/conversations" element={<ConversationsPage />} />
+                  <Route path="/automations" element={<Automations />} />
+                  <Route path="/reporting" element={<Reporting />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/tab-designs" element={<TabDesignsShowcase />} />
+                </Routes>
+              </Suspense>
+            </Layout>
+            
+            {/* Popup System */}
+            <Suspense fallback={null}>
+              <UnifiedPopup />
             </Suspense>
-          </Layout>
+          </PopupNavigationProvider>
         </SidebarProvider>
       </AIProvider>
     </PermissionsProvider>

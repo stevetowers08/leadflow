@@ -1,5 +1,6 @@
 import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Clickable } from '@/components/shared/Clickable';
 
 interface ListItemProps {
   id: string;
@@ -27,8 +28,13 @@ export const ListItem: React.FC<ListItemProps> = ({
   className = ""
 }) => {
   return (
-    <div 
-      className={`px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group ${className}`}
+    <Clickable
+      onClick={onClick}
+      variant="card"
+      size="md"
+      aria-label={`View ${title} details`}
+      aria-describedby={subtitle ? `${id}-subtitle` : undefined}
+      className={className}
     >
       <div className="flex items-center gap-3">
         {showCheckbox && (
@@ -45,12 +51,11 @@ export const ListItem: React.FC<ListItemProps> = ({
           </div>
         )}
         <div 
-          className="flex-1 min-w-0 cursor-pointer"
-          onClick={onClick}
+          className="flex-1 min-w-0"
         >
           <div className="font-semibold text-sm truncate">{title}</div>
           {subtitle && (
-            <div className="text-xs text-gray-500 truncate">{subtitle}</div>
+            <div id={`${id}-subtitle`} className="text-xs text-gray-500 truncate">{subtitle}</div>
           )}
         </div>
         {badge && (
@@ -59,7 +64,7 @@ export const ListItem: React.FC<ListItemProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </Clickable>
   );
 };
 
