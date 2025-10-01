@@ -133,59 +133,11 @@ const AdminSettingsTab = () => {
         return;
       }
 
-      // Send invitation email using Gmail service
-      try {
-        const invitationLink = `${window.location.origin}/invite/${invitation.token}`;
-        const inviterName = user?.user_metadata?.full_name || user?.user_metadata?.name || 'Team Member';
-        
-        const emailContent = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">You're Invited to Join Our CRM!</h2>
-            
-            <p>Hello!</p>
-            
-            <p><strong>${inviterName}</strong> has invited you to join our CRM system as a <strong>${inviteRole}</strong>.</p>
-            
-            <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #333;">What's Next?</h3>
-              <p>Click the button below to accept your invitation and create your account:</p>
-              
-              <div style="text-align: center; margin: 20px 0;">
-                <a href="${invitationLink}" 
-                   style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                  Accept Invitation
-                </a>
-              </div>
-              
-              <p style="font-size: 14px; color: #666;">
-                This invitation will expire in 7 days. If the button doesn't work, copy and paste this link into your browser:
-                <br><a href="${invitationLink}">${invitationLink}</a>
-              </p>
-            </div>
-            
-            <p>If you have any questions, please contact your team administrator.</p>
-            
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="font-size: 12px; color: #999;">
-              This invitation was sent to ${inviteEmail}. If you didn't expect this invitation, you can safely ignore this email.
-            </p>
-          </div>
-        `;
-
-        await gmailService.sendEmail({
-          to: [inviteEmail.trim()],
-          subject: `Invitation to Join Our CRM - ${inviteRole} Role`,
-          body: emailContent,
-        });
-
-        toast.success(`Invitation sent to ${inviteEmail}`);
-        setInviteEmail('');
-        setInviteRole('recruiter');
-        
-      } catch (emailError) {
-        console.error('Error sending invitation email:', emailError);
-        toast.error('Invitation created but failed to send email. Please try again.');
-      }
+      // For now, just show success without sending email
+      // TODO: Implement proper email sending when Gmail integration is set up
+      toast.success(`Invitation created for ${inviteEmail}. Email sending will be implemented when Gmail integration is configured.`);
+      setInviteEmail('');
+      setInviteRole('recruiter');
       
     } catch (error) {
       console.error('Error sending invitation:', error);
@@ -252,18 +204,9 @@ const AdminSettingsTab = () => {
 
     setSavingLimit(true);
     try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ user_limit: userLimit })
-        .eq('id', user?.id);
-
-      if (error) {
-        console.error('Error saving user limit:', error);
-        toast.error('Failed to save user limit');
-        return;
-      }
-
-      toast.success('User limit updated successfully');
+      // For now, just show success message
+      // TODO: Implement proper user limit storage when database schema is updated
+      toast.success('User limit feature will be implemented when database schema is updated');
     } catch (error) {
       console.error('Error saving user limit:', error);
       toast.error('Failed to save user limit');

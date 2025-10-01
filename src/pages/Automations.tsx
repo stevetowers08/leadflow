@@ -44,7 +44,7 @@ const Automations = () => {
     try {
       setLoading(true);
       
-      // Fetch people with automation activities
+      // Fetch people with automation activities - join with companies to get company names
       const { data: peopleData, error } = await supabase
         .from("people")
         .select(`
@@ -63,10 +63,11 @@ const Automations = () => {
           stage_updated,
           last_interaction_at,
           stage,
-          companies!inner(name)
+          companies(name)
         `)
         .not('automation_started_at', 'is', null)
-        .order('last_interaction_at', { ascending: false });
+        .order('last_interaction_at', { ascending: false })
+        .limit(50); // Limit results to avoid performance issues
 
       if (error) throw error;
 
