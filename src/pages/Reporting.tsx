@@ -31,7 +31,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { getLabel } from '@/utils/labels';
 import { Page } from "@/design-system/components";
-import { ReportingService, ReportingMetrics } from "@/services/reportingService";
+import type { ReportingMetrics } from "@/services/reportingService";
 import { 
   ChartContainer, 
   ChartTooltip, 
@@ -44,18 +44,14 @@ import {
   Bar, 
   XAxis, 
   YAxis, 
-  CartesianGrid, 
-  ResponsiveContainer,
+  CartesianGrid,
   LineChart,
   Line,
   PieChart,
   Pie,
   Cell,
   AreaChart,
-  Area,
-  FunnelChart,
-  Funnel,
-  LabelList
+  Area
 } from "recharts";
 
 const Reporting = () => {
@@ -81,6 +77,9 @@ const Reporting = () => {
     try {
       setLoading(true);
       console.log('Fetching reporting data...');
+      
+      // Dynamic import to prevent initialization issues
+      const { ReportingService } = await import("@/services/reportingService");
       const data = await ReportingService.getReportingData(selectedPeriod as '7d' | '30d' | '90d');
       console.log('Received data:', data);
       setStats(data);
