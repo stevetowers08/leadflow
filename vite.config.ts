@@ -18,8 +18,7 @@ export default defineConfig(({ mode }) => ({
       'react-dom', 
       '@radix-ui/react-popover',
       '@tanstack/react-query',
-      '@supabase/supabase-js',
-      'sonner'
+      '@supabase/supabase-js'
     ],
     exclude: ['@vite/client', '@vite/env'],
     force: true
@@ -27,6 +26,9 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Force all React imports to use the same instance
+      "react": path.resolve(__dirname, "./node_modules/react"),
+      "react-dom": path.resolve(__dirname, "./node_modules/react-dom")
     },
     dedupe: ['react', 'react-dom']
   },
