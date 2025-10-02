@@ -61,11 +61,11 @@ export const usePerformanceMonitoring = (
     // Log performance summary periodically
     if (renderCountRef.current % 50 === 0) {
       const recentMetrics = performanceData
-        .filter(m => m.componentName === componentName)
+        .filter(metric => metric.componentName === componentName)
         .slice(-10);
       
       if (recentMetrics.length > 0) {
-        const avgRenderTime = recentMetrics.reduce((sum, m) => sum + m.renderTime, 0) / recentMetrics.length;
+        const avgRenderTime = recentMetrics.reduce((sum, metric) => sum + metric.renderTime, 0) / recentMetrics.length;
         console.log(
           `📊 ${componentName} performance (last 10 renders): avg ${avgRenderTime.toFixed(2)}ms`
         );
@@ -94,9 +94,9 @@ export const usePerformanceMonitoring = (
       logPerformance(renderTime);
       return renderTime;
     },
-    getPerformanceData: () => performanceData.filter(m => m.componentName === componentName),
+    getPerformanceData: () => performanceData.filter(metric => metric.componentName === componentName),
     clearPerformanceData: () => {
-      const index = performanceData.findIndex(m => m.componentName === componentName);
+      const index = performanceData.findIndex(metric => metric.componentName === componentName);
       if (index !== -1) {
         performanceData.splice(index, 1);
       }
@@ -159,15 +159,15 @@ export const getPerformanceSummary = () => {
     return { message: 'No performance data available' };
   }
 
-  const avgRenderTime = performanceData.reduce((sum, m) => sum + m.renderTime, 0) / performanceData.length;
-  const slowRenders = performanceData.filter(m => m.renderTime > 16).length;
-  const componentStats = performanceData.reduce((acc, m) => {
-    if (!acc[m.componentName]) {
-      acc[m.componentName] = { count: 0, totalTime: 0, avgTime: 0 };
+  const avgRenderTime = performanceData.reduce((sum, metric) => sum + metric.renderTime, 0) / performanceData.length;
+  const slowRenders = performanceData.filter(metric => metric.renderTime > 16).length;
+  const componentStats = performanceData.reduce((acc, metric) => {
+    if (!acc[metric.componentName]) {
+      acc[metric.componentName] = { count: 0, totalTime: 0, avgTime: 0 };
     }
-    acc[m.componentName].count += 1;
-    acc[m.componentName].totalTime += m.renderTime;
-    acc[m.componentName].avgTime = acc[m.componentName].totalTime / acc[m.componentName].count;
+    acc[metric.componentName].count += 1;
+    acc[metric.componentName].totalTime += metric.renderTime;
+    acc[metric.componentName].avgTime = acc[metric.componentName].totalTime / acc[metric.componentName].count;
     return acc;
   }, {} as Record<string, { count: number; totalTime: number; avgTime: number }>);
 

@@ -278,3 +278,5 @@ export class MobileErrorBoundary extends React.Component<
     return this.props.children;
   }
 }
+
+export default MobileTestPanel;

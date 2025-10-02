@@ -427,3 +427,5 @@ export const ActivityTimeline = ({ entityId, entityName, entityType = "lead" }: 
     </div>
   );
 };
+
+export default ActivityTimeline;

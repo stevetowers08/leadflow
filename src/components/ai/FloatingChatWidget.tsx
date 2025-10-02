@@ -664,3 +664,5 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
     </div>
   );
 };
+
+export default FloatingChatWidget;

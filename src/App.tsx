@@ -25,7 +25,7 @@ const Jobs = lazy(() => import("./pages/Jobs"));
 const People = lazy(() => import("./pages/Leads"));
 const Companies = lazy(() => import("./pages/Companies"));
 const Pipeline = lazy(() => import("./pages/Pipeline"));
-const ConversationsPage = lazy(() => import("./pages/Conversations").then(module => ({ default: module.ConversationsPage })));
+const ConversationsPage = lazy(() => import("./pages/Conversations"));
 const Automations = lazy(() => import("./pages/Automations"));
 const Reporting = lazy(() => import("./pages/Reporting"));
 const Settings = lazy(() => import("./pages/Settings"));

@@ -199,3 +199,5 @@ export function AddNoteModal({
     </div>
   );
 }
+
+export default AddNoteModal;

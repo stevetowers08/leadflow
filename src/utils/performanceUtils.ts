@@ -90,7 +90,7 @@ class PerformanceTracker {
    */
   getMetrics(operation?: string): PerformanceMetrics[] {
     if (operation) {
-      return this.metrics.filter(m => m.operation === operation);
+      return this.metrics.filter(metric => metric.operation === operation);
     }
     return [...this.metrics];
   }

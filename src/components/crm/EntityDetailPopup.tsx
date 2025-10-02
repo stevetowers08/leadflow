@@ -24,9 +24,9 @@ import {
   Zap
 } from "lucide-react";
 // Lazy load heavy components for better performance
-const ActivityTimeline = lazy(() => import("./ActivityTimeline").then(module => ({ default: module.ActivityTimeline })));
-const LinkedInAutomationModal = lazy(() => import("./automation/LinkedInAutomationModal").then(module => ({ default: module.LinkedInAutomationModal })));
-const AddNoteModal = lazy(() => import("./AddNoteModal").then(module => ({ default: module.AddNoteModal })));
+const ActivityTimeline = lazy(() => import("./ActivityTimeline"));
+const LinkedInAutomationModal = lazy(() => import("./automation/LinkedInAutomationModal"));
+const AddNoteModal = lazy(() => import("./AddNoteModal"));
 import { useEntityData } from "@/hooks/useEntityData";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePopupNavigation } from '@/contexts/PopupNavigationContext';

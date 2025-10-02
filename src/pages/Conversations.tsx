@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { usePageMeta } from '@/hooks/usePageMeta';
 
 // Modern Conversations Page with Message Notifications
-export const ConversationsPage: React.FC = () => {
+const ConversationsPage: React.FC = () => {
   console.log('ConversationsPage component mounted');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(false);
@@ -57,3 +57,5 @@ export const ConversationsPage: React.FC = () => {
     </Page>
   );
 };
+
+export default ConversationsPage;

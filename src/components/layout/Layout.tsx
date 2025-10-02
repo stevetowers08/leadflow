@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 import { FourTwentyLogo } from "../FourTwentyLogo";
 
 // Lazy load heavy components
-const FloatingChatWidget = lazy(() => import("../ai/FloatingChatWidget").then(module => ({ default: module.FloatingChatWidget })));
-const MobileTestPanel = lazy(() => import("../mobile/MobileTestPanel").then(module => ({ default: module.MobileTestPanel })));
-const EnhancedMobileNav = lazy(() => import("../mobile/EnhancedMobileNav").then(module => ({ default: module.EnhancedMobileNav })));
+const FloatingChatWidget = lazy(() => import("../ai/FloatingChatWidget"));
+const MobileTestPanel = lazy(() => import("../mobile/MobileTestPanel"));
+const EnhancedMobileNav = lazy(() => import("../mobile/EnhancedMobileNav"));
 
 interface LayoutProps {
   children: ReactNode;

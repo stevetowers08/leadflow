@@ -1,5 +1,5 @@
 -- COMPREHENSIVE AIRTABLE TO SUPABASE SYNC
--- Generated: 2025-10-02T03:17:30.569Z
+-- Generated: 2025-10-02T03:31:30.899Z
 -- This file contains verified and corrected sync queries
 
 -- SUMMARY:
@@ -2976,12 +2976,12 @@ WHERE NOT EXISTS (
     SELECT 1 FROM people 
     WHERE LOWER(name) = LOWER('Claudia Kidd') OR linkedin_url = 'https://www.linkedin.com/in/claudia-loritsch-0028' 
 );
--- Update person: Darren Paterson (Stage: IN QUEUE -> in_queue)
+-- Update person: Darren Paterson (Stage: CONNECT SENT -> connection_requested)
 UPDATE people SET 
     airtable_id = 'recGqwuyhBGmACZHD',
     company_role = 'Regional Vice President of Sales, Australia and New Zealand',
     employee_location = 'Sydney, New South Wales, Australia',
-    stage = 'in_queue',
+    stage = 'connection_requested',
     confidence_level = 'High',
     lead_source = 'LinkedIn Job Posts',
     automation_started_at = NULL,
@@ -2994,7 +2994,7 @@ WHERE (LOWER(name) = LOWER('Darren Paterson') OR linkedin_url = 'https://www.lin
   AND airtable_id IS NULL;
 -- Insert new person if no match found: Darren Paterson
 INSERT INTO people (airtable_id, name, email, linkedin_url, company_role, employee_location, stage, confidence_level, lead_source, automation_started_at, linkedin_request_message, linkedin_follow_up_message, linkedin_connected_message, created_at, updated_at)
-SELECT 'recGqwuyhBGmACZHD', 'Darren Paterson', NULL, 'https://www.linkedin.com/in/ACwAAAFnAbABB6kXiXPhSquzADLJ7M1418CsD2A', 'Regional Vice President of Sales, Australia and New Zealand', 'Sydney, New South Wales, Australia', 'in_queue', 'High', 'LinkedIn Job Posts', NULL, 'Saw the SUGCON ANZ 2025 news. Exciting to see Sitecore leading in Sydney!', 'We''re working with some excellent SDR candidates in Sydney at the moment. Companies like HubSpot and Docusign have found our approach helpful when scaling their new business teams.', 'I see you''re building out your SDR team. How are you finding the local talent market? We''re noticing some interesting shifts in the talent landscape, particularly around new business development hires in Sydney. The SUGCON event should bring some great networking opportunities too. Would love to chat about what we''re seeing in the market.', NOW(), NOW()
+SELECT 'recGqwuyhBGmACZHD', 'Darren Paterson', NULL, 'https://www.linkedin.com/in/ACwAAAFnAbABB6kXiXPhSquzADLJ7M1418CsD2A', 'Regional Vice President of Sales, Australia and New Zealand', 'Sydney, New South Wales, Australia', 'connection_requested', 'High', 'LinkedIn Job Posts', NULL, 'Saw the SUGCON ANZ 2025 news. Exciting to see Sitecore leading in Sydney!', 'We''re working with some excellent SDR candidates in Sydney at the moment. Companies like HubSpot and Docusign have found our approach helpful when scaling their new business teams.', 'I see you''re building out your SDR team. How are you finding the local talent market? We''re noticing some interesting shifts in the talent landscape, particularly around new business development hires in Sydney. The SUGCON event should bring some great networking opportunities too. Would love to chat about what we''re seeing in the market.', NOW(), NOW()
 WHERE NOT EXISTS (
     SELECT 1 FROM people 
     WHERE LOWER(name) = LOWER('Darren Paterson') OR linkedin_url = 'https://www.linkedin.com/in/ACwAAAFnAbABB6kXiXPhSquzADLJ7M1418CsD2A' 

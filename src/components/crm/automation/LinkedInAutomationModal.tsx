@@ -400,3 +400,5 @@ export function LinkedInAutomationModal({
     </div>
   );
 }
+
+export default LinkedInAutomationModal;
