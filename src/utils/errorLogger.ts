@@ -172,7 +172,7 @@ class ErrorLogger {
    * Mark an error as resolved
    */
   resolveError(errorId: string): boolean {
-    const error = this.errors.find(e => e.id === errorId);
+    const error = this.errors.find(errorItem => errorItem.id === errorId);
     if (error) {
       error.resolved = true;
       return true;

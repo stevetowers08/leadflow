@@ -130,7 +130,7 @@ export const OwnerDisplay = ({
 
   const initials = ownerInfo.full_name
     .split(' ')
-    .map(n => n[0])
+    .map(namePart => namePart[0])
     .join('')
     .toUpperCase();
 

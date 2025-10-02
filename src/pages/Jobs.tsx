@@ -266,7 +266,7 @@ const Jobs = () => {
             total_leads: leads.length,
             new_leads: newLeadsCount,
             automation_started_leads: automatedLeadsCount,
-            lead_stages: leads.map(l => l.stage)
+            lead_stages: leads.map(lead => lead.stage)
           });
         }
         
@@ -443,8 +443,7 @@ const Jobs = () => {
                   entityType="company"
                   isFavorite={job.company_is_favourite || false}
                   onToggle={(isFavorite) => {
-                    setJobs(prev => prev.map(j => 
-                      j.company_id === job.company_id ? { ...j, company_is_favourite: isFavorite } : j
+                    setJobs(prev => prev.map(job => job.company_id === job.company_id ? { ...j, company_is_favourite: isFavorite } : j
                     ));
                   }}
                   size="sm"

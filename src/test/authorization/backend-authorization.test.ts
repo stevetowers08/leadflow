@@ -181,7 +181,7 @@ describe('Authorization Tests - Backend Services', () => {
           select: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockResolvedValue({
-            data: Object.values(mockUserProfiles).filter(p => p.is_active),
+            data: Object.values(mockUserProfiles).filter(person => person.is_active),
             error: null
           })
         } as any);
@@ -321,7 +321,7 @@ describe('Authorization Tests - Backend Services', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
-          data: mockCrmData.companies.filter(c => c.owner_id === 'deleted-user-id'),
+          data: mockCrmData.companies.filter(company => company.owner_id === 'deleted-user-id'),
           error: null
         })
       } as any);

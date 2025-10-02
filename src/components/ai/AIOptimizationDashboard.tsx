@@ -75,7 +75,7 @@ export function AIOptimizationDashboard({ leads, onOptimizationComplete }: AIOpt
         aiInsights: [
           `AI optimized ${results.length} leads with ${Math.round(avgResponseRate)}% avg response rate`,
           `Top action: ${topActions[0] || 'Personalized outreach'}`,
-          `Priority distribution: ${results.filter(r => r.priority_level === 'high').length} high, ${results.filter(r => r.priority_level === 'medium').length} medium`
+          `Priority distribution: ${results.filter(result => result.priority_level === 'high').length} high, ${results.filter(result => result.priority_level === 'medium').length} medium`
         ]
       });
     } catch (error) {

@@ -386,8 +386,7 @@ const Companies = () => {
                 entityType="company"
                 isFavorite={company.is_favourite || false}
                 onToggle={(isFavorite) => {
-                  setCompanies(prev => prev.map(c => 
-                    c.id === company.id ? { ...c, is_favourite: isFavorite } : c
+                  setCompanies(prev => prev.map(company => company.id === company.id ? { ...c, is_favourite: isFavorite } : c
                   ));
                 }}
                 size="sm"

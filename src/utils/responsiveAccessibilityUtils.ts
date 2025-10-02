@@ -625,7 +625,7 @@ export const AccessibilityUtils = {
       const rgb = color.match(/\d+/g);
       if (!rgb) return 0;
       
-      const [r, g, b] = rgb.map(c => {
+      const [r, g, b] = rgb.map(colorValue => {
         const val = parseInt(c) / 255;
         return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4);
       });

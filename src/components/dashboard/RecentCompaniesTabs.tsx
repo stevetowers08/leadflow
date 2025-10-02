@@ -126,7 +126,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({ compan
           )}
           {company.stage && (
             <Badge variant="outline" className={`text-xs ${getStageColor(company.stage)}`}>
-              {company.stage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              {company.stage.replace(/_/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase())}
             </Badge>
           )}
           {company.notes_count && company.notes_count > 0 && (

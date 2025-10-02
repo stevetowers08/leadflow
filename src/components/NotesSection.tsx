@@ -429,7 +429,7 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
-                              {note.author_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              {note.author_name.split($1).map(namePart => n[0]).join('').toUpperCase()}
                             </div>
                             <div>
                               <div className="text-sm font-medium">{note.author_name}</div>

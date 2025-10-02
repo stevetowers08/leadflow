@@ -43,8 +43,8 @@ export const CompanyAssignments: React.FC<CompanyAssignmentsProps> = ({
     return acc;
   }, {} as Record<string, { user: string | null; email: string | null; leads: AssignmentData[] }>);
 
-  const assignedCount = assignments.filter(a => a.owner_id).length;
-  const unassignedCount = assignments.filter(a => !a.owner_id).length;
+  const assignedCount = assignments.filter(activity => activity.owner_id).length;
+  const unassignedCount = assignments.filter(assignment => !assignment.owner_id).length;
 
   return (
     <InfoCard title="Outreach Assignments" contentSpacing="space-y-6 pt-1.5">
@@ -75,7 +75,7 @@ export const CompanyAssignments: React.FC<CompanyAssignmentsProps> = ({
                 <>
                   <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                     <span className="text-white text-xs font-semibold">
-                      {userData.user.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                      {userData.user.split($1).map(namePart => n[0]).join('').slice(0, 2)}
                     </span>
                   </div>
                   <div>

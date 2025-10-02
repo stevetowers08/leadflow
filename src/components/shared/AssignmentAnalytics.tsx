@@ -239,7 +239,7 @@ export const AssignmentAnalytics: React.FC<AssignmentAnalyticsProps> = ({ classN
               <div key={user.userId} className="flex items-center justify-between p-2 bg-muted/10 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center justify-center w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
-                    {user.userName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {user.userName.split($1).map(namePart => n[0]).join('').toUpperCase()}
                   </div>
                   <div>
                     <div className="text-sm font-medium">{user.userName}</div>

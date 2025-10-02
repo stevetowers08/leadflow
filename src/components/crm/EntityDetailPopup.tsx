@@ -233,7 +233,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
 
   const handleToggleSelection = (leadId: string) => {
     setSelectedLeads(prev => {
-      const lead = leadsData?.find(l => l.id === leadId);
+      const lead = leadsData?.find(lead => lead.id === leadId);
       if (!lead) return prev;
       
       const isSelected = prev.some(selected => selected.id === leadId);

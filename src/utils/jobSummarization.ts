@@ -165,7 +165,7 @@ export async function batchSummarizeJobsFromSupabase(jobIds: string[]): Promise<
     }
   }
 
-  const successful = results.filter(r => r.success).length;
+  const successful = results.filter(result => result.success).length;
   const failed = results.filter(r => !r.success).length;
 
   return {

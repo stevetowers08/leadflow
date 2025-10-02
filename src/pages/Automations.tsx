@@ -205,11 +205,11 @@ const Automations = () => {
       // Calculate stats
       const statsData = {
         totalAutomations: peopleData?.length || 0,
-        activeAutomations: peopleData?.filter(p => p.automation_started_at).length || 0,
-        connectionsSent: activitiesList.filter(a => a.type === 'connection_request').length,
-        messagesSent: activitiesList.filter(a => a.type === 'message_sent').length,
-        responsesReceived: activitiesList.filter(a => a.type === 'response_received').length,
-        meetingsBooked: activitiesList.filter(a => a.type === 'meeting_booked').length
+        activeAutomations: peopleData?.filter(person => person.automation_started_at).length || 0,
+        connectionsSent: activitiesList.filter(activity => activity.type === 'connection_request').length,
+        messagesSent: activitiesList.filter(activity => activity.type === 'message_sent').length,
+        responsesReceived: activitiesList.filter(activity => activity.type === 'response_received').length,
+        meetingsBooked: activitiesList.filter(activity => activity.type === 'meeting_booked').length
       };
 
     } catch (error) {

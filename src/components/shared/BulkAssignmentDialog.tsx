@@ -206,7 +206,7 @@ export const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
                   <SelectItem key={member.id} value={member.id}>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
-                        {member.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        {member.full_name.split($1).map(namePart => n[0]).join('').toUpperCase()}
                       </div>
                       <div className="flex flex-col">
                         <span className="font-medium">{member.full_name}</span>

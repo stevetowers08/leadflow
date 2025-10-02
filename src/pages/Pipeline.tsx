@@ -190,7 +190,7 @@ const Pipeline = () => {
 
   // Enhanced company stage update with optimistic updates and error handling
   const updateCompanyStage = useCallback(async (companyId: string, newStage: string) => {
-    const company = companies.find(c => c.id === companyId);
+    const company = companies.find(company => company.id === companyId);
     if (!company) return;
 
     setIsUpdating(companyId);
@@ -198,8 +198,7 @@ const Pipeline = () => {
     // Optimistic update using React Query
     queryClient.setQueryData(['pipeline-companies'], (oldData: Company[] | undefined) => {
       if (!oldData) return oldData;
-      return oldData.map(c => 
-        c.id === companyId 
+      return oldData.map(company => company.id === companyId 
           ? { ...c, pipeline_stage: newStage as any, updated_at: new Date().toISOString() }
           : c
       );
@@ -218,7 +217,7 @@ const Pipeline = () => {
 
       toast({
         title: "Success",
-        description: `Company moved to ${pipelineStages.find(s => s.key === newStage)?.label}`,
+        description: `Company moved to ${pipelineStages.find(stage => stage.key === newStage)?.label}`,
       });
     } catch (error) {
       console.error("Error updating company stage:", error);
@@ -239,7 +238,7 @@ const Pipeline = () => {
   // Enhanced drag and drop event handlers with better validation and feedback
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const companyId = event.active.id as string;
-    const company = companies.find(c => c.id === companyId);
+    const company = companies.find(company => company.id === companyId);
     
     if (!company) return;
     
@@ -266,7 +265,7 @@ const Pipeline = () => {
 
     const companyId = active.id as string;
     const targetStage = over.id as string;
-    const sourceCompany = companies.find(c => c.id === companyId);
+    const sourceCompany = companies.find(company => company.id === companyId);
     
     if (!sourceCompany) return;
 
@@ -275,7 +274,7 @@ const Pipeline = () => {
     if (!allowedStages.includes(targetStage)) {
       toast({
         title: "Invalid Move",
-        description: `Cannot move from ${pipelineStages.find(s => s.key === sourceCompany.pipeline_stage)?.label} to ${pipelineStages.find(s => s.key === targetStage)?.label}`,
+        description: `Cannot move from ${pipelineStages.find(stage => stage.key === sourceCompany.pipeline_stage)?.label} to ${pipelineStages.find(stage => stage.key === targetStage)?.label}`,
         variant: "destructive",
       });
       return;
@@ -377,7 +376,7 @@ const Pipeline = () => {
         }}
         role="button"
         tabIndex={0}
-        aria-label={`Company: ${company.name}. Current stage: ${pipelineStages.find(s => s.key === company.pipeline_stage)?.label}. ${
+        aria-label={`Company: ${company.name}. Current stage: ${pipelineStages.find(stage => stage.key === company.pipeline_stage)?.label}. ${
           isDraggable ? 'Drag to move to another stage.' : 'Click to view details.'
         }`}
         onKeyDown={(e) => {
@@ -542,7 +541,7 @@ const Pipeline = () => {
     );
     
     const activeCompany = useMemo(() => 
-      activeId ? companies.find(c => c.id === activeId) : null,
+      activeId ? companies.find(company => company.id === activeId) : null,
       [activeId, companies]
     );
     
@@ -572,7 +571,7 @@ const Pipeline = () => {
                 <span>
                   {showAllAssignedUsers 
                     ? "Filtered by: All Assigned Users" 
-                    : `Filtered by: ${users.find(u => u.id === selectedUserId)?.full_name}`
+                    : `Filtered by: ${users.find(user => user.id === selectedUserId)?.full_name}`
                   }
                 </span>
               </div>
@@ -760,7 +759,7 @@ const Pipeline = () => {
         {/* Optimized Drag Overlay */}
         <DragOverlay>
           {activeId ? (() => {
-            const activeCompany = companies.find(c => c.id === activeId);
+            const activeCompany = companies.find(company => company.id === activeId);
             if (!activeCompany) return null;
             
             return (
@@ -772,7 +771,7 @@ const Pipeline = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 text-base">{activeCompany.name}</h3>
-                      <p className="text-xs text-gray-500">{pipelineStages.find(s => s.key === activeCompany.pipeline_stage)?.label}</p>
+                      <p className="text-xs text-gray-500">{pipelineStages.find(stage => stage.key === activeCompany.pipeline_stage)?.label}</p>
                     </div>
                   </div>
                 </div>

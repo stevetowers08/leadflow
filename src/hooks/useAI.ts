@@ -168,7 +168,7 @@ export function useAISupabaseJobSummary(options: UseAISupabaseJobSummaryOptions 
       const result = await batchSummarizeJobsFromSupabase(jobIds);
       
       // Update progress
-      const successful = result.results.filter(r => r.success).length;
+      const successful = result.results.filter(resultItem => resultItem.success).length;
       setProgress({
         current: successful,
         total: jobIds.length,
@@ -176,8 +176,8 @@ export function useAISupabaseJobSummary(options: UseAISupabaseJobSummaryOptions 
       });
 
       return result.results
-        .filter(r => r.success && r.data)
-        .map(r => r.data!);
+        .filter(resultItem => resultItem.success && resultItem.data)
+        .map(resultItem => resultItem.data!);
     });
   }, [executeBatchSummarize]);
 

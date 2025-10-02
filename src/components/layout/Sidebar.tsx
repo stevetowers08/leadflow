@@ -119,7 +119,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                     />
                     <AvatarFallback className="text-white text-xs font-semibold" style={{ backgroundColor: '#34495e' }}>
                       {user.user_metadata?.full_name
-                        ? user.user_metadata.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                        ? user.user_metadata.full_name.split($1).map(namePart => n[0]).join('').toUpperCase().slice(0, 2)
                         : user.email?.slice(0, 2).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>

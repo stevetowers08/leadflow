@@ -282,7 +282,7 @@ export default function Campaigns() {
   };
 
   const getCampaignTypeIcon = (type: string) => {
-    const campaignType = CAMPAIGN_TYPES.find(t => t.value === type);
+    const campaignType = CAMPAIGN_TYPES.find(type => type.value === type);
     return campaignType ? campaignType.icon : Target;
   };
 
@@ -586,7 +586,7 @@ export default function Campaigns() {
                       <div>
                         <CardTitle className="text-lg">{campaign.name}</CardTitle>
                         <CardDescription>
-                          {CAMPAIGN_TYPES.find(t => t.value === campaign.campaign_type)?.label}
+                          {CAMPAIGN_TYPES.find(type => type.value === campaign.campaign_type)?.label}
                         </CardDescription>
                       </div>
                     </div>

@@ -216,7 +216,7 @@ export function PermissionsProvider({ children, user, userProfile, authLoading }
         });
       }
       
-      const role = roles.find(r => r.id === userRole);
+      const role = roles.find(role => role.id === userRole);
       
       if (role) {
         setUserPermissions({
@@ -226,7 +226,7 @@ export function PermissionsProvider({ children, user, userProfile, authLoading }
         });
       } else {
         // If role not found, default to recruiter for safety
-        const defaultRole = roles.find(r => r.id === 'recruiter');
+        const defaultRole = roles.find(role => role.id === 'recruiter');
         if (defaultRole) {
           setUserPermissions({
             userId: user.id,
@@ -246,7 +246,7 @@ export function PermissionsProvider({ children, user, userProfile, authLoading }
       }
       
       if (metadataRole) {
-        const role = roles.find(r => r.id === metadataRole);
+        const role = roles.find(role => role.id === metadataRole);
         if (role) {
           setUserPermissions({
             userId: user.id,
@@ -255,7 +255,7 @@ export function PermissionsProvider({ children, user, userProfile, authLoading }
           });
         } else {
           // Default to recruiter if metadata role not found
-          const defaultRole = roles.find(r => r.id === 'recruiter');
+          const defaultRole = roles.find(role => role.id === 'recruiter');
           if (defaultRole) {
             setUserPermissions({
               userId: user.id,

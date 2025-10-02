@@ -84,7 +84,7 @@ export const EmailAutomationModal: React.FC<EmailAutomationModalProps> = ({
   };
 
   const handleTemplateSelect = (stepId: string, templateId: string) => {
-    const template = templates.find(t => t.id === templateId);
+    const template = templates.find(type => type.id === templateId);
     if (template) {
       updateStep(stepId, {
         templateId,

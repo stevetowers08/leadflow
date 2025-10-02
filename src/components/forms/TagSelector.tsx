@@ -76,7 +76,7 @@ export const TagSelector = ({
   }, [toast]);
 
   const handleTagToggle = async (tag: Tag) => {
-    const isSelected = selectedTags.some(t => t.id === tag.id);
+    const isSelected = selectedTags.some(selectedTag => selectedTag.id === tag.id);
     
     if (isSelected) {
       // Remove tag
@@ -90,7 +90,7 @@ export const TagSelector = ({
 
         if (error) throw error;
 
-        onTagsChange(selectedTags.filter(t => t.id !== tag.id));
+        onTagsChange(selectedTags.filter(selectedTag => selectedTag.id !== tag.id));
         toast({
           title: "Tag Removed",
           description: `Removed "${tag.name}" tag`,
@@ -231,7 +231,7 @@ export const TagSelector = ({
               <Label>Available Tags</Label>
               <div className="max-h-40 overflow-y-auto space-y-1">
                 {availableTags
-                  .filter(tag => !selectedTags.some(t => t.id === tag.id))
+                  .filter(tag => !selectedTags.some(selectedTag => selectedTag.id === tag.id))
                   .map((tag) => (
                     <Button
                       key={tag.id}

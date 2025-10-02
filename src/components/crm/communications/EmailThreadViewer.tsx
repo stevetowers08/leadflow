@@ -27,7 +27,7 @@ export const EmailThreadViewer: React.FC<EmailThreadViewerProps> = ({
     try {
       setLoading(true);
       const [threadData, messagesData] = await Promise.all([
-        gmailService.getEmailThreads().then(threads => threads.find(t => t.id === threadId)),
+        gmailService.getEmailThreads().then(threads => threads.find(type => type.id === threadId)),
         gmailService.getEmailMessages(threadId)
       ]);
       

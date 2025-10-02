@@ -106,8 +106,8 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
 
       if (error) throw error;
 
-      const tagToRemove = tags.find(t => t.id === tagId);
-      setTags(prev => prev.filter(t => t.id !== tagId));
+      const tagToRemove = tags.find(type => type.id === tagId);
+      setTags(prev => prev.filter(tag => tag.id !== tagId));
       
       toast({
         title: "Tag Removed",

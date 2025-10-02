@@ -224,7 +224,7 @@ export class OptimizedQueries {
     const errors = results.flat().filter(Boolean);
     
     if (errors.length > 0) {
-      throw new Error(`Batch update failed: ${errors.map(e => e.message).join(', ')}`);
+      throw new Error(`Batch update failed: ${errors.map(error => error.message).join(', ')}`);
     }
   }
 

@@ -221,7 +221,7 @@ export class DashboardService {
       
       // Calculate automation success rate based on companies with people automated
       const totalCompanies = companiesCount.count || 0;
-      const uniqueCompaniesWithAutomation = new Set(automationData.data?.map(p => p.company_id).filter(Boolean)).size;
+      const uniqueCompaniesWithAutomation = new Set(automationData.data?.map(person => person.company_id).filter(Boolean)).size;
       const automationSuccessRate = totalCompanies > 0 ? Math.round((uniqueCompaniesWithAutomation / totalCompanies) * 100) : 0;
       
       // Process recent items with notes count

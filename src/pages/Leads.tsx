@@ -307,8 +307,7 @@ const People = () => {
             entityType="lead"
             isFavorite={lead.is_favourite || false}
             onToggle={(isFavorite) => {
-              setLeads(prev => prev.map(l => 
-                l.id === lead.id ? { ...l, is_favourite: isFavorite } : l
+              setLeads(prev => prev.map(lead => lead.id === lead.id ? { ...l, is_favourite: isFavorite } : l
               ));
             }}
             size="sm"

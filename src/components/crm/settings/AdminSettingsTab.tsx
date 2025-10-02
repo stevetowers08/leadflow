@@ -106,7 +106,7 @@ const AdminSettingsTab = () => {
 
     // Check user limit (exclude owners from count)
     if (userLimit !== null && userLimit > 0) {
-      const currentUserCount = users.filter(u => u.role !== 'owner').length;
+      const currentUserCount = users.filter(user => user.role !== 'owner').length;
       if (currentUserCount >= userLimit) {
         toast.error(`User limit reached. Maximum ${userLimit} users allowed (excluding owners).`);
         return;
@@ -182,7 +182,7 @@ const AdminSettingsTab = () => {
       }
 
       // Update local state
-      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      setUsers(users.map(user => user.id === userId ? { ...u, role: newRole } : u));
       // Clear the change from state
       setUserRoleChanges(prev => {
         const updated = { ...prev };
@@ -234,7 +234,7 @@ const AdminSettingsTab = () => {
       }
 
       // Update local state
-      setUsers(users.filter(u => u.id !== userId));
+      setUsers(users.filter(user => user.id !== userId));
       toast.success('User deleted successfully');
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -448,7 +448,7 @@ const AdminSettingsTab = () => {
                 <Label>Current Count</Label>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="font-medium">
-                    {users.filter(u => u.role !== 'owner').length}
+                    {users.filter(user => user.role !== 'owner').length}
                   </span>
                   <span className="text-muted-foreground">
                     {userLimit ? `/ ${userLimit}` : 'users (no limit)'}

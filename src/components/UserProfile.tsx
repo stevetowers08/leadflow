@@ -42,7 +42,7 @@ export const UserProfile: React.FC = () => {
   const getInitials = (name: string) => {
     return name
       .split(' ')
-      .map(n => n[0])
+      .map(namePart => namePart[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);

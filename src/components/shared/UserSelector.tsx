@@ -106,7 +106,7 @@ export const UserSelector: React.FC<UserSelectorProps> = ({
           ) : selectedUser ? (
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
-                {selectedUser.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                {selectedUser.full_name.split($1).map(namePart => n[0]).join('').toUpperCase()}
               </div>
               <span className="truncate">{selectedUser.full_name}</span>
               <Badge variant="secondary" className="text-xs">
@@ -153,7 +153,7 @@ export const UserSelector: React.FC<UserSelectorProps> = ({
                   className="flex items-center gap-3"
                 >
                   <div className="flex items-center justify-center w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
-                    {user.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {user.full_name.split($1).map(namePart => n[0]).join('').toUpperCase()}
                   </div>
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="font-medium truncate">{user.full_name}</span>

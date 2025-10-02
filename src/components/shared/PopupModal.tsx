@@ -341,7 +341,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                   }
                 } : undefined}
                 >
-                  {currentPipelineStage?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'New Lead'}
+                  {currentPipelineStage?.replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase()) || 'New Lead'}
                 </div>
               </div>
             )}

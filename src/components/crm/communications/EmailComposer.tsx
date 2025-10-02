@@ -42,7 +42,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   };
 
   const handleTemplateSelect = (templateId: string) => {
-    const template = templates.find(t => t.id === templateId);
+    const template = templates.find(type => type.id === templateId);
     if (template) {
       setFormData(prev => ({
         ...prev,

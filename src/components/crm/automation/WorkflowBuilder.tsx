@@ -162,7 +162,7 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
   };
 
   const getStepIcon = (step: WorkflowStep) => {
-    const typeConfig = WORKFLOW_TYPES[step.type]?.find(t => t.value === step.config.type);
+    const typeConfig = WORKFLOW_TYPES[step.type]?.find(type => type.value === step.config.type);
     return typeConfig?.icon || Settings;
   };
 

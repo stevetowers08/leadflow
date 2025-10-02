@@ -123,7 +123,7 @@ export const VirtualizedRelatedItemsList: React.FC<VirtualizedRelatedItemsListPr
     return (
       <InfoCard title={title} contentSpacing="space-y-3 pt-3">
         <div className="space-y-3">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map(index => (
             <div key={i} className="h-16 bg-gray-200 rounded animate-pulse" />
           ))}
         </div>
