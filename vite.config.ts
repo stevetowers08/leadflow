@@ -18,7 +18,8 @@ export default defineConfig(({ mode }) => ({
       'react-dom', 
       '@radix-ui/react-popover',
       '@tanstack/react-query',
-      '@supabase/supabase-js'
+      '@supabase/supabase-js',
+      'sonner'
     ],
     exclude: ['@vite/client', '@vite/env']
   },
