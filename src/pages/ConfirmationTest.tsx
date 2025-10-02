@@ -19,3 +19,4 @@ export function ConfirmationTestPage() {
 }
 
 export default ConfirmationTestPage;
+

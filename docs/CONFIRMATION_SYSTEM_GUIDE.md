@@ -332,3 +332,4 @@ You can enable debug mode by adding `console.log` statements in the confirmation
 ## Examples
 
 See `src/components/examples/ConfirmationExamples.tsx` for comprehensive examples of all confirmation types and usage patterns.
+
