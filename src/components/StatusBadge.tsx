@@ -8,7 +8,7 @@ interface StatusBadgeProps {
   size?: "sm" | "md" | "lg";
 }
 
-// STANDARDIZED STYLING - Fixed width, taller, centered text for table display
+// STANDARDIZED STYLING - Professional LinkedIn-inspired design
 const sizeStyles = {
   sm: "h-8 text-xs font-medium rounded-md text-center px-3",
   md: "h-9 text-sm font-medium rounded-md text-center px-3", 

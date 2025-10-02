@@ -106,12 +106,12 @@ export const Layout = ({ children }: LayoutProps) => {
         ref={mainContentRef}
         className={cn(
           "flex-1 overflow-auto transition-all duration-200",
-          !isMobile && "ml-52"
+          !isMobile && "ml-56"
         )}
       >
         {/* Mobile header */}
         {isMobile && (
-          <div className="sticky top-0 z-30 flex items-center justify-between bg-background/95 backdrop-blur border-b px-4 py-3 lg:hidden">
+          <div className="sticky top-0 z-30 flex items-center justify-between bg-background/95 backdrop-blur border-b px-6 py-4 lg:hidden">
             <Button
               variant="ghost"
               size="icon"
@@ -137,8 +137,8 @@ export const Layout = ({ children }: LayoutProps) => {
 
         {/* Content */}
         <div className={cn(
-          "min-h-screen",
-          isMobile ? 'p-4 pb-20' : 'p-8' // Add bottom padding for mobile nav
+          "min-h-screen bg-gray-50",
+          isMobile ? 'p-6 pb-20' : 'p-10' // Increased padding more
         )}>
           {children}
         </div>

@@ -33,7 +33,6 @@ export const ConversationsPage: React.FC = () => {
   return (
     <Page
       title="Conversations"
-      subtitle="Message threads with your leads"
     >
 
       {/* Main Conversation Interface */}

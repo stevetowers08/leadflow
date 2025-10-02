@@ -667,7 +667,6 @@ const Jobs = () => {
     return (
       <Page
         title="Jobs"
-        subtitle="Manage job postings and opportunities"
         loading={true}
         loadingMessage="Loading jobs..."
       />
@@ -677,7 +676,6 @@ const Jobs = () => {
   return (
     <Page
       title="Jobs"
-      subtitle="Manage job postings and opportunities"
       stats={stats}
     >
 

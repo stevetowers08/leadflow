@@ -11,7 +11,7 @@ import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowUpDown, Trash2, Building2, Users, Briefcase, CheckCircle, Star, AlertCircle } from "lucide-react";
+import { Search, ArrowUpDown, Trash2, Building2, Users, Briefcase, CheckCircle, Star, AlertCircle, Zap, Target } from "lucide-react";
 import { getClearbitLogo } from "@/utils/logoService";
 import { Page } from "@/design-system/components";
 import { cn } from "@/lib/utils";
@@ -72,13 +72,8 @@ const Companies = () => {
   const companiesStats = useMemo(() => {
     let newLeadCompanies = 0;
     let automatedCompanies = 0;
-    let repliedCompanies = 0;
     let meetingScheduledCompanies = 0;
-    let proposalSentCompanies = 0;
-    let negotiationCompanies = 0;
-    let closedWonCompanies = 0;
     let closedLostCompanies = 0;
-    let onHoldCompanies = 0;
     let companiesWithLeads = 0;
     let companiesWithJobs = 0;
     
@@ -101,26 +96,11 @@ const Companies = () => {
         case 'automated':
           automatedCompanies++;
           break;
-        case 'replied':
-          repliedCompanies++;
-          break;
         case 'meeting_scheduled':
           meetingScheduledCompanies++;
           break;
-        case 'proposal_sent':
-          proposalSentCompanies++;
-          break;
-        case 'negotiation':
-          negotiationCompanies++;
-          break;
-        case 'closed_won':
-          closedWonCompanies++;
-          break;
         case 'closed_lost':
           closedLostCompanies++;
-          break;
-        case 'on_hold':
-          onHoldCompanies++;
           break;
         default:
           newLeadCompanies++; // Default to new_lead if no stage set
@@ -131,13 +111,8 @@ const Companies = () => {
       totalCompanies: companies.length,
       newLeadCompanies,
       automatedCompanies,
-      repliedCompanies,
       meetingScheduledCompanies,
-      proposalSentCompanies,
-      negotiationCompanies,
-      closedWonCompanies,
       closedLostCompanies,
-      onHoldCompanies,
       companiesWithLeads,
       companiesWithJobs
     };
@@ -603,21 +578,35 @@ const Companies = () => {
     }
   };
 
+  // Stats for Companies page
+  const stats = [
+    {
+      icon: Building2,
+      value: companiesStats.totalCompanies,
+      label: "companies"
+    },
+    {
+      icon: Zap,
+      value: companiesStats.automatedCompanies,
+      label: "automated"
+    },
+    {
+      icon: Target,
+      value: companiesStats.newLeadCompanies,
+      label: "new prospects"
+    },
+    {
+      icon: CheckCircle,
+      value: companiesStats.meetingScheduledCompanies,
+      label: "meetings scheduled"
+    }
+  ];
+
   return (
     <Page
       title="Companies"
-      subtitle="Manage your target companies and prospects"
+      stats={stats}
     >
-      {/* Stats Cards */}
-      <CompaniesStatsCards
-        totalCompanies={companiesStats.totalCompanies}
-        activeCompanies={companiesStats.automatedCompanies}
-        qualifiedCompanies={companiesStats.closedWonCompanies}
-        prospectCompanies={companiesStats.meetingScheduledCompanies + companiesStats.proposalSentCompanies + companiesStats.negotiationCompanies}
-        newCompanies={companiesStats.newLeadCompanies}
-        companiesWithLeads={companiesStats.companiesWithLeads}
-        companiesWithJobs={companiesStats.companiesWithJobs}
-      />
 
         {/* Search, Filter and Sort Controls */}
         <div className="flex items-center justify-between gap-4 mb-4">

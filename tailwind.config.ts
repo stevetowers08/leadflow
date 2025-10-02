@@ -40,6 +40,14 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -65,6 +73,27 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+        // LinkedIn-inspired professional colors
+        linkedin: {
+          blue: "#0077B5",
+          "blue-light": "#00A0DC",
+          "blue-dark": "#004182",
+        },
+        // Professional semantic colors
+        professional: {
+          gray: {
+            50: "#f8f9fa",
+            100: "#f1f3f4",
+            200: "#e8eaed",
+            300: "#dadce0",
+            400: "#bdc1c6",
+            500: "#9aa0a6",
+            600: "#80868b",
+            700: "#5f6368",
+            800: "#3c4043",
+            900: "#202124",
+          },
         },
       },
       borderRadius: {

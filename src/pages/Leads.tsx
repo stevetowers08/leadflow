@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Input } from "@/components/ui/input";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { Search, ArrowUpDown, Users, UserPlus, MessageSquare, CheckCircle, Calendar, Star } from "lucide-react";
+import { Search, ArrowUpDown, Users, UserPlus, MessageSquare, CheckCircle, Calendar, Star, Target } from "lucide-react";
 import { getProfileImage } from '@/utils/linkedinProfileUtils';
 import { getClearbitLogo } from "@/utils/logoService";
 import { Page } from "@/design-system/components";
@@ -56,6 +56,7 @@ const People = () => {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const { toast } = useToast();
+
 
   // Sort options
   const sortOptions = [
@@ -123,6 +124,29 @@ const People = () => {
     };
   }, [leads]);
 
+  // Stats for People page
+  const stats = [
+    {
+      icon: Users,
+      value: leads.length,
+      label: "total people"
+    },
+    {
+      icon: Target,
+      value: peopleStats.newPeople,
+      label: "new prospects"
+    },
+    {
+      icon: MessageSquare,
+      value: peopleStats.messagedPeople + peopleStats.repliedPeople,
+      label: "messaged"
+    },
+    {
+      icon: CheckCircle,
+      value: peopleStats.connectedPeople,
+      label: "connected"
+    }
+  ];
 
   // Filter and sort leads
   const filteredAndSortedLeads = useMemo(() => {
@@ -489,7 +513,7 @@ const People = () => {
   return (
     <Page
       title="People"
-      subtitle="Manage your recruitment people and their stages"
+      stats={stats}
     >
 
         {/* Search, Filter and Sort Controls */}

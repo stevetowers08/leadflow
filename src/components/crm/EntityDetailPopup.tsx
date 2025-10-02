@@ -352,12 +352,12 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
         onClose={onClose}
         title="Error"
         subtitle="Failed to load data"
-        icon={<User className="h-6 w-6 text-red-600" />}
+        icon={<User className="h-6 w-6 text-destructive" />}
         error={new Error('Failed to load entity data')}
         onRetry={() => setRefreshTrigger(prev => prev + 1)}
       >
         <div className="flex items-center justify-center p-8">
-          <p className="text-red-600">Failed to load entity data. Please try again.</p>
+          <p className="text-destructive">Failed to load entity data. Please try again.</p>
         </div>
       </PopupModal>
     );

@@ -100,11 +100,11 @@ export const ModernSignIn: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4">
       {/* Company Logo - Top Left */}
       <div className="absolute top-6 left-6">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold text-gray-800">EMPOWR</span>
@@ -113,11 +113,12 @@ export const ModernSignIn: React.FC = () => {
 
       {/* Main Login Card */}
       <div className="w-full max-w-md">
-        <Card className="bg-white shadow-xl border-0 rounded-2xl">
+        <Card className="bg-white shadow-xl border-0 rounded-xl">
           <CardContent className="p-8">
             {/* Login Title */}
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-purple-800 mb-2">Log in</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
+              <p className="text-gray-600">Sign in to your professional dashboard</p>
             </div>
 
             {/* Error Alert */}
@@ -156,15 +157,25 @@ export const ModernSignIn: React.FC = () => {
                 )}
               </Button>
 
-              {/* Facebook Button */}
+              {/* LinkedIn Button */}
               <Button 
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg flex items-center justify-center"
+                onClick={handleLinkedInSignIn}
+                className="w-full h-12 bg-linkedin-blue hover:bg-linkedin-blue-dark text-white font-medium rounded-lg flex items-center justify-center"
                 disabled={loading !== null}
               >
-                <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                Continue with Facebook
+                {loading === 'linkedin' ? (
+                  <>
+                    <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                    Signing in with LinkedIn...
+                  </>
+                ) : (
+                  <>
+                    <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                    Continue with LinkedIn
+                  </>
+                )}
               </Button>
 
               {/* GitHub Button */}
@@ -201,7 +212,7 @@ export const ModernSignIn: React.FC = () => {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
+                  className="h-12 border-gray-200 focus:border-sidebar-primary focus:ring-sidebar-primary rounded-lg"
                   disabled={loading !== null}
                   required
                 />
@@ -218,7 +229,7 @@ export const ModernSignIn: React.FC = () => {
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-12 pr-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
+                    className="h-12 pr-12 border-gray-200 focus:border-sidebar-primary focus:ring-sidebar-primary rounded-lg"
                     disabled={loading !== null}
                     required
                   />
@@ -236,7 +247,7 @@ export const ModernSignIn: React.FC = () => {
               <div className="flex items-center justify-start">
                 <button
                   type="button"
-                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                  className="text-sm text-sidebar-primary hover:text-sidebar-primary/80 font-medium"
                   disabled={loading !== null}
                 >
                   Forgot password?
@@ -245,7 +256,7 @@ export const ModernSignIn: React.FC = () => {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg"
+                className="w-full h-12 bg-sidebar-primary hover:bg-sidebar-primary/90 text-white font-medium rounded-lg"
                 disabled={loading !== null}
               >
                 {loading === 'email' ? (
@@ -261,12 +272,12 @@ export const ModernSignIn: React.FC = () => {
 
             {/* Additional Links */}
             <div className="mt-8 space-y-3 text-center">
-              <button className="block w-full text-sm text-purple-600 hover:text-purple-700 font-medium">
+              <button className="block w-full text-sm text-sidebar-primary hover:text-sidebar-primary/80 font-medium">
                 Can't Access Your Account?
               </button>
               <div className="text-sm text-gray-600">
                 Don't have an account?{' '}
-                <button className="text-purple-600 hover:text-purple-700 font-medium">
+                <button className="text-sidebar-primary hover:text-sidebar-primary/80 font-medium">
                   Sign Up
                 </button>
               </div>

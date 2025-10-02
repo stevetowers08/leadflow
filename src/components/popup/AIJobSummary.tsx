@@ -138,8 +138,8 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
           {/* Metrics Row */}
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="flex items-center gap-1">
-              <TrendingUp className="h-3 w-3 text-blue-600" />
-              <span className="text-blue-700 font-medium">Urgency:</span>
+              <TrendingUp className="h-3 w-3 text-sidebar-primary" />
+              <span className="text-sidebar-primary font-medium">Urgency:</span>
               <Badge 
                 variant={lastResult.urgency_level === 'high' ? 'destructive' : 
                         lastResult.urgency_level === 'medium' ? 'default' : 'secondary'}

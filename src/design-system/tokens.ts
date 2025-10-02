@@ -60,13 +60,22 @@ export const designTokens = {
       lg: 'mb-4',
       xl: 'mb-6',
     },
+    // Sidebar-specific spacing patterns
+    sidebar: {
+      section: 'space-y-6', // Between major sections
+      item: 'space-y-1', // Between navigation items
+      header: 'px-6 h-16', // Header padding and height
+      nav: 'px-4 py-6', // Main navigation padding
+      footer: 'px-4 py-4', // User menu padding
+      label: 'px-3 mb-3', // Section label padding
+    },
   },
 
   // Layout - Consistent patterns
   layout: {
-    pageHeader: 'border-b pb-3',
-    pageContent: 'space-y-6',
-    statsContainer: 'flex items-center gap-6 mb-6 text-sm',
+    pageHeader: 'mb-3',
+    pageContent: 'space-y-4',
+    statsContainer: 'flex items-center gap-6 mb-4 text-sm',
     statsItem: 'flex items-center gap-2 text-muted-foreground',
     cardGrid: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6',
     mobileCardGrid: 'grid grid-cols-2 gap-3',
@@ -91,55 +100,56 @@ export const designTokens = {
     fallback: 'bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-xs font-semibold',
   },
 
-  // Colors - Semantic color tokens
+  // Colors - Professional LinkedIn-inspired semantic color tokens
   colors: {
     text: {
-      primary: 'text-foreground',
-      secondary: 'text-muted-foreground',
+      primary: 'text-gray-900',
+      secondary: 'text-gray-600',
       accent: 'text-sidebar-primary',
-      success: 'text-green-600',
-      warning: 'text-orange-600',
+      success: 'text-success',
+      warning: 'text-warning',
       error: 'text-destructive',
     },
     background: {
-      primary: 'bg-background',
-      secondary: 'bg-muted',
-      accent: 'bg-accent',
-      success: 'bg-green-50',
-      warning: 'bg-orange-50',
+      primary: 'bg-white',
+      secondary: 'bg-gray-50',
+      accent: 'bg-sidebar-primary/10',
+      success: 'bg-success/10',
+      warning: 'bg-warning/10',
       error: 'bg-destructive/10',
     },
-    // Specific color combinations for common patterns
+    // Professional color combinations for common patterns
     combinations: {
-      success: 'text-green-600 bg-green-50',
-      warning: 'text-orange-600 bg-orange-50',
-      error: 'text-red-600 bg-red-50',
-      info: 'text-accent bg-accent/10',
+      success: 'text-success bg-success/10',
+      warning: 'text-warning bg-warning/10',
+      error: 'text-destructive bg-destructive/10',
+      info: 'text-sidebar-primary bg-sidebar-primary/10',
       primary: 'text-sidebar-primary bg-sidebar-primary/10',
     },
   },
 
-  // Shadows - Consistent elevation
+  // Shadows - Professional elevation system
   shadows: {
     sm: 'shadow-sm',
     md: 'shadow-md',
     lg: 'shadow-lg',
     xl: 'shadow-xl',
-    // Card-specific shadow patterns
-    card: 'shadow-sm hover:shadow-md transition-shadow duration-200',
+    // Professional card-specific shadow patterns
+    card: 'shadow-sm hover:shadow-md transition-shadow duration-300',
     cardStatic: 'shadow-sm',
-    cardHover: 'hover:shadow-md transition-shadow duration-200',
+    cardHover: 'hover:shadow-md transition-shadow duration-300',
     mobile: 'shadow-sm',
-    // Button shadows
+    // Professional button shadows
     button: 'shadow-sm hover:shadow-md',
   },
 
-  // Transitions - Consistent timing
+  // Transitions - Professional timing system
   transitions: {
     fast: 'transition-colors duration-150',
     normal: 'transition-colors duration-200',
     slow: 'transition-all duration-300',
     transform: 'transition-transform duration-200',
+    hover: 'transition-all duration-300 hover:scale-[1.02] active:scale-98',
   },
 
   // Loading States

@@ -36,7 +36,7 @@ interface NavItem {
 // All possible navigation items
 const allNavItems: NavItem[] = [
   { to: "/", label: "Dashboard", icon: <Home className="h-5 w-5" />, isPrimary: true },
-  { to: "/leads", label: "Leads", icon: <Users className="h-5 w-5" />, isPrimary: true, permission: "leads" },
+  { to: "/people", label: "People", icon: <Users className="h-5 w-5" />, isPrimary: true, permission: "people" },
   { to: "/companies", label: "Companies", icon: <Building2 className="h-5 w-5" />, isPrimary: true, permission: "companies" },
   { to: "/jobs", label: "Jobs", icon: <Briefcase className="h-5 w-5" />, isPrimary: true, permission: "jobs" },
   { to: "/pipeline", label: "Pipeline", icon: <Target className="h-5 w-5" />, permission: "leads" },

@@ -67,7 +67,7 @@ const SettingsNavigation: React.FC<SettingsNavigationProps> = ({
   return (
     <div className={cn(
       "bg-background border-r border-border border-t-0 h-screen flex flex-col fixed z-30 transition-all duration-300",
-      isCollapsed ? "w-16 left-16" : "w-52 left-52"
+      isCollapsed ? "w-16 left-16" : "w-64 left-64"
     )}>
       {/* Header */}
       <div className="px-4 h-20 border-b border-border flex items-center">

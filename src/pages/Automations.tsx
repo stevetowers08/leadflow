@@ -313,7 +313,6 @@ const Automations = () => {
   return (
     <Page
       title="Automations"
-      subtitle="Recent automation activities and performance metrics"
     >
 
       {/* Filters and Search */}

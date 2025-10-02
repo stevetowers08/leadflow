@@ -28,21 +28,21 @@ type Interaction = Tables<"interactions"> & {
 };
 
 const Index = () => {
-  const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
+  const [recentPeople, setRecentPeople] = useState<Lead[]>([]);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [recentActivities, setRecentActivities] = useState<Interaction[]>([]);
   const [dashboardStats, setDashboardStats] = useState({
-    totalLeads: 0,
+    totalPeople: 0,
     totalJobs: 0,
     totalCompanies: 0,
     activeAutomations: 0,
     conversionRate: 0,
-    leadsThisWeek: 0,
+    peopleThisWeek: 0,
     pipelineBreakdown: {} as Record<string, number>,
     leadSources: {} as Record<string, number>,
     ownerStats: {} as Record<string, number>,
-    favoriteLeads: 0,
-    unassignedLeads: 0
+    favoritePeople: 0,
+    unassignedPeople: 0
   });
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -62,7 +62,7 @@ const Index = () => {
         leadsCount, 
         jobsCount, 
         companiesCount, 
-        recentLeadsData, 
+        recentPeopleData, 
         recentJobsData,
         recentActivitiesData,
         pipelineData,
@@ -114,14 +114,14 @@ const Index = () => {
       ]);
 
       // Calculate stats
-      const totalLeads = leadsCount.count || 0;
+      const totalPeople = leadsCount.count || 0;
       const totalJobs = jobsCount.count || 0;
       const totalCompanies = companiesCount.count || 0;
       
-      // Calculate leads this week
+      // Calculate people this week
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
-      const { count: leadsThisWeek } = await supabase
+      const { count: peopleThisWeek } = await supabase
         .from("people")
         .select("*", { count: 'exact', head: true })
         .gte('created_at', weekAgo.toISOString());
@@ -148,25 +148,25 @@ const Index = () => {
       });
 
       setDashboardStats({
-        totalLeads,
+        totalPeople,
         totalJobs,
         totalCompanies,
-        activeAutomations: Math.floor(totalLeads * 0.3), // Mock calculation
+        activeAutomations: Math.floor(totalPeople * 0.3), // Mock calculation
         conversionRate: 12.5, // Mock calculation
-        leadsThisWeek: leadsThisWeek || 0,
+        peopleThisWeek: peopleThisWeek || 0,
         pipelineBreakdown,
         leadSources,
         ownerStats,
-        favoriteLeads: favoritesData.count || 0,
-        unassignedLeads: unassignedData.count || 0
+        favoritePeople: favoritesData.count || 0,
+        unassignedPeople: unassignedData.count || 0
       });
 
       // Set recent data
-      const leadsWithCompany = (recentLeadsData.data || []).map(lead => ({
+      const peopleWithCompany = (recentPeopleData.data || []).map(lead => ({
         ...lead,
         company_name: lead.companies?.name || null
       }));
-      setRecentLeads(leadsWithCompany);
+      setRecentPeople(peopleWithCompany);
 
       const jobsWithCompany = (recentJobsData.data || []).map(job => ({
         ...job,
@@ -251,8 +251,8 @@ const Index = () => {
       className="px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
     >
       <div className="flex items-start gap-3">
-        <div className="p-2 bg-green-500/10 rounded-lg flex-shrink-0">
-          <Activity className="h-4 w-4 text-green-600" />
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 border border-gray-100">
+          <Activity className="h-4 w-4 text-gray-500" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-gray-900 mb-1">
@@ -280,65 +280,95 @@ const Index = () => {
   return (
     <Page
       title="Dashboard"
-      subtitle="Welcome to your recruitment dashboard"
     >
       {/* Key Metrics Overview */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
-        <Card className={designTokens.shadows.card}>
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-4 mb-8">
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Leads</p>
-                <p className="text-2xl font-bold text-foreground">{dashboardStats.totalLeads}</p>
-                <p className="text-xs text-green-600 font-medium">+{dashboardStats.leadsThisWeek} this week</p>
+                <p className="text-sm font-medium text-gray-600">Total People</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-semibold text-gray-900">{dashboardStats.totalPeople}</p>
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3 text-success" />
+                    <span className="text-xs text-success font-medium">+{dashboardStats.peopleThisWeek}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">this week</p>
               </div>
-              <div className="p-3 bg-sidebar-primary/10 rounded-lg">
-                <Users className="h-6 w-6 text-sidebar-primary" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-sidebar-primary/5 border border-sidebar-primary/10">
+                <Users className="h-5 w-5 text-sidebar-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className={designTokens.shadows.card}>
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Jobs</p>
-                <p className="text-2xl font-bold text-foreground">{dashboardStats.totalJobs}</p>
-                <p className="text-xs text-sidebar-primary font-medium">Across {dashboardStats.totalCompanies} companies</p>
+                <p className="text-sm font-medium text-gray-600">Active Jobs</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-semibold text-gray-900">{dashboardStats.totalJobs}</p>
+                  <div className="flex items-center gap-1">
+                    <Building2 className="h-3 w-3 text-sidebar-primary" />
+                    <span className="text-xs text-sidebar-primary font-medium">{dashboardStats.totalCompanies}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">companies</p>
               </div>
-              <div className="p-3 bg-green-500/10 rounded-lg">
-                <Briefcase className="h-6 w-6 text-green-600" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-success/5 border border-success/10">
+                <Briefcase className="h-5 w-5 text-success" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className={designTokens.shadows.card}>
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Conversion Rate</p>
-                <p className="text-2xl font-bold text-foreground">{dashboardStats.conversionRate}%</p>
-                <p className="text-xs text-green-600 font-medium">Above target</p>
+                <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-semibold text-gray-900">{dashboardStats.conversionRate}%</p>
+                  <div className="flex items-center gap-1">
+                    <Target className="h-3 w-3 text-success" />
+                    <span className="text-xs text-success font-medium">Above target</span>
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div 
+                      className="bg-success h-1.5 rounded-full transition-all duration-300" 
+                      style={{ width: `${Math.min(dashboardStats.conversionRate, 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
               </div>
-              <div className="p-3 bg-secondary/10 rounded-lg">
-                <Target className="h-6 w-6 text-secondary" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-secondary/5 border border-secondary/10">
+                <Target className="h-5 w-5 text-secondary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className={designTokens.shadows.card}>
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Automations</p>
-                <p className="text-2xl font-bold text-foreground">{dashboardStats.activeAutomations}</p>
-                <p className="text-xs text-orange-600 font-medium">Active workflows</p>
+                <p className="text-sm font-medium text-gray-600">Automations</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-semibold text-gray-900">{dashboardStats.activeAutomations}</p>
+                  <div className="flex items-center gap-1">
+                    <Zap className="h-3 w-3 text-warning" />
+                    <span className="text-xs text-warning font-medium">Active</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">workflows running</p>
               </div>
-              <div className="p-3 bg-orange-500/10 rounded-lg">
-                <Zap className="h-6 w-6 text-orange-600" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-warning/5 border border-warning/10">
+                <Zap className="h-5 w-5 text-warning" />
               </div>
             </div>
           </CardContent>
@@ -346,13 +376,13 @@ const Index = () => {
       </div>
 
       {/* Enhanced Analytics */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-6 sm:mb-8">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-3 mb-8">
         {/* Pipeline Breakdown */}
-        <Card className={designTokens.shadows.card}>
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <BarChart3 className="h-4 w-4 text-blue-600" />
+            <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-primary/5 border border-sidebar-primary/10">
+                <BarChart3 className="h-4 w-4 text-sidebar-primary" />
               </div>
               Pipeline Breakdown
             </CardTitle>
@@ -364,14 +394,29 @@ const Index = () => {
               </div>
             ) : Object.keys(dashboardStats.pipelineBreakdown).length > 0 ? (
               <div className="space-y-3">
-                {Object.entries(dashboardStats.pipelineBreakdown).map(([stage, count]) => (
-                  <div key={stage} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={stage} size="sm" />
+                {Object.entries(dashboardStats.pipelineBreakdown).map(([stage, count]) => {
+                  const total = Object.values(dashboardStats.pipelineBreakdown).reduce((a, b) => a + b, 0);
+                  const percentage = total > 0 ? (count / total) * 100 : 0;
+                  return (
+                    <div key={stage} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <StatusBadge status={stage} size="sm" />
+                        </div>
+                        <div className="text-right">
+                          <span className="font-semibold text-sm">{count}</span>
+                          <span className="text-xs text-gray-500 ml-1">({percentage.toFixed(1)}%)</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div 
+                          className="bg-sidebar-primary h-1.5 rounded-full transition-all duration-300" 
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
                     </div>
-                    <span className="font-semibold text-sm">{count}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-4 text-muted-foreground">
@@ -383,11 +428,11 @@ const Index = () => {
         </Card>
 
         {/* Lead Sources */}
-        <Card className={designTokens.shadows.card}>
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <Filter className="h-4 w-4 text-green-600" />
+            <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-success/5 border border-success/10">
+                <Filter className="h-4 w-4 text-success" />
               </div>
               Lead Sources
             </CardTitle>
@@ -402,12 +447,30 @@ const Index = () => {
                 {Object.entries(dashboardStats.leadSources)
                   .sort(([,a], [,b]) => b - a)
                   .slice(0, 5)
-                  .map(([source, count]) => (
-                  <div key={source} className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{source}</span>
-                    <span className="font-semibold text-sm">{count}</span>
-                  </div>
-                ))}
+                  .map(([source, count]) => {
+                    const total = Object.values(dashboardStats.leadSources).reduce((a, b) => a + b, 0);
+                    const percentage = total > 0 ? (count / total) * 100 : 0;
+                    return (
+                      <div key={source} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-success"></div>
+                            <span className="text-sm font-medium">{source}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-semibold text-sm">{count}</span>
+                            <span className="text-xs text-gray-500 ml-1">({percentage.toFixed(1)}%)</span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                          <div 
+                            className="bg-success h-1.5 rounded-full transition-all duration-300" 
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             ) : (
               <div className="text-center py-4 text-muted-foreground">
@@ -419,11 +482,11 @@ const Index = () => {
         </Card>
 
         {/* Quick Stats */}
-        <Card className={designTokens.shadows.card}>
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <Star className="h-4 w-4 text-purple-600" />
+            <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-secondary/5 border border-secondary/10">
+                <Star className="h-4 w-4 text-secondary" />
               </div>
               Quick Stats
             </CardTitle>
@@ -432,24 +495,24 @@ const Index = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  <span className="text-sm font-medium">Favorite Leads</span>
+                  <Star className="h-4 w-4 text-warning" />
+                  <span className="text-sm font-medium">Favorite People</span>
                 </div>
-                <span className="font-semibold text-sm">{dashboardStats.favoriteLeads}</span>
+                <span className="font-semibold text-sm">{dashboardStats.favoritePeople}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-gray-500" />
                   <span className="text-sm font-medium">Unassigned</span>
                 </div>
-                <span className="font-semibold text-sm">{dashboardStats.unassignedLeads}</span>
+                <span className="font-semibold text-sm">{dashboardStats.unassignedPeople}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-500" />
+                  <Clock className="h-4 w-4 text-sidebar-primary" />
                   <span className="text-sm font-medium">This Week</span>
                 </div>
-                <span className="font-semibold text-sm">{dashboardStats.leadsThisWeek}</span>
+                <span className="font-semibold text-sm">{dashboardStats.peopleThisWeek}</span>
               </div>
             </div>
           </CardContent>
@@ -458,14 +521,14 @@ const Index = () => {
 
       {/* Recent Activity */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Recent Leads Card */}
-        <Card className={designTokens.shadows.card}>
+        {/* Recent People Card */}
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-              <div className="p-2 bg-sidebar-primary/10 rounded-lg">
+            <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-primary/5 border border-sidebar-primary/10">
                 <Users className="h-4 w-4 text-sidebar-primary" />
               </div>
-              Recent Leads
+              Recent People
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -473,25 +536,25 @@ const Index = () => {
               <div className="text-center py-4">
                 <div className="text-sm text-muted-foreground">Loading...</div>
               </div>
-            ) : recentLeads.length > 0 ? (
+            ) : recentPeople.length > 0 ? (
               <div className="space-y-3">
-                {recentLeads.map(renderLeadItem)}
+                {recentPeople.map(renderLeadItem)}
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <User className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No recent leads found</p>
+                <p className="text-sm">No recent people found</p>
               </div>
             )}
           </CardContent>
         </Card>
 
         {/* Recent Jobs Card */}
-        <Card className={designTokens.shadows.card}>
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <Briefcase className="h-4 w-4 text-green-600" />
+            <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-success/5 border border-success/10">
+                <Briefcase className="h-4 w-4 text-success" />
               </div>
               Recent Jobs
             </CardTitle>
@@ -516,13 +579,13 @@ const Index = () => {
       </div>
 
       {/* Recent Activities */}
-      <div className="grid gap-6 md:grid-cols-1 mb-6 sm:mb-8">
+      <div className="grid gap-6 md:grid-cols-1 mb-8">
         {/* Recent Activities Card */}
-        <Card className={designTokens.shadows.card}>
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <Activity className="h-4 w-4 text-green-600" />
+            <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-warning/5 border border-warning/10">
+                <Activity className="h-4 w-4 text-warning" />
               </div>
               Recent Activities
             </CardTitle>

@@ -8,22 +8,22 @@ import { designTokens } from './tokens';
 
 interface PageHeaderProps {
   title: string;
-  subtitle?: string;
+  count?: number;
   children?: React.ReactNode;
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({ 
   title, 
-  subtitle, 
+  count,
   children 
 }) => (
-  <div className={designTokens.layout.pageHeader}>
+  <div className="mb-3">
     <div className="flex items-center justify-between">
       <div>
-        <h1 className={designTokens.typography.heading.h2}>{title}</h1>
-        {subtitle && (
-          <p className={`${designTokens.typography.body.muted} ${designTokens.spacing.margin.sm}`}>
-            {subtitle}
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+        {count !== undefined && (
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {count.toLocaleString()} total
           </p>
         )}
       </div>
@@ -61,17 +61,15 @@ export const StatsBar: React.FC<StatsBarProps> = ({ stats }) => (
 
 interface LoadingStateProps {
   title: string;
-  subtitle?: string;
   message?: string;
 }
 
 export const LoadingState: React.FC<LoadingStateProps> = ({ 
   title, 
-  subtitle, 
   message = "Loading..." 
 }) => (
   <div className="space-y-4">
-    <PageHeader title={title} subtitle={subtitle} />
+    <PageHeader title={title} />
     <div className={designTokens.loading.container}>
       <div className={designTokens.loading.spinner}></div>
       <p className={designTokens.loading.text}>{message}</p>
@@ -82,7 +80,6 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 // Page wrapper component
 interface PageProps {
   title: string;
-  subtitle?: string;
   stats?: StatItemProps[];
   children: React.ReactNode;
   loading?: boolean;
@@ -91,7 +88,6 @@ interface PageProps {
 
 export const Page: React.FC<PageProps> = ({ 
   title, 
-  subtitle, 
   stats, 
   children, 
   loading = false,
@@ -101,16 +97,34 @@ export const Page: React.FC<PageProps> = ({
     return (
       <LoadingState 
         title={title} 
-        subtitle={subtitle} 
         message={loadingMessage} 
       />
     );
   }
 
   return (
-    <div className={designTokens.layout.pageContent}>
-      <PageHeader title={title} subtitle={subtitle} />
-      {stats && <StatsBar stats={stats} />}
+    <div className="space-y-4">
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+            {stats && (
+              <div className="flex items-center gap-4 mt-1 text-sm">
+                {stats.map((stat, index) => {
+                  const IconComponent = stat.icon;
+                  return (
+                    <div key={index} className="flex items-center gap-1 text-muted-foreground">
+                      <IconComponent className="h-3 w-3" />
+                      <span className="font-semibold">{stat.value}</span>
+                      <span>{stat.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
       {children}
     </div>
   );

@@ -50,15 +50,19 @@ import { Page, StatItemProps } from "@/design-system/components";
 
 const stats: StatItemProps[] = [
   {
-    icon: <Briefcase className="h-4 w-4" />,
+    icon: Briefcase,
     value: 150,
     label: "active jobs"
+  },
+  {
+    icon: Zap,
+    value: 77,
+    label: "automated"
   }
 ];
 
 <Page
   title="Jobs"
-  subtitle="Manage job postings"
   stats={stats}
   loading={loading}
 >
@@ -100,7 +104,6 @@ Complete page wrapper with header, stats, and loading state.
 ```tsx
 <Page
   title="Page Title"
-  subtitle="Page description"
   stats={statsArray}
   loading={boolean}
   loadingMessage="Custom loading message"
@@ -108,6 +111,12 @@ Complete page wrapper with header, stats, and loading state.
   {/* Page content */}
 </Page>
 ```
+
+**Features:**
+- **Bold main title**: `text-2xl font-bold` for prominent page headers
+- **Inline stats**: Stats displayed directly below title with icons
+- **Consistent spacing**: `space-y-4` for uniform page layout
+- **Grey subheader**: All stats text uses `text-muted-foreground`
 
 ### `PageHeader`
 Consistent page header with title and optional subtitle.
@@ -127,8 +136,8 @@ Horizontal stats display with icons.
 ```tsx
 <StatsBar 
   stats={[
-    { icon: <Users className="h-4 w-4" />, value: 150, label: "leads" },
-    { icon: <Building2 className="h-4 w-4" />, value: 45, label: "companies" }
+    { icon: Users, value: 150, label: "leads" },
+    { icon: Building2, value: 45, label: "companies" }
   ]}
 />
 ```
@@ -139,10 +148,39 @@ Consistent loading state with spinner and message.
 ```tsx
 <LoadingState 
   title="Jobs" 
-  subtitle="Manage job postings"
   message="Loading jobs..."
 />
 ```
+
+## 🎯 Page Header Design Standards
+
+### Current Implementation (2025)
+
+All pages now use a **compact, modern header design**:
+
+```
+Jobs
+212 active jobs  77 automated  186 pending  1 ending soon
+```
+
+**Design Principles:**
+- **Main title**: Bold, large (`text-2xl font-bold`) for prominence
+- **Stats inline**: Displayed directly below title, not in separate bars
+- **Grey subheader**: All stats use `text-muted-foreground` for subtlety
+- **Minimal spacing**: `mt-1` between title and stats, `mb-3` for header
+- **No dividers**: Clean design without border separators
+- **Consistent icons**: Small icons (`h-3 w-3`) with stats
+
+### Updated Pages
+- ✅ **Jobs**: Compact header with job statistics
+- ✅ **People**: Clean title only
+- ✅ **Companies**: Clean title only  
+- ✅ **Pipeline**: Clean title only
+- ✅ **Conversations**: Clean title only
+- ✅ **Automations**: Clean title only
+- ✅ **Reporting**: Clean title only
+- ✅ **Dashboard**: Clean title only
+- ✅ **CRM Info**: Clean title only
 
 ## 🛠️ Development Tools
 
@@ -210,6 +248,7 @@ if (loading) {
 - ✅ **Developer Experience**: Less boilerplate, more focus on features
 - ✅ **Quality**: Automated checks prevent inconsistencies
 - ✅ **Scalability**: Easy to add new pages with consistent design
+- ✅ **Space Efficiency**: Compact headers maximize content area
 
 ## 📏 Logo Sizing Standards
 
@@ -242,6 +281,34 @@ All company logos should use the standardized sizing tokens:
 
 ### Logo Style Consistency
 All logos now use **slightly rounded squares** (`rounded-lg`) instead of circles (`rounded-full`) for a more modern, consistent appearance across all pages.
+
+## 🎨 Sidebar Design Standards
+
+### Current Implementation (2025)
+
+The sidebar uses a **dark, professional design**:
+
+- **Background**: `#2d3e50` (dark blue-gray)
+- **Borders**: `#34495e` (slightly lighter for contrast)
+- **Width**: `w-56` (224px) - compact but functional
+- **Text**: White for titles, grey for secondary text
+- **Hover states**: Subtle background changes
+- **No dividers**: Clean design without unnecessary borders
+
+### Navigation Structure
+```
+Empowr CRM
+├── Dashboard
+├── People
+├── Companies  
+├── Jobs
+├── Pipeline
+├── Conversations
+├── Campaigns
+├── Automations
+├── Reporting
+└── Settings
+```
 
 ## 🔮 Future Enhancements
 

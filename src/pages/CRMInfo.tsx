@@ -221,7 +221,6 @@ const CRMInfo = () => {
   return (
     <Page
       title="Empowr CRM Features"
-      subtitle="Transform your recruitment and sales process with AI-powered automation"
     >
       <div className="space-y-8">
         {/* Hero Section */}
@@ -412,7 +411,7 @@ const CRMInfo = () => {
                     <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
                       2
                     </div>
-                    <h3 className="font-semibold">Add Your First Leads</h3>
+                    <h3 className="font-semibold">Add Your First People</h3>
                   </div>
                   <p className="text-sm text-muted-foreground ml-10">
                     Import or manually add your prospects and watch AI score them automatically.

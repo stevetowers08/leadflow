@@ -419,7 +419,7 @@ export const EnhancedLayout: React.FC<EnhancedLayoutProps> = ({ children }) => {
       {/* Main content */}
       <main className={cn(
         "flex-1 overflow-auto transition-all duration-300",
-        !isMobile && "ml-52"
+        !isMobile && "ml-64"
       )}>
         {/* Mobile header */}
         {isMobile && (

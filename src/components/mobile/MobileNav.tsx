@@ -11,7 +11,7 @@ interface NavItem {
 
 const items: NavItem[] = [
   { to: "/", label: "Home", icon: <Home className="h-5 w-5" /> },
-  { to: "/leads", label: "Leads", icon: <Users className="h-5 w-5" /> },
+  { to: "/people", label: "People", icon: <Users className="h-5 w-5" /> },
   { to: "/companies", label: "Companies", icon: <Building2 className="h-5 w-5" /> },
   { to: "/jobs", label: "Jobs", icon: <Briefcase className="h-5 w-5" /> },
   { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" /> },

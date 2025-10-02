@@ -95,7 +95,7 @@ export const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({
                   href={company.linkedin_url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                  className="text-sidebar-primary hover:text-sidebar-primary/80 transition-colors"
                   title="View LinkedIn profile"
                 >
                   <img src="https://logo.clearbit.com/linkedin.com" alt="LinkedIn" className="h-4 w-4" />
@@ -106,7 +106,7 @@ export const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({
                   href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                  className="text-sidebar-primary hover:text-sidebar-primary/80 transition-colors"
                   title="Visit website"
                 >
                   <Globe className="h-4 w-4" />

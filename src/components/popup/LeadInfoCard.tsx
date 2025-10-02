@@ -71,7 +71,7 @@ export const LeadInfoCard: React.FC<LeadInfoCardProps> = ({ lead, onAutomate }) 
             <div className="flex items-center gap-2">
               <div className="text-lg font-bold text-gray-900 leading-tight">{lead.name}</div>
               {lead.linkedin_url && (
-                <a href={lead.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 transition-colors">
+                <a href={lead.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-sidebar-primary hover:text-sidebar-primary/80 transition-colors">
                   <img src="https://logo.clearbit.com/linkedin.com" alt="LinkedIn" className="h-4 w-4" />
                 </a>
               )}
@@ -121,7 +121,7 @@ export const LeadInfoCard: React.FC<LeadInfoCardProps> = ({ lead, onAutomate }) 
           <div className="text-xs font-medium text-gray-400">Email</div>
           <div className="text-sm text-gray-900 font-medium">
             {lead.email_address ? (
-              <a href={`mailto:${lead.email_address}`} className="text-blue-600 hover:text-blue-800 transition-colors truncate">
+              <a href={`mailto:${lead.email_address}`} className="text-sidebar-primary hover:text-sidebar-primary/80 transition-colors truncate">
                 {lead.email_address}
               </a>
             ) : (

@@ -16,8 +16,8 @@ const AuthCallback: React.FC = () => {
         
         setStatus('loading');
         
-        // Wait a moment for Supabase to process the OAuth callback
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Minimal delay for Supabase processing
+        await new Promise(resolve => setTimeout(resolve, 300));
         
         // Get the session
         const { data, error } = await supabase.auth.getSession();
@@ -44,10 +44,8 @@ const AuthCallback: React.FC = () => {
           // Clear the URL hash
           window.history.replaceState({}, document.title, window.location.pathname);
           
-          // Redirect after a brief success message
-          setTimeout(() => {
-            navigate('/');
-          }, 1000);
+          // Instant redirect for seamless experience
+          navigate('/');
         } else {
           console.log('⚠️ No session found');
           setErrorMessage('No session found after OAuth callback');
@@ -63,69 +61,50 @@ const AuthCallback: React.FC = () => {
     handleAuthCallback();
   }, [navigate]);
 
-  if (status === 'success') {
+  // Minimal loading state - just a subtle indicator
+  if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-green-100 rounded-full">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-green-800 mb-2">Sign In Successful!</h2>
-            <p className="text-green-700">
-              Redirecting to the main application...
-            </p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex items-center space-x-3">
+          <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+          <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
         </div>
       </div>
     );
   }
 
+  // Error state - minimal and clean
   if (status === 'error') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-red-800 mb-2">Sign In Failed</h2>
-            <p className="text-red-700 mb-4">
-              {errorMessage}
-            </p>
-            <button
-              onClick={() => navigate('/')}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-            >
-              Return to Sign In
-            </button>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="w-12 h-12 mx-auto mb-4 bg-red-50 rounded-full flex items-center justify-center">
+            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </div>
+          <h2 className="text-lg font-medium text-gray-900 mb-2">Authentication Error</h2>
+          <p className="text-gray-600 text-sm mb-6">
+            {errorMessage}
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 bg-sidebar-primary text-white text-sm font-medium rounded-md hover:bg-sidebar-primary/90 transition-colors"
+          >
+            Return to Sign In
+          </button>
         </div>
       </div>
     );
   }
 
+  // Success state - should rarely be seen due to instant redirect
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center max-w-md mx-auto p-6">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-blue-100 rounded-full">
-            <svg className="w-6 h-6 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </div>
-          <h2 className="text-lg font-semibold text-blue-800 mb-2">Completing Sign In</h2>
-          <p className="text-blue-700">
-            Please wait while we complete your authentication...
-          </p>
-          <p className="text-xs text-blue-600 mt-2">
-            Processing OAuth callback...
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="flex items-center space-x-2">
+        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+        <span className="text-sm text-gray-600">Redirecting...</span>
       </div>
     </div>
   );

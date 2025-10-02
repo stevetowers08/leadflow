@@ -19,13 +19,13 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   contentSpacing = "space-y-3",
   compact = false
 }) => {
-  const paddingClass = compact ? "p-3" : "p-8";
+  const paddingClass = compact ? "p-6" : "p-8";
   
   return (
-    <div className={`bg-card rounded-xl ${paddingClass} border shadow-sm ${className}`}>
+    <div className={`bg-card rounded-xl ${paddingClass} border shadow-sm hover:shadow-md transition-all duration-300 ${className}`}>
       <div className="pb-1.5">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-card-foreground">{title}</h3>
+          <h3 className="text-xl font-semibold text-card-foreground">{title}</h3>
           {actionButton}
         </div>
         {showDivider && (

@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useBulkActionConfirmation } from '@/contexts/ConfirmationContext';
 import { 
   MoreHorizontal, 
   Download, 
@@ -53,6 +54,7 @@ export function BulkActions<T extends { id: string }>({
 }: BulkActionsProps<T>) {
   const [isExecuting, setIsExecuting] = useState(false);
   const { toast } = useToast();
+  const showBulkActionConfirmation = useBulkActionConfirmation();
 
   const selectedCount = selectedItems.length;
   const totalCount = allItems.length;
@@ -91,13 +93,19 @@ export function BulkActions<T extends { id: string }>({
 
   const handleActionClick = async (action: BulkAction<T>) => {
     if (action.requiresConfirmation) {
-      const confirmed = window.confirm(
-        action.confirmationMessage || 
-        `Are you sure you want to ${action.label.toLowerCase()} ${selectedCount} ${selectedCount === 1 ? itemName : itemNamePlural}?`
+      showBulkActionConfirmation(
+        () => executeAction(action),
+        {
+          customTitle: action.label,
+          customDescription: action.confirmationMessage || 
+            `Are you sure you want to ${action.label.toLowerCase()} ${selectedCount} ${selectedCount === 1 ? itemName : itemNamePlural}?`,
+          actionName: action.label.toLowerCase(),
+          itemCount: selectedCount,
+        }
       );
-      if (!confirmed) return;
+    } else {
+      await executeAction(action);
     }
-    await executeAction(action);
   };
 
   if (totalCount === 0) return null;

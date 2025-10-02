@@ -651,7 +651,6 @@ const Pipeline = () => {
     <div className="bg-gray-50 min-h-screen">
       <Page
         title="Company Pipeline"
-        subtitle="Track companies through sales stages"
       >
         <div className="flex gap-3 mb-6">
         <Button variant="outline" size="sm" onClick={() => refetchCompanies()} className={designTokens.shadows.button}>
