@@ -133,9 +133,9 @@ describe('AssignmentService Integration Tests', () => {
       const members = await AssignmentService.getTeamMembers();
       
       expect(members).toHaveLength(3);
-      expect(members.map(m => m.id)).toContain(testUserId1);
-      expect(members.map(m => m.id)).toContain(testUserId2);
-      expect(members.map(m => m.id)).toContain(adminUserId);
+      expect(members.map(member => member.id)).toContain(testUserId1);
+      expect(members.map(member => member.id)).toContain(testUserId2);
+      expect(members.map(member => member.id)).toContain(adminUserId);
     });
 
     it('should exclude inactive users from team members', async () => {
@@ -147,7 +147,7 @@ describe('AssignmentService Integration Tests', () => {
       const members = await AssignmentService.getTeamMembers();
       
       expect(members).toHaveLength(2);
-      expect(members.map(m => m.id)).not.toContain(testUserId1);
+      expect(members.map(member => member.id)).not.toContain(testUserId1);
     });
   });
 

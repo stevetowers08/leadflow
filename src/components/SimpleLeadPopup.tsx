@@ -118,7 +118,7 @@ export const SimpleLeadPopup: React.FC<SimpleLeadPopupProps> = ({ leadId, isOpen
   // Get current owner name
   const getCurrentOwnerName = () => {
     if (!lead?.owner_id) return 'Unassigned';
-    const owner = teamMembers.find(m => m.id === lead.owner_id);
+    const owner = teamMembers.find(member => member.id === lead.owner_id);
     return owner?.full_name || 'Unknown';
   };
 

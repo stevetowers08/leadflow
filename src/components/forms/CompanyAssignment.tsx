@@ -112,7 +112,7 @@ const CompanyAssignmentComponent = ({ companyId, currentOwner, companyName, onAs
 
   const getCurrentOwnerInfo = () => {
     if (!currentOwner) return null;
-    return teamMembers.find(m => m.full_name === currentOwner) || {
+    return teamMembers.find(member => member.full_name === currentOwner) || {
       id: "unknown",
       full_name: currentOwner,
       role: "Unknown"

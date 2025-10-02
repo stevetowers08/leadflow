@@ -78,7 +78,7 @@ export const AssignmentAnalytics: React.FC<AssignmentAnalyticsProps> = ({ classN
 
       // Calculate user activity
       const activityData: UserActivity[] = statsData.byUser.map(userStat => {
-        const member = teamMembers.find(m => m.id === userStat.userId);
+        const member = teamMembers.find(teamMember => teamMember.id === userStat.userId);
         return {
           userId: userStat.userId,
           userName: userStat.userName,

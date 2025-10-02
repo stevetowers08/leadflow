@@ -125,7 +125,7 @@ export const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   };
 
   const getSelectedOwnerName = () => {
-    const owner = teamMembers.find(m => m.id === selectedOwnerId);
+    const owner = teamMembers.find(member => member.id === selectedOwnerId);
     return owner?.full_name || 'Unknown User';
   };
 

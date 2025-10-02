@@ -105,7 +105,7 @@ export const OptimizedUserAssignmentDisplay = memo<OptimizedUserAssignmentDispla
 
   const getCurrentOwnerInfo = () => {
     if (!currentOwnerId) return null;
-    return teamMembers.find(m => m.id === currentOwnerId) || {
+    return teamMembers.find(member => member.id === currentOwnerId) || {
       id: currentOwnerId,
       full_name: currentOwnerName || 'Unknown User',
       role: 'Unknown'

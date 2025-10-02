@@ -125,7 +125,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
   const handleAssign = async (newOwnerId: string) => {
     if (!canAssign) return;
     
-    const newOwner = teamMembers.find(m => m.id === newOwnerId);
+    const newOwner = teamMembers.find(member => member.id === newOwnerId);
     const currentOwner = currentOwnerName;
     
     // Confirmation dialog

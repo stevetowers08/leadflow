@@ -106,12 +106,12 @@ export const AssignmentManagementPanel: React.FC = () => {
   };
 
   const getSelectedUserName = () => {
-    const selectedMember = teamMembers.find(m => m.id === selectedUser);
+    const selectedMember = teamMembers.find(member => member.id === selectedUser);
     return selectedMember?.full_name || 'Unknown User';
   };
 
   const getNewOwnerName = () => {
-    const newOwner = teamMembers.find(m => m.id === newOwnerId);
+    const newOwner = teamMembers.find(member => member.id === newOwnerId);
     return newOwner?.full_name || 'Unknown User';
   };
 
@@ -214,7 +214,7 @@ export const AssignmentManagementPanel: React.FC = () => {
             </TableHeader>
             <TableBody>
               {stats?.byUser.map((userStat) => {
-                const member = teamMembers.find(m => m.id === userStat.userId);
+                const member = teamMembers.find(teamMember => teamMember.id === userStat.userId);
                 return (
                   <TableRow key={userStat.userId}>
                     <TableCell className="font-medium">
