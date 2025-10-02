@@ -10,15 +10,11 @@ import {
   Building2, 
   TrendingUp, 
   Target, 
-  CheckCircle, 
   Activity, 
   Zap, 
   Star, 
-  Plus, 
-  BarChart3, 
   Clock, 
-  MessageSquare, 
-  FileText,
+  MessageSquare,
   User,
   UserCheck
 } from "lucide-react";
@@ -59,121 +55,89 @@ const Index = () => {
 
   return (
     <Page title="Dashboard">
-      {/* Header Actions */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Overview of your CRM activities and recent updates</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openPopup('lead', 'new', 'New Person')}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Person
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openPopup('company', 'new', 'New Company')}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Company
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openPopup('job', 'new', 'New Job')}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Job
-          </Button>
-        </div>
-      </div>
-      {/* Key Metrics */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      {/* Key Metrics - Modern Design */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         {/* Total People */}
-        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total People</p>
-                <p className="text-2xl font-bold text-gray-900">{loading ? '...' : metrics?.totalPeople || 0}</p>
-                <p className="text-xs text-green-600 mt-1">
+                <p className="text-sm font-medium text-blue-700">Total People</p>
+                <p className="text-3xl font-bold text-blue-900">{loading ? '...' : metrics?.totalPeople || 0}</p>
+                <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
                   +{loading ? '...' : metrics?.peopleThisWeek || 0} this week
                 </p>
               </div>
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/5 border border-primary/10">
-                <Users className="h-6 w-6 text-primary" />
+              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-blue-500 shadow-lg">
+                <Users className="h-7 w-7 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Total Companies */}
-        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Companies</p>
-                <p className="text-2xl font-bold text-gray-900">{loading ? '...' : metrics?.totalCompanies || 0}</p>
-                <p className="text-xs text-green-600 mt-1">
+                <p className="text-sm font-medium text-emerald-700">Total Companies</p>
+                <p className="text-3xl font-bold text-emerald-900">{loading ? '...' : metrics?.totalCompanies || 0}</p>
+                <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
                   +{loading ? '...' : metrics?.companiesThisWeek || 0} this week
                 </p>
               </div>
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-success/5 border border-success/10">
-                <Building2 className="h-6 w-6 text-success" />
+              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-emerald-500 shadow-lg">
+                <Building2 className="h-7 w-7 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Total Jobs */}
-        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Jobs</p>
-                <p className="text-2xl font-bold text-gray-900">{loading ? '...' : metrics?.totalJobs || 0}</p>
-                <p className="text-xs text-green-600 mt-1">
+                <p className="text-sm font-medium text-purple-700">Total Jobs</p>
+                <p className="text-3xl font-bold text-purple-900">{loading ? '...' : metrics?.totalJobs || 0}</p>
+                <p className="text-xs text-purple-600 mt-1 flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
                   +{loading ? '...' : metrics?.jobsThisWeek || 0} this week
                 </p>
               </div>
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-secondary/5 border border-secondary/10">
-                <Briefcase className="h-6 w-6 text-secondary" />
+              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-purple-500 shadow-lg">
+                <Briefcase className="h-7 w-7 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Automation Success */}
-        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Automation Success</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-amber-700">Automation Success</p>
+                <p className="text-3xl font-bold text-amber-900">
                   {loading ? '...' : `${metrics?.automationSuccessRate?.toFixed(1) || 0}%`}
                 </p>
-                <p className="text-xs text-blue-600 mt-1">
+                <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                  <Activity className="h-3 w-3" />
                   {loading ? '...' : metrics?.activeAutomations || 0} active
                 </p>
               </div>
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-warning/5 border border-warning/10">
-                <Zap className="h-6 w-6 text-warning" />
+              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-amber-500 shadow-lg">
+                <Zap className="h-7 w-7 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Secondary Stats */}
-      <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4 mb-8">
+      {/* Secondary Stats - Cleaner Layout */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
         {/* Pipeline Breakdown */}
         <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardHeader className="pb-4">
@@ -365,8 +329,8 @@ const Index = () => {
         </Card>
       </div>
 
-      {/* Recent Items with Tabs */}
-      <div className="grid gap-6 lg:grid-cols-3 mb-8">
+      {/* Recent Items with Tabs - Better Spacing */}
+      <div className="grid gap-6 xl:grid-cols-3 mb-8">
         {/* Recent People with Tabs */}
         <RecentPeopleTabs 
           people={dashboardData?.recentPeople || []} 

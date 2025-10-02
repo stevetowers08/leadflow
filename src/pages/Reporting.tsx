@@ -408,54 +408,54 @@ const Reporting = () => {
                     <p className="text-sm font-medium text-gray-600">Success Rate</p>
                     <p className="text-2xl font-semibold text-gray-900">{stats?.automationMetrics.automationSuccessRate.toFixed(1)}%</p>
                     <p className="text-xs text-success font-medium">{stats?.automationMetrics.repliesReceived} replies</p>
-                  </div>
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-success/5 border border-success/10">
-                    <Target className="h-5 w-5 text-success" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-success/5 border border-success/10">
+                <Target className="h-5 w-5 text-success" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-            <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
                     <p className="text-sm font-medium text-gray-600">Connection Rate</p>
                     <p className="text-2xl font-semibold text-gray-900">{stats?.automationMetrics.connectionAcceptanceRate.toFixed(1)}%</p>
                     <p className="text-xs text-secondary font-medium">{stats?.automationMetrics.connectionsAccepted} accepted</p>
-                  </div>
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-secondary/5 border border-secondary/10">
+              </div>
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-secondary/5 border border-secondary/10">
                     <UserPlus className="h-5 w-5 text-secondary" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-            <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
                     <p className="text-sm font-medium text-gray-600">Response Rate</p>
                     <p className="text-2xl font-semibold text-gray-900">{stats?.automationMetrics.messageResponseRate.toFixed(1)}%</p>
                     <p className="text-xs text-warning font-medium">{stats?.automationMetrics.positiveResponseRate.toFixed(1)}% positive</p>
-                  </div>
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-warning/5 border border-warning/10">
+              </div>
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-warning/5 border border-warning/10">
                     <MessageSquare className="h-5 w-5 text-warning" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
           {/* Automation Performance Charts */}
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
             {/* Automation by Stage */}
-            <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-primary/5 border border-sidebar-primary/10">
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-primary/5 border border-sidebar-primary/10">
                     <BarChart3 className="h-4 w-4 text-sidebar-primary" />
-                  </div>
+              </div>
                   Automation by Stage (People)
                 </CardTitle>
               </CardHeader>
@@ -605,11 +605,11 @@ const Reporting = () => {
                     <Brain className="h-4 w-4 text-warning" />
                   </div>
                   Key Automation Metrics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-sidebar-primary"></div>
                       <span className="text-sm font-medium">Total LinkedIn Activities (via Expandi/Prosp)</span>
@@ -617,21 +617,21 @@ const Reporting = () => {
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">{stats?.linkedinMetrics.totalLinkedinActivities}</span>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between">
+              </div>
+              <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-success"></div>
                       <span className="text-sm font-medium">Connection Requests Sent</span>
-                    </div>
+              </div>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">{stats?.automationMetrics.connectionRequestsSent}</span>
+                      </div>
                     </div>
-                  </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-secondary"></div>
                       <span className="text-sm font-medium">Connections Accepted</span>
-                    </div>
+                  </div>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">{stats?.automationMetrics.connectionsAccepted}</span>
                     </div>
@@ -653,29 +653,29 @@ const Reporting = () => {
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">{stats?.automationMetrics.repliesReceived}</span>
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
             {/* Reply Analysis */}
-            <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-success/5 border border-success/10">
                     <CheckCircle className="h-4 w-4 text-success" />
-                  </div>
+              </div>
                   Reply Analysis
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-success" />
                       <span className="text-sm font-medium">Interested Replies</span>
-                    </div>
-                    <div className="flex items-center gap-2">
+                  </div>
+                  <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm text-success">{stats?.automationMetrics.interestedReplies}</span>
                       <span className="text-xs text-gray-500">
                         ({stats?.automationMetrics.repliesReceived > 0 ? 
@@ -693,9 +693,9 @@ const Reporting = () => {
                       <span className="text-xs text-gray-500">
                         ({stats?.automationMetrics.repliesReceived > 0 ? 
                           ((stats?.automationMetrics.notInterestedReplies || 0) / stats?.automationMetrics.repliesReceived * 100).toFixed(1) : 0}%)
-                      </span>
-                    </div>
+                    </span>
                   </div>
+                </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <HelpCircle className="h-4 w-4 text-muted" />
@@ -835,7 +835,7 @@ const Reporting = () => {
                 <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-primary/5 border border-sidebar-primary/10">
                     <BarChart3 className="h-4 w-4 text-sidebar-primary" />
-                  </div>
+            </div>
                   LinkedIn Activity Funnel
                 </CardTitle>
               </CardHeader>
@@ -878,9 +878,9 @@ const Reporting = () => {
                     <Bar dataKey="value" fill={chartColors.primary} />
                   </BarChart>
                 </ChartContainer>
-              </CardContent>
-            </Card>
-          </div>
+          </CardContent>
+        </Card>
+      </div>
 
           {/* LinkedIn Activity Timeline - Full Width */}
           <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
@@ -1156,17 +1156,17 @@ const Reporting = () => {
               </CardContent>
             </Card>
 
-            {/* Industry Distribution */}
+      {/* Industry Distribution */}
             <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-success/5 border border-success/10">
                     <Building2 className="h-4 w-4 text-success" />
-                  </div>
+            </div>
                   Function Distribution
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
                 <ChartContainer
                   config={{
                     count: { label: "Companies", color: chartColors.success }
@@ -1212,49 +1212,49 @@ const Reporting = () => {
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-sidebar-primary text-white text-sm font-bold">
                         {index + 1}
                       </div>
-                      <div>
+                <div>
                         <div className="font-medium text-gray-900">{company.companyName}</div>
                         <div className="text-sm text-gray-600">{company.industry}</div>
                       </div>
-                    </div>
-                    <div className="text-right">
+                </div>
+                <div className="text-right">
                       <div className="font-medium text-gray-900">{company.leadCount} people</div>
                       <div className="text-xs text-gray-500">
                         {company.automationActive > 0 ? `${company.automationActive} automation` : 'No automation'}
-                      </div>
-                    </div>
                   </div>
-                ))}
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
           {/* Pipeline Performance */}
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
             {/* Pipeline Velocity */}
             <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-warning/5 border border-warning/10">
                     <Clock className="h-4 w-4 text-warning" />
-                  </div>
+            </div>
                   Pipeline Velocity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
                 <div className="space-y-3">
                   {(stats?.companyPipelineMetrics?.pipelineVelocity || []).map((stage) => (
                     <div key={stage.stage} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-warning"></div>
                         <span className="text-sm font-medium">{stage.stage}</span>
-                      </div>
+                </div>
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-sm">{stage.averageDaysInStage.toFixed(0)} days</span>
                       </div>
-                    </div>
-                  ))}
-                </div>
+              </div>
+            ))}
+          </div>
               </CardContent>
             </Card>
 
@@ -1272,19 +1272,19 @@ const Reporting = () => {
                 <div className="space-y-3">
                   {(stats?.companyPipelineMetrics?.userPerformance || []).map((user) => (
                     <div key={user.userName} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-success"></div>
                         <span className="text-sm font-medium">{user.userName}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
+            </div>
+            <div className="flex items-center gap-2">
                         <span className="font-semibold text-sm">{user.companiesMoved} companies</span>
                         <span className="text-xs text-gray-500">({user.averageTimeToMove.toFixed(0)}d avg)</span>
-                      </div>
+            </div>
                     </div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
+          </div>
+        </CardContent>
+      </Card>
           </div>
         </TabsContent>
 
@@ -1357,11 +1357,11 @@ const Reporting = () => {
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
             {/* Jobs by Priority */}
             <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-primary/5 border border-sidebar-primary/10">
                     <Filter className="h-4 w-4 text-sidebar-primary" />
-                  </div>
+            </div>
                   Jobs by Priority
                 </CardTitle>
               </CardHeader>
@@ -1436,20 +1436,20 @@ const Reporting = () => {
                     <MapPin className="h-4 w-4 text-secondary" />
                   </div>
                   Jobs by Location
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
                   {(stats?.jobMetrics.jobsByLocation || []).map((location, index) => (
                     <div key={`location-${location.location}-${index}`} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-secondary"></div>
                         <span className="text-sm font-medium">{location.location}</span>
-                      </div>
+                </div>
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-sm">{location.count}</span>
                         <span className="text-xs text-gray-500">({location.percentage.toFixed(1)}%)</span>
-                </div>
+                  </div>
               </div>
             ))}
           </div>
@@ -1481,17 +1481,17 @@ const Reporting = () => {
               </div>
             ))}
           </div>
-              </CardContent>
-            </Card>
+        </CardContent>
+      </Card>
           </div>
 
           {/* Daily Job Trends - Full Width */}
-          <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+      <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-success/5 border border-success/10">
                   <Activity className="h-4 w-4 text-success" />
-                </div>
+            </div>
                 Daily Job Trends
               </CardTitle>
             </CardHeader>

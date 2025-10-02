@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+// Dynamic import to prevent initialization issues
+// import { supabase } from '@/integrations/supabase/client';
 import { subDays, subWeeks, subMonths } from 'date-fns';
 
 export interface DashboardMetrics {
@@ -85,6 +86,9 @@ export class DashboardService {
   static async getDashboardData(userId?: string): Promise<DashboardData> {
     try {
       console.log('Fetching dashboard data...');
+      
+      // Dynamic import to prevent initialization issues
+      const { supabase } = await import('@/integrations/supabase/client');
       
       // Calculate date ranges
       const oneWeekAgo = subWeeks(new Date(), 1);
