@@ -19,7 +19,8 @@ import {
   Users,
   Building2
 } from "lucide-react";
-import { ReportingService } from "@/services/reportingService";
+// Dynamic import to prevent initialization issues
+// import { ReportingService } from "@/services/reportingService";
 
 interface OutreachMetrics {
   totalLeads: number;
@@ -87,7 +88,8 @@ export function OutreachAnalytics() {
     try {
       setLoading(true);
       
-      // Use the ReportingService for optimized outreach analytics
+      // Use dynamic import to prevent initialization issues
+      const { ReportingService } = await import("@/services/reportingService");
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 30); // Last 30 days
       
