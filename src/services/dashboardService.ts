@@ -131,9 +131,9 @@ export class DashboardService {
           employee_location,
           stage,
           created_at,
-          assigned_to,
+          owner_id,
           companies(name, logo_url),
-          notes(id)
+          notes!notes_entity_id_fkey(id)
         `).order('created_at', { ascending: false }).limit(30),
         
         supabase.from('companies').select(`
@@ -142,11 +142,11 @@ export class DashboardService {
           industry,
           website,
           logo_url,
-          employee_count,
-          stage,
+          company_size,
+          pipeline_stage,
           created_at,
-          assigned_to,
-          notes(id)
+          owner_id,
+          notes!notes_entity_id_fkey(id)
         `).order('created_at', { ascending: false }).limit(6),
         
         supabase.from('jobs').select(`
@@ -156,11 +156,10 @@ export class DashboardService {
           priority,
           employment_type,
           seniority_level,
-          stage,
           created_at,
-          assigned_to,
+          owner_id,
           companies(name, logo_url),
-          notes(id)
+          notes!notes_entity_id_fkey(id)
         `).order('created_at', { ascending: false }).limit(6),
         
         // Recent activities
@@ -177,16 +176,16 @@ export class DashboardService {
         // Pipeline breakdown
         supabase.from('people').select('stage'),
         
-        // Automation metrics
-        supabase.from('people').select('automation_status').not('automation_status', 'is', null),
+        // Automation metrics - check for automation_started_at
+        supabase.from('people').select('automation_started_at, stage').not('automation_started_at', 'is', null),
         
         // Favorites and unassigned
-        supabase.from('people').select('*', { count: 'exact', head: true }).eq('is_favorite', true),
-        supabase.from('people').select('*', { count: 'exact', head: true }).is('assigned_to', null),
-        supabase.from('companies').select('*', { count: 'exact', head: true }).is('assigned_to', null),
+        supabase.from('people').select('*', { count: 'exact', head: true }).eq('is_favourite', true),
+        supabase.from('people').select('*', { count: 'exact', head: true }).is('owner_id', null),
+        supabase.from('companies').select('*', { count: 'exact', head: true }).is('owner_id', null),
         
         // Owner stats
-        supabase.from('people').select('assigned_to')
+        supabase.from('people').select('owner_id')
       ]);
       
       // Process pipeline breakdown
@@ -199,15 +198,15 @@ export class DashboardService {
       // Process owner stats
       const ownerStats: Record<string, number> = {};
       ownersData.data?.forEach(person => {
-        if (person.assigned_to) {
-          ownerStats[person.assigned_to] = (ownerStats[person.assigned_to] || 0) + 1;
+        if (person.owner_id) {
+          ownerStats[person.owner_id] = (ownerStats[person.owner_id] || 0) + 1;
         }
       });
       
-      // Calculate automation success rate
+      // Calculate automation success rate based on stage
       const totalAutomations = automationData.data?.length || 0;
       const successfulAutomations = automationData.data?.filter(
-        p => p.automation_status === 'connected' || p.automation_status === 'replied'
+        p => p.stage === 'connected' || p.stage === 'replied' || p.stage === 'meeting_booked'
       ).length || 0;
       const automationSuccessRate = totalAutomations > 0 ? (successfulAutomations / totalAutomations) * 100 : 0;
       
@@ -221,7 +220,7 @@ export class DashboardService {
           employee_location: person.employee_location,
           stage: person.stage,
           created_at: person.created_at,
-          assigned_to: person.assigned_to,
+          assigned_to: person.owner_id,
           company_name: person.companies?.name || null,
           company_logo_url: person.companies?.logo_url || null,
           notes_count: person.notes?.length || 0
@@ -235,10 +234,10 @@ export class DashboardService {
           industry: company.industry,
           website: company.website,
           logo_url: company.logo_url,
-          employee_count: company.employee_count,
-          stage: company.stage,
+          employee_count: company.company_size,
+          stage: company.pipeline_stage,
           created_at: company.created_at,
-          assigned_to: company.assigned_to,
+          assigned_to: company.owner_id,
           notes_count: company.notes?.length || 0
         }));
       };
@@ -252,9 +251,9 @@ export class DashboardService {
           priority: job.priority,
           employment_type: job.employment_type,
           seniority_level: job.seniority_level,
-          stage: job.stage,
+          stage: null, // Jobs don't have stages in the schema
           created_at: job.created_at,
-          assigned_to: job.assigned_to,
+          assigned_to: job.owner_id,
           company_name: job.companies?.name || null,
           company_logo_url: job.companies?.logo_url || null,
           notes_count: job.notes?.length || 0
