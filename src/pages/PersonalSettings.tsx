@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Loader2, User, Mail, Calendar, LogOut, Save, Palette, Database, Settings as SettingsIcon, Globe, Smartphone, Download, Upload, Trash2, Eye, EyeOff, Users, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { toast } from '@/utils/simpleToast';
 
 interface PersonalSettingsProps {
   activeSection?: string;

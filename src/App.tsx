@@ -1,7 +1,7 @@
 import React, { useEffect, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "sonner";
+// import { Toaster } from "sonner"; // Removed to fix React temporal dead zone issues
 import { useGlobalErrorHandler, usePerformanceMonitoring } from "./hooks/useGlobalErrorHandler";
 import { initializeErrorHandling, setupGlobalErrorHandlers } from "./utils/globalErrorHandlers";
 
@@ -133,7 +133,7 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <AppRoutes />
-            <Toaster />
+            {/* <Toaster /> */}
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

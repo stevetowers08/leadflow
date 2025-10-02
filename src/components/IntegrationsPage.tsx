@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Settings as SettingsIcon, Mail, Linkedin, Loader2 } from 'lucide-react';
 import { gmailService } from '@/services/gmailService';
-import { toast } from 'sonner';
+import { toast } from '@/utils/simpleToast';
 
 const IntegrationsPage = () => {
   const [gmailConnected, setGmailConnected] = useState(false);

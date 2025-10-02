@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable } from '@/components/ui/data-table';
 import { Loader2, Users, UserPlus, Mail, Shield, Trash2, Edit, Save, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/utils/simpleToast';
 import { gmailService } from '@/services/gmailService';
 
 interface User {
