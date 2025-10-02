@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { 
   Building2, 
@@ -29,13 +30,28 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({ compan
   const { openPopup } = usePopupNavigation();
   const [activeTab, setActiveTab] = useState("unassigned");
 
-  // Filter companies by assignment status
+  // Get company logo using Clearbit
+  const getCompanyLogo = (company: RecentCompany) => {
+    if (company.logo) return company.logo;
+    if (!company.website) return null;
+    const cleanWebsite = company.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
+    return `https://logo.clearbit.com/${cleanWebsite}`;
+  };
+
+  // Filter companies by assignment status and sort by date created
   const filteredCompanies = useMemo(() => {
-    const unassigned = companies.filter(company => !company.assigned_to);
-    const assignedToMe = companies.filter(company => company.assigned_to === user?.id);
-    const recentlyAssigned = companies.filter(company => 
-      company.assigned_to && company.assigned_to !== user?.id
-    );
+    const sortByDate = (a: RecentCompany, b: RecentCompany) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+
+    const unassigned = companies
+      .filter(company => !company.assigned_to)
+      .sort(sortByDate);
+    const assignedToMe = companies
+      .filter(company => company.assigned_to === user?.id)
+      .sort(sortByDate);
+    const recentlyAssigned = companies
+      .filter(company => company.assigned_to && company.assigned_to !== user?.id)
+      .sort(sortByDate);
 
     return {
       unassigned,
@@ -51,80 +67,75 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({ compan
     return `${(count / 1000000).toFixed(1)}M`;
   };
 
+  const getStageColor = (stage?: string | null) => {
+    switch (stage?.toLowerCase()) {
+      case 'new_lead':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'automated':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'meeting_scheduled':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'closed_won':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'closed_lost':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
   const renderCompanyCard = (company: RecentCompany) => (
     <div
       key={company.id}
-      className="group p-4 bg-white rounded-lg border border-gray-200 hover:border-primary/20 hover:shadow-md transition-all duration-200 cursor-pointer"
+      className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group"
       onClick={() => openPopup('company', company.id, company.name)}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <h4 className="font-medium text-gray-900 truncate">{company.name}</h4>
-            {company.notes_count && company.notes_count > 0 && (
-              <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                <StickyNote className="h-3 w-3" />
-                <span>{company.notes_count}</span>
-              </div>
-            )}
-          </div>
-          
-          {company.industry && (
-            <div className="text-sm text-gray-600 mb-1 truncate">
-              {company.industry}
-            </div>
-          )}
-          
-          {company.website && (
-            <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-              <Globe className="h-3 w-3" />
-              <span className="truncate">{company.website.replace(/^https?:\/\//, '')}</span>
-            </div>
-          )}
-          
-          {company.employee_count && (
-            <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
-              <Users className="h-3 w-3" />
-              <span>{formatEmployeeCount(company.employee_count)} employees</span>
-            </div>
-          )}
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {company.stage && (
-                <Badge variant="outline" className="text-xs">
-                  {company.stage}
-                </Badge>
-              )}
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <Clock className="h-3 w-3" />
-                <span>{formatDistanceToNow(new Date(company.created_at), { addSuffix: true })}</span>
-              </div>
-            </div>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => {
-                e.stopPropagation();
-                openPopup('company', company.id, company.name);
+      <div className="flex items-center gap-3">
+        {/* Company Logo Only */}
+        <div className="flex-shrink-0 w-8 h-8 rounded-md border border-gray-200 bg-white flex items-center justify-center">
+          {getCompanyLogo(company) ? (
+            <img
+              src={getCompanyLogo(company)!}
+              alt={company.name}
+              className="w-full h-full rounded-md object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.style.display = 'none';
               }}
-            >
-              <ExternalLink className="h-3 w-3" />
-            </Button>
+            />
+          ) : (
+            <Building2 className="h-4 w-4 text-gray-400" />
+          )}
+        </div>
+        
+        {/* Company Info */}
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-sm truncate">{company.name}</div>
+          <div className="text-xs text-gray-500 truncate">
+            {company.industry && company.head_office ? `${company.industry} • ${company.head_office}` : company.industry || company.head_office || 'No industry'}
           </div>
         </div>
         
-        {company.logo_url && (
-          <div className="ml-3 flex-shrink-0">
-            <img
-              src={company.logo_url}
-              alt={company.name}
-              className="w-10 h-10 rounded-lg object-cover border border-gray-200"
-            />
-          </div>
-        )}
+        {/* Stage, Employee Count and Notes */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {company.employee_count && (
+            <div className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+              <Users className="h-3 w-3" />
+              <span>{formatEmployeeCount(company.employee_count)}</span>
+            </div>
+          )}
+          {company.stage && (
+            <Badge variant="outline" className={`text-xs ${getStageColor(company.stage)}`}>
+              {company.stage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </Badge>
+          )}
+          {company.notes_count && company.notes_count > 0 && (
+            <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+              <StickyNote className="h-3 w-3" />
+              <span>{company.notes_count}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -154,8 +165,8 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({ compan
     }
 
     return (
-      <div className="space-y-3 max-h-96 overflow-y-auto">
-        {companiesList.map(renderCompanyCard)}
+      <div className="space-y-3 max-h-[400px] overflow-y-auto">
+        {companiesList.slice(0, 5).map(renderCompanyCard)}
       </div>
     );
   };

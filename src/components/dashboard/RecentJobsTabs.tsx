@@ -13,6 +13,7 @@ import {
   UserCheck,
   UserX,
   Clock,
+  Users,
   Star
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -30,13 +31,39 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({ jobs, loading })
   const { openPopup } = usePopupNavigation();
   const [activeTab, setActiveTab] = useState("unassigned");
 
-  // Filter jobs by assignment status
+  // Get company logo using Clearbit
+  const getCompanyLogo = (job: RecentJob) => {
+    if (job.company_logo_url) return job.company_logo_url;
+    if (!job.company_name) return null;
+    
+    // If we have a company website, use it for Clearbit
+    if (job.company_website) {
+      const cleanWebsite = job.company_website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
+      return `https://logo.clearbit.com/${cleanWebsite}`;
+    }
+    
+    // Fallback: try to generate from company name
+    const cleanCompanyName = job.company_name.toLowerCase()
+      .replace(/\s+/g, '')
+      .replace(/[^a-z0-9]/g, '');
+    
+    return `https://logo.clearbit.com/${cleanCompanyName}.com`;
+  };
+
+  // Filter jobs by assignment status and sort by date created
   const filteredJobs = useMemo(() => {
-    const unassigned = jobs.filter(job => !job.assigned_to);
-    const assignedToMe = jobs.filter(job => job.assigned_to === user?.id);
-    const recentlyAssigned = jobs.filter(job => 
-      job.assigned_to && job.assigned_to !== user?.id
-    );
+    const sortByDate = (a: RecentJob, b: RecentJob) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+
+    const unassigned = jobs
+      .filter(job => !job.assigned_to)
+      .sort(sortByDate);
+    const assignedToMe = jobs
+      .filter(job => job.assigned_to === user?.id)
+      .sort(sortByDate);
+    const recentlyAssigned = jobs
+      .filter(job => job.assigned_to && job.assigned_to !== user?.id)
+      .sort(sortByDate);
 
     return {
       unassigned,
@@ -61,97 +88,53 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({ jobs, loading })
   const renderJobCard = (job: RecentJob) => (
     <div
       key={job.id}
-      className="group p-4 bg-white rounded-lg border border-gray-200 hover:border-primary/20 hover:shadow-md transition-all duration-200 cursor-pointer"
+      className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group"
       onClick={() => openPopup('job', job.id, job.title)}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <h4 className="font-medium text-gray-900 truncate">{job.title}</h4>
-            {job.notes_count && job.notes_count > 0 && (
-              <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                <StickyNote className="h-3 w-3" />
-                <span>{job.notes_count}</span>
-              </div>
-            )}
-          </div>
-          
-          {job.company_name && (
-            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-              {job.company_logo_url ? (
-                <img
-                  src={job.company_logo_url}
-                  alt={job.company_name}
-                  className="w-4 h-4 rounded object-cover"
-                />
-              ) : (
-                <Building2 className="h-4 w-4" />
-              )}
-              <span className="font-medium truncate">{job.company_name}</span>
-            </div>
-          )}
-          
-          {job.location && (
-            <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-              <MapPin className="h-3 w-3" />
-              <span className="truncate">{job.location}</span>
-            </div>
-          )}
-          
-          <div className="flex items-center gap-2 mb-2">
-            {job.employment_type && (
-              <Badge variant="outline" className="text-xs">
-                {job.employment_type}
-              </Badge>
-            )}
-            {job.seniority_level && (
-              <Badge variant="outline" className="text-xs">
-                {job.seniority_level}
-              </Badge>
-            )}
-            {job.priority && (
-              <Badge className={`text-xs ${getPriorityColor(job.priority)}`}>
-                {job.priority}
-              </Badge>
-            )}
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {job.stage && (
-                <Badge variant="outline" className="text-xs">
-                  {job.stage}
-                </Badge>
-              )}
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <Clock className="h-3 w-3" />
-                <span>{formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
-              </div>
-            </div>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => {
-                e.stopPropagation();
-                openPopup('job', job.id, job.title);
+      <div className="flex items-center gap-3">
+        {/* Company Logo Only */}
+        <div className="flex-shrink-0 w-8 h-8 rounded-md border border-gray-200 bg-white flex items-center justify-center">
+          {getCompanyLogo(job) && (
+            <img
+              src={getCompanyLogo(job)!}
+              alt={job.company_name || 'Company'}
+              className="w-full h-full rounded-md object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.style.display = 'none';
               }}
-            >
-              <ExternalLink className="h-3 w-3" />
-            </Button>
+            />
+          )}
+        </div>
+        
+        {/* Job Info */}
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-sm truncate">{job.title}</div>
+          <div className="text-xs text-gray-500 truncate">
+            {job.company_name && job.location ? `${job.company_name} • ${job.location}` : job.company_name || job.location || 'No company'}
           </div>
         </div>
         
-        {job.company_logo_url && (
-          <div className="ml-3 flex-shrink-0">
-            <img
-              src={job.company_logo_url}
-              alt={job.company_name || "Company"}
-              className="w-10 h-10 rounded-lg object-cover border border-gray-200"
-            />
-          </div>
-        )}
+        {/* People Count, Priority and Notes */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {job.people_count && job.people_count > 0 && (
+            <div className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+              <Users className="h-3 w-3" />
+              <span>{job.people_count}</span>
+            </div>
+          )}
+          {job.priority && (
+            <Badge variant="outline" className={`text-xs ${getPriorityColor(job.priority)}`}>
+              {job.priority}
+            </Badge>
+          )}
+          {job.notes_count > 0 && (
+            <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+              <StickyNote className="h-3 w-3" />
+              <span>{job.notes_count}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -181,8 +164,8 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({ jobs, loading })
     }
 
     return (
-      <div className="space-y-3 max-h-96 overflow-y-auto">
-        {jobsList.map(renderJobCard)}
+      <div className="space-y-3 max-h-[400px] overflow-y-auto">
+        {jobsList.slice(0, 5).map(renderJobCard)}
       </div>
     );
   };

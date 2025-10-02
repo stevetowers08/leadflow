@@ -24,9 +24,9 @@ import { usePermissions } from "@/contexts/PermissionsContext";
 import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { designTokens } from "@/design-system/tokens";
 import { DashboardService, type DashboardData } from "@/services/dashboardService";
-import { RecentPeopleTabs } from "@/components/dashboard/RecentPeopleTabs";
 import { RecentJobsTabs } from "@/components/dashboard/RecentJobsTabs";
 import { RecentCompaniesTabs } from "@/components/dashboard/RecentCompaniesTabs";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 const Index = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -55,21 +55,18 @@ const Index = () => {
 
   return (
     <Page title="Dashboard">
-      {/* Key Metrics - Reporting Style */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      {/* Key Metrics - Better Spacing */}
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         {/* Total People */}
         <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total People</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-semibold text-gray-900">{loading ? '...' : metrics?.totalPeople || 0}</p>
-                  <span className="text-xs text-green-600 font-medium">
-                    +{loading ? '...' : metrics?.peopleThisWeek || 0}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">this week</p>
+                <p className="text-2xl font-semibold text-gray-900">{loading ? '...' : metrics?.totalPeople || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  +{loading ? '...' : metrics?.peopleThisWeek || 0} last 7 days
+                </p>
               </div>
               <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-sidebar-primary/5 border border-sidebar-primary/10">
                 <Users className="h-6 w-6 text-sidebar-primary" />
@@ -84,13 +81,10 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Companies</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-semibold text-gray-900">{loading ? '...' : metrics?.totalCompanies || 0}</p>
-                  <span className="text-xs text-green-600 font-medium">
-                    +{loading ? '...' : metrics?.companiesThisWeek || 0}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">this week</p>
+                <p className="text-2xl font-semibold text-gray-900">{loading ? '...' : metrics?.totalCompanies || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  +{loading ? '...' : metrics?.companiesThisWeek || 0} last 7 days
+                </p>
               </div>
               <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-success/5 border border-success/10">
                 <Building2 className="h-6 w-6 text-success" />
@@ -105,13 +99,10 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Jobs</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-semibold text-gray-900">{loading ? '...' : metrics?.totalJobs || 0}</p>
-                  <span className="text-xs text-green-600 font-medium">
-                    +{loading ? '...' : metrics?.jobsThisWeek || 0}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">this week</p>
+                <p className="text-2xl font-semibold text-gray-900">{loading ? '...' : metrics?.totalJobs || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  +{loading ? '...' : metrics?.jobsThisWeek || 0} last 7 days
+                </p>
               </div>
               <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-secondary/5 border border-secondary/10">
                 <Briefcase className="h-6 w-6 text-secondary" />
@@ -125,12 +116,12 @@ const Index = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Automation Success</p>
+                <p className="text-sm font-medium text-gray-600">Companies Automated</p>
                 <p className="text-2xl font-semibold text-gray-900">
                   {loading ? '...' : `${metrics?.automationSuccessRate?.toFixed(1) || 0}%`}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {loading ? '...' : metrics?.activeAutomations || 0} active automations
+                  +{loading ? '...' : metrics?.activeAutomations || 0} last 7 days
                 </p>
               </div>
               <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-warning/5 border border-warning/10">
@@ -141,216 +132,120 @@ const Index = () => {
         </Card>
       </div>
 
-      {/* Secondary Stats - Cleaner Layout */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        {/* Pipeline Breakdown */}
+
+
+      {/* Charts Section - Reporting Style */}
+      <div className="grid gap-8 lg:grid-cols-2 mb-12">
+        {/* New Companies vs Automated Companies */}
         <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/5 border border-primary/10">
-                <Target className="h-4 w-4 text-primary" />
+                <Building2 className="h-4 w-4 text-primary" />
               </div>
-              Pipeline Stages
+              Company Growth & Automation (Last 7 Days)
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-4">
-                <div className="text-sm text-muted-foreground">Loading...</div>
+          <CardContent className="p-0">
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={dashboardData?.companiesOverTime || []} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    fontSize={12}
+                  />
+                  <YAxis fontSize={12} />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                    contentStyle={{ fontSize: '11px' }}
+                    labelStyle={{ fontSize: '11px' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '13px' }} />
+                  <Line
+                    type="monotone"
+                    dataKey="newCompanies"
+                    stroke="#3B82F6"
+                    strokeWidth={2}
+                    name="New Companies"
+                    dot={{ fill: "#3B82F6", strokeWidth: 2, r: 3 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="automatedCompanies"
+                    stroke="#10B981"
+                    strokeWidth={2}
+                    name="Automated Companies"
+                    dot={{ fill: "#10B981", strokeWidth: 2, r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
               </div>
-            ) : Object.keys(metrics?.pipelineBreakdown || {}).length > 0 ? (
-              <div className="space-y-3">
-                {Object.entries(metrics?.pipelineBreakdown || {})
-                  .sort(([,a], [,b]) => b - a)
-                  .slice(0, 4)
-                  .map(([stage, count]) => {
-                    const total = Object.values(metrics?.pipelineBreakdown || {}).reduce((a, b) => a + b, 0);
-                    const percentage = total > 0 ? (count / total) * 100 : 0;
-                    return (
-                      <div key={stage} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-primary"></div>
-                            <span className="text-sm font-medium capitalize">{stage}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="font-semibold text-sm">{count}</span>
-                            <span className="text-xs text-gray-500 ml-1">({percentage.toFixed(1)}%)</span>
-                          </div>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-primary h-1.5 rounded-full transition-all duration-300" 
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground">
-                <Target className="h-6 w-6 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No pipeline data</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* Quick Stats */}
+        {/* People Automation Activity */}
         <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-secondary/5 border border-secondary/10">
-                <Star className="h-4 w-4 text-secondary" />
+                <Users className="h-4 w-4 text-secondary" />
               </div>
-              Quick Stats
+              People Automation Activity (Last 7 Days)
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-warning" />
-                  <span className="text-sm font-medium">Favorite People</span>
-                </div>
-                <span className="font-semibold text-sm">{loading ? '...' : metrics?.favoritePeople || 0}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium">Unassigned People</span>
-                </div>
-                <span className="font-semibold text-sm">{loading ? '...' : metrics?.unassignedPeople || 0}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium">Unassigned Companies</span>
-                </div>
-                <span className="font-semibold text-sm">{loading ? '...' : metrics?.unassignedCompanies || 0}</span>
-              </div>
+          <CardContent className="p-0">
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={dashboardData?.peopleAutomationOverTime || []} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    fontSize={12}
+                  />
+                  <YAxis fontSize={12} />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                    contentStyle={{ fontSize: '11px' }}
+                    labelStyle={{ fontSize: '11px' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '13px' }} />
+                  <Line
+                    type="monotone"
+                    dataKey="peopleWithAutomation"
+                    stroke="#8B5CF6"
+                    strokeWidth={2}
+                    name="People with Automation"
+                    dot={{ fill: "#8B5CF6", strokeWidth: 2, r: 3 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="automationActivity"
+                    stroke="#F59E0B"
+                    strokeWidth={2}
+                    name="Automation Activity"
+                    dot={{ fill: "#F59E0B", strokeWidth: 2, r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity Summary */}
-        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-success/5 border border-success/10">
-                <Activity className="h-4 w-4 text-success" />
-              </div>
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-4">
-                <div className="text-sm text-muted-foreground">Loading...</div>
-              </div>
-            ) : dashboardData?.recentActivities && dashboardData.recentActivities.length > 0 ? (
-              <div className="space-y-3">
-                {dashboardData.recentActivities.slice(0, 3).map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3">
-                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-success/10 flex-shrink-0 mt-0.5">
-                      <MessageSquare className="h-3 w-3 text-success" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {activity.interaction_type}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {activity.person_name || activity.company_name}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {formatDistanceToNow(new Date(activity.occurred_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground">
-                <Activity className="h-6 w-6 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No recent activity</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Owner Distribution */}
-        <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-warning/5 border border-warning/10">
-                <UserCheck className="h-4 w-4 text-warning" />
-              </div>
-              Team Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-4">
-                <div className="text-sm text-muted-foreground">Loading...</div>
-              </div>
-            ) : Object.keys(metrics?.ownerStats || {}).length > 0 ? (
-              <div className="space-y-3">
-                {Object.entries(metrics?.ownerStats || {})
-                  .sort(([,a], [,b]) => b - a)
-                  .slice(0, 4)
-                  .map(([owner, count]) => {
-                    const total = Object.values(metrics?.ownerStats || {}).reduce((a, b) => a + b, 0);
-                    const percentage = total > 0 ? (count / total) * 100 : 0;
-                    return (
-                      <div key={owner} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-warning"></div>
-                            <span className="text-sm font-medium truncate">{owner}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="font-semibold text-sm">{count}</span>
-                            <span className="text-xs text-gray-500 ml-1">({percentage.toFixed(1)}%)</span>
-                          </div>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-warning h-1.5 rounded-full transition-all duration-300" 
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground">
-                <UserCheck className="h-6 w-6 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No assignment data</p>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Items with Tabs - Better Spacing */}
-      <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-3 mb-8">
-        {/* Recent People with Tabs */}
-        <RecentPeopleTabs 
-          people={dashboardData?.recentPeople || []} 
+      {/* Recent Items with Tabs - Improved Layout */}
+      <div className="space-y-8 lg:space-y-0 lg:grid lg:grid-cols-1 xl:grid-cols-2 lg:gap-8 mb-8">
+        {/* Recent Companies with Tabs */}
+        <RecentCompaniesTabs 
+          companies={dashboardData?.recentCompanies || []} 
           loading={loading} 
         />
 
         {/* Recent Jobs with Tabs */}
         <RecentJobsTabs 
           jobs={dashboardData?.recentJobs || []} 
-          loading={loading} 
-        />
-
-        {/* Recent Companies with Tabs */}
-        <RecentCompaniesTabs 
-          companies={dashboardData?.recentCompanies || []} 
           loading={loading} 
         />
       </div>

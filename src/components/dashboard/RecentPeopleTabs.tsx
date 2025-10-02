@@ -47,7 +47,7 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({ people, load
   const renderPersonCard = (person: RecentPerson) => (
     <div
       key={person.id}
-      className="group p-4 bg-white rounded-lg border border-gray-200 hover:border-primary/20 hover:shadow-md transition-all duration-200 cursor-pointer"
+      className="group p-6 bg-white rounded-lg border border-gray-200 hover:border-primary/20 hover:shadow-md transition-all duration-200 cursor-pointer"
       onClick={() => openPopup('lead', person.id, person.name)}
     >
       <div className="flex items-start justify-between">
@@ -153,7 +153,7 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({ people, load
     }
 
     return (
-      <div className="space-y-3 max-h-96 overflow-y-auto">
+      <div className="space-y-4 max-h-[500px] overflow-y-auto">
         {peopleList.map(renderPersonCard)}
       </div>
     );
