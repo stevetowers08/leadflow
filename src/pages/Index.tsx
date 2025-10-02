@@ -36,13 +36,23 @@ const Index = () => {
   const { openPopup } = usePopupNavigation();
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    // Only fetch data when user is authenticated
+    if (user?.id) {
+      fetchDashboardData();
+    }
+  }, [user?.id]); // Depend on user.id to refetch when auth changes
 
   const fetchDashboardData = async () => {
+    // Guard against calling without authenticated user
+    if (!user?.id) {
+      console.warn('Cannot fetch dashboard data: user not authenticated');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const data = await DashboardService.getDashboardData(user?.id);
+      const data = await DashboardService.getDashboardData(user.id);
       setDashboardData(data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

@@ -337,8 +337,8 @@ describe('AssignmentService Integration Tests', () => {
       expect(stats.unassigned).toBeGreaterThanOrEqual(0);
       expect(stats.byUser).toHaveLength(3);
       
-      const user1Stats = stats.byUser.find(u => u.userId === testUserId1);
-      const user2Stats = stats.byUser.find(u => u.userId === testUserId2);
+      const user1Stats = stats.byUser.find(userStat => userStat.userId === testUserId1);
+      const user2Stats = stats.byUser.find(userStat => userStat.userId === testUserId2);
       
       expect(user1Stats?.count).toBeGreaterThanOrEqual(1);
       expect(user2Stats?.count).toBeGreaterThanOrEqual(1);
@@ -385,7 +385,7 @@ describe('AssignmentService Integration Tests', () => {
       const results = await Promise.all(promises);
 
       // One should succeed, one might fail due to race condition
-      const successCount = results.filter(r => r.success).length;
+      const successCount = results.filter(result => result.success).length;
       expect(successCount).toBeGreaterThanOrEqual(1);
 
       // Verify final state

@@ -262,7 +262,7 @@ export const AssignmentManagementPanel: React.FC = () => {
               <div className="p-3 bg-muted/20 rounded-lg border">
                 <div className="font-medium">{getSelectedUserName()}</div>
                 <div className="text-sm text-muted-foreground">
-                  {stats?.byUser.find(u => u.userId === selectedUser)?.count || 0} assigned items
+                  {stats?.byUser.find(userStat => userStat.userId === selectedUser)?.count || 0} assigned items
                 </div>
               </div>
             </div>

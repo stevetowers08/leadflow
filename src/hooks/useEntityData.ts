@@ -37,22 +37,7 @@ export function useEntityData({ entityType, entityId, isOpen, refreshTrigger }: 
     queryFn: async () => {
       console.log('🔍 useEntityData queryFn called for:', { entityType, entityId, userId: user?.id });
       
-      // Wait for authentication to complete
-      if (authLoading) {
-        console.log('🔍 Waiting for authentication...');
-        return new Promise((resolve) => {
-          const checkAuth = () => {
-            if (!authLoading) {
-              resolve(null);
-            } else {
-              setTimeout(checkAuth, 100);
-            }
-          };
-          checkAuth();
-        });
-      }
-      
-      // Check if user is authenticated
+      // Check if user is authenticated first
       if (!user?.id) {
         console.error('❌ User not authenticated, cannot fetch data');
         throw new Error('User not authenticated');
