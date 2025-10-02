@@ -43,6 +43,12 @@
 
   <body>
     <div id="root"></div>
+    <script type="module">
+      // Ensure React is available globally before any modules load
+      import React from 'react';
+      window.React = React.default || React;
+      globalThis.React = React.default || React;
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

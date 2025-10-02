@@ -26,7 +26,27 @@ import { designTokens } from "@/design-system/tokens";
 import { DashboardService, type DashboardData } from "@/services/dashboardService";
 import { RecentJobsTabs } from "@/components/dashboard/RecentJobsTabs";
 import { RecentCompaniesTabs } from "@/components/dashboard/RecentCompaniesTabs";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Index = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -156,42 +176,60 @@ const Index = () => {
               Company Growth & Automation (Last 7 Days)
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-6">
             <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dashboardData?.companiesOverTime || []} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    fontSize={12}
-                  />
-                  <YAxis fontSize={12} />
-                  <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-                    contentStyle={{ fontSize: '11px' }}
-                    labelStyle={{ fontSize: '11px' }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '13px' }} />
-                  <Line
-                    type="monotone"
-                    dataKey="newCompanies"
-                    stroke="#3B82F6"
-                    strokeWidth={2}
-                    name="New Companies"
-                    dot={{ fill: "#3B82F6", strokeWidth: 2, r: 3 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="automatedCompanies"
-                    stroke="#10B981"
-                    strokeWidth={2}
-                    name="Automated Companies"
-                    dot={{ fill: "#10B981", strokeWidth: 2, r: 3 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              </div>
+              <Line
+                data={{
+                  labels: (dashboardData?.companiesOverTime || []).map(item => 
+                    new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  ),
+                  datasets: [
+                    {
+                      label: 'New Companies',
+                      data: (dashboardData?.companiesOverTime || []).map(item => item.newCompanies),
+                      borderColor: '#3B82F6',
+                      backgroundColor: '#3B82F6',
+                      borderWidth: 2,
+                      pointRadius: 3,
+                      tension: 0.1,
+                    },
+                    {
+                      label: 'Automated Companies',
+                      data: (dashboardData?.companiesOverTime || []).map(item => item.automatedCompanies),
+                      borderColor: '#10B981',
+                      backgroundColor: '#10B981',
+                      borderWidth: 2,
+                      pointRadius: 3,
+                      tension: 0.1,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'top' as const,
+                      labels: {
+                        font: { size: 13 }
+                      }
+                    },
+                    tooltip: {
+                      titleFont: { size: 11 },
+                      bodyFont: { size: 11 }
+                    }
+                  },
+                  scales: {
+                    x: {
+                      ticks: { font: { size: 12 } }
+                    },
+                    y: {
+                      ticks: { font: { size: 12 } }
+                    }
+                  }
+                }}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -205,41 +243,59 @@ const Index = () => {
               People Automation Activity (Last 7 Days)
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-6">
             <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dashboardData?.peopleAutomationOverTime || []} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    fontSize={12}
-                  />
-                  <YAxis fontSize={12} />
-                  <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-                    contentStyle={{ fontSize: '11px' }}
-                    labelStyle={{ fontSize: '11px' }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '13px' }} />
-                  <Line
-                    type="monotone"
-                    dataKey="peopleWithAutomation"
-                    stroke="#8B5CF6"
-                    strokeWidth={2}
-                    name="People with Automation"
-                    dot={{ fill: "#8B5CF6", strokeWidth: 2, r: 3 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="automationActivity"
-                    stroke="#F59E0B"
-                    strokeWidth={2}
-                    name="Automation Activity"
-                    dot={{ fill: "#F59E0B", strokeWidth: 2, r: 3 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <Line
+                data={{
+                  labels: (dashboardData?.peopleAutomationOverTime || []).map(item => 
+                    new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  ),
+                  datasets: [
+                    {
+                      label: 'People with Automation',
+                      data: (dashboardData?.peopleAutomationOverTime || []).map(item => item.peopleWithAutomation),
+                      borderColor: '#8B5CF6',
+                      backgroundColor: '#8B5CF6',
+                      borderWidth: 2,
+                      pointRadius: 3,
+                      tension: 0.1,
+                    },
+                    {
+                      label: 'Automation Activity',
+                      data: (dashboardData?.peopleAutomationOverTime || []).map(item => item.automationActivity),
+                      borderColor: '#F59E0B',
+                      backgroundColor: '#F59E0B',
+                      borderWidth: 2,
+                      pointRadius: 3,
+                      tension: 0.1,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'top' as const,
+                      labels: {
+                        font: { size: 13 }
+                      }
+                    },
+                    tooltip: {
+                      titleFont: { size: 11 },
+                      bodyFont: { size: 11 }
+                    }
+                  },
+                  scales: {
+                    x: {
+                      ticks: { font: { size: 12 } }
+                    },
+                    y: {
+                      ticks: { font: { size: 12 } }
+                    }
+                  }
+                }}
+              />
             </div>
           </CardContent>
         </Card>

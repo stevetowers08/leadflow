@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
+  const { refreshProfile } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -41,10 +43,16 @@ const AuthCallback: React.FC = () => {
           
           setStatus('success');
           
+          // Trigger auth context refresh to update user state
+          await refreshProfile();
+          
           // Clear the URL hash
           window.history.replaceState({}, document.title, window.location.pathname);
           
-          // Instant redirect for seamless experience
+          // Small delay to ensure auth context is updated
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Redirect to dashboard
           navigate('/');
         } else {
           console.log('⚠️ No session found');

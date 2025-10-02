@@ -3,20 +3,20 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  base: '/', // Ensure correct base path for Vercel
+export default defineConfig({
+  base: '/',
   server: {
     host: "localhost",
-    port: 5173,
-    strictPort: false, // Allow fallback to other ports if 5173 is busy
-    open: true, // Automatically open browser
+    port: 3000,
+    strictPort: false,
+    open: true,
   },
   plugins: [react()],
   optimizeDeps: {
     include: [
       'react', 
       'react-dom', 
-      '@radix-ui/react-popover',
+      '@radix-ui/react-tabs',
       '@tanstack/react-query',
       '@supabase/supabase-js',
       'chart.js',
@@ -34,19 +34,15 @@ export default defineConfig(({ mode }) => ({
     target: 'es2020',
     sourcemap: true,
     rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html'),
-        reporting: path.resolve(__dirname, 'reporting.html')
-      },
       output: {
-        // Disable code splitting entirely to prevent React availability issues
         manualChunks: undefined,
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
-    chunkSizeWarningLimit: 500, // Target 500KB chunks
-    minify: false, // Disable minification completely to prevent React initialization issues
+    chunkSizeWarningLimit: 500,
+    minify: false,
   },
-}));
+});
+

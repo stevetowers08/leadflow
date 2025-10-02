@@ -6,19 +6,19 @@ if (typeof window !== 'undefined') {
   (window as any).React = React;
 }
 
-import App from "./App.tsx";
+import ReportingApp from "./ReportingApp.tsx";
 import SupabaseErrorBoundary from "./components/diagnostics/SupabaseErrorBoundary.tsx";
 import { logger } from "./utils/logger";
 import "./index.css";
 
 // Defer non-critical imports to improve initial load
-const initializeApp = async () => {
+const initializeReportingApp = async () => {
   // Only load debug files in development
   if (import.meta.env.DEV) {
     await import("./debug-env.ts");
   }
 
-  logger.info('🚀 Empowr CRM starting...');
+  logger.info('📊 Empowr CRM Reporting Dashboard starting...');
 
   // Only show environment debug info in development
   if (import.meta.env.DEV) {
@@ -26,7 +26,6 @@ const initializeApp = async () => {
     logger.debug('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
     logger.debug('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET');
     logger.debug('VITE_GOOGLE_CLIENT_ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID);
-    logger.debug('All env vars:', import.meta.env);
   }
 
   // Add global error handler
@@ -46,18 +45,19 @@ const initializeApp = async () => {
 
   logger.info('✅ Root element found, creating React root...');
   const root = createRoot(rootElement);
-  logger.info('✅ React root created, rendering full CRM app...');
+  logger.info('✅ React root created, rendering reporting dashboard...');
 
-  // Full CRM Application with Error Boundaries
+  // Reporting-only Application with Error Boundaries
   root.render(
     <SupabaseErrorBoundary>
-      <App />
+      <ReportingApp />
     </SupabaseErrorBoundary>
   );
-  logger.info('✅ Full CRM App with error boundaries rendered successfully');
+  logger.info('✅ Reporting Dashboard rendered successfully');
 };
 
-// Initialize app asynchronously to improve initial paint
-initializeApp().catch((error) => {
-  logger.error('❌ Failed to initialize app:', error);
+// Initialize reporting app asynchronously to improve initial paint
+initializeReportingApp().catch((error) => {
+  logger.error('❌ Failed to initialize reporting app:', error);
 });
+

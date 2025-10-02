@@ -317,3 +317,4 @@ comprehensiveFactCheck()
         console.error('❌ Fact-check failed:', error.message);
         process.exit(1);
     });
+

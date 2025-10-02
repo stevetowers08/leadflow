@@ -13,6 +13,7 @@ interface AuthContextType {
   error: string | null;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signInWithLinkedIn: () => Promise<{ error: AuthError | null }>;
+  signInWithPassword: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   updateProfile: (updates: { full_name?: string; avatar_url?: string }) => Promise<{ error: AuthError | null }>;
   clearAuthState: () => Promise<boolean>;
@@ -351,14 +352,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []); // ✅ Empty dependency array to prevent infinite loops
 
-  // Refresh profile function
+  // Refresh profile function - also refreshes auth state
   const refreshProfile = useCallback(async () => {
-    if (user) {
-      console.log('🔄 Refreshing profile...');
-      const profile = await loadUserProfile(user.id);
-      setUserProfile(profile);
+    try {
+      console.log('🔄 Refreshing auth state and profile...');
+      
+      // First, get the current session to ensure we have the latest auth state
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('❌ Error getting session:', sessionError);
+        return;
+      }
+      
+      if (session?.user) {
+        console.log('✅ Session found during refresh:', session.user.email);
+        
+        // Update auth state
+        setUser(session.user);
+        setSession(session);
+        setError(null);
+        
+        // Then fetch/update profile
+        const profile = await loadUserProfile(session.user.id);
+        setUserProfile(profile);
+      } else {
+        console.log('⚠️ No session found during refresh');
+        // No session, clear auth state
+        setUser(null);
+        setSession(null);
+        setUserProfile(null);
+      }
+    } catch (error) {
+      console.error('❌ Error in refreshProfile:', error);
     }
-  }, [user]);
+  }, []);
 
   const signInWithGoogle = async () => {
     try {
@@ -408,6 +436,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       const authError = error as AuthError;
       setError(`LinkedIn sign-in failed: ${authError.message}`);
+      return { error: authError };
+    }
+  };
+
+  const signInWithPassword = async (email: string, password: string) => {
+    try {
+      setError(null);
+      
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      return { error };
+    } catch (error) {
+      const authError = error as AuthError;
+      setError(`Email sign-in failed: ${authError.message}`);
       return { error: authError };
     }
   };
@@ -514,6 +559,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     error,
     signInWithGoogle,
     signInWithLinkedIn,
+    signInWithPassword,
     signOut,
     updateProfile,
     clearAuthState,

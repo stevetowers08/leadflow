@@ -14,7 +14,7 @@ export const ModernSignIn: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signInWithGoogle, signInWithLinkedIn } = useAuth();
+  const { signInWithGoogle, signInWithLinkedIn, signInWithPassword } = useAuth();
 
   const handleGoogleSignIn = async () => {
     setLoading('google');
@@ -89,9 +89,13 @@ export const ModernSignIn: React.FC = () => {
     }
 
     try {
-      // TODO: Implement email/password authentication
-      setError('Email/password authentication not yet implemented');
-      setLoading(null);
+      const { error } = await signInWithPassword(email, password);
+      
+      if (error) {
+        setError(error.message);
+        setLoading(null);
+      }
+      // Success will be handled by the auth context
     } catch (err) {
       console.error('Email sign-in error:', err);
       setError('An unexpected error occurred. Please try again.');
