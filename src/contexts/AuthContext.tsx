@@ -12,7 +12,6 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
-  signInWithLinkedIn: () => Promise<{ error: AuthError | null }>;
   signInWithPassword: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   updateProfile: (updates: { full_name?: string; avatar_url?: string }) => Promise<{ error: AuthError | null }>;
@@ -414,31 +413,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signInWithLinkedIn = async () => {
-    try {
-      setError(null);
-      
-      // Check if LinkedIn OAuth is configured
-      const linkedinClientId = import.meta.env.LINKEDIN_CLIENT_ID;
-      if (!linkedinClientId || linkedinClientId.includes('your-linkedin-client-id')) {
-        const authError = new Error('LinkedIn OAuth is not configured. Please contact your administrator.');
-        setError(authError.message);
-        return { error: authError };
-      }
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'linkedin',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
-      return { error };
-    } catch (error) {
-      const authError = error as AuthError;
-      setError(`LinkedIn sign-in failed: ${authError.message}`);
-      return { error: authError };
-    }
-  };
 
   const signInWithPassword = async (email: string, password: string) => {
     try {
@@ -558,7 +532,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     error,
     signInWithGoogle,
-    signInWithLinkedIn,
     signInWithPassword,
     signOut,
     updateProfile,
