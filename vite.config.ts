@@ -131,24 +131,6 @@ export default defineConfig(({ mode }) => ({
       }
     },
     chunkSizeWarningLimit: 500, // Target 500KB chunks
-    minify: 'terser',
-    terser: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production',
-        // Disable aggressive variable renaming that might cause TDZ issues
-        keep_fnames: true,
-        keep_classnames: true,
-      },
-      mangle: {
-        // Be more conservative with variable renaming
-        keep_fnames: true,
-        keep_classnames: true,
-        reserved: ['h', 'm', 'l', 'c', 'j', 'u', 'i', 'a', 'r', 't', 'e', 'n', 'p', 's', 'o', 'v', 'w', 'x', 'y', 'z']
-      },
-      format: {
-        comments: false,
-      },
-    },
+    minify: false, // Disable minification completely to test TDZ issues
   },
 }));
