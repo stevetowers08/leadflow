@@ -357,24 +357,24 @@ export class ReportingService {
     const automationRate = totalLeads > 0 ? (automationStarted / totalLeads) * 100 : 0;
 
     // LinkedIn interaction metrics
-    const linkedinInteractions = interactions.filter(i => 
-      i.interaction_type.includes('linkedin')
+    const linkedinInteractions = interactions.filter(interaction => 
+      interaction.interaction_type.includes('linkedin')
     );
     
-    const connectionRequestsSent = linkedinInteractions.filter(i => 
-      i.interaction_type === 'linkedin_connection_request_sent'
+    const connectionRequestsSent = linkedinInteractions.filter(interaction => 
+      interaction.interaction_type === 'linkedin_connection_request_sent'
     ).length;
     
-    const connectionsAccepted = linkedinInteractions.filter(i => 
-      i.interaction_type === 'linkedin_connected'
+    const connectionsAccepted = linkedinInteractions.filter(interaction => 
+      interaction.interaction_type === 'linkedin_connected'
     ).length;
     
-    const messagesSent = linkedinInteractions.filter(i => 
-      i.interaction_type === 'linkedin_message_sent'
+    const messagesSent = linkedinInteractions.filter(interaction => 
+      interaction.interaction_type === 'linkedin_message_sent'
     ).length;
     
-    const repliesReceived = linkedinInteractions.filter(i => 
-      i.interaction_type === 'linkedin_message_reply'
+    const repliesReceived = linkedinInteractions.filter(interaction => 
+      interaction.interaction_type === 'linkedin_message_reply'
     ).length;
 
     // Reply type analysis
@@ -408,7 +408,7 @@ export class ReportingService {
 
     const topJobCompanies = Object.entries(jobCompanyCounts)
       .map(([companyName, jobCount]) => {
-        const job = jobs.find(j => j.companies?.name === companyName);
+        const job = jobs.find(jobItem => jobItem.companies?.name === companyName);
         return {
           companyName,
           jobCount,
@@ -420,7 +420,7 @@ export class ReportingService {
 
     // Company Pipeline Metrics
     const companiesByStage = this.calculateCompanyStageBreakdown(companies);
-    const companiesWithAutomation = companies.filter(c => c.automation_active).length;
+    const companiesWithAutomation = companies.filter(company => company.automation_active).length;
     const companiesWithoutAutomation = companies.length - companiesWithAutomation;
 
     // User performance (simplified - would need more complex tracking)
@@ -626,13 +626,13 @@ export class ReportingService {
 
     return Object.entries(companyLeadCounts)
       .map(([companyName, leadCount]) => {
-        const company = companies.find(c => c.name === companyName);
+        const company = companies.find(companyItem => companyItem.name === companyName);
         return {
           companyName,
           industry: company?.industry || 'Unknown',
           leadCount: leadCount as number,
-          automationActive: leads.filter(l => 
-            l.companies?.name === companyName && l.automation_started_at
+          automationActive: leads.filter(lead => 
+            lead.companies?.name === companyName && lead.automation_started_at
           ).length
         };
       })
@@ -692,10 +692,10 @@ export class ReportingService {
       
       trends.push({
         date: dateString,
-        connectionRequests: dayInteractions.filter(i => i.interaction_type === 'linkedin_connection_request_sent').length,
-        connectionsAccepted: dayInteractions.filter(i => i.interaction_type === 'linkedin_connected').length,
-        messagesSent: dayInteractions.filter(i => i.interaction_type === 'linkedin_message_sent').length,
-        repliesReceived: dayInteractions.filter(i => i.interaction_type === 'linkedin_message_reply').length
+        connectionRequests: dayInteractions.filter(interaction => interaction.interaction_type === 'linkedin_connection_request_sent').length,
+        connectionsAccepted: dayInteractions.filter(interaction => interaction.interaction_type === 'linkedin_connected').length,
+        messagesSent: dayInteractions.filter(interaction => interaction.interaction_type === 'linkedin_message_sent').length,
+        repliesReceived: dayInteractions.filter(interaction => interaction.interaction_type === 'linkedin_message_reply').length
       });
     }
     
@@ -933,7 +933,7 @@ export class ReportingService {
     
     // Recent companies
     companies.slice(0, 3).forEach(company => {
-      const leadCount = leads.filter(l => l["Company"] === company["Company Name"]).length;
+      const leadCount = leads.filter(lead => lead["Company"] === company["Company Name"]).length;
       activities.push({
         id: company.id,
         type: 'company',
@@ -981,14 +981,14 @@ export class ReportingService {
     
     return {
       totalLeads: leads.length,
-      messagesSent: leads.filter(l => l.automation_started_at).length,
-      connectionsAccepted: leads.filter(l => l.connected_at).length,
-      responsesReceived: leads.filter(l => l.last_reply_at).length,
-      meetingsBooked: leads.filter(l => l.stage_enum === 'meeting_booked').length,
+      messagesSent: leads.filter(lead => lead.automation_started_at).length,
+      connectionsAccepted: leads.filter(lead => lead.connected_at).length,
+      responsesReceived: leads.filter(lead => lead.last_reply_at).length,
+      meetingsBooked: leads.filter(lead => lead.stage_enum === 'meeting_booked').length,
       conversionRate: leads.length > 0 ? 
-        (leads.filter(l => l.stage_enum === 'meeting_booked').length / leads.length) * 100 : 0,
+        (leads.filter(lead => lead.stage_enum === 'meeting_booked').length / leads.length) * 100 : 0,
       responseRate: leads.length > 0 ? 
-        (leads.filter(l => l.last_reply_at).length / leads.length) * 100 : 0
+        (leads.filter(lead => lead.last_reply_at).length / leads.length) * 100 : 0
     };
   }
 

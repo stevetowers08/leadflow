@@ -112,7 +112,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
   };
 
   const handleLeadClick = (leadId: string) => {
-    const lead = leadsData?.find(l => l.id === leadId);
+    const lead = leadsData?.find(leadItem => leadItem.id === leadId);
     if (lead) {
       if (onNavigateToEntity) {
         onNavigateToEntity('lead', leadId, lead.name);
@@ -124,7 +124,7 @@ export function EntityDetailPopup({ entityType, entityId, isOpen, onClose, onNav
   };
 
   const handleJobClick = (jobId: string) => {
-    const job = jobsData?.find(j => j.id === jobId);
+    const job = jobsData?.find(jobItem => jobItem.id === jobId);
     if (job) {
       if (onNavigateToEntity) {
         onNavigateToEntity('job', jobId, job.title);

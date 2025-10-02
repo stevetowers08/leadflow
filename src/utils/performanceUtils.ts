@@ -102,7 +102,7 @@ class PerformanceTracker {
     const operationMetrics = this.getMetrics(operation);
     if (operationMetrics.length === 0) return 0;
 
-    const totalDuration = operationMetrics.reduce((sum, m) => sum + m.duration, 0);
+    const totalDuration = operationMetrics.reduce((sum, metric) => sum + metric.duration, 0);
     return totalDuration / operationMetrics.length;
   }
 

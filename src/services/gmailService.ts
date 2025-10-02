@@ -190,9 +190,9 @@ export class GmailService {
   private async processGmailMessage(gmailMessage: GmailMessage): Promise<EmailThread | null> {
     try {
       const headers = gmailMessage.payload.headers;
-      const fromHeader = headers.find(h => h.name === 'From');
-      const toHeader = headers.find(h => h.name === 'To');
-      const subjectHeader = headers.find(h => h.name === 'Subject');
+      const fromHeader = headers.find(header => header.name === 'From');
+      const toHeader = headers.find(header => header.name === 'To');
+      const subjectHeader = headers.find(header => header.name === 'Subject');
       
       if (!fromHeader || !toHeader) return null;
 
