@@ -75,7 +75,7 @@ export const CompanyAssignments: React.FC<CompanyAssignmentsProps> = ({
                 <>
                   <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                     <span className="text-white text-xs font-semibold">
-                      {userData.user.split($1).map(namePart => n[0]).join('').slice(0, 2)}
+                      {userData.user.split(' ').map(namePart => namePart[0]).join('').slice(0, 2)}
                     </span>
                   </div>
                   <div>

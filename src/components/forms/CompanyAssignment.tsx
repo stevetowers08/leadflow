@@ -134,7 +134,7 @@ const CompanyAssignmentComponent = ({ companyId, currentOwner, companyName, onAs
           <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg border">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-sm font-medium">
-                {currentOwnerInfo.full_name.split($1).map(namePart => n[0]).join('').toUpperCase()}
+                {currentOwnerInfo.full_name.split(' ').map(namePart => namePart[0]).join('').toUpperCase()}
               </div>
               <div>
                 <div className="font-medium text-sm">{currentOwnerInfo.full_name}</div>
@@ -170,7 +170,7 @@ const CompanyAssignmentComponent = ({ companyId, currentOwner, companyName, onAs
         <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg border">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-sm font-medium">
-              {currentOwnerInfo.full_name.split($1).map(namePart => n[0]).join('').toUpperCase()}
+              {currentOwnerInfo.full_name.split(' ').map(namePart => namePart[0]).join('').toUpperCase()}
             </div>
             <div>
               <div className="font-medium text-sm">{currentOwnerInfo.full_name}</div>
@@ -223,7 +223,7 @@ const CompanyAssignmentComponent = ({ companyId, currentOwner, companyName, onAs
               <SelectItem key={member.id} value={member.id}>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
-                    {member.full_name.split($1).map(namePart => n[0]).join('').toUpperCase()}
+                    {member.full_name.split(' ').map(namePart => namePart[0]).join('').toUpperCase()}
                   </div>
                   <div className="flex flex-col">
                     <span className="font-medium">{member.full_name}</span>
@@ -258,7 +258,7 @@ const CompanyAssignmentComponent = ({ companyId, currentOwner, companyName, onAs
                   <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
                     isAssigned ? 'bg-sidebar-primary text-sidebar-primary-foreground' : 'bg-muted text-muted-foreground'
                   }`}>
-                    {member.full_name.split($1).map(namePart => n[0]).join('').toUpperCase()}
+                    {member.full_name.split(' ').map(namePart => namePart[0]).join('').toUpperCase()}
                   </div>
                   <div className="text-xs truncate">{member.full_name.split(' ')[0]}</div>
                 </div>

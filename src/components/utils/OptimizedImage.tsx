@@ -180,7 +180,7 @@ export const ProfileImage: React.FC<ProfileImageProps> = ({
       className={className}
       fallback={
         <span className="text-sm font-semibold">
-          {getStatusDisplayText(name.split($1).map(namePart => n.charAt(0)).join(''))}
+          {getStatusDisplayText(name.split(' ').map(namePart => namePart.charAt(0)).join(''))}
         </span>
       }
       onError={handleError}

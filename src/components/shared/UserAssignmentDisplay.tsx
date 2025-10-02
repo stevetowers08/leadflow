@@ -304,7 +304,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
                     
                     {/* User Avatar */}
                     <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium mr-3">
-                      {member.full_name.split($1).map(namePart => n[0]).join('').toUpperCase()}
+                      {member.full_name.split(' ').map(namePart => namePart[0]).join('').toUpperCase()}
                     </div>
                     
                     {/* User Info */}
