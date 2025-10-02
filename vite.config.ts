@@ -34,12 +34,7 @@ export default defineConfig(({ mode }) => ({
     target: 'es2020',
     sourcemap: true,
     rollupOptions: {
-      external: ['react', 'react-dom'],
       output: {
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM',
-        },
         manualChunks: (id) => {
           // Core React libraries
           if (id.includes('react') || id.includes('react-dom')) {
@@ -136,6 +131,10 @@ export default defineConfig(({ mode }) => ({
       }
     },
     chunkSizeWarningLimit: 500, // Target 500KB chunks
-    minify: false, // Disable minification completely to test TDZ issues
+    minify: 'esbuild', // Re-enable minification with esbuild
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
+      legalComments: 'none',
+    },
   },
 }));
