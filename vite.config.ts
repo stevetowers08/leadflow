@@ -21,19 +21,25 @@ export default defineConfig(({ mode }) => ({
       '@supabase/supabase-js',
       'sonner'
     ],
-    exclude: ['@vite/client', '@vite/env']
+    exclude: ['@vite/client', '@vite/env'],
+    force: true
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // Remove React aliases to prevent duplicate imports
     },
+    dedupe: ['react', 'react-dom']
   },
   build: {
     target: 'es2020',
     sourcemap: true,
     rollupOptions: {
+      external: ['react', 'react-dom'],
       output: {
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
+        },
         manualChunks: (id) => {
           // Core React libraries
           if (id.includes('react') || id.includes('react-dom')) {
