@@ -40,7 +40,7 @@ export const toast = {
     console.warn('⚠️ Warning:', message);
     if (typeof window !== 'undefined') {
       try {
-        new Notification('Warning', { body: message);
+        new Notification('Warning', { body: message });
       } catch {
         console.warn('Warning:', message);
       }
