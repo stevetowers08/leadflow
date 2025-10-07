@@ -7,7 +7,7 @@ import { useReportingData } from '@/hooks/useReportingData';
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import React, { Suspense, lazy } from 'react';
 
-// Lazy load heavy components for better performance
+// Lazy load heavy components for better performance - reduced simultaneous loads
 const OverviewCards = lazy(() => import('@/components/reporting/OverviewCards').then(m => ({ default: m.OverviewCards })));
 const StageDistribution = lazy(() => import('@/components/reporting/StageDistribution').then(m => ({ default: m.StageDistribution })));
 const MonthlyTrends = lazy(() => import('@/components/reporting/MonthlyTrends').then(m => ({ default: m.MonthlyTrends })));
@@ -32,9 +32,9 @@ const Reporting: React.FC = () => {
   const { data, isLoading, error, refetch, isFetching } = useReportingData();
 
   // Check permissions
-  if (!hasPermission('view_reporting')) {
+  if (!hasPermission('reports', 'view')) {
     return (
-      <Page>
+      <Page title="Reporting Dashboard">
         <div className="flex items-center justify-center h-64">
           <Card>
             <CardContent className="flex items-center space-x-2 p-6">
@@ -49,7 +49,7 @@ const Reporting: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Page>
+      <Page title="Reporting Dashboard">
         <div className="flex items-center justify-center h-64">
           <div className="flex items-center space-x-2">
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -62,7 +62,7 @@ const Reporting: React.FC = () => {
 
   if (error) {
     return (
-      <Page>
+      <Page title="Reporting Dashboard">
         <Card className="mb-8">
           <CardContent className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -84,7 +84,7 @@ const Reporting: React.FC = () => {
 
   if (!data) {
     return (
-      <Page>
+      <Page title="Reporting Dashboard">
         <Card className="mb-8">
           <CardContent className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -99,16 +99,10 @@ const Reporting: React.FC = () => {
   }
 
   return (
-    <Page>
+    <Page title="Reporting Dashboard">
       <div className="space-y-6">
-        {/* Header with refresh button */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Reporting Dashboard</h1>
-            <p className="text-muted-foreground">
-              Comprehensive analytics and insights for your CRM data
-            </p>
-          </div>
+        {/* Page actions under title */}
+        <div className="flex items-center justify-end">
           <Button 
             onClick={() => refetch()} 
             variant="outline" 
@@ -123,34 +117,34 @@ const Reporting: React.FC = () => {
         {/* Overview Cards */}
         <Suspense fallback={<SectionLoader />}>
           <OverviewCards data={{
-            totalPeople: data.totalPeople,
-            totalCompanies: data.totalCompanies,
-            totalJobs: data.totalJobs,
-            totalInteractions: data.totalInteractions,
+            totalPeople: data.totalPeople ?? 0,
+            totalCompanies: data.totalCompanies ?? 0,
+            totalJobs: data.totalJobs ?? 0,
+            totalInteractions: data.totalInteractions ?? 0,
           }} />
         </Suspense>
 
         {/* Stage Distribution Charts */}
         <Suspense fallback={<SectionLoader />}>
           <StageDistribution 
-            peopleByStage={data.peopleByStage}
-            companiesByStage={data.companiesByStage}
+            peopleByStage={data.peopleByStage ?? []}
+            companiesByStage={data.companiesByStage ?? []}
           />
         </Suspense>
 
         {/* Monthly Trends */}
         <Suspense fallback={<SectionLoader />}>
-          <MonthlyTrends monthlyStats={data.monthlyStats} />
+          <MonthlyTrends monthlyStats={data.monthlyStats ?? []} />
         </Suspense>
 
         {/* Recent Interactions */}
         <Suspense fallback={<SectionLoader />}>
-          <RecentInteractions recentInteractions={data.recentInteractions} />
+          <RecentInteractions recentInteractions={data.recentInteractions ?? []} />
         </Suspense>
 
         {/* Top Companies */}
         <Suspense fallback={<SectionLoader />}>
-          <TopCompanies topCompanies={data.topCompanies} />
+          <TopCompanies topCompanies={data.topCompanies ?? []} />
         </Suspense>
 
         {/* User Performance Stats */}

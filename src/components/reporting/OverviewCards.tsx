@@ -1,6 +1,6 @@
 import { Activity, Briefcase, Building2, Users } from 'lucide-react';
 import { memo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface OverviewCardsProps {
   data: {
@@ -58,7 +58,9 @@ export const OverviewCards = memo<OverviewCardsProps>(({ data }) => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{card.value.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                {(card.value ?? 0).toLocaleString()}
+              </div>
             </CardContent>
           </Card>
         );

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
-import { reportingService } from '../services/reportingService';
+import { ReportingService } from '../services/reportingService';
 
 export interface ReportingData {
   totalPeople: number;
@@ -46,8 +46,34 @@ export const useReportingData = () => {
   return useQuery<ReportingData>({
     queryKey: ['reporting-data', user?.id],
     queryFn: async () => {
-      const data = await reportingService.getReportingData();
-      return data;
+      const serviceData = await ReportingService.getReportingData();
+      
+      // Transform service data to match hook interface
+      return {
+        totalPeople: serviceData.totalLeads,
+        totalCompanies: serviceData.totalCompanies,
+        totalJobs: serviceData.totalJobs,
+        totalInteractions: serviceData.totalLeads, // Using totalLeads as proxy
+        peopleByStage: serviceData.stageDistribution.map(item => ({
+          stage: item.stage,
+          count: item.count
+        })),
+        companiesByStage: serviceData.companyPipelineMetrics.companiesByStage.map(item => ({
+          stage: item.stage,
+          count: item.count
+        })),
+        interactionsByType: [], // Not available in service
+        recentInteractions: [], // Not available in service
+        monthlyStats: [], // Not available in service
+        topCompanies: serviceData.topCompanies.map(company => ({
+          id: company.companyName, // Using name as ID
+          name: company.companyName,
+          industry: company.industry,
+          people_count: company.leadCount,
+          interactions_count: company.automationActive
+        })),
+        userStats: [] // Not available in service
+      };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
