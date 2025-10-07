@@ -213,6 +213,96 @@ docs(setup): update environment variables guide
 7. **Review**: Code review and approval
 8. **Merge**: Merge to develop, then to main for release
 
+## Reporting Architecture
+
+### Overview
+The reporting system has been optimized for performance and maintainability using modern React patterns and efficient data fetching.
+
+### Architecture Components
+
+#### 1. Data Fetching with React Query
+```typescript
+// src/hooks/useReportingData.ts
+export const useReportingData = () => {
+  return useQuery<ReportingData>({
+    queryKey: ['reporting-data', user?.id],
+    queryFn: async () => reportingService.getReportingData(),
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+};
+```
+
+#### 2. Modular Component Structure
+The reporting page is split into focused, memoized components:
+
+- **OverviewCards**: Displays key metrics with memoization
+- **StageDistribution**: Bar and pie charts for stage analysis
+- **MonthlyTrends**: Line charts for trend visualization
+- **RecentInteractions**: Table of recent activity
+- **TopCompanies**: Company performance rankings
+
+#### 3. Lazy Loading
+Heavy chart components are lazy-loaded to improve initial page load:
+
+```typescript
+const OverviewCards = lazy(() => 
+  import('@/components/reporting/OverviewCards').then(m => ({ default: m.OverviewCards }))
+);
+```
+
+#### 4. Performance Optimizations
+- **Memoization**: All chart components use `React.memo()` to prevent unnecessary re-renders
+- **Caching**: React Query provides intelligent caching with 5-minute stale time
+- **Error Handling**: Comprehensive error states with retry mechanisms
+- **Loading States**: Skeleton loaders for better UX
+
+### Database Optimizations
+
+#### Index Strategy
+```sql
+-- Foreign key indexes for better join performance
+CREATE INDEX idx_business_profiles_created_by ON business_profiles(created_by);
+CREATE INDEX idx_campaign_participants_person_id ON campaign_participants(person_id);
+CREATE INDEX idx_campaigns_created_by ON campaigns(created_by);
+CREATE INDEX idx_invitations_accepted_by ON invitations(accepted_by);
+CREATE INDEX idx_invitations_invited_by ON invitations(invited_by);
+```
+
+#### Query Optimization
+- Removed verbose logging from service layer
+- Consolidated error handling
+- Optimized data fetching with Promise.all for parallel queries
+
+### Best Practices
+
+#### Component Development
+```typescript
+// Use memo for expensive components
+export const ChartComponent = memo<Props>(({ data }) => {
+  // Component logic
+});
+
+ChartComponent.displayName = 'ChartComponent';
+```
+
+#### Data Fetching
+```typescript
+// Use React Query for all data fetching
+const { data, isLoading, error, refetch } = useReportingData();
+
+// Handle loading and error states
+if (isLoading) return <LoadingSpinner />;
+if (error) return <ErrorMessage onRetry={refetch} />;
+```
+
+#### Performance Monitoring
+- Monitor component re-renders with React DevTools
+- Use React Query DevTools for cache inspection
+- Monitor database query performance with Supabase logs
+
 ## Code Standards
 
 ### TypeScript Guidelines

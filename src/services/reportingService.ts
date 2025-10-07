@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { subDays, subWeeks, subMonths } from 'date-fns';
+import { subDays, subMonths, subWeeks } from 'date-fns';
 
 export interface ReportingMetrics {
   totalLeads: number;
@@ -154,8 +154,6 @@ export class ReportingService {
    */
   static async getReportingData(period: '7d' | '30d' | '90d' = '30d'): Promise<ReportingMetrics> {
     try {
-      console.log('Starting to fetch reporting data...');
-      
       // Calculate date range
       let startDate: Date;
       switch (period) {
@@ -171,8 +169,6 @@ export class ReportingService {
         default:
           startDate = subDays(new Date(), 30);
       }
-
-      console.log('Fetching data from tables...');
 
       // Fetch comprehensive data from all tables
       const [
@@ -241,42 +237,18 @@ export class ReportingService {
         `).eq('is_active', true)
       ]);
 
-      console.log('Query responses:', {
-        leads: { data: leadsResponse.data?.length, error: leadsResponse.error },
-        companies: { data: companiesResponse.data?.length, error: companiesResponse.error },
-        jobs: { data: jobsResponse.data?.length, error: jobsResponse.error },
-        interactions: { data: interactionsResponse.data?.length, error: interactionsResponse.error },
-        users: { data: userProfilesResponse.data?.length, error: userProfilesResponse.error }
-      });
-
-      if (leadsResponse.error) {
-        console.error('Error fetching leads:', leadsResponse.error);
-        throw leadsResponse.error;
-      }
-      if (companiesResponse.error) {
-        console.error('Error fetching companies:', companiesResponse.error);
-        throw companiesResponse.error;
-      }
-      if (jobsResponse.error) {
-        console.error('Error fetching jobs:', jobsResponse.error);
-        throw jobsResponse.error;
-      }
-      if (interactionsResponse.error) {
-        console.error('Error fetching interactions:', interactionsResponse.error);
-        throw interactionsResponse.error;
-      }
-      if (userProfilesResponse.error) {
-        console.error('Error fetching user profiles:', userProfilesResponse.error);
-        throw userProfilesResponse.error;
-      }
+      // Check for errors in responses
+      if (leadsResponse.error) throw new Error(`Failed to fetch leads: ${leadsResponse.error.message}`);
+      if (companiesResponse.error) throw new Error(`Failed to fetch companies: ${companiesResponse.error.message}`);
+      if (jobsResponse.error) throw new Error(`Failed to fetch jobs: ${jobsResponse.error.message}`);
+      if (interactionsResponse.error) throw new Error(`Failed to fetch interactions: ${interactionsResponse.error.message}`);
+      if (userProfilesResponse.error) throw new Error(`Failed to fetch users: ${userProfilesResponse.error.message}`);
 
       const leads = leadsResponse.data || [];
       const companies = companiesResponse.data || [];
       const jobs = jobsResponse.data || [];
       const interactions = interactionsResponse.data || [];
       const users = userProfilesResponse.data || [];
-
-      console.log('Found data:', { leads: leads.length, companies: companies.length, jobs: jobs.length });
 
       // Calculate real metrics from the data
       return this.calculateRealMetrics(leads, companies, jobs, interactions, users, startDate);
@@ -299,7 +271,6 @@ export class ReportingService {
     users: any[],
     startDate: Date
   ): ReportingMetrics {
-    console.log('Calculating real metrics from data...');
     
     // Basic counts
     const totalLeads = leads.length;
@@ -443,20 +414,6 @@ export class ReportingService {
 
     // Recent activity
     const recentActivity = this.generateRecentActivity(leads, companies, jobs);
-
-    console.log('Calculated metrics:', {
-      totalLeads,
-      activeLeads,
-      connectedLeads,
-      repliedLeads,
-      automationStarted,
-      connectionRequestsSent,
-      connectionsAccepted,
-      messagesSent,
-      repliesReceived,
-      totalJobs,
-      jobsThisWeek
-    });
 
     return {
       totalLeads,
