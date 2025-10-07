@@ -192,8 +192,7 @@ export class ReportingService {
           linkedin_connected,
           linkedin_responded,
           created_at,
-          updated_at,
-          companies!inner(name, industry)
+          updated_at
         `).gte('created_at', startDate.toISOString()),
         
         supabase.from("companies").select(`
@@ -218,8 +217,7 @@ export class ReportingService {
           location,
           employment_type,
           seniority_level,
-          created_at,
-          companies!inner(name, industry)
+          created_at
         `).gte('created_at', startDate.toISOString()),
         
         supabase.from("interactions").select(`
@@ -254,7 +252,10 @@ export class ReportingService {
       return this.calculateRealMetrics(leads, companies, jobs, interactions, users, startDate);
       
     } catch (error) {
-      console.error('Error fetching reporting data:', error);
+      // Log error for debugging in development only
+      if (import.meta.env.MODE === 'development') {
+        console.error('Error fetching reporting data:', error);
+      }
       // Return mock data as fallback
       return this.getMockData();
     }

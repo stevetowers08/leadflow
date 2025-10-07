@@ -48,7 +48,7 @@ const VirtualListItem = ({ index, style, data }: { index: number; style: any; da
                   if (nextElement) nextElement.style.display = 'flex';
                 }}
               />
-              <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-xs font-medium text-gray-600 hidden">
+              <div className="w-full h-full bg-gray-200 rounded-lg items-center justify-center text-xs font-medium text-gray-600 hidden">
                 {initials}
               </div>
             </div>
@@ -183,7 +183,7 @@ export const VirtualizedRelatedItemsList: React.FC<VirtualizedRelatedItemsListPr
                           if (nextElement) nextElement.style.display = 'flex';
                         }}
                       />
-                      <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-xs font-medium text-gray-600 hidden">
+                      <div className="w-full h-full bg-gray-200 rounded-lg items-center justify-center text-xs font-medium text-gray-600 hidden">
                         {initials}
                       </div>
                     </div>
