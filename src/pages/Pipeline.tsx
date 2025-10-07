@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Page } from "@/design-system/components";
 import { designTokens } from "@/design-system/tokens";
+import { ErrorBoundary } from "@/utils/performanceMonitor";
 import { Building2, MapPin, Users, RefreshCw, Star, Filter, FileText, GripVertical, User, Move, CheckCircle, XCircle, Brain, Zap } from "lucide-react";
 import {
   DndContext,
