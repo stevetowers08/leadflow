@@ -1,15 +1,9 @@
-import React from "react";
 import { createRoot } from "react-dom/client";
-
-// Ensure React is available globally for forwardRef and other React APIs
-if (typeof window !== 'undefined') {
-  (window as any).React = React;
-}
 
 import App from "./App.tsx";
 import SupabaseErrorBoundary from "./components/diagnostics/SupabaseErrorBoundary.tsx";
-import { logger } from "./utils/logger";
 import "./index.css";
+import { logger } from "./utils/logger";
 
 // Defer non-critical imports to improve initial load
 const initializeApp = async () => {

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { CheckCircle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CheckCircle, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface FloatingSuccessCardProps {
   isVisible: boolean;

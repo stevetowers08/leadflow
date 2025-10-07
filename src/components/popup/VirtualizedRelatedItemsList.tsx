@@ -1,12 +1,12 @@
-import React, { useMemo } from 'react';
-import { FixedSizeList as List } from 'react-window';
-import { InfoCard } from '../shared/InfoCard';
 import { Button } from '@/components/ui/button';
-import { ListItem } from '../shared/ListItem';
-import { StatusBadge } from '../StatusBadge';
 import { getProfileImage } from '@/utils/linkedinProfileUtils';
 import { formatDateForSydney } from '@/utils/timezoneUtils';
-import { User, Users, Briefcase } from 'lucide-react';
+import { Briefcase, Users } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { FixedSizeList as List } from 'react-window';
+import { StatusBadge } from '../StatusBadge';
+import { InfoCard } from '../shared/InfoCard';
+import { ListItem } from '../shared/ListItem';
 
 interface VirtualizedRelatedItemsListProps {
   title: string;

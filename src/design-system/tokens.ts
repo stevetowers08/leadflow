@@ -143,6 +143,26 @@ export const designTokens = {
     button: 'shadow-sm hover:shadow-md',
   },
 
+  // Borders - Consistent border system
+  borders: {
+    default: 'border border-gray-200',
+    subtle: 'border border-gray-200/60',
+    strong: 'border-2 border-gray-300',
+    accent: 'border border-sidebar-primary/20',
+    success: 'border border-success/20',
+    warning: 'border border-warning/20',
+    error: 'border border-destructive/20',
+    // Card-specific borders
+    card: 'border border-gray-200',
+    cardHover: 'hover:border-gray-300',
+    cardFocus: 'focus:border-sidebar-primary',
+    // Table-specific borders
+    table: 'border border-gray-200',
+    tableHeader: 'border-b border-gray-200',
+    tableCell: 'border-r border-gray-200 last:border-r-0',
+    tableRow: 'border-b border-gray-200 last:border-b-0',
+  },
+
   // Transitions - Professional timing system
   transitions: {
     fast: 'transition-colors duration-150',

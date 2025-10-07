@@ -3,14 +3,12 @@
  * Professional chart components using Chart.js
  */
 
-import { CategoryScale, Chart as ChartJS, Legend, LineElement, LinearScale, PointElement, Title, Tooltip } from 'chart.js';
 import React from 'react';
 import { Line } from 'react-chartjs-2';
+// Import centralized Chart.js configuration
+import '../lib/chart-config';
 
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
-
-// Modern chart color palette
+// Modern chart color palette - Fixed for Tailwind CSS v4
 export const modernChartColors = {
   primary: '#0077B5',      // LinkedIn Blue
   secondary: '#00A0DC',    // Rich Electric Blue
@@ -20,6 +18,14 @@ export const modernChartColors = {
   info: '#3B82F6',         // Blue
   muted: '#6B7280',        // Gray
   accent: '#8B5CF6',       // Purple
+  // Additional colors for better chart visibility
+  blue: '#3B82F6',
+  green: '#10B981',
+  purple: '#8B5CF6',
+  orange: '#F59E0B',
+  red: '#EF4444',
+  teal: '#14B8A6',
+  indigo: '#6366F1',
 };
 
 interface ModernLineChartProps {
@@ -68,19 +74,29 @@ export const ModernLineChart: React.FC<ModernLineChartProps> = ({
           font: {
             size: 12,
             family: 'Inter, system-ui, sans-serif'
-          }
+          },
+          color: '#374151' // Ensure legend text is not black
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: 'white',
-        bodyColor: 'white',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        titleColor: '#374151',
+        bodyColor: '#6B7280',
+        borderColor: '#E5E7EB',
         borderWidth: 1,
         cornerRadius: 8,
         displayColors: true,
         intersect: false,
         mode: 'index' as const,
+        titleFont: {
+          family: 'Inter, system-ui, sans-serif',
+          size: 13,
+          weight: '600',
+        },
+        bodyFont: {
+          family: 'Inter, system-ui, sans-serif',
+          size: 12,
+        },
       }
     },
     scales: {
@@ -93,12 +109,12 @@ export const ModernLineChart: React.FC<ModernLineChartProps> = ({
             size: 11,
             family: 'Inter, system-ui, sans-serif'
           },
-          color: '#6B7280'
+          color: '#6B7280' // Ensure axis text is not black
         }
       },
       y: {
         grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
+          color: '#E5E7EB', // Light gray instead of black
           drawBorder: false,
         },
         ticks: {
@@ -106,7 +122,7 @@ export const ModernLineChart: React.FC<ModernLineChartProps> = ({
             size: 11,
             family: 'Inter, system-ui, sans-serif'
           },
-          color: '#6B7280'
+          color: '#6B7280' // Ensure axis text is not black
         }
       }
     },

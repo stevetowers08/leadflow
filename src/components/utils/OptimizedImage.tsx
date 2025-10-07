@@ -2,9 +2,9 @@
  * Optimized image component with lazy loading, error handling, and fallbacks
  */
 
-import React, { useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { getStatusDisplayText } from '@/utils/statusUtils';
+import React, { useCallback, useState } from 'react';
 
 interface OptimizedImageProps {
   src?: string | null;

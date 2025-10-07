@@ -1,14 +1,14 @@
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { designTokens } from "@/design-system/tokens";
+import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { variant?: 'default' | 'elevated' | 'outlined' | 'glass' }>(({ className, variant = 'default', ...props }, ref) => {
   const variants = {
-    default: cn("rounded-lg border border-border bg-card text-card-foreground", designTokens.shadows.card),
-    elevated: cn("rounded-lg border border-border bg-card text-card-foreground", designTokens.shadows.md, designTokens.shadows.cardHover),
-    outlined: cn("rounded-lg border-2 border-border bg-card text-card-foreground", designTokens.shadows.card),
-    glass: cn("rounded-lg border border-border bg-white/80 backdrop-blur-sm text-card-foreground", designTokens.shadows.card)
+    default: cn("rounded-lg", designTokens.borders.card, "bg-card text-card-foreground", designTokens.shadows.card),
+    elevated: cn("rounded-lg", designTokens.borders.card, "bg-card text-card-foreground", designTokens.shadows.md, designTokens.shadows.cardHover),
+    outlined: cn("rounded-lg", designTokens.borders.strong, "bg-card text-card-foreground", designTokens.shadows.card),
+    glass: cn("rounded-lg", designTokens.borders.card, "bg-white/80 backdrop-blur-sm text-card-foreground", designTokens.shadows.card)
   };
   
   return (
@@ -50,4 +50,5 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 CardFooter.displayName = "CardFooter";
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle };
+

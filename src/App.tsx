@@ -1,22 +1,22 @@
-import React, { useEffect, Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-// import { Toaster } from "sonner"; // Removed to fix React temporal dead zone issues
+import { Suspense, lazy, useEffect } from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster } from "sonner";
 import { useGlobalErrorHandler, usePerformanceMonitoring } from "./hooks/useGlobalErrorHandler";
 import { initializeErrorHandling, setupGlobalErrorHandlers } from "./utils/globalErrorHandlers";
 
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { PermissionsProvider } from "./contexts/PermissionsContext";
-import { SidebarProvider } from "./contexts/SidebarContext";
-import { AIProvider } from "./contexts/AIContext";
-import { ConfirmationProvider } from "./contexts/ConfirmationContext";
-import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components";
-import { PopupNavigationProvider } from "./contexts/PopupNavigationContext";
-import { UnifiedPopup } from "./components/UnifiedPopup";
-import { AuthPage } from "./components/auth/AuthPage";
-import AuthCallback from "./components/auth/AuthCallback";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GmailCallback } from "./components/GmailCallback";
+import { UnifiedPopup } from "./components/UnifiedPopup";
+import AuthCallback from "./components/auth/AuthCallback";
+import { AuthPage } from "./components/auth/AuthPage";
+import { AIProvider } from "./contexts/AIContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ConfirmationProvider } from "./contexts/ConfirmationContext";
+import { PermissionsProvider } from "./contexts/PermissionsContext";
+import { PopupNavigationProvider } from "./contexts/PopupNavigationContext";
+import { SidebarProvider } from "./contexts/SidebarContext";
 
 // Lazy load pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -35,8 +35,9 @@ const TabDesignsShowcase = lazy(() => import("./pages/TabDesignsShowcase"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
+      staleTime: 10 * 60 * 1000, // 10 minutes for stable data
+      retry: 3, // More retries for better UX
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   },
 });
@@ -133,7 +134,7 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <AppRoutes />
-            {/* <Toaster /> */}
+            <Toaster />
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

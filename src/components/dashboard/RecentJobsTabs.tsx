@@ -1,25 +1,20 @@
-import React, { useState, useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { 
-  Briefcase, 
-  StickyNote, 
-  ExternalLink, 
-  MapPin, 
-  Building2,
-  User,
-  UserCheck,
-  UserX,
-  Clock,
-  Users,
-  Star
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
+import { designTokens } from "@/design-system/tokens";
+import { cn } from "@/lib/utils";
 import type { RecentJob } from "@/services/dashboardService";
+import {
+    Briefcase,
+    StickyNote,
+    User,
+    UserCheck,
+    UserX,
+    Users
+} from "lucide-react";
+import React, { useMemo, useState } from "react";
 
 interface RecentJobsTabsProps {
   jobs: RecentJob[];
@@ -88,7 +83,7 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({ jobs, loading })
   const renderJobCard = (job: RecentJob) => (
     <div
       key={job.id}
-      className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group"
+      className={cn("px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer group", designTokens.borders.card, designTokens.borders.cardHover)}
       onClick={() => openPopup('job', job.id, job.title)}
     >
       <div className="flex items-center gap-3">
@@ -171,7 +166,7 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({ jobs, loading })
   };
 
   return (
-    <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+    <Card className={cn("bg-white", designTokens.shadows.cardStatic, designTokens.shadows.cardHover, designTokens.borders.card)}>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-base font-medium text-gray-900">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-secondary/5 border border-secondary/10">

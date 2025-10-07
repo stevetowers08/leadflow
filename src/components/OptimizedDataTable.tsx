@@ -8,13 +8,12 @@
  * - Lazy loading of data
  */
 
-import React, { useMemo, useCallback, memo } from 'react';
-import { useVirtualScrolling, useDebouncedSearch, createMemoizedComponent } from '@/utils/performanceOptimization';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { DropdownSelect } from '@/components/ui/dropdown-select';
-import { Search, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useDebouncedSearch, useVirtualScrolling } from '@/utils/performanceOptimization';
+import { ArrowUpDown, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import React, { memo, useCallback, useMemo } from 'react';
 
 interface Column<T> {
   key: keyof T;
@@ -192,6 +191,7 @@ const OptimizedDataTable = memo(<T extends Record<string, any>>({
                     key={String(column.key)}
                     className={cn(
                       "px-4 py-3 text-left text-sm font-medium text-gray-900",
+                      "table-header-clear",
                       column.sortable && sortable && "cursor-pointer hover:bg-gray-100"
                     )}
                     style={{ width: column.width }}
@@ -235,7 +235,7 @@ const OptimizedDataTable = memo(<T extends Record<string, any>>({
                     {columns.map(column => (
                       <td
                         key={String(column.key)}
-                        className="px-4 py-3 text-sm text-gray-900"
+                        className="px-4 py-3 text-sm text-gray-900 table-cell-clear"
                       >
                         {column.render
                           ? column.render(row[column.key], row)

@@ -1,13 +1,12 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Home, Building2, Users, Briefcase, Target, MessageSquare, Megaphone, Bot, BarChart3, Settings, BookOpen, LogIn, LogOut, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionsContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import { BarChart3, Bot, Briefcase, Building2, Home, LogIn, LogOut, Megaphone, MessageSquare, Settings, Target, Users, X } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { FourTwentyLogo } from "../FourTwentyLogo";
 
 // HubSpot-inspired navigation structure
@@ -35,13 +34,13 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <aside className="flex flex-col fixed left-0 top-0 h-screen z-40 w-56" style={{ backgroundColor: '#2d3e50', borderRight: '1px solid #34495e' }}>
+    <aside className="flex flex-col h-full w-full">
       {/* Header */}
-      <div className="px-5 py-5" style={{ borderBottom: '1px solid #34495e' }}>
+      <div className="px-5 py-5 border-b border-[hsl(var(--sidebar-border))]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <FourTwentyLogo size={20} />
-            <h1 className="text-lg font-semibold text-white">Empowr CRM</h1>
+            <h1 className="text-lg font-semibold">Empowr CRM</h1>
           </div>
           <div className="flex items-center gap-2">
             {/* Sign In Button */}
@@ -50,7 +49,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                 onClick={() => signInWithGoogle()}
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700"
+                className="h-8 px-3 text-sm text-[hsl(var(--sidebar-foreground))]/70 hover:text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-accent))]/20"
               >
                 <LogIn className="h-4 w-4 mr-2" />
                 Sign In
@@ -62,7 +61,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="lg:hidden h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700"
+                className="lg:hidden h-8 w-8 p-0 text-muted-foreground hover:text-card-foreground hover:bg-muted"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -85,11 +84,11 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                 onClick={isMobile ? onClose : undefined}
                 className={cn(
                   "flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors",
-                  "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800",
+                  "focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] focus:ring-offset-2",
                   isMobile ? "min-h-[44px]" : "",
                   isActive
-                    ? "text-white"
-                    : "text-gray-300 hover:text-white"
+                    ? "bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-primary-foreground))]"
+                    : "text-[hsl(var(--sidebar-foreground))]/75 hover:text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-accent))]/25"
                 )}
               >
                 <Icon className="h-4 w-4 flex-shrink-0" />
@@ -102,12 +101,12 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
       
       {/* User Menu */}
       {user && (
-        <div className="px-3 py-4" style={{ borderTop: '1px solid #34495e' }}>
+        <div className="px-3 py-4 border-t border-border">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="w-full h-auto justify-start p-3 text-gray-300 hover:text-white"
+                className="w-full h-auto justify-start p-3 text-muted-foreground hover:text-card-foreground"
               >
                 <div className="flex items-center w-full gap-3">
                   <Avatar className="h-8 w-8 flex-shrink-0">
@@ -117,17 +116,17 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                         e.currentTarget.style.display = 'none';
                       }}
                     />
-                    <AvatarFallback className="text-white text-xs font-semibold" style={{ backgroundColor: '#34495e' }}>
+                    <AvatarFallback className="text-primary-foreground text-xs font-semibold bg-primary">
                       {user.user_metadata?.full_name
                         ? user.user_metadata.full_name.split(' ').map(namePart => namePart[0]).join('').toUpperCase().slice(0, 2)
                         : user.email?.slice(0, 2).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium text-white truncate">
+                    <p className="text-sm font-medium text-card-foreground truncate">
                       {user.user_metadata?.full_name || 'User'}
                     </p>
-                    <p className="text-xs text-gray-400 truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {user.email}
                     </p>
                   </div>

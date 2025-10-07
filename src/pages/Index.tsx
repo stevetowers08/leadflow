@@ -1,3 +1,4 @@
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { RecentCompaniesTabs } from "@/components/dashboard/RecentCompaniesTabs";
 import { RecentJobsTabs } from "@/components/dashboard/RecentJobsTabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,31 +15,9 @@ import {
     ModernSectionHeader
 } from "@/design-system/modern-components";
 import { DashboardServiceOptimized, type DashboardData } from "@/services/dashboardServiceOptimized";
-import { ErrorBoundary, usePerformanceMonitoring } from '@/utils/performanceMonitor';
-import {
-    CategoryScale,
-    Chart as ChartJS,
-    Legend,
-    LineElement,
-    LinearScale,
-    PointElement,
-    Title,
-    Tooltip,
-} from 'chart.js';
-import {
-    MoreHorizontal
-} from "lucide-react";
+import { usePerformanceMonitoring } from '@/utils/performanceMonitor';
+import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 const Index = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -66,7 +45,7 @@ const Index = () => {
       setDashboardData(data);
       endTracking();
     } catch (error) {
-      logError('fetch_dashboard_data', error as Error);
+      logError();
     } finally {
       setLoading(false);
     }

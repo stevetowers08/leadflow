@@ -4,8 +4,10 @@
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { Loader2, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import React from 'react';
+import { designTokens } from './tokens';
 
 // Modern Chart Container
 interface ModernChartContainerProps {
@@ -24,7 +26,7 @@ export const ModernChartContainer: React.FC<ModernChartContainerProps> = ({
   actions
 }) => {
   return (
-    <Card className="border border-gray-200 shadow-sm bg-white">
+    <Card className={cn(designTokens.borders.card, designTokens.shadows.cardStatic, "bg-white")}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
@@ -121,9 +123,13 @@ export const ModernMetricCard: React.FC<ModernMetricCardProps> = ({
 
   return (
     <Card 
-      className={`border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-200 ${
+      className={cn(
+        designTokens.borders.card,
+        designTokens.shadows.cardStatic,
+        designTokens.shadows.cardHover,
+        "bg-white",
         onClick ? 'cursor-pointer' : ''
-      }`}
+      )}
       onClick={onClick}
     >
       <CardContent className="p-6">
@@ -202,7 +208,7 @@ export const ModernDataTable: React.FC<ModernDataTableProps> = ({
 }) => {
   if (loading) {
     return (
-      <Card className="border border-gray-200 shadow-sm bg-white">
+      <Card className={cn(designTokens.borders.card, designTokens.shadows.cardStatic, "bg-white")}>
         <CardContent className="p-6">
           <div className="flex items-center justify-center h-32">
             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -213,16 +219,16 @@ export const ModernDataTable: React.FC<ModernDataTableProps> = ({
   }
 
   return (
-    <Card className="border border-gray-200 shadow-sm bg-white">
+    <Card className={cn(designTokens.borders.card, designTokens.shadows.cardStatic, "bg-white")}>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <table className="w-full border border-gray-200">
-            <thead className="bg-gray-50 border-b border-gray-200">
+          <table className={cn("w-full", designTokens.borders.table)}>
+            <thead className={cn("bg-gray-50", designTokens.borders.tableHeader)}>
               <tr>
                 {columns.map((column) => (
                   <th
                     key={column.key}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 last:border-r-0"
+                    className={cn("px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", designTokens.borders.tableCell)}
                   >
                     {column.label}
                   </th>
@@ -233,7 +239,7 @@ export const ModernDataTable: React.FC<ModernDataTableProps> = ({
               {data.map((row, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   {columns.map((column) => (
-                    <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 last:border-r-0">
+                    <td key={column.key} className={cn("px-6 py-4 whitespace-nowrap text-sm text-gray-900", designTokens.borders.tableCell)}>
                       {column.render ? column.render(row[column.key], row) : row[column.key]}
                     </td>
                   ))}

@@ -1,15 +1,17 @@
-import { ReactNode, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableHead, TableHeader, TableRow as UITableRow, TableCell } from "@/components/ui/table";
-import { Download } from "lucide-react";
 import { TableSkeleton } from "@/components/loading/LoadingSkeletons";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow as UITableRow } from "@/components/ui/table";
 import { PaginationControls } from "@/components/utils/PaginationControls";
-import { usePaginatedData } from "@/hooks/usePagination";
+import { designTokens } from "@/design-system/tokens";
 import { useToast } from "@/hooks/use-toast";
+import { usePaginatedData } from "@/hooks/usePagination";
+import { cn } from "@/lib/utils";
 import { exportToCSV } from "@/utils/exportUtils";
-import { TableSorting, useTableSorting } from "../table/TableSorting";
+import { Download } from "lucide-react";
+import { ReactNode, useState } from "react";
 import { TableBulkActions } from "../table/TableBulkActions";
 import { TableRow } from "../table/TableRow";
+import { TableSorting, useTableSorting } from "../table/TableSorting";
 
 
 interface BulkAction<T> {
@@ -158,12 +160,12 @@ export function DataTable<T extends Record<string, any> & { id: string }>({
         enableBulkActions={enableBulkActions}
       />
 
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-x-auto relative group">
+      <div className={cn("bg-white rounded-lg shadow-sm overflow-x-auto relative group", designTokens.borders.card)}>
         <div className="absolute top-0 right-0 bg-gradient-to-l from-background to-transparent w-6 h-full pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100 rounded-b-lg overflow-hidden">
           <div className="h-full bg-blue-500 opacity-0 group-hover:opacity-30 transition-opacity duration-200" style={{ width: '30%' }} />
         </div>
-        <Table role="table" aria-label={title || "Data table"} className="min-w-full">
+        <Table role="table" aria-label={title || "Data table"} className="min-w-full font-sans">
           <TableHeader>
             <UITableRow className="border-b border-gray-200 bg-gray-50/50">
               {(enableBulkActions || enableExport) && (

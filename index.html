@@ -43,11 +43,63 @@
 
   <body>
     <div id="root"></div>
-    <script type="module">
-      // Ensure React is available globally before any modules load
-      import React from 'react';
-      window.React = React.default || React;
-      globalThis.React = React.default || React;
+    <script>
+      // Prevent SES lockdown from browser extensions (MetaMask, etc.)
+      if (typeof window !== 'undefined') {
+        window.lockdown = undefined;
+        window.harden = undefined;
+        if (window.globalThis) {
+          window.globalThis.lockdown = undefined;
+          window.globalThis.harden = undefined;
+        }
+      }
+      
+      // Unregister service workers in development
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+              console.log('Unregistering service worker:', registration.scope);
+              registration.unregister();
+            }
+          });
+          
+          // Also clear all caches
+          if ('caches' in window) {
+            caches.keys().then(function(cacheNames) {
+              return Promise.all(
+                cacheNames.map(function(cacheName) {
+                  console.log('Deleting cache:', cacheName);
+                  return caches.delete(cacheName);
+                })
+              );
+            });
+          }
+        }
+      }
+      
+      // Suppress browser extension errors
+      window.addEventListener('error', function(event) {
+        if (event.filename && (
+          event.filename.includes('ethereum.js') ||
+          event.filename.includes('share-modal.js') ||
+          event.filename.includes('chrome-extension://') ||
+          event.filename.includes('moz-extension://')
+        )) {
+          event.preventDefault();
+          console.warn('Suppressed browser extension error:', event.message);
+          return false;
+        }
+      });
+      
+      // Suppress unhandled promise rejections from extensions
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event.reason && event.reason.toString().includes('chrome.runtime')) {
+          event.preventDefault();
+          console.warn('Suppressed browser extension promise rejection');
+          return false;
+        }
+      });
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

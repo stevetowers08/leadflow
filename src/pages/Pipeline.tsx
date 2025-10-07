@@ -1,42 +1,35 @@
-import { useState, useEffect, useCallback, useMemo, memo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
-import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { useToast } from "@/hooks/use-toast";
-import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DropdownSelect } from "@/components/ui/dropdown-select";
+import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Page } from "@/design-system/components";
 import { designTokens } from "@/design-system/tokens";
-import { ErrorBoundary } from "@/utils/performanceMonitor";
-import { Building2, MapPin, Users, RefreshCw, Star, Filter, FileText, GripVertical, User, Move, CheckCircle, XCircle, Brain, Zap } from "lucide-react";
-import {
-  DndContext,
-  DragOverlay,
-  DragStartEvent,
-  DragEndEvent,
-  DragOverEvent,
-  useSensor,
-  useSensors,
-  PointerSensor,
-  KeyboardSensor,
-  TouchSensor,
-  closestCenter,
-  rectIntersection,
-} from '@dnd-kit/core';
-import {
-  useDraggable,
-} from '@dnd-kit/core';
-import {
-  useDroppable,
-} from '@dnd-kit/core';
-import {
-  CSS,
-} from '@dnd-kit/utilities';
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import {
+    DndContext,
+    DragEndEvent,
+    DragOverEvent,
+    DragOverlay,
+    DragStartEvent,
+    KeyboardSensor,
+    PointerSensor,
+    TouchSensor,
+    closestCenter,
+    useDraggable,
+    useDroppable,
+    useSensor,
+    useSensors
+} from '@dnd-kit/core';
+import {
+    CSS,
+} from '@dnd-kit/utilities';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Brain, Building2, CheckCircle, FileText, Filter, MapPin, RefreshCw, Star, User, Users, XCircle, Zap } from "lucide-react";
+import { memo, useCallback, useMemo, useState } from "react";
 
 type Company = Tables<"companies"> & {
   people_count?: number;
@@ -366,11 +359,11 @@ const Pipeline = () => {
         style={style}
         {...attributes}
         {...listeners}
-        className={`relative bg-white border border-gray-200/60 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300/80 transition-all duration-300 cursor-pointer group overflow-hidden !p-0 ${
+        className={`relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden !p-0 ${
           isDraggable ? 'hover:shadow-lg cursor-grab active:cursor-grabbing' : 'cursor-pointer'
         } ${isDragging ? 'shadow-xl scale-[1.02] z-50 border-blue-300' : ''} ${
           isCurrentlyUpdating ? 'opacity-60 pointer-events-none' : ''
-        }`}
+        } ${designTokens.borders.card} ${designTokens.borders.cardHover}`}
         onClick={(e) => {
           e.stopPropagation();
           if (!isDragging) handleCompanyClick(company);
@@ -648,7 +641,7 @@ const Pipeline = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       <Page
         title="Company Pipeline"
       >

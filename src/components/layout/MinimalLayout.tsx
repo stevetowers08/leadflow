@@ -1,5 +1,5 @@
-import React from "react";
 import { cn } from "@/lib/utils";
+import React from "react";
 
 interface MinimalLayoutProps {
   children: React.ReactNode;
@@ -7,12 +7,12 @@ interface MinimalLayoutProps {
 
 export const MinimalLayout = ({ children }: MinimalLayoutProps) => {
   return (
-    <div className="min-h-screen w-full">
+    <div className="min-h-screen w-full bg-gray-50">
       {/* Main content without sidebar */}
       <main className="w-full overflow-auto">
         {/* Content */}
         <div className={cn(
-          "min-h-screen bg-gray-50"
+          "min-h-screen"
         )}>
           {children}
         </div>

@@ -6,6 +6,13 @@ const urlsToCache = [
   '/manifest.json'
 ];
 
+// Skip service worker in development
+if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
+  console.log('Skipping service worker in development mode');
+  self.skipWaiting();
+  return;
+}
+
 // Install event
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -19,6 +26,19 @@ self.addEventListener('install', event => {
 
 // Fetch event
 self.addEventListener('fetch', event => {
+  // Skip intercepting requests in development
+  if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
+    return;
+  }
+
+  // Skip intercepting Vite dev server requests
+  if (event.request.url.includes('node_modules') || 
+      event.request.url.includes('.vite') ||
+      event.request.url.includes('src/') ||
+      event.request.url.includes('@vite')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {

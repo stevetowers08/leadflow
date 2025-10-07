@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface CacheEntry<T> {
   data: T;
@@ -333,7 +333,8 @@ export function useOfflineData<T extends { id: string }>(
 
 // Service Worker registration for offline support
 export function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
+  // Only register service worker in production
+  if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
         .then(registration => {
@@ -343,6 +344,8 @@ export function registerServiceWorker() {
           console.log('SW registration failed: ', registrationError);
         });
     });
+  } else if (import.meta.env.DEV) {
+    console.log('Skipping service worker registration in development mode');
   }
 }
 

@@ -1,7 +1,16 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, Session, AuthError } from '@supabase/supabase-js';
+/**
+ * Refactored AuthContext
+ * 
+ * Uses smaller, focused hooks for better maintainability
+ * Fixes memory leaks and consolidates duplicate logic
+ */
+
+import { useAuthState } from '@/hooks/useAuthState';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { AuthError, Session, User } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
@@ -35,75 +44,61 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-// Robust error handling and retry mechanism
+// Retry mechanism constants
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 1000; // 1 second
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const [lastProcessedUserId, setLastProcessedUserId] = useState<string | null>(null);
+  const authState = useAuthState();
+  const userProfile = useUserProfile();
+  
+  // Refs for cleanup and preventing duplicate processing
+  const isMountedRef = useRef(true);
+  const lastProcessedUserIdRef = useRef<string | null>(null);
+  const retryCountRef = useRef(0);
+  const timeoutRefsRef = useRef<Set<NodeJS.Timeout>>(new Set());
 
-  // Simplified profile loading with timeout
-  const loadUserProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
-    try {
-      console.log(`🔍 Loading user profile for: ${userId}`);
+  // Cleanup function for timeouts
+  const clearAllTimeouts = () => {
+    timeoutRefsRef.current.forEach(timeout => clearTimeout(timeout));
+    timeoutRefsRef.current.clear();
+  };
 
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.log(`ℹ️ No existing profile found for user: ${userId}`);
-        return null; // Return null instead of throwing error
+  // Safe timeout setter that tracks timeouts for cleanup
+  const setSafeTimeout = (callback: () => void, delay: number) => {
+    const timeoutId = setTimeout(() => {
+      timeoutRefsRef.current.delete(timeoutId);
+      if (isMountedRef.current) {
+        callback();
       }
-
-      console.log('✅ Profile loaded successfully:', {
-        id: data.id,
-        email: data.email,
-        full_name: data.full_name,
-        role: data.role
-      });
-      
-      setError(null);
-      return data;
-    } catch (error) {
-      console.log(`ℹ️ Profile loading failed, will create new profile:`, error);
-      return null; // Return null instead of throwing error
-    }
-  }, []);
+    }, delay);
+    timeoutRefsRef.current.add(timeoutId);
+    return timeoutId;
+  };
 
   // Retry authentication mechanism
-  const retryAuth = useCallback(async () => {
-    if (retryCount >= MAX_RETRY_ATTEMPTS) {
+  const retryAuth = async () => {
+    if (retryCountRef.current >= MAX_RETRY_ATTEMPTS) {
       console.error('❌ Max retry attempts reached');
-      setError('Authentication failed after multiple attempts. Please refresh the page.');
-      setLoading(false);
+      authState.setError('Authentication failed after multiple attempts. Please refresh the page.');
+      authState.setLoading(false);
       return;
     }
 
-    console.log(`🔄 Retrying authentication (attempt ${retryCount + 1})`);
-    setRetryCount(prev => prev + 1);
-    setError(null);
-    setLoading(true);
+    console.log(`🔄 Retrying authentication (attempt ${retryCountRef.current + 1})`);
+    retryCountRef.current += 1;
+    authState.setError(null);
+    authState.setLoading(true);
 
     try {
       // Clear existing state
-      setUser(null);
-      setUserProfile(null);
-      setSession(null);
+      authState.setUser(null);
+      userProfile.setUserProfile(null);
+      authState.setSession(null);
 
       // Wait a bit before retrying
       await new Promise(resolve => {
-        const timeoutId = setTimeout(resolve, RETRY_DELAY);
-        // Store timeout ID for potential cleanup
-        (resolve as any).timeoutId = timeoutId;
+        setSafeTimeout(resolve, RETRY_DELAY);
       });
 
       // Get fresh session
@@ -114,36 +109,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (session?.user) {
-        setUser(session.user);
-        setSession(session);
+        authState.setUser(session.user);
+        authState.setSession(session);
         
-        const profile = await loadUserProfile(session.user.id);
-        setUserProfile(profile);
+        const profile = await userProfile.loadUserProfile(session.user.id);
+        userProfile.setUserProfile(profile);
       }
     } catch (error) {
       console.error('❌ Retry auth error:', error);
-      setError(`Authentication retry failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      authState.setError(`Authentication retry failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
-      setLoading(false);
+      authState.setLoading(false);
     }
-  }, [retryCount]);
+  };
 
   // Initialize authentication with robust error handling
   useEffect(() => {
-    let isMounted = true;
     let authStateSubscription: any = null;
-    let timeoutId: any = null;
 
     const initializeAuth = async () => {
       try {
         console.log('🔐 Initializing authentication...');
-        setError(null);
+        authState.setError(null);
 
         // Set a timeout to force loading to complete after 5 seconds
-        timeoutId = setTimeout(() => {
-          if (isMounted) {
+        setSafeTimeout(() => {
+          if (isMountedRef.current) {
             console.log('⏰ Auth initialization timeout - forcing loading to false');
-            setLoading(false);
+            authState.setLoading(false);
           }
         }, 5000);
 
@@ -166,13 +159,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           userEmail: session?.user?.email
         });
 
-        if (isMounted) {
-          setUser(session?.user ?? null);
-          setSession(session);
+        if (isMountedRef.current) {
+          authState.setUser(session?.user ?? null);
+          authState.setSession(session);
 
           if (session?.user) {
             console.log('🔍 Loading user profile for:', session.user.id);
-            if (isMounted) {
+            if (isMountedRef.current) {
               // Try to fetch actual user profile from database first
               try {
                 const { data: existingProfile, error: profileError } = await supabase
@@ -184,59 +177,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 if (existingProfile && !profileError) {
                   console.log('✅ Found existing user profile:', existingProfile);
                   console.log('🔍 User role from database:', existingProfile.role);
-                  setUserProfile(existingProfile);
+                  userProfile.setUserProfile(existingProfile);
                 } else {
                   console.log('🔧 No existing profile found, creating fallback profile');
-                  const fallbackProfile = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
-                    role: 'recruiter',
-                    user_limit: 100,
-                    is_active: true,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                  };
-                  setUserProfile(fallbackProfile);
+                  const fallbackProfile = userProfile.createFallbackProfile(session.user);
+                  userProfile.setUserProfile(fallbackProfile);
                 }
               } catch (error) {
                 console.error('❌ Error fetching user profile:', error);
                 // Fallback to creating a profile
-                const fallbackProfile = {
-                  id: session.user.id,
-                  email: session.user.email,
-                  full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
-                  role: 'recruiter',
-                  user_limit: 100,
-                  is_active: true,
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                };
-                setUserProfile(fallbackProfile);
+                const fallbackProfile = userProfile.createFallbackProfile(session.user);
+                userProfile.setUserProfile(fallbackProfile);
               }
               
-              setLoading(false);
-              clearTimeout(timeoutId);
+              authState.setLoading(false);
             }
           } else {
-            if (isMounted) {
-              setLoading(false);
-              clearTimeout(timeoutId);
+            if (isMountedRef.current) {
+              authState.setLoading(false);
               console.log('✅ Loading set to false - no user');
             }
           }
         }
       } catch (error) {
         console.error('❌ Auth initialization error:', error);
-        if (isMounted) {
-          setError(`Authentication initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          setLoading(false);
-          clearTimeout(timeoutId);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-          clearTimeout(timeoutId);
+        if (isMountedRef.current) {
+          authState.setError(`Authentication initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          authState.setLoading(false);
         }
       }
     };
@@ -250,20 +217,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
-          if (!isMounted) return;
+          if (!isMountedRef.current) return;
 
           console.log('🔄 Auth state change:', event, session?.user?.id);
 
           try {
-            setUser(session?.user ?? null);
-            setSession(session);
-            setError(null); // Clear errors on successful auth change
+            authState.setUser(session?.user ?? null);
+            authState.setSession(session);
+            authState.setError(null); // Clear errors on successful auth change
 
             if (session?.user) {
               // Prevent duplicate profile creation for the same user
-              if (lastProcessedUserId !== session.user.id) {
+              if (lastProcessedUserIdRef.current !== session.user.id) {
                 console.log('🔄 Auth state change - loading user profile');
-                if (isMounted) {
+                if (isMountedRef.current) {
                   // Try to fetch actual user profile from database first
                   try {
                     const { data: existingProfile, error: profileError } = await supabase
@@ -275,60 +242,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     if (existingProfile && !profileError) {
                       console.log('✅ Found existing user profile:', existingProfile);
                       console.log('🔍 User role from database:', existingProfile.role);
-                      setUserProfile(existingProfile);
+                      userProfile.setUserProfile(existingProfile);
                     } else {
                       console.log('🔧 No existing profile found, creating fallback profile');
-                      const fallbackProfile = {
-                        id: session.user.id,
-                        email: session.user.email,
-                        full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
-                        role: 'recruiter',
-                        user_limit: 100,
-                        is_active: true,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                      };
-                      setUserProfile(fallbackProfile);
+                      const fallbackProfile = userProfile.createFallbackProfile(session.user);
+                      userProfile.setUserProfile(fallbackProfile);
                     }
                   } catch (error) {
                     console.error('❌ Error fetching user profile:', error);
                     // Fallback to creating a profile
-                    const fallbackProfile = {
-                      id: session.user.id,
-                      email: session.user.email,
-                      full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
-                      role: 'recruiter',
-                      user_limit: 100,
-                      is_active: true,
-                      created_at: new Date().toISOString(),
-                      updated_at: new Date().toISOString()
-                    };
-                    setUserProfile(fallbackProfile);
+                    const fallbackProfile = userProfile.createFallbackProfile(session.user);
+                    userProfile.setUserProfile(fallbackProfile);
                   }
                   
-                  setLastProcessedUserId(session.user.id);
+                  lastProcessedUserIdRef.current = session.user.id;
                   console.log('✅ User profile loaded');
-                  setLoading(false);
+                  authState.setLoading(false);
                 }
               } else {
                 console.log('🔄 Auth state change - user already processed, skipping profile creation');
-                setLoading(false);
+                authState.setLoading(false);
               }
             } else {
-              if (isMounted) {
-                setUserProfile(null);
-                setLoading(false);
+              if (isMountedRef.current) {
+                userProfile.setUserProfile(null);
+                authState.setLoading(false);
               }
             }
           } catch (error) {
             console.error('❌ Auth state change error:', error);
-            if (isMounted) {
-              setError(`Authentication state change failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            if (isMountedRef.current) {
+              authState.setError(`Authentication state change failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
           }
 
-          if (isMounted) {
-            setLoading(false);
+          if (isMountedRef.current) {
+            authState.setLoading(false);
           }
         }
       );
@@ -341,18 +290,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setupAuthListener();
 
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
       if (authStateSubscription) {
         authStateSubscription.unsubscribe();
       }
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
+      clearAllTimeouts();
     };
-  }, []); // ✅ Empty dependency array to prevent infinite loops
+  }, []); // Empty dependency array to prevent infinite loops
 
   // Refresh profile function - also refreshes auth state
-  const refreshProfile = useCallback(async () => {
+  const refreshProfile = async () => {
     try {
       console.log('🔄 Refreshing auth state and profile...');
       
@@ -368,175 +315,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('✅ Session found during refresh:', session.user.email);
         
         // Update auth state
-        setUser(session.user);
-        setSession(session);
-        setError(null);
+        authState.setUser(session.user);
+        authState.setSession(session);
+        authState.setError(null);
         
         // Then fetch/update profile
-        const profile = await loadUserProfile(session.user.id);
-        setUserProfile(profile);
+        const profile = await userProfile.loadUserProfile(session.user.id);
+        userProfile.setUserProfile(profile);
       } else {
         console.log('⚠️ No session found during refresh');
         // No session, clear auth state
-        setUser(null);
-        setSession(null);
-        setUserProfile(null);
+        authState.setUser(null);
+        authState.setSession(null);
+        userProfile.setUserProfile(null);
       }
     } catch (error) {
       console.error('❌ Error in refreshProfile:', error);
     }
-  }, []);
-
-  const signInWithGoogle = async () => {
-    try {
-      setError(null);
-      
-      // Check if Google OAuth is configured
-      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      if (!googleClientId || googleClientId.includes('your-google-client-id')) {
-        const authError = new Error('Google OAuth is not configured. Please contact your administrator.');
-        setError(authError.message);
-        return { error: authError };
-      }
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
-      return { error };
-    } catch (error) {
-      const authError = error as AuthError;
-      setError(`Google sign-in failed: ${authError.message}`);
-      return { error: authError };
-    }
-  };
-
-
-  const signInWithPassword = async (email: string, password: string) => {
-    try {
-      setError(null);
-      
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      return { error };
-    } catch (error) {
-      const authError = error as AuthError;
-      setError(`Email sign-in failed: ${authError.message}`);
-      return { error: authError };
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      setError(null);
-      console.log('🚪 Signing out...');
-      console.log('🔍 Current user before sign out:', user?.email);
-      
-      // Clear all state first
-      setUser(null);
-      setUserProfile(null);
-      setSession(null);
-      setLoading(false);
-      
-      // Clear storage
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Then sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.warn('⚠️ Supabase sign out error (but state cleared):', error);
-      }
-      
-      console.log('✅ Sign out successful - state cleared');
-      return { error: null };
-    } catch (error) {
-      const authError = error as AuthError;
-      console.error('❌ Sign out error:', authError);
-      
-      // Force clear state even if sign out fails
-      setUser(null);
-      setUserProfile(null);
-      setSession(null);
-      setLoading(false);
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      console.log('✅ State cleared despite sign out error');
-      return { error: null }; // Return success since state is cleared
-    }
-  };
-
-  const updateProfile = async (updates: { full_name?: string; avatar_url?: string }) => {
-    try {
-      setError(null);
-      const { error } = await supabase.auth.updateUser({
-        data: updates,
-      });
-      return { error };
-    } catch (error) {
-      const authError = error as AuthError;
-      setError(`Profile update failed: ${authError.message}`);
-      return { error: authError };
-    }
-  };
-
-  const clearAuthState = async () => {
-    try {
-      setError(null);
-      await supabase.auth.signOut();
-      localStorage.clear();
-      sessionStorage.clear();
-      setUser(null);
-      setUserProfile(null);
-      setSession(null);
-      return true;
-    } catch (error) {
-      console.error('❌ Clear auth state error:', error);
-      setError(`Failed to clear auth state: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      return false;
-    }
-  };
-
-  const forceReAuth = async () => {
-    try {
-      console.log('🔄 Forcing re-authentication...');
-      setError(null);
-      
-      await supabase.auth.signOut();
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Reset retry count
-      setRetryCount(0);
-      
-      // Reload page to start fresh
-      window.location.reload();
-    } catch (error) {
-      console.error('❌ Error during force re-auth:', error);
-      setError(`Force re-authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      window.location.reload();
-    }
   };
 
   const value = {
-    user,
-    userProfile,
-    session,
-    loading,
-    error,
-    signInWithGoogle,
-    signInWithPassword,
-    signOut,
-    updateProfile,
-    clearAuthState,
-    forceReAuth,
+    user: authState.user,
+    userProfile: userProfile.userProfile,
+    session: authState.session,
+    loading: authState.loading || userProfile.profileLoading,
+    error: authState.error || userProfile.profileError,
+    signInWithGoogle: authState.signInWithGoogle,
+    signInWithPassword: authState.signInWithPassword,
+    signOut: authState.signOut,
+    updateProfile: authState.updateProfile,
+    clearAuthState: authState.clearAuthState,
+    forceReAuth: authState.forceReAuth,
     refreshProfile,
     retryAuth,
   };

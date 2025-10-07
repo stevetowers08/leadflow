@@ -1,15 +1,21 @@
-import React, { ReactNode, useState, useEffect, Suspense, lazy, useRef } from "react";
-import { Sidebar } from "./Sidebar";
-import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useSidebar } from "@/contexts/SidebarContext";
-import { useSwipeGestures } from "@/hooks/useSwipeGestures";
-import { useHapticFeedback } from "@/hooks/useHapticFeedback";
-import { cn } from "@/lib/utils";
-import { FourTwentyLogo } from "../FourTwentyLogo";
+/**
+ * Improved Mobile Layout Component
+ * 
+ * Fixes mobile layout inconsistencies and improves accessibility
+ * Uses CSS media queries instead of manual mobile detection where possible
+ */
 
-// Lazy load heavy components
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import { useSwipeGestures } from "@/hooks/useSwipeGestures";
+import { cn } from "@/lib/utils";
+import { Menu } from "lucide-react";
+import { ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
+import { FourTwentyLogo } from "../FourTwentyLogo";
+import { Sidebar } from "./Sidebar";
+
+// Lazy load heavy components - optimized for better performance
 const FloatingChatWidget = lazy(() => import("../ai/FloatingChatWidget"));
 const MobileTestPanel = lazy(() => import("../mobile/MobileTestPanel"));
 const EnhancedMobileNav = lazy(() => import("../mobile/EnhancedMobileNav"));
@@ -24,15 +30,17 @@ export const Layout = ({ children }: LayoutProps) => {
   const mainContentRef = useRef<HTMLElement>(null);
   const { mediumHaptic } = useHapticFeedback();
 
-  // Swipe gestures for mobile sidebar
+  // Improved swipe gestures with better touch handling
   const { attachListeners } = useSwipeGestures({
     onSwipeRight: () => {
       if (isMobile && !sidebarOpen) {
+        mediumHaptic();
         setSidebarOpen(true);
       }
     },
     onSwipeLeft: () => {
       if (isMobile && sidebarOpen) {
+        mediumHaptic();
         setSidebarOpen(false);
       }
     },
@@ -58,11 +66,14 @@ export const Layout = ({ children }: LayoutProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobile, sidebarOpen]);
 
-  // Handle escape key
+  // Handle escape key and focus management
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && sidebarOpen) {
         setSidebarOpen(false);
+        // Return focus to menu button
+        const menuButton = document.querySelector('[data-menu-button]') as HTMLElement;
+        menuButton?.focus();
       }
     };
 
@@ -78,40 +89,73 @@ export const Layout = ({ children }: LayoutProps) => {
     }
   }, [isMobile, attachListeners]);
 
+  // Prevent body scroll when sidebar is open on mobile
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobile, sidebarOpen]);
+
   return (
-    <div className="flex min-h-screen w-full">
-      {/* Mobile sidebar overlay */}
+    <div className="flex min-h-screen w-full bg-gray-50">
+      {/* Mobile sidebar overlay with improved accessibility */}
       {isMobile && sidebarOpen && (
         <div 
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setSidebarOpen(false);
+            }
+          }}
           aria-hidden="true"
+          role="button"
+          tabIndex={-1}
         />
       )}
       
-      {/* Sidebar */}
-      <div className={cn(
-        isMobile 
-          ? `fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-200 ease-out ${
-              sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            }` 
-          : 'relative',
-        'sidebar'
-      )}>
+      {/* Sidebar with improved responsive design */}
+      <aside 
+        className={cn(
+          "sidebar",
+          // Mobile: Fixed overlay with proper z-index and transitions
+          isMobile && [
+            "fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw]",
+            "transform transition-transform duration-300 ease-out",
+            sidebarOpen ? "translate-x-0" : "-translate-x-full",
+            // Sidebar theming uses CSS variables
+            "bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))] border-r border-[hsl(var(--sidebar-border))] shadow-lg"
+          ],
+          // Desktop: Fixed sidebar that doesn't scroll
+          !isMobile && "fixed left-0 top-0 h-screen w-56 z-30 bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))] border-r border-[hsl(var(--sidebar-border))]"
+        )}
+        role="navigation"
+        aria-label="Main navigation"
+      >
         <Sidebar onClose={() => setSidebarOpen(false)} />
-      </div>
+      </aside>
 
-      {/* Main content */}
+      {/* Main content with improved responsive layout */}
       <main 
         ref={mainContentRef}
         className={cn(
-          "flex-1 overflow-auto transition-all duration-200",
-          !isMobile && "ml-56"
+          "flex-1 transition-all duration-300",
+          // Desktop: Add left padding for fixed sidebar
+          !isMobile && "pl-56",
+          // Mobile: Full width
+          isMobile && "w-full"
         )}
+        role="main"
       >
-        {/* Mobile header */}
+        {/* Mobile header with improved accessibility */}
         {isMobile && (
-          <div className="sticky top-0 z-30 flex items-center justify-between bg-background/95 backdrop-blur border-b px-6 py-4 lg:hidden">
+          <header className="sticky top-0 z-30 flex items-center justify-between bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 py-3 lg:hidden">
             <Button
               variant="ghost"
               size="icon"
@@ -121,26 +165,44 @@ export const Layout = ({ children }: LayoutProps) => {
               }}
               data-menu-button
               aria-label="Open navigation menu"
-              className="min-h-[44px] min-w-[44px] touch-manipulation active:scale-95 transition-transform"
+              aria-expanded={sidebarOpen}
+              aria-controls="sidebar"
+              className={cn(
+                "min-h-[44px] min-w-[44px] touch-manipulation",
+                "active:scale-95 transition-transform",
+                "focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                "hover:bg-accent hover:text-accent-foreground"
+              )}
             >
               <Menu className="h-5 w-5" />
             </Button>
+            
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center">
                 <FourTwentyLogo size={20} />
               </div>
               <h1 className="text-lg font-semibold text-foreground">Empowr CRM</h1>
             </div>
-            <div className="w-11" /> {/* Spacer for centering */}
-          </div>
+            
+            {/* Spacer for centering - using aria-hidden for screen readers */}
+            <div className="w-11" aria-hidden="true" />
+          </header>
         )}
 
-        {/* Content */}
+        {/* Content with improved responsive padding and centering */}
         <div className={cn(
-          "min-h-screen bg-gray-50",
-          isMobile ? 'p-6 pb-20' : 'p-10' // Increased padding more
+          "min-h-screen",
+          // Mobile: Responsive padding with safe areas
+          isMobile && [
+            "p-4 pb-20",
+            "safe-area-inset-left safe-area-inset-right"
+          ],
+          // Desktop: Standard padding with proper centering
+          !isMobile && "p-6 max-w-7xl mx-auto"
         )}>
-          {children}
+          <div className="w-full max-w-none">
+            {children}
+          </div>
         </div>
       </main>
 
@@ -148,8 +210,6 @@ export const Layout = ({ children }: LayoutProps) => {
       <Suspense fallback={null}>
         <FloatingChatWidget />
       </Suspense>
-
-      {/* Unified Popup moved to App.tsx */}
 
       {/* Enhanced Mobile Navigation */}
       {isMobile && (
