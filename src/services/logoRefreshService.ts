@@ -3,7 +3,7 @@
  * Runs periodically to refresh stale company logos
  */
 
-import { refreshStaleLogos, getLogoStats } from '@/utils/logoService';
+import { refreshStaleLogos, getLogoStats } from '@/services/logoService';
 
 class LogoRefreshService {
   private intervalId: NodeJS.Timeout | null = null;

@@ -1,173 +1,153 @@
-# Environment Variables Setup Guide
+# Environment Variables Guide
 
-This guide explains how to configure all required environment variables for the Empowr CRM application.
+This document outlines all required and optional environment variables for the Empowr CRM application.
+
+## Overview
+
+The Empowr CRM uses **Vite** as the build tool, which requires client-side environment variables to be prefixed with `VITE_` to be accessible in the browser.
 
 ## Required Environment Variables
 
-### Supabase Configuration
+### Supabase Configuration (Essential)
 These are **required** for the application to function:
 
 ```bash
-# Supabase Project URL
 VITE_SUPABASE_URL=https://your-project.supabase.co
-
-# Supabase Anonymous Key (public key)
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-# Supabase Service Role Key (for Edge Functions)
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 ```
 
-## Optional Integration Variables
+**Where to find these values:**
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Go to Settings → API
+4. Copy the values:
+   - **Project URL** → `VITE_SUPABASE_URL`
+   - **Project API keys** → `anon public` → `VITE_SUPABASE_ANON_KEY`
+   - **Project API keys** → `service_role` → `SUPABASE_SERVICE_ROLE_KEY`
 
-### Google OAuth (Gmail Integration)
-Required for Gmail sync and email functionality:
+### Google OAuth (For Authentication)
+Required for Google sign-in functionality:
 
 ```bash
-# Google OAuth Client ID
-VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-
-# Google OAuth Client Secret (server-side only)
-GOOGLE_CLIENT_SECRET=your-client-secret
+VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
+
+**How to get these:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable Google+ API
+3. Create OAuth 2.0 credentials
+4. Add your domain to authorized origins
+
+## Optional Environment Variables
 
 ### LinkedIn Integration
-Required for LinkedIn automation:
+For LinkedIn automation features:
 
 ```bash
-# LinkedIn OAuth Client ID
 LINKEDIN_CLIENT_ID=your-linkedin-client-id
-
-# LinkedIn OAuth Client Secret
 LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
-
-# LinkedIn OAuth Redirect URI
 LINKEDIN_REDIRECT_URI=https://your-domain.com/auth/linkedin-callback
 ```
 
-### N8N Integration
-For AI chat functionality:
+### GitHub Integration
+For GitHub MCP and CSL features:
 
 ```bash
-# N8N Webhook URL
+GITHUB_PERSONAL_ACCESS_TOKEN=your-github-personal-access-token
+```
+
+### AI Features
+For AI-powered lead scoring and automation:
+
+```bash
+VITE_GEMINI_API_KEY=your-gemini-api-key-here
 N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/your-webhook-id
 ```
 
-## Environment Setup Instructions
+### Error Monitoring & Notifications
 
-### 1. Copy Environment Template
 ```bash
+VITE_ADMIN_EMAIL=admin@yourcompany.com
+VITE_ERROR_NOTIFICATION_EMAIL=errors@yourcompany.com
+VITE_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
+VITE_ERROR_WEBHOOK_URL=https://your-monitoring-service.com/webhook/errors
+```
+
+### Development Configuration
+
+```bash
+PORT=3000
+NODE_ENV=production
+```
+
+## Environment-Specific Setup
+
+### Local Development (.env.local)
+Create a `.env.local` file in the project root:
+
+```bash
+# Copy from env.example and fill in your values
 cp env.example .env.local
 ```
 
-### 2. Configure Supabase
-1. Go to your Supabase project dashboard
-2. Navigate to Settings > API
-3. Copy your Project URL and anon key
-4. Update `.env.local` with these values
+### Vercel Production
+Environment variables are configured in Vercel Dashboard:
 
-### 3. Configure Google OAuth (Optional)
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing
-3. Enable Gmail API
-4. Create OAuth 2.0 credentials
-5. Add authorized redirect URIs:
-   - `http://localhost:5173/auth/gmail-callback` (development)
-   - `https://your-domain.com/auth/gmail-callback` (production)
+1. Go to your project in [Vercel Dashboard](https://vercel.com/dashboard)
+2. Navigate to Settings → Environment Variables
+3. Add each variable with appropriate environment scope:
+   - **Production**: Live application
+   - **Preview**: Branch deployments
+   - **Development**: Local development
 
-### 4. Configure LinkedIn Integration (Optional)
-1. Go to [LinkedIn Developer Portal](https://www.linkedin.com/developers/)
-2. Create a new app
-3. Add OAuth 2.0 redirect URLs
-4. Copy client ID and secret
-
-### 5. Configure N8N (Optional)
-1. Set up your N8N instance
-2. Create a webhook node
-3. Copy the webhook URL
-
-## Environment Validation
-
-The application includes automatic environment validation:
-
-- **Required variables**: Application will fail to start if missing
-- **Optional variables**: Application will show warnings but continue
-- **Invalid values**: Application will show specific error messages
-
-## Development vs Production
-
-### Development
-```bash
-# Use local Supabase instance
-VITE_SUPABASE_URL=http://localhost:54321
-VITE_SUPABASE_ANON_KEY=your-local-anon-key
-```
-
-### Production
-```bash
-# Use production Supabase instance
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-production-anon-key
-```
-
-## Security Best Practices
-
-1. **Never commit `.env.local`** to version control
-2. **Use different keys** for development and production
-3. **Rotate keys regularly** for security
-4. **Use environment-specific** Supabase projects
-5. **Limit OAuth scopes** to minimum required permissions
+### Variable Sensitivity
+Mark these as **Sensitive** in Vercel:
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `GOOGLE_CLIENT_SECRET`
+- `LINKEDIN_CLIENT_SECRET`
+- `GITHUB_PERSONAL_ACCESS_TOKEN`
+- `VITE_GEMINI_API_KEY`
 
 ## Troubleshooting
 
 ### Common Issues
 
-**"Environment variable is required"**
-- Check that the variable is set in `.env.local`
-- Restart the development server after changes
-- Verify variable name spelling (case-sensitive)
+1. **"Cannot access 'm' before initialization" Error**
+   - Usually caused by missing `VITE_SUPABASE_URL` or `VITE_SUPABASE_ANON_KEY`
+   - Verify variables are set in Vercel and start with `VITE_` prefix
 
-**"Supabase configuration error"**
-- Verify URL format: `https://your-project.supabase.co`
-- Check that anon key is valid JWT format
-- Ensure project is active in Supabase dashboard
+2. **Supabase Connection Failed**
+   - Check that `VITE_SUPABASE_URL` is the correct project URL
+   - Verify `VITE_SUPABASE_ANON_KEY` is the anon/public key (not service role)
 
-**"Google OAuth not configured"**
-- Set `VITE_GOOGLE_CLIENT_ID` in environment
-- Verify redirect URI matches your domain
-- Check Google Cloud Console for API enablement
+3. **Google OAuth Not Working**
+   - Ensure `VITE_GOOGLE_CLIENT_ID` includes the full `.apps.googleusercontent.com` domain
+   - Check that authorized origins include your domain
 
-**"LinkedIn integration disabled"**
-- Set `LINKEDIN_CLIENT_ID` and `LINKEDIN_REDIRECT_URI`
-- Verify LinkedIn app is approved for required scopes
-- Check redirect URI format
+### Validation
+The app automatically validates environment variables on startup. Check the browser console for validation messages:
 
-### Validation Commands
+- ✅ Green checkmarks indicate properly configured variables
+- ❌ Red X marks indicate missing or invalid variables
+- ⚠️ Warnings indicate optional variables that aren't set
 
-Check environment status in browser console:
-```javascript
-// The application automatically logs environment status on startup
-// Look for ✅ or ❌ messages in the console
-```
+## Security Best Practices
 
-## Edge Function Environment Variables
+1. **Never commit secrets** to version control
+2. **Use different keys** for different environments
+3. **Rotate keys regularly**, especially after team member changes
+4. **Monitor usage** of API keys for unusual activity
+5. **Use least privilege** - only grant necessary permissions
 
-Edge Functions require additional environment variables:
+## Vite vs Next.js
 
-```bash
-# Set in Supabase Dashboard > Settings > Edge Functions
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-LINKEDIN_CLIENT_ID=your-linkedin-client-id
-LINKEDIN_REDIRECT_URI=https://your-domain.com/auth/linkedin-callback
-```
+**Important:** This app uses Vite, not Next.js. Key differences:
 
-## Support
+| Framework | Client-side Prefix | Example |
+|-----------|-------------------|---------|
+| **Vite** | `VITE_` | `VITE_SUPABASE_URL` |
+| Next.js | `NEXT_PUBLIC_` | `NEXT_PUBLIC_SUPABASE_URL` |
 
-If you encounter issues with environment setup:
-
-1. Check the browser console for validation messages
-2. Verify all required variables are set
-3. Ensure Supabase project is active
-4. Check OAuth app configurations
-5. Review this documentation for common solutions
+Always use `VITE_` prefix for client-side variables in this application.

@@ -1,7 +1,7 @@
-import React from 'react';
 import { InfoCard } from '@/components/shared/InfoCard';
 import { InfoField } from '@/components/shared/InfoField';
 import { formatDateForSydney } from '@/utils/timezoneUtils';
+import React from 'react';
 import { AIJobSummary } from './AIJobSummary';
 
 interface JobInfoCardProps {
@@ -50,9 +50,9 @@ export const JobInfoCard: React.FC<JobInfoCardProps> = ({ job }) => {
       <div className="space-y-4">
         {/* Job Title - Large and Prominent */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 leading-tight">{job.title}</h2>
+          <h2 className="text-sm font-semibold text-gray-900 leading-tight">{job.title}</h2>
           {job.company_name && (
-            <p className="text-base text-gray-600 mt-1">{job.company_name}</p>
+            <p className="text-sm text-gray-600 mt-1">{job.company_name}</p>
           )}
         </div>
 

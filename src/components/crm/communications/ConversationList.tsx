@@ -1,33 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
-import { Badge } from '../../ui/badge';
-import { StatusBadge } from '../../StatusBadge';
-import { Button } from '../../ui/button';
-import { ScrollArea } from '../../ui/scroll-area';
-import { 
-  MessageSquare, 
-  MessageSquareText, 
-  Clock, 
-  User, 
-  Building2,
-  CheckCircle,
-  AlertCircle,
-  Mail,
-  Search,
-  Filter,
-  MoreHorizontal,
-  ChevronDown
-} from 'lucide-react';
-import { conversationService, Conversation } from '../../../services/conversationService';
-import { Input } from '../../ui/input';
-import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
+import { getStatusDisplayText } from '@/utils/statusUtils';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    ChevronDown,
+    Filter,
+    Mail,
+    MessageSquare,
+    MessageSquareText,
+    Search
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Conversation } from '../../../services/conversationService';
+import { StatusBadge } from '../../StatusBadge';
+import { Badge } from '../../ui/badge';
+import { Button } from '../../ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '../../ui/dropdown-menu';
+import { Input } from '../../ui/input';
+import { ScrollArea } from '../../ui/scroll-area';
 
 interface ConversationListProps {
   onConversationSelect: (conversation: Conversation) => void;
@@ -153,7 +147,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
   const getStatusBadge = (conversation: Conversation) => {
     if (!conversation.is_read) {
-      return <StatusBadge status="New Lead" size="sm" />;
+      return <StatusBadge status={getStatusDisplayText("new")} size="sm" />;
     }
     return null;
   };

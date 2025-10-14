@@ -7,11 +7,6 @@ import { logger } from "./utils/logger";
 
 // Defer non-critical imports to improve initial load
 const initializeApp = async () => {
-  // Only load debug files in development
-  if (import.meta.env.DEV) {
-    await import("./debug-env.ts");
-  }
-
   logger.info('🚀 Empowr CRM starting...');
 
   // Only show environment debug info in development

@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { errorLogger, ErrorSeverity, ErrorCategory, ErrorContext, LoggedError } from '../utils/errorLogger';
+import { errorLogger, ErrorSeverity, ErrorCategory, ErrorContext, LoggedError } from './errorLogger';
 
 export interface ErrorNotificationSettings {
   emailNotifications: boolean;

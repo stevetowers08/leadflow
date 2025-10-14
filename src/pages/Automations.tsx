@@ -1,23 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Input } from "@/components/ui/input";
-import { 
-  Bot, 
-  UserPlus, 
-  MessageSquare, 
-  Mail, 
-  Calendar, 
-  CheckCircle, 
-  Search,
-  Filter,
-  Sparkles,
-  XCircle,
-  TrendingUp
-} from "lucide-react";
-import { formatDistanceToNow, format, isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
 import { Page } from "@/design-system/components";
+import { supabase } from "@/integrations/supabase/client";
+import { format, isThisMonth, isThisWeek, isToday } from "date-fns";
+import {
+    Bot,
+    Calendar,
+    CheckCircle,
+    Mail,
+    MessageSquare,
+    Search,
+    Sparkles,
+    UserPlus
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 interface AutomationActivity {
   id: string;
@@ -315,8 +311,8 @@ const Automations = () => {
       title="Automations"
     >
 
-      {/* Filters and Search */}
-      <div className="flex items-center gap-4">
+      {/* Filters and Search - Full Width */}
+      <div className="flex items-center gap-4 w-full">
         <select 
           value={filterType} 
           onChange={(e) => setFilterType(e.target.value)}

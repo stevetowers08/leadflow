@@ -457,46 +457,7 @@ export const EnhancedLayout: React.FC<EnhancedLayoutProps> = ({ children }) => {
   );
 };
 
-// 6. Enhanced Mobile Navigation with Better Touch Support
-export const EnhancedMobileNav: React.FC = () => {
-  const location = useLocation();
-  
-  const items: NavItem[] = [
-    { to: "/", label: "Home", icon: <Home className="h-5 w-5" /> },
-    { to: "/leads", label: "Leads", icon: <Users className="h-5 w-5" /> },
-    { to: "/companies", label: "Companies", icon: <Building2 className="h-5 w-5" /> },
-    { to: "/jobs", label: "Jobs", icon: <Briefcase className="h-5 w-5" /> },
-    { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" /> },
-  ];
-
-  return (
-    <nav 
-      className="fixed bottom-0 inset-x-0 z-30 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden"
-      role="navigation"
-      aria-label="Main navigation"
-    >
-      <ul className="grid grid-cols-5">
-        {items.map((item) => (
-          <li key={item.to} className="flex">
-            <NavLink
-              to={item.to}
-              className={({ isActive }) => cn(
-                "flex-1 flex flex-col items-center justify-center gap-1 py-2",
-                "text-xs transition-colors select-none touch-manipulation",
-                "min-h-[44px] min-w-[44px]", // Ensure minimum touch target
-                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-              )}
-              aria-current={location.pathname === item.to ? 'page' : undefined}
-            >
-              {item.icon}
-              <span className="leading-none">{item.label}</span>
-            </NavLink>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-};
+// 6. Enhanced Mobile Navigation - Now handled by MobileNav component
 
 // 7. Browser Compatibility Utilities
 export const BrowserCompatibility = {
@@ -723,13 +684,6 @@ export const responsiveCSS = `
 
 // Export all utilities
 export {
-  useMobile,
-  EnhancedTouchComponent,
-  EnhancedMobileCard,
-  EnhancedMobileButton,
-  EnhancedLayout,
-  EnhancedMobileNav,
-  BrowserCompatibility,
-  AccessibilityUtils,
-  responsiveCSS
+    AccessibilityUtils, BrowserCompatibility, EnhancedLayout, EnhancedMobileButton, EnhancedMobileCard, EnhancedTouchComponent, responsiveCSS, useMobile
 };
+

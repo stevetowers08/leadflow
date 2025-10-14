@@ -3,12 +3,13 @@ import * as React from "react";
 import { designTokens } from "@/design-system/tokens";
 import { cn } from "@/lib/utils";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { variant?: 'default' | 'elevated' | 'outlined' | 'glass' }>(({ className, variant = 'default', ...props }, ref) => {
+const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { variant?: 'default' | 'elevated' | 'outlined' | 'glass' | 'minimal' }>(({ className, variant = 'minimal', ...props }, ref) => {
   const variants = {
-    default: cn("rounded-lg", designTokens.borders.card, "bg-card text-card-foreground", designTokens.shadows.card),
-    elevated: cn("rounded-lg", designTokens.borders.card, "bg-card text-card-foreground", designTokens.shadows.md, designTokens.shadows.cardHover),
-    outlined: cn("rounded-lg", designTokens.borders.strong, "bg-card text-card-foreground", designTokens.shadows.card),
-    glass: cn("rounded-lg", designTokens.borders.card, "bg-white/80 backdrop-blur-sm text-card-foreground", designTokens.shadows.card)
+    default: "bg-white border border-gray-200 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]",
+    elevated: "bg-white border border-gray-200 shadow-lg shadow-gray-300/20 rounded-2xl transition-all duration-200 ease-out hover:shadow-xl hover:scale-[1.01]",
+    outlined: "bg-white border border-gray-300 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]",
+    glass: "bg-white border border-gray-200 shadow-xl shadow-gray-400/10 rounded-2xl transition-all duration-200 ease-out hover:shadow-2xl hover:scale-[1.01]",
+    minimal: "bg-white border border-gray-200 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]"
   };
   
   return (
@@ -26,7 +27,7 @@ CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn(designTokens.typography.heading.h1, className)} {...props} />
+    <h3 ref={ref} className={cn("text-lg font-semibold tracking-tight", className)} {...props} />
   ),
 );
 CardTitle.displayName = "CardTitle";

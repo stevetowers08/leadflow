@@ -1,0 +1,324 @@
+/**
+ * Mobile Typography System
+ * Implements mobile CRM typography best practices based on industry research
+ */
+
+/* Mobile Typography Hierarchy - Based on 2024 Best Practices */
+
+/* Base Mobile Typography */
+@media (max-width: 767px) {
+  /* Prevent font boosting on iOS */
+  body {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Mobile Typography Hierarchy */
+  
+  /* Headlines - 24-32px range */
+  .mobile-h1 {
+    font-size: 1.75rem; /* 28px */
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  .mobile-h2 {
+    font-size: 1.5rem; /* 24px */
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  .mobile-h3 {
+    font-size: 1.25rem; /* 20px */
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  /* Subheadings - 18-24px range */
+  .mobile-subheading {
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  /* Body Text - 14-16px range (16px for optimal readability) */
+  .mobile-body {
+    font-size: 1rem; /* 16px - prevents zoom on iOS */
+    line-height: 1.6; /* 1.6x for optimal readability */
+    font-weight: 400;
+  }
+
+  .mobile-body-sm {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  /* Supporting Text - 12-14px range */
+  .mobile-supporting {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.5;
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .mobile-supporting-sm {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.4;
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Fine Print - 10-12px range */
+  .mobile-fine-print {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.4;
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Mobile-Specific Component Typography */
+  
+  /* Navigation Items */
+  .mobile-nav-item {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+  }
+
+  /* Button Text */
+  .mobile-btn-primary {
+    font-size: 1rem; /* 16px */
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
+
+  .mobile-btn-secondary {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+  }
+
+  /* Form Elements */
+  .mobile-form-label {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.4;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+  }
+
+  .mobile-form-input {
+    font-size: 1rem; /* 16px - prevents zoom */
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  .mobile-form-help {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.4;
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Data Display */
+  .mobile-data-number {
+    font-size: 1.25rem; /* 20px */
+    line-height: 1.2;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+  }
+
+  .mobile-data-label {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.3;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Card Typography */
+  .mobile-card-title {
+    font-size: 1rem; /* 16px */
+    line-height: 1.3;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .mobile-card-subtitle {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.4;
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Badge Typography */
+  .mobile-badge {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+  }
+
+  /* Table Typography */
+  .mobile-table-header {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.3;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .mobile-table-data {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.4;
+    font-weight: 400;
+    color: hsl(var(--foreground));
+  }
+
+  /* Modal Typography */
+  .mobile-modal-title {
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.3;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .mobile-modal-subtitle {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.4;
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Enhanced Readability */
+  .mobile-text-enhanced {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  /* High Contrast Mode Support */
+  @media (prefers-contrast: high) {
+    .mobile-body,
+    .mobile-body-sm,
+    .mobile-supporting,
+    .mobile-supporting-sm {
+      font-weight: 500;
+    }
+  }
+
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-text-enhanced {
+      font-feature-settings: "kern" 0;
+    }
+  }
+}
+
+/* Tablet Typography Adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tablet-h1 {
+    font-size: 2rem; /* 32px */
+    line-height: 1.2;
+    font-weight: 700;
+  }
+
+  .tablet-h2 {
+    font-size: 1.75rem; /* 28px */
+    line-height: 1.25;
+    font-weight: 600;
+  }
+
+  .tablet-body {
+    font-size: 1rem; /* 16px */
+    line-height: 1.6;
+    font-weight: 400;
+  }
+}
+
+/* Desktop Typography (unchanged) */
+@media (min-width: 1024px) {
+  .desktop-h1 {
+    font-size: 2.25rem; /* 36px */
+    line-height: 1.1;
+    font-weight: 700;
+  }
+
+  .desktop-h2 {
+    font-size: 1.875rem; /* 30px */
+    line-height: 1.2;
+    font-weight: 600;
+  }
+
+  .desktop-body {
+    font-size: 1rem; /* 16px */
+    line-height: 1.6;
+    font-weight: 400;
+  }
+}
+
+/* Touch Target Optimization */
+@media (max-width: 767px) {
+  /* Ensure minimum touch target sizes */
+  .mobile-touch-target {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px 16px;
+    touch-action: manipulation;
+  }
+
+  .mobile-touch-target-sm {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 12px;
+    touch-action: manipulation;
+  }
+
+  .mobile-touch-target-lg {
+    min-height: 56px;
+    min-width: 56px;
+    padding: 16px 20px;
+    touch-action: manipulation;
+  }
+}
+
+/* Accessibility Enhancements */
+@media (max-width: 767px) {
+  /* Focus indicators for mobile */
+  .mobile-focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* High contrast text */
+  .mobile-high-contrast {
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+  }
+
+  /* Screen reader only text */
+  .mobile-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
 import { StatusBadge } from '@/components/StatusBadge';
-import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { Star, Plus, User, Zap } from 'lucide-react';
-import { TagSelector } from '@/components/forms/TagSelector';
 import { TagDisplay } from '@/components/TagDisplay';
-import { useEntityTags } from '@/hooks/useEntityTags';
+import { TagSelector } from '@/components/forms/TagSelector';
 import { InfoCard } from '@/components/shared/InfoCard';
 import { UserAssignmentDisplay } from '@/components/shared/UserAssignmentDisplay';
+import { useEntityTags } from '@/hooks/useEntityTags';
 import { getTextScoreBadgeClasses } from '@/utils/scoreUtils';
+import { formatDistanceToNow } from 'date-fns';
+import { Plus, User, Zap } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface LeadInfoCardProps {
   lead: {
@@ -69,7 +68,7 @@ export const LeadInfoCard: React.FC<LeadInfoCardProps> = ({ lead, onAutomate }) 
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <div className="text-lg font-bold text-gray-900 leading-tight">{lead.name}</div>
+              <div className="text-base font-semibold text-gray-900 leading-tight">{lead.name}</div>
               {lead.linkedin_url && (
                 <a href={lead.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-sidebar-primary hover:text-sidebar-primary/80 transition-colors">
                   <img src="https://logo.clearbit.com/linkedin.com" alt="LinkedIn" className="h-4 w-4" />
@@ -221,7 +220,7 @@ export const LeadInfoCard: React.FC<LeadInfoCardProps> = ({ lead, onAutomate }) 
         </div>
         <div className="space-y-1">
           <div className="text-xs font-medium text-gray-400">AI Score</div>
-          <div className={`h-7 px-2 rounded-md text-xs font-semibold border flex items-center justify-center w-fit ${getTextScoreBadgeClasses(lead.lead_score)}`}>
+          <div className={`h-8 px-3 rounded-md text-xs font-medium border flex items-center justify-center w-fit ${getTextScoreBadgeClasses(lead.lead_score)}`}>
             {lead.lead_score || "-"}
           </div>
         </div>

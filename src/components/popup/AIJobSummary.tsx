@@ -1,10 +1,10 @@
 // AI Job Summary Component for Jobs Popup
-import React, { useState, useCallback } from 'react';
-import { useAIJobSummary } from '../../hooks/useAI';
+import { ChevronDown, ChevronUp, DollarSign, Loader2, MapPin, Sparkles, TrendingUp, Users } from 'lucide-react';
+import React, { useCallback, useState } from 'react';
 import { useAI } from '../../contexts/AIContext';
-import { Badge } from '../ui/badge';
+import { useAIJobSummary } from '../../hooks/useAI';
 import { Alert, AlertDescription } from '../ui/alert';
-import { Loader2, Sparkles, TrendingUp, Users, Clock, DollarSign, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
+import { Badge } from '../ui/badge';
 
 interface AIJobSummaryProps {
   job: {
@@ -84,7 +84,7 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-blue-500" />
-          <span className="text-sm font-medium text-gray-700">AI Job Summary</span>
+          <span className="text-sm font-medium text-foreground">AI Job Summary</span>
         </div>
         
         {!lastResult && (
@@ -110,16 +110,16 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
 
       {/* AI Summary Content */}
       {lastResult && (
-        <div className="space-y-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="space-y-3 p-3 bg-primary/10 border border-primary/20 rounded-lg">
           {/* Summary Text */}
-          <div className="text-sm text-blue-900 leading-relaxed">
+          <div className="text-sm text-primary leading-relaxed">
             {lastResult.summary}
           </div>
 
           {/* Key Requirements */}
           {lastResult.key_requirements && lastResult.key_requirements.length > 0 && (
             <div>
-              <div className="text-xs font-semibold text-blue-700 mb-2">Key Requirements</div>
+              <div className="text-xs font-semibold text-primary mb-2">Key Requirements</div>
               <div className="flex flex-wrap gap-1">
                 {lastResult.key_requirements.slice(0, 4).map((req, index) => (
                   <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
@@ -149,8 +149,8 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
               </Badge>
             </div>
             <div className="flex items-center gap-1">
-              <Users className="h-3 w-3 text-blue-600" />
-              <span className="text-blue-700 font-medium">Demand:</span>
+              <Users className="h-3 w-3 text-primary" />
+              <span className="text-primary font-medium">Demand:</span>
               <Badge 
                 variant={lastResult.market_demand === 'high' ? 'default' : 
                         lastResult.market_demand === 'medium' ? 'secondary' : 'outline'}
@@ -165,7 +165,7 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
           <div>
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 text-blue-600 hover:text-blue-700"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent h-8 px-2 text-primary hover:text-primary/80"
             >
               {isExpanded ? (
                 <>
@@ -185,15 +185,15 @@ export const AIJobSummary: React.FC<AIJobSummaryProps> = ({ job, className }) =>
                 {/* Ideal Candidate */}
                 {lastResult.ideal_candidate && (
                   <div>
-                    <div className="text-xs font-semibold text-blue-700 mb-1">Ideal Candidate</div>
-                    <div className="text-xs text-blue-900">{lastResult.ideal_candidate}</div>
+                    <div className="text-xs font-semibold text-primary mb-1">Ideal Candidate</div>
+                    <div className="text-xs text-primary">{lastResult.ideal_candidate}</div>
                   </div>
                 )}
 
                 {/* Skills Extracted */}
                 {lastResult.skills_extracted && lastResult.skills_extracted.length > 0 && (
                   <div>
-                    <div className="text-xs font-semibold text-blue-700 mb-2">Skills Required</div>
+                    <div className="text-xs font-semibold text-primary mb-2">Skills Required</div>
                     <div className="flex flex-wrap gap-1">
                       {lastResult.skills_extracted.map((skill, index) => (
                         <Badge key={index} variant="outline" className="text-xs px-2 py-1">

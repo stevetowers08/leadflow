@@ -1,8 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-export type JobStatus = 'new' | 'active' | 'paused' | 'completed' | 'failed';
-export type CompanyStatus = 'new' | 'active' | 'paused' | 'completed' | 'failed';
+import { CompanyStatus, JobStatus } from '@/utils/statusCalculator';
+import { useCallback, useEffect, useState } from 'react';
 
 interface StatusInfo {
   status: JobStatus | CompanyStatus;

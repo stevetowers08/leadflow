@@ -1,34 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Plus, 
-  Play, 
-  Pause, 
-  Stop, 
-  Edit, 
-  Trash2, 
-  Users, 
-  MessageSquare, 
-  Calendar,
-  Target,
-  TrendingUp,
-  Mail,
-  Phone,
-  Linkedin
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { format, formatDistanceToNow } from 'date-fns';
+import {
+    Calendar,
+    Edit,
+    Linkedin,
+    Mail,
+    MessageSquare,
+    Pause,
+    Phone,
+    Play,
+    Plus,
+    Target,
+    Trash2,
+    Users
 } from 'lucide-react';
-import { formatDistanceToNow, format } from 'date-fns';
+import { useState } from 'react';
 
 interface Campaign {
   id: string;
@@ -328,9 +326,9 @@ export default function Campaigns() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 w-full">
+      {/* Header - Full Width */}
+      <div className="flex justify-between items-center w-full">
         <div>
           <h1 className="text-3xl font-bold">Campaigns</h1>
           <p className="text-muted-foreground">

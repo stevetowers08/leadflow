@@ -10,7 +10,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { AuthError, Session, User } from '@supabase/supabase-js';
-import React, { createContext, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
@@ -334,7 +334,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const value = {
+  const value = useMemo(() => ({
     user: authState.user,
     userProfile: userProfile.userProfile,
     session: authState.session,
@@ -348,7 +348,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     forceReAuth: authState.forceReAuth,
     refreshProfile,
     retryAuth,
-  };
+  }), [
+    authState.user,
+    authState.session,
+    authState.loading,
+    authState.error,
+    authState.signInWithGoogle,
+    authState.signInWithPassword,
+    authState.signOut,
+    authState.updateProfile,
+    authState.clearAuthState,
+    authState.forceReAuth,
+    userProfile.userProfile,
+    userProfile.profileLoading,
+    userProfile.profileError,
+    refreshProfile,
+    retryAuth
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

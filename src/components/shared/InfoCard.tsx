@@ -22,10 +22,10 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   const paddingClass = compact ? "p-6" : "p-8";
   
   return (
-    <div className={`bg-card rounded-xl ${paddingClass} border shadow-sm hover:shadow-md transition-all duration-300 ${className}`}>
+    <div className={`bg-card rounded-lg ${paddingClass} border shadow-sm hover:shadow-md transition-all duration-300 ${className}`}>
       <div className="pb-1.5">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-card-foreground">{title}</h3>
+          <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
           {actionButton}
         </div>
         {showDivider && (

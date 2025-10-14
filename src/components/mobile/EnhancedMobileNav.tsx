@@ -1,28 +1,28 @@
 /**
- * Enhanced Mobile Navigation Component
+ * Mobile Navigation Component
  * Implements mobile CRM navigation best practices
  */
 
-import React, { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  Users, 
-  Building2, 
-  Briefcase, 
-  Settings, 
-  Target,
-  MessageSquare,
-  Bot,
-  BarChart3,
-  MoreHorizontal
-} from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { usePermissions } from "@/contexts/PermissionsContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
-import { usePermissions } from "@/contexts/PermissionsContext";
+import { cn } from "@/lib/utils";
+import {
+    BarChart3,
+    Bot,
+    Briefcase,
+    Building2,
+    Home,
+    MessageSquare,
+    MoreHorizontal,
+    Settings,
+    Target,
+    Users
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 
 interface NavItem {
   to: string;
@@ -46,11 +46,11 @@ const allNavItems: NavItem[] = [
   { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, permission: "settings" },
 ];
 
-interface EnhancedMobileNavProps {
+interface MobileNavProps {
   className?: string;
 }
 
-export const EnhancedMobileNav: React.FC<EnhancedMobileNavProps> = ({ className }) => {
+export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
   const location = useLocation();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const isMobile = useIsMobile();
@@ -272,4 +272,4 @@ export const CompactStatsCard: React.FC<CompactStatsCardProps> = ({
   );
 };
 
-export default EnhancedMobileNav;
+export default MobileNav;

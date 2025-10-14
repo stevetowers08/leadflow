@@ -1,6 +1,6 @@
 // Performance-optimized hook for data fetching with intelligent caching
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { PerformanceMonitor } from '@/utils/performanceMonitor';
+import { PerformanceMonitor } from '@/services/performanceService';
 import { OptimizedDataService, OptimizedDashboardData } from '@/services/optimizedDataService';
 
 interface UseOptimizedDataOptions {

@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { InfoCard } from '@/components/shared/InfoCard';
-import { InfoField } from '@/components/shared/InfoField';
 import { TagDisplay } from '@/components/TagDisplay';
 import { TagSelector } from '@/components/forms/TagSelector';
-import { Plus, Building2, Globe } from 'lucide-react';
+import { InfoCard } from '@/components/shared/InfoCard';
+import { InfoField } from '@/components/shared/InfoField';
 import { getScoreBadgeClasses } from '@/utils/scoreUtils';
+import { Building2, Globe, Plus } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface Tag {
   id: string;
@@ -89,7 +89,7 @@ export const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({
           {/* Company Info */}
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <div className="text-lg font-bold text-gray-900 leading-tight">{company.name}</div>
+              <div className="text-base font-semibold text-gray-900 leading-tight">{company.name}</div>
               {company.linkedin_url && (
                 <a 
                   href={company.linkedin_url} 

@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
+import { Page } from '@/design-system/components';
+import { usePageMeta } from '@/hooks/usePageMeta';
+import React, { useState } from 'react';
 import { ConversationList } from '../components/crm/communications/ConversationList';
 import { ConversationViewer } from '../components/crm/communications/ConversationViewer';
-import { conversationService, Conversation } from '../services/conversationService';
-import { Page } from '@/design-system/components';
-import { cn } from '@/lib/utils';
-import { usePageMeta } from '@/hooks/usePageMeta';
+import { Card } from '../components/ui/card';
+import { Conversation } from '../services/conversationService';
 
 // Modern Conversations Page with Message Notifications
 const ConversationsPage: React.FC = () => {
@@ -35,8 +32,8 @@ const ConversationsPage: React.FC = () => {
       title="Conversations"
     >
 
-      {/* Main Conversation Interface */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Main Conversation Interface - Full Width */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
         {/* Conversation List - Mobile Stack */}
         <div className="lg:col-span-5">
           <Card className="h-[calc(100vh-200px)] lg:h-[calc(100vh-200px)] shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">

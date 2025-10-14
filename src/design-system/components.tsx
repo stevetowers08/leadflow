@@ -32,7 +32,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   </div>
 );
 
-interface StatItemProps {
+export interface StatItemProps {
   icon: React.ComponentType<any>;
   value: number | string;
   label: string;
@@ -84,6 +84,7 @@ interface PageProps {
   children: React.ReactNode;
   loading?: boolean;
   loadingMessage?: string;
+  hideHeader?: boolean;
 }
 
 export const Page: React.FC<PageProps> = ({ 
@@ -91,41 +92,66 @@ export const Page: React.FC<PageProps> = ({
   stats, 
   children, 
   loading = false,
-  loadingMessage 
+  loadingMessage,
+  hideHeader = false
 }) => {
   if (loading) {
     return (
-      <LoadingState 
-        title={title} 
-        message={loadingMessage} 
-      />
+      <>
+        {/* Full-screen background */}
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10" />
+        
+        {/* Content with negative margins to break out of Layout padding */}
+        <div className="relative min-h-screen -mx-4 -my-4 lg:-mx-6 lg:-my-6">
+          <div className="space-y-6 w-full px-4 py-6 lg:px-6">
+            <LoadingState 
+              title={title} 
+              message={loadingMessage} 
+            />
+          </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
-            {stats && (
-              <div className="flex items-center gap-4 mt-1 text-sm">
-                {stats.map((stat, index) => {
-                  const IconComponent = stat.icon;
-                  return (
-                    <div key={index} className="flex items-center gap-1 text-muted-foreground">
-                      <IconComponent className="h-3 w-3" />
-                      <span className="font-semibold">{stat.value}</span>
-                      <span>{stat.label}</span>
-                    </div>
-                  );
-                })}
+    <>
+      {/* Full-screen background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10" />
+      
+      {/* Content with negative margins to break out of Layout padding - FULL WIDTH */}
+      <div className="relative min-h-screen -mx-4 -my-4 lg:-mx-6 lg:-my-6">
+        <div className="space-y-6 w-full px-4 py-6 lg:px-6">
+          <div className="space-y-4 w-full">
+            {!hideHeader && (
+              <div className="mb-4 w-full">
+                <div className="flex items-center justify-between w-full">
+                  <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+                    {stats && (
+                      <div className="flex items-center gap-4 mt-1 text-sm">
+                        {stats.map((stat, index) => {
+                          const IconComponent = stat.icon;
+                          return (
+                            <div key={index} className="flex items-center gap-1 text-muted-foreground">
+                              <IconComponent className="h-3 w-3" />
+                              <span className="font-semibold">{stat.value}</span>
+                              <span>{stat.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
+            <div className="w-full">
+              {children}
+            </div>
           </div>
         </div>
       </div>
-      {children}
-    </div>
+    </>
   );
 };

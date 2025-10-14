@@ -1,21 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { ChatInput } from '@/components/ai/ChatInput';
+import { ChatMessage, ChatMessageComponent } from '@/components/ai/ChatMessage';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ChatMessageComponent, ChatMessage } from '@/components/ai/ChatMessage';
-import { ChatInput } from '@/components/ai/ChatInput';
-import { ChatService, ChatServiceConfig, AI_SERVICE_CONFIGS } from '@/services/chatService';
-import { dataAwareGeminiChatService, ChatContext } from '@/services/dataAwareGeminiChatService';
-import { MessageSquare, X, Settings, TestTube, CheckCircle, XCircle, Bot, Minimize2, Maximize2, Database } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { AI_SERVICE_CONFIGS, ChatService, ChatServiceConfig } from '@/services/chatService';
+import { ChatContext, dataAwareGeminiChatService } from '@/services/dataAwareGeminiChatService';
+import { Bot, Database, Maximize2, MessageSquare, Minimize2, Settings, TestTube, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface FloatingChatWidgetProps {
   className?: string;
@@ -407,7 +406,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
     <div className={cn("fixed bottom-6 right-6 z-50", className)}>
       {isOpen && (
         <Card className={cn(
-          "w-[480px] h-[600px] flex flex-col shadow-2xl border border-border bg-white/98 backdrop-blur-md rounded-3xl overflow-hidden",
+          "w-[480px] h-[600px] flex flex-col shadow-2xl border border-border bg-white rounded-3xl overflow-hidden",
           "ring-1 ring-white/20",
           "max-w-[calc(100vw-3rem)] max-h-[calc(100vh-3rem)]",
           "sm:w-[480px] sm:h-[600px]",
@@ -593,7 +592,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ classNam
               </CardContent>
 
               {/* Input */}
-              <div className="border-t border-sidebar-primary/10 bg-white/95 backdrop-blur-sm">
+              <div className="border-t border-sidebar-primary/10 bg-white">
                 <ChatInput
                   onSendMessage={handleSendMessage}
                   isLoading={isLoading}

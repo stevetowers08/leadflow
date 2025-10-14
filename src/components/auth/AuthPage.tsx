@@ -1,6 +1,6 @@
 import React from 'react';
-import { ModernSignIn } from './ModernSignIn';
+import { SignIn } from './SignIn';
 
 export const AuthPage: React.FC = () => {
-  return <ModernSignIn />;
+  return <SignIn />;
 };

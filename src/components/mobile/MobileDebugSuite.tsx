@@ -4,10 +4,10 @@
  */
 
 import React from 'react';
-import { MobileTestPanel } from './src/components/mobile/MobileTestPanel';
-import { MobileTable } from './src/components/mobile/MobileTable';
-import { MobileForm } from './src/components/mobile/MobileForm';
-import { MobilePerformance } from './src/components/mobile/MobilePerformance';
+import { MobileForm } from './MobileForm';
+import { MobilePerformance } from './MobilePerformance';
+import { MobileTable } from './MobileTable';
+import { MobileTestPanel } from './MobileTestPanel';
 
 // Test data for mobile components
 const testData = [

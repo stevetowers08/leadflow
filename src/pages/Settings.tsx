@@ -14,7 +14,6 @@ import {
 import { Suspense, lazy, useState } from 'react';
 
 // Lazy load heavy components
-const PersonalSettings = lazy(() => import('./PersonalSettings'));
 const IntegrationsPage = lazy(() => import('@/components/IntegrationsPage'));
 const AdminSettingsTab = lazy(() => import('@/components/crm/settings/AdminSettingsTab'));
 const BusinessProfileSettings = lazy(() => import('@/components/crm/settings/BusinessProfileSettings'));
@@ -100,9 +99,27 @@ const Settings = () => {
       case 'profile':
       case 'preferences':
         return (
-          <Suspense fallback={<LoadingFallback message="Loading settings..." />}>
-            <PersonalSettings activeSection={activeSection} />
-          </Suspense>
+          <div className="p-6">
+            <div className="max-w-2xl">
+              <h2 className="text-xl font-semibold mb-4">
+                {activeSection === 'profile' ? 'Profile Settings' : 'Preferences'}
+              </h2>
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-2">Personal Information</h3>
+                  <p className="text-sm text-muted-foreground">Manage your personal details and contact information</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-2">Display Preferences</h3>
+                  <p className="text-sm text-muted-foreground">Customize your interface and display settings</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-2">Privacy Settings</h3>
+                  <p className="text-sm text-muted-foreground">Control your privacy and data sharing preferences</p>
+                </div>
+              </div>
+            </div>
+          </div>
         );
       case 'targeting':
         return (
@@ -142,9 +159,25 @@ const Settings = () => {
         );
       default:
         return (
-          <Suspense fallback={<LoadingFallback message="Loading settings..." />}>
-            <PersonalSettings activeSection="profile" />
-          </Suspense>
+          <div className="p-6">
+            <div className="max-w-2xl">
+              <h2 className="text-xl font-semibold mb-4">Profile Settings</h2>
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-2">Personal Information</h3>
+                  <p className="text-sm text-muted-foreground">Manage your personal details and contact information</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-2">Display Preferences</h3>
+                  <p className="text-sm text-muted-foreground">Customize your interface and display settings</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-2">Privacy Settings</h3>
+                  <p className="text-sm text-muted-foreground">Control your privacy and data sharing preferences</p>
+                </div>
+              </div>
+            </div>
+          </div>
         );
     }
   };
@@ -203,9 +236,9 @@ const Settings = () => {
           </nav>
         </div>
         
-        {/* Settings Content */}
-        <div className="flex-1 overflow-auto bg-background">
-          <div className="min-h-screen">
+        {/* Settings Content - Full Width */}
+        <div className="flex-1 overflow-auto bg-background w-full">
+          <div className="min-h-screen w-full">
             {renderContent()}
           </div>
         </div>

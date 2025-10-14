@@ -4,6 +4,7 @@
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EnhancedTable, EnhancedTableBody, EnhancedTableCell, EnhancedTableHead, EnhancedTableHeader, EnhancedTableRow } from '@/components/ui/enhanced-table';
 import { cn } from '@/lib/utils';
 import { Loader2, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import React from 'react';
@@ -191,7 +192,7 @@ export const ModernSectionHeader: React.FC<ModernSectionHeaderProps> = ({
 };
 
 // Modern Data Table - Matches Jobs page styling exactly
-interface ModernDataTableProps<T = Record<string, unknown>> {
+interface DataTableProps<T = Record<string, unknown>> {
   data: T[];
   columns: Array<{
     key: string;
@@ -205,7 +206,7 @@ interface ModernDataTableProps<T = Record<string, unknown>> {
   onRowClick?: (row: T) => void;
 }
 
-export const ModernDataTable: React.FC<ModernDataTableProps> = ({
+export const DataTable: React.FC<DataTableProps> = ({
   data,
   columns,
   loading = false,
@@ -223,72 +224,70 @@ export const ModernDataTable: React.FC<ModernDataTableProps> = ({
 
   return (
     <div className="bg-white rounded-lg border border-gray-200">
-      <div className="overflow-x-auto">
-        <table className="w-full caption-bottom text-sm min-w-full font-sans" role="table" aria-label="Data table">
-          <thead className="[&_tr]:border-b">
-            <tr className="transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50">
+      <EnhancedTable dualScrollbars={false} stickyHeader={true}>
+        <EnhancedTableHeader>
+          <EnhancedTableRow className="transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50">
+            {columns.map((column) => (
+              <EnhancedTableHead 
+                key={column.key}
+                className={cn(
+                  "text-sm font-semibold text-muted-foreground uppercase tracking-wider",
+                  column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : 'text-left'
+                )}
+                scope="col" 
+                style={{
+                  width: column.width || 'auto',
+                  minWidth: column.minWidth || 'auto'
+                }}
+              >
+                <div className={cn(
+                  "flex items-center gap-2",
+                  column.align === 'center' ? 'justify-center' : column.align === 'right' ? 'justify-end' : 'justify-start'
+                )}>
+                  <span>{column.label}</span>
+                </div>
+              </EnhancedTableHead>
+            ))}
+          </EnhancedTableRow>
+        </EnhancedTableHeader>
+        <EnhancedTableBody>
+          {data.map((row, index) => (
+            <EnhancedTableRow 
+              key={index} 
+              className={cn(
+                "data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group",
+                onRowClick ? "cursor-pointer relative" : ""
+              )}
+              role="row" 
+              tabIndex={onRowClick ? 0 : undefined}
+              aria-label={`Row ${index + 1}`}
+              onClick={onRowClick ? () => onRowClick(row) : undefined}
+            >
               {columns.map((column) => (
-                <th 
-                  key={column.key}
+                <EnhancedTableCell 
+                  key={column.key} 
                   className={cn(
-                    "h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider",
+                    "align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0",
                     column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : 'text-left'
                   )}
-                  scope="col" 
                   style={{
                     width: column.width || 'auto',
                     minWidth: column.minWidth || 'auto'
                   }}
                 >
-                  <div className={cn(
-                    "flex items-center gap-2",
-                    column.align === 'center' ? 'justify-center' : column.align === 'right' ? 'justify-end' : 'justify-start'
-                  )}>
-                    <span>{column.label}</span>
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="[&_tr:last-child]:border-0">
-            {data.map((row, index) => (
-              <tr 
-                key={index} 
-                className={cn(
-                  "data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group",
-                  onRowClick ? "cursor-pointer relative" : ""
-                )}
-                role="row" 
-                tabIndex={onRowClick ? 0 : undefined}
-                aria-label={`Row ${index + 1}`}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-              >
-                {columns.map((column) => (
-                  <td 
-                    key={column.key} 
-                    className={cn(
-                      "align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0",
-                      column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : 'text-left'
-                    )}
-                    style={{
-                      width: column.width || 'auto',
-                      minWidth: column.minWidth || 'auto'
-                    }}
-                  >
-                    {column.render ? column.render(row[column.key], row) : (
-                      <div className="min-w-0">
-                        <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
-                          {row[column.key] || "-"}
-                        </div>
+                  {column.render ? column.render(row[column.key], row) : (
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {row[column.key] || "-"}
                       </div>
-                    )}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    </div>
+                  )}
+                </EnhancedTableCell>
+              ))}
+            </EnhancedTableRow>
+          ))}
+        </EnhancedTableBody>
+      </EnhancedTable>
     </div>
   );
 };

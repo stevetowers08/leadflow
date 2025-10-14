@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Users, Building2, User } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/contexts/AuthContext';
+import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -151,7 +150,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sidebar-primary/10">
               <Shield className="h-6 w-6 text-sidebar-primary" />
             </div>
-            <CardTitle className="text-2xl font-semibold text-gray-900">{title}</CardTitle>
+            <CardTitle className="text-lg font-semibold text-gray-900">{title}</CardTitle>
             <CardDescription className="text-gray-600">{description}</CardDescription>
           </CardHeader>
 

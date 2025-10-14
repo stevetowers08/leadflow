@@ -1,16 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { PermissionsProvider } from '@/contexts/PermissionsContext';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { EnhancedMobileNav } from '@/components/mobile/EnhancedMobileNav';
-import { 
-  mockUsers, 
-  mockUserProfiles, 
-  createMockAuthContext, 
-  createMockPermissionsContext 
+import { MobileNav } from '@/components/mobile/MobileNav';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { PermissionsProvider } from '@/contexts/PermissionsContext';
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it } from 'vitest';
+import {
+    createMockAuthContext,
+    createMockPermissionsContext,
+    mockUsers
 } from '../mocks/authMocks';
 
 // Test wrapper component
@@ -208,7 +207,7 @@ describe('Authorization Tests - Frontend Components', () => {
     it('should filter navigation items based on permissions for owner', () => {
       render(
         <TestWrapper user={mockUsers.owner}>
-          <EnhancedMobileNav />
+          <MobileNav />
         </TestWrapper>
       );
       
@@ -222,7 +221,7 @@ describe('Authorization Tests - Frontend Components', () => {
     it('should filter navigation items based on permissions for viewer', () => {
       render(
         <TestWrapper user={mockUsers.viewer}>
-          <EnhancedMobileNav />
+          <MobileNav />
         </TestWrapper>
       );
       

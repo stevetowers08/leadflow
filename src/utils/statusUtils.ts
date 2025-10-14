@@ -21,78 +21,142 @@ export function normalizeStatus(stage: string | null): string {
 
 /**
  * Gets the display text for a status value
- * Converts uppercase to proper case
+ * Converts all variations to proper title case formatting
  */
 export function getStatusDisplayText(status: string): string {
+  if (!status) return '';
+  
   // Convert to proper case (first letter capitalized only)
   const displayMapping: Record<string, string> = {
-    // Lead stages - actual database values
+    // Lead stages - all variations
     'NEW LEAD': 'New Lead',
     'new': 'New Lead',
+    'new lead': 'New Lead',
+    'NEW': 'New Lead',
     'IN QUEUE': 'In Queue',
     'in queue': 'In Queue',
+    'in_queue': 'In Queue',
     'CONNECT SENT': 'Connect Sent',
     'connection_requested': 'Connect Sent',
+    'connect_sent': 'Connect Sent',
+    'connect sent': 'Connect Sent',
     'MSG SENT': 'Message Sent',
     'messaged': 'Messaged',
+    'message_sent': 'Message Sent',
+    'message sent': 'Message Sent',
     'CONNECTED': 'Connected',
     'connected': 'Connected',
     'REPLIED': 'Replied',
     'replied': 'Replied',
     'LEAD LOST': 'Lead Lost',
     'lead_lost': 'Lead Lost',
+    'lead lost': 'Lead Lost',
     'contacted': 'Contacted',
     'meeting_booked': 'Meeting Booked',
+    'meeting booked': 'Meeting Booked',
     'meeting_held': 'Meeting Held',
+    'meeting held': 'Meeting Held',
     'disqualified': 'Disqualified',
     
-    // Job priorities - actual database values (UPPERCASE)
+    // Job priorities - all variations
     'HIGH': 'High',
+    'high': 'High',
     'MEDIUM': 'Medium',
+    'medium': 'Medium',
     'LOW': 'Low',
+    'low': 'Low',
     'VERY HIGH': 'Very High',
     'very-high': 'Very High',
     'very high': 'Very High',
+    'very_high': 'Very High',
+    'VERY_HIGH': 'Very High',
     
-    // Company status mappings - actual database values
+    // Company status mappings - all variations
     'active': 'Active',
+    'ACTIVE': 'Active',
     'qualified': 'Qualified',
+    'QUALIFIED': 'Qualified',
     'prospect': 'Prospect',
-    'low': 'Low',
-    'medium': 'Medium',
-    'high': 'High',
+    'PROSPECT': 'Prospect',
     
-    // Job status mappings
+    // Job status mappings - all variations
     'new job': 'New Job',
+    'new_job': 'New Job',
+    'NEW JOB': 'New Job',
+    'NEW_JOB': 'New Job',
     'automated': 'Automated',
+    'AUTOMATED': 'Automated',
     'paused': 'Paused',
+    'PAUSED': 'Paused',
     'completed': 'Completed',
+    'COMPLETED': 'Completed',
     'failed': 'Failed',
+    'FAILED': 'Failed',
     
-    // User roles and statuses
+    // User roles and statuses - all variations
     'owner': 'Owner',
+    'OWNER': 'Owner',
     'admin': 'Admin',
+    'ADMIN': 'Admin',
     'recruiter': 'Recruiter',
+    'RECRUITER': 'Recruiter',
     'inactive': 'Inactive',
+    'INACTIVE': 'Inactive',
     
-    // Company pipeline stages
+    // Company pipeline stages - all variations
     'new_lead': 'New Lead',
+    'NEW_LEAD': 'New Lead',
     'meeting_scheduled': 'Meeting Scheduled',
+    'meeting scheduled': 'Meeting Scheduled',
+    'MEETING_SCHEDULED': 'Meeting Scheduled',
     'closed_lost': 'Closed Lost',
+    'closed lost': 'Closed Lost',
+    'CLOSED_LOST': 'Closed Lost',
     
-    // Additional status mappings
+    // Additional status mappings - all variations
     'assigned': 'Assigned',
+    'ASSIGNED': 'Assigned',
     'has logo': 'Has Logo',
+    'has_logo': 'Has Logo',
+    'HAS LOGO': 'Has Logo',
+    'HAS_LOGO': 'Has Logo',
     'no logo': 'No Logo',
+    'no_logo': 'No Logo',
+    'NO LOGO': 'No Logo',
+    'NO_LOGO': 'No Logo',
     'sent': 'Sent',
+    'SENT': 'Sent',
     'delivered': 'Delivered',
+    'DELIVERED': 'Delivered',
     'pending': 'Pending',
+    'PENDING': 'Pending',
     'linkedin': 'LinkedIn',
+    'LINKEDIN': 'LinkedIn',
     'email': 'Email',
-    'unknown': 'Unknown'
+    'EMAIL': 'Email',
+    'unknown': 'Unknown',
+    'UNKNOWN': 'Unknown',
+    'expired': 'Expired',
+    'EXPIRED': 'Expired',
+    'not_automated': 'Not Automated',
+    'NOT_AUTOMATED': 'Not Automated',
+    'not automated': 'Not Automated',
+    'NOT AUTOMATED': 'Not Automated'
   };
 
-  return displayMapping[status] || status;
+  // Return mapped value or convert to title case if not found
+  return displayMapping[status] || convertToTitleCase(status);
+}
+
+/**
+ * Converts a string to title case (first letter of each word capitalized)
+ */
+function convertToTitleCase(str: string): string {
+  return str
+    .toLowerCase()
+    .split(/[\s_-]+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 /**

@@ -12,6 +12,13 @@ interface ErrorReport {
 export const useGlobalErrorHandler = () => {
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
+      // Suppress source map errors from external sources
+      if (event.message?.includes('source-map') || 
+          event.message?.includes('installHook') ||
+          event.message?.includes('JSON.parse: unexpected character')) {
+        return; // Silently ignore these errors
+      }
+
       const errorReport: ErrorReport = {
         message: event.message,
         stack: event.error?.stack,
@@ -87,6 +94,11 @@ export const useGlobalErrorHandler = () => {
 // Hook for performance monitoring
 export const usePerformanceMonitoring = () => {
   useEffect(() => {
+    if (!('PerformanceObserver' in window)) {
+      console.log('PerformanceObserver not supported in this browser');
+      return;
+    }
+
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
         if (entry.entryType === 'navigation') {
@@ -129,7 +141,25 @@ export const usePerformanceMonitoring = () => {
       });
     });
     
-    observer.observe({ entryTypes: ['navigation', 'measure', 'paint', 'largest-contentful-paint'] });
+    // Check supported entry types before observing
+    const supportedEntryTypes = PerformanceObserver.supportedEntryTypes;
+    const entryTypesToObserve = ['navigation', 'measure'];
+    
+    // Only add supported entry types
+    if (supportedEntryTypes) {
+      if (supportedEntryTypes.includes('paint')) {
+        entryTypesToObserve.push('paint');
+      }
+      if (supportedEntryTypes.includes('largest-contentful-paint')) {
+        entryTypesToObserve.push('largest-contentful-paint');
+      }
+    }
+    
+    try {
+      observer.observe({ entryTypes: entryTypesToObserve });
+    } catch (error) {
+      console.warn('Performance observation failed:', error);
+    }
     
     return () => observer.disconnect();
   }, []);

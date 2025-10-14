@@ -5,7 +5,7 @@
 
 import { enhancedErrorLogger } from '@/services/supabaseErrorService';
 import { supabaseErrorService } from '@/services/supabaseErrorService';
-import { ErrorSeverity, ErrorCategory } from '@/utils/errorLogger';
+import { ErrorSeverity, ErrorCategory } from '@/services/errorLogger';
 
 // Initialize error service with admin email
 export async function initializeErrorHandling(adminEmail?: string): Promise<void> {

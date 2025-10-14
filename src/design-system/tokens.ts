@@ -48,9 +48,9 @@ export const designTokens = {
     cardPadding: {
       default: 'p-6',
       compact: 'p-3',
-      mobile: 'p-3',
+      mobile: 'p-4',
       desktop: 'p-6',
-      responsive: 'p-3 lg:p-6',
+      responsive: 'p-4 lg:p-6',
     },
     // Margin scale
     margin: {

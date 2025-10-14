@@ -1,36 +1,65 @@
 /**
- * Improved Mobile Layout Component
+ * Layout Component with Glassmorphism Design
  * 
- * Fixes mobile layout inconsistencies and improves accessibility
- * Uses CSS media queries instead of manual mobile detection where possible
+ * Features:
+ * - Glassmorphism background with dynamic gradients
+ * - Modern sidebar with smooth animations
+ * - Responsive design optimized for all devices
+ * - Dark mode support with theme switching
+ * - Enhanced accessibility and keyboard navigation
  */
 
-import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { useSwipeGestures } from "@/hooks/useSwipeGestures";
 import { cn } from "@/lib/utils";
-import { Menu } from "lucide-react";
 import { ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
-import { FourTwentyLogo } from "../FourTwentyLogo";
+import { useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
+import { TopNavigationBar } from "./TopNavigationBar";
 
-// Lazy load heavy components - optimized for better performance
+// Lazy load heavy components for better performance
 const FloatingChatWidget = lazy(() => import("../ai/FloatingChatWidget"));
 const MobileTestPanel = lazy(() => import("../mobile/MobileTestPanel"));
-const EnhancedMobileNav = lazy(() => import("../mobile/EnhancedMobileNav"));
+const MobileNav = lazy(() => import("../mobile/MobileNav"));
 
 interface LayoutProps {
   children: ReactNode;
+  pageTitle?: string;
+  onSearch?: (query: string) => void;
 }
 
-export const Layout = ({ children }: LayoutProps) => {
+export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const isMobile = useIsMobile();
   const mainContentRef = useRef<HTMLElement>(null);
   const { mediumHaptic } = useHapticFeedback();
+  const location = useLocation();
 
-  // Improved swipe gestures with better touch handling
+  // Dynamic page title based on current route
+  const getPageTitle = () => {
+    if (pageTitle) return pageTitle;
+    
+    const routeTitles: Record<string, string> = {
+      '/': 'Dashboard',
+      '/jobs': 'Jobs',
+      '/people': 'People',
+      '/companies': 'Companies',
+      '/pipeline': 'Pipeline',
+      '/campaigns': 'Campaigns',
+      '/conversations': 'Conversations',
+      '/automations': 'Automations',
+      '/reporting': 'Reporting',
+      '/settings': 'Settings',
+      '/crm-info': 'CRM Info',
+      '/tab-designs': 'Tab Designs'
+    };
+    
+    return routeTitles[location.pathname] || 'Dashboard';
+  };
+
+  // Enhanced swipe gestures with better touch handling
   const { attachListeners } = useSwipeGestures({
     onSwipeRight: () => {
       if (isMobile && !sidebarOpen) {
@@ -71,7 +100,6 @@ export const Layout = ({ children }: LayoutProps) => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && sidebarOpen) {
         setSidebarOpen(false);
-        // Return focus to menu button
         const menuButton = document.querySelector('[data-menu-button]') as HTMLElement;
         menuButton?.focus();
       }
@@ -102,12 +130,25 @@ export const Layout = ({ children }: LayoutProps) => {
     };
   }, [isMobile, sidebarOpen]);
 
+  // Apply dark mode to document
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   return (
-    <div className="flex min-h-screen w-full bg-gray-50">
-      {/* Mobile sidebar overlay with improved accessibility */}
+    <div className={cn(
+      "min-h-screen w-full h-full relative",
+      "bg-white text-foreground"
+    )}>
+
+      {/* Mobile sidebar overlay with glassmorphism */}
       {isMobile && sidebarOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
@@ -120,20 +161,23 @@ export const Layout = ({ children }: LayoutProps) => {
         />
       )}
       
-      {/* Sidebar with improved responsive design */}
+      {/* Modern Sidebar */}
       <aside 
         className={cn(
           "sidebar",
-          // Mobile: Fixed overlay with proper z-index and transitions
+          // Mobile: Fixed overlay with glassmorphism
           isMobile && [
-            "fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw]",
+            "fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw]",
             "transform transition-transform duration-300 ease-out",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
-            // Sidebar theming uses CSS variables
-            "bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))] border-r border-[hsl(var(--sidebar-border))] shadow-lg"
+            "bg-sidebar text-sidebar-foreground border-r border-sidebar-border shadow-2xl"
           ],
-          // Desktop: Fixed sidebar that doesn't scroll
-          !isMobile && "fixed left-0 top-0 h-screen w-56 z-30 bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))] border-r border-[hsl(var(--sidebar-border))]"
+          // Desktop: Fixed sidebar with glassmorphism
+          !isMobile && [
+            "fixed left-0 top-0 h-screen w-60 z-30",
+            "bg-sidebar text-sidebar-foreground border-r border-sidebar-border",
+            "shadow-2xl"
+          ]
         )}
         role="navigation"
         aria-label="Main navigation"
@@ -141,69 +185,41 @@ export const Layout = ({ children }: LayoutProps) => {
         <Sidebar onClose={() => setSidebarOpen(false)} />
       </aside>
 
-      {/* Main content with improved responsive layout */}
+      {/* Main content with glassmorphism container */}
       <main 
         ref={mainContentRef}
-        className={cn(
-          "flex-1 transition-all duration-300",
-          // Desktop: Add left padding for fixed sidebar
-          !isMobile && "pl-56",
-          // Mobile: Full width
-          isMobile && "w-full"
-        )}
+               className={cn(
+                 "relative z-10 transition-all duration-300 w-full",
+                 // Desktop: Add left padding for fixed sidebar
+                 !isMobile && "pl-60"
+               )}
         role="main"
       >
-        {/* Mobile header with improved accessibility */}
-        {isMobile && (
-          <header className="sticky top-0 z-30 flex items-center justify-between bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 py-3 lg:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                mediumHaptic();
-                setSidebarOpen(true);
-              }}
-              data-menu-button
-              aria-label="Open navigation menu"
-              aria-expanded={sidebarOpen}
-              aria-controls="sidebar"
-              className={cn(
-                "min-h-[44px] min-w-[44px] touch-manipulation",
-                "active:scale-95 transition-transform",
-                "focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                "hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            
-            <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center">
-                <FourTwentyLogo size={20} />
-              </div>
-              <h1 className="text-lg font-semibold text-foreground">Empowr CRM</h1>
-            </div>
-            
-            {/* Spacer for centering - using aria-hidden for screen readers */}
-            <div className="w-11" aria-hidden="true" />
-          </header>
-        )}
+        {/* Top Navigation Bar */}
+        <TopNavigationBar 
+          pageTitle={getPageTitle()}
+          onSearch={onSearch}
+          onMenuClick={() => {
+            if (isMobile) {
+              mediumHaptic();
+              setSidebarOpen(true);
+            }
+          }}
+        />
 
-        {/* Content with improved responsive padding and centering */}
-        <div className={cn(
-          "min-h-screen",
-          // Mobile: Responsive padding with safe areas
-          isMobile && [
-            "p-4 pb-20",
-            "safe-area-inset-left safe-area-inset-right"
-          ],
-          // Desktop: Standard padding with proper centering
-          !isMobile && "p-6 max-w-7xl mx-auto"
-        )}>
-          <div className="w-full max-w-none">
-            {children}
-          </div>
-        </div>
+            {/* Content Container */}
+            <div className={cn(
+              "min-h-screen w-full",
+                // Mobile: Reduced padding for better space utilization
+                isMobile && [
+                  "px-4 py-4 pb-20",
+                  "safe-area-inset-left safe-area-inset-right"
+                ],
+                // Desktop: Match top bar padding, more vertical padding
+                !isMobile && "px-6 py-6"
+            )}>
+              {children}
+            </div>
       </main>
 
       {/* Floating Chat Widget */}
@@ -214,7 +230,7 @@ export const Layout = ({ children }: LayoutProps) => {
       {/* Enhanced Mobile Navigation */}
       {isMobile && (
         <Suspense fallback={null}>
-          <EnhancedMobileNav />
+          <MobileNav />
         </Suspense>
       )}
 

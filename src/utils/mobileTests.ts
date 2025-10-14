@@ -3,10 +3,6 @@
  * Run this to test mobile functionality
  */
 
-import { MobileTestPanel } from './src/components/mobile/MobileTestPanel';
-import { MobileTable } from './src/components/mobile/MobileTable';
-import { MobileForm } from './src/components/mobile/MobileForm';
-import { MobilePerformance } from './src/components/mobile/MobilePerformance';
 
 // Test mobile components
 export function runMobileTests() {

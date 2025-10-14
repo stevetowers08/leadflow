@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FloatingSuccessCard } from "@/components/utils/FloatingSuccessCard";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { User, MessageSquare, CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, MessageSquare, User, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface Lead {
   id: string;
@@ -233,7 +232,7 @@ export function LinkedInAutomationModal({
         <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
                 <MessageSquare className="h-6 w-6 text-sidebar-primary" />
                 LinkedIn Automation
               </h3>
@@ -280,14 +279,14 @@ export function LinkedInAutomationModal({
                   </div>
                   <div className="flex items-center gap-2">
                     {lead["LinkedIn URL"] ? (
-                      <div className="flex items-center gap-1 text-green-600 bg-green-50 px-3 py-1 rounded-full">
-                        <CheckCircle className="h-4 w-4" />
-                        <span className="text-sm font-medium">LinkedIn Available</span>
+                      <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-md text-xs font-medium">
+                        <CheckCircle className="h-3 w-3" />
+                        <span>LinkedIn Available</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 text-red-600 bg-red-50 px-3 py-1 rounded-full">
-                        <XCircle className="h-4 w-4" />
-                        <span className="text-sm font-medium">No LinkedIn</span>
+                      <div className="flex items-center gap-1 text-red-600 bg-red-50 px-2 py-1 rounded-md text-xs font-medium">
+                        <XCircle className="h-3 w-3" />
+                        <span>No LinkedIn</span>
                       </div>
                     )}
                     <StatusBadge status={lead.Stage || "new"} size="sm" />

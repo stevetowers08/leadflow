@@ -1,11 +1,11 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { X } from 'lucide-react';
-import { LoadingState } from '@/components/loading/LoadingStates';
-import { cn } from '@/lib/utils';
-import { DropdownSelect } from '@/components/ui/dropdown-select';
-import { DropdownOption } from '@/hooks/useDropdownOptions';
-import { UserAssignmentDisplay } from './UserAssignmentDisplay';
 import { StatusBadge } from '@/components/StatusBadge';
+import { LoadingState } from '@/components/loading/LoadingStates';
+import { DropdownOption } from '@/hooks/useDropdownOptions';
+import { cn } from '@/lib/utils';
+import { getStatusDisplayText } from '@/utils/statusUtils';
+import { X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { UserAssignmentDisplay } from './UserAssignmentDisplay';
 
 interface PopupModalProps {
   isOpen: boolean;
@@ -78,28 +78,28 @@ export const PopupModal: React.FC<PopupModalProps> = ({
     { value: 'new', label: 'New' },
     { value: 'prospect', label: 'Prospect' },
     { value: 'qualified', label: 'Qualified' },
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' }
+    { value: 'active', label: getStatusDisplayText('active') },
+    { value: 'inactive', label: getStatusDisplayText('inactive') }
   ];
 
   const pipelineStageOptions: DropdownOption[] = [
-    { value: 'new_lead', label: 'New Lead' },
-    { value: 'automated', label: 'Automated' },
-    { value: 'replied', label: 'Replied' },
-    { value: 'meeting_scheduled', label: 'Meeting Scheduled' },
-    { value: 'proposal_sent', label: 'Proposal Sent' },
-    { value: 'negotiation', label: 'Negotiation' },
-    { value: 'closed_won', label: 'Closed Won' },
-    { value: 'closed_lost', label: 'Closed Lost' },
-    { value: 'on_hold', label: 'On Hold' }
+    { value: 'new_lead', label: getStatusDisplayText('new_lead') },
+    { value: 'automated', label: getStatusDisplayText('automated') },
+    { value: 'replied', label: getStatusDisplayText('replied') },
+    { value: 'meeting_scheduled', label: getStatusDisplayText('meeting_scheduled') },
+    { value: 'proposal_sent', label: getStatusDisplayText('proposal_sent') },
+    { value: 'negotiation', label: getStatusDisplayText('negotiation') },
+    { value: 'closed_won', label: getStatusDisplayText('closed_won') },
+    { value: 'closed_lost', label: getStatusDisplayText('closed_lost') },
+    { value: 'on_hold', label: getStatusDisplayText('on_hold') }
   ];
 
   // Priority options
   const priorityOptions: DropdownOption[] = [
-    { value: 'LOW', label: 'Low' },
-    { value: 'MEDIUM', label: 'Medium' },
-    { value: 'HIGH', label: 'High' },
-    { value: 'VERY HIGH', label: 'Very High' }
+    { value: 'LOW', label: getStatusDisplayText('LOW') },
+    { value: 'MEDIUM', label: getStatusDisplayText('MEDIUM') },
+    { value: 'HIGH', label: getStatusDisplayText('HIGH') },
+    { value: 'VERY HIGH', label: getStatusDisplayText('VERY HIGH') }
   ];
 
   // Focus management
@@ -208,18 +208,19 @@ export const PopupModal: React.FC<PopupModalProps> = ({
     >
       <div className={cn(
         "bg-gray-100 rounded-xl shadow-2xl w-full max-h-[90vh] overflow-hidden flex flex-col",
-        "max-w-5xl w-[90vw]", // Moderately large popup size - increased from max-w-4xl and w-[85vw]
+        // Mobile-first responsive sizing
+        "max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-5xl",
         "transition-all duration-200 ease-in-out transform",
         isAnimating ? "scale-100 opacity-100" : "scale-95 opacity-0",
         className
       )}>
         {/* Modern Header Design */}
-        <div className="pl-0 pr-8 py-6 border-b border-gray-200 bg-white">
+        <div className="pl-4 pr-4 sm:pl-8 sm:pr-8 py-4 sm:py-6 border-b border-gray-200 bg-white">
           <div className="flex items-center justify-between">
             {/* Left Side - Entity Info */}
-            <div className="flex items-center gap-4 flex-1 min-w-0 pl-8 sm:pl-10">
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
               {/* Company Logo - Square */}
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+              <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
                 {isLoading ? (
                   <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />
                 ) : companyLogo ? (
@@ -239,7 +240,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
               </div>
               
               <div className="flex-1 min-w-0">
-                <h2 id="popup-title" className="text-lg font-semibold text-gray-900 leading-tight truncate">
+                <h2 id="popup-title" className="text-sm font-semibold text-gray-900 leading-tight truncate">
                   {isLoading ? (
                     <div className="h-5 bg-gray-200 rounded animate-pulse w-40" />
                   ) : (
@@ -247,7 +248,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                   )}
                 </h2>
                 {subtitle && (
-                  <p id="popup-description" className="text-sm text-gray-500 leading-tight truncate">
+                  <p id="popup-description" className="text-xs font-medium text-gray-400 leading-tight truncate">
                     {isLoading ? (
                       <div className="h-4 bg-gray-200 rounded animate-pulse w-56" />
                     ) : (
@@ -290,7 +291,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
               <div className="flex items-center gap-3">
                 {/* Pipeline Stage Badge - Always visible, clickable only when allowed */}
                 <div className={cn(
-                  "w-40 px-3 py-2 rounded-md text-sm font-medium h-8 flex items-center justify-center cursor-pointer transition-colors border",
+                  "w-40 px-3 py-2 rounded-md text-xs font-medium h-8 flex items-center justify-center cursor-pointer transition-colors border",
                   canChangeStage 
                     ? "bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-800" 
                     : "bg-gray-100 border-gray-200 text-gray-600 cursor-default"
@@ -298,15 +299,15 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                 onClick={canChangeStage ? () => {
                   // Logical stage progression based on current stage
                   const stageMap = {
-                    'new_lead': 'New Lead',
-                    'automated': 'Automated', 
-                    'replied': 'Replied',
-                    'meeting_scheduled': 'Meeting Scheduled',
-                    'proposal_sent': 'Proposal Sent',
-                    'negotiation': 'Negotiation',
-                    'closed_won': 'Closed Won',
-                    'closed_lost': 'Closed Lost',
-                    'on_hold': 'On Hold'
+                    'new_lead': getStatusDisplayText('new_lead'),
+                    'automated': getStatusDisplayText('automated'), 
+                    'replied': getStatusDisplayText('replied'),
+                    'meeting_scheduled': getStatusDisplayText('meeting_scheduled'),
+                    'proposal_sent': getStatusDisplayText('proposal_sent'),
+                    'negotiation': getStatusDisplayText('negotiation'),
+                    'closed_won': getStatusDisplayText('closed_won'),
+                    'closed_lost': getStatusDisplayText('closed_lost'),
+                    'on_hold': getStatusDisplayText('on_hold')
                   };
                   
                   const currentStage = currentPipelineStage || 'new_lead';
@@ -341,7 +342,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
                   }
                 } : undefined}
                 >
-                  {currentPipelineStage?.replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase()) || 'New Lead'}
+                  {getStatusDisplayText(currentPipelineStage || 'new_lead')}
                 </div>
               </div>
             )}
@@ -362,7 +363,7 @@ export const PopupModal: React.FC<PopupModalProps> = ({
         </div>
 
         {/* Content with responsive padding */}
-        <div className="px-8 sm:px-10 py-8 space-y-4 flex-1 overflow-y-auto min-h-[400px]">
+        <div className="px-4 sm:px-8 lg:px-10 py-4 sm:py-8 space-y-4 flex-1 overflow-y-auto min-h-[300px] sm:min-h-[400px]">
           {error ? (
             <LoadingState
               isLoading={false}

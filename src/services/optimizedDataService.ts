@@ -1,5 +1,5 @@
 // Ultra-optimized data service with intelligent caching and performance monitoring
-import { PerformanceMonitor, safeAsync } from '@/utils/performanceMonitor';
+import { PerformanceMonitor, safeAsync } from '@/services/performanceService';
 import { subWeeks, subDays } from 'date-fns';
 
 export interface OptimizedDashboardData {

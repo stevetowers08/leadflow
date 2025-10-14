@@ -3,25 +3,28 @@ import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import { useGlobalErrorHandler, usePerformanceMonitoring } from "./hooks/useGlobalErrorHandler";
+import { initializeConsoleFilter } from "./utils/consoleFilter";
 import { initializeErrorHandling, setupGlobalErrorHandlers } from "./utils/globalErrorHandlers";
 
-import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ErrorBoundaryProvider } from "./components/ErrorBoundary";
 import { GmailCallback } from "./components/GmailCallback";
 import { UnifiedPopup } from "./components/UnifiedPopup";
 import AuthCallback from "./components/auth/AuthCallback";
 import { AuthPage } from "./components/auth/AuthPage";
-import { ModernLayout } from "./components/layout/ModernLayout";
+import { Layout } from "./components/layout/Layout";
 import { AIProvider } from "./contexts/AIContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ConfirmationProvider } from "./contexts/ConfirmationContext";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
 import { PopupNavigationProvider } from "./contexts/PopupNavigationContext";
-import { SidebarProvider } from "./contexts/SidebarContext";
 import { SearchProvider } from "./contexts/SearchContext";
+import { SidebarProvider } from "./contexts/SidebarContext";
+import { LoggingProvider } from "./utils/enhancedLogger";
+import { PerformanceProvider } from "./utils/performanceMonitoring";
 
 // Lazy load pages for code splitting
-const Index = lazy(() => import("./pages/Dashboard"));
-const CRMInfo = lazy(() => import("./pages/CRMInfo"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const People = lazy(() => import("./pages/People"));
 const Companies = lazy(() => import("./pages/Companies"));
@@ -31,7 +34,7 @@ const Automations = lazy(() => import("./pages/Automations"));
 const Reporting = lazy(() => import("./pages/Reporting"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Campaigns = lazy(() => import("./pages/Campaigns"));
-const TabDesignsShowcase = lazy(() => import("./pages/TabDesignsShowcase"));
+const TabDesignsPage = lazy(() => import("./pages/TabDesignsPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -72,7 +75,7 @@ const AppRoutes = () => {
           <SidebarProvider>
             <SearchProvider>
               <PopupNavigationProvider>
-                <ModernLayout>
+                <Layout>
                 <Suspense fallback={
                   <div className="min-h-screen flex items-center justify-center">
                     <div className="text-center">
@@ -82,11 +85,10 @@ const AppRoutes = () => {
                   </div>
                 }>
                   <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/crm-info" element={<CRMInfo />} />
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/about" element={<AboutPage />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/auth/gmail-callback" element={<GmailCallback />} />
-                    <Route path="/test-callback" element={<div className="p-8"><h1>Test Callback Route Works!</h1></div>} />
                     <Route path="/jobs" element={<Jobs />} />
                     <Route path="/people" element={<People />} />
                     <Route path="/companies" element={<Companies />} />
@@ -96,10 +98,10 @@ const AppRoutes = () => {
                     <Route path="/automations" element={<Automations />} />
                     <Route path="/reporting" element={<Reporting />} />
                     <Route path="/settings" element={<Settings />} />
-                    <Route path="/tab-designs" element={<TabDesignsShowcase />} />
+                    <Route path="/tab-designs" element={<TabDesignsPage />} />
                   </Routes>
                 </Suspense>
-                </ModernLayout>
+                </Layout>
                 
                 {/* Unified Popup System */}
                 <Suspense fallback={null}>
@@ -116,6 +118,9 @@ const AppRoutes = () => {
 
 const App = () => {
   useEffect(() => {
+    // Initialize console filtering to suppress browser extension noise
+    initializeConsoleFilter();
+    
     // Initialize error handling system
     const initErrorHandling = async () => {
       try {
@@ -132,16 +137,20 @@ const App = () => {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <AppRoutes />
-            <Toaster />
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <ErrorBoundaryProvider>
+      <LoggingProvider>
+        <PerformanceProvider>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+              <AuthProvider>
+                <AppRoutes />
+                <Toaster />
+              </AuthProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </PerformanceProvider>
+      </LoggingProvider>
+    </ErrorBoundaryProvider>
   );
 };
 

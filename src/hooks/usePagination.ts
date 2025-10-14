@@ -1,9 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export interface PaginationOptions {
   pageSize?: number;
   initialPage?: number;
   maxVisiblePages?: number;
+  persistToUrl?: boolean;
+  urlParams?: {
+    pageParam?: string;
+    pageSizeParam?: string;
+  };
 }
 
 export interface PaginationState {
@@ -38,7 +43,9 @@ export const usePagination = (
   const {
     pageSize: initialPageSize = 10,
     initialPage = 1,
-    maxVisiblePages = 5
+    maxVisiblePages = 5,
+    persistToUrl = false,
+    urlParams = {}
   } = options;
 
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -94,33 +101,33 @@ export const usePagination = (
   }, [paginationState, maxVisiblePages]);
 
   const actions: PaginationActions = {
-    goToPage: (page: number) => {
+    goToPage: useCallback((page: number) => {
       const validPage = Math.max(1, Math.min(page, paginationState.totalPages));
       setCurrentPage(validPage);
-    },
+    }, [paginationState.totalPages]),
     
-    nextPage: () => {
+    nextPage: useCallback(() => {
       if (paginationState.hasNextPage) {
         setCurrentPage(prev => prev + 1);
       }
-    },
+    }, [paginationState.hasNextPage]),
     
-    previousPage: () => {
+    previousPage: useCallback(() => {
       if (paginationState.hasPreviousPage) {
         setCurrentPage(prev => prev - 1);
       }
-    },
+    }, [paginationState.hasPreviousPage]),
     
-    setPageSize: (size: number) => {
+    setPageSize: useCallback((size: number) => {
       const validSize = Math.max(1, size);
       setPageSize(validSize);
       setCurrentPage(1); // Reset to first page when changing page size
-    },
+    }, []),
     
-    reset: () => {
+    reset: useCallback(() => {
       setCurrentPage(initialPage);
       setPageSize(initialPageSize);
-    },
+    }, [initialPage, initialPageSize]),
   };
 
   return {

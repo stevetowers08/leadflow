@@ -2,11 +2,15 @@
 
 Welcome to the comprehensive documentation for Empowr CRM - a modern recruitment-focused customer relationship management system.
 
+## 🚀 Quick Start
+
+**📋 [Master Documentation Index](./MASTER_INDEX.md)** - Complete navigation to all 23 essential documentation files
+
 ## 📚 Documentation Overview
 
-This documentation is organized into 5 comprehensive guides that cover everything you need to know about Empowr CRM:
+This documentation is organized into comprehensive guides that cover everything you need to know about Empowr CRM:
 
-### 🏢 [App Overview](./APP_OVERVIEW.md)
+### 🏢 [App Overview](./CORE/APP_OVERVIEW.md)
 **Complete application information, architecture, and business model**
 - Business model and core entities (Jobs → Companies → People)
 - Application architecture and technology stack
@@ -14,7 +18,7 @@ This documentation is organized into 5 comprehensive guides that cover everythin
 - Database schema and user roles
 - Automation workflow and metrics
 
-### 🛠️ [Development Guide](./DEVELOPMENT_GUIDE.md)
+### 🛠️ [Development Guide](./CORE/DEVELOPMENT_GUIDE.md)
 **Development setup, best practices, and workflows**
 - Quick start and environment setup
 - Development workflow and code standards
@@ -22,7 +26,7 @@ This documentation is organized into 5 comprehensive guides that cover everythin
 - Deployment process and best practices
 - Performance optimization and security
 
-### 🔧 [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md)
+### 🔧 [Troubleshooting Guide](./DEBUGGING/TROUBLESHOOTING_GUIDE.md)
 **Debugging, common issues, and solutions**
 - Common issues (white screen, charts not displaying, drag & drop)
 - Development issues (TypeScript errors, build errors, hot reload)
@@ -30,7 +34,7 @@ This documentation is organized into 5 comprehensive guides that cover everythin
 - Authentication and integration issues
 - Performance and deployment troubleshooting
 
-### 🎨 [Design System](./DESIGN_SYSTEM.md)
+### 🎨 [Design System](./STYLING/DESIGN_SYSTEM.md)
 **UI/UX guidelines, styling, and design standards**
 - Design philosophy and principles
 - Design tokens and typography system
@@ -38,7 +42,7 @@ This documentation is organized into 5 comprehensive guides that cover everythin
 - Component library and usage patterns
 - Responsive design and accessibility
 
-### 🔗 [Integrations Guide](./INTEGRATIONS_GUIDE.md)
+### 🔗 [Integrations Guide](./INTEGRATIONS/INTEGRATIONS_GUIDE.md)
 **All external integrations and setup guides**
 - Supabase integration (database, auth, real-time)
 - Google OAuth and Gmail integration
@@ -48,11 +52,11 @@ This documentation is organized into 5 comprehensive guides that cover everythin
 
 ## 🚀 Quick Start
 
-1. **New to the project?** Start with [App Overview](./APP_OVERVIEW.md) to understand the business model and architecture
-2. **Setting up development?** Follow the [Development Guide](./DEVELOPMENT_GUIDE.md) for complete setup instructions
-3. **Encountering issues?** Check the [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md) for common solutions
-4. **Working on UI?** Reference the [Design System](./DESIGN_SYSTEM.md) for consistent styling
-5. **Configuring integrations?** Use the [Integrations Guide](./INTEGRATIONS_GUIDE.md) for step-by-step setup
+1. **New to the project?** Start with [App Overview](./CORE/APP_OVERVIEW.md) to understand the business model and architecture
+2. **Setting up development?** Follow the [Development Guide](./CORE/DEVELOPMENT_GUIDE.md) for complete setup instructions
+3. **Encountering issues?** Check the [Troubleshooting Guide](./DEBUGGING/TROUBLESHOOTING_GUIDE.md) for common solutions
+4. **Working on UI?** Reference the [Design System](./STYLING/DESIGN_SYSTEM.md) for consistent styling
+5. **Configuring integrations?** Use the [Integrations Guide](./INTEGRATIONS/INTEGRATIONS_GUIDE.md) for step-by-step setup
 
 ## 📋 Key Information
 
@@ -101,15 +105,44 @@ npm run dev
 
 ## 📁 Documentation Structure
 
+**📋 [Master Documentation Index](./MASTER_INDEX.md)** - Complete navigation to all 23 essential files
+
+### Organized Documentation Structure
 ```
 docs/
 ├── README.md                    # This overview (start here)
-├── APP_OVERVIEW.md             # Complete app information
-├── DEVELOPMENT_GUIDE.md        # Development setup and practices
-├── TROUBLESHOOTING_GUIDE.md    # Debugging and solutions
-├── DESIGN_SYSTEM.md            # UI/UX guidelines
-├── INTEGRATIONS_GUIDE.md       # External integrations
-└── TERMINOLOGY.md              # Business terminology reference
+├── MASTER_INDEX.md             # Complete navigation index
+├── CORE/                       # Core application documentation
+│   ├── APP_OVERVIEW.md
+│   ├── DEVELOPMENT_GUIDE.md
+│   └── TERMINOLOGY.md
+├── AI/                         # AI integration guides
+│   ├── AI_INTEGRATION_GUIDE.md
+│   └── AI_BEST_PRACTICES.md
+├── COMPONENTS/                 # Component architecture
+│   ├── LAYOUT_COMPONENTS.md
+│   ├── POPUP_SYSTEM_DOCUMENTATION.md
+│   ├── BADGE_SYSTEM_ARCHITECTURE.md
+│   ├── SCORING_SYSTEM_DOCS.md
+│   └── COMPANY_LOGO_SYSTEM.md
+├── STYLING/                    # Design system and styling
+│   ├── DESIGN_SYSTEM.md
+│   ├── CARD_STYLING_GUIDE.md
+│   └── UNIFIED_DESIGN_SYSTEM.md
+├── DATABASE/                   # Database documentation
+│   ├── DATABASE_SCHEMA.md
+│   └── DATABASE_BEST_PRACTICES.md
+├── SETUP/                      # Setup and deployment
+│   ├── ENVIRONMENT_SETUP.md
+│   ├── DEPLOYMENT_GUIDE.md
+│   └── ENVIRONMENT_VARIABLES.md
+├── INTEGRATIONS/               # External integrations
+│   └── INTEGRATIONS_GUIDE.md
+├── TESTING/                    # Testing documentation
+│   └── TESTING_PLAN.md
+└── DEBUGGING/                  # Troubleshooting and debugging
+    ├── TROUBLESHOOTING_GUIDE.md
+    └── DEBUGGING_GUIDE.md
 ```
 
 ## 🔄 Documentation Updates
