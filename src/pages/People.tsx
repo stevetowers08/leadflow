@@ -1,31 +1,29 @@
-// Replaced legacy DataTable with ModernDataTable
+// People page using EnhancedTable directly (like Jobs page)
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { Button } from "@/components/ui/button";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
+import { EnhancedTable, EnhancedTableBody, EnhancedTableCell, EnhancedTableHead, EnhancedTableHeader, EnhancedTableRow } from "@/components/ui/enhanced-table";
+import { SearchIconButton, SearchModal } from "@/components/ui/search-modal";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Page, type StatItemProps } from "@/design-system/components";
-import { ModernDataTable } from "@/design-system/modern-components";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
-import { getClearbitLogo } from "@/utils/logoService";
+import { getStatusDisplayText } from "@/utils/statusUtils";
 import {
-    ArrowUpDown,
     CheckCircle,
-    Search,
     Star,
     Target,
     Users,
     Zap
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 
 type Lead = Tables<"people"> & {
   company_name?: string | null;
-  company_logo_url?: string | null;
 };
 
 // Normalize various truthy values that might be stored as string/boolean
@@ -43,6 +41,7 @@ const People = () => {
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [isSavingAssignment, setIsSavingAssignment] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -65,7 +64,7 @@ const People = () => {
   // Status filter options
   const statusOptions = [
     { label: "All Stages", value: "all" },
-    { label: "New Lead", value: "new" },
+    { label: getStatusDisplayText("new"), value: "new" },
     { label: "Contacted", value: "contacted" },
     { label: "Qualified", value: "qualified" },
     { label: "Unqualified", value: "unqualified" },
@@ -197,7 +196,6 @@ const People = () => {
     // Debounce rapid calls - only fetch if it's been more than 2 seconds since last fetch
     const now = Date.now();
     if (!forceRefresh && now - lastFetchTime < 2000) {
-      console.log('🚫 Debouncing fetchLeads - too soon since last fetch');
       return;
     }
     
@@ -214,8 +212,7 @@ const People = () => {
           connected_at, last_reply_at, last_interaction_at, owner_id, created_at, 
           confidence_level, is_favourite, favourite, lead_source, linkedin_url, 
           employee_location,
-          company_name:companies(name),
-          company_logo_url:companies(website)
+          company_name:companies(name)
         `)
         .order("created_at", { ascending: false });
       
@@ -223,28 +220,21 @@ const People = () => {
         console.error('Error fetching leads:', allError);
         throw allError;
       }
-      
-      console.log('Total leads fetched:', allLeads?.length);
 
       // Normalize nested objects returned by Supabase (aliases like company_name:companies(name))
       const normalizedLeads = (allLeads || []).map((lead: any) => {
         const companyName = typeof lead.company_name === 'object' && lead.company_name !== null
           ? lead.company_name.name
           : lead.company_name;
-        const companyLogoUrl = typeof lead.company_logo_url === 'object' && lead.company_logo_url !== null
-          ? lead.company_logo_url.website
-          : lead.company_logo_url;
         return {
           ...lead,
           company_name: companyName ?? null,
-          company_logo_url: companyLogoUrl ?? null,
         } as Lead;
       });
 
       setLeads(normalizedLeads);
       
       const endTime = performance.now();
-      console.log(`⚡ People fetch completed in ${Math.round(endTime - startTime)}ms`);
     } catch (error) {
       console.error('Error fetching leads:', error);
       toast({
@@ -283,7 +273,7 @@ const People = () => {
     Promise.all([fetchLeads(true), fetchUsers()]); // Force initial fetch
   }, []);
 
-  // ModernDataTable columns expect (value, row)
+  // UnifiedTable columns expect (value, row)
   const columns = [
     {
       key: "status",
@@ -351,24 +341,8 @@ const People = () => {
       minWidth: "250px",
       align: "left" as const,
       render: (v: any, row: any) => (
-        <div className="min-w-0 cursor-pointer hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors duration-150">
+        <div className="min-w-0 cursor-pointer hover:bg-muted/50 rounded-md p-1 -m-1 transition-colors duration-150">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-              {row.company_logo_url ? (
-                <img 
-                  src={getClearbitLogo(row.company_name || "", row.company_logo_url)} 
-                  alt={row.company_name}
-                  className="w-6 h-6 rounded-lg object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                  }}
-                />
-              ) : null}
-              <div className="w-6 h-6 rounded-lg bg-blue-600 text-white items-center justify-center text-xs font-semibold hidden">
-                {row.company_name ? row.company_name.charAt(0).toUpperCase() : '?'}
-              </div>
-            </div>
             <div className="flex flex-col min-w-0 flex-1">
               <div className="text-sm leading-tight hover:text-blue-600 transition-colors duration-150 whitespace-nowrap overflow-hidden text-ellipsis">
                 {row.company_name || "-"}
@@ -484,8 +458,8 @@ const People = () => {
     name: lead.name,
     email_address: lead.email_address,
     company_name: lead.company_name || '-',
-    company_logo_url: lead.company_logo_url || null,
     company_role: lead.company_role || '-',
+    employee_location: lead.employee_location || '-',
     owner_id: lead.owner_id,
     confidence_level: lead.confidence_level || 'medium',
     priority: lead.confidence_level || 'medium',
@@ -498,10 +472,7 @@ const People = () => {
   })), [filteredAndSortedLeads]);
 
   const handleRowClick = (lead: Lead) => {
-    console.log('🔍 Lead clicked:', lead.name, lead.id);
-    console.log('🔍 openPopup function:', openPopup);
     openPopup('lead', lead.id, lead.name || 'Unknown');
-    console.log('🔍 openPopup called');
   };
 
   const handleDeleteLead = async (leadId: string, leadName: string) => {
@@ -548,7 +519,7 @@ const People = () => {
     {
       icon: Target,
       value: peopleStats.newLeads,
-      label: "new leads"
+      label: getStatusDisplayText("new") + " leads"
     },
     {
       icon: CheckCircle,
@@ -562,28 +533,16 @@ const People = () => {
       stats={stats}
       hideHeader
     >
-      {/* Search, Filter and Sort Controls */}
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search people..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-48 text-sm"
-            />
-          </div>
-          
+      {/* Search, Filter and Sort Controls - Full Width */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6 w-full">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {/* Status Filter */}
           <DropdownSelect
             options={statusOptions}
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value)}
             placeholder="All Statuses"
-            className="min-w-32 bg-white h-9"
+            className="min-w-28 sm:min-w-32 bg-white h-8 text-sm"
           />
 
           {/* Assignment Filter */}
@@ -598,55 +557,217 @@ const People = () => {
             value={selectedUser}
             onValueChange={(value) => setSelectedUser(value)}
             placeholder="Filter by user"
-            className="min-w-40 bg-white h-9"
+            className="min-w-32 sm:min-w-40 bg-white h-8 text-sm"
           />
 
-          {/* Favorites Filter */}
+          {/* Favorites Icon Button */}
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors border h-9",
+              "h-8 w-8 rounded-md border flex items-center justify-center transition-colors action-bar-icon",
               showFavoritesOnly 
                 ? "bg-primary-50 text-primary-700 border-primary-200" 
                 : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
             )}
+            title={showFavoritesOnly ? "Show all people" : "Show favorites only"}
           >
             <Star className={cn("h-4 w-4", showFavoritesOnly && "fill-current")} />
-            Favorites
-            {leads.filter(lead => lead.is_favourite).length > 0 && (
-              <span className="ml-1 text-xs bg-white/20 px-1.5 py-0.5 rounded-full">
-                {leads.filter(lead => lead.is_favourite).length}
-              </span>
-            )}
           </button>
         </div>
 
-        {/* Sort */}
-        <div className="flex items-center gap-2">
-          <ArrowUpDown className="h-4 w-4 text-gray-500" />
+        {/* Sort Controls - Far Right */}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <span className="text-sm text-muted-foreground">Sort:</span>
           <DropdownSelect
             options={sortOptions}
             value={sortBy}
             onValueChange={(value) => setSortBy(value)}
             placeholder="Sort by"
-            className="min-w-32 bg-white"
+            className="min-w-28 sm:min-w-32 bg-white h-8 text-sm"
           />
           <button
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-2 h-8 text-sm border rounded bg-background hover:bg-muted/50 flex items-center justify-center action-bar-icon"
             title={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
           >
             {sortOrder === "asc" ? "↑" : "↓"}
           </button>
+          
+          {/* Search Icon Button - Far Right */}
+          <SearchIconButton 
+            onClick={() => setIsSearchModalOpen(true)}
+            className="ml-2"
+          />
         </div>
       </div>
 
-        <ModernDataTable 
-          data={tableData} 
-          columns={columns as any} 
-          loading={loading} 
-          onRowClick={(row) => handleRowClick(row as Lead)}
-        />
+        {/* Data Table - Full Width */}
+        <div className="bg-white rounded-lg border border-gray-200 w-full">
+          <EnhancedTable dualScrollbars={false} stickyHeader={true} maxHeight="calc(100vh - 300px)">
+            <EnhancedTableHeader>
+              <EnhancedTableRow className="transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50">
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '120px', minWidth: '120px'}}>
+                  <div className="flex items-center gap-2 justify-center">
+                    <span>Status</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '300px', minWidth: '300px'}}>
+                  <div className="flex items-center gap-2 justify-start">
+                    <span>Name</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '200px', minWidth: '200px'}}>
+                  <div className="flex items-center gap-2 justify-start">
+                    <span>Company</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '150px', minWidth: '150px'}}>
+                  <div className="flex items-center gap-2 justify-start">
+                    <span>Role</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '150px', minWidth: '150px'}}>
+                  <div className="flex items-center gap-2 justify-start">
+                    <span>Location</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '150px', minWidth: '150px'}}>
+                  <div className="flex items-center gap-2 justify-start">
+                    <span>Assigned To</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '100px', minWidth: '100px'}}>
+                  <div className="flex items-center gap-2 justify-center">
+                    <span>AI Score</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '120px', minWidth: '120px'}}>
+                  <div className="flex items-center gap-2 justify-center">
+                    <span>Created</span>
+                  </div>
+                </EnhancedTableHead>
+              </EnhancedTableRow>
+            </EnhancedTableHeader>
+            <EnhancedTableBody>
+              {tableData.map((lead, index) => (
+                <EnhancedTableRow 
+                  key={lead.id} 
+                  className="data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group cursor-pointer relative min-h-[56px]" 
+                  role="row" 
+                  tabIndex={0} 
+                  aria-label={`Row ${index + 1}`}
+                  onClick={() => handleRowClick(lead as Lead)}
+                >
+                  {/* Status */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '120px', minWidth: '120px'}}>
+                    <div className="border justify-center items-center flex mx-auto bg-blue-50 text-blue-700 border-blue-200 h-8 text-xs font-medium rounded-full text-center px-3">
+                      {lead.status === 'new' ? getStatusDisplayText('new') :
+                       lead.status === 'contacted' ? 'Contacted' :
+                       lead.status === 'qualified' ? 'Qualified' :
+                       lead.status === 'unqualified' ? 'Unqualified' :
+                       lead.status === 'meeting_scheduled' ? getStatusDisplayText('meeting_scheduled') :
+                       lead.status === 'proposal_sent' ? getStatusDisplayText('proposal_sent') :
+                       lead.status === 'negotiation' ? getStatusDisplayText('negotiation') :
+                       lead.status === 'closed_won' ? getStatusDisplayText('closed_won') :
+                       lead.status === 'closed_lost' ? getStatusDisplayText('closed_lost') :
+                       getStatusDisplayText('new')}
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Name */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '300px', minWidth: '300px'}}>
+                    <div 
+                      className="min-w-0 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors duration-150"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRowClick(lead as Lead);
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <FavoriteToggle
+                            entityId={lead.id}
+                            entityType="lead"
+                            isFavorite={lead.is_favourite || false}
+                            onToggle={(isFavorite) => {
+                              setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, is_favourite: isFavorite } : l));
+                            }}
+                            size="sm"
+                          />
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <div className="text-sm font-medium break-words leading-tight hover:text-sidebar-primary transition-colors duration-150">
+                            {lead.name || "-"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Company */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '200px', minWidth: '200px'}}>
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {lead.company_name || "-"}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Role */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '150px', minWidth: '150px'}}>
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {lead.company_role || "-"}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Location */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '150px', minWidth: '150px'}}>
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {lead.employee_location || "-"}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Assigned To */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '150px', minWidth: '150px'}}>
+                    <div className="min-w-0">
+                      <OwnerDisplay 
+                        ownerId={lead.owner_id} 
+                        entityId={lead.id} 
+                        entityType="lead"
+                        onAssignmentChange={() => {
+                          console.log('Assignment changed for lead:', lead.id);
+                        }}
+                        className="text-sm"
+                      />
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* AI Score */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '100px', minWidth: '100px'}}>
+                    <div className="flex items-center justify-center">
+                      <div className="text-sm font-medium text-muted-foreground">
+                        {lead.lead_score ? `${lead.lead_score}/100` : "-"}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Created */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '120px', minWidth: '120px'}}>
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {lead.created_at ? new Date(lead.created_at).toLocaleDateString() : "-"}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                </EnhancedTableRow>
+              ))}
+            </EnhancedTableBody>
+          </EnhancedTable>
+        </div>
 
       {/* Person Detail Modal - Now handled by UnifiedPopup */}
 
@@ -654,7 +775,7 @@ const People = () => {
       {selectedLeadForAssignment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Assign Person</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">Assign Person</h3>
             <p className="text-sm text-gray-600 mb-4">
               Assign "{selectedLeadForAssignment.name}" to a user
             </p>
@@ -742,8 +863,21 @@ const People = () => {
           </div>
         </div>
       )}
+
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        placeholder="Search people..."
+        value={searchTerm}
+        onChange={setSearchTerm}
+        onSearch={(value) => {
+          setSearchTerm(value);
+          setIsSearchModalOpen(false);
+        }}
+      />
     </Page>
   );
 };
 
-export default People;
+export default memo(People);

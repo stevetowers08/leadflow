@@ -13,6 +13,8 @@
  */
 
 import { DropdownSelect } from "@/components/ui/dropdown-select";
+import { EnhancedTable, EnhancedTableBody, EnhancedTableCell, EnhancedTableHead, EnhancedTableHeader, EnhancedTableRow } from "@/components/ui/enhanced-table";
+import { SearchIconButton, SearchModal } from "@/components/ui/search-modal";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Page, type StatItemProps } from "@/design-system/components";
@@ -20,10 +22,10 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
-import { getJobStatus } from "@/utils/jobStatus";
-import { getClearbitLogo } from "@/utils/logoService";
+import { getClearbitLogo } from "@/services/logoService";
+import { getJobStatusFromPipeline } from "@/utils/jobStatus";
+import { getStatusDisplayText } from "@/utils/statusUtils";
 import {
-    ArrowUpDown,
     Bot,
     Briefcase,
     Building2,
@@ -32,12 +34,11 @@ import {
     ChevronRight,
     Clock,
     DollarSign,
-    Search,
     Star,
     Target,
     Zap
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 
 type Job = Tables<"jobs"> & {
   companies?: {
@@ -65,6 +66,7 @@ const Jobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string>("posted_date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -81,7 +83,7 @@ const Jobs = () => {
 
   // Calculate job status based on company's pipeline stage
   const getJobStatusFromCompany = (job: Job): string => {
-    return getJobStatus(job.companies?.pipeline_stage);
+    return getJobStatusFromPipeline(job.companies?.pipeline_stage);
   };
 
   // Sort options
@@ -96,8 +98,8 @@ const Jobs = () => {
   // Status options (based on automation_active and other job states)
   const statusOptions = [
     { label: "All Statuses", value: "all" },
-    { label: "Active", value: "active" },
-    { label: "Automated", value: "automated" },
+    { label: getStatusDisplayText("active"), value: "active" },
+    { label: getStatusDisplayText("automated"), value: "automated" },
     { label: "Not Automated", value: "not_automated" },
     { label: "Expired", value: "expired" },
   ];
@@ -105,9 +107,9 @@ const Jobs = () => {
   // Priority options
   const priorityOptions = [
     { label: "All Priorities", value: "all" },
-    { label: "High", value: "high" },
-    { label: "Medium", value: "medium" },
-    { label: "Low", value: "low" },
+    { label: getStatusDisplayText("high"), value: "high" },
+    { label: getStatusDisplayText("medium"), value: "medium" },
+    { label: getStatusDisplayText("low"), value: "low" },
   ];
 
   // Fetch jobs data
@@ -253,17 +255,25 @@ const Jobs = () => {
   // Filtered jobs
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
+      // Search filter
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        return (
+        const matchesSearch = (
           job.title?.toLowerCase().includes(searchLower) ||
           job.companies?.name?.toLowerCase().includes(searchLower) ||
           job.location?.toLowerCase().includes(searchLower)
         );
+        if (!matchesSearch) return false;
       }
+      
+      // Favorites filter (based on company's favorite status)
+      if (showFavoritesOnly && !job.companies?.is_favourite) {
+        return false;
+      }
+      
       return true;
     });
-  }, [jobs, searchTerm]);
+  }, [jobs, searchTerm, showFavoritesOnly]);
 
 
   // Company Logo Component
@@ -298,11 +308,11 @@ const Jobs = () => {
     function: job.function || "-",
     priority: job.priority || "medium",
     ai_score: job.lead_score_job || job.companies?.lead_score || "-",
-    leads: job.companies?.people?.[0]?.count || "-",
+    leads: "-", // TODO: Add proper leads count
     posted_date: job.posted_date || null,
     expires: job.valid_through || "-",
     status: getJobStatusFromCompany(job),
-    is_favorite: job.is_favorite,
+    is_favorite: job.companies?.is_favourite,
   })), [filteredJobs]);
 
   // Calculate pagination
@@ -324,10 +334,10 @@ const Jobs = () => {
       title=""
       stats={stats}
     >
-      {/* Unified Tabs and Action Bar */}
-      <div className="flex items-center justify-between gap-4 mb-6">
-        {/* Modern Filter Tabs */}
-        <div className="flex items-center gap-1">
+      {/* Unified Tabs and Action Bar - Full Width */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6 w-full">
+        {/* Modern Filter Tabs - Compact Style */}
+        <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-gray-200 shadow-sm overflow-x-auto w-full lg:w-auto">
           {[
             { 
               id: "recent", 
@@ -364,22 +374,22 @@ const Jobs = () => {
                 onClick={() => setStatusFilter(tab.id)}
                 className={cn(
                   "group relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-all duration-200",
-                  "border-b-2 border-transparent hover:border-gray-200",
-                  "focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-1",
+                  "rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-1",
+                  "whitespace-nowrap flex-shrink-0",
                   statusFilter === tab.id
-                    ? "text-primary-600 border-primary-600 bg-primary-50/50"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50/50"
+                    ? "bg-primary-500 text-white shadow-sm"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                 )}
               >
                 <Icon className={cn(
                   "h-4 w-4 transition-colors",
-                  statusFilter === tab.id ? "text-primary-600" : "text-gray-400 group-hover:text-gray-600"
+                  statusFilter === tab.id ? "text-white" : "text-gray-400 group-hover:text-gray-600"
                 )} />
                 <span className="font-medium">{tab.label}</span>
                 <span className={cn(
-                  "inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold rounded-full transition-colors min-w-[20px]",
+                  "inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold rounded-md transition-colors min-w-[20px]",
                   statusFilter === tab.id
-                    ? "bg-primary-100 text-primary-700"
+                    ? "bg-white/20 text-white"
                     : "bg-gray-100 text-gray-500 group-hover:bg-gray-200 group-hover:text-gray-600"
                 )}>
                   {tab.count}
@@ -390,155 +400,162 @@ const Jobs = () => {
         </div>
 
         {/* Action Bar */}
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-            placeholder="Search jobs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-48 text-sm"
-          />
-          </div>
-          
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
           {/* Status Filter */}
           <DropdownSelect
             options={statusOptions}
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value)}
             placeholder="All Statuses"
-            className="min-w-32 bg-white"
+            className="min-w-32 bg-white h-8"
           />
 
-          {/* Sort */}
-          <div className="flex items-center gap-2">
-            <ArrowUpDown className="h-4 w-4 text-gray-500" />
-          <DropdownSelect
-            options={sortOptions}
-            value={sortBy}
-            onValueChange={(value) => setSortBy(value)}
-            placeholder="Sort by"
-              className="min-w-32 bg-white"
+          {/* Favorites Icon Button */}
+          <button
+            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            className={cn(
+              "h-8 w-8 rounded-md border flex items-center justify-center transition-colors action-bar-icon",
+              showFavoritesOnly 
+                ? "bg-primary-50 text-primary-700 border-primary-200" 
+                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+            )}
+            title={showFavoritesOnly ? "Show all jobs" : "Show favorites only"}
+          >
+            <Star className={cn("h-4 w-4", showFavoritesOnly && "fill-current")} />
+          </button>
+
+          {/* Sort Controls - Far Right */}
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="text-sm text-muted-foreground">Sort:</span>
+            <DropdownSelect
+              options={sortOptions}
+              value={sortBy}
+              onValueChange={(value) => setSortBy(value)}
+              placeholder="Sort by"
+              className="min-w-32 bg-white h-8"
             />
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors h-8 w-8 flex items-center justify-center action-bar-icon"
               title={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
             >
               {sortOrder === "asc" ? "↑" : "↓"}
             </button>
+            
+            {/* Search Icon Button - Far Right */}
+            <SearchIconButton 
+              onClick={() => setIsSearchModalOpen(true)}
+              className="ml-2"
+            />
           </div>
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="overflow-x-auto">
-          <table className="w-full caption-bottom text-sm min-w-full font-sans" role="table" aria-label="Data table">
-          <thead className="[&_tr]:border-b">
-            <tr className="transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50">
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center" scope="col" style={{width: '120px', minWidth: '120px'}}>
+      {/* Data Table - Full Width */}
+      <div className="bg-white rounded-lg border border-gray-200 w-full">
+        <EnhancedTable dualScrollbars={false} stickyHeader={true} maxHeight="calc(100vh - 300px)">
+          <EnhancedTableHeader>
+            <EnhancedTableRow className="transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50">
+              <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '120px', minWidth: '120px'}}>
                 <div className="flex items-center gap-2 justify-center">
                   <span>Status</span>
                 </div>
-              </th>
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left" scope="col" style={{width: '450px', minWidth: '450px'}}>
+              </EnhancedTableHead>
+              <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '450px', minWidth: '450px'}}>
                 <div className="flex items-center gap-2 justify-start">
                   <span>Job Title</span>
                 </div>
-              </th>
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left" scope="col" style={{width: '300px', minWidth: '300px'}}>
+              </EnhancedTableHead>
+              <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '300px', minWidth: '300px'}}>
                 <div className="flex items-center gap-2 justify-start">
                   <span>Company</span>
                 </div>
-              </th>
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left" scope="col" style={{width: '200px', minWidth: '200px'}}>
+              </EnhancedTableHead>
+              <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '200px', minWidth: '200px'}}>
                 <div className="flex items-center gap-2 justify-start">
                   <span>Industry</span>
                 </div>
-              </th>
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left" scope="col" style={{width: '150px', minWidth: '150px'}}>
+              </EnhancedTableHead>
+              <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '150px', minWidth: '150px'}}>
                 <div className="flex items-center gap-2 justify-start">
                   <span>Location</span>
                 </div>
-              </th>
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left" scope="col" style={{width: '180px', minWidth: '180px'}}>
+              </EnhancedTableHead>
+              <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '180px', minWidth: '180px'}}>
                 <div className="flex items-center gap-2 justify-start">
                   <span>Function</span>
                 </div>
-              </th>
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center" scope="col" style={{width: '120px', minWidth: '120px'}}>
+              </EnhancedTableHead>
+              <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '120px', minWidth: '120px'}}>
                 <div className="flex items-center gap-2 justify-center">
                   <span>Priority</span>
                 </div>
-              </th>
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center" scope="col" style={{width: '100px', minWidth: '100px'}}>
+              </EnhancedTableHead>
+              <EnhancedTableHead className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center" scope="col" style={{width: '100px', minWidth: '100px'}}>
                 <div className="flex items-center gap-2 justify-center">
                   <span>AI Score</span>
                 </div>
-              </th>
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center" scope="col" style={{width: '100px', minWidth: '100px'}}>
+              </EnhancedTableHead>
+              <EnhancedTableHead className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center" scope="col" style={{width: '100px', minWidth: '100px'}}>
                 <div className="flex items-center gap-2 justify-center">
                   <span>Leads</span>
                 </div>
-              </th>
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center" scope="col" style={{width: '120px', minWidth: '120px'}}>
+              </EnhancedTableHead>
+              <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '120px', minWidth: '120px'}}>
                 <div className="flex items-center gap-2 justify-center">
                   <span>Posted</span>
                 </div>
-              </th>
-              <th className="h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center" scope="col" style={{width: '120px', minWidth: '120px'}}>
+              </EnhancedTableHead>
+              <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '120px', minWidth: '120px'}}>
                 <div className="flex items-center gap-2 justify-center">
                   <span>Expires</span>
                 </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="[&_tr:last-child]:border-0">
+              </EnhancedTableHead>
+            </EnhancedTableRow>
+          </EnhancedTableHeader>
+          <EnhancedTableBody>
             {paginatedJobs.map((job, index) => (
-              <tr 
+              <EnhancedTableRow 
                 key={job.id} 
-                className="data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group cursor-pointer relative" 
+                className="data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group cursor-pointer relative min-h-[56px]" 
                 role="row" 
                 tabIndex={0} 
                 aria-label={`Row ${index + 1}`}
                 onClick={() => openPopup('job', job.id, job.title)}
               >
                 {/* Status */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 text-center" style={{width: '120px', minWidth: '120px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '120px', minWidth: '120px'}}>
                   <div className="border justify-center items-center flex mx-auto bg-blue-50 text-blue-700 border-blue-200 h-8 text-xs font-medium rounded-full text-center px-3 min-w-[80px]">
-                    New Lead
+                    {getStatusDisplayText(getJobStatusFromCompany(job))}
                   </div>
-                </td>
+                </EnhancedTableCell>
                 
                 {/* Job Title */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0" style={{width: '450px', minWidth: '450px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '450px', minWidth: '450px'}}>
                   <div className="min-w-0">
                     <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                       {job.title || "-"}
                     </div>
                   </div>
-                </td>
+                </EnhancedTableCell>
                 
                 {/* Company */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0" style={{width: '300px', minWidth: '300px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '300px', minWidth: '300px'}}>
                   <div className="min-w-0 cursor-pointer hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors duration-150">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
                         {job.companies?.website ? (
                           <img 
                             src={getClearbitLogo(job.companies.name || "")} 
                             alt={job.companies.name}
-                            className="w-6 h-6 rounded-lg object-cover"
+                            className="w-8 h-8 rounded-lg object-cover"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
                               e.currentTarget.nextElementSibling?.classList.remove('hidden');
                             }}
                           />
                         ) : null}
-                        <div className="w-6 h-6 rounded-lg bg-blue-600 text-white items-center justify-center text-xs font-semibold hidden">
+                        <div className="w-8 h-8 rounded-lg bg-blue-600 text-white items-center justify-center text-xs font-semibold hidden">
                           {job.companies?.name ? job.companies.name.charAt(0).toUpperCase() : '?'}
                         </div>
                       </div>
@@ -548,50 +565,50 @@ const Jobs = () => {
                         </div>
                       </div>
                       <div>
-                        <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation hover:scale-[1.02] active:scale-98 min-h-[44px] h-6 w-6 p-0 hover:bg-transparent text-gray-500 hover:text-yellow-500">
+                        <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation hover:scale-[1.02] active:scale-98 h-8 w-8 p-0 hover:bg-transparent text-gray-500 hover:text-yellow-500 action-bar-icon">
                           <Star className="h-3 w-3" />
                         </button>
                       </div>
                     </div>
                   </div>
-                </td>
+                </EnhancedTableCell>
                 
                 {/* Industry */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0" style={{width: '200px', minWidth: '200px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '200px', minWidth: '200px'}}>
                   <div className="min-w-0">
                     <div className="text-sm text-gray-500 leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                       {job.companies?.industry || "-"}
                     </div>
                   </div>
-                </td>
+                </EnhancedTableCell>
                 
                 {/* Location */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0" style={{width: '150px', minWidth: '150px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '150px', minWidth: '150px'}}>
                   <div className="min-w-0">
                     <div className="text-sm text-gray-500 leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                       {job.location || "-"}
                     </div>
                   </div>
-                </td>
+                </EnhancedTableCell>
                 
                 {/* Function */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0" style={{width: '180px', minWidth: '180px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '180px', minWidth: '180px'}}>
                   <div className="min-w-0">
                     <div className="text-sm text-gray-500 leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                       {job.function || "-"}
                     </div>
                   </div>
-                </td>
+                </EnhancedTableCell>
                 
                 {/* Priority */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 text-center" style={{width: '120px', minWidth: '120px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '120px', minWidth: '120px'}}>
                   <div className="border justify-center items-center flex mx-auto bg-orange-50 text-orange-700 border-orange-200 h-8 text-xs font-medium rounded-full text-center px-3 min-w-[80px]">
                     {job.priority || "Medium"}
                   </div>
-                </td>
+                </EnhancedTableCell>
                 
                 {/* AI Score */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 text-center" style={{width: '100px', minWidth: '100px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '100px', minWidth: '100px'}}>
                   <div className="flex items-center justify-center">
                     <div className="flex flex-col items-center gap-1">
                       <div className="px-2.5 py-0.5 text-xs font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-sm bg-rose-50 text-rose-700 border-rose-200 border w-12 h-8 rounded-full flex items-center justify-center">
@@ -599,35 +616,34 @@ const Jobs = () => {
                       </div>
                     </div>
                   </div>
-                </td>
+                </EnhancedTableCell>
                 
                 {/* Leads */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 text-center" style={{width: '100px', minWidth: '100px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '100px', minWidth: '100px'}}>
                   <div className="flex items-center justify-center">
                     <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 border border-gray-200">
                       {job.total_leads || 0}
                     </span>
                   </div>
-                </td>
+                </EnhancedTableCell>
                 
                 {/* Posted */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 text-center" style={{width: '120px', minWidth: '120px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '120px', minWidth: '120px'}}>
                   <span className="text-sm text-gray-500">
                     {job.posted_date ? new Date(job.posted_date).toLocaleDateString() : "-"}
                   </span>
-                </td>
+                </EnhancedTableCell>
                 
                 {/* Expires */}
-                <td className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 text-center" style={{width: '120px', minWidth: '120px'}}>
+                <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '120px', minWidth: '120px'}}>
                   <span className="text-sm text-gray-500">
                     {job.valid_through ? new Date(job.valid_through).toLocaleDateString() : "-"}
                   </span>
-                </td>
-              </tr>
+                </EnhancedTableCell>
+              </EnhancedTableRow>
             ))}
-          </tbody>
-        </table>
-        </div>
+          </EnhancedTableBody>
+        </EnhancedTable>
       </div>
 
       {/* Pagination */}
@@ -655,8 +671,21 @@ const Jobs = () => {
           </button>
         </div>
       </div>
+
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        placeholder="Search jobs..."
+        value={searchTerm}
+        onChange={setSearchTerm}
+        onSearch={(value) => {
+          setSearchTerm(value);
+          setIsSearchModalOpen(false);
+        }}
+      />
     </Page>
   );
 };
 
-export default Jobs;
+export default memo(Jobs);

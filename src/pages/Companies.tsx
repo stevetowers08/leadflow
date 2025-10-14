@@ -1,21 +1,22 @@
-// Replace legacy DataTable with ModernDataTable
+// Companies page using EnhancedTable directly (like Jobs page)
 import { FavoriteToggle } from "@/components/FavoriteToggle";
 import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { AIScoreBadge } from "@/components/ai/AIScoreBadge";
 import { Button } from "@/components/ui/button";
-import { SearchInput } from "@/components/ui/consistent-controls";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
+import { EnhancedTable, EnhancedTableBody, EnhancedTableCell, EnhancedTableHead, EnhancedTableHeader, EnhancedTableRow } from "@/components/ui/enhanced-table";
+import { SearchIconButton, SearchModal } from "@/components/ui/search-modal";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Page, type StatItemProps } from "@/design-system/components";
-import { ModernDataTable } from "@/design-system/modern-components";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
 import { OPTIMIZED_QUERIES } from "@/utils/queryOptimizer";
-import { ArrowUpDown, Building2, CheckCircle, Star, Target, Zap } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { getStatusDisplayText } from "@/utils/statusUtils";
+import { Building2, CheckCircle, Star, Target, Zap } from "lucide-react";
+import { memo, useEffect, useMemo, useState } from "react";
 
 type Company = Tables<"companies"> & {
   people_count?: number;
@@ -31,6 +32,7 @@ const Companies = () => {
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [isSavingAssignment, setIsSavingAssignment] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -54,8 +56,8 @@ const Companies = () => {
   // Status filter options
   const statusOptions = [
     { label: "All Stages", value: "all" },
-    { label: "New Lead", value: "new_lead" },
-    { label: "Automated", value: "automated" },
+    { label: getStatusDisplayText("new_lead"), value: "new_lead" },
+    { label: getStatusDisplayText("automated"), value: "automated" },
     { label: "Replied", value: "replied" },
     { label: "Meeting Scheduled", value: "meeting_scheduled" },
     { label: "Proposal Sent", value: "proposal_sent" },
@@ -207,8 +209,6 @@ const Companies = () => {
         throw allError;
       }
       
-      console.log('Total companies fetched:', allCompanies?.length);
-      
       // Get people count for each company
       const { data: peopleCounts, error: peopleError } = await supabase
         .from("people")
@@ -290,8 +290,6 @@ const Companies = () => {
         tags: companyTagsMap[company.id] || [],
       }));
 
-      console.log('Companies with counts:', companiesWithCounts.length);
-
       setCompanies(companiesWithCounts);
     } catch (error) {
       console.error('Error fetching companies:', error);
@@ -337,16 +335,16 @@ const Companies = () => {
       label: "Status",
       render: (v: any) => (
         <div className="border justify-center items-center flex mx-auto bg-blue-50 text-blue-700 border-blue-200 h-8 text-xs font-medium rounded-full text-center px-3 min-w-[80px]">
-          {v === 'new_lead' ? 'New Lead' : 
-           v === 'automated' ? 'Automated' :
-           v === 'replied' ? 'Replied' :
-           v === 'meeting_scheduled' ? 'Meeting Scheduled' :
-           v === 'proposal_sent' ? 'Proposal Sent' :
-           v === 'negotiation' ? 'Negotiation' :
-           v === 'closed_won' ? 'Closed Won' :
-           v === 'closed_lost' ? 'Closed Lost' :
-           v === 'on_hold' ? 'On Hold' :
-           'New Lead'}
+          {v === 'new_lead' ? getStatusDisplayText('new_lead') : 
+           v === 'automated' ? getStatusDisplayText('automated') :
+           v === 'replied' ? getStatusDisplayText('replied') :
+           v === 'meeting_scheduled' ? getStatusDisplayText('meeting_scheduled') :
+           v === 'proposal_sent' ? getStatusDisplayText('proposal_sent') :
+           v === 'negotiation' ? getStatusDisplayText('negotiation') :
+           v === 'closed_won' ? getStatusDisplayText('closed_won') :
+           v === 'closed_lost' ? getStatusDisplayText('closed_lost') :
+           v === 'on_hold' ? getStatusDisplayText('on_hold') :
+           getStatusDisplayText('new_lead')}
         </div>
       ),
     },
@@ -412,7 +410,7 @@ const Companies = () => {
       label: "Assigned To",
       render: (_: any, row: any) => (
         <div 
-          className="cursor-pointer hover:bg-gray-50 rounded-md p-2 -m-2 transition-colors duration-150"
+          className="cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors duration-150"
           onClick={(e) => {
             e.stopPropagation();
             setSelectedCompanyForAssignment(row as Company);
@@ -442,14 +440,14 @@ const Companies = () => {
       key: "people_count",
       label: "People",
       render: (v: any) => (
-        <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 border border-gray-200">{v || 0}</span>
+        <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-muted border">{v || 0}</span>
       ),
     },
     {
       key: "jobs_count",
       label: "Jobs",
       render: (v: any) => (
-        <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 border border-gray-200">{v || 0}</span>
+        <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-muted border">{v || 0}</span>
       ),
     },
     {
@@ -479,10 +477,7 @@ const Companies = () => {
   })), [filteredAndSortedCompanies]);
 
   const handleRowClick = (company: Company) => {
-    console.log('🔍 Company clicked:', company.name, company.id);
-    console.log('🔍 openPopup function:', openPopup);
     openPopup('company', company.id, company.name);
-    console.log('🔍 openPopup called');
   };
 
   const handleDeleteCompany = async (companyId: string, companyName: string) => {
@@ -544,24 +539,16 @@ const Companies = () => {
         hideHeader
       >
 
-        {/* Search, Filter and Sort Controls */}
-        <div className="flex items-center justify-between gap-4 mb-4">
+        {/* Search, Filter and Sort Controls - Full Width */}
+        <div className="flex items-center justify-between gap-4 mb-4 w-full">
           <div className="flex items-center gap-3">
-            {/* Search */}
-            <SearchInput
-              placeholder="Search companies..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64"
-            />
-            
             {/* Status Filter */}
             <DropdownSelect
               options={statusOptions}
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value)}
               placeholder="All Statuses"
-              className="min-w-32 bg-background h-9"
+              className="min-w-32 bg-background h-8"
             />
             
             {/* Assignment Filter */}
@@ -576,51 +563,266 @@ const Companies = () => {
               value={selectedUser}
               onValueChange={(value) => setSelectedUser(value)}
               placeholder="Filter by user"
-              className="min-w-40 bg-white h-9"
+              className="min-w-40 bg-white h-8"
             />
             
 
-            {/* Favorites Filter */}
+            {/* Favorites Icon Button */}
             <button
               onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
               className={cn(
-                "flex items-center gap-2 px-3 h-9 rounded-md text-sm font-medium transition-colors bg-white border border-border",
+                "h-8 w-8 rounded-md border flex items-center justify-center transition-colors action-bar-icon",
                 showFavoritesOnly 
-                  ? "text-sidebar-primary" 
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-primary-50 text-primary-700 border-primary-200" 
+                  : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
               )}
+              title={showFavoritesOnly ? "Show all companies" : "Show favorites only"}
             >
               <Star className={cn("h-4 w-4", showFavoritesOnly && "fill-current")} />
-              Favorites
-              {companies.filter(company => company.is_favourite).length > 0 && (
-                <span className="ml-1 text-xs bg-white/20 px-1.5 py-0.5 rounded-full">
-                  {companies.filter(company => company.is_favourite).length}
-                </span>
-              )}
             </button>
           </div>
           
           {/* Sort Controls - Far Right */}
           <div className="flex items-center gap-2">
-            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">Sort:</span>
             <DropdownSelect
               options={sortOptions}
               value={sortBy}
               onValueChange={(value) => setSortBy(value)}
               placeholder="Select sort"
-              className="min-w-32 bg-background h-9"
+              className="min-w-32 bg-background h-8"
             />
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="px-2 h-9 text-sm border rounded bg-white hover:bg-gray-50"
+              className="px-2 h-8 text-sm border rounded bg-background hover:bg-muted/50 flex items-center justify-center action-bar-icon"
+              title={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
             >
               {sortOrder === "asc" ? "↑" : "↓"}
             </button>
+            
+            {/* Search Icon Button - Far Right */}
+            <SearchIconButton 
+              onClick={() => setIsSearchModalOpen(true)}
+              className="ml-2"
+            />
           </div>
         </div>
 
-        <ModernDataTable data={tableData} columns={columns as any} loading={loading} />
+        {/* Data Table - Full Width */}
+        <div className="bg-white rounded-lg border border-gray-200 w-full">
+          <EnhancedTable dualScrollbars={false} stickyHeader={true} maxHeight="calc(100vh - 300px)">
+            <EnhancedTableHeader>
+              <EnhancedTableRow className="transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50">
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '120px', minWidth: '120px'}}>
+                  <div className="flex items-center gap-2 justify-center">
+                    <span>Status</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '300px', minWidth: '300px'}}>
+                  <div className="flex items-center gap-2 justify-start">
+                    <span>Company</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '200px', minWidth: '200px'}}>
+                  <div className="flex items-center gap-2 justify-start">
+                    <span>Head Office</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '150px', minWidth: '150px'}}>
+                  <div className="flex items-center gap-2 justify-start">
+                    <span>Industry</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '120px', minWidth: '120px'}}>
+                  <div className="flex items-center gap-2 justify-start">
+                    <span>Size</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-left min-h-[56px]" scope="col" style={{width: '150px', minWidth: '150px'}}>
+                  <div className="flex items-center gap-2 justify-start">
+                    <span>Assigned To</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '100px', minWidth: '100px'}}>
+                  <div className="flex items-center gap-2 justify-center">
+                    <span>AI Score</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '100px', minWidth: '100px'}}>
+                  <div className="flex items-center gap-2 justify-center">
+                    <span>People</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '100px', minWidth: '100px'}}>
+                  <div className="flex items-center gap-2 justify-center">
+                    <span>Jobs</span>
+                  </div>
+                </EnhancedTableHead>
+                <EnhancedTableHead className="h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]" scope="col" style={{width: '120px', minWidth: '120px'}}>
+                  <div className="flex items-center gap-2 justify-center">
+                    <span>Created</span>
+                  </div>
+                </EnhancedTableHead>
+              </EnhancedTableRow>
+            </EnhancedTableHeader>
+            <EnhancedTableBody>
+              {tableData.map((company, index) => (
+                <EnhancedTableRow 
+                  key={company.id} 
+                  className="data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group cursor-pointer relative min-h-[56px]" 
+                  role="row" 
+                  tabIndex={0} 
+                  aria-label={`Row ${index + 1}`}
+                  onClick={() => handleRowClick(company as Company)}
+                >
+                  {/* Status */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '120px', minWidth: '120px'}}>
+                    <div className="border justify-center items-center flex mx-auto bg-blue-50 text-blue-700 border-blue-200 h-8 text-xs font-medium rounded-full text-center px-3 min-w-[80px]">
+                      {company.status === 'new_lead' ? getStatusDisplayText('new_lead') : 
+                       company.status === 'automated' ? getStatusDisplayText('automated') :
+                       company.status === 'replied' ? getStatusDisplayText('replied') :
+                       company.status === 'meeting_scheduled' ? getStatusDisplayText('meeting_scheduled') :
+                       company.status === 'proposal_sent' ? getStatusDisplayText('proposal_sent') :
+                       company.status === 'negotiation' ? getStatusDisplayText('negotiation') :
+                       company.status === 'closed_won' ? getStatusDisplayText('closed_won') :
+                       company.status === 'closed_lost' ? getStatusDisplayText('closed_lost') :
+                       company.status === 'on_hold' ? getStatusDisplayText('on_hold') :
+                       getStatusDisplayText('new_lead')}
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Company */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '300px', minWidth: '300px'}}>
+                    <div 
+                      className="min-w-0 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors duration-150"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRowClick(company as Company);
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <FavoriteToggle
+                            entityId={company.id}
+                            entityType="company"
+                            isFavorite={company.is_favourite || false}
+                            onToggle={(isFavorite) => {
+                              setCompanies(prev => prev.map(c => c.id === company.id ? { ...c, is_favourite: isFavorite } : c));
+                            }}
+                            size="sm"
+                          />
+                        </div>
+                        <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                          {company.website ? (
+                            <img 
+                              src={`https://logo.clearbit.com/${company.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]}`}
+                              alt={company.name}
+                              className="w-8 h-8 rounded-lg object-cover"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                const nextElement = (e.currentTarget.nextElementSibling as HTMLElement);
+                                if (nextElement) {
+                                  nextElement.style.display = 'flex';
+                                }
+                              }}
+                            />
+                          ) : null}
+                          <div 
+                            className="w-8 h-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center"
+                            style={{ display: company.website ? 'none' : 'flex' }}
+                          >
+                            <Building2 className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <div className="text-sm font-medium break-words leading-tight hover:text-sidebar-primary transition-colors duration-150">
+                            {company.name || "-"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Head Office */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '200px', minWidth: '200px'}}>
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {company.head_office || "-"}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Industry */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '150px', minWidth: '150px'}}>
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {company.industry || "-"}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Size */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '120px', minWidth: '120px'}}>
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {company.company_size || "-"}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Assigned To */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px]" style={{width: '150px', minWidth: '150px'}}>
+                    <div className="min-w-0">
+                      <OwnerDisplay 
+                        ownerId={company.owner_id} 
+                        entityId={company.id} 
+                        entityType="company"
+                        onAssignmentChange={() => {
+                          console.log('Assignment changed for company:', company.id);
+                        }}
+                        className="text-sm"
+                      />
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* AI Score */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '100px', minWidth: '100px'}}>
+                    <div className="flex items-center justify-center">
+                      <AIScoreBadge leadData={{ name: company.name || "", company: company.name || "", role: "", location: company.head_office || "" }} initialScore={company.lead_score ? parseInt(company.lead_score) : undefined} />
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* People Count */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '100px', minWidth: '100px'}}>
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {company.people_count || 0}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Jobs Count */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '100px', minWidth: '100px'}}>
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {company.jobs_count || 0}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                  
+                  {/* Created */}
+                  <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '120px', minWidth: '120px'}}>
+                    <div className="min-w-0">
+                      <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                        {company.created_at ? new Date(company.created_at).toLocaleDateString() : "-"}
+                      </div>
+                    </div>
+                  </EnhancedTableCell>
+                </EnhancedTableRow>
+              ))}
+            </EnhancedTableBody>
+          </EnhancedTable>
+        </div>
 
       {/* Company Detail Modal - Now handled by UnifiedPopup */}
 
@@ -628,8 +830,8 @@ const Companies = () => {
       {selectedCompanyForAssignment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Assign Company</h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Assign Company</h3>
+            <p className="text-sm text-muted-foreground mb-4">
               Assign "{selectedCompanyForAssignment.name}" to a user
             </p>
             
@@ -716,8 +918,21 @@ const Companies = () => {
           </div>
         </div>
       )}
+
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        placeholder="Search companies..."
+        value={searchTerm}
+        onChange={setSearchTerm}
+        onSearch={(value) => {
+          setSearchTerm(value);
+          setIsSearchModalOpen(false);
+        }}
+      />
     </Page>
   );
 };
 
-export default Companies;
+export default memo(Companies);

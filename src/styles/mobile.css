@@ -19,6 +19,23 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Enhanced safe area handling for better edge-to-edge experience */
+.safe-area-inset-left {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.safe-area-inset-right {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Prevent zoom on input focus */
 @media screen and (max-width: 767px) {
   input[type="text"],
@@ -37,6 +54,17 @@
   .mobile-input {
     font-size: 16px;
   }
+}
+
+/* Action bar icons - keep them at h-8 w-8 on ALL devices */
+.action-bar-icon,
+button[title="Search"],
+button[title*="favorite"],
+button[title*="Favorite"] {
+  min-height: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  width: 32px !important;
 }
 
 /* Better touch targets */

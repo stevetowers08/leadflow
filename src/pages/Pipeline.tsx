@@ -3,10 +3,8 @@ import { OwnerDisplay } from "@/components/OwnerDisplay";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
 import { Page } from "@/design-system/components";
 import { designTokens } from "@/design-system/tokens";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -27,9 +25,9 @@ import {
 import {
     CSS,
 } from '@dnd-kit/utilities';
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Brain, Building2, CheckCircle, FileText, Filter, MapPin, RefreshCw, Star, User, Users, XCircle, Zap } from "lucide-react";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Company = Tables<"companies"> & {
   people_count?: number;
@@ -51,9 +49,53 @@ const Pipeline = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showAllAssignedUsers, setShowAllAssignedUsers] = useState(false);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
-  const { toast } = useToast();
-  const { openPopup } = usePopupNavigation();
-  const queryClient = useQueryClient();
+  const [pipelineWidth, setPipelineWidth] = useState(0);
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+  // Scrollbar synchronization for Pipeline
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    const syncScroll = (source: HTMLElement, target: HTMLElement) => {
+      if (source !== target) {
+        target.scrollLeft = source.scrollLeft;
+      }
+    };
+
+    const handleTopScroll = () => {
+      syncScroll(topScroll, bottomScroll);
+    };
+
+    const handleBottomScroll = () => {
+      syncScroll(bottomScroll, topScroll);
+    };
+
+    topScroll.addEventListener('scroll', handleTopScroll);
+    bottomScroll.addEventListener('scroll', handleBottomScroll);
+
+    return () => {
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+    };
+  }, []);
+
+  // Calculate pipeline width for scrollbar
+  useEffect(() => {
+    const calculateWidth = () => {
+      const stageCount = pipelineStages.length;
+      const stageWidth = 320; // Approximate width per stage
+      const gapWidth = 24; // Gap between stages
+      const totalWidth = (stageCount * stageWidth) + ((stageCount - 1) * gapWidth);
+      setPipelineWidth(totalWidth);
+    };
+
+    calculateWidth();
+    window.addEventListener('resize', calculateWidth);
+    return () => window.removeEventListener('resize', calculateWidth);
+  }, [companies]);
 
   // Use React Query for data fetching with caching
   const { data: companies = [], isLoading: companiesLoading, refetch: refetchCompanies } = useQuery<Company[]>({
@@ -170,6 +212,51 @@ const Pipeline = () => {
     { key: "closed_lost", label: "Closed Lost", color: "bg-red-50 text-red-700 border-red-200" },
     { key: "on_hold", label: "On Hold", color: "bg-gray-50 text-gray-700 border-gray-200" }
   ];
+
+  // Scrollbar synchronization for Pipeline
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (!topScroll || !bottomScroll) return;
+
+    const syncScroll = (source: HTMLElement, target: HTMLElement) => {
+      if (source !== target) {
+        target.scrollLeft = source.scrollLeft;
+      }
+    };
+
+    const handleTopScroll = () => {
+      syncScroll(topScroll, bottomScroll);
+    };
+
+    const handleBottomScroll = () => {
+      syncScroll(bottomScroll, topScroll);
+    };
+
+    topScroll.addEventListener('scroll', handleTopScroll);
+    bottomScroll.addEventListener('scroll', handleBottomScroll);
+
+    return () => {
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      bottomScroll.removeEventListener('scroll', handleBottomScroll);
+    };
+  }, []);
+
+  // Calculate pipeline width for scrollbar
+  useEffect(() => {
+    const calculateWidth = () => {
+      const stageCount = pipelineStages.length;
+      const stageWidth = 320; // Approximate width per stage
+      const gapWidth = 24; // Gap between stages
+      const totalWidth = (stageCount * stageWidth) + ((stageCount - 1) * gapWidth);
+      setPipelineWidth(totalWidth);
+    };
+
+    calculateWidth();
+    window.addEventListener('resize', calculateWidth);
+    return () => window.removeEventListener('resize', calculateWidth);
+  }, [companies]);
 
   // Valid stage transitions - moved to constant for better performance
   const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -359,7 +446,7 @@ const Pipeline = () => {
         style={style}
         {...attributes}
         {...listeners}
-        className={`relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden !p-0 ${
+        className={`relative bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden !p-0 ${
           isDraggable ? 'hover:shadow-lg cursor-grab active:cursor-grabbing' : 'cursor-pointer'
         } ${isDragging ? 'shadow-xl scale-[1.02] z-50 border-blue-300' : ''} ${
           isCurrentlyUpdating ? 'opacity-60 pointer-events-none' : ''
@@ -421,7 +508,7 @@ const Pipeline = () => {
             
             {/* Company Name and Location */}
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-900 text-base truncate leading-tight">
+              <h3 className="font-semibold text-foreground text-base truncate leading-tight">
                 {company.name}
               </h3>
               {/* Head Office - Below company name, smaller */}
@@ -551,7 +638,7 @@ const Pipeline = () => {
         {/* Stage Header */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-medium text-gray-900 text-sm">{stage.label}</h3>
+            <h3 className="font-medium text-foreground text-sm">{stage.label}</h3>
             <Badge variant="outline" className="text-xs">
               {stageCompanies.length}
             </Badge>
@@ -645,20 +732,25 @@ const Pipeline = () => {
       <Page
         title="Company Pipeline"
       >
-        <div className="flex gap-3 mb-6">
-        <Button variant="outline" size="sm" onClick={() => refetchCompanies()} className={designTokens.shadows.button}>
+        <div className="flex gap-3 mb-6 w-full">
+        <Button variant="outline" size="xs" onClick={() => refetchCompanies()} className={designTokens.shadows.button}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
-        <Button 
-          variant={showFavoritesOnly ? "default" : "outline"} 
-          size="sm" 
+        
+        {/* Favorites Icon Button */}
+        <button
           onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-          className={designTokens.shadows.button}
+          className={cn(
+            "h-8 w-8 rounded-md border flex items-center justify-center transition-colors action-bar-icon",
+            showFavoritesOnly 
+              ? "bg-primary-50 text-primary-700 border-primary-200" 
+              : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+          )}
+          title={showFavoritesOnly ? "Show all companies" : "Show favorites only"}
         >
-          <Star className="h-4 w-4 mr-2" />
-          Favorites {favoriteCount > 0 && `(${favoriteCount})`}
-        </Button>
+          <Star className={cn("h-4 w-4", showFavoritesOnly && "fill-current")} />
+        </button>
         
         {/* Global User Filter */}
         <div className="flex items-center gap-2">
@@ -686,17 +778,17 @@ const Pipeline = () => {
               }
             }}
             placeholder="Filter by user..."
-            className="w-48"
+            className="w-48 h-8"
           />
           {(selectedUserId || showAllAssignedUsers) && (
             <Button
               variant="ghost"
-              size="sm"
+              size="xs"
               onClick={() => {
                 setSelectedUserId(null);
                 setShowAllAssignedUsers(false);
               }}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 h-8 px-2"
             >
               Clear
             </Button>
@@ -717,10 +809,22 @@ const Pipeline = () => {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {/* Single Horizontal Scrolling Pipeline Board */}
-        <div className="relative">
+        {/* Enhanced Horizontal Scrolling Pipeline Board */}
+        <div className="relative table-scroll-container">
+          {/* Top scrollbar for better desktop UX */}
           <div 
-            className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+            className="overflow-x-auto overflow-y-hidden h-3 mb-2 scrollbar-thin"
+            ref={topScrollRef}
+          >
+            <div 
+              className="h-1 bg-transparent" 
+              style={{ width: `${pipelineWidth}px` }} 
+            />
+          </div>
+          
+          <div 
+            ref={bottomScrollRef}
+            className="overflow-x-auto pb-4 scrollbar-thin w-full"
             style={{
               // Optimize scrolling performance
               willChange: 'scroll-position',
@@ -764,7 +868,7 @@ const Pipeline = () => {
                       <Building2 className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 text-base">{activeCompany.name}</h3>
+                      <h3 className="font-semibold text-foreground text-base">{activeCompany.name}</h3>
                       <p className="text-xs text-gray-500">{pipelineStages.find(stage => stage.key === activeCompany.pipeline_stage)?.label}</p>
                     </div>
                   </div>
@@ -781,4 +885,4 @@ const Pipeline = () => {
   );
 };
 
-export default Pipeline;
+export default memo(Pipeline);

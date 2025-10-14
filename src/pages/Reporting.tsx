@@ -60,8 +60,14 @@ export default function Reporting() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="space-y-6">
+    <>
+      {/* Full-screen background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10" />
+      
+      {/* Content with negative margins to break out of Layout padding - FULL WIDTH */}
+      <div className="relative min-h-screen -mx-4 -my-4 lg:-mx-6 lg:-my-6">
+        <div className="space-y-6 w-full px-4 py-6 lg:px-6">
+          <div className="space-y-6">
         {/* Period and Metric Selection - Clean Design */}
         <div className="flex flex-col sm:flex-row gap-6 p-6 bg-white border border-gray-200 rounded-lg">
           <div className="flex items-center gap-3">
@@ -326,6 +332,7 @@ export default function Reporting() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
