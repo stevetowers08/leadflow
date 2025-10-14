@@ -38,7 +38,7 @@ import {
     Target,
     Zap
 } from "lucide-react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Job = Tables<"jobs"> & {
   companies?: {
@@ -98,18 +98,10 @@ const Jobs = () => {
   // Status options (based on automation_active and other job states)
   const statusOptions = [
     { label: "All Statuses", value: "all" },
-    { label: getStatusDisplayText("active"), value: "active" },
-    { label: getStatusDisplayText("automated"), value: "automated" },
+    { label: "Active", value: "active" },
+    { label: "Automated", value: "automated" },
     { label: "Not Automated", value: "not_automated" },
     { label: "Expired", value: "expired" },
-  ];
-
-  // Priority options
-  const priorityOptions = [
-    { label: "All Priorities", value: "all" },
-    { label: getStatusDisplayText("high"), value: "high" },
-    { label: getStatusDisplayText("medium"), value: "medium" },
-    { label: getStatusDisplayText("low"), value: "low" },
   ];
 
   // Fetch jobs data
@@ -159,10 +151,6 @@ const Jobs = () => {
           }
         }
 
-        if (priorityFilter !== 'all') {
-          query = query.eq('priority', priorityFilter);
-        }
-
         // Apply search
         if (searchTerm) {
           query = query.or(`title.ilike.%${searchTerm}%,companies.name.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
@@ -188,7 +176,7 @@ const Jobs = () => {
     };
 
     fetchJobs();
-  }, [statusFilter, priorityFilter, searchTerm, sortBy, sortOrder, toast]);
+  }, [statusFilter, searchTerm, sortBy, sortOrder, toast]);
 
   // Calculate stats for stats cards
   const jobsStats = useMemo(() => {
@@ -308,7 +296,7 @@ const Jobs = () => {
     function: job.function || "-",
     priority: job.priority || "medium",
     ai_score: job.lead_score_job || job.companies?.lead_score || "-",
-    leads: "-", // TODO: Add proper leads count
+    leads: job.total_leads || 0,
     posted_date: job.posted_date || null,
     expires: job.valid_through || "-",
     status: getJobStatusFromCompany(job),
@@ -688,4 +676,4 @@ const Jobs = () => {
   );
 };
 
-export default memo(Jobs);
+export default Jobs;

@@ -41,7 +41,6 @@ type Company = Tables<"companies"> & {
 };
 
 const Pipeline = () => {
-  console.log('🚀 Pipeline component loaded');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [hoveredCompanyId, setHoveredCompanyId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -885,4 +884,4 @@ const Pipeline = () => {
   );
 };
 
-export default memo(Pipeline);
+export default Pipeline;

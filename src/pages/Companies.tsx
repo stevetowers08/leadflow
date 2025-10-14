@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { OPTIMIZED_QUERIES } from "@/utils/queryOptimizer";
 import { getStatusDisplayText } from "@/utils/statusUtils";
 import { Building2, CheckCircle, Star, Target, Zap } from "lucide-react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Company = Tables<"companies"> & {
   people_count?: number;
@@ -53,18 +53,18 @@ const Companies = () => {
     { label: "Jobs Count", value: "jobs_count" },
   ];
 
-  // Status filter options
+  // Status filter options - based on actual database enum values
   const statusOptions = [
     { label: "All Stages", value: "all" },
     { label: getStatusDisplayText("new_lead"), value: "new_lead" },
     { label: getStatusDisplayText("automated"), value: "automated" },
-    { label: "Replied", value: "replied" },
-    { label: "Meeting Scheduled", value: "meeting_scheduled" },
-    { label: "Proposal Sent", value: "proposal_sent" },
-    { label: "Negotiation", value: "negotiation" },
-    { label: "Closed Won", value: "closed_won" },
-    { label: "Closed Lost", value: "closed_lost" },
-    { label: "On Hold", value: "on_hold" },
+    { label: getStatusDisplayText("replied"), value: "replied" },
+    { label: getStatusDisplayText("meeting_scheduled"), value: "meeting_scheduled" },
+    { label: getStatusDisplayText("proposal_sent"), value: "proposal_sent" },
+    { label: getStatusDisplayText("negotiation"), value: "negotiation" },
+    { label: getStatusDisplayText("closed_won"), value: "closed_won" },
+    { label: getStatusDisplayText("closed_lost"), value: "closed_lost" },
+    { label: getStatusDisplayText("on_hold"), value: "on_hold" },
   ];
 
   // Calculate stats for stats cards
@@ -778,7 +778,7 @@ const Companies = () => {
                         entityId={company.id} 
                         entityType="company"
                         onAssignmentChange={() => {
-                          console.log('Assignment changed for company:', company.id);
+                          // Assignment changed - could trigger refetch if needed
                         }}
                         className="text-sm"
                       />
@@ -935,4 +935,4 @@ const Companies = () => {
   );
 };
 
-export default memo(Companies);
+export default Companies;

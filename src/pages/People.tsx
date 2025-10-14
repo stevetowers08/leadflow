@@ -20,7 +20,7 @@ import {
     Users,
     Zap
 } from "lucide-react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Lead = Tables<"people"> & {
   company_name?: string | null;
@@ -61,18 +61,19 @@ const People = () => {
     { label: "Priority", value: "priority" },
   ];
 
-  // Status filter options
+  // Status filter options - based on actual database enum values
   const statusOptions = [
     { label: "All Stages", value: "all" },
     { label: getStatusDisplayText("new"), value: "new" },
-    { label: "Contacted", value: "contacted" },
-    { label: "Qualified", value: "qualified" },
-    { label: "Unqualified", value: "unqualified" },
-    { label: "Meeting Scheduled", value: "meeting_scheduled" },
-    { label: "Proposal Sent", value: "proposal_sent" },
-    { label: "Negotiation", value: "negotiation" },
-    { label: "Closed Won", value: "closed_won" },
-    { label: "Closed Lost", value: "closed_lost" },
+    { label: getStatusDisplayText("connection_requested"), value: "connection_requested" },
+    { label: getStatusDisplayText("connected"), value: "connected" },
+    { label: getStatusDisplayText("messaged"), value: "messaged" },
+    { label: getStatusDisplayText("replied"), value: "replied" },
+    { label: getStatusDisplayText("meeting_booked"), value: "meeting_booked" },
+    { label: getStatusDisplayText("meeting_held"), value: "meeting_held" },
+    { label: getStatusDisplayText("disqualified"), value: "disqualified" },
+    { label: getStatusDisplayText("in queue"), value: "in queue" },
+    { label: getStatusDisplayText("lead_lost"), value: "lead_lost" },
   ];
 
   // Calculate stats for stats cards (match current enum values)
@@ -739,7 +740,7 @@ const People = () => {
                         entityId={lead.id} 
                         entityType="lead"
                         onAssignmentChange={() => {
-                          console.log('Assignment changed for lead:', lead.id);
+                          // Assignment changed - could trigger refetch if needed
                         }}
                         className="text-sm"
                       />
@@ -880,4 +881,4 @@ const People = () => {
   );
 };
 
-export default memo(People);
+export default People;
