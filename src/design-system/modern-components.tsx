@@ -190,65 +190,105 @@ export const ModernSectionHeader: React.FC<ModernSectionHeaderProps> = ({
   );
 };
 
-// Modern Data Table
+// Modern Data Table - Matches Jobs page styling exactly
 interface ModernDataTableProps<T = Record<string, unknown>> {
   data: T[];
   columns: Array<{
     key: string;
     label: string;
+    width?: string;
+    minWidth?: string;
+    align?: 'left' | 'center' | 'right';
     render?: (value: unknown, row: T) => React.ReactNode;
   }>;
   loading?: boolean;
+  onRowClick?: (row: T) => void;
 }
 
 export const ModernDataTable: React.FC<ModernDataTableProps> = ({
   data,
   columns,
-  loading = false
+  loading = false,
+  onRowClick
 }) => {
   if (loading) {
     return (
-      <Card className={cn(designTokens.borders.card, designTokens.shadows.cardStatic, "bg-white")}>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center h-32">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="flex items-center justify-center h-32">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className={cn(designTokens.borders.card, designTokens.shadows.cardStatic, "bg-white")}>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className={cn("w-full", designTokens.borders.table)}>
-            <thead className={cn("bg-gray-50", designTokens.borders.tableHeader)}>
-              <tr>
+    <div className="bg-white rounded-lg border border-gray-200">
+      <div className="overflow-x-auto">
+        <table className="w-full caption-bottom text-sm min-w-full font-sans" role="table" aria-label="Data table">
+          <thead className="[&_tr]:border-b">
+            <tr className="transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50">
+              {columns.map((column) => (
+                <th 
+                  key={column.key}
+                  className={cn(
+                    "h-12 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider",
+                    column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : 'text-left'
+                  )}
+                  scope="col" 
+                  style={{
+                    width: column.width || 'auto',
+                    minWidth: column.minWidth || 'auto'
+                  }}
+                >
+                  <div className={cn(
+                    "flex items-center gap-2",
+                    column.align === 'center' ? 'justify-center' : column.align === 'right' ? 'justify-end' : 'justify-start'
+                  )}>
+                    <span>{column.label}</span>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="[&_tr:last-child]:border-0">
+            {data.map((row, index) => (
+              <tr 
+                key={index} 
+                className={cn(
+                  "data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group",
+                  onRowClick ? "cursor-pointer relative" : ""
+                )}
+                role="row" 
+                tabIndex={onRowClick ? 0 : undefined}
+                aria-label={`Row ${index + 1}`}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+              >
                 {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    className={cn("px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", designTokens.borders.tableCell)}
+                  <td 
+                    key={column.key} 
+                    className={cn(
+                      "align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0",
+                      column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : 'text-left'
+                    )}
+                    style={{
+                      width: column.width || 'auto',
+                      minWidth: column.minWidth || 'auto'
+                    }}
                   >
-                    {column.label}
-                  </th>
+                    {column.render ? column.render(row[column.key], row) : (
+                      <div className="min-w-0">
+                        <div className="text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                          {row[column.key] || "-"}
+                        </div>
+                      </div>
+                    )}
+                  </td>
                 ))}
               </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {data.map((row, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  {columns.map((column) => (
-                    <td key={column.key} className={cn("px-6 py-4 whitespace-nowrap text-sm text-gray-900", designTokens.borders.tableCell)}>
-                      {column.render ? column.render(row[column.key], row) : row[column.key]}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
