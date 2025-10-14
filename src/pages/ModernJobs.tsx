@@ -12,7 +12,6 @@
  * - Pagination
  */
 
-import { StatusBadge } from "@/components/StatusBadge";
 import { DropdownSelect } from "@/components/ui/dropdown-select";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
@@ -288,73 +287,6 @@ const ModernJobs = () => {
       </div>
     );
   };
-
-  // Build ModernDataTable inputs (must be before any early returns)
-  const tableColumns = useMemo(() => ([
-    {
-      key: "status" as const,
-      label: "Status",
-      render: (v: any) => <StatusBadge status={String(v)} size="sm" />,
-    },
-    {
-      key: "job" as const,
-      label: "Job Title",
-      render: (_: any, row: any) => (
-        <div>
-          <div className="font-medium text-foreground">{row.title}</div>
-          <div className="text-sm text-muted-foreground">{row.employment_type || "-"}</div>
-        </div>
-      ),
-    },
-    { 
-      key: "company" as const, 
-      label: "Company",
-      render: (_: any, row: any) => (
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
-            <Building2 className="h-1/2 w-1/2 text-muted-foreground" />
-          </div>
-          <span>{row.company}</span>
-        </div>
-      ),
-    },
-    { key: "industry" as const, label: "Industry" },
-    { key: "location" as const, label: "Location" },
-    { key: "function" as const, label: "Function" },
-    {
-      key: "priority" as const,
-      label: "Priority",
-      render: (v: any) => <StatusBadge status={String((v || "medium").toLowerCase())} size="sm" />,
-    },
-    {
-      key: "ai_score" as const,
-      label: "AI Score",
-      render: (_: any, row: any) => (
-        <div className="text-sm text-muted-foreground">{row.ai_score || "-"}</div>
-      ),
-    },
-    {
-      key: "leads" as const,
-      label: "Leads",
-      render: (_: any, row: any) => (
-        <div className="text-sm text-muted-foreground">{row.leads || "-"}</div>
-      ),
-    },
-    {
-      key: "posted_date" as const,
-      label: "Posted",
-      render: (v: any) => (
-        <div className="text-sm text-foreground">{v ? new Date(v).toLocaleDateString() : "-"}</div>
-      ),
-    },
-    {
-      key: "expires" as const,
-      label: "Expires",
-      render: (_: any, row: any) => (
-        <div className="text-sm text-foreground">{row.expires || "-"}</div>
-      ),
-    },
-  ]), []);
 
   const tableData = useMemo(() => filteredJobs.map((job) => ({
     id: job.id,
