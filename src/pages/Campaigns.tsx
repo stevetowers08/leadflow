@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -103,6 +104,7 @@ export default function Campaigns() {
 
   const { toast } = useToast();
   const { user } = useAuth();
+  const { openPopup } = usePopupNavigation();
   const queryClient = useQueryClient();
 
   // Fetch campaigns
@@ -290,7 +292,10 @@ export default function Campaigns() {
         return (
           <Button
             size="sm"
-            onClick={() => updateStatusMutation.mutate({ id: campaign.id, status: 'active' })}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateStatusMutation.mutate({ id: campaign.id, status: 'active' });
+            }}
             disabled={updateStatusMutation.isPending}
           >
             <Play className="h-4 w-4 mr-1" />
@@ -302,7 +307,10 @@ export default function Campaigns() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => updateStatusMutation.mutate({ id: campaign.id, status: 'paused' })}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateStatusMutation.mutate({ id: campaign.id, status: 'paused' });
+            }}
             disabled={updateStatusMutation.isPending}
           >
             <Pause className="h-4 w-4 mr-1" />
@@ -313,7 +321,10 @@ export default function Campaigns() {
         return (
           <Button
             size="sm"
-            onClick={() => updateStatusMutation.mutate({ id: campaign.id, status: 'active' })}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateStatusMutation.mutate({ id: campaign.id, status: 'active' });
+            }}
             disabled={updateStatusMutation.isPending}
           >
             <Play className="h-4 w-4 mr-1" />
@@ -328,7 +339,7 @@ export default function Campaigns() {
   return (
     <div className="space-y-6 w-full">
       {/* Header - Full Width */}
-      <div className="flex justify-between items-center w-full">
+      <div className="flex justify-between items-center w-full mb-6">
         <div>
           <h1 className="text-3xl font-bold">Campaigns</h1>
           <p className="text-muted-foreground">
@@ -337,7 +348,7 @@ export default function Campaigns() {
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm}>
+            <Button onClick={resetForm} className="h-8 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50">
               <Plus className="h-4 w-4 mr-2" />
               Create Campaign
             </Button>
@@ -576,7 +587,7 @@ export default function Campaigns() {
             const IconComponent = getCampaignTypeIcon(campaign.campaign_type);
             
             return (
-              <Card key={campaign.id} className="hover:shadow-lg transition-shadow">
+              <Card key={campaign.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => openPopup('campaign', campaign.id, campaign.name)}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-2">
@@ -616,14 +627,20 @@ export default function Campaigns() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleEdit(campaign)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(campaign);
+                        }}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => deleteCampaignMutation.mutate(campaign.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteCampaignMutation.mutate(campaign.id);
+                        }}
                         disabled={deleteCampaignMutation.isPending}
                       >
                         <Trash2 className="h-4 w-4" />

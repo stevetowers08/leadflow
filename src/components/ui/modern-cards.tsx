@@ -10,13 +10,15 @@ interface ModernCardProps {
   className?: string;
   variant?: 'default' | 'elevated' | 'glass' | 'minimal';
   hover?: boolean;
+  onClick?: () => void;
 }
 
 export const ModernCard: React.FC<ModernCardProps> = ({ 
   children, 
   className, 
   variant = 'minimal',
-  hover = true 
+  hover = true,
+  onClick
 }) => {
   const baseClasses = "rounded-2xl transition-all duration-300 ease-out";
   
@@ -30,12 +32,16 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   const hoverClasses = hover ? "hover:shadow-md hover:scale-[1.01] transition-all duration-200" : "";
 
   return (
-    <div className={cn(
-      baseClasses,
-      variantClasses[variant],
-      hoverClasses,
-      className
-    )}>
+    <div 
+      className={cn(
+        baseClasses,
+        variantClasses[variant],
+        hoverClasses,
+        onClick && "cursor-pointer",
+        className
+      )}
+      onClick={onClick}
+    >
       {children}
     </div>
   );

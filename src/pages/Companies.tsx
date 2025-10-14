@@ -335,16 +335,7 @@ const Companies = () => {
       label: "Status",
       render: (v: any) => (
         <div className="border justify-center items-center flex mx-auto bg-blue-50 text-blue-700 border-blue-200 h-8 text-xs font-medium rounded-full text-center px-3 min-w-[80px]">
-          {v === 'new_lead' ? getStatusDisplayText('new_lead') : 
-           v === 'automated' ? getStatusDisplayText('automated') :
-           v === 'replied' ? getStatusDisplayText('replied') :
-           v === 'meeting_scheduled' ? getStatusDisplayText('meeting_scheduled') :
-           v === 'proposal_sent' ? getStatusDisplayText('proposal_sent') :
-           v === 'negotiation' ? getStatusDisplayText('negotiation') :
-           v === 'closed_won' ? getStatusDisplayText('closed_won') :
-           v === 'closed_lost' ? getStatusDisplayText('closed_lost') :
-           v === 'on_hold' ? getStatusDisplayText('on_hold') :
-           getStatusDisplayText('new_lead')}
+          {getStatusDisplayText(v || 'new_lead')}
         </div>
       ),
     },
@@ -548,7 +539,7 @@ const Companies = () => {
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value)}
               placeholder="All Statuses"
-              className="min-w-32 bg-background h-8"
+              className="min-w-32 bg-white h-8 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
             />
             
             {/* Assignment Filter */}
@@ -563,18 +554,17 @@ const Companies = () => {
               value={selectedUser}
               onValueChange={(value) => setSelectedUser(value)}
               placeholder="Filter by user"
-              className="min-w-40 bg-white h-8"
+              className="min-w-40 bg-white h-8 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
             />
             
-
             {/* Favorites Icon Button */}
             <button
               onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
               className={cn(
-                "h-8 w-8 rounded-md border flex items-center justify-center transition-colors action-bar-icon",
+                "h-8 w-8 rounded-md border flex items-center justify-center transition-colors",
                 showFavoritesOnly 
                   ? "bg-primary-50 text-primary-700 border-primary-200" 
-                  : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
               )}
               title={showFavoritesOnly ? "Show all companies" : "Show favorites only"}
             >
@@ -590,11 +580,11 @@ const Companies = () => {
               value={sortBy}
               onValueChange={(value) => setSortBy(value)}
               placeholder="Select sort"
-              className="min-w-32 bg-background h-8"
+              className="min-w-32 bg-white h-8 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
             />
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="px-2 h-8 text-sm border rounded bg-background hover:bg-muted/50 flex items-center justify-center action-bar-icon"
+              className="px-2 h-8 text-sm border border-gray-300 rounded-md bg-white hover:border-gray-400 hover:bg-gray-50 flex items-center justify-center transition-colors"
               title={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
             >
               {sortOrder === "asc" ? "↑" : "↓"}
@@ -678,16 +668,7 @@ const Companies = () => {
                   {/* Status */}
                   <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '120px', minWidth: '120px'}}>
                     <div className="border justify-center items-center flex mx-auto bg-blue-50 text-blue-700 border-blue-200 h-8 text-xs font-medium rounded-full text-center px-3 min-w-[80px]">
-                      {company.status === 'new_lead' ? getStatusDisplayText('new_lead') : 
-                       company.status === 'automated' ? getStatusDisplayText('automated') :
-                       company.status === 'replied' ? getStatusDisplayText('replied') :
-                       company.status === 'meeting_scheduled' ? getStatusDisplayText('meeting_scheduled') :
-                       company.status === 'proposal_sent' ? getStatusDisplayText('proposal_sent') :
-                       company.status === 'negotiation' ? getStatusDisplayText('negotiation') :
-                       company.status === 'closed_won' ? getStatusDisplayText('closed_won') :
-                       company.status === 'closed_lost' ? getStatusDisplayText('closed_lost') :
-                       company.status === 'on_hold' ? getStatusDisplayText('on_hold') :
-                       getStatusDisplayText('new_lead')}
+                      {getStatusDisplayText(company.pipeline_stage || 'new_lead')}
                     </div>
                   </EnhancedTableCell>
                   

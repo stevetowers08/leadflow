@@ -271,6 +271,7 @@ export default function Reporting() {
             onViewAll={() => {}}
             variant="elevated"
           />
+        </div>
 
           {/* Mini Charts Row - Clean Cards */}
           <div className="space-y-6">

@@ -284,17 +284,7 @@ const People = () => {
       align: "center" as const,
       render: (v: any) => (
         <div className="border justify-center items-center flex mx-auto bg-blue-50 text-blue-700 border-blue-200 h-8 text-xs font-medium rounded-full text-center px-3 min-w-[80px]">
-          {v === 'new' ? 'New' :
-           v === 'connection_requested' ? 'Connection Requested' :
-           v === 'connected' ? 'Connected' :
-           v === 'messaged' ? 'Messaged' :
-           v === 'replied' ? 'Replied' :
-           v === 'meeting_booked' ? 'Meeting Booked' :
-           v === 'meeting_held' ? 'Meeting Held' :
-           v === 'disqualified' ? 'Disqualified' :
-           v === 'in queue' ? 'In Queue' :
-           v === 'lead_lost' ? 'Lead Lost' :
-           'New'}
+          {getStatusDisplayText(v || 'new')}
         </div>
       ),
     },
@@ -543,7 +533,7 @@ const People = () => {
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value)}
             placeholder="All Statuses"
-            className="min-w-28 sm:min-w-32 bg-white h-8 text-sm"
+            className="min-w-28 sm:min-w-32 bg-white h-8 text-sm border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
           />
 
           {/* Assignment Filter */}
@@ -558,17 +548,17 @@ const People = () => {
             value={selectedUser}
             onValueChange={(value) => setSelectedUser(value)}
             placeholder="Filter by user"
-            className="min-w-32 sm:min-w-40 bg-white h-8 text-sm"
+            className="min-w-32 sm:min-w-40 bg-white h-8 text-sm border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
           />
 
           {/* Favorites Icon Button */}
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             className={cn(
-              "h-8 w-8 rounded-md border flex items-center justify-center transition-colors action-bar-icon",
+              "h-8 w-8 rounded-md border flex items-center justify-center transition-colors",
               showFavoritesOnly 
                 ? "bg-primary-50 text-primary-700 border-primary-200" 
-                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                : "bg-white text-gray-600 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
             )}
             title={showFavoritesOnly ? "Show all people" : "Show favorites only"}
           >
@@ -584,11 +574,11 @@ const People = () => {
             value={sortBy}
             onValueChange={(value) => setSortBy(value)}
             placeholder="Sort by"
-            className="min-w-28 sm:min-w-32 bg-white h-8 text-sm"
+            className="min-w-28 sm:min-w-32 bg-white h-8 text-sm border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
           />
           <button
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="px-2 h-8 text-sm border rounded bg-background hover:bg-muted/50 flex items-center justify-center action-bar-icon"
+            className="px-2 h-8 text-sm border border-gray-300 rounded-md bg-white hover:border-gray-400 hover:bg-gray-50 flex items-center justify-center transition-colors"
             title={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
           >
             {sortOrder === "asc" ? "↑" : "↓"}
@@ -662,16 +652,7 @@ const People = () => {
                   {/* Status */}
                   <EnhancedTableCell className="align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center" style={{width: '120px', minWidth: '120px'}}>
                     <div className="border justify-center items-center flex mx-auto bg-blue-50 text-blue-700 border-blue-200 h-8 text-xs font-medium rounded-full text-center px-3">
-                      {lead.status === 'new' ? getStatusDisplayText('new') :
-                       lead.status === 'contacted' ? 'Contacted' :
-                       lead.status === 'qualified' ? 'Qualified' :
-                       lead.status === 'unqualified' ? 'Unqualified' :
-                       lead.status === 'meeting_scheduled' ? getStatusDisplayText('meeting_scheduled') :
-                       lead.status === 'proposal_sent' ? getStatusDisplayText('proposal_sent') :
-                       lead.status === 'negotiation' ? getStatusDisplayText('negotiation') :
-                       lead.status === 'closed_won' ? getStatusDisplayText('closed_won') :
-                       lead.status === 'closed_lost' ? getStatusDisplayText('closed_lost') :
-                       getStatusDisplayText('new')}
+                      {getStatusDisplayText(lead.stage || 'new')}
                     </div>
                   </EnhancedTableCell>
                   

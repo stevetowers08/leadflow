@@ -70,7 +70,6 @@ const Jobs = () => {
   const [sortBy, setSortBy] = useState<string>("posted_date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [selectedUser, setSelectedUser] = useState<string>('all');
   const [users, setUsers] = useState<{id: string, full_name: string, role: string}[]>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -395,17 +394,17 @@ const Jobs = () => {
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value)}
             placeholder="All Statuses"
-            className="min-w-32 bg-white h-8"
+            className="min-w-32 bg-white h-8 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
           />
 
           {/* Favorites Icon Button */}
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             className={cn(
-              "h-8 w-8 rounded-md border flex items-center justify-center transition-colors action-bar-icon",
+              "h-8 w-8 rounded-md border flex items-center justify-center transition-colors",
               showFavoritesOnly 
                 ? "bg-primary-50 text-primary-700 border-primary-200" 
-                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                : "bg-white text-gray-600 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
             )}
             title={showFavoritesOnly ? "Show all jobs" : "Show favorites only"}
           >
@@ -420,11 +419,11 @@ const Jobs = () => {
               value={sortBy}
               onValueChange={(value) => setSortBy(value)}
               placeholder="Sort by"
-              className="min-w-32 bg-white h-8"
+              className="min-w-32 bg-white h-8 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
             />
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors h-8 w-8 flex items-center justify-center action-bar-icon"
+              className="px-2 h-8 text-sm border border-gray-300 rounded-md bg-white hover:border-gray-400 hover:bg-gray-50 flex items-center justify-center transition-colors"
               title={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
             >
               {sortOrder === "asc" ? "↑" : "↓"}
