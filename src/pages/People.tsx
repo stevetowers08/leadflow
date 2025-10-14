@@ -33,7 +33,7 @@ const toBoolean = (val: unknown): boolean => {
   return val === true || val === 'true' || val === 't' || val === 1 || val === '1' || val === 'yes';
 };
 
-const ModernPeople = () => {
+const People = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
@@ -746,4 +746,4 @@ const ModernPeople = () => {
   );
 };
 
-export default ModernPeople;
+export default People;

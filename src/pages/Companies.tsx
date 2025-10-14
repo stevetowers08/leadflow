@@ -22,7 +22,7 @@ type Company = Tables<"companies"> & {
   jobs_count?: number;
 };
 
-const ModernCompanies = () => {
+const Companies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<string>('all');
@@ -720,4 +720,4 @@ const ModernCompanies = () => {
   );
 };
 
-export default ModernCompanies;
+export default Companies;

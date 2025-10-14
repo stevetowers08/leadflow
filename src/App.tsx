@@ -5,24 +5,25 @@ import { Toaster } from "sonner";
 import { useGlobalErrorHandler, usePerformanceMonitoring } from "./hooks/useGlobalErrorHandler";
 import { initializeErrorHandling, setupGlobalErrorHandlers } from "./utils/globalErrorHandlers";
 
-import { Layout } from "./components";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GmailCallback } from "./components/GmailCallback";
 import { UnifiedPopup } from "./components/UnifiedPopup";
 import AuthCallback from "./components/auth/AuthCallback";
 import { AuthPage } from "./components/auth/AuthPage";
+import { ModernLayout } from "./components/layout/ModernLayout";
 import { AIProvider } from "./contexts/AIContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ConfirmationProvider } from "./contexts/ConfirmationContext";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
 import { PopupNavigationProvider } from "./contexts/PopupNavigationContext";
 import { SidebarProvider } from "./contexts/SidebarContext";
+import { SearchProvider } from "./contexts/SearchContext";
 
 // Lazy load pages for code splitting
-const Index = lazy(() => import("./pages/Index"));
+const Index = lazy(() => import("./pages/Dashboard"));
 const CRMInfo = lazy(() => import("./pages/CRMInfo"));
 const Jobs = lazy(() => import("./pages/Jobs"));
-const People = lazy(() => import("./pages/Leads"));
+const People = lazy(() => import("./pages/People"));
 const Companies = lazy(() => import("./pages/Companies"));
 const Pipeline = lazy(() => import("./pages/Pipeline"));
 const ConversationsPage = lazy(() => import("./pages/Conversations"));
@@ -69,8 +70,9 @@ const AppRoutes = () => {
       <AIProvider>
         <ConfirmationProvider>
           <SidebarProvider>
-            <PopupNavigationProvider>
-              <Layout>
+            <SearchProvider>
+              <PopupNavigationProvider>
+                <ModernLayout>
                 <Suspense fallback={
                   <div className="min-h-screen flex items-center justify-center">
                     <div className="text-center">
@@ -97,13 +99,14 @@ const AppRoutes = () => {
                     <Route path="/tab-designs" element={<TabDesignsShowcase />} />
                   </Routes>
                 </Suspense>
-              </Layout>
-              
-              {/* Unified Popup System */}
-              <Suspense fallback={null}>
-                <UnifiedPopup />
-              </Suspense>
-            </PopupNavigationProvider>
+                </ModernLayout>
+                
+                {/* Unified Popup System */}
+                <Suspense fallback={null}>
+                  <UnifiedPopup />
+                </Suspense>
+              </PopupNavigationProvider>
+            </SearchProvider>
           </SidebarProvider>
         </ConfirmationProvider>
       </AIProvider>

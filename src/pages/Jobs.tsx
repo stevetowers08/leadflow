@@ -61,7 +61,7 @@ type Job = Tables<"jobs"> & {
   automation_started_leads?: number;
 };
 
-const ModernJobs = () => {
+const Jobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -659,4 +659,4 @@ const ModernJobs = () => {
   );
 };
 
-export default ModernJobs;
+export default Jobs;
