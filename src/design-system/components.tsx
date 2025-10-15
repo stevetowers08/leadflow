@@ -35,7 +35,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 );
 
 export interface StatItemProps {
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   value: number | string;
   label: string;
   trend?: number | null;
@@ -120,12 +120,12 @@ export const Page: React.FC<PageProps> = ({
       {/* Full-screen background */}
       <div className='fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10' />
 
-      {/* Content with negative margins to break out of Layout padding - FULL WIDTH */}
-      <div className='relative min-h-screen -mx-4 -my-4 lg:-mx-6 lg:-my-6'>
-        <div className='space-y-6 w-full px-4 py-6 lg:px-6'>
-          <div className='space-y-4 w-full'>
+      {/* Content with negative margins to break out of Layout padding - FULL HEIGHT */}
+      <div className='relative h-full -mx-4 -my-4 lg:-mx-6 lg:-my-6 flex flex-col'>
+        <div className='flex-1 flex flex-col space-y-6 w-full px-4 py-6 lg:px-6'>
+          <div className='flex-1 flex flex-col space-y-4 w-full'>
             {!hideHeader && (
-              <div className='mb-4 w-full'>
+              <div className='mb-4 w-full flex-shrink-0'>
                 <div className='flex items-center justify-between w-full'>
                   <div>
                     <h1 className='text-2xl font-bold tracking-tight text-foreground'>
@@ -154,7 +154,7 @@ export const Page: React.FC<PageProps> = ({
                 </div>
               </div>
             )}
-            <div className='w-full'>{children}</div>
+            <div className='flex-1 w-full overflow-hidden'>{children}</div>
           </div>
         </div>
       </div>

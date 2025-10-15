@@ -217,7 +217,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         {/* Content Container */}
         <div
           className={cn(
-            'min-h-screen w-full',
+            'h-screen w-full flex flex-col',
             // Mobile: Reduced padding for better space utilization
             isMobile && [
               'px-4 py-4 pb-20',
@@ -227,7 +227,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
             !isMobile && 'px-6 py-6'
           )}
         >
-          {children}
+          <div className='flex-1 overflow-hidden'>{children}</div>
         </div>
       </main>
 
