@@ -16,6 +16,7 @@ import { ErrorBoundaryProvider } from './components/ErrorBoundary';
 import { GmailCallback } from './components/GmailCallback';
 import { UnifiedPopup } from './components/UnifiedPopup';
 import AuthCallback from './components/auth/AuthCallback';
+import { AuthPage } from './components/auth/AuthPage';
 import { Layout } from './components/layout/Layout';
 import { AIProvider } from './contexts/AIContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
