@@ -36,7 +36,7 @@ export interface ErrorContext {
   severity: ErrorSeverity;
   type: ErrorType;
   recoverable: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Error boundary props
@@ -366,14 +366,13 @@ export class ComponentErrorBoundary extends BaseErrorBoundary {
 
 export class CriticalErrorBoundary extends BaseErrorBoundary {
   constructor(props: Omit<ErrorBoundaryProps, 'severity' | 'recoverable'>) {
-    const criticalProps: ErrorBoundaryProps = {
+    super({
       ...props,
       severity: ErrorSeverity.CRITICAL,
       recoverable: false,
       enableRetry: false,
       showDetails: true,
-    };
-    super(criticalProps);
+    });
   }
 }
 

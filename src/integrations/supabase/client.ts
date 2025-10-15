@@ -1,9 +1,6 @@
+import { validateEnvironment } from '@/utils/environmentValidation';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
-import {
-  validateEnvironment,
-  logEnvironmentStatus,
-} from '@/utils/environmentValidation';
 
 // Defer validation to prevent initialization issues
 // Validation will happen when client is first accessed
@@ -13,8 +10,11 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // Note: Service role key should NOT be exposed to client-side
 
+// Development configuration
+const IS_DEVELOPMENT = import.meta.env.NODE_ENV === 'development';
+
 // Lazy initialization to prevent module loading issues
-let _supabaseClient: any = null;
+let _supabaseClient: ReturnType<typeof createClient<Database>> | null = null;
 
 function getSupabaseClient() {
   if (_supabaseClient) return _supabaseClient;
@@ -98,12 +98,15 @@ function getSupabaseClient() {
 }
 
 // Export a getter function instead of direct client to prevent initialization issues
-export const supabase = new Proxy({} as any, {
-  get(target, prop) {
-    const client = getSupabaseClient();
-    return client[prop];
-  },
-});
+export const supabase = new Proxy(
+  {} as ReturnType<typeof createClient<Database>>,
+  {
+    get(target, prop) {
+      const client = getSupabaseClient();
+      return client[prop];
+    },
+  }
+);
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";

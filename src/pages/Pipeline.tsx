@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { DropdownSelect } from '@/components/ui/dropdown-select';
 import { Page } from '@/design-system/components';
 import { designTokens } from '@/design-system/tokens';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
+import { cn } from '@/lib/utils';
 import {
   DndContext,
   DragEndEvent,
@@ -52,6 +54,7 @@ type Company = Tables<'companies'> & {
 };
 
 const Pipeline = () => {
+  const { toast } = useToast();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [hoveredCompanyId, setHoveredCompanyId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -91,21 +94,6 @@ const Pipeline = () => {
       bottomScroll.removeEventListener('scroll', handleBottomScroll);
     };
   }, []);
-
-  // Calculate pipeline width for scrollbar
-  useEffect(() => {
-    const calculateWidth = () => {
-      const stageCount = pipelineStages.length;
-      const stageWidth = 320; // Approximate width per stage
-      const gapWidth = 24; // Gap between stages
-      const totalWidth = stageCount * stageWidth + (stageCount - 1) * gapWidth;
-      setPipelineWidth(totalWidth);
-    };
-
-    calculateWidth();
-    window.addEventListener('resize', calculateWidth);
-    return () => window.removeEventListener('resize', calculateWidth);
-  }, [companies]);
 
   // Use React Query for data fetching with caching
   const {
@@ -207,6 +195,21 @@ const Pipeline = () => {
   }, [users]);
 
   const loading = companiesLoading || usersLoading;
+
+  // Calculate pipeline width for scrollbar
+  useEffect(() => {
+    const calculateWidth = () => {
+      const stageCount = pipelineStages.length;
+      const stageWidth = 320; // Approximate width per stage
+      const gapWidth = 24; // Gap between stages
+      const totalWidth = stageCount * stageWidth + (stageCount - 1) * gapWidth;
+      setPipelineWidth(totalWidth);
+    };
+
+    calculateWidth();
+    window.addEventListener('resize', calculateWidth);
+    return () => window.removeEventListener('resize', calculateWidth);
+  }, [companies]);
 
   // Optimized drag and drop sensors for maximum performance
   const sensors = useSensors(
@@ -359,7 +362,7 @@ const Pipeline = () => {
             company.id === companyId
               ? {
                   ...c,
-                  pipeline_stage: newStage as any,
+                  pipeline_stage: newStage as CompanyPipelineStage,
                   updated_at: new Date().toISOString(),
                 }
               : c
@@ -714,7 +717,7 @@ const Pipeline = () => {
       stage,
       companies: stageCompanies,
     }: {
-      stage: any;
+      stage: PipelineStage;
       companies: Company[];
     }) => {
       const { isOver, setNodeRef } = useDroppable({
