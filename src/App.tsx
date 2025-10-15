@@ -70,9 +70,10 @@ const AppRoutes = () => {
     );
   }
 
-  if (!user) {
-    return <AuthPage />;
-  }
+  // Temporarily disabled for testing data loading
+  // if (!user) {
+  //   return <AuthPage />;
+  // }
 
   return (
     <PermissionsProvider
