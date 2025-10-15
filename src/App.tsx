@@ -16,7 +16,6 @@ import { ErrorBoundaryProvider } from './components/ErrorBoundary';
 import { GmailCallback } from './components/GmailCallback';
 import { UnifiedPopup } from './components/UnifiedPopup';
 import AuthCallback from './components/auth/AuthCallback';
-import { AuthPage } from './components/auth/AuthPage';
 import { Layout } from './components/layout/Layout';
 import { AIProvider } from './contexts/AIContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -75,11 +74,50 @@ const AppRoutes = () => {
   //   return <AuthPage />;
   // }
 
+  // Mock user for production testing
+  const mockUser = user || {
+    id: 'f100f6bc-22d8-456f-bcce-44c7881b68ef',
+    email: 'test@example.com',
+    user_metadata: {},
+    app_metadata: {},
+    aud: 'authenticated',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    email_confirmed_at: new Date().toISOString(),
+    phone: '',
+    confirmed_at: new Date().toISOString(),
+    last_sign_in_at: new Date().toISOString(),
+    role: 'authenticated',
+    factors: [],
+    identities: [],
+    recovery_sent_at: null,
+    new_email: null,
+    invited_at: null,
+    action_link: null,
+    email_change_sent_at: null,
+    new_phone: null,
+    phone_change_sent_at: null,
+    reauthentication_sent_at: null,
+    reauthentication_token: null,
+    is_anonymous: false,
+  };
+
+  const mockUserProfile = userProfile || {
+    id: 'f100f6bc-22d8-456f-bcce-44c7881b68ef',
+    email: 'test@example.com',
+    full_name: 'Test User',
+    role: 'owner',
+    user_limit: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
   return (
     <PermissionsProvider
-      user={user}
-      userProfile={userProfile}
-      authLoading={loading}
+      user={mockUser}
+      userProfile={mockUserProfile}
+      authLoading={false}
     >
       <AIProvider>
         <ConfirmationProvider>
