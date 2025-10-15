@@ -72,7 +72,10 @@ const previewHtml = `<!DOCTYPE html>
 </body>
 </html>`;
 
-fs.writeFileSync(path.join(__dirname, '../public/favicon-preview.html'), previewHtml);
+fs.writeFileSync(
+  path.join(__dirname, '../public/favicon-preview.html'),
+  previewHtml
+);
 
 console.log('✅ Generated favicon.svg');
 console.log('✅ Created favicon-preview.html');

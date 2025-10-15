@@ -1,6 +1,6 @@
 /**
  * Layout Component with Glassmorphism Design
- * 
+ *
  * Features:
  * - Glassmorphism background with dynamic gradients
  * - Modern sidebar with smooth animations
@@ -9,19 +9,19 @@
  * - Enhanced accessibility and keyboard navigation
  */
 
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useHapticFeedback } from "@/hooks/useHapticFeedback";
-import { useSwipeGestures } from "@/hooks/useSwipeGestures";
-import { cn } from "@/lib/utils";
-import { ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Sidebar } from "./Sidebar";
-import { TopNavigationBar } from "./TopNavigationBar";
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useSwipeGestures } from '@/hooks/useSwipeGestures';
+import { cn } from '@/lib/utils';
+import { ReactNode, Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Sidebar } from './Sidebar';
+import { TopNavigationBar } from './TopNavigationBar';
 
 // Lazy load heavy components for better performance
-const FloatingChatWidget = lazy(() => import("../ai/FloatingChatWidget"));
-const MobileTestPanel = lazy(() => import("../mobile/MobileTestPanel"));
-const MobileNav = lazy(() => import("../mobile/MobileNav"));
+const FloatingChatWidget = lazy(() => import('../ai/FloatingChatWidget'));
+const MobileTestPanel = lazy(() => import('../mobile/MobileTestPanel'));
+const MobileNav = lazy(() => import('../mobile/MobileNav'));
 
 interface LayoutProps {
   children: ReactNode;
@@ -40,7 +40,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   // Dynamic page title based on current route
   const getPageTitle = () => {
     if (pageTitle) return pageTitle;
-    
+
     const routeTitles: Record<string, string> = {
       '/': 'Dashboard',
       '/jobs': 'Jobs',
@@ -53,9 +53,9 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       '/reporting': 'Reporting',
       '/settings': 'Settings',
       '/crm-info': 'CRM Info',
-      '/tab-designs': 'Tab Designs'
+      '/tab-designs': 'Tab Designs',
     };
-    
+
     return routeTitles[location.pathname] || 'Dashboard';
   };
 
@@ -74,7 +74,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       }
     },
     threshold: 50,
-    velocityThreshold: 0.3
+    velocityThreshold: 0.3,
   });
 
   // Close sidebar when clicking outside on mobile
@@ -83,9 +83,13 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       if (isMobile && sidebarOpen) {
         const sidebar = document.querySelector('.sidebar');
         const menuButton = document.querySelector('[data-menu-button]');
-        
-        if (sidebar && !sidebar.contains(event.target as Node) && 
-            menuButton && !menuButton.contains(event.target as Node)) {
+
+        if (
+          sidebar &&
+          !sidebar.contains(event.target as Node) &&
+          menuButton &&
+          !menuButton.contains(event.target as Node)
+        ) {
           setSidebarOpen(false);
         }
       }
@@ -100,7 +104,9 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && sidebarOpen) {
         setSidebarOpen(false);
-        const menuButton = document.querySelector('[data-menu-button]') as HTMLElement;
+        const menuButton = document.querySelector(
+          '[data-menu-button]'
+        ) as HTMLElement;
         menuButton?.focus();
       }
     };
@@ -140,63 +146,64 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   }, [darkMode]);
 
   return (
-    <div className={cn(
-      "min-h-screen w-full h-full relative",
-      "bg-white text-foreground"
-    )}>
-
+    <div
+      className={cn(
+        'min-h-screen w-full h-full relative',
+        'bg-white text-foreground'
+      )}
+    >
       {/* Mobile sidebar overlay with glassmorphism */}
       {isMobile && sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+        <div
+          className='fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden'
           onClick={() => setSidebarOpen(false)}
-          onKeyDown={(e) => {
+          onKeyDown={e => {
             if (e.key === 'Escape') {
               setSidebarOpen(false);
             }
           }}
-          aria-hidden="true"
-          role="button"
+          aria-hidden='true'
+          role='button'
           tabIndex={-1}
         />
       )}
-      
+
       {/* Modern Sidebar */}
-      <aside 
+      <aside
         className={cn(
-          "sidebar",
+          'sidebar',
           // Mobile: Fixed overlay with glassmorphism
           isMobile && [
-            "fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw]",
-            "transform transition-transform duration-300 ease-out",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full",
-            "bg-sidebar text-sidebar-foreground border-r border-sidebar-border shadow-2xl"
+            'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw]',
+            'transform transition-transform duration-300 ease-out',
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+            'bg-sidebar text-sidebar-foreground border-r border-sidebar-border shadow-2xl',
           ],
           // Desktop: Fixed sidebar with glassmorphism
           !isMobile && [
-            "fixed left-0 top-0 h-screen w-60 z-30",
-            "bg-sidebar text-sidebar-foreground border-r border-sidebar-border",
-            "shadow-2xl"
+            'fixed left-0 top-0 h-screen w-60 z-30',
+            'bg-sidebar text-sidebar-foreground border-r border-sidebar-border',
+            'shadow-2xl',
           ]
         )}
-        role="navigation"
-        aria-label="Main navigation"
+        role='navigation'
+        aria-label='Main navigation'
       >
         <Sidebar onClose={() => setSidebarOpen(false)} />
       </aside>
 
       {/* Main content with glassmorphism container */}
-      <main 
+      <main
         ref={mainContentRef}
-               className={cn(
-                 "relative z-10 transition-all duration-300 w-full",
-                 // Desktop: Add left padding for fixed sidebar
-                 !isMobile && "pl-60"
-               )}
-        role="main"
+        className={cn(
+          'relative z-10 transition-all duration-300 w-full',
+          // Desktop: Add left padding for fixed sidebar
+          !isMobile && 'pl-60'
+        )}
+        role='main'
       >
         {/* Top Navigation Bar */}
-        <TopNavigationBar 
+        <TopNavigationBar
           pageTitle={getPageTitle()}
           onSearch={onSearch}
           onMenuClick={() => {
@@ -207,19 +214,21 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
           }}
         />
 
-            {/* Content Container */}
-            <div className={cn(
-              "min-h-screen w-full",
-                // Mobile: Reduced padding for better space utilization
-                isMobile && [
-                  "px-4 py-4 pb-20",
-                  "safe-area-inset-left safe-area-inset-right"
-                ],
-                // Desktop: Match top bar padding, more vertical padding
-                !isMobile && "px-6 py-6"
-            )}>
-              {children}
-            </div>
+        {/* Content Container */}
+        <div
+          className={cn(
+            'min-h-screen w-full',
+            // Mobile: Reduced padding for better space utilization
+            isMobile && [
+              'px-4 py-4 pb-20',
+              'safe-area-inset-left safe-area-inset-right',
+            ],
+            // Desktop: Match top bar padding, more vertical padding
+            !isMobile && 'px-6 py-6'
+          )}
+        >
+          {children}
+        </div>
       </main>
 
       {/* Floating Chat Widget */}

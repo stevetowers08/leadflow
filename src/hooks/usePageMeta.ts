@@ -18,10 +18,16 @@ export const usePageMeta = (meta: PageMeta) => {
     document.title = meta.title;
 
     // Update or create meta tags
-    const updateMetaTag = (name: string, content: string, property?: boolean) => {
-      const selector = property ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+    const updateMetaTag = (
+      name: string,
+      content: string,
+      property?: boolean
+    ) => {
+      const selector = property
+        ? `meta[property="${name}"]`
+        : `meta[name="${name}"]`;
       let metaTag = document.querySelector(selector) as HTMLMetaElement;
-      
+
       if (!metaTag) {
         metaTag = document.createElement('meta');
         if (property) {
@@ -31,7 +37,7 @@ export const usePageMeta = (meta: PageMeta) => {
         }
         document.head.appendChild(metaTag);
       }
-      
+
       metaTag.setAttribute('content', content);
     };
 
@@ -43,7 +49,11 @@ export const usePageMeta = (meta: PageMeta) => {
 
     // Update Open Graph meta tags
     updateMetaTag('og:title', meta.ogTitle || meta.title, true);
-    updateMetaTag('og:description', meta.ogDescription || meta.description, true);
+    updateMetaTag(
+      'og:description',
+      meta.ogDescription || meta.description,
+      true
+    );
     updateMetaTag('og:type', 'website', true);
     if (meta.ogImage) {
       updateMetaTag('og:image', meta.ogImage, true);
@@ -51,7 +61,10 @@ export const usePageMeta = (meta: PageMeta) => {
 
     // Update Twitter meta tags
     updateMetaTag('twitter:title', meta.twitterTitle || meta.title);
-    updateMetaTag('twitter:description', meta.twitterDescription || meta.description);
+    updateMetaTag(
+      'twitter:description',
+      meta.twitterDescription || meta.description
+    );
     updateMetaTag('twitter:card', 'summary_large_image');
     if (meta.twitterImage) {
       updateMetaTag('twitter:image', meta.twitterImage);
@@ -60,13 +73,21 @@ export const usePageMeta = (meta: PageMeta) => {
     // Cleanup function to restore default meta tags when component unmounts
     return () => {
       document.title = 'Empowr CRM';
-      updateMetaTag('description', 'Modern CRM platform for recruitment and lead management');
+      updateMetaTag(
+        'description',
+        'Modern CRM platform for recruitment and lead management'
+      );
       updateMetaTag('og:title', 'Empowr CRM', true);
-      updateMetaTag('og:description', 'Modern CRM platform for recruitment and lead management', true);
+      updateMetaTag(
+        'og:description',
+        'Modern CRM platform for recruitment and lead management',
+        true
+      );
       updateMetaTag('twitter:title', 'Empowr CRM');
-      updateMetaTag('twitter:description', 'Modern CRM platform for recruitment and lead management');
+      updateMetaTag(
+        'twitter:description',
+        'Modern CRM platform for recruitment and lead management'
+      );
     };
   }, [meta]);
 };
-
-

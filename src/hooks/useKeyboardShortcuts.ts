@@ -20,13 +20,15 @@ export const useKeyboardShortcuts = () => {
       ctrlKey: true,
       action: () => {
         // Focus search input
-        const searchInput = document.querySelector('input[type="search"], input[placeholder*="search" i]') as HTMLInputElement;
+        const searchInput = document.querySelector(
+          'input[type="search"], input[placeholder*="search" i]'
+        ) as HTMLInputElement;
         if (searchInput) {
           searchInput.focus();
           searchInput.select();
         }
       },
-      description: 'Focus search'
+      description: 'Focus search',
     },
     {
       key: 'n',
@@ -35,55 +37,57 @@ export const useKeyboardShortcuts = () => {
         // Navigate to create new lead (if on leads page)
         if (window.location.pathname.includes('/leads')) {
           // Trigger add lead action
-          const addButton = document.querySelector('[data-action="add-lead"]') as HTMLButtonElement;
+          const addButton = document.querySelector(
+            '[data-action="add-lead"]'
+          ) as HTMLButtonElement;
           if (addButton) {
             addButton.click();
           }
         }
       },
-      description: 'Create new lead'
+      description: 'Create new lead',
     },
     {
       key: '1',
       ctrlKey: true,
       action: () => navigate('/'),
-      description: 'Go to Dashboard'
+      description: 'Go to Dashboard',
     },
     {
       key: '2',
       ctrlKey: true,
       action: () => navigate('/leads'),
-      description: 'Go to Leads'
+      description: 'Go to Leads',
     },
     {
       key: '3',
       ctrlKey: true,
       action: () => navigate('/companies'),
-      description: 'Go to Companies'
+      description: 'Go to Companies',
     },
     {
       key: '4',
       ctrlKey: true,
       action: () => navigate('/jobs'),
-      description: 'Go to Jobs'
+      description: 'Go to Jobs',
     },
     {
       key: '5',
       ctrlKey: true,
       action: () => navigate('/pipeline'),
-      description: 'Go to Pipeline'
+      description: 'Go to Pipeline',
     },
     {
       key: '6',
       ctrlKey: true,
       action: () => navigate('/reporting'),
-      description: 'Go to Reporting'
+      description: 'Go to Reporting',
     },
     {
       key: ',',
       ctrlKey: true,
       action: () => navigate('/settings'),
-      description: 'Go to Settings'
+      description: 'Go to Settings',
     },
     {
       key: 'Escape',
@@ -91,13 +95,15 @@ export const useKeyboardShortcuts = () => {
         // Close any open modals
         const modals = document.querySelectorAll('[role="dialog"]');
         modals.forEach(modal => {
-          const closeButton = modal.querySelector('[data-dialog-close]') as HTMLButtonElement;
+          const closeButton = modal.querySelector(
+            '[data-dialog-close]'
+          ) as HTMLButtonElement;
           if (closeButton) {
             closeButton.click();
           }
         });
       },
-      description: 'Close modal'
+      description: 'Close modal',
     },
     {
       key: '?',
@@ -116,36 +122,39 @@ Ctrl+6 - Reporting
 Ctrl+, - Settings
 Escape - Close modal`);
       },
-      description: 'Show keyboard shortcuts'
-    }
+      description: 'Show keyboard shortcuts',
+    },
   ];
 
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    // Don't trigger shortcuts when typing in inputs
-    if (
-      event.target instanceof HTMLInputElement ||
-      event.target instanceof HTMLTextAreaElement ||
-      event.target instanceof HTMLSelectElement ||
-      (event.target as HTMLElement)?.contentEditable === 'true'
-    ) {
-      return;
-    }
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement ||
+        (event.target as HTMLElement)?.contentEditable === 'true'
+      ) {
+        return;
+      }
 
-    const matchingShortcut = shortcuts.find(shortcut => {
-      return (
-        shortcut.key.toLowerCase() === event.key.toLowerCase() &&
-        !!shortcut.ctrlKey === event.ctrlKey &&
-        !!shortcut.metaKey === event.metaKey &&
-        !!shortcut.altKey === event.altKey &&
-        !!shortcut.shiftKey === event.shiftKey
-      );
-    });
+      const matchingShortcut = shortcuts.find(shortcut => {
+        return (
+          shortcut.key.toLowerCase() === event.key.toLowerCase() &&
+          !!shortcut.ctrlKey === event.ctrlKey &&
+          !!shortcut.metaKey === event.metaKey &&
+          !!shortcut.altKey === event.altKey &&
+          !!shortcut.shiftKey === event.shiftKey
+        );
+      });
 
-    if (matchingShortcut) {
-      event.preventDefault();
-      matchingShortcut.action();
-    }
-  }, [shortcuts]);
+      if (matchingShortcut) {
+        event.preventDefault();
+        matchingShortcut.action();
+      }
+    },
+    [shortcuts]
+  );
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -161,7 +170,7 @@ export const useFocusManagement = () => {
     const focusableElements = element.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     ) as NodeListOf<HTMLElement>;
-    
+
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
 
@@ -182,7 +191,7 @@ export const useFocusManagement = () => {
     };
 
     element.addEventListener('keydown', handleTabKey);
-    
+
     return () => {
       element.removeEventListener('keydown', handleTabKey);
     };
@@ -192,7 +201,7 @@ export const useFocusManagement = () => {
     const focusableElement = element.querySelector(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     ) as HTMLElement;
-    
+
     if (focusableElement) {
       focusableElement.focus();
     }
@@ -203,20 +212,23 @@ export const useFocusManagement = () => {
 
 // Hook for screen reader announcements
 export const useScreenReaderAnnouncement = () => {
-  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', priority);
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.className = 'sr-only';
-    announcement.textContent = message;
-    
-    document.body.appendChild(announcement);
-    
-    // Remove after announcement
-    setTimeout(() => {
-      document.body.removeChild(announcement);
-    }, 1000);
-  }, []);
+  const announce = useCallback(
+    (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+      const announcement = document.createElement('div');
+      announcement.setAttribute('aria-live', priority);
+      announcement.setAttribute('aria-atomic', 'true');
+      announcement.className = 'sr-only';
+      announcement.textContent = message;
+
+      document.body.appendChild(announcement);
+
+      // Remove after announcement
+      setTimeout(() => {
+        document.body.removeChild(announcement);
+      }, 1000);
+    },
+    []
+  );
 
   return announce;
 };

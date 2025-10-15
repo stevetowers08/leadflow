@@ -1,9 +1,9 @@
-import { createRoot } from "react-dom/client";
+import { createRoot } from 'react-dom/client';
 
-import App from "./App.tsx";
-import SupabaseErrorBoundary from "./components/diagnostics/SupabaseErrorBoundary.tsx";
-import "./index.css";
-import { logger } from "./utils/logger";
+import App from './App.tsx';
+import SupabaseErrorBoundary from './components/diagnostics/SupabaseErrorBoundary.tsx';
+import './index.css';
+import { logger } from './utils/logger';
 
 // Defer non-critical imports to improve initial load
 const initializeApp = async () => {
@@ -13,24 +13,30 @@ const initializeApp = async () => {
   if (import.meta.env.DEV) {
     logger.debug('🔍 Environment Debug Info:');
     logger.debug('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-    logger.debug('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET');
-    logger.debug('VITE_GOOGLE_CLIENT_ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID);
+    logger.debug(
+      'VITE_SUPABASE_ANON_KEY:',
+      import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
+    );
+    logger.debug(
+      'VITE_GOOGLE_CLIENT_ID:',
+      import.meta.env.VITE_GOOGLE_CLIENT_ID
+    );
     logger.debug('All env vars:', import.meta.env);
   }
 
   // Add global error handler
-  window.addEventListener('error', (event) => {
+  window.addEventListener('error', event => {
     logger.error('🚨 Global Error:', event.error);
   });
 
-  window.addEventListener('unhandledrejection', (event) => {
+  window.addEventListener('unhandledrejection', event => {
     logger.error('🚨 Unhandled Promise Rejection:', event.reason);
   });
 
-  const rootElement = document.getElementById("root");
+  const rootElement = document.getElementById('root');
   if (!rootElement) {
     logger.error('❌ Root element not found');
-    throw new Error("Root element not found");
+    throw new Error('Root element not found');
   }
 
   logger.info('✅ Root element found, creating React root...');
@@ -47,6 +53,6 @@ const initializeApp = async () => {
 };
 
 // Initialize app asynchronously to improve initial paint
-initializeApp().catch((error) => {
+initializeApp().catch(error => {
   logger.error('❌ Failed to initialize app:', error);
 });

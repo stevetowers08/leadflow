@@ -18,18 +18,18 @@ const suppressedPatterns = [
   /Removing intrinsics\.%DatePrototype%\.toTemporalInstant/,
   /lockdown-install\.js/,
   /SES_UNCAUGHT_EXCEPTION/,
-  
+
   // Source map errors
   /Source map error/,
   /installHook\.js\.map/,
   /JSON\.parse: unexpected character/,
-  
+
   // Browser extension noise
   /Extension context invalidated/,
   /chrome-extension:/,
   /moz-extension:/,
   /safari-extension:/,
-  
+
   // Development tool noise
   /DevTools/,
   /React DevTools/,
@@ -43,7 +43,7 @@ function shouldSuppress(message: string): boolean {
 
 // Filter console methods
 function filterConsoleMethod(originalMethod: typeof console.warn) {
-  return function(...args: any[]) {
+  return function (...args: any[]) {
     const message = args.join(' ');
     if (shouldSuppress(message)) {
       return; // Suppress the message

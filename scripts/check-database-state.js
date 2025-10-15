@@ -32,7 +32,9 @@ async function checkDatabaseState() {
       .limit(1);
 
     if (profilesError) {
-      console.log('   ❌ user_profiles table does not exist or is not accessible');
+      console.log(
+        '   ❌ user_profiles table does not exist or is not accessible'
+      );
       console.log('   Error:', profilesError.message);
     } else {
       console.log('   ✅ user_profiles table exists');
@@ -48,7 +50,9 @@ async function checkDatabaseState() {
     if (companiesError) {
       console.log('   ❌ companies table error:', companiesError.message);
     } else {
-      console.log(`   ✅ companies table accessible, count: ${companies?.length || 0}`);
+      console.log(
+        `   ✅ companies table accessible, count: ${companies?.length || 0}`
+      );
     }
 
     // Check people table
@@ -60,7 +64,9 @@ async function checkDatabaseState() {
     if (peopleError) {
       console.log('   ❌ people table error:', peopleError.message);
     } else {
-      console.log(`   ✅ people table accessible, count: ${people?.length || 0}`);
+      console.log(
+        `   ✅ people table accessible, count: ${people?.length || 0}`
+      );
     }
 
     // Check jobs table
@@ -76,7 +82,6 @@ async function checkDatabaseState() {
     }
 
     console.log('\n🎯 Database state check complete!');
-
   } catch (error) {
     console.error('\n❌ Database check failed:', error.message);
   }

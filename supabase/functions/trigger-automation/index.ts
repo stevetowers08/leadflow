@@ -1,11 +1,12 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
+};
 
-serve(async (req) => {
+serve(async req => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -17,7 +18,9 @@ serve(async (req) => {
     console.log('Automation trigger received:', { leadId, action, leadData });
 
     // Get webhook URL from environment or use the default n8n webhook URL
-    const webhookUrl = Deno.env.get('N8N_WEBHOOK_URL') || 'https://n8n.srv814433.hstgr.cloud/webhook/crm';
+    const webhookUrl =
+      Deno.env.get('N8N_WEBHOOK_URL') ||
+      'https://n8n.srv814433.hstgr.cloud/webhook/crm';
 
     // Prepare payload for n8n
     const webhookPayload = {
@@ -39,8 +42,8 @@ serve(async (req) => {
         createdAt: leadData.createdAt,
         linkedinMessage: leadData.linkedinMessage,
         jobTitle: leadData.jobTitle,
-        companyName: leadData.companyName
-      }
+        companyName: leadData.companyName,
+      },
     };
 
     console.log('Sending webhook to n8n:', webhookPayload);
@@ -50,41 +53,42 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'CRM-Automation/1.0'
+        'User-Agent': 'CRM-Automation/1.0',
       },
-      body: JSON.stringify(webhookPayload)
+      body: JSON.stringify(webhookPayload),
     });
 
     if (!webhookResponse.ok) {
-      throw new Error(`Webhook failed: ${webhookResponse.status} ${webhookResponse.statusText}`);
+      throw new Error(
+        `Webhook failed: ${webhookResponse.status} ${webhookResponse.statusText}`
+      );
     }
 
     const webhookResult = await webhookResponse.text();
     console.log('Webhook response:', webhookResult);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: 'Automation triggered successfully',
-        webhookResponse: webhookResult
+        webhookResponse: webhookResult,
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
+        status: 200,
       }
     );
-
   } catch (error) {
     console.error('Automation trigger error:', error);
-    
+
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
+      JSON.stringify({
+        success: false,
+        error: error.message,
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
+        status: 500,
       }
     );
   }

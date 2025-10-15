@@ -12,7 +12,7 @@ interface GlobalSearchDropdownProps {
 }
 
 export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
-  className
+  className,
 }) => {
   const {
     searchQuery,
@@ -23,7 +23,7 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
     clearSearch,
     isSearchOpen,
     setIsSearchOpen,
-    suggestions
+    suggestions,
   } = useSearch();
 
   const { openPopup } = usePopupNavigation();
@@ -35,7 +35,10 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
   // Handle clicking outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsSearchOpen(false);
         setShowSuggestions(false);
       }
@@ -103,7 +106,7 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
         openPopup('job', result.id, result.title);
         break;
     }
-    
+
     // Close search dropdown
     setIsSearchOpen(false);
     setShowSuggestions(false);
@@ -123,42 +126,47 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
     }
   };
 
-  const shouldShowDropdown = isSearchOpen && (searchQuery.length > 0 || isSearching);
-  const shouldShowSuggestions = showSuggestions && suggestions.length > 0 && !isSearching;
+  const shouldShowDropdown =
+    isSearchOpen && (searchQuery.length > 0 || isSearching);
+  const shouldShowSuggestions =
+    showSuggestions && suggestions.length > 0 && !isSearching;
 
   return (
-    <div ref={dropdownRef} className={cn("relative w-full max-w-md", className)}>
+    <div
+      ref={dropdownRef}
+      className={cn('relative w-full max-w-md', className)}
+    >
       {/* Search Input */}
-      <form onSubmit={handleSubmit} className="relative">
-        <div className="relative">
+      <form onSubmit={handleSubmit} className='relative'>
+        <div className='relative'>
           <SearchInput
             ref={inputRef}
-            type="text"
-            placeholder="Search people, companies, jobs..."
+            type='text'
+            placeholder='Search people, companies, jobs...'
             value={searchQuery}
             onChange={handleInputChange}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            className="w-full pr-20"
+            className='w-full pr-20'
           />
-          
+
           {/* Search Icon */}
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400'>
             {isSearching ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className='w-4 h-4 animate-spin' />
             ) : (
-              <Search className="w-4 h-4" />
+              <Search className='w-4 h-4' />
             )}
           </div>
 
           {/* Clear Button */}
           {searchQuery && (
             <button
-              type="button"
+              type='button'
               onClick={handleClearSearch}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors'
             >
-              <X className="w-4 h-4" />
+              <X className='w-4 h-4' />
             </button>
           )}
         </div>
@@ -166,17 +174,19 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
 
       {/* Dropdown */}
       {(shouldShowDropdown || shouldShowSuggestions) && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
+        <div className='absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden'>
           {/* Suggestions */}
           {shouldShowSuggestions && (
-            <div className="p-2 border-b border-gray-100">
-              <div className="text-xs font-medium text-gray-500 mb-2 px-2">Suggestions</div>
-              <div className="space-y-1">
+            <div className='p-2 border-b border-gray-100'>
+              <div className='text-xs font-medium text-gray-500 mb-2 px-2'>
+                Suggestions
+              </div>
+              <div className='space-y-1'>
                 {suggestions.map((suggestion, index) => (
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="w-full text-left px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+                    className='w-full text-left px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors'
                   >
                     {suggestion}
                   </button>
@@ -187,9 +197,9 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
 
           {/* Search Results */}
           {shouldShowDropdown && (
-            <div className="p-2">
+            <div className='p-2'>
               {searchError ? (
-                <div className="text-center py-4 text-red-600 text-sm">
+                <div className='text-center py-4 text-red-600 text-sm'>
                   {searchError}
                 </div>
               ) : (

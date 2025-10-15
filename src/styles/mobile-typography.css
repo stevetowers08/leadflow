@@ -16,7 +16,7 @@
   }
 
   /* Mobile Typography Hierarchy */
-  
+
   /* Headlines - 24-32px range */
   .mobile-h1 {
     font-size: 1.75rem; /* 28px */
@@ -83,7 +83,7 @@
   }
 
   /* Mobile-Specific Component Typography */
-  
+
   /* Navigation Items */
   .mobile-nav-item {
     font-size: 0.75rem; /* 12px */
@@ -205,7 +205,9 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-feature-settings: "kern" 1, "liga" 1;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
   }
 
   /* High Contrast Mode Support */
@@ -221,7 +223,7 @@
   /* Reduced Motion Support */
   @media (prefers-reduced-motion: reduce) {
     .mobile-text-enhanced {
-      font-feature-settings: "kern" 0;
+      font-feature-settings: 'kern' 0;
     }
   }
 }

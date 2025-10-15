@@ -21,18 +21,14 @@ export function useDebouncedFetch<T>(
   fetchFn: () => Promise<T>,
   options: DebouncedFetchOptions = {}
 ) {
-  const {
-    delay = 300,
-    maxRetries = 3,
-    retryDelay = 1000
-  } = options;
+  const { delay = 300, maxRetries = 3, retryDelay = 1000 } = options;
 
   const timeoutRef = useRef<NodeJS.Timeout>();
   const abortControllerRef = useRef<AbortController>();
   const requestStateRef = useRef<RequestState>({
     isLoading: false,
     error: null,
-    lastFetch: 0
+    lastFetch: 0,
   });
 
   const debouncedFetch = useCallback(async (): Promise<T | null> => {
@@ -96,7 +92,7 @@ export function useDebouncedFetch<T>(
 
   const retryFetch = useCallback(async (): Promise<T | null> => {
     let retries = 0;
-    
+
     while (retries < maxRetries) {
       try {
         return await immediateFetch();
@@ -105,12 +101,12 @@ export function useDebouncedFetch<T>(
         if (retries >= maxRetries) {
           throw error;
         }
-        
+
         // Wait before retry
         await new Promise(resolve => setTimeout(resolve, retryDelay * retries));
       }
     }
-    
+
     throw new Error('Max retries exceeded');
   }, [immediateFetch, maxRetries, retryDelay]);
 
@@ -138,7 +134,7 @@ export function useDebouncedFetch<T>(
     cancel,
     isLoading: requestStateRef.current.isLoading,
     error: requestStateRef.current.error,
-    lastFetch: requestStateRef.current.lastFetch
+    lastFetch: requestStateRef.current.lastFetch,
   };
 }
 
@@ -149,10 +145,7 @@ export function useDebouncedFetch<T>(
 class RequestDeduplicator {
   private pendingRequests = new Map<string, Promise<any>>();
 
-  async deduplicate<T>(
-    key: string,
-    requestFn: () => Promise<T>
-  ): Promise<T> {
+  async deduplicate<T>(key: string, requestFn: () => Promise<T>): Promise<T> {
     // If request is already pending, return the existing promise
     if (this.pendingRequests.has(key)) {
       return this.pendingRequests.get(key);
@@ -188,12 +181,12 @@ export const requestDeduplicator = new RequestDeduplicator();
  * Hook for request deduplication
  */
 export function useRequestDeduplication() {
-  const deduplicate = useCallback(<T>(
-    key: string,
-    requestFn: () => Promise<T>
-  ): Promise<T> => {
-    return requestDeduplicator.deduplicate(key, requestFn);
-  }, []);
+  const deduplicate = useCallback(
+    <T>(key: string, requestFn: () => Promise<T>): Promise<T> => {
+      return requestDeduplicator.deduplicate(key, requestFn);
+    },
+    []
+  );
 
   const cancel = useCallback((key: string) => {
     return requestDeduplicator.cancel(key);
@@ -202,6 +195,6 @@ export function useRequestDeduplication() {
   return {
     deduplicate,
     cancel,
-    pendingCount: requestDeduplicator.getPendingCount()
+    pendingCount: requestDeduplicator.getPendingCount(),
   };
 }

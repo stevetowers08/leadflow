@@ -18,55 +18,61 @@ export function useOptimizedRealtime(options: RealtimeOptions) {
   const timeoutRef = useRef<NodeJS.Timeout>();
   const pendingUpdates = useRef<Set<string>>(new Set());
 
-  const debouncedUpdate = useCallback((recordId: string) => {
-    pendingUpdates.current.add(recordId);
-    
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    timeoutRef.current = setTimeout(() => {
-      const updates = Array.from(pendingUpdates.current);
-      pendingUpdates.current.clear();
-      
-      // Batch process updates
-      updates.forEach(id => {
-        onUpdate?.({ record: { id } });
-      });
-    }, debounceMs);
-  }, [onUpdate, debounceMs]);
+  const debouncedUpdate = useCallback(
+    (recordId: string) => {
+      pendingUpdates.current.add(recordId);
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        const updates = Array.from(pendingUpdates.current);
+        pendingUpdates.current.clear();
+
+        // Batch process updates
+        updates.forEach(id => {
+          onUpdate?.({ record: { id } });
+        });
+      }, debounceMs);
+    },
+    [onUpdate, debounceMs]
+  );
 
   useEffect(() => {
     const channel = supabase
       .channel(`${table}-changes`)
-      .on('postgres_changes', 
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table 
-        }, 
-        (payload) => {
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table,
+        },
+        payload => {
           // Only update specific record, not full refetch
           debouncedUpdate(payload.new.id);
         }
       )
-      .on('postgres_changes', 
-        { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table 
-        }, 
-        (payload) => {
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table,
+        },
+        payload => {
           onInsert?.(payload);
         }
       )
-      .on('postgres_changes', 
-        { 
-          event: 'DELETE', 
-          schema: 'public', 
-          table 
-        }, 
-        (payload) => {
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table,
+        },
+        payload => {
           onDelete?.(payload);
         }
       )
@@ -82,6 +88,6 @@ export function useOptimizedRealtime(options: RealtimeOptions) {
 
   return {
     // Return methods for manual updates if needed
-    triggerUpdate: debouncedUpdate
+    triggerUpdate: debouncedUpdate,
   };
 }

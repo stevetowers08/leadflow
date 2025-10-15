@@ -1,6 +1,6 @@
 // Supabase Edge Function for AI Processing
 // This runs on Supabase's serverless infrastructure
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 
 interface JobData {
   id: string;
@@ -43,9 +43,9 @@ Deno.serve(async (req: Request) => {
     if (!jobData || !jobId) {
       return new Response(
         JSON.stringify({ error: 'Missing jobData or jobId' }),
-        { 
+        {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -55,36 +55,33 @@ Deno.serve(async (req: Request) => {
     if (!geminiApiKey) {
       return new Response(
         JSON.stringify({ error: 'Gemini API key not configured' }),
-        { 
+        {
           status: 500,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Call Google Gemini API from server
     const geminiResponse = await callGeminiAPI(geminiApiKey, jobData);
-    
+
     if (!geminiResponse.success) {
-      return new Response(
-        JSON.stringify({ error: geminiResponse.error }),
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      return new Response(JSON.stringify({ error: geminiResponse.error }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Update Supabase database with AI-generated summary
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
+
     if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(
         JSON.stringify({ error: 'Supabase configuration missing' }),
-        { 
+        {
           status: 500,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -96,8 +93,8 @@ Deno.serve(async (req: Request) => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-          'apikey': supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
         },
         body: JSON.stringify({
           summary: geminiResponse.data.summary,
@@ -124,23 +121,25 @@ Deno.serve(async (req: Request) => {
         },
       }
     );
-
   } catch (error) {
     console.error('AI processing error:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Internal server error',
-        details: error.message 
+        details: error.message,
       }),
-      { 
+      {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
 });
 
-async function callGeminiAPI(apiKey: string, jobData: JobData): Promise<{
+async function callGeminiAPI(
+  apiKey: string,
+  jobData: JobData
+): Promise<{
   success: boolean;
   data?: GeminiResponse;
   tokens_used?: number;
@@ -179,11 +178,15 @@ async function callGeminiAPI(apiKey: string, jobData: JobData): Promise<{
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
           generationConfig: {
             temperature: 0.3,
             topK: 40,
@@ -192,34 +195,40 @@ async function callGeminiAPI(apiKey: string, jobData: JobData): Promise<{
           },
           safetySettings: [
             {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              category: 'HARM_CATEGORY_HARASSMENT',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE',
             },
             {
-              category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              category: 'HARM_CATEGORY_HATE_SPEECH',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE',
             },
             {
-              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE',
             },
             {
-              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            }
-          ]
-        })
+              category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            },
+          ],
+        }),
       }
     );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Gemini API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+      throw new Error(
+        `Gemini API error: ${response.status} - ${errorData.error?.message || response.statusText}`
+      );
     }
 
     const data = await response.json();
-    
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+
+    if (
+      !data.candidates ||
+      !data.candidates[0] ||
+      !data.candidates[0].content
+    ) {
       throw new Error('Invalid response format from Gemini API');
     }
 
@@ -232,14 +241,13 @@ async function callGeminiAPI(apiKey: string, jobData: JobData): Promise<{
     return {
       success: true,
       data: parsedData,
-      tokens_used: tokensUsed
+      tokens_used: tokensUsed,
     };
-
   } catch (error) {
     console.error('Gemini API call failed:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown API error'
+      error: error instanceof Error ? error.message : 'Unknown API error',
     };
   }
 }

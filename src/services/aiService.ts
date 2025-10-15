@@ -1,6 +1,10 @@
 // AI Service for lead scoring, job summaries, and optimization
 // Now uses SECURE server-side processing via Supabase Edge Functions
-import { serverAIService, type ServerAIJobSummary, type ServerAIResponse } from './serverAIService';
+import {
+  serverAIService,
+  type ServerAIJobSummary,
+  type ServerAIResponse,
+} from './serverAIService';
 
 export interface AIScore {
   score: number;
@@ -99,16 +103,19 @@ class AIService {
       console.error('AI Score calculation error:', error);
       // AI Fallback scoring with enhanced reasoning
       const fallbackScore = Math.floor(Math.random() * 40) + 60; // 60-100 range
-      let reason = "AI Analysis: Strong company match detected";
-      
+      let reason = 'AI Analysis: Strong company match detected';
+
       if (fallbackScore >= 80) {
-        reason = "AI Analysis: Excellent fit - senior role at established company with high conversion probability";
+        reason =
+          'AI Analysis: Excellent fit - senior role at established company with high conversion probability';
       } else if (fallbackScore >= 70) {
-        reason = "AI Analysis: Good match - relevant experience and location alignment detected";
+        reason =
+          'AI Analysis: Good match - relevant experience and location alignment detected';
       } else if (fallbackScore >= 60) {
-        reason = "AI Analysis: Decent fit - some alignment factors identified by AI algorithms";
+        reason =
+          'AI Analysis: Decent fit - some alignment factors identified by AI algorithms';
       }
-      
+
       return {
         score: fallbackScore,
         reason: reason,
@@ -118,8 +125,8 @@ class AIService {
           industry_match: 0.6,
           role_seniority: 0.8,
           location_match: 0.5,
-          experience_match: 0.6
-        }
+          experience_match: 0.6,
+        },
       };
     }
   }
@@ -144,7 +151,7 @@ class AIService {
         location: jobData.location,
         salary: jobData.salary,
         employment_type: undefined,
-        seniority_level: undefined
+        seniority_level: undefined,
       });
 
       if (serverResult.success && serverResult.data) {
@@ -153,12 +160,15 @@ class AIService {
           key_requirements: serverResult.data.key_requirements,
           ideal_candidate: serverResult.data.ideal_candidate,
           urgency_level: serverResult.data.urgency_level,
-          market_demand: serverResult.data.market_demand
+          market_demand: serverResult.data.market_demand,
         };
       }
 
       // Fallback to manual generation if server fails
-      console.warn('Server-side AI failed, using fallback:', serverResult.error);
+      console.warn(
+        'Server-side AI failed, using fallback:',
+        serverResult.error
+      );
       return this.generateFallbackJobSummary(jobData);
     } catch (error) {
       console.error('AI job summary error:', error);
@@ -207,11 +217,15 @@ class AIService {
       console.error('AI optimization error:', error);
       // Fallback optimization
       return {
-        suggested_actions: ['Send personalized LinkedIn connection', 'Follow up with email', 'Research company recent news'],
+        suggested_actions: [
+          'Send personalized LinkedIn connection',
+          'Follow up with email',
+          'Research company recent news',
+        ],
         priority_level: 'medium',
         estimated_response_rate: 25,
         best_contact_method: 'linkedin',
-        optimal_timing: 'Tuesday-Thursday, 9-11 AM'
+        optimal_timing: 'Tuesday-Thursday, 9-11 AM',
       };
     }
   }
@@ -226,7 +240,7 @@ class AIService {
       const batchPromises = batch.map(lead => this.calculateLeadScore(lead));
       const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
-      
+
       // Add delay between batches
       if (i + batchSize < leads.length) {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -245,7 +259,7 @@ class AIService {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -253,16 +267,17 @@ class AIService {
         messages: [
           {
             role: 'system',
-            content: 'You are an advanced AI assistant specialized in intelligent lead scoring, job analysis, and recruitment optimization using machine learning algorithms. Always respond with valid JSON format and provide detailed AI-powered insights.'
+            content:
+              'You are an advanced AI assistant specialized in intelligent lead scoring, job analysis, and recruitment optimization using machine learning algorithms. Always respond with valid JSON format and provide detailed AI-powered insights.',
           },
           {
             role: 'user',
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 1000
-      })
+        max_tokens: 1000,
+      }),
     });
 
     if (!response.ok) {
@@ -298,16 +313,20 @@ class AIService {
   }): JobSummary {
     return {
       summary: `${jobData.title} position at ${jobData.company} in ${jobData.location}`,
-      key_requirements: ['Experience in relevant field', 'Strong communication skills', 'Team collaboration'],
+      key_requirements: [
+        'Experience in relevant field',
+        'Strong communication skills',
+        'Team collaboration',
+      ],
       ideal_candidate: 'Experienced professional with relevant background',
       urgency_level: 'medium',
-      market_demand: 'medium'
+      market_demand: 'medium',
     };
   }
 
   // Get AI service status
-  getStatus(): { 
-    available: boolean; 
+  getStatus(): {
+    available: boolean;
     providers: {
       openai: { available: boolean; model: string };
       gemini: { available: boolean; model: string };
@@ -322,17 +341,22 @@ class AIService {
     return {
       available: openaiAvailable || geminiAvailable,
       providers: {
-        openai: { 
-          available: openaiAvailable, 
-          model: 'gpt-3.5-turbo' 
+        openai: {
+          available: openaiAvailable,
+          model: 'gpt-3.5-turbo',
         },
-        gemini: { 
-          available: geminiAvailable, 
-          model: 'gemini-1.5-flash' 
-        }
+        gemini: {
+          available: geminiAvailable,
+          model: 'gemini-1.5-flash',
+        },
       },
       activeProvider,
-      features: ['lead_scoring', 'job_summaries', 'outreach_optimization', 'batch_processing']
+      features: [
+        'lead_scoring',
+        'job_summaries',
+        'outreach_optimization',
+        'batch_processing',
+      ],
     };
   }
 }

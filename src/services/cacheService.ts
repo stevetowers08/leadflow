@@ -26,7 +26,7 @@ export class ManagedCache<T = any> {
     this.maxSize = options.maxSize ?? 100;
     this.maxAge = options.maxAge ?? 2 * 60 * 1000; // 2 minutes default
     this.cleanupInterval = options.cleanupInterval ?? 60 * 1000; // 1 minute cleanup interval
-    
+
     // Start automatic cleanup
     this.startCleanup();
   }
@@ -64,7 +64,7 @@ export class ManagedCache<T = any> {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      accessCount: 1
+      accessCount: 1,
     });
   }
 
@@ -104,7 +104,9 @@ export class ManagedCache<T = any> {
       totalSizeBytes: totalSize,
       oldestEntry: Math.min(...entries.map(([, entry]) => entry.timestamp)),
       newestEntry: Math.max(...entries.map(([, entry]) => entry.timestamp)),
-      averageAccessCount: entries.reduce((sum, [, entry]) => sum + entry.accessCount, 0) / entries.length
+      averageAccessCount:
+        entries.reduce((sum, [, entry]) => sum + entry.accessCount, 0) /
+        entries.length,
     };
   }
 
@@ -130,8 +132,10 @@ export class ManagedCache<T = any> {
 
     for (const [key, entry] of this.cache.entries()) {
       // Prioritize by access count, then by timestamp
-      if (entry.accessCount < oldestAccess || 
-          (entry.accessCount === oldestAccess && entry.timestamp < oldestTime)) {
+      if (
+        entry.accessCount < oldestAccess ||
+        (entry.accessCount === oldestAccess && entry.timestamp < oldestTime)
+      ) {
         oldestKey = key;
         oldestAccess = entry.accessCount;
         oldestTime = entry.timestamp;
@@ -168,19 +172,19 @@ export class ManagedCache<T = any> {
 export const dashboardCache = new ManagedCache({
   maxSize: 50,
   maxAge: 2 * 60 * 1000, // 2 minutes
-  cleanupInterval: 30 * 1000 // 30 seconds
+  cleanupInterval: 30 * 1000, // 30 seconds
 });
 
 export const userProfileCache = new ManagedCache({
   maxSize: 20,
   maxAge: 5 * 60 * 1000, // 5 minutes
-  cleanupInterval: 60 * 1000 // 1 minute
+  cleanupInterval: 60 * 1000, // 1 minute
 });
 
 export const searchCache = new ManagedCache({
   maxSize: 100,
   maxAge: 10 * 60 * 1000, // 10 minutes
-  cleanupInterval: 2 * 60 * 1000 // 2 minutes
+  cleanupInterval: 2 * 60 * 1000, // 2 minutes
 });
 
 // Cleanup on page unload

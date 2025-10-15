@@ -1,21 +1,21 @@
 // Safe performance monitor implementation without JSX
 export class PerformanceMonitor {
-  static getInstance() { 
-    return new PerformanceMonitor(); 
+  static getInstance() {
+    return new PerformanceMonitor();
   }
-  
-  startTracking() { 
-    return performance.now(); 
+
+  startTracking() {
+    return performance.now();
   }
-  
+
   endTracking() {}
-  
+
   logError() {}
-  
+
   setCache(_k?: string, _d?: unknown, _ttl?: number) {}
-  
-  getCache(_k?: string) { 
-    return null; 
+
+  getCache(_k?: string) {
+    return null;
   }
 }
 
@@ -24,15 +24,15 @@ export function usePerformanceMonitoring(_componentName: string) {
     logError: () => {},
     endTracking: () => {},
     setCache: () => {},
-    getCache: () => null
+    getCache: () => null,
   };
 }
 
 // Stub error boundary - not used for JSX rendering
 export class ErrorBoundary {
   constructor(_props: any) {}
-  render() { 
-    return null as any; 
+  render() {
+    return null as any;
   }
 }
 
@@ -41,9 +41,9 @@ export async function safeAsync<T>(
   _context: { component: string; action: string },
   fallback?: T
 ): Promise<T | undefined> {
-  try { 
-    return await operation(); 
-  } catch { 
-    return fallback; 
+  try {
+    return await operation();
+  } catch {
+    return fallback;
   }
 }

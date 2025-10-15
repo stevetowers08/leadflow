@@ -1,15 +1,21 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from '@/components/ui/pagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -60,28 +66,34 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
   // Keyboard navigation
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.target instanceof HTMLElement && e.target.closest('[role="navigation"]')) {
-      switch (e.key) {
-        case 'ArrowLeft':
-          e.preventDefault();
-          if (hasPreviousPage) onPageChange(currentPage - 1);
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          if (hasNextPage) onPageChange(currentPage + 1);
-          break;
-        case 'Home':
-          e.preventDefault();
-          onPageChange(1);
-          break;
-        case 'End':
-          e.preventDefault();
-          onPageChange(totalPages);
-          break;
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLElement &&
+        e.target.closest('[role="navigation"]')
+      ) {
+        switch (e.key) {
+          case 'ArrowLeft':
+            e.preventDefault();
+            if (hasPreviousPage) onPageChange(currentPage - 1);
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            if (hasNextPage) onPageChange(currentPage + 1);
+            break;
+          case 'Home':
+            e.preventDefault();
+            onPageChange(1);
+            break;
+          case 'End':
+            e.preventDefault();
+            onPageChange(totalPages);
+            break;
+        }
       }
-    }
-  }, [currentPage, totalPages, hasNextPage, hasPreviousPage, onPageChange]);
+    },
+    [currentPage, totalPages, hasNextPage, hasPreviousPage, onPageChange]
+  );
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -103,104 +115,118 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   };
 
   return (
-    <div 
-      className={cn("flex flex-col sm:flex-row items-center justify-between gap-4", className)}
-      role="region" 
-      aria-label="Table pagination"
-      aria-live="polite"
+    <div
+      className={cn(
+        'flex flex-col sm:flex-row items-center justify-between gap-4',
+        className
+      )}
+      role='region'
+      aria-label='Table pagination'
+      aria-live='polite'
     >
       {/* Item count and page size selector */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4'>
         {showItemCount && (
-          <div className="text-sm text-muted-foreground">
-            Showing <span className="font-medium">{startItem}</span> to{' '}
-            <span className="font-medium">{endItem}</span> of{' '}
-            <span className="font-medium">{totalItems}</span> results
+          <div className='text-sm text-muted-foreground'>
+            Showing <span className='font-medium'>{startItem}</span> to{' '}
+            <span className='font-medium'>{endItem}</span> of{' '}
+            <span className='font-medium'>{totalItems}</span> results
           </div>
         )}
-        
+
         {showPageSizeSelector && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Show:</span>
-            <Select 
-              value={pageSize.toString()} 
-              onValueChange={(value) => onPageSizeChange(Number(value))}
+          <div className='flex items-center gap-2'>
+            <span className='text-sm text-muted-foreground'>Show:</span>
+            <Select
+              value={pageSize.toString()}
+              onValueChange={value => onPageSizeChange(Number(value))}
               disabled={loading}
             >
-              <SelectTrigger className="w-20 h-8">
+              <SelectTrigger className='w-20 h-8'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {pageSizeOptions.map((size) => (
+                {pageSizeOptions.map(size => (
                   <SelectItem key={size} value={size.toString()}>
                     {size}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <span className="text-sm text-muted-foreground">per page</span>
+            <span className='text-sm text-muted-foreground'>per page</span>
           </div>
         )}
       </div>
 
       {/* Pagination controls */}
-      <div className="flex items-center gap-2">
+      <div className='flex items-center gap-2'>
         {/* Go to page input - only show on larger screens */}
         {showGoToPage && totalPages > 10 && (
-          <div className="hidden md:flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Go to:</span>
+          <div className='hidden md:flex items-center gap-2'>
+            <span className='text-sm text-muted-foreground'>Go to:</span>
             <Input
-              type="number"
+              type='number'
               value={goToPage}
-              onChange={(e) => setGoToPage(e.target.value)}
+              onChange={e => setGoToPage(e.target.value)}
               onKeyDown={handleGoToPageKeyDown}
-              placeholder="Page"
-              className="w-16 h-8 text-sm"
-              min="1"
+              placeholder='Page'
+              className='w-16 h-8 text-sm'
+              min='1'
               max={totalPages}
               disabled={loading}
             />
-            <Button 
-              size="sm" 
+            <Button
+              size='sm'
               onClick={handleGoToPage}
-              disabled={!goToPage || parseInt(goToPage) < 1 || parseInt(goToPage) > totalPages || loading}
-              className="h-8 px-2"
+              disabled={
+                !goToPage ||
+                parseInt(goToPage) < 1 ||
+                parseInt(goToPage) > totalPages ||
+                loading
+              }
+              className='h-8 px-2'
             >
               Go
             </Button>
           </div>
         )}
 
-        <nav role="navigation" aria-label="Pagination Navigation">
-          <Pagination className="mx-0">
+        <nav role='navigation' aria-label='Pagination Navigation'>
+          <Pagination className='mx-0'>
             <PaginationContent>
               {/* First page button */}
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => hasPreviousPage && onPageChange(1)}
                   className={cn(
-                    "cursor-pointer transition-colors",
-                    !hasPreviousPage ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
+                    'cursor-pointer transition-colors',
+                    !hasPreviousPage
+                      ? 'pointer-events-none opacity-50'
+                      : 'hover:bg-gray-100'
                   )}
-                  aria-label="Go to first page"
+                  aria-label='Go to first page'
                   disabled={!hasPreviousPage || loading}
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className='h-4 w-4' />
                 </PaginationPrevious>
               </PaginationItem>
 
               {/* Previous button */}
               <PaginationItem>
                 <PaginationPrevious
-                  onClick={() => hasPreviousPage && onPageChange(currentPage - 1)}
+                  onClick={() =>
+                    hasPreviousPage && onPageChange(currentPage - 1)
+                  }
                   className={cn(
-                    "cursor-pointer transition-colors",
-                    !hasPreviousPage ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
+                    'cursor-pointer transition-colors',
+                    !hasPreviousPage
+                      ? 'pointer-events-none opacity-50'
+                      : 'hover:bg-gray-100'
                   )}
-                  aria-label="Go to previous page"
+                  aria-label='Go to previous page'
                   disabled={!hasPreviousPage || loading}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className='h-4 w-4' />
                 </PaginationPrevious>
               </PaginationItem>
 
@@ -210,8 +236,8 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                   <PaginationItem>
                     <PaginationLink
                       onClick={() => onPageChange(1)}
-                      className="cursor-pointer hover:bg-gray-100 transition-colors"
-                      aria-label="Go to page 1"
+                      className='cursor-pointer hover:bg-gray-100 transition-colors'
+                      aria-label='Go to page 1'
                       disabled={loading}
                     >
                       1
@@ -224,16 +250,16 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
               )}
 
               {/* Visible pages */}
-              {visiblePages.map((page) => (
+              {visiblePages.map(page => (
                 <PaginationItem key={page}>
                   <PaginationLink
                     onClick={() => onPageChange(page)}
                     isActive={page === currentPage}
                     className={cn(
-                      "cursor-pointer transition-colors",
-                      page === currentPage 
-                        ? "bg-primary-500 text-white hover:bg-primary-600" 
-                        : "hover:bg-gray-100"
+                      'cursor-pointer transition-colors',
+                      page === currentPage
+                        ? 'bg-primary-500 text-white hover:bg-primary-600'
+                        : 'hover:bg-gray-100'
                     )}
                     aria-label={`Go to page ${page}`}
                     aria-current={page === currentPage ? 'page' : undefined}
@@ -253,7 +279,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                   <PaginationItem>
                     <PaginationLink
                       onClick={() => onPageChange(totalPages)}
-                      className="cursor-pointer hover:bg-gray-100 transition-colors"
+                      className='cursor-pointer hover:bg-gray-100 transition-colors'
                       aria-label={`Go to page ${totalPages}`}
                       disabled={loading}
                     >
@@ -268,13 +294,15 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                 <PaginationNext
                   onClick={() => hasNextPage && onPageChange(currentPage + 1)}
                   className={cn(
-                    "cursor-pointer transition-colors",
-                    !hasNextPage ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
+                    'cursor-pointer transition-colors',
+                    !hasNextPage
+                      ? 'pointer-events-none opacity-50'
+                      : 'hover:bg-gray-100'
                   )}
-                  aria-label="Go to next page"
+                  aria-label='Go to next page'
                   disabled={!hasNextPage || loading}
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className='h-4 w-4' />
                 </PaginationNext>
               </PaginationItem>
 
@@ -283,13 +311,15 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                 <PaginationNext
                   onClick={() => hasNextPage && onPageChange(totalPages)}
                   className={cn(
-                    "cursor-pointer transition-colors",
-                    !hasNextPage ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
+                    'cursor-pointer transition-colors',
+                    !hasNextPage
+                      ? 'pointer-events-none opacity-50'
+                      : 'hover:bg-gray-100'
                   )}
-                  aria-label="Go to last page"
+                  aria-label='Go to last page'
                   disabled={!hasNextPage || loading}
                 >
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className='h-4 w-4' />
                 </PaginationNext>
               </PaginationItem>
             </PaginationContent>
@@ -319,33 +349,32 @@ export const CompactPaginationControls: React.FC<{
   loading = false,
 }) => {
   return (
-    <div className={cn("flex items-center justify-center gap-2", className)}>
+    <div className={cn('flex items-center justify-center gap-2', className)}>
       <Button
-        variant="outline"
-        size="sm"
+        variant='outline'
+        size='sm'
         onClick={() => hasPreviousPage && onPageChange(currentPage - 1)}
         disabled={!hasPreviousPage || loading}
-        className="h-8 w-8 p-0"
-        aria-label="Go to previous page"
+        className='h-8 w-8 p-0'
+        aria-label='Go to previous page'
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className='h-4 w-4' />
       </Button>
-      
-      <span className="text-sm text-muted-foreground px-2 min-w-[80px] text-center">
+
+      <span className='text-sm text-muted-foreground px-2 min-w-[80px] text-center'>
         {currentPage} of {totalPages}
       </span>
-      
+
       <Button
-        variant="outline"
-        size="sm"
+        variant='outline'
+        size='sm'
         onClick={() => hasNextPage && onPageChange(currentPage + 1)}
         disabled={!hasNextPage || loading}
-        className="h-8 w-8 p-0"
-        aria-label="Go to next page"
+        className='h-8 w-8 p-0'
+        aria-label='Go to next page'
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className='h-4 w-4' />
       </Button>
     </div>
   );
 };
-

@@ -2,20 +2,23 @@
 
 /**
  * Database Schema Helper
- * 
+ *
  * This script helps developers quickly reference the database schema
  * and find the correct field names for queries.
- * 
+ *
  * Usage:
  *   node scripts/db-schema.js [table] [field]
- * 
+ *
  * Examples:
  *   node scripts/db-schema.js people
  *   node scripts/db-schema.js companies name
  *   node scripts/db-schema.js jobs salary
  */
 
-const { DATABASE_SCHEMA, COMMON_SELECTIONS } = require('../src/types/databaseSchema.ts');
+const {
+  DATABASE_SCHEMA,
+  COMMON_SELECTIONS,
+} = require('../src/types/databaseSchema.ts');
 
 function showHelp() {
   console.log(`

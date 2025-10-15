@@ -3,36 +3,45 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <!-- Preconnect to external domains -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://logo.clearbit.com">
-    <link rel="preconnect" href="https://media.licdn.com">
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://logo.clearbit.com" />
+    <link rel="preconnect" href="https://media.licdn.com" />
+
     <!-- Preload critical fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Load critical CSS -->
-    <link rel="stylesheet" href="/src/index.css">
-    
+    <link rel="stylesheet" href="/src/index.css" />
+
     <!-- DNS prefetch for performance -->
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="dns-prefetch" href="//logo.clearbit.com">
-    
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//logo.clearbit.com" />
+
     <title>Empowr CRM - 4Twenty</title>
-    <meta name="description" content="Empowr CRM - AI-powered recruitment platform by 4Twenty" />
+    <meta
+      name="description"
+      content="Empowr CRM - AI-powered recruitment platform by 4Twenty"
+    />
     <meta name="author" content="4Twenty" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
     <meta property="og:title" content="Empowr CRM - 4Twenty" />
-    <meta property="og:description" content="AI-powered recruitment platform by 4Twenty" />
+    <meta
+      property="og:description"
+      content="AI-powered recruitment platform by 4Twenty"
+    />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/favicon.svg" />
 
@@ -53,22 +62,30 @@
           window.globalThis.harden = undefined;
         }
       }
-      
+
       // Unregister service workers in development
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      if (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1'
+      ) {
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-              console.log('Unregistering service worker:', registration.scope);
-              registration.unregister();
-            }
-          });
-          
+          navigator.serviceWorker
+            .getRegistrations()
+            .then(function (registrations) {
+              for (let registration of registrations) {
+                console.log(
+                  'Unregistering service worker:',
+                  registration.scope
+                );
+                registration.unregister();
+              }
+            });
+
           // Also clear all caches
           if ('caches' in window) {
-            caches.keys().then(function(cacheNames) {
+            caches.keys().then(function (cacheNames) {
               return Promise.all(
-                cacheNames.map(function(cacheName) {
+                cacheNames.map(function (cacheName) {
                   console.log('Deleting cache:', cacheName);
                   return caches.delete(cacheName);
                 })
@@ -77,24 +94,28 @@
           }
         }
       }
-      
+
       // Suppress browser extension errors
-      window.addEventListener('error', function(event) {
-        if (event.filename && (
-          event.filename.includes('ethereum.js') ||
-          event.filename.includes('share-modal.js') ||
-          event.filename.includes('chrome-extension://') ||
-          event.filename.includes('moz-extension://')
-        )) {
+      window.addEventListener('error', function (event) {
+        if (
+          event.filename &&
+          (event.filename.includes('ethereum.js') ||
+            event.filename.includes('share-modal.js') ||
+            event.filename.includes('chrome-extension://') ||
+            event.filename.includes('moz-extension://'))
+        ) {
           event.preventDefault();
           console.warn('Suppressed browser extension error:', event.message);
           return false;
         }
       });
-      
+
       // Suppress unhandled promise rejections from extensions
-      window.addEventListener('unhandledrejection', function(event) {
-        if (event.reason && event.reason.toString().includes('chrome.runtime')) {
+      window.addEventListener('unhandledrejection', function (event) {
+        if (
+          event.reason &&
+          event.reason.toString().includes('chrome.runtime')
+        ) {
           event.preventDefault();
           console.warn('Suppressed browser extension promise rejection');
           return false;

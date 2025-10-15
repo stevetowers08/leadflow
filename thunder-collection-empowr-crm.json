@@ -1,0 +1,753 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Empowr CRM - Supabase API Collection",
+  "dateExported": "2024-12-19T10:00:00.000Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "id": "auth",
+      "name": "Authentication",
+      "containerId": "",
+      "created": "2024-12-19T10:00:00.000Z",
+      "sortNum": 10000
+    },
+    {
+      "id": "companies",
+      "name": "Companies",
+      "containerId": "",
+      "created": "2024-12-19T10:00:00.000Z",
+      "sortNum": 20000
+    },
+    {
+      "id": "people",
+      "name": "People & Leads",
+      "containerId": "",
+      "created": "2024-12-19T10:00:00.000Z",
+      "sortNum": 30000
+    },
+    {
+      "id": "jobs",
+      "name": "Jobs",
+      "containerId": "",
+      "created": "2024-12-19T10:00:00.000Z",
+      "sortNum": 40000
+    },
+    {
+      "id": "user-profiles",
+      "name": "User Profiles",
+      "containerId": "",
+      "created": "2024-12-19T10:00:00.000Z",
+      "sortNum": 50000
+    },
+    {
+      "id": "analytics",
+      "name": "Analytics",
+      "containerId": "",
+      "created": "2024-12-19T10:00:00.000Z",
+      "sortNum": 60000
+    },
+    {
+      "id": "frontend",
+      "name": "Frontend Endpoints",
+      "containerId": "",
+      "created": "2024-12-19T10:00:00.000Z",
+      "sortNum": 70000
+    }
+  ],
+  "requests": [
+    {
+      "id": "auth-signup",
+      "name": "Sign Up User",
+      "url": "{{supabaseUrl}}/auth/v1/signup",
+      "method": "POST",
+      "sortNum": 10000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"data\": {\n    \"full_name\": \"Test User\",\n    \"role\": \"recruiter\"\n  }\n}",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Create a new user account",
+      "folder": {
+        "id": "auth"
+      }
+    },
+    {
+      "id": "auth-signin",
+      "name": "Sign In User",
+      "url": "{{supabaseUrl}}/auth/v1/token?grant_type=password",
+      "method": "POST",
+      "sortNum": 20000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Authenticate user and get access token",
+      "folder": {
+        "id": "auth"
+      }
+    },
+    {
+      "id": "auth-refresh",
+      "name": "Refresh Token",
+      "url": "{{supabaseUrl}}/auth/v1/token?grant_type=refresh_token",
+      "method": "POST",
+      "sortNum": 30000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Refresh access token using refresh token",
+      "folder": {
+        "id": "auth"
+      }
+    },
+    {
+      "id": "get-companies",
+      "name": "Get All Companies",
+      "url": "{{supabaseUrl}}/rest/v1/companies",
+      "method": "GET",
+      "sortNum": 10000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [
+        {
+          "name": "select",
+          "value": "*"
+        },
+        {
+          "name": "limit",
+          "value": "50"
+        },
+        {
+          "name": "offset",
+          "value": "0"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Retrieve all companies with pagination",
+      "folder": {
+        "id": "companies"
+      }
+    },
+    {
+      "id": "create-company",
+      "name": "Create Company",
+      "url": "{{supabaseUrl}}/rest/v1/companies",
+      "method": "POST",
+      "sortNum": 20000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Prefer",
+          "value": "return=representation"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Acme Corporation\",\n  \"website\": \"https://acme.com\",\n  \"industry\": \"Technology\",\n  \"company_size\": \"50-200\",\n  \"lead_score\": \"A\"\n}",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Create a new company",
+      "folder": {
+        "id": "companies"
+      }
+    },
+    {
+      "id": "get-company-by-id",
+      "name": "Get Company by ID",
+      "url": "{{supabaseUrl}}/rest/v1/companies",
+      "method": "GET",
+      "sortNum": 30000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [
+        {
+          "name": "select",
+          "value": "*"
+        },
+        {
+          "name": "id",
+          "value": "eq.{{companyId}}"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Get specific company details by ID",
+      "folder": {
+        "id": "companies"
+      }
+    },
+    {
+      "id": "update-company",
+      "name": "Update Company",
+      "url": "{{supabaseUrl}}/rest/v1/companies",
+      "method": "PATCH",
+      "sortNum": 40000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Prefer",
+          "value": "return=representation"
+        }
+      ],
+      "params": [
+        {
+          "name": "id",
+          "value": "eq.{{companyId}}"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Updated Company Name\",\n  \"website\": \"https://updated-website.com\",\n  \"industry\": \"Updated Industry\",\n  \"company_size\": \"200-500\"\n}",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Update company information",
+      "folder": {
+        "id": "companies"
+      }
+    },
+    {
+      "id": "delete-company",
+      "name": "Delete Company",
+      "url": "{{supabaseUrl}}/rest/v1/companies",
+      "method": "DELETE",
+      "sortNum": 50000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        }
+      ],
+      "params": [
+        {
+          "name": "id",
+          "value": "eq.{{companyId}}"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Delete a company",
+      "folder": {
+        "id": "companies"
+      }
+    },
+    {
+      "id": "get-people",
+      "name": "Get All People/Leads",
+      "url": "{{supabaseUrl}}/rest/v1/people",
+      "method": "GET",
+      "sortNum": 10000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [
+        {
+          "name": "select",
+          "value": "*,companies(*)"
+        },
+        {
+          "name": "limit",
+          "value": "50"
+        },
+        {
+          "name": "offset",
+          "value": "0"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Retrieve all people/leads with company information",
+      "folder": {
+        "id": "people"
+      }
+    },
+    {
+      "id": "create-person",
+      "name": "Create Person/Lead",
+      "url": "{{supabaseUrl}}/rest/v1/people",
+      "method": "POST",
+      "sortNum": 20000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Prefer",
+          "value": "return=representation"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"John Doe\",\n  \"company_id\": \"{{companyId}}\",\n  \"email_address\": \"john.doe@example.com\",\n  \"linkedin_url\": \"https://linkedin.com/in/johndoe\",\n  \"stage\": \"prospect\",\n  \"lead_score\": \"B\"\n}",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Create a new person/lead",
+      "folder": {
+        "id": "people"
+      }
+    },
+    {
+      "id": "get-jobs",
+      "name": "Get All Jobs",
+      "url": "{{supabaseUrl}}/rest/v1/jobs",
+      "method": "GET",
+      "sortNum": 10000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [
+        {
+          "name": "select",
+          "value": "*,companies(*)"
+        },
+        {
+          "name": "limit",
+          "value": "50"
+        },
+        {
+          "name": "offset",
+          "value": "0"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Retrieve all job postings with company information",
+      "folder": {
+        "id": "jobs"
+      }
+    },
+    {
+      "id": "create-job",
+      "name": "Create Job",
+      "url": "{{supabaseUrl}}/rest/v1/jobs",
+      "method": "POST",
+      "sortNum": 20000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Prefer",
+          "value": "return=representation"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Senior Software Engineer\",\n  \"company_id\": \"{{companyId}}\",\n  \"location\": \"San Francisco, CA\",\n  \"salary_min\": 120000,\n  \"salary_max\": 180000,\n  \"description\": \"We are looking for a senior software engineer to join our team...\"\n}",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Create a new job posting",
+      "folder": {
+        "id": "jobs"
+      }
+    },
+    {
+      "id": "get-user-profiles",
+      "name": "Get User Profiles",
+      "url": "{{supabaseUrl}}/rest/v1/user_profiles",
+      "method": "GET",
+      "sortNum": 10000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [
+        {
+          "name": "select",
+          "value": "*"
+        },
+        {
+          "name": "limit",
+          "value": "50"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Get all user profiles",
+      "folder": {
+        "id": "user-profiles"
+      }
+    },
+    {
+      "id": "create-user-profile",
+      "name": "Create User Profile",
+      "url": "{{supabaseUrl}}/rest/v1/user_profiles",
+      "method": "POST",
+      "sortNum": 20000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Prefer",
+          "value": "return=representation"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"full_name\": \"New User\",\n  \"role\": \"recruiter\",\n  \"user_limit\": 100,\n  \"is_active\": true\n}",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Create a new user profile",
+      "folder": {
+        "id": "user-profiles"
+      }
+    },
+    {
+      "id": "get-analytics-dashboard",
+      "name": "Get Dashboard Analytics",
+      "url": "{{supabaseUrl}}/rest/v1/rpc/get_dashboard_analytics",
+      "method": "POST",
+      "sortNum": 10000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [
+        {
+          "name": "apikey",
+          "value": "{{supabaseAnonKey}}"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{accessToken}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "{}",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Get dashboard analytics data using RPC function",
+      "folder": {
+        "id": "analytics"
+      }
+    },
+    {
+      "id": "frontend-health",
+      "name": "Frontend Health Check",
+      "url": "{{frontendUrl}}/",
+      "method": "GET",
+      "sortNum": 10000,
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "headers": [],
+      "params": [],
+      "body": {
+        "type": "json",
+        "raw": "",
+        "form": []
+      },
+      "tests": [],
+      "docs": "Check if frontend application is running",
+      "folder": {
+        "id": "frontend"
+      }
+    }
+  ],
+  "environments": [
+    {
+      "id": "development",
+      "name": "Development",
+      "data": [
+        {
+          "name": "supabaseUrl",
+          "value": "https://jedfundfhzytpnbjkspn.supabase.co"
+        },
+        {
+          "name": "supabaseAnonKey",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGZ1bmRmaHp5dHBuYmprc3BuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzNjE5NDIsImV4cCI6MjA3MzkzNzk0Mn0.K5PFr9NdDav7SLk5pguj5tawj-10j-yhlUfFa_Fkvqg"
+        },
+        {
+          "name": "frontendUrl",
+          "value": "http://localhost:8082"
+        },
+        {
+          "name": "accessToken",
+          "value": "your-jwt-token-here"
+        },
+        {
+          "name": "refreshToken",
+          "value": "your-refresh-token-here"
+        },
+        {
+          "name": "userId",
+          "value": "user-uuid-here"
+        },
+        {
+          "name": "companyId",
+          "value": "company-uuid-here"
+        },
+        {
+          "name": "personId",
+          "value": "person-uuid-here"
+        },
+        {
+          "name": "jobId",
+          "value": "job-uuid-here"
+        }
+      ],
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "sortNum": 10000
+    },
+    {
+      "id": "production",
+      "name": "Production",
+      "data": [
+        {
+          "name": "supabaseUrl",
+          "value": "https://jedfundfhzytpnbjkspn.supabase.co"
+        },
+        {
+          "name": "supabaseAnonKey",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGZ1bmRmaHp5dHBuYmprc3BuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzNjE5NDIsImV4cCI6MjA3MzkzNzk0Mn0.K5PFr9NdDav7SLk5pguj5tawj-10j-yhlUfFa_Fkvqg"
+        },
+        {
+          "name": "frontendUrl",
+          "value": "https://empowr-crm.vercel.app"
+        },
+        {
+          "name": "accessToken",
+          "value": "your-production-jwt-token-here"
+        },
+        {
+          "name": "refreshToken",
+          "value": "your-production-refresh-token-here"
+        },
+        {
+          "name": "userId",
+          "value": "user-uuid-here"
+        },
+        {
+          "name": "companyId",
+          "value": "company-uuid-here"
+        },
+        {
+          "name": "personId",
+          "value": "person-uuid-here"
+        },
+        {
+          "name": "jobId",
+          "value": "job-uuid-here"
+        }
+      ],
+      "created": "2024-12-19T10:00:00.000Z",
+      "modified": "2024-12-19T10:00:00.000Z",
+      "sortNum": 20000
+    }
+  ]
+}

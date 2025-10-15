@@ -1,5 +1,15 @@
-import { GlobalSearchService, SearchResult } from '@/services/globalSearchService';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  GlobalSearchService,
+  SearchResult,
+} from '@/services/globalSearchService';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 interface SearchContextType {
   // Search state
@@ -7,16 +17,16 @@ interface SearchContextType {
   searchResults: SearchResult[];
   isSearching: boolean;
   searchError: string | null;
-  
+
   // Search actions
   setSearchQuery: (query: string) => void;
   performSearch: (query: string) => Promise<void>;
   clearSearch: () => void;
-  
+
   // UI state
   isSearchOpen: boolean;
   setIsSearchOpen: (open: boolean) => void;
-  
+
   // Suggestions
   suggestions: string[];
   loadSuggestions: (query: string) => Promise<void>;
@@ -59,9 +69,9 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
       const results = await GlobalSearchService.search(query, {
         limit: 50,
         includeInactive: false,
-        sortBy: 'relevance'
+        sortBy: 'relevance',
       });
-      
+
       setSearchResults(results);
     } catch (error) {
       console.error('Search error:', error);
@@ -112,33 +122,34 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
     return () => clearTimeout(timeoutId);
   }, [searchQuery, performSearch, loadSuggestions]);
 
-  const value: SearchContextType = useMemo(() => ({
-    searchQuery,
-    searchResults,
-    isSearching,
-    searchError,
-    setSearchQuery,
-    performSearch,
-    clearSearch,
-    isSearchOpen,
-    setIsSearchOpen,
-    suggestions,
-    loadSuggestions
-  }), [
-    searchQuery,
-    searchResults,
-    isSearching,
-    searchError,
-    performSearch,
-    clearSearch,
-    isSearchOpen,
-    suggestions,
-    loadSuggestions
-  ]);
+  const value: SearchContextType = useMemo(
+    () => ({
+      searchQuery,
+      searchResults,
+      isSearching,
+      searchError,
+      setSearchQuery,
+      performSearch,
+      clearSearch,
+      isSearchOpen,
+      setIsSearchOpen,
+      suggestions,
+      loadSuggestions,
+    }),
+    [
+      searchQuery,
+      searchResults,
+      isSearching,
+      searchError,
+      performSearch,
+      clearSearch,
+      isSearchOpen,
+      suggestions,
+      loadSuggestions,
+    ]
+  );
 
   return (
-    <SearchContext.Provider value={value}>
-      {children}
-    </SearchContext.Provider>
+    <SearchContext.Provider value={value}>{children}</SearchContext.Provider>
   );
 };

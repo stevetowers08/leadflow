@@ -1,6 +1,7 @@
 # Empowr CRM - Integrations Guide
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Supabase Integration](#supabase-integration)
 - [Google OAuth Setup](#google-oauth-setup)
@@ -17,6 +18,7 @@
 Empowr CRM integrates with multiple external services to provide comprehensive functionality:
 
 ### Core Integrations
+
 - **Supabase**: Database, authentication, and real-time features
 - **Google OAuth**: User authentication and Gmail access
 - **LinkedIn**: Profile data and connection management
@@ -24,6 +26,7 @@ Empowr CRM integrates with multiple external services to provide comprehensive f
 - **Gmail**: Email communication tracking
 
 ### Optional Integrations
+
 - **N8N**: Workflow automation
 - **Sentry**: Error tracking and monitoring
 - **Google Analytics**: Usage analytics
@@ -34,12 +37,14 @@ Empowr CRM integrates with multiple external services to provide comprehensive f
 ### Initial Setup
 
 #### 1. Create Supabase Project
+
 1. Go to [Supabase Dashboard](https://app.supabase.com)
 2. Click "New Project"
 3. Choose organization and enter project details
 4. Wait for project to be created (2-3 minutes)
 
 #### 2. Get Project Credentials
+
 ```bash
 # From Supabase Dashboard > Settings > API
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
@@ -47,6 +52,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 #### 3. Database Schema Setup
+
 Run this SQL in Supabase SQL Editor:
 
 ```sql
@@ -162,6 +168,7 @@ CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles FO
 ```
 
 #### 4. Row Level Security (RLS)
+
 ```sql
 -- Enable RLS on all tables
 ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
@@ -191,14 +198,16 @@ CREATE POLICY "Users can view other profiles" ON user_profiles
 ```
 
 ### Real-time Subscriptions
+
 ```typescript
 // Set up real-time listeners
 useEffect(() => {
   const peopleSubscription = supabase
     .channel('people-changes')
-    .on('postgres_changes', 
+    .on(
+      'postgres_changes',
       { event: '*', schema: 'public', table: 'people' },
-      (payload) => {
+      payload => {
         console.log('People change:', payload);
         queryClient.invalidateQueries(['people']);
       }
@@ -207,9 +216,10 @@ useEffect(() => {
 
   const companiesSubscription = supabase
     .channel('companies-changes')
-    .on('postgres_changes', 
+    .on(
+      'postgres_changes',
       { event: '*', schema: 'public', table: 'companies' },
-      (payload) => {
+      payload => {
         console.log('Companies change:', payload);
         queryClient.invalidateQueries(['companies']);
       }
@@ -228,6 +238,7 @@ useEffect(() => {
 ### 1. Google Cloud Console Setup
 
 #### Create Project
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Create new project or select existing one
 3. Enable required APIs:
@@ -236,6 +247,7 @@ useEffect(() => {
    - People API (for profile data)
 
 #### Configure OAuth Consent Screen
+
 1. Go to APIs & Services > OAuth consent screen
 2. Choose "External" user type
 3. Fill in application information:
@@ -251,17 +263,19 @@ useEffect(() => {
    - `https://www.googleapis.com/auth/gmail.readonly` (if using Gmail)
 
 #### Create OAuth Credentials
+
 1. Go to APIs & Services > Credentials
 2. Click "Create Credentials" > "OAuth 2.0 Client IDs"
 3. Choose "Web application"
 4. Add authorized redirect URIs:
+
    ```
    # Development
    http://localhost:8080
-   
+
    # Supabase auth callback
    https://your-project-id.supabase.co/auth/v1/callback
-   
+
    # Production domain
    https://your-domain.com
    ```
@@ -269,6 +283,7 @@ useEffect(() => {
 ### 2. Supabase Auth Configuration
 
 #### Enable Google Provider
+
 1. Go to Supabase Dashboard > Authentication > Settings
 2. Find "Auth Providers" section
 3. Enable Google provider
@@ -279,6 +294,7 @@ useEffect(() => {
    ```
 
 #### Configure Redirect URLs
+
 ```
 Site URL: https://your-domain.com
 Redirect URLs:
@@ -287,6 +303,7 @@ Redirect URLs:
 ```
 
 ### 3. Frontend Implementation
+
 ```typescript
 // Google OAuth login
 const signInWithGoogle = async () => {
@@ -309,27 +326,25 @@ const signInWithGoogle = async () => {
 
 // Check auth state
 useEffect(() => {
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // User signed in successfully
-        const { user } = session;
-        
-        // Create or update user profile
-        const { error } = await supabase
-          .from('user_profiles')
-          .upsert({
-            user_id: user.id,
-            full_name: user.user_metadata.full_name,
-            avatar_url: user.user_metadata.avatar_url,
-          });
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      // User signed in successfully
+      const { user } = session;
 
-        if (error) {
-          console.error('Error updating user profile:', error);
-        }
+      // Create or update user profile
+      const { error } = await supabase.from('user_profiles').upsert({
+        user_id: user.id,
+        full_name: user.user_metadata.full_name,
+        avatar_url: user.user_metadata.avatar_url,
+      });
+
+      if (error) {
+        console.error('Error updating user profile:', error);
       }
     }
-  );
+  });
 
   return () => subscription.unsubscribe();
 }, []);
@@ -340,6 +355,7 @@ useEffect(() => {
 ### 1. LinkedIn App Setup
 
 #### Create LinkedIn App
+
 1. Go to [LinkedIn Developers](https://www.linkedin.com/developers/)
 2. Click "Create App"
 3. Fill in app details:
@@ -351,12 +367,14 @@ useEffect(() => {
    ```
 
 #### Configure Products
+
 1. Request access to:
    - Sign In with LinkedIn
    - Profile API
    - Share on LinkedIn (if needed)
 
 #### Set Redirect URLs
+
 ```
 Authorized redirect URLs:
 - http://localhost:8080/auth/linkedin/callback
@@ -364,6 +382,7 @@ Authorized redirect URLs:
 ```
 
 ### 2. LinkedIn OAuth Flow
+
 ```typescript
 // LinkedIn OAuth configuration
 const LINKEDIN_CONFIG = {
@@ -403,7 +422,7 @@ const handleLinkedInCallback = async (code: string) => {
     });
 
     const profile = await profileResponse.json();
-    
+
     // Store LinkedIn data
     await supabase
       .from('people')
@@ -412,7 +431,6 @@ const handleLinkedInCallback = async (code: string) => {
         linkedin_connected: true,
       })
       .eq('id', personId);
-
   } catch (error) {
     console.error('LinkedIn OAuth error:', error);
   }
@@ -420,6 +438,7 @@ const handleLinkedInCallback = async (code: string) => {
 ```
 
 ### 3. LinkedIn API Integration
+
 ```typescript
 // LinkedIn API service
 class LinkedInService {
@@ -430,12 +449,15 @@ class LinkedInService {
   }
 
   async getProfile(profileId: string) {
-    const response = await fetch(`https://api.linkedin.com/v2/people/(id:${profileId})`, {
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-        'X-Restli-Protocol-Version': '2.0.0',
-      },
-    });
+    const response = await fetch(
+      `https://api.linkedin.com/v2/people/(id:${profileId})`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          'X-Restli-Protocol-Version': '2.0.0',
+        },
+      }
+    );
 
     return response.json();
   }
@@ -476,18 +498,21 @@ class LinkedInService {
 ### 1. Expandi API Setup
 
 #### Get API Credentials
+
 1. Log in to your Expandi account
 2. Go to Settings > API
 3. Generate API key
 4. Note your workspace ID
 
 #### Environment Variables
+
 ```env
 VITE_EXPANDI_API_KEY=your-expandi-api-key
 VITE_EXPANDI_WORKSPACE_ID=your-workspace-id
 ```
 
 ### 2. Expandi API Integration
+
 ```typescript
 // Expandi API service
 class ExpandiService {
@@ -504,7 +529,7 @@ class ExpandiService {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
         ...options.headers,
       },
@@ -553,6 +578,7 @@ class ExpandiService {
 ```
 
 ### 3. Webhook Integration
+
 ```typescript
 // Webhook handler for Expandi events
 export async function handleExpandiWebhook(request: Request) {
@@ -570,15 +596,15 @@ export async function handleExpandiWebhook(request: Request) {
     case 'connection_request_sent':
       await handleConnectionRequestSent(event.data);
       break;
-    
+
     case 'connection_accepted':
       await handleConnectionAccepted(event.data);
       break;
-    
+
     case 'message_sent':
       await handleMessageSent(event.data);
       break;
-    
+
     case 'reply_received':
       await handleReplyReceived(event.data);
       break;
@@ -598,25 +624,25 @@ async function handleConnectionRequestSent(data: any) {
     .eq('linkedin_url', data.profile_url);
 
   // Log interaction
-  await supabase
-    .from('interactions')
-    .insert({
-      person_id: data.person_id,
-      type: 'connection_request',
-      content: data.message,
-    });
+  await supabase.from('interactions').insert({
+    person_id: data.person_id,
+    type: 'connection_request',
+    content: data.message,
+  });
 }
 ```
 
 ## Prosp Integration
 
 ### 1. Prosp API Setup
+
 ```env
 VITE_PROSP_API_KEY=your-prosp-api-key
 VITE_PROSP_ACCOUNT_ID=your-account-id
 ```
 
 ### 2. Prosp API Service
+
 ```typescript
 class ProspService {
   private apiKey: string;
@@ -664,12 +690,15 @@ class ProspService {
   }
 
   // Add prospects to sequence
-  async addProspectsToSequence(sequenceId: string, prospects: Array<{
-    linkedin_url: string;
-    first_name: string;
-    last_name: string;
-    company: string;
-  }>) {
+  async addProspectsToSequence(
+    sequenceId: string,
+    prospects: Array<{
+      linkedin_url: string;
+      first_name: string;
+      last_name: string;
+      company: string;
+    }>
+  ) {
     return this.request(`/sequences/${sequenceId}/prospects`, {
       method: 'POST',
       body: JSON.stringify({ prospects }),
@@ -688,6 +717,7 @@ class ProspService {
 ### 1. Gmail API Setup
 
 #### Enable Gmail API
+
 1. Go to Google Cloud Console
 2. Enable Gmail API for your project
 3. Add Gmail scope to OAuth consent screen:
@@ -697,6 +727,7 @@ class ProspService {
    ```
 
 ### 2. Gmail Service Implementation
+
 ```typescript
 class GmailService {
   private accessToken: string;
@@ -732,12 +763,7 @@ class GmailService {
   }
 
   async sendMessage(to: string, subject: string, body: string) {
-    const email = [
-      `To: ${to}`,
-      `Subject: ${subject}`,
-      '',
-      body,
-    ].join('\n');
+    const email = [`To: ${to}`, `Subject: ${subject}`, '', body].join('\n');
 
     const encodedEmail = btoa(email).replace(/\+/g, '-').replace(/\//g, '_');
 
@@ -761,6 +787,7 @@ class GmailService {
 ```
 
 ### 3. Email Tracking Integration
+
 ```typescript
 // Track email interactions
 const trackEmailInteraction = async (emailData: {
@@ -769,17 +796,15 @@ const trackEmailInteraction = async (emailData: {
   subject: string;
   content: string;
 }) => {
-  await supabase
-    .from('interactions')
-    .insert({
-      person_id: emailData.personId,
-      type: 'email',
-      content: JSON.stringify({
-        subject: emailData.subject,
-        content: emailData.content,
-        action: emailData.type,
-      }),
-    });
+  await supabase.from('interactions').insert({
+    person_id: emailData.personId,
+    type: 'email',
+    content: JSON.stringify({
+      subject: emailData.subject,
+      content: emailData.content,
+      action: emailData.type,
+    }),
+  });
 
   // Update person's last activity
   if (emailData.type === 'received') {
@@ -797,12 +822,14 @@ const trackEmailInteraction = async (emailData: {
 ## N8N Automation
 
 ### 1. N8N Setup
+
 ```env
 VITE_N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/empowr-crm
 VITE_N8N_API_KEY=your-n8n-api-key
 ```
 
 ### 2. Workflow Automation
+
 ```typescript
 // N8N webhook service
 class N8NService {
@@ -819,7 +846,7 @@ class N8NService {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(data),
     });
@@ -851,6 +878,7 @@ class N8NService {
 ## Error Tracking
 
 ### 1. Sentry Setup
+
 ```bash
 npm install @sentry/react @sentry/tracing
 ```
@@ -881,12 +909,13 @@ const SentryErrorBoundary = Sentry.withErrorBoundary(App, {
 ```
 
 ### 2. Custom Error Tracking
+
 ```typescript
 // Custom error tracking service
 class ErrorTrackingService {
   static captureError(error: Error, context?: Record<string, any>) {
     console.error('Error captured:', error);
-    
+
     if (import.meta.env.PROD) {
       Sentry.captureException(error, {
         extra: context,
@@ -894,9 +923,12 @@ class ErrorTrackingService {
     }
   }
 
-  static captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info') {
+  static captureMessage(
+    message: string,
+    level: 'info' | 'warning' | 'error' = 'info'
+  ) {
     console.log(`[${level.toUpperCase()}] ${message}`);
-    
+
     if (import.meta.env.PROD) {
       Sentry.captureMessage(message, level);
     }
@@ -921,6 +953,7 @@ const fetchData = async () => {
 ## Analytics Integration
 
 ### 1. Google Analytics 4
+
 ```typescript
 // GA4 setup
 import { gtag } from 'ga-gtag';
@@ -951,6 +984,7 @@ trackEvent('automation_started', {
 ```
 
 ### 2. Custom Analytics
+
 ```typescript
 // Custom analytics service
 class AnalyticsService {
@@ -991,5 +1025,5 @@ class AnalyticsService {
 
 ---
 
-*For troubleshooting integration issues, see [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)*
-*For development setup, see [DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md)*
+_For troubleshooting integration issues, see [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)_
+_For development setup, see [DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md)_

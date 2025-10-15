@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 export interface SearchResult {
   id: string;
@@ -21,14 +21,18 @@ export class GlobalSearchService {
    * Search across people, companies, and jobs
    */
   static async search(
-    query: string, 
+    query: string,
     options: GlobalSearchOptions = {}
   ): Promise<SearchResult[]> {
     if (!query.trim()) {
       return [];
     }
 
-    const { limit = 50, includeInactive = false, sortBy = 'relevance' } = options;
+    const {
+      limit = 50,
+      includeInactive = false,
+      sortBy = 'relevance',
+    } = options;
     const searchTerm = query.trim().toLowerCase();
 
     try {
@@ -36,20 +40,26 @@ export class GlobalSearchService {
       const [peopleResults, companiesResults, jobsResults] = await Promise.all([
         this.searchPeople(searchTerm, limit),
         this.searchCompanies(searchTerm, limit),
-        this.searchJobs(searchTerm, limit, includeInactive)
+        this.searchJobs(searchTerm, limit, includeInactive),
       ]);
 
       // Combine and score results
       const allResults = [
-        ...peopleResults.map(result => ({ ...result, type: 'person' as const })),
-        ...companiesResults.map(result => ({ ...result, type: 'company' as const })),
-        ...jobsResults.map(result => ({ ...result, type: 'job' as const }))
+        ...peopleResults.map(result => ({
+          ...result,
+          type: 'person' as const,
+        })),
+        ...companiesResults.map(result => ({
+          ...result,
+          type: 'company' as const,
+        })),
+        ...jobsResults.map(result => ({ ...result, type: 'job' as const })),
       ];
 
       // Score results based on relevance
       const scoredResults = allResults.map(result => ({
         ...result,
-        score: this.calculateRelevanceScore(result, searchTerm)
+        score: this.calculateRelevanceScore(result, searchTerm),
       }));
 
       // Sort by score and limit results
@@ -65,10 +75,14 @@ export class GlobalSearchService {
   /**
    * Search people
    */
-  private static async searchPeople(searchTerm: string, limit: number): Promise<SearchResult[]> {
+  private static async searchPeople(
+    searchTerm: string,
+    limit: number
+  ): Promise<SearchResult[]> {
     const { data, error } = await supabase
       .from('people')
-      .select(`
+      .select(
+        `
         id,
         name,
         email_address,
@@ -81,8 +95,11 @@ export class GlobalSearchService {
           name,
           industry
         )
-      `)
-      .or(`name.ilike.%${searchTerm}%,email_address.ilike.%${searchTerm}%,company_role.ilike.%${searchTerm}%`)
+      `
+      )
+      .or(
+        `name.ilike.%${searchTerm}%,email_address.ilike.%${searchTerm}%,company_role.ilike.%${searchTerm}%`
+      )
       .limit(limit);
 
     if (error) {
@@ -101,18 +118,22 @@ export class GlobalSearchService {
         leadScore: person.lead_score,
         companyId: person.companies?.id,
         companyName: person.companies?.name,
-        industry: person.companies?.industry
-      }
+        industry: person.companies?.industry,
+      },
     }));
   }
 
   /**
    * Search companies
    */
-  private static async searchCompanies(searchTerm: string, limit: number): Promise<SearchResult[]> {
+  private static async searchCompanies(
+    searchTerm: string,
+    limit: number
+  ): Promise<SearchResult[]> {
     const { data, error } = await supabase
       .from('companies')
-      .select(`
+      .select(
+        `
         id,
         name,
         industry,
@@ -122,8 +143,11 @@ export class GlobalSearchService {
         lead_score,
         priority,
         automation_active
-      `)
-      .or(`name.ilike.%${searchTerm}%,industry.ilike.%${searchTerm}%,head_office.ilike.%${searchTerm}%`)
+      `
+      )
+      .or(
+        `name.ilike.%${searchTerm}%,industry.ilike.%${searchTerm}%,head_office.ilike.%${searchTerm}%`
+      )
       .limit(limit);
 
     if (error) {
@@ -141,8 +165,8 @@ export class GlobalSearchService {
         leadScore: company.lead_score,
         priority: company.priority,
         automationActive: company.automation_active,
-        companySize: company.company_size
-      }
+        companySize: company.company_size,
+      },
     }));
   }
 
@@ -150,13 +174,14 @@ export class GlobalSearchService {
    * Search jobs
    */
   private static async searchJobs(
-    searchTerm: string, 
-    limit: number, 
+    searchTerm: string,
+    limit: number,
     includeInactive: boolean = false
   ): Promise<SearchResult[]> {
     let query = supabase
       .from('jobs')
-      .select(`
+      .select(
+        `
         id,
         title,
         location,
@@ -171,8 +196,11 @@ export class GlobalSearchService {
           name,
           industry
         )
-      `)
-      .or(`title.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%,function.ilike.%${searchTerm}%`);
+      `
+      )
+      .or(
+        `title.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%,function.ilike.%${searchTerm}%`
+      );
 
     // Filter out expired jobs unless includeInactive is true
     if (!includeInactive) {
@@ -200,27 +228,30 @@ export class GlobalSearchService {
         automationActive: job.automation_active,
         companyId: job.companies?.id,
         companyName: job.companies?.name,
-        industry: job.companies?.industry
-      }
+        industry: job.companies?.industry,
+      },
     }));
   }
 
   /**
    * Calculate relevance score for search results
    */
-  private static calculateRelevanceScore(result: SearchResult, searchTerm: string): number {
+  private static calculateRelevanceScore(
+    result: SearchResult,
+    searchTerm: string
+  ): number {
     let score = 0;
     const term = searchTerm.toLowerCase();
 
     // Exact title match gets highest score
     if (result.title.toLowerCase().includes(term)) {
       score += 100;
-      
+
       // Exact match gets bonus
       if (result.title.toLowerCase() === term) {
         score += 50;
       }
-      
+
       // Starts with search term gets bonus
       if (result.title.toLowerCase().startsWith(term)) {
         score += 25;
@@ -248,17 +279,20 @@ export class GlobalSearchService {
     if (result.type === 'person' && result.metadata?.stage === 'new') {
       score += 20;
     }
-    
+
     if (result.type === 'company' && result.metadata?.automationActive) {
       score += 15;
     }
-    
+
     if (result.type === 'job' && result.metadata?.automationActive) {
       score += 15;
     }
 
     // Boost scores for high priority items
-    if (result.metadata?.priority === 'high' || result.metadata?.priority === 'urgent') {
+    if (
+      result.metadata?.priority === 'high' ||
+      result.metadata?.priority === 'urgent'
+    ) {
       score += 10;
     }
 
@@ -268,30 +302,37 @@ export class GlobalSearchService {
   /**
    * Get search suggestions based on partial input
    */
-  static async getSuggestions(query: string, limit: number = 10): Promise<string[]> {
+  static async getSuggestions(
+    query: string,
+    limit: number = 10
+  ): Promise<string[]> {
     if (!query.trim() || query.length < 2) {
       return [];
     }
 
     try {
       const results = await this.search(query, { limit });
-      
+
       // Extract unique suggestions from results
       const suggestions = new Set<string>();
-      
+
       results.forEach(result => {
         // Add title as suggestion
         if (result.title.toLowerCase().includes(query.toLowerCase())) {
           suggestions.add(result.title);
         }
-        
+
         // Add subtitle as suggestion
         if (result.subtitle?.toLowerCase().includes(query.toLowerCase())) {
           suggestions.add(result.subtitle);
         }
-        
+
         // Add company names from metadata
-        if (result.metadata?.companyName?.toLowerCase().includes(query.toLowerCase())) {
+        if (
+          result.metadata?.companyName
+            ?.toLowerCase()
+            .includes(query.toLowerCase())
+        ) {
           suggestions.add(result.metadata.companyName);
         }
       });

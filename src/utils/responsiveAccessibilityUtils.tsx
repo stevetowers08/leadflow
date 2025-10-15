@@ -14,10 +14,10 @@ export const useMobile = () => {
       const width = window.innerWidth;
       const isMobileDevice = width < 768;
       const isTabletDevice = width >= 768 && width < 1024;
-      
+
       setIsMobile(isMobileDevice);
       setIsTablet(isTabletDevice);
-      
+
       if (isMobileDevice) {
         setScreenSize('mobile');
       } else if (isTabletDevice) {
@@ -29,7 +29,7 @@ export const useMobile = () => {
 
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    
+
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
@@ -62,22 +62,24 @@ export const EnhancedTouchComponent: React.FC<EnhancedTouchProps> = ({
   threshold = 50,
   longPressDelay = 500,
   className,
-  disabled = false
+  disabled = false,
 }) => {
   const [startX, setStartX] = useState<number | null>(null);
   const [startY, setStartY] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(
+    null
+  );
   const elementRef = useRef<HTMLDivElement>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (disabled) return;
-    
+
     const touch = e.touches[0];
     setStartX(touch.clientX);
     setStartY(touch.clientY);
     setIsDragging(false);
-    
+
     // Start long press timer
     if (onLongPress) {
       const timer = setTimeout(() => {
@@ -89,22 +91,22 @@ export const EnhancedTouchComponent: React.FC<EnhancedTouchProps> = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (disabled || !startX || !startY) return;
-    
+
     const touch = e.touches[0];
     const deltaX = Math.abs(touch.clientX - startX);
     const deltaY = Math.abs(touch.clientY - startY);
-    
+
     // Cancel long press if user starts moving
     if (longPressTimer && (deltaX > 10 || deltaY > 10)) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
     }
-    
+
     // Mark as dragging if movement exceeds threshold
     if (deltaX > 10 || deltaY > 10) {
       setIsDragging(true);
     }
-    
+
     // Prevent default scrolling for horizontal swipes
     if (deltaX > deltaY && deltaX > 10) {
       e.preventDefault();
@@ -113,22 +115,22 @@ export const EnhancedTouchComponent: React.FC<EnhancedTouchProps> = ({
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (disabled || !startX || !startY) return;
-    
+
     // Clear long press timer
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
     }
-    
+
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - startX;
     const deltaY = touch.clientY - startY;
-    
+
     // Handle tap (if not dragging)
     if (!isDragging && onTap) {
       onTap();
     }
-    
+
     // Handle swipes
     if (isDragging) {
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
@@ -151,7 +153,7 @@ export const EnhancedTouchComponent: React.FC<EnhancedTouchProps> = ({
         }
       }
     }
-    
+
     setStartX(null);
     setStartY(null);
     setIsDragging(false);
@@ -171,16 +173,16 @@ export const EnhancedTouchComponent: React.FC<EnhancedTouchProps> = ({
     <div
       ref={elementRef}
       className={cn(
-        "touch-manipulation select-none",
-        isDragging && "cursor-grabbing",
-        disabled && "pointer-events-none opacity-50",
+        'touch-manipulation select-none',
+        isDragging && 'cursor-grabbing',
+        disabled && 'pointer-events-none opacity-50',
         className
       )}
       style={{
         touchAction: 'pan-y pinch-zoom', // Allow vertical scroll and pinch zoom
         WebkitTouchCallout: 'none', // Disable iOS callout
         WebkitUserSelect: 'none', // Disable text selection
-        userSelect: 'none'
+        userSelect: 'none',
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -214,17 +216,17 @@ export const EnhancedMobileCard: React.FC<EnhancedMobileCardProps> = ({
   onTap,
   className,
   disabled = false,
-  ariaLabel
+  ariaLabel,
 }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwipeActive, setIsSwipeActive] = useState(false);
 
   const handleSwipeLeft = () => {
     if (disabled || !onSwipeLeft) return;
-    
+
     setSwipeOffset(-100);
     setIsSwipeActive(true);
-    
+
     setTimeout(() => {
       onSwipeLeft();
       setSwipeOffset(0);
@@ -234,10 +236,10 @@ export const EnhancedMobileCard: React.FC<EnhancedMobileCardProps> = ({
 
   const handleSwipeRight = () => {
     if (disabled || !onSwipeRight) return;
-    
+
     setSwipeOffset(100);
     setIsSwipeActive(true);
-    
+
     setTimeout(() => {
       onSwipeRight();
       setSwipeOffset(0);
@@ -246,12 +248,12 @@ export const EnhancedMobileCard: React.FC<EnhancedMobileCardProps> = ({
   };
 
   return (
-    <div 
-      className="relative overflow-hidden"
-      role="button"
+    <div
+      className='relative overflow-hidden'
+      role='button'
       tabIndex={disabled ? -1 : 0}
       aria-label={ariaLabel}
-      onKeyDown={(e) => {
+      onKeyDown={e => {
         if (disabled) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -260,19 +262,19 @@ export const EnhancedMobileCard: React.FC<EnhancedMobileCardProps> = ({
       }}
     >
       {/* Background actions */}
-      <div className="absolute inset-0 flex">
+      <div className='absolute inset-0 flex'>
         {leftAction && (
-          <div className="flex-1 bg-primary flex items-center justify-center text-white">
+          <div className='flex-1 bg-primary flex items-center justify-center text-white'>
             {leftAction}
           </div>
         )}
         {rightAction && (
-          <div className="flex-1 bg-destructive flex items-center justify-center text-white">
+          <div className='flex-1 bg-destructive flex items-center justify-center text-white'>
             {rightAction}
           </div>
         )}
       </div>
-      
+
       {/* Main content */}
       <EnhancedTouchComponent
         onSwipeLeft={handleSwipeLeft}
@@ -280,8 +282,8 @@ export const EnhancedMobileCard: React.FC<EnhancedMobileCardProps> = ({
         onTap={onTap}
         disabled={disabled}
         className={cn(
-          "relative bg-card transition-transform duration-200 border shadow-sm",
-          "min-h-[44px]", // Ensure minimum touch target
+          'relative bg-card transition-transform duration-200 border shadow-sm',
+          'min-h-[44px]', // Ensure minimum touch target
           className
         )}
         style={{
@@ -295,7 +297,8 @@ export const EnhancedMobileCard: React.FC<EnhancedMobileCardProps> = ({
 };
 
 // 4. Enhanced Mobile Button with Better Accessibility
-interface EnhancedMobileButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface EnhancedMobileButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
@@ -315,19 +318,23 @@ export const EnhancedMobileButton: React.FC<EnhancedMobileButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseClasses = "touch-manipulation select-none font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
-  
+  const baseClasses =
+    'touch-manipulation select-none font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+
   const variantClasses = {
-    primary: "bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary",
-    secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:ring-secondary",
-    danger: "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive",
-    ghost: "hover:bg-accent hover:text-accent-foreground focus:ring-accent",
+    primary:
+      'bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary',
+    secondary:
+      'bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:ring-secondary',
+    danger:
+      'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive',
+    ghost: 'hover:bg-accent hover:text-accent-foreground focus:ring-accent',
   };
-  
+
   const sizeClasses = {
-    sm: "px-3 py-2 text-sm min-h-[44px] min-w-[44px]", // Minimum touch target
-    md: "px-4 py-3 text-base min-h-[48px]",
-    lg: "px-6 py-4 text-lg min-h-[52px]",
+    sm: 'px-3 py-2 text-sm min-h-[44px] min-w-[44px]', // Minimum touch target
+    md: 'px-4 py-3 text-base min-h-[48px]',
+    lg: 'px-6 py-4 text-lg min-h-[52px]',
   };
 
   return (
@@ -342,13 +349,17 @@ export const EnhancedMobileButton: React.FC<EnhancedMobileButtonProps> = ({
       aria-disabled={disabled || loading}
       {...props}
     >
-      <div className="flex items-center justify-center gap-2">
+      <div className='flex items-center justify-center gap-2'>
         {loading && (
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+          <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-current' />
         )}
-        {!loading && leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
+        {!loading && leftIcon && (
+          <span className='flex-shrink-0'>{leftIcon}</span>
+        )}
         <span className={loading ? 'opacity-0' : ''}>{children}</span>
-        {!loading && rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
+        {!loading && rightIcon && (
+          <span className='flex-shrink-0'>{rightIcon}</span>
+        )}
       </div>
     </button>
   );
@@ -369,9 +380,13 @@ export const EnhancedLayout: React.FC<EnhancedLayoutProps> = ({ children }) => {
       if (isMobile && sidebarOpen) {
         const sidebar = document.querySelector('.sidebar');
         const menuButton = document.querySelector('[data-menu-button]');
-        
-        if (sidebar && !sidebar.contains(event.target as Node) && 
-            menuButton && !menuButton.contains(event.target as Node)) {
+
+        if (
+          sidebar &&
+          !sidebar.contains(event.target as Node) &&
+          menuButton &&
+          !menuButton.contains(event.target as Node)
+        ) {
           setSidebarOpen(false);
         }
       }
@@ -394,56 +409,62 @@ export const EnhancedLayout: React.FC<EnhancedLayoutProps> = ({ children }) => {
   }, [sidebarOpen]);
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className='flex min-h-screen w-full'>
       {/* Mobile sidebar overlay */}
       {isMobile && sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+        <div
+          className='fixed inset-0 z-40 bg-black/50 lg:hidden'
           onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
+          aria-hidden='true'
         />
       )}
-      
+
       {/* Sidebar */}
-      <div className={cn(
-        isMobile 
-          ? `fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out ${
-              sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            }` 
-          : 'relative',
-        'sidebar'
-      )}>
+      <div
+        className={cn(
+          isMobile
+            ? `fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out ${
+                sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+              }`
+            : 'relative',
+          'sidebar'
+        )}
+      >
         <Sidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Main content */}
-      <main className={cn(
-        "flex-1 overflow-auto transition-all duration-300",
-        !isMobile && "ml-64"
-      )}>
+      <main
+        className={cn(
+          'flex-1 overflow-auto transition-all duration-300',
+          !isMobile && 'ml-64'
+        )}
+      >
         {/* Mobile header */}
         {isMobile && (
-          <div className="sticky top-0 z-30 flex items-center justify-between bg-background border-b px-4 py-3 lg:hidden">
+          <div className='sticky top-0 z-30 flex items-center justify-between bg-background border-b px-4 py-3 lg:hidden'>
             <EnhancedMobileButton
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               onClick={() => setSidebarOpen(true)}
-              className="p-3 min-h-[44px] min-w-[44px]"
+              className='p-3 min-h-[44px] min-w-[44px]'
               data-menu-button
-              aria-label="Open navigation menu"
+              aria-label='Open navigation menu'
             >
-              <Menu className="h-5 w-5" />
+              <Menu className='h-5 w-5' />
             </EnhancedMobileButton>
-            <h1 className="text-lg font-normal text-foreground">Empowr CRM</h1>
-            <div className="w-11" /> {/* Spacer for centering */}
+            <h1 className='text-lg font-normal text-foreground'>Empowr CRM</h1>
+            <div className='w-11' /> {/* Spacer for centering */}
           </div>
         )}
 
         {/* Content */}
-        <div className={cn(
-          "min-h-screen",
-          isMobile ? 'p-4 pb-20' : 'p-8' // Add bottom padding for mobile nav
-        )}>
+        <div
+          className={cn(
+            'min-h-screen',
+            isMobile ? 'p-4 pb-20' : 'p-8' // Add bottom padding for mobile nav
+          )}
+        >
           {children}
         </div>
       </main>
@@ -498,23 +519,24 @@ export const BrowserCompatibility = {
   // Get browser information
   getBrowserInfo: () => {
     if (typeof window === 'undefined') return null;
-    
+
     const userAgent = navigator.userAgent;
     const browsers = {
       chrome: /Chrome/.test(userAgent) && /Google Inc/.test(navigator.vendor),
       firefox: /Firefox/.test(userAgent),
-      safari: /Safari/.test(userAgent) && /Apple Computer/.test(navigator.vendor),
+      safari:
+        /Safari/.test(userAgent) && /Apple Computer/.test(navigator.vendor),
       edge: /Edg/.test(userAgent),
-      ie: /Trident/.test(userAgent)
+      ie: /Trident/.test(userAgent),
     };
 
     return {
       userAgent,
       browsers,
       isMobile: /Mobi|Android/i.test(userAgent),
-      isTablet: /Tablet|iPad/i.test(userAgent)
+      isTablet: /Tablet|iPad/i.test(userAgent),
     };
-  }
+  },
 };
 
 // 8. Accessibility Utilities
@@ -522,15 +544,15 @@ export const AccessibilityUtils = {
   // Announce to screen readers
   announce: (message: string, priority: 'polite' | 'assertive' = 'polite') => {
     if (typeof window === 'undefined') return;
-    
+
     const announcement = document.createElement('div');
     announcement.setAttribute('aria-live', priority);
     announcement.setAttribute('aria-atomic', 'true');
     announcement.className = 'sr-only';
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     setTimeout(() => {
       document.body.removeChild(announcement);
     }, 1000);
@@ -541,7 +563,7 @@ export const AccessibilityUtils = {
     const focusableElement = container.querySelector(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     ) as HTMLElement;
-    
+
     if (focusableElement) {
       focusableElement.focus();
     }
@@ -552,7 +574,7 @@ export const AccessibilityUtils = {
     const focusableElements = element.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     ) as NodeListOf<HTMLElement>;
-    
+
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
 
@@ -573,7 +595,7 @@ export const AccessibilityUtils = {
     };
 
     element.addEventListener('keydown', handleTabKey);
-    
+
     return () => {
       element.removeEventListener('keydown', handleTabKey);
     };
@@ -585,23 +607,25 @@ export const AccessibilityUtils = {
     const getLuminance = (color: string) => {
       const rgb = color.match(/\d+/g);
       if (!rgb) return 0;
-      
+
       const [r, g, b] = rgb.map(colorValue => {
         const val = parseInt(c) / 255;
-        return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4);
+        return val <= 0.03928
+          ? val / 12.92
+          : Math.pow((val + 0.055) / 1.055, 2.4);
       });
-      
+
       return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     };
 
     const fgLuminance = getLuminance(foreground);
     const bgLuminance = getLuminance(background);
-    
+
     const lighter = Math.max(fgLuminance, bgLuminance);
     const darker = Math.min(fgLuminance, bgLuminance);
-    
+
     return (lighter + 0.05) / (darker + 0.05);
-  }
+  },
 };
 
 // 9. CSS Utilities for Better Responsive Design
@@ -684,6 +708,12 @@ export const responsiveCSS = `
 
 // Export all utilities
 export {
-    AccessibilityUtils, BrowserCompatibility, EnhancedLayout, EnhancedMobileButton, EnhancedMobileCard, EnhancedTouchComponent, responsiveCSS, useMobile
+  AccessibilityUtils,
+  BrowserCompatibility,
+  EnhancedLayout,
+  EnhancedMobileButton,
+  EnhancedMobileCard,
+  EnhancedTouchComponent,
+  responsiveCSS,
+  useMobile,
 };
-

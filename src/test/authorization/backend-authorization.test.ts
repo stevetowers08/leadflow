@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AssignmentService } from '@/services/assignmentService';
-import { 
-  mockUsers, 
-  mockUserProfiles, 
+import {
+  mockUsers,
+  mockUserProfiles,
   mockCrmData,
-  createMockSupabaseClient 
+  createMockSupabaseClient,
 } from '../mocks/authMocks';
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
-  supabase: createMockSupabaseClient()
+  supabase: createMockSupabaseClient(),
 }));
 
 describe('Authorization Tests - Backend Services', () => {
@@ -20,7 +20,8 @@ describe('Authorization Tests - Backend Services', () => {
 
     describe('User Validation', () => {
       it('should validate active users successfully', async () => {
-        const result = await AssignmentService.validateUser('recruiter-user-id');
+        const result =
+          await AssignmentService.validateUser('recruiter-user-id');
         expect(result).toBe(true);
       });
 
@@ -30,7 +31,9 @@ describe('Authorization Tests - Backend Services', () => {
       });
 
       it('should reject non-existent users', async () => {
-        const result = await AssignmentService.validateUser('non-existent-user-id');
+        const result = await AssignmentService.validateUser(
+          'non-existent-user-id'
+        );
         expect(result).toBe(false);
       });
     });
@@ -43,8 +46,8 @@ describe('Authorization Tests - Backend Services', () => {
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockResolvedValue({
             data: mockCrmData.companies[0],
-            error: null
-          })
+            error: null,
+          }),
         } as any);
 
         const result = await AssignmentService.assignEntity(
@@ -64,8 +67,8 @@ describe('Authorization Tests - Backend Services', () => {
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockResolvedValue({
             data: mockCrmData.companies[0],
-            error: null
-          })
+            error: null,
+          }),
         } as any);
 
         const result = await AssignmentService.assignEntity(
@@ -85,8 +88,8 @@ describe('Authorization Tests - Backend Services', () => {
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockResolvedValue({
             data: mockCrmData.companies[0],
-            error: null
-          })
+            error: null,
+          }),
         } as any);
 
         const result = await AssignmentService.assignEntity(
@@ -106,8 +109,10 @@ describe('Authorization Tests - Backend Services', () => {
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockResolvedValue({
             data: null,
-            error: { message: 'Forbidden: You can only assign entities you own' }
-          })
+            error: {
+              message: 'Forbidden: You can only assign entities you own',
+            },
+          }),
         } as any);
 
         const result = await AssignmentService.assignEntity(
@@ -128,8 +133,8 @@ describe('Authorization Tests - Backend Services', () => {
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockResolvedValue({
             data: null,
-            error: { message: 'Forbidden: Viewers cannot assign entities' }
-          })
+            error: { message: 'Forbidden: Viewers cannot assign entities' },
+          }),
         } as any);
 
         const result = await AssignmentService.assignEntity(
@@ -152,8 +157,8 @@ describe('Authorization Tests - Backend Services', () => {
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockResolvedValue({
             data: Object.values(mockUserProfiles),
-            error: null
-          })
+            error: null,
+          }),
         } as any);
 
         const result = await AssignmentService.getTeamMembers();
@@ -167,8 +172,8 @@ describe('Authorization Tests - Backend Services', () => {
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockResolvedValue({
             data: Object.values(mockUserProfiles),
-            error: null
-          })
+            error: null,
+          }),
         } as any);
 
         const result = await AssignmentService.getTeamMembers();
@@ -181,9 +186,11 @@ describe('Authorization Tests - Backend Services', () => {
           select: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockResolvedValue({
-            data: Object.values(mockUserProfiles).filter(person => person.is_active),
-            error: null
-          })
+            data: Object.values(mockUserProfiles).filter(
+              person => person.is_active
+            ),
+            error: null,
+          }),
         } as any);
 
         const result = await AssignmentService.getTeamMembers();
@@ -197,8 +204,8 @@ describe('Authorization Tests - Backend Services', () => {
           eq: vi.fn().mockReturnThis(),
           then: vi.fn().mockResolvedValue({
             data: [],
-            error: { message: 'Forbidden: Viewers cannot view team members' }
-          })
+            error: { message: 'Forbidden: Viewers cannot view team members' },
+          }),
         } as any);
 
         const result = await AssignmentService.getTeamMembers();
@@ -212,7 +219,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow owner to view all companies', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.owner);
         const result = await mockSupabase.from('companies').select('*');
-        
+
         expect(result.data).toHaveLength(3); // All companies
         expect(result.error).toBeNull();
       });
@@ -220,7 +227,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow admin to view all companies', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.admin);
         const result = await mockSupabase.from('companies').select('*');
-        
+
         expect(result.data).toHaveLength(3); // All companies
         expect(result.error).toBeNull();
       });
@@ -228,7 +235,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow recruiter to view only assigned companies', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.recruiter);
         const result = await mockSupabase.from('companies').select('*');
-        
+
         expect(result.data).toHaveLength(1); // Only company-1
         expect(result.data[0].id).toBe('company-1');
         expect(result.error).toBeNull();
@@ -237,7 +244,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow viewer to view only assigned companies', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.viewer);
         const result = await mockSupabase.from('companies').select('*');
-        
+
         expect(result.data).toHaveLength(0); // No companies assigned to viewer
         expect(result.error).toBeNull();
       });
@@ -247,7 +254,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow owner to view all people', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.owner);
         const result = await mockSupabase.from('people').select('*');
-        
+
         expect(result.data).toHaveLength(3); // All people
         expect(result.error).toBeNull();
       });
@@ -255,7 +262,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow admin to view all people', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.admin);
         const result = await mockSupabase.from('people').select('*');
-        
+
         expect(result.data).toHaveLength(3); // All people
         expect(result.error).toBeNull();
       });
@@ -263,7 +270,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow recruiter to view only assigned people', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.recruiter);
         const result = await mockSupabase.from('people').select('*');
-        
+
         expect(result.data).toHaveLength(1); // Only person-1
         expect(result.data[0].id).toBe('person-1');
         expect(result.error).toBeNull();
@@ -272,7 +279,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow viewer to view only assigned people', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.viewer);
         const result = await mockSupabase.from('people').select('*');
-        
+
         expect(result.data).toHaveLength(0); // No people assigned to viewer
         expect(result.error).toBeNull();
       });
@@ -282,7 +289,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow owner to view all jobs', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.owner);
         const result = await mockSupabase.from('jobs').select('*');
-        
+
         expect(result.data).toHaveLength(2); // All jobs
         expect(result.error).toBeNull();
       });
@@ -290,7 +297,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow admin to view all jobs', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.admin);
         const result = await mockSupabase.from('jobs').select('*');
-        
+
         expect(result.data).toHaveLength(2); // All jobs
         expect(result.error).toBeNull();
       });
@@ -298,7 +305,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow recruiter to view only assigned jobs', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.recruiter);
         const result = await mockSupabase.from('jobs').select('*');
-        
+
         expect(result.data).toHaveLength(1); // Only job-1
         expect(result.data[0].id).toBe('job-1');
         expect(result.error).toBeNull();
@@ -307,7 +314,7 @@ describe('Authorization Tests - Backend Services', () => {
       it('should allow viewer to view only assigned jobs', async () => {
         const mockSupabase = createMockSupabaseClient(mockUsers.viewer);
         const result = await mockSupabase.from('jobs').select('*');
-        
+
         expect(result.data).toHaveLength(0); // No jobs assigned to viewer
         expect(result.error).toBeNull();
       });
@@ -321,13 +328,15 @@ describe('Authorization Tests - Backend Services', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
-          data: mockCrmData.companies.filter(company => company.owner_id === 'deleted-user-id'),
-          error: null
-        })
+          data: mockCrmData.companies.filter(
+            company => company.owner_id === 'deleted-user-id'
+          ),
+          error: null,
+        }),
       } as any);
 
       const result = await mockSupabase.from('companies').select('*');
-      
+
       expect(result.data).toHaveLength(1);
       expect(result.data[0].owner_id).toBe('deleted-user-id');
     });
@@ -339,8 +348,8 @@ describe('Authorization Tests - Backend Services', () => {
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'User role changed during assignment' }
-        })
+          error: { message: 'User role changed during assignment' },
+        }),
       } as any);
 
       const result = await AssignmentService.assignEntity(
@@ -361,8 +370,8 @@ describe('Authorization Tests - Backend Services', () => {
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Entity already assigned to another user' }
-        })
+          error: { message: 'Entity already assigned to another user' },
+        }),
       } as any);
 
       const result = await AssignmentService.assignEntity(
@@ -384,8 +393,8 @@ describe('Authorization Tests - Backend Services', () => {
         single: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Entity not found' }
-        })
+          error: { message: 'Entity not found' },
+        }),
       } as any);
 
       const result = await AssignmentService.assignEntity(

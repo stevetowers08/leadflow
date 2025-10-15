@@ -2,7 +2,7 @@
 
 /**
  * Authorization Test Runner
- * 
+ *
  * This script runs comprehensive authorization tests to ensure
  * the CRM system properly enforces user permissions and data access controls.
  */
@@ -21,38 +21,45 @@ interface TestConfig {
 const testSuites: TestConfig[] = [
   {
     name: 'Frontend Authorization Tests',
-    command: 'npm run test src/test/authorization/frontend-authorization.test.tsx',
+    command:
+      'npm run test src/test/authorization/frontend-authorization.test.tsx',
     description: 'Tests React components and UI permission handling',
-    critical: true
+    critical: true,
   },
   {
     name: 'Backend Authorization Tests',
-    command: 'npm run test src/test/authorization/backend-authorization.test.ts',
+    command:
+      'npm run test src/test/authorization/backend-authorization.test.ts',
     description: 'Tests service layer authorization and data access',
-    critical: true
+    critical: true,
   },
   {
     name: 'Edge Cases Tests',
     command: 'npm run test src/test/authorization/edge-cases.test.ts',
     description: 'Tests complex authorization scenarios and edge cases',
-    critical: true
+    critical: true,
   },
   {
     name: 'Complex Scenarios Tests',
     command: 'npm run test src/test/authorization/complex-scenarios.test.ts',
     description: 'Tests advanced authorization patterns and complex workflows',
-    critical: false
+    critical: false,
   },
   {
     name: 'E2E Authorization Tests',
     command: 'npm run test:e2e e2e/authorization.spec.ts',
     description: 'Tests complete user workflows and cross-role scenarios',
-    critical: true
-  }
+    critical: true,
+  },
 ];
 
 class AuthorizationTestRunner {
-  private results: Array<{ name: string; passed: boolean; output: string; error?: string }> = [];
+  private results: Array<{
+    name: string;
+    passed: boolean;
+    output: string;
+    error?: string;
+  }> = [];
   private startTime: number = 0;
 
   async runAllTests(): Promise<void> {
@@ -69,34 +76,35 @@ class AuthorizationTestRunner {
   private async runTestSuite(suite: TestConfig): Promise<void> {
     console.log(`\n📋 Running ${suite.name}...`);
     console.log(`   ${suite.description}`);
-    
+
     if (suite.critical) {
-      console.log('   ⚠️  CRITICAL: This test suite must pass for production deployment');
+      console.log(
+        '   ⚠️  CRITICAL: This test suite must pass for production deployment'
+      );
     }
 
     try {
-      const output = execSync(suite.command, { 
+      const output = execSync(suite.command, {
         encoding: 'utf8',
         stdio: 'pipe',
-        timeout: 300000 // 5 minutes timeout
+        timeout: 300000, // 5 minutes timeout
       });
-      
+
       this.results.push({
         name: suite.name,
         passed: true,
-        output: output
+        output: output,
       });
-      
+
       console.log(`   ✅ PASSED`);
-      
     } catch (error: any) {
       this.results.push({
         name: suite.name,
         passed: false,
         output: error.stdout || '',
-        error: error.stderr || error.message
+        error: error.stderr || error.message,
       });
-      
+
       console.log(`   ❌ FAILED`);
       if (suite.critical) {
         console.log(`   🚨 CRITICAL FAILURE: ${suite.name} failed`);
@@ -108,12 +116,14 @@ class AuthorizationTestRunner {
     const duration = Date.now() - this.startTime;
     const passed = this.results.filter(r => r.passed).length;
     const failed = this.results.filter(r => !r.passed).length;
-    const criticalFailures = this.results.filter(r => !r.passed && testSuites.find(s => s.name === r.name)?.critical).length;
+    const criticalFailures = this.results.filter(
+      r => !r.passed && testSuites.find(s => s.name === r.name)?.critical
+    ).length;
 
     console.log('\n' + '='.repeat(80));
     console.log('🔐 AUTHORIZATION TEST SUITE SUMMARY');
     console.log('='.repeat(80));
-    
+
     console.log(`\n📊 Results:`);
     console.log(`   Total Tests: ${this.results.length}`);
     console.log(`   Passed: ${passed} ✅`);
@@ -139,17 +149,23 @@ class AuthorizationTestRunner {
       console.log(`\n🚨 CRITICAL FAILURES DETECTED!`);
       console.log(`   The following critical tests failed and must be fixed:`);
       this.results
-        .filter(r => !r.passed && testSuites.find(s => s.name === r.name)?.critical)
+        .filter(
+          r => !r.passed && testSuites.find(s => s.name === r.name)?.critical
+        )
         .forEach(result => {
           console.log(`   • ${result.name}`);
         });
-      console.log(`\n   ⚠️  DO NOT DEPLOY TO PRODUCTION until these issues are resolved.`);
+      console.log(
+        `\n   ⚠️  DO NOT DEPLOY TO PRODUCTION until these issues are resolved.`
+      );
     } else if (failed === 0) {
       console.log(`\n🎉 ALL TESTS PASSED!`);
       console.log(`   ✅ Authorization system is working correctly`);
       console.log(`   ✅ Safe to deploy to production`);
     } else {
-      console.log(`\n⚠️  Some non-critical tests failed, but critical tests passed.`);
+      console.log(
+        `\n⚠️  Some non-critical tests failed, but critical tests passed.`
+      );
       console.log(`   ✅ Safe to deploy to production`);
     }
 
@@ -157,8 +173,10 @@ class AuthorizationTestRunner {
   }
 
   async runSpecificTest(testName: string): Promise<void> {
-    const suite = testSuites.find(s => s.name.toLowerCase().includes(testName.toLowerCase()));
-    
+    const suite = testSuites.find(s =>
+      s.name.toLowerCase().includes(testName.toLowerCase())
+    );
+
     if (!suite) {
       console.log(`❌ Test suite "${testName}" not found.`);
       console.log(`Available test suites:`);
@@ -170,14 +188,13 @@ class AuthorizationTestRunner {
     console.log(`   ${suite.description}\n`);
 
     try {
-      const output = execSync(suite.command, { 
+      const output = execSync(suite.command, {
         encoding: 'utf8',
         stdio: 'inherit',
-        timeout: 300000
+        timeout: 300000,
       });
-      
+
       console.log(`\n✅ ${suite.name} completed successfully!`);
-      
     } catch (error: any) {
       console.log(`\n❌ ${suite.name} failed!`);
       process.exit(1);
@@ -186,17 +203,16 @@ class AuthorizationTestRunner {
 
   async runCoverageReport(): Promise<void> {
     console.log('📊 Generating Authorization Test Coverage Report...\n');
-    
+
     try {
-      execSync('npm run test:auth:coverage', { 
+      execSync('npm run test:auth:coverage', {
         encoding: 'utf8',
         stdio: 'inherit',
-        timeout: 300000
+        timeout: 300000,
       });
-      
+
       console.log('\n✅ Coverage report generated successfully!');
       console.log('   Check the coverage/ directory for detailed reports');
-      
     } catch (error: any) {
       console.log('\n❌ Coverage report generation failed!');
       process.exit(1);
@@ -208,7 +224,9 @@ class AuthorizationTestRunner {
     console.log('\nUsage:');
     console.log('  node scripts/run-auth-tests.js [command] [options]');
     console.log('\nCommands:');
-    console.log('  all                    Run all authorization tests (default)');
+    console.log(
+      '  all                    Run all authorization tests (default)'
+    );
     console.log('  frontend               Run frontend authorization tests');
     console.log('  backend                Run backend authorization tests');
     console.log('  edge-cases             Run edge cases tests');
@@ -227,7 +245,7 @@ class AuthorizationTestRunner {
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0] || 'all';
-  
+
   const runner = new AuthorizationTestRunner();
 
   switch (command.toLowerCase()) {
@@ -271,11 +289,11 @@ function checkPrerequisites(): boolean {
     'src/test/authorization/backend-authorization.test.ts',
     'src/test/authorization/edge-cases.test.ts',
     'src/test/authorization/complex-scenarios.test.ts',
-    'e2e/authorization.spec.ts'
+    'e2e/authorization.spec.ts',
   ];
 
   const missingFiles = requiredFiles.filter(file => !existsSync(file));
-  
+
   if (missingFiles.length > 0) {
     console.log('❌ Missing required test files:');
     missingFiles.forEach(file => console.log(`   • ${file}`));
@@ -291,7 +309,7 @@ if (require.main === module) {
   if (!checkPrerequisites()) {
     process.exit(1);
   }
-  
+
   main().catch(error => {
     console.error('❌ Test runner failed:', error);
     process.exit(1);

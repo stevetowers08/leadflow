@@ -1,8 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { EnhancedTable, EnhancedTableBody, EnhancedTableCell, EnhancedTableHead, EnhancedTableHeader, EnhancedTableRow } from '@/components/ui/enhanced-table';
+import {
+  EnhancedTable,
+  EnhancedTableBody,
+  EnhancedTableCell,
+  EnhancedTableHead,
+  EnhancedTableHeader,
+  EnhancedTableRow,
+} from '@/components/ui/enhanced-table';
 import { ResponsiveTable } from '@/components/ui/responsive-table';
-import { CompactPaginationControls, PaginationControls } from '@/components/utils/PaginationControls';
+import {
+  CompactPaginationControls,
+  PaginationControls,
+} from '@/components/utils/PaginationControls';
 import { usePagination } from '@/hooks/usePagination';
 import { useUrlPagination } from '@/hooks/useUrlPagination';
 import React, { useMemo, useState } from 'react';
@@ -30,7 +40,9 @@ const generateExampleData = (count: number): ExampleData[] => {
     email: `user${i + 1}@example.com`,
     role: roles[i % roles.length],
     status: statuses[i % statuses.length],
-    lastLogin: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    lastLogin: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     department: departments[i % departments.length],
   }));
 };
@@ -44,7 +56,9 @@ const StatusBadge = ({ status }: { status: ExampleData['status'] }) => {
   };
 
   return (
-    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${variants[status]}`}>
+    <span
+      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${variants[status]}`}
+    >
       {status}
     </span>
   );
@@ -56,10 +70,11 @@ export const PaginationExample = () => {
   const [loading, setLoading] = useState(false);
 
   // Use URL-based pagination
-  const { currentPage, pageSize, updatePage, updatePageSize } = useUrlPagination({
-    defaultPageSize: 25,
-    defaultPage: 1,
-  });
+  const { currentPage, pageSize, updatePage, updatePageSize } =
+    useUrlPagination({
+      defaultPageSize: 25,
+      defaultPage: 1,
+    });
 
   // Use improved pagination hook
   const pagination = usePagination(data.length, {
@@ -93,23 +108,21 @@ export const PaginationExample = () => {
       label: 'Name',
       priority: 'high' as const,
       render: (value: string, row: ExampleData) => (
-        <div className="font-medium text-gray-900">{value}</div>
+        <div className='font-medium text-gray-900'>{value}</div>
       ),
     },
     {
       key: 'email',
       label: 'Email',
       priority: 'high' as const,
-      render: (value: string) => (
-        <div className="text-gray-600">{value}</div>
-      ),
+      render: (value: string) => <div className='text-gray-600'>{value}</div>,
     },
     {
       key: 'role',
       label: 'Role',
       priority: 'medium' as const,
       render: (value: string) => (
-        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+        <span className='inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800'>
           {value}
         </span>
       ),
@@ -124,16 +137,16 @@ export const PaginationExample = () => {
       key: 'department',
       label: 'Department',
       priority: 'low' as const,
-      render: (value: string) => (
-        <span className="text-gray-500">{value}</span>
-      ),
+      render: (value: string) => <span className='text-gray-500'>{value}</span>,
     },
     {
       key: 'lastLogin',
       label: 'Last Login',
       priority: 'low' as const,
       render: (value: string) => (
-        <span className="text-gray-500">{new Date(value).toLocaleDateString()}</span>
+        <span className='text-gray-500'>
+          {new Date(value).toLocaleDateString()}
+        </span>
       ),
     },
   ];
@@ -148,27 +161,31 @@ export const PaginationExample = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Improved Pagination & Scrolling Example</h1>
+    <div className='space-y-6 p-6'>
+      <div className='flex items-center justify-between'>
+        <h1 className='text-2xl font-bold'>
+          Improved Pagination & Scrolling Example
+        </h1>
         <Button onClick={simulateLoading} disabled={loading}>
           {loading ? 'Loading...' : 'Simulate Loading'}
         </Button>
       </div>
 
       {/* Responsive Table */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">Responsive Table (Mobile-Friendly)</h2>
+      <Card className='p-6'>
+        <h2 className='text-lg font-semibold mb-4'>
+          Responsive Table (Mobile-Friendly)
+        </h2>
         <ResponsiveTable
           data={paginatedData}
           columns={columns}
           loading={loading}
           onRowClick={handleRowClick}
-          mobileBreakpoint="md"
+          mobileBreakpoint='md'
         />
-        
+
         {/* Full Pagination Controls */}
-        <div className="mt-6">
+        <div className='mt-6'>
           <PaginationControls
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}
@@ -189,18 +206,20 @@ export const PaginationExample = () => {
       </Card>
 
       {/* Enhanced Table with Improved Scrolling */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">Enhanced Table (Improved Scrolling)</h2>
-        <div className="border rounded-lg overflow-hidden">
-          <EnhancedTable 
-            dualScrollbars={false} 
+      <Card className='p-6'>
+        <h2 className='text-lg font-semibold mb-4'>
+          Enhanced Table (Improved Scrolling)
+        </h2>
+        <div className='border rounded-lg overflow-hidden'>
+          <EnhancedTable
+            dualScrollbars={false}
             stickyHeader={true}
-            maxHeight="400px"
+            maxHeight='400px'
           >
             <EnhancedTableHeader>
               <EnhancedTableRow>
-                {columns.map((column) => (
-                  <EnhancedTableHead 
+                {columns.map(column => (
+                  <EnhancedTableHead
                     key={column.key}
                     style={{ minWidth: '120px' }}
                   >
@@ -210,15 +229,17 @@ export const PaginationExample = () => {
               </EnhancedTableRow>
             </EnhancedTableHeader>
             <EnhancedTableBody>
-              {paginatedData.map((row) => (
-                <EnhancedTableRow 
+              {paginatedData.map(row => (
+                <EnhancedTableRow
                   key={row.id}
-                  className="hover:bg-gray-50 cursor-pointer"
+                  className='hover:bg-gray-50 cursor-pointer'
                   onClick={() => handleRowClick(row)}
                 >
-                  {columns.map((column) => (
+                  {columns.map(column => (
                     <EnhancedTableCell key={column.key}>
-                      {column.render ? column.render(row[column.key], row) : row[column.key]}
+                      {column.render
+                        ? column.render(row[column.key], row)
+                        : row[column.key]}
                     </EnhancedTableCell>
                   ))}
                 </EnhancedTableRow>
@@ -226,9 +247,9 @@ export const PaginationExample = () => {
             </EnhancedTableBody>
           </EnhancedTable>
         </div>
-        
+
         {/* Compact Pagination Controls */}
-        <div className="mt-4 flex justify-center">
+        <div className='mt-4 flex justify-center'>
           <CompactPaginationControls
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}
@@ -241,26 +262,31 @@ export const PaginationExample = () => {
       </Card>
 
       {/* Performance Info */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">Performance Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <Card className='p-6'>
+        <h2 className='text-lg font-semibold mb-4'>Performance Information</h2>
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-4 text-sm'>
           <div>
-            <span className="font-medium">Total Items:</span> {pagination.totalItems}
+            <span className='font-medium'>Total Items:</span>{' '}
+            {pagination.totalItems}
           </div>
           <div>
-            <span className="font-medium">Current Page:</span> {pagination.currentPage} of {pagination.totalPages}
+            <span className='font-medium'>Current Page:</span>{' '}
+            {pagination.currentPage} of {pagination.totalPages}
           </div>
           <div>
-            <span className="font-medium">Page Size:</span> {pagination.pageSize}
+            <span className='font-medium'>Page Size:</span>{' '}
+            {pagination.pageSize}
           </div>
           <div>
-            <span className="font-medium">Showing:</span> {pagination.startIndex + 1} - {pagination.endIndex + 1}
+            <span className='font-medium'>Showing:</span>{' '}
+            {pagination.startIndex + 1} - {pagination.endIndex + 1}
           </div>
           <div>
-            <span className="font-medium">Visible Pages:</span> {pagination.visiblePages.join(', ')}
+            <span className='font-medium'>Visible Pages:</span>{' '}
+            {pagination.visiblePages.join(', ')}
           </div>
           <div>
-            <span className="font-medium">URL State:</span> Persisted ✓
+            <span className='font-medium'>URL State:</span> Persisted ✓
           </div>
         </div>
       </Card>

@@ -7,6 +7,7 @@ The Empowr CRM uses Supabase (PostgreSQL) as its backend database. This document
 ## Database Connection
 
 ### Environment Variables
+
 ```bash
 VITE_SUPABASE_URL=https://jedfundfhzytpnbjkspn.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key_here
@@ -14,13 +15,14 @@ SUPABASE_ACCESS_TOKEN=your_service_role_key_here
 ```
 
 ### Connection Setup
+
 ```typescript
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL!,
   process.env.VITE_SUPABASE_ANON_KEY!
-)
+);
 ```
 
 ## Database Management Tools
@@ -28,17 +30,20 @@ const supabase = createClient(
 The application includes built-in database management components for monitoring and exploration:
 
 ### DatabaseInfoCard Component
+
 **Location:** `src/components/DatabaseInfoCard.tsx`
 
 **Purpose:** Provides a dashboard overview of database health and data volume.
 
 **Features:**
+
 - Real-time table statistics (row counts, column counts)
 - Covers core tables: people, companies, jobs, conversations
 - Refresh functionality for live updates
 - Visual indicators for data volume
 
 **Usage:**
+
 ```typescript
 import { DatabaseInfoCard } from '@/components/DatabaseInfoCard';
 
@@ -47,11 +52,13 @@ import { DatabaseInfoCard } from '@/components/DatabaseInfoCard';
 ```
 
 ### DatabaseExplorer Component
+
 **Location:** `src/components/DatabaseExplorer.tsx`
 
 **Purpose:** Comprehensive database exploration and schema management tool.
 
 **Features:**
+
 - Browse all database tables with search/filter
 - View detailed table schemas (columns, types, constraints)
 - Export database schema to markdown format
@@ -59,6 +66,7 @@ import { DatabaseInfoCard } from '@/components/DatabaseInfoCard';
 - Real-time table information updates
 
 **Usage:**
+
 ```typescript
 import { DatabaseExplorer } from '@/components/DatabaseExplorer';
 
@@ -67,12 +75,14 @@ import { DatabaseExplorer } from '@/components/DatabaseExplorer';
 ```
 
 **Key Functions:**
+
 - `loadTables()` - Loads all available tables
 - `loadTableInfo(tableName)` - Gets detailed schema for specific table
 - `handleExportSchema()` - Exports complete schema to markdown file
 - `handleTableSelect(tableName)` - Switches between table views
 
 **Dependencies:**
+
 - `@/utils/databaseSchema` - Schema utilities
 - `@/utils/databaseQuery` - Query utilities
 - `@/hooks/use-toast` - Toast notifications
@@ -80,6 +90,7 @@ import { DatabaseExplorer } from '@/components/DatabaseExplorer';
 ## Core Tables
 
 ### 1. **Companies** (`companies`)
+
 Primary entity for company information.
 
 ```sql
@@ -108,6 +119,7 @@ CREATE TABLE companies (
 ```
 
 **Key Fields:**
+
 - `id`: Unique identifier
 - `name`: Company name (required)
 - `website`: Company website URL
@@ -122,6 +134,7 @@ CREATE TABLE companies (
 - `automation_active`: Whether automation is running
 
 ### 2. **People** (`people`)
+
 Individual contacts and leads.
 
 ```sql
@@ -173,6 +186,7 @@ CREATE TABLE people (
 ```
 
 **Key Fields:**
+
 - `id`: Unique identifier
 - `name`: Contact full name (required)
 - `email_address`: Primary email address
@@ -188,6 +202,7 @@ CREATE TABLE people (
 - `owner_id`: Assigned user/owner
 
 ### 3. **Jobs** (`jobs`)
+
 Job postings and opportunities.
 
 ```sql
@@ -217,6 +232,7 @@ CREATE TABLE jobs (
 ```
 
 **Key Fields:**
+
 - `id`: Unique identifier
 - `title`: Job title (required)
 - `company_id`: Foreign key to companies table
@@ -234,6 +250,7 @@ CREATE TABLE jobs (
 - `automation_active`: Whether automation is running
 
 ### 4. **Conversations** (`conversations`)
+
 Chat and communication history.
 
 ```sql
@@ -251,6 +268,7 @@ CREATE TABLE conversations (
 ## Supporting Tables
 
 ### **Campaigns** (`campaigns`)
+
 Marketing campaigns and outreach.
 
 ```sql
@@ -267,6 +285,7 @@ CREATE TABLE campaigns (
 ```
 
 ### **Campaign Participants** (`campaign_participants`)
+
 Many-to-many relationship between campaigns and people.
 
 ```sql
@@ -282,6 +301,7 @@ CREATE TABLE campaign_participants (
 ### **Email Integration Tables**
 
 #### **Email Messages** (`email_messages`)
+
 Individual email messages from Gmail integration.
 
 ```sql
@@ -309,6 +329,7 @@ CREATE TABLE email_messages (
 ```
 
 #### **Email Threads** (`email_threads`)
+
 Email conversation threads.
 
 ```sql
@@ -326,6 +347,7 @@ CREATE TABLE email_threads (
 ```
 
 #### **Email Templates** (`email_templates`)
+
 Reusable email templates.
 
 ```sql
@@ -345,31 +367,39 @@ CREATE TABLE email_templates (
 ### **LinkedIn Integration Tables**
 
 #### **LinkedIn User Tokens** (`linkedin_user_tokens`)
+
 LinkedIn OAuth tokens for users.
 
 #### **LinkedIn User Settings** (`linkedin_user_settings`)
+
 LinkedIn integration settings per user.
 
 #### **LinkedIn Webhook Events** (`linkedin_user_webhook_events`)
+
 LinkedIn webhook event logs.
 
 ### **User Management Tables**
 
 #### **User Profiles** (`user_profiles`)
+
 Extended user profile information.
 
 #### **User Settings** (`user_settings`)
+
 User-specific application settings.
 
 ### **System Tables**
 
 #### **System Settings** (`system_settings`)
+
 Application configuration and settings.
 
 #### **Interactions** (`interactions`)
+
 Track user interactions and activities.
 
 #### **Email Sync Logs** (`email_sync_logs`)
+
 Logs for email synchronization processes.
 
 ## Database Enums
@@ -377,17 +407,21 @@ Logs for email synchronization processes.
 The database uses several enums to ensure data consistency:
 
 ### **Campaign Status** (`campaign_status_enum`)
+
 - `draft`: Campaign is being prepared
 - `active`: Campaign is running
 - `paused`: Campaign is temporarily stopped
 
 ### **Confidence Level** (`confidence_level_enum`)
+
 - `low`: Low confidence in lead quality
 - `medium`: Medium confidence in lead quality
 - `high`: High confidence in lead quality
 
 ### **Stage** (`stage_enum`)
+
 Lead progression stages:
+
 - `new`: Newly added lead
 - `connection_requested`: LinkedIn connection request sent
 - `connected`: LinkedIn connection accepted
@@ -399,7 +433,9 @@ Lead progression stages:
 - `note`: Additional notes added
 
 ### **Interaction Type** (`interaction_type_enum`)
+
 Types of interactions tracked:
+
 - `linkedin_connection_request_sent`
 - `linkedin_connected`
 - `linkedin_message_sent`
@@ -414,6 +450,7 @@ Types of interactions tracked:
 ## Relationships
 
 ### Primary Relationships
+
 ```
 Companies (1) ←→ (Many) People
 Companies (1) ←→ (Many) Jobs
@@ -422,6 +459,7 @@ Campaigns (1) ←→ (Many) Campaign Participants ←→ (Many) People
 ```
 
 ### Foreign Key Constraints
+
 - `people.company_id` → `companies.id`
 - `jobs.company_id` → `companies.id`
 - `conversations.person_id` → `people.id`
@@ -433,15 +471,17 @@ Campaigns (1) ←→ (Many) Campaign Participants ←→ (Many) People
 All tables have Row Level Security enabled with policies:
 
 ### Authentication Required
+
 ```sql
 -- Example policy for companies table
-CREATE POLICY "Allow authenticated users to manage companies" 
-ON companies 
-FOR ALL 
+CREATE POLICY "Allow authenticated users to manage companies"
+ON companies
+FOR ALL
 USING (auth.uid() IS NOT NULL);
 ```
 
 ### Role-Based Access
+
 - **Owner**: Full access to all data
 - **Admin**: Full access to all data
 - **User**: Limited access based on assignments
@@ -451,79 +491,89 @@ USING (auth.uid() IS NOT NULL);
 ### Basic Queries
 
 #### Get All Companies
+
 ```typescript
 const { data: companies, error } = await supabase
   .from('companies')
   .select('*')
-  .order('created_at', { ascending: false })
+  .order('created_at', { ascending: false });
 ```
 
 #### Get People with Company Info
+
 ```typescript
-const { data: people, error } = await supabase
-  .from('people')
-  .select(`
+const { data: people, error } = await supabase.from('people').select(`
     *,
     companies (
       id,
       name,
       website
     )
-  `)
+  `);
 ```
 
 #### Get Jobs by Company
+
 ```typescript
 const { data: jobs, error } = await supabase
   .from('jobs')
-  .select(`
+  .select(
+    `
     *,
     companies (
       name,
       website
     )
-  `)
-  .eq('company_id', companyId)
+  `
+  )
+  .eq('company_id', companyId);
 ```
 
 ### Advanced Queries
 
 #### Search with Filters
+
 ```typescript
 const { data, error } = await supabase
   .from('people')
-  .select(`
+  .select(
+    `
     *,
     companies (name, industry)
-  `)
+  `
+  )
   .ilike('first_name', `%${searchTerm}%`)
   .eq('status', 'new')
   .order('created_at', { ascending: false })
-  .limit(20)
+  .limit(20);
 ```
 
 #### Real-time Subscriptions
+
 ```typescript
 const subscription = supabase
   .channel('people_changes')
-  .on('postgres_changes', 
+  .on(
+    'postgres_changes',
     { event: '*', schema: 'public', table: 'people' },
-    (payload) => {
-      console.log('Change received!', payload)
+    payload => {
+      console.log('Change received!', payload);
     }
   )
-  .subscribe()
+  .subscribe();
 ```
 
 ## Data Validation
 
 ### Constraints
+
 - Email format validation
 - Phone number format validation
 - URL format validation
 - Required field constraints
 
 ### Triggers
+
 - Automatic `updated_at` timestamp updates
 - Data validation triggers
 - Audit logging triggers
@@ -531,6 +581,7 @@ const subscription = supabase
 ## Performance Optimization
 
 ### Indexes
+
 ```sql
 -- Common indexes for performance
 CREATE INDEX idx_people_company_id ON people(company_id);
@@ -541,6 +592,7 @@ CREATE INDEX idx_jobs_status ON jobs(status);
 ```
 
 ### Views
+
 - Performance views for common queries
 - Aggregated data views
 - Reporting views
@@ -548,6 +600,7 @@ CREATE INDEX idx_jobs_status ON jobs(status);
 ## Migration Management
 
 ### Running Migrations
+
 ```bash
 # Apply all pending migrations
 npx supabase db push
@@ -560,7 +613,9 @@ npx supabase migration new migration_name
 ```
 
 ### Migration Files
+
 Located in `supabase/migrations/`:
+
 - `20250120000001_create_system_settings.sql`
 - `20250125000001_enable_security.sql`
 - `20250125000002_add_email_integration_tables.sql`
@@ -569,11 +624,13 @@ Located in `supabase/migrations/`:
 ## Backup and Recovery
 
 ### Automated Backups
+
 - Supabase handles automated backups
 - Point-in-time recovery available
 - Cross-region replication
 
 ### Manual Backups
+
 ```bash
 # Export schema
 npx supabase db dump --schema-only > schema.sql
@@ -585,12 +642,14 @@ npx supabase db dump --data-only > data.sql
 ## Monitoring and Analytics
 
 ### Database Metrics
+
 - Query performance monitoring
 - Connection pool monitoring
 - Storage usage tracking
 - API usage analytics
 
 ### Health Checks
+
 - Database connectivity checks
 - Query response time monitoring
 - Error rate tracking
@@ -598,12 +657,14 @@ npx supabase db dump --data-only > data.sql
 ## Security Best Practices
 
 ### Data Protection
+
 - All data encrypted in transit (HTTPS)
 - Database encryption at rest
 - Regular security audits
 - Access logging and monitoring
 
 ### API Security
+
 - Rate limiting on all endpoints
 - Input validation and sanitization
 - SQL injection prevention
@@ -612,12 +673,14 @@ npx supabase db dump --data-only > data.sql
 ## Troubleshooting
 
 ### Common Issues
+
 1. **Connection Timeouts**: Check network connectivity and Supabase status
 2. **RLS Policy Errors**: Verify user authentication and policy configuration
 3. **Query Performance**: Check indexes and query optimization
 4. **Data Validation Errors**: Review constraints and validation rules
 
 ### Debug Tools
+
 - Supabase Dashboard for query analysis
 - Database logs and monitoring
 - Performance insights
@@ -626,6 +689,7 @@ npx supabase db dump --data-only > data.sql
 ## Documentation Generation
 
 ### Auto-Generate Docs
+
 ```bash
 # Generate current database documentation
 node scripts/generate-db-docs.js
@@ -635,4 +699,4 @@ This script creates up-to-date documentation based on the current database schem
 
 ---
 
-*Last updated: January 27, 2025*
+_Last updated: January 27, 2025_

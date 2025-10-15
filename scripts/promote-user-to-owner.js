@@ -10,7 +10,8 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://jedfundfhzytpnbjkspn.supabase.co";
+const SUPABASE_URL =
+  process.env.VITE_SUPABASE_URL || 'https://jedfundfhzytpnbjkspn.supabase.co';
 const SERVICE_ROLE_KEY = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SERVICE_ROLE_KEY) {
@@ -22,24 +23,25 @@ if (!SERVICE_ROLE_KEY) {
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
-  }
+    persistSession: false,
+  },
 });
 
 async function promoteUserToOwner(userEmail) {
   try {
     console.log(`🔍 Looking for user: ${userEmail}`);
-    
+
     // Get all users
-    const { data: users, error: listError } = await supabase.auth.admin.listUsers();
-    
+    const { data: users, error: listError } =
+      await supabase.auth.admin.listUsers();
+
     if (listError) {
       throw new Error(`Failed to list users: ${listError.message}`);
     }
-    
+
     // Find the user by email
     const user = users.users.find(u => u.email === userEmail);
-    
+
     if (!user) {
       console.error(`❌ User not found: ${userEmail}`);
       console.log('\nAvailable users:');
@@ -48,28 +50,29 @@ async function promoteUserToOwner(userEmail) {
       });
       return;
     }
-    
+
     console.log(`✅ Found user: ${user.email}`);
     console.log(`   Current role: ${user.user_metadata?.role || 'none'}`);
-    
+
     // Update user metadata to set role as 'owner'
     const { error: updateError } = await supabase.auth.admin.updateUserById(
       user.id,
       {
         user_metadata: {
           ...user.user_metadata,
-          role: 'owner'
-        }
+          role: 'owner',
+        },
       }
     );
-    
+
     if (updateError) {
       throw new Error(`Failed to update user: ${updateError.message}`);
     }
-    
+
     console.log('🎉 Successfully promoted user to Owner!');
-    console.log('   The user will need to refresh their browser to see the changes.');
-    
+    console.log(
+      '   The user will need to refresh their browser to see the changes.'
+    );
   } catch (error) {
     console.error('❌ Error:', error.message);
   }
@@ -85,4 +88,3 @@ if (!userEmail) {
 }
 
 promoteUserToOwner(userEmail);
-

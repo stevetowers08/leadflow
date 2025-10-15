@@ -23,12 +23,12 @@ Replace existing error handling imports:
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 // New
-import { 
-  Result, 
-  ResultBuilder, 
-  isSuccess, 
+import {
+  Result,
+  ResultBuilder,
+  isSuccess,
   isFailure,
-  AppError 
+  AppError,
 } from '@/types/errors';
 import { useAsyncOperation } from '@/hooks/useEnhancedAsyncOperation';
 import { enhancedErrorHandler } from '@/utils/enhancedErrorHandler';
@@ -37,9 +37,14 @@ import { enhancedErrorHandler } from '@/utils/enhancedErrorHandler';
 ### 2. Service Layer Migration
 
 #### Before (Old Pattern)
+
 ```typescript
 export class AssignmentService {
-  static async assignEntity(entityType: string, entityId: string, newOwnerId: string): Promise<AssignmentResult> {
+  static async assignEntity(
+    entityType: string,
+    entityId: string,
+    newOwnerId: string
+  ): Promise<AssignmentResult> {
     try {
       const { data, error } = await supabase
         .from(entityType)
@@ -50,20 +55,20 @@ export class AssignmentService {
         return {
           success: false,
           message: 'Assignment failed',
-          error: error.message
+          error: error.message,
         };
       }
 
       return {
         success: true,
         message: 'Assignment successful',
-        data: data
+        data: data,
       };
     } catch (error) {
       return {
         success: false,
         message: 'Assignment failed',
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -71,6 +76,7 @@ export class AssignmentService {
 ```
 
 #### After (New Pattern)
+
 ```typescript
 import { EnhancedAssignmentService } from '@/services/enhancedAssignmentService';
 
@@ -92,6 +98,7 @@ if (isSuccess(result)) {
 ### 3. React Component Migration
 
 #### Before (Old Pattern)
+
 ```typescript
 function AssignmentComponent() {
   const [loading, setLoading] = useState(false);
@@ -101,7 +108,7 @@ function AssignmentComponent() {
   const handleAssignment = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await AssignmentService.assignEntity('people', '123', '456');
       if (result.success) {
@@ -130,6 +137,7 @@ function AssignmentComponent() {
 ```
 
 #### After (New Pattern)
+
 ```typescript
 function AssignmentComponent() {
   const {
@@ -147,7 +155,7 @@ function AssignmentComponent() {
         ownerId,
         'current-user'
       );
-      
+
       if (isSuccess(result)) {
         return result.data;
       } else {
@@ -171,7 +179,7 @@ function AssignmentComponent() {
       <button onClick={handleAssignment} disabled={isLoading}>
         {isLoading ? 'Loading...' : 'Assign'}
       </button>
-      
+
       {error && (
         <div className="error">
           <p>{error.userMessage}</p>
@@ -182,7 +190,7 @@ function AssignmentComponent() {
           )}
         </div>
       )}
-      
+
       {data && (
         <div className="success">
           {data.message}
@@ -196,6 +204,7 @@ function AssignmentComponent() {
 ### 4. Error Boundary Migration
 
 #### Before (Old Pattern)
+
 ```typescript
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -209,11 +218,12 @@ function App() {
 ```
 
 #### After (New Pattern)
+
 ```typescript
-import { 
-  EnhancedErrorBoundary, 
+import {
+  EnhancedErrorBoundary,
   FeatureErrorBoundary,
-  ErrorBoundaryProvider 
+  ErrorBoundaryProvider
 } from '@/components/EnhancedErrorBoundary';
 
 function App() {
@@ -222,7 +232,7 @@ function App() {
       <FeatureErrorBoundary feature="Assignment">
         <AssignmentComponent />
       </FeatureErrorBoundary>
-      
+
       <FeatureErrorBoundary feature="Reporting">
         <ReportingComponent />
       </FeatureErrorBoundary>
@@ -234,6 +244,7 @@ function App() {
 ### 5. Data Fetching Migration
 
 #### Before (Old Pattern)
+
 ```typescript
 function TeamMembersList() {
   const [members, setMembers] = useState([]);
@@ -256,13 +267,13 @@ function TeamMembersList() {
         setLoading(false);
       }
     }
-    
+
     fetchMembers();
   }, []);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
-  
+
   return (
     <div>
       {members.map(member => (
@@ -274,6 +285,7 @@ function TeamMembersList() {
 ```
 
 #### After (New Pattern)
+
 ```typescript
 function TeamMembersList() {
   const {
@@ -303,7 +315,7 @@ function TeamMembersList() {
       <button onClick={refetch}>Retry</button>
     </div>
   );
-  
+
   return (
     <div>
       {members?.map(member => (
@@ -317,6 +329,7 @@ function TeamMembersList() {
 ## Best Practices
 
 ### 1. Always Use Result Pattern for Services
+
 ```typescript
 // Good
 const result = await service.method();
@@ -336,6 +349,7 @@ try {
 ```
 
 ### 2. Use Appropriate Error Boundaries
+
 ```typescript
 // App-level boundary for critical errors
 <ErrorBoundaryProvider>
@@ -347,6 +361,7 @@ try {
 ```
 
 ### 3. Leverage Circuit Breakers for External Services
+
 ```typescript
 const result = await circuitBreakerManager.executeWithBreaker(
   'external-api',
@@ -358,6 +373,7 @@ const result = await circuitBreakerManager.executeWithBreaker(
 ```
 
 ### 4. Use Specialized Hooks
+
 ```typescript
 // For data fetching
 const { data, error, isLoading } = useAsyncData(fetchFunction);
@@ -372,20 +388,24 @@ const { execute, isLoading, error } = useFormSubmission(submitFunction);
 ## Common Patterns
 
 ### Error Handling in Forms
+
 ```typescript
-const { execute: submitForm, isLoading, error } = useFormSubmission(
-  async (formData) => {
-    const result = await api.submitForm(formData);
-    if (isSuccess(result)) {
-      return result.data;
-    } else {
-      throw result.error;
-    }
+const {
+  execute: submitForm,
+  isLoading,
+  error,
+} = useFormSubmission(async formData => {
+  const result = await api.submitForm(formData);
+  if (isSuccess(result)) {
+    return result.data;
+  } else {
+    throw result.error;
   }
-);
+});
 ```
 
 ### Batch Operations
+
 ```typescript
 const result = await EnhancedAssignmentService.bulkAssignEntities(
   entityIds,
@@ -402,13 +422,14 @@ if (isSuccess(result)) {
 ```
 
 ### Retry Logic
+
 ```typescript
 const { execute, retry, canRetry, retryCount } = useAsyncOperation(
   asyncOperation,
   {
     enableRetry: true,
     maxRetries: 3,
-    onRetry: (attempt) => console.log(`Retry attempt ${attempt}`)
+    onRetry: attempt => console.log(`Retry attempt ${attempt}`),
   }
 );
 ```
@@ -416,6 +437,7 @@ const { execute, retry, canRetry, retryCount } = useAsyncOperation(
 ## Testing
 
 ### Testing Result Patterns
+
 ```typescript
 describe('AssignmentService', () => {
   it('should return success result for valid assignment', async () => {
@@ -425,13 +447,13 @@ describe('AssignmentService', () => {
       'owner-id',
       'current-user'
     );
-    
+
     expect(isSuccess(result)).toBe(true);
     if (isSuccess(result)) {
       expect(result.data.success).toBe(true);
     }
   });
-  
+
   it('should return error result for invalid input', async () => {
     const result = await EnhancedAssignmentService.assignEntity(
       'people',
@@ -439,7 +461,7 @@ describe('AssignmentService', () => {
       'owner-id',
       'current-user'
     );
-    
+
     expect(isFailure(result)).toBe(true);
     if (isFailure(result)) {
       expect(result.error.type).toBe(ErrorType.VALIDATION_ERROR);
@@ -460,6 +482,7 @@ If you need to rollback:
 ## Support
 
 For questions or issues with the migration:
+
 - Check the examples in `src/examples/errorHandlingExamples.tsx`
 - Review the type definitions in `src/types/errors.ts`
 - Test with the provided examples before implementing in production

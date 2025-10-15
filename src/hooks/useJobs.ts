@@ -27,20 +27,20 @@ export function useCreateJob() {
 
   return useMutation({
     mutationFn: jobsService.createJob,
-    onSuccess: (newJob) => {
+    onSuccess: newJob => {
       // Invalidate and refetch jobs list
       queryClient.invalidateQueries({ queryKey: queryKeys.jobs.all });
-      
+
       toast({
-        title: "Success",
+        title: 'Success',
         description: `Job "${newJob.title}" created successfully`,
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to create job: ${error.message}`,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -56,15 +56,15 @@ export function useUpdateJob() {
     onMutate: async ({ id, updates }) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.jobs.all });
-      
+
       // Snapshot previous value
       const previousJobs = queryClient.getQueryData(queryKeys.jobs.all);
-      
+
       // Optimistically update
       queryClient.setQueryData(queryKeys.jobs.all, (old: Job[] | undefined) =>
-        old?.map(job => job.id === id ? { ...job, ...updates } : job)
+        old?.map(job => (job.id === id ? { ...job, ...updates } : job))
       );
-      
+
       return { previousJobs };
     },
     onError: (error, { id }, context) => {
@@ -72,16 +72,16 @@ export function useUpdateJob() {
       if (context?.previousJobs) {
         queryClient.setQueryData(queryKeys.jobs.all, context.previousJobs);
       }
-      
+
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to update job: ${error.message}`,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
-    onSuccess: (updatedJob) => {
+    onSuccess: updatedJob => {
       toast({
-        title: "Success",
+        title: 'Success',
         description: `Job "${updatedJob.title}" updated successfully`,
       });
     },
@@ -101,17 +101,17 @@ export function useDeleteJob() {
     onSuccess: () => {
       // Invalidate and refetch jobs list
       queryClient.invalidateQueries({ queryKey: queryKeys.jobs.all });
-      
+
       toast({
-        title: "Success",
-        description: "Job deleted successfully",
+        title: 'Success',
+        description: 'Job deleted successfully',
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to delete job: ${error.message}`,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });

@@ -1,6 +1,7 @@
 # Empowr CRM - Performance Optimization Guide
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [React 18 Performance Patterns](#react-18-performance-patterns)
 - [Database Optimization](#database-optimization)
@@ -14,6 +15,7 @@
 This guide documents the performance optimizations implemented in Empowr CRM, focusing on React 18 best practices, database query optimization, and modern TypeScript patterns.
 
 ### Key Performance Metrics
+
 - **Initial Load Time**: < 2 seconds
 - **Time to Interactive**: < 3 seconds
 - **Database Query Response**: < 500ms
@@ -24,6 +26,7 @@ This guide documents the performance optimizations implemented in Empowr CRM, fo
 ### 1. Component Memoization
 
 #### React.memo for Expensive Components
+
 ```typescript
 // ✅ Good: Memoized component
 const ExpensiveChart = React.memo<ChartProps>(({ data, onDataPointClick }) => {
@@ -42,11 +45,12 @@ ExpensiveChart.displayName = 'ExpensiveChart';
 ```
 
 #### useMemo for Expensive Calculations
+
 ```typescript
 // ✅ Good: Memoized calculation
 const Dashboard = () => {
   const [rawData, setRawData] = useState<RawData[]>([]);
-  
+
   const processedMetrics = useMemo(() => {
     return rawData.reduce((acc, item) => {
       acc.totalLeads += item.leadCount;
@@ -60,6 +64,7 @@ const Dashboard = () => {
 ```
 
 #### useCallback for Event Handlers
+
 ```typescript
 // ✅ Good: Memoized event handler
 const DataTable = ({ data, onRowClick }: DataTableProps) => {
@@ -70,10 +75,10 @@ const DataTable = ({ data, onRowClick }: DataTableProps) => {
   return (
     <table>
       {data.map(row => (
-        <TableRow 
-          key={row.id} 
-          data={row} 
-          onClick={handleRowClick} 
+        <TableRow
+          key={row.id}
+          data={row}
+          onClick={handleRowClick}
         />
       ))}
     </table>
@@ -84,15 +89,16 @@ const DataTable = ({ data, onRowClick }: DataTableProps) => {
 ### 2. State Management Optimization
 
 #### Localized State
+
 ```typescript
 // ✅ Good: State close to where it's used
 const SearchInput = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  
+
   // State is only used in this component
   return (
-    <input 
+    <input
       value={searchTerm}
       onChange={(e) => setSearchTerm(e.target.value)}
       placeholder="Search..."
@@ -102,6 +108,7 @@ const SearchInput = () => {
 ```
 
 #### Context Optimization
+
 ```typescript
 // ✅ Good: Split contexts to avoid unnecessary re-renders
 const AuthContext = createContext<AuthState | null>(null);
@@ -114,17 +121,18 @@ const AppContext = createContext<AppState | null>(null);
 ### 3. Effect Optimization
 
 #### Dependency Array Optimization
+
 ```typescript
 // ✅ Good: Minimal dependencies
 const UserProfile = ({ userId }: { userId: string }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  
+
   useEffect(() => {
     const fetchProfile = async () => {
       const data = await getUserProfile(userId);
       setProfile(data);
     };
-    
+
     fetchProfile();
   }, [userId]); // Only depend on userId
 
@@ -137,6 +145,7 @@ const UserProfile = ({ userId }: { userId: string }) => {
 ### 1. RPC Functions for Complex Queries
 
 #### Dashboard Data Optimization
+
 ```sql
 -- Single optimized function for dashboard data
 CREATE OR REPLACE FUNCTION get_dashboard_data(start_date text, end_date text)
@@ -148,7 +157,7 @@ RETURNS TABLE (
   pending_follow_ups bigint,
   todays_jobs jsonb,
   todays_companies jsonb
-) 
+)
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
@@ -163,32 +172,32 @@ DECLARE
 BEGIN
   -- Get counts efficiently
   SELECT COUNT(*) INTO jobs_count
-  FROM jobs 
-  WHERE created_at >= start_date::timestamptz 
+  FROM jobs
+  WHERE created_at >= start_date::timestamptz
     AND created_at < end_date::timestamptz;
-    
+
   SELECT COUNT(*) INTO leads_count
-  FROM people 
-  WHERE created_at >= start_date::timestamptz 
+  FROM people
+  WHERE created_at >= start_date::timestamptz
     AND created_at < end_date::timestamptz;
-    
+
   SELECT COUNT(*) INTO companies_count
-  FROM companies 
-  WHERE created_at >= start_date::timestamptz 
+  FROM companies
+  WHERE created_at >= start_date::timestamptz
     AND created_at < end_date::timestamptz;
-    
+
   SELECT COUNT(*) INTO automated_count
-  FROM jobs 
-  WHERE created_at >= start_date::timestamptz 
+  FROM jobs
+  WHERE created_at >= start_date::timestamptz
     AND created_at < end_date::timestamptz
     AND automation_active = true;
-    
+
   SELECT COUNT(*) INTO follow_ups_count
-  FROM interactions 
-  WHERE created_at >= start_date::timestamptz 
+  FROM interactions
+  WHERE created_at >= start_date::timestamptz
     AND created_at < end_date::timestamptz
     AND interaction_type = 'linkedin_connection_request_sent';
-    
+
   -- Get detailed data with joins
   SELECT jsonb_agg(
     jsonb_build_object(
@@ -205,10 +214,10 @@ BEGIN
   ) INTO jobs_data
   FROM jobs j
   LEFT JOIN companies c ON j.company_id = c.id
-  WHERE j.created_at >= start_date::timestamptz 
+  WHERE j.created_at >= start_date::timestamptz
     AND j.created_at < end_date::timestamptz
   LIMIT 10;
-    
+
   SELECT jsonb_agg(
     jsonb_build_object(
       'id', id,
@@ -217,12 +226,12 @@ BEGIN
       'created_at', created_at
     )
   ) INTO companies_data
-  FROM companies 
-  WHERE created_at >= start_date::timestamptz 
+  FROM companies
+  WHERE created_at >= start_date::timestamptz
     AND created_at < end_date::timestamptz
   LIMIT 10;
-    
-  RETURN QUERY SELECT 
+
+  RETURN QUERY SELECT
     jobs_count,
     leads_count,
     companies_count,
@@ -237,6 +246,7 @@ $$;
 ### 2. Index Strategy
 
 #### Essential Indexes
+
 ```sql
 -- Date-based queries (most common)
 CREATE INDEX idx_jobs_created_at ON jobs(created_at);
@@ -263,6 +273,7 @@ CREATE INDEX idx_companies_owner_id ON companies(owner_id);
 ### 3. Query Patterns
 
 #### Efficient Data Fetching
+
 ```typescript
 // ✅ Good: Single RPC call
 const useDashboardData = () => {
@@ -275,15 +286,17 @@ const useDashboardData = () => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const today = new Date().toISOString().split('T')[0];
         const todayEnd = `${today}T23:59:59.999Z`;
-        
-        const { data: result, error: rpcError } = await supabase
-          .rpc('get_dashboard_data', {
+
+        const { data: result, error: rpcError } = await supabase.rpc(
+          'get_dashboard_data',
+          {
             start_date: today,
-            end_date: todayEnd
-          });
+            end_date: todayEnd,
+          }
+        );
 
         if (rpcError) throw rpcError;
         setData(result[0]);
@@ -306,6 +319,7 @@ const useDashboardData = () => {
 ### 1. Error Boundaries
 
 #### Global Error Boundary
+
 ```typescript
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -350,6 +364,7 @@ class ErrorBoundary extends React.Component<
 ### 2. Lazy Loading
 
 #### Route-based Code Splitting
+
 ```typescript
 // Lazy load page components
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
@@ -372,6 +387,7 @@ const App = () => {
 ```
 
 #### Component-based Lazy Loading
+
 ```typescript
 // Lazy load heavy chart components
 const HeavyChart = lazy(() => import('@/components/charts/HeavyChart'));
@@ -384,7 +400,7 @@ const Dashboard = () => {
       <button onClick={() => setShowChart(true)}>
         Load Chart
       </button>
-      
+
       {showChart && (
         <Suspense fallback={<ChartSkeleton />}>
           <HeavyChart data={data} />
@@ -398,6 +414,7 @@ const Dashboard = () => {
 ### 3. Custom Hooks
 
 #### Reusable Data Fetching Hook
+
 ```typescript
 interface UseApiOptions<T> {
   initialData?: T;
@@ -416,7 +433,7 @@ export const useApi = <T>(
 
   const fetchData = useCallback(async () => {
     if (!options.enabled) return;
-    
+
     try {
       setIsLoading(true);
       setError(null);
@@ -431,7 +448,7 @@ export const useApi = <T>(
 
   useEffect(() => {
     fetchData();
-    
+
     if (options.refetchInterval) {
       const interval = setInterval(fetchData, options.refetchInterval);
       return () => clearInterval(interval);
@@ -447,6 +464,7 @@ export const useApi = <T>(
 ### 1. Code Splitting Strategy
 
 #### Dynamic Imports
+
 ```typescript
 // Dynamic import for heavy libraries
 const loadChartLibrary = async () => {
@@ -462,7 +480,7 @@ const ChartComponent = () => {
   }, []);
 
   if (!Chart) return <div>Loading chart...</div>;
-  
+
   return <Chart data={data} />;
 };
 ```
@@ -470,6 +488,7 @@ const ChartComponent = () => {
 ### 2. Tree Shaking
 
 #### Import Optimization
+
 ```typescript
 // ✅ Good: Import only what you need
 import { debounce } from 'lodash/debounce';
@@ -483,6 +502,7 @@ import * as dateFns from 'date-fns';
 ### 3. Bundle Analysis
 
 #### Webpack Bundle Analyzer
+
 ```bash
 # Analyze bundle size
 npm run build
@@ -494,6 +514,7 @@ npx webpack-bundle-analyzer dist/assets/*.js
 ### 1. Performance Monitoring
 
 #### React DevTools Profiler
+
 ```typescript
 // Wrap components for profiling
 const ProfiledComponent = React.memo(({ data }: Props) => {
@@ -507,11 +528,12 @@ const ProfiledComponent = React.memo(({ data }: Props) => {
 ```
 
 #### Custom Performance Hooks
+
 ```typescript
 export const usePerformanceMonitor = (componentName: string) => {
   useEffect(() => {
     const startTime = performance.now();
-    
+
     return () => {
       const endTime = performance.now();
       console.log(`${componentName} render time: ${endTime - startTime}ms`);
@@ -523,17 +545,18 @@ export const usePerformanceMonitor = (componentName: string) => {
 ### 2. Database Query Monitoring
 
 #### Query Performance Tracking
+
 ```typescript
 const trackQueryPerformance = async <T>(
   queryName: string,
   queryFn: () => Promise<T>
 ): Promise<T> => {
   const startTime = performance.now();
-  
+
   try {
     const result = await queryFn();
     const endTime = performance.now();
-    
+
     console.log(`${queryName} took ${endTime - startTime}ms`);
     return result;
   } catch (error) {
@@ -547,6 +570,7 @@ const trackQueryPerformance = async <T>(
 ## Best Practices Checklist
 
 ### Component Development
+
 - [ ] Use `React.memo` for expensive components
 - [ ] Implement `useMemo` for heavy calculations
 - [ ] Use `useCallback` for event handlers passed to children
@@ -555,6 +579,7 @@ const trackQueryPerformance = async <T>(
 - [ ] Use TypeScript interfaces for all props and state
 
 ### Database Queries
+
 - [ ] Use RPC functions for complex queries
 - [ ] Implement proper indexes for frequently queried columns
 - [ ] Avoid N+1 query patterns
@@ -563,6 +588,7 @@ const trackQueryPerformance = async <T>(
 - [ ] Monitor query performance regularly
 
 ### Bundle Optimization
+
 - [ ] Implement code splitting for routes
 - [ ] Use dynamic imports for heavy libraries
 - [ ] Optimize imports to avoid unused code
@@ -571,6 +597,7 @@ const trackQueryPerformance = async <T>(
 - [ ] Implement lazy loading for heavy components
 
 ### Error Handling
+
 - [ ] Implement error boundaries for component trees
 - [ ] Provide meaningful error messages to users
 - [ ] Log errors for debugging
@@ -579,6 +606,7 @@ const trackQueryPerformance = async <T>(
 - [ ] Provide fallback UI for errors
 
 ### Performance Monitoring
+
 - [ ] Use React DevTools Profiler
 - [ ] Monitor Core Web Vitals
 - [ ] Track database query performance
@@ -588,4 +616,4 @@ const trackQueryPerformance = async <T>(
 
 ---
 
-*This guide is updated regularly as new optimizations are implemented. For specific implementation details, refer to the actual code in the repository.*
+_This guide is updated regularly as new optimizations are implemented. For specific implementation details, refer to the actual code in the repository._

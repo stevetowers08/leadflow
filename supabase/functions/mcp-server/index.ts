@@ -1,11 +1,11 @@
 /**
  * Supabase Edge Function MCP Server
- * 
+ *
  * This creates an MCP server as a Supabase Edge Function.
  * It provides tools for AI models to interact with your CRM data.
  */
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // MCP Server implementation for Supabase Edge Functions
@@ -32,10 +32,10 @@ class SupabaseMCPServer {
 
       return new Response('Not Found', { status: 404 });
     } catch (error) {
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
   }
 
@@ -104,10 +104,9 @@ class SupabaseMCPServer {
       },
     ];
 
-    return new Response(
-      JSON.stringify({ tools }),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ tools }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   private async handleToolCall(request: Request): Promise<Response> {
@@ -119,36 +118,35 @@ class SupabaseMCPServer {
         case 'get_company_info':
           result = await this.getCompanyInfo(args.companyId);
           break;
-        
+
         case 'get_company_employees':
           result = await this.getCompanyEmployees(args.companyId);
           break;
-        
+
         case 'search_leads':
           result = await this.searchLeads(args.query, args.limit || 10);
           break;
-        
+
         case 'get_lead_details':
           result = await this.getLeadDetails(args.leadId);
           break;
-        
+
         default:
           throw new Error(`Unknown tool: ${name}`);
       }
 
-      return new Response(
-        JSON.stringify({ success: true, result }),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ success: true, result }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
     } catch (error) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: error.message 
+        JSON.stringify({
+          success: false,
+          error: error.message,
         }),
-        { 
-          status: 500, 
-          headers: { 'Content-Type': 'application/json' } 
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -199,10 +197,10 @@ class SupabaseMCPServer {
 }
 
 // Edge Function handler
-serve(async (req) => {
+serve(async req => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-  
+
   const mcpServer = new SupabaseMCPServer(supabaseUrl, supabaseKey);
   return await mcpServer.handleRequest(req);
 });

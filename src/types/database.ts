@@ -16,7 +16,7 @@ export interface DatabaseSchema {
     created_at: string;
     updated_at: string;
   };
-  
+
   people: {
     id: string;
     name: string;
@@ -62,7 +62,7 @@ export interface DatabaseSchema {
     email_reply: string;
     linkedin_profile_id: string;
   };
-  
+
   jobs: {
     id: string;
     title: string;

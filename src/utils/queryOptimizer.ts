@@ -23,9 +23,9 @@ export const TABLE_COLUMNS = {
     'automation_active',
     'confidence_level',
     'lead_score',
-    'score_reason'
+    'score_reason',
   ],
-  
+
   people: [
     'id',
     'name',
@@ -39,9 +39,9 @@ export const TABLE_COLUMNS = {
     'confidence_level',
     'created_at',
     'updated_at',
-    'owner_id'
+    'owner_id',
   ],
-  
+
   jobs: [
     'id',
     'title',
@@ -56,9 +56,9 @@ export const TABLE_COLUMNS = {
     'priority',
     'created_at',
     'updated_at',
-    'owner_id'
+    'owner_id',
   ],
-  
+
   interactions: [
     'id',
     'person_id',
@@ -67,9 +67,9 @@ export const TABLE_COLUMNS = {
     'subject',
     'content',
     'created_at',
-    'owner_id'
+    'owner_id',
   ],
-  
+
   user_profiles: [
     'id',
     'email',
@@ -78,8 +78,8 @@ export const TABLE_COLUMNS = {
     'user_limit',
     'is_active',
     'created_at',
-    'updated_at'
-  ]
+    'updated_at',
+  ],
 } as const;
 
 // Optimized query builders
@@ -90,36 +90,38 @@ export class QueryOptimizer {
   static getColumns(tableName: keyof typeof TABLE_COLUMNS): string {
     return TABLE_COLUMNS[tableName].join(', ');
   }
-  
+
   /**
    * Get columns with count for pagination
    */
   static getColumnsWithCount(tableName: keyof typeof TABLE_COLUMNS): string {
     return `${this.getColumns(tableName)}, count(*) OVER() as total_count`;
   }
-  
+
   /**
    * Get essential columns only (for lists/overviews)
    */
   static getEssentialColumns(tableName: keyof typeof TABLE_COLUMNS): string {
     const essentialMap = {
-      companies: 'id, name, website, industry, head_office, company_size, priority, logo_url, lead_score, owner_id, pipeline_stage, is_favourite, automation_active, confidence_level, score_reason, created_at',
-      people: 'id, name, company_id, email_address, company_role, stage, lead_score',
+      companies:
+        'id, name, website, industry, head_office, company_size, priority, logo_url, lead_score, owner_id, pipeline_stage, is_favourite, automation_active, confidence_level, score_reason, created_at',
+      people:
+        'id, name, company_id, email_address, company_role, stage, lead_score',
       jobs: 'id, title, company_id, location, employment_type, seniority_level, priority',
       interactions: 'id, person_id, interaction_type, occurred_at, subject',
-      user_profiles: 'id, email, full_name, role, is_active'
+      user_profiles: 'id, email, full_name, role, is_active',
     };
-    
+
     return essentialMap[tableName] || this.getColumns(tableName);
   }
-  
+
   /**
    * Get columns for detail views (includes all relevant fields)
    */
   static getDetailColumns(tableName: keyof typeof TABLE_COLUMNS): string {
     return this.getColumns(tableName);
   }
-  
+
   /**
    * Get columns for search/filter operations
    */
@@ -129,9 +131,9 @@ export class QueryOptimizer {
       people: 'id, name, email_address, company_role, employee_location',
       jobs: 'id, title, location, employment_type, seniority_level',
       interactions: 'id, person_id, interaction_type, subject, content',
-      user_profiles: 'id, email, full_name, role'
+      user_profiles: 'id, email, full_name, role',
     };
-    
+
     return searchMap[tableName] || this.getEssentialColumns(tableName);
   }
 }
@@ -139,27 +141,32 @@ export class QueryOptimizer {
 // Query performance monitoring
 export class QueryPerformanceMonitor {
   private static queries: Map<string, number> = new Map();
-  
+
   static startQuery(queryId: string): void {
     this.queries.set(queryId, performance.now());
   }
-  
+
   static endQuery(queryId: string): number {
     const startTime = this.queries.get(queryId);
     if (!startTime) return 0;
-    
+
     const duration = performance.now() - startTime;
     this.queries.delete(queryId);
-    
+
     // Log slow queries in development
     if (import.meta.env.DEV && duration > 100) {
-      console.warn(`Slow query detected: ${queryId} took ${duration.toFixed(2)}ms`);
+      console.warn(
+        `Slow query detected: ${queryId} took ${duration.toFixed(2)}ms`
+      );
     }
-    
+
     return duration;
   }
-  
-  static measureQuery<T>(queryId: string, queryFn: () => Promise<T>): Promise<T> {
+
+  static measureQuery<T>(
+    queryId: string,
+    queryFn: () => Promise<T>
+  ): Promise<T> {
     this.startQuery(queryId);
     return queryFn().finally(() => {
       this.endQuery(queryId);
@@ -171,30 +178,30 @@ export class QueryPerformanceMonitor {
 export const OPTIMIZED_QUERIES = {
   // Get company list with essential data
   getCompaniesList: () => QueryOptimizer.getEssentialColumns('companies'),
-  
+
   // Get company details
   getCompanyDetails: () => QueryOptimizer.getDetailColumns('companies'),
-  
+
   // Get people list with essential data
   getPeopleList: () => QueryOptimizer.getEssentialColumns('people'),
-  
+
   // Get people details
   getPeopleDetails: () => QueryOptimizer.getDetailColumns('people'),
-  
+
   // Get jobs list with essential data
   getJobsList: () => QueryOptimizer.getEssentialColumns('jobs'),
-  
+
   // Get job details
   getJobDetails: () => QueryOptimizer.getDetailColumns('jobs'),
-  
+
   // Get interactions list
   getInteractionsList: () => QueryOptimizer.getEssentialColumns('interactions'),
-  
+
   // Get user profiles
   getUserProfiles: () => QueryOptimizer.getDetailColumns('user_profiles'),
-  
+
   // Search queries
   searchCompanies: () => QueryOptimizer.getSearchColumns('companies'),
   searchPeople: () => QueryOptimizer.getSearchColumns('people'),
-  searchJobs: () => QueryOptimizer.getSearchColumns('jobs')
+  searchJobs: () => QueryOptimizer.getSearchColumns('jobs'),
 } as const;

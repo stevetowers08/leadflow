@@ -7,7 +7,13 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 
 // Mock Badge component since it might not exist yet
-const MockBadge = ({ type, value }: { type: string; value: string | number }) => (
+const MockBadge = ({
+  type,
+  value,
+}: {
+  type: string;
+  value: string | number;
+}) => (
   <div data-testid={`badge-${type}`} data-value={value}>
     {type}: {value}
   </div>
@@ -24,7 +30,7 @@ describe('Badge System', () => {
     ];
 
     testCases.forEach(({ value, expected }) => {
-      const { unmount } = render(<MockBadge type="stage" value={value} />);
+      const { unmount } = render(<MockBadge type='stage' value={value} />);
       const badge = screen.getByTestId('badge-stage');
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveAttribute('data-value', value);
@@ -41,7 +47,7 @@ describe('Badge System', () => {
     ];
 
     testCases.forEach(({ value, expected }) => {
-      const { unmount } = render(<MockBadge type="priority" value={value} />);
+      const { unmount } = render(<MockBadge type='priority' value={value} />);
       const badge = screen.getByTestId('badge-priority');
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveAttribute('data-value', value);
@@ -50,14 +56,14 @@ describe('Badge System', () => {
   });
 
   it('score badges handle missing leadData gracefully', () => {
-    render(<MockBadge type="score" value={85} />);
+    render(<MockBadge type='score' value={85} />);
     const badge = screen.getByTestId('badge-score');
     expect(badge).toBeInTheDocument();
     expect(badge).toHaveAttribute('data-value', '85');
   });
 
   it('renders badge with proper accessibility attributes', () => {
-    render(<MockBadge type="stage" value="new" />);
+    render(<MockBadge type='stage' value='new' />);
     const badge = screen.getByTestId('badge-stage');
     expect(badge).toBeInTheDocument();
   });

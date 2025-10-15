@@ -9,7 +9,7 @@ export interface EnvironmentConfig {
 
 export function validateEnvironment(): EnvironmentConfig {
   const errors: string[] = [];
-  
+
   // Safely check for required CLIENT-SIDE environment variables only
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
@@ -17,7 +17,10 @@ export function validateEnvironment(): EnvironmentConfig {
 
   // Only validate if we have values to validate
   if (supabaseUrl) {
-    if (!supabaseUrl.startsWith('https://') || !supabaseUrl.includes('.supabase.co')) {
+    if (
+      !supabaseUrl.startsWith('https://') ||
+      !supabaseUrl.includes('.supabase.co')
+    ) {
       errors.push('VITE_SUPABASE_URL must be a valid Supabase URL');
     }
   } else {
@@ -36,7 +39,10 @@ export function validateEnvironment(): EnvironmentConfig {
   // It's only used server-side and should not be validated here
 
   // Google client ID is optional
-  if (googleClientId && !googleClientId.includes('.apps.googleusercontent.com')) {
+  if (
+    googleClientId &&
+    !googleClientId.includes('.apps.googleusercontent.com')
+  ) {
     errors.push('VITE_GOOGLE_CLIENT_ID appears to be invalid');
   }
 
@@ -45,19 +51,25 @@ export function validateEnvironment(): EnvironmentConfig {
     supabaseAnonKey,
     googleClientId,
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 }
 
 export function logEnvironmentStatus(): void {
   const config = validateEnvironment();
-  
+
   console.group('🔧 Environment Configuration');
   console.log('Supabase URL:', config.supabaseUrl ? '✅ Set' : '❌ Missing');
-  console.log('Supabase Anon Key:', config.supabaseAnonKey ? '✅ Set' : '❌ Missing');
-  console.log('Google Client ID:', config.googleClientId ? '✅ Set' : '❌ Missing');
+  console.log(
+    'Supabase Anon Key:',
+    config.supabaseAnonKey ? '✅ Set' : '❌ Missing'
+  );
+  console.log(
+    'Google Client ID:',
+    config.googleClientId ? '✅ Set' : '❌ Missing'
+  );
   console.log('ℹ️ Service Role Key: Not exposed to client-side (server-only)');
-  
+
   if (!config.isValid) {
     console.error('❌ Environment validation failed:');
     config.errors.forEach(error => console.error(`  - ${error}`));
@@ -71,23 +83,23 @@ export function logEnvironmentStatus(): void {
 export function handleSupabaseError(error: any, context: string): void {
   console.group(`🚨 Supabase Error in ${context}`);
   console.error('Error:', error);
-  
+
   if (error?.code) {
     console.error('Error Code:', error.code);
   }
-  
+
   if (error?.message) {
     console.error('Error Message:', error.message);
   }
-  
+
   if (error?.details) {
     console.error('Error Details:', error.details);
   }
-  
+
   if (error?.hint) {
     console.error('Error Hint:', error.hint);
   }
-  
+
   console.groupEnd();
 }
 

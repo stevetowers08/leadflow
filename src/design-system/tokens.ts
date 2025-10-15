@@ -96,8 +96,10 @@ export const designTokens = {
     sizeSm: 'w-6 h-6', // Small logos for compact views
     sizeLg: 'w-10 h-10', // Large logos for detail views
     sizeXl: 'w-12 h-12', // Extra large logos for headers
-    container: 'rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0', // Slightly rounded squares
-    fallback: 'bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-xs font-semibold',
+    container:
+      'rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0', // Slightly rounded squares
+    fallback:
+      'bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-xs font-semibold',
   },
 
   // Colors - Professional LinkedIn-inspired semantic color tokens
@@ -174,7 +176,8 @@ export const designTokens = {
 
   // Loading States
   loading: {
-    spinner: 'animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary mx-auto mb-4',
+    spinner:
+      'animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary mx-auto mb-4',
     text: 'text-sm text-muted-foreground mt-2',
     container: 'text-center py-12',
   },

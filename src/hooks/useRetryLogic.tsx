@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface RetryConfig {
   maxRetries: number;
@@ -24,13 +24,14 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxDelay: 10000,
   backoffMultiplier: 2,
   jitter: true,
-  retryCondition: (error) => {
+  retryCondition: error => {
     // Retry on network errors, timeouts, and 5xx server errors
-    if (error.name === 'AbortError' || error.message?.includes('timeout')) return true;
+    if (error.name === 'AbortError' || error.message?.includes('timeout'))
+      return true;
     if (error.status >= 500) return true;
     if (error.code === 'NETWORK_ERROR') return true;
     return false;
-  }
+  },
 };
 
 export function useRetryLogic(config: Partial<RetryConfig> = {}) {
@@ -39,109 +40,129 @@ export function useRetryLogic(config: Partial<RetryConfig> = {}) {
     isRetrying: false,
     retryCount: 0,
     lastError: null,
-    nextRetryAt: null
+    nextRetryAt: null,
   });
 
   const { toast } = useToast();
   const { logError } = useErrorHandler();
   const timeoutRef = useRef<NodeJS.Timeout>();
 
-  const calculateDelay = useCallback((attempt: number): number => {
-    const exponentialDelay = retryConfig.baseDelay * Math.pow(retryConfig.backoffMultiplier, attempt - 1);
-    const cappedDelay = Math.min(exponentialDelay, retryConfig.maxDelay);
-    
-    if (retryConfig.jitter) {
-      // Add jitter to prevent thundering herd
-      const jitterAmount = cappedDelay * 0.1;
-      return cappedDelay + (Math.random() * jitterAmount * 2 - jitterAmount);
-    }
-    
-    return cappedDelay;
-  }, [retryConfig]);
+  const calculateDelay = useCallback(
+    (attempt: number): number => {
+      const exponentialDelay =
+        retryConfig.baseDelay *
+        Math.pow(retryConfig.backoffMultiplier, attempt - 1);
+      const cappedDelay = Math.min(exponentialDelay, retryConfig.maxDelay);
 
-  const shouldRetry = useCallback((error: any): boolean => {
-    if (retryState.retryCount >= retryConfig.maxRetries) return false;
-    return retryConfig.retryCondition ? retryConfig.retryCondition(error) : true;
-  }, [retryState.retryCount, retryConfig]);
+      if (retryConfig.jitter) {
+        // Add jitter to prevent thundering herd
+        const jitterAmount = cappedDelay * 0.1;
+        return cappedDelay + (Math.random() * jitterAmount * 2 - jitterAmount);
+      }
 
-  const executeWithRetry = useCallback(async <T>(
-    operation: () => Promise<T>,
-    operationName?: string
-  ): Promise<T> => {
-    let lastError: Error | null = null;
+      return cappedDelay;
+    },
+    [retryConfig]
+  );
 
-    for (let attempt = 0; attempt <= retryConfig.maxRetries; attempt++) {
-      try {
-        setRetryState(prev => ({
-          ...prev,
-          isRetrying: attempt > 0,
-          retryCount: attempt,
-          lastError: null,
-          nextRetryAt: null
-        }));
+  const shouldRetry = useCallback(
+    (error: any): boolean => {
+      if (retryState.retryCount >= retryConfig.maxRetries) return false;
+      return retryConfig.retryCondition
+        ? retryConfig.retryCondition(error)
+        : true;
+    },
+    [retryState.retryCount, retryConfig]
+  );
 
-        const result = await operation();
-        
-        // Success - reset retry state
-        setRetryState({
-          isRetrying: false,
-          retryCount: 0,
-          lastError: null,
-          nextRetryAt: null
-        });
+  const executeWithRetry = useCallback(
+    async <T,>(
+      operation: () => Promise<T>,
+      operationName?: string
+    ): Promise<T> => {
+      let lastError: Error | null = null;
 
-        return result;
-      } catch (error) {
-        lastError = error as Error;
-        
-        if (attempt < retryConfig.maxRetries && shouldRetry(error)) {
-          const delay = calculateDelay(attempt + 1);
-          const nextRetryAt = new Date(Date.now() + delay);
-          
+      for (let attempt = 0; attempt <= retryConfig.maxRetries; attempt++) {
+        try {
           setRetryState(prev => ({
             ...prev,
-            lastError,
-            nextRetryAt
-          }));
-
-          // Show retry notification
-          toast({
-            title: "Retrying...",
-            description: `${operationName || 'Operation'} failed. Retrying in ${Math.round(delay / 1000)}s (attempt ${attempt + 1}/${retryConfig.maxRetries})`,
-            variant: "destructive",
-          });
-
-          // Wait before retry
-          await new Promise(resolve => {
-            timeoutRef.current = setTimeout(resolve, delay);
-          });
-        } else {
-          // Max retries reached or error not retryable
-          setRetryState(prev => ({
-            ...prev,
-            isRetrying: false,
+            isRetrying: attempt > 0,
             retryCount: attempt,
-            lastError,
-            nextRetryAt: null
+            lastError: null,
+            nextRetryAt: null,
           }));
 
-          logError(
-            lastError,
-            { 
-              operation: operationName,
-              retryCount: attempt,
-              maxRetries: retryConfig.maxRetries
-            },
-            'high'
-          );
+          const result = await operation();
 
-          throw lastError;
+          // Success - reset retry state
+          setRetryState({
+            isRetrying: false,
+            retryCount: 0,
+            lastError: null,
+            nextRetryAt: null,
+          });
+
+          return result;
+        } catch (error) {
+          lastError = error as Error;
+
+          if (attempt < retryConfig.maxRetries && shouldRetry(error)) {
+            const delay = calculateDelay(attempt + 1);
+            const nextRetryAt = new Date(Date.now() + delay);
+
+            setRetryState(prev => ({
+              ...prev,
+              lastError,
+              nextRetryAt,
+            }));
+
+            // Show retry notification
+            toast({
+              title: 'Retrying...',
+              description: `${operationName || 'Operation'} failed. Retrying in ${Math.round(delay / 1000)}s (attempt ${attempt + 1}/${retryConfig.maxRetries})`,
+              variant: 'destructive',
+            });
+
+            // Wait before retry
+            await new Promise(resolve => {
+              timeoutRef.current = setTimeout(resolve, delay);
+            });
+          } else {
+            // Max retries reached or error not retryable
+            setRetryState(prev => ({
+              ...prev,
+              isRetrying: false,
+              retryCount: attempt,
+              lastError,
+              nextRetryAt: null,
+            }));
+
+            logError(
+              lastError,
+              {
+                operation: operationName,
+                retryCount: attempt,
+                maxRetries: retryConfig.maxRetries,
+              },
+              'high'
+            );
+
+            throw lastError;
+          }
         }
       }
-    }
 
-    throw lastError;
-  }, [retryConfig, retryState.retryCount, shouldRetry, calculateDelay, toast, logError]);
+      throw lastError;
+    },
+    [
+      retryConfig,
+      retryState.retryCount,
+      shouldRetry,
+      calculateDelay,
+      toast,
+      logError,
+    ]
+  );
 
   const cancelRetry = useCallback(() => {
     if (timeoutRef.current) {
@@ -150,7 +171,7 @@ export function useRetryLogic(config: Partial<RetryConfig> = {}) {
     setRetryState(prev => ({
       ...prev,
       isRetrying: false,
-      nextRetryAt: null
+      nextRetryAt: null,
     }));
   }, []);
 
@@ -162,7 +183,7 @@ export function useRetryLogic(config: Partial<RetryConfig> = {}) {
       isRetrying: false,
       retryCount: 0,
       lastError: null,
-      nextRetryAt: null
+      nextRetryAt: null,
     });
   }, []);
 
@@ -181,7 +202,7 @@ export function useRetryLogic(config: Partial<RetryConfig> = {}) {
     cancelRetry,
     resetRetry,
     shouldRetry: (error: any) => shouldRetry(error),
-    canRetry: retryState.retryCount < retryConfig.maxRetries
+    canRetry: retryState.retryCount < retryConfig.maxRetries,
   };
 }
 
@@ -189,7 +210,7 @@ export function useRetryLogic(config: Partial<RetryConfig> = {}) {
 export function useNetworkRetry(config: Partial<RetryConfig> = {}) {
   return useRetryLogic({
     ...config,
-    retryCondition: (error) => {
+    retryCondition: error => {
       // Network-specific retry conditions
       if (error.name === 'AbortError') return true;
       if (error.code === 'NETWORK_ERROR') return true;
@@ -197,34 +218,34 @@ export function useNetworkRetry(config: Partial<RetryConfig> = {}) {
       if (error.status >= 500) return true;
       if (error.status === 408) return true; // Request timeout
       return false;
-    }
+    },
   });
 }
 
 export function useApiRetry(config: Partial<RetryConfig> = {}) {
   return useRetryLogic({
     ...config,
-    retryCondition: (error) => {
+    retryCondition: error => {
       // API-specific retry conditions
       if (error.status >= 500) return true;
       if (error.status === 408) return true; // Request timeout
       if (error.status === 429) return true; // Rate limited
       if (error.code === 'NETWORK_ERROR') return true;
       return false;
-    }
+    },
   });
 }
 
 export function useDatabaseRetry(config: Partial<RetryConfig> = {}) {
   return useRetryLogic({
     ...config,
-    retryCondition: (error) => {
+    retryCondition: error => {
       // Database-specific retry conditions
       if (error.code === 'PGRST301') return true; // Connection timeout
       if (error.code === 'PGRST116') return true; // Row level security
       if (error.status >= 500) return true;
       return false;
-    }
+    },
   });
 }
 
@@ -240,7 +261,7 @@ export const RetryIndicator: React.FC<RetryIndicatorProps> = ({
   retryState,
   onRetry,
   onCancel,
-  className
+  className,
 }) => {
   const { isRetrying, retryCount, lastError, nextRetryAt } = retryState;
 
@@ -261,7 +282,7 @@ export const RetryIndicator: React.FC<RetryIndicatorProps> = ({
     const interval = setInterval(() => {
       const remaining = getTimeUntilRetry();
       setTimeLeft(remaining);
-      
+
       if (remaining === 0) {
         clearInterval(interval);
       }
@@ -271,23 +292,24 @@ export const RetryIndicator: React.FC<RetryIndicatorProps> = ({
   }, [nextRetryAt]);
 
   return (
-    <div className={`p-4 bg-yellow-50 border border-yellow-200 rounded-lg ${className}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-          <span className="text-sm text-yellow-800">
-            {isRetrying 
+    <div
+      className={`p-4 bg-yellow-50 border border-yellow-200 rounded-lg ${className}`}
+    >
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center space-x-2'>
+          <div className='w-2 h-2 bg-yellow-500 rounded-full animate-pulse' />
+          <span className='text-sm text-yellow-800'>
+            {isRetrying
               ? `Retrying... (${retryCount}/3)${timeLeft ? ` in ${timeLeft}s` : ''}`
-              : `Failed after ${retryCount} attempts`
-            }
+              : `Failed after ${retryCount} attempts`}
           </span>
         </div>
-        
-        <div className="flex space-x-2">
+
+        <div className='flex space-x-2'>
           {onRetry && !isRetrying && (
             <button
               onClick={onRetry}
-              className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
+              className='px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors'
             >
               Retry Now
             </button>
@@ -295,18 +317,16 @@ export const RetryIndicator: React.FC<RetryIndicatorProps> = ({
           {onCancel && isRetrying && (
             <button
               onClick={onCancel}
-              className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+              className='px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors'
             >
               Cancel
             </button>
           )}
         </div>
       </div>
-      
+
       {lastError && (
-        <div className="mt-2 text-xs text-yellow-700">
-          {lastError.message}
-        </div>
+        <div className='mt-2 text-xs text-yellow-700'>{lastError.message}</div>
       )}
     </div>
   );

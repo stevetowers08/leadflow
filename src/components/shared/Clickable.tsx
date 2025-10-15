@@ -21,75 +21,82 @@ export interface ClickableProps extends React.HTMLAttributes<HTMLDivElement> {
   'aria-describedby'?: string;
 }
 
-const Clickable = forwardRef<HTMLDivElement, ClickableProps>(({
-  onClick,
-  onKeyDown,
-  disabled = false,
-  loading = false,
-  variant = 'default',
-  size = 'md',
-  children,
-  className,
-  'aria-label': ariaLabel,
-  'aria-describedby': ariaDescribedBy,
-  ...props
-}, ref) => {
-  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (disabled || loading) return;
-    onClick?.(event);
-  };
+const Clickable = forwardRef<HTMLDivElement, ClickableProps>(
+  (
+    {
+      onClick,
+      onKeyDown,
+      disabled = false,
+      loading = false,
+      variant = 'default',
+      size = 'md',
+      children,
+      className,
+      'aria-label': ariaLabel,
+      'aria-describedby': ariaDescribedBy,
+      ...props
+    },
+    ref
+  ) => {
+    const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+      if (disabled || loading) return;
+      onClick?.(event);
+    };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (disabled || loading) return;
-    
-    // Handle Enter and Space keys for accessibility
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      onClick?.(event as any);
-    }
-    
-    onKeyDown?.(event);
-  };
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (disabled || loading) return;
 
-  const baseClasses = 'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2';
-  
-  const variantClasses = {
-    default: 'cursor-pointer hover:bg-gray-50 transition-colors duration-200',
-    subtle: 'cursor-pointer hover:bg-gray-25 transition-colors duration-200',
-    card: 'cursor-pointer hover:bg-gray-50 hover:shadow-sm transition-all duration-200 rounded-lg border border-gray-200 hover:border-gray-300'
-  };
+      // Handle Enter and Space keys for accessibility
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        onClick?.(event as any);
+      }
 
-  const sizeClasses = {
-    sm: 'p-2',
-    md: 'p-3',
-    lg: 'p-4'
-  };
+      onKeyDown?.(event);
+    };
 
-  const disabledClasses = disabled || loading ? 'opacity-50 cursor-not-allowed' : '';
+    const baseClasses =
+      'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2';
 
-  return (
-    <div
-      ref={ref}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick && !disabled ? 0 : undefined}
-      aria-label={ariaLabel}
-      aria-describedby={ariaDescribedBy}
-      aria-disabled={disabled || loading}
-      className={cn(
-        baseClasses,
-        variantClasses[variant],
-        sizeClasses[size],
-        disabledClasses,
-        className
-      )}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-});
+    const variantClasses = {
+      default: 'cursor-pointer hover:bg-gray-50 transition-colors duration-200',
+      subtle: 'cursor-pointer hover:bg-gray-25 transition-colors duration-200',
+      card: 'cursor-pointer hover:bg-gray-50 hover:shadow-sm transition-all duration-200 rounded-lg border border-gray-200 hover:border-gray-300',
+    };
+
+    const sizeClasses = {
+      sm: 'p-2',
+      md: 'p-3',
+      lg: 'p-4',
+    };
+
+    const disabledClasses =
+      disabled || loading ? 'opacity-50 cursor-not-allowed' : '';
+
+    return (
+      <div
+        ref={ref}
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick && !disabled ? 0 : undefined}
+        aria-label={ariaLabel}
+        aria-describedby={ariaDescribedBy}
+        aria-disabled={disabled || loading}
+        className={cn(
+          baseClasses,
+          variantClasses[variant],
+          sizeClasses[size],
+          disabledClasses,
+          className
+        )}
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
 
 Clickable.displayName = 'Clickable';
 

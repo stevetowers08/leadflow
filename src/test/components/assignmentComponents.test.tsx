@@ -20,15 +20,15 @@ vi.mock('@/integrations/supabase/client', () => ({
     from: vi.fn(() => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
-          single: vi.fn()
+          single: vi.fn(),
         })),
-        order: vi.fn()
+        order: vi.fn(),
       })),
       update: vi.fn(() => ({
-        eq: vi.fn()
-      }))
-    }))
-  }
+        eq: vi.fn(),
+      })),
+    })),
+  },
 }));
 
 const mockAssignmentService = vi.mocked(AssignmentService);
@@ -40,7 +40,7 @@ describe('Assignment UI Components', () => {
   const mockUser = {
     id: 'user-1',
     email: 'test@example.com',
-    user_metadata: { full_name: 'Test User' }
+    user_metadata: { full_name: 'Test User' },
   };
 
   const mockTeamMembers = [
@@ -50,49 +50,53 @@ describe('Assignment UI Components', () => {
       email: 'john@example.com',
       role: 'admin',
       is_active: true,
-      avatar_url: 'avatar1.jpg'
+      avatar_url: 'avatar1.jpg',
     },
     {
       id: 'user-2',
       full_name: 'Jane Smith',
       email: 'jane@example.com',
       role: 'user',
-      is_active: true
-    }
+      is_active: true,
+    },
   ];
 
   const mockToast = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockUseAuth.mockReturnValue({
       user: mockUser,
       signOut: vi.fn(),
-      loading: false
+      loading: false,
     } as any);
 
     mockUsePermissions.mockReturnValue({
       hasRole: vi.fn().mockReturnValue(true),
       canAccess: vi.fn().mockReturnValue(true),
-      permissions: []
+      permissions: [],
     } as any);
 
     mockUseToast.mockReturnValue({
-      toast: mockToast
+      toast: mockToast,
     } as any);
 
     mockAssignmentService.getTeamMembers.mockResolvedValue(mockTeamMembers);
     mockAssignmentService.assignEntity.mockResolvedValue({
       success: true,
       message: 'Assignment successful',
-      data: { entityId: 'entity-1', newOwnerId: 'user-1', ownerName: 'John Doe' }
+      data: {
+        entityId: 'entity-1',
+        newOwnerId: 'user-1',
+        ownerName: 'John Doe',
+      },
     });
     mockAssignmentService.bulkAssignEntities.mockResolvedValue({
       success: true,
       updated_count: 2,
       total_requested: 2,
-      invalid_entities: []
+      invalid_entities: [],
     });
   });
 
@@ -107,14 +111,16 @@ describe('Assignment UI Components', () => {
       entityType: 'people' as const,
       entityIds: ['entity-1', 'entity-2'],
       entityNames: ['Test Lead 1', 'Test Lead 2'],
-      onAssignmentComplete: vi.fn()
+      onAssignmentComplete: vi.fn(),
     };
 
     it('should render dialog with entity information', async () => {
       render(<BulkAssignmentDialog {...defaultProps} />);
 
       expect(screen.getByText('Bulk Assignment')).toBeInTheDocument();
-      expect(screen.getByText('Assign 2 leads to a team member')).toBeInTheDocument();
+      expect(
+        screen.getByText('Assign 2 leads to a team member')
+      ).toBeInTheDocument();
       expect(screen.getByText('Test Lead 1')).toBeInTheDocument();
       expect(screen.getByText('Test Lead 2')).toBeInTheDocument();
       expect(screen.getByText('2 leads')).toBeInTheDocument();
@@ -176,7 +182,7 @@ describe('Assignment UI Components', () => {
 
       expect(mockToast).toHaveBeenCalledWith({
         title: 'Assignment Complete',
-        description: 'Successfully assigned 2 of 2 leads'
+        description: 'Successfully assigned 2 of 2 leads',
       });
     });
 
@@ -186,7 +192,7 @@ describe('Assignment UI Components', () => {
         updated_count: 0,
         total_requested: 2,
         invalid_entities: ['entity-1'],
-        errors: ['Assignment failed']
+        errors: ['Assignment failed'],
       });
 
       render(<BulkAssignmentDialog {...defaultProps} />);
@@ -211,7 +217,7 @@ describe('Assignment UI Components', () => {
         expect(mockToast).toHaveBeenCalledWith({
           title: 'Assignment Failed',
           description: 'Assignment failed',
-          variant: 'destructive'
+          variant: 'destructive',
         });
       });
     });
@@ -220,12 +226,14 @@ describe('Assignment UI Components', () => {
       const largeProps = {
         ...defaultProps,
         entityIds: Array.from({ length: 100 }, (_, i) => `entity-${i}`),
-        entityNames: Array.from({ length: 100 }, (_, i) => `Test Lead ${i}`)
+        entityNames: Array.from({ length: 100 }, (_, i) => `Test Lead ${i}`),
       };
 
       render(<BulkAssignmentDialog {...largeProps} />);
 
-      expect(screen.getByText(/You are assigning a large number of leads/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/You are assigning a large number of leads/)
+      ).toBeInTheDocument();
     });
 
     it('should close dialog on cancel', async () => {
@@ -251,7 +259,7 @@ describe('Assignment UI Components', () => {
       leadId: 'lead-1',
       currentOwner: null,
       leadName: 'Test Lead',
-      onAssignmentChange: vi.fn()
+      onAssignmentChange: vi.fn(),
     };
 
     it('should render lead assignment component', async () => {
@@ -264,7 +272,7 @@ describe('Assignment UI Components', () => {
     it('should show current owner when assigned', async () => {
       const propsWithOwner = {
         ...defaultProps,
-        currentOwner: 'John Doe'
+        currentOwner: 'John Doe',
       };
 
       render(<LeadAssignment {...propsWithOwner} />);
@@ -305,14 +313,14 @@ describe('Assignment UI Components', () => {
 
       expect(mockToast).toHaveBeenCalledWith({
         title: 'Assignment Updated',
-        description: 'Assignment successful'
+        description: 'Assignment successful',
       });
     });
 
     it('should unassign lead', async () => {
       const propsWithOwner = {
         ...defaultProps,
-        currentOwner: 'John Doe'
+        currentOwner: 'John Doe',
       };
 
       render(<LeadAssignment {...propsWithOwner} />);
@@ -334,7 +342,7 @@ describe('Assignment UI Components', () => {
       mockAssignmentService.assignEntity.mockResolvedValue({
         success: false,
         message: 'Assignment failed',
-        error: 'User not found'
+        error: 'User not found',
       });
 
       render(<LeadAssignment {...defaultProps} />);
@@ -356,7 +364,7 @@ describe('Assignment UI Components', () => {
         expect(mockToast).toHaveBeenCalledWith({
           title: 'Assignment Failed',
           description: 'User not found',
-          variant: 'destructive'
+          variant: 'destructive',
         });
       });
     });
@@ -367,7 +375,7 @@ describe('Assignment UI Components', () => {
       companyId: 'company-1',
       currentOwner: null,
       companyName: 'Test Company',
-      onAssignmentChange: vi.fn()
+      onAssignmentChange: vi.fn(),
     };
 
     it('should render company assignment component', async () => {
@@ -380,7 +388,7 @@ describe('Assignment UI Components', () => {
     it('should show current owner when assigned', async () => {
       const propsWithOwner = {
         ...defaultProps,
-        currentOwner: 'John Doe'
+        currentOwner: 'John Doe',
       };
 
       render(<CompanyAssignment {...propsWithOwner} />);
@@ -415,7 +423,7 @@ describe('Assignment UI Components', () => {
 
       expect(mockToast).toHaveBeenCalledWith({
         title: 'Company Assignment Updated',
-        description: 'Assignment successful'
+        description: 'Assignment successful',
       });
     });
 
@@ -423,12 +431,14 @@ describe('Assignment UI Components', () => {
       mockUsePermissions.mockReturnValue({
         hasRole: vi.fn().mockReturnValue(false),
         canAccess: vi.fn().mockReturnValue(false),
-        permissions: []
+        permissions: [],
       } as any);
 
       render(<CompanyAssignment {...defaultProps} />);
 
-      expect(screen.getByText('Only administrators can assign company ownership')).toBeInTheDocument();
+      expect(
+        screen.getByText('Only administrators can assign company ownership')
+      ).toBeInTheDocument();
     });
   });
 
@@ -438,8 +448,8 @@ describe('Assignment UI Components', () => {
       unassigned: 5,
       byUser: [
         { userId: 'user-1', userName: 'John Doe', count: 5 },
-        { userId: 'user-2', userName: 'Jane Smith', count: 3 }
-      ]
+        { userId: 'user-2', userName: 'Jane Smith', count: 3 },
+      ],
     };
 
     beforeEach(() => {
@@ -450,7 +460,9 @@ describe('Assignment UI Components', () => {
       render(<AssignmentManagementPanel />);
 
       expect(screen.getByText('Assignment Management')).toBeInTheDocument();
-      expect(screen.getByText('Manage user assignments and handle orphaned records')).toBeInTheDocument();
+      expect(
+        screen.getByText('Manage user assignments and handle orphaned records')
+      ).toBeInTheDocument();
     });
 
     it('should display assignment statistics', async () => {
@@ -486,7 +498,9 @@ describe('Assignment UI Components', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Reassign User Records')).toBeInTheDocument();
-        expect(screen.getByText('Transfer all assignments from one user to another')).toBeInTheDocument();
+        expect(
+          screen.getByText('Transfer all assignments from one user to another')
+        ).toBeInTheDocument();
       });
     });
 
@@ -494,7 +508,7 @@ describe('Assignment UI Components', () => {
       mockAssignmentService.reassignOrphanedRecords.mockResolvedValue({
         success: true,
         message: 'Successfully reassigned 5 records',
-        data: { total_records: 5 }
+        data: { total_records: 5 },
       });
 
       render(<AssignmentManagementPanel />);
@@ -523,15 +537,14 @@ describe('Assignment UI Components', () => {
       await userEvent.click(confirmButton);
 
       await waitFor(() => {
-        expect(mockAssignmentService.reassignOrphanedRecords).toHaveBeenCalledWith(
-          'user-1',
-          'user-2'
-        );
+        expect(
+          mockAssignmentService.reassignOrphanedRecords
+        ).toHaveBeenCalledWith('user-1', 'user-2');
       });
 
       expect(mockToast).toHaveBeenCalledWith({
         title: 'Reassignment Complete',
-        description: 'Successfully reassigned 5 records'
+        description: 'Successfully reassigned 5 records',
       });
     });
 
@@ -539,12 +552,14 @@ describe('Assignment UI Components', () => {
       mockUsePermissions.mockReturnValue({
         hasRole: vi.fn().mockReturnValue(false),
         canAccess: vi.fn().mockReturnValue(false),
-        permissions: []
+        permissions: [],
       } as any);
 
       render(<AssignmentManagementPanel />);
 
-      expect(screen.getByText(/You don't have permission to manage assignments/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/You don't have permission to manage assignments/)
+      ).toBeInTheDocument();
     });
 
     it('should refresh data when refresh button clicked', async () => {
@@ -564,14 +579,18 @@ describe('Assignment UI Components', () => {
 
   describe('User Selection UI Interactions', () => {
     it('should filter team members by search', async () => {
-      render(<BulkAssignmentDialog {...{
-        isOpen: true,
-        onClose: vi.fn(),
-        entityType: 'people' as const,
-        entityIds: ['entity-1'],
-        entityNames: ['Test Lead 1'],
-        onAssignmentComplete: vi.fn()
-      }} />);
+      render(
+        <BulkAssignmentDialog
+          {...{
+            isOpen: true,
+            onClose: vi.fn(),
+            entityType: 'people' as const,
+            entityIds: ['entity-1'],
+            entityNames: ['Test Lead 1'],
+            onAssignmentComplete: vi.fn(),
+          }}
+        />
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Select team member...')).toBeInTheDocument();
@@ -590,14 +609,18 @@ describe('Assignment UI Components', () => {
     });
 
     it('should show user avatars and roles in dropdown', async () => {
-      render(<BulkAssignmentDialog {...{
-        isOpen: true,
-        onClose: vi.fn(),
-        entityType: 'people' as const,
-        entityIds: ['entity-1'],
-        entityNames: ['Test Lead 1'],
-        onAssignmentComplete: vi.fn()
-      }} />);
+      render(
+        <BulkAssignmentDialog
+          {...{
+            isOpen: true,
+            onClose: vi.fn(),
+            entityType: 'people' as const,
+            entityIds: ['entity-1'],
+            entityNames: ['Test Lead 1'],
+            onAssignmentComplete: vi.fn(),
+          }}
+        />
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Select team member...')).toBeInTheDocument();
@@ -613,18 +636,25 @@ describe('Assignment UI Components', () => {
     });
 
     it('should handle loading states', async () => {
-      mockAssignmentService.getTeamMembers.mockImplementation(() => 
-        new Promise(resolve => setTimeout(() => resolve(mockTeamMembers), 1000))
+      mockAssignmentService.getTeamMembers.mockImplementation(
+        () =>
+          new Promise(resolve =>
+            setTimeout(() => resolve(mockTeamMembers), 1000)
+          )
       );
 
-      render(<BulkAssignmentDialog {...{
-        isOpen: true,
-        onClose: vi.fn(),
-        entityType: 'people' as const,
-        entityIds: ['entity-1'],
-        entityNames: ['Test Lead 1'],
-        onAssignmentComplete: vi.fn()
-      }} />);
+      render(
+        <BulkAssignmentDialog
+          {...{
+            isOpen: true,
+            onClose: vi.fn(),
+            entityType: 'people' as const,
+            entityIds: ['entity-1'],
+            entityNames: ['Test Lead 1'],
+            onAssignmentComplete: vi.fn(),
+          }}
+        />
+      );
 
       expect(screen.getByText('Loading team members...')).toBeInTheDocument();
     });
@@ -632,39 +662,51 @@ describe('Assignment UI Components', () => {
     it('should handle empty team members list', async () => {
       mockAssignmentService.getTeamMembers.mockResolvedValue([]);
 
-      render(<BulkAssignmentDialog {...{
-        isOpen: true,
-        onClose: vi.fn(),
-        entityType: 'people' as const,
-        entityIds: ['entity-1'],
-        entityNames: ['Test Lead 1'],
-        onAssignmentComplete: vi.fn()
-      }} />);
+      render(
+        <BulkAssignmentDialog
+          {...{
+            isOpen: true,
+            onClose: vi.fn(),
+            entityType: 'people' as const,
+            entityIds: ['entity-1'],
+            entityNames: ['Test Lead 1'],
+            onAssignmentComplete: vi.fn(),
+          }}
+        />
+      );
 
       await waitFor(() => {
-        expect(screen.getByText('No team members available')).toBeInTheDocument();
+        expect(
+          screen.getByText('No team members available')
+        ).toBeInTheDocument();
       });
     });
   });
 
   describe('Error Handling in UI', () => {
     it('should handle service errors gracefully', async () => {
-      mockAssignmentService.getTeamMembers.mockRejectedValue(new Error('Service unavailable'));
+      mockAssignmentService.getTeamMembers.mockRejectedValue(
+        new Error('Service unavailable')
+      );
 
-      render(<BulkAssignmentDialog {...{
-        isOpen: true,
-        onClose: vi.fn(),
-        entityType: 'people' as const,
-        entityIds: ['entity-1'],
-        entityNames: ['Test Lead 1'],
-        onAssignmentComplete: vi.fn()
-      }} />);
+      render(
+        <BulkAssignmentDialog
+          {...{
+            isOpen: true,
+            onClose: vi.fn(),
+            entityType: 'people' as const,
+            entityIds: ['entity-1'],
+            entityNames: ['Test Lead 1'],
+            onAssignmentComplete: vi.fn(),
+          }}
+        />
+      );
 
       await waitFor(() => {
         expect(mockToast).toHaveBeenCalledWith({
           title: 'Error',
           description: 'Failed to load team members',
-          variant: 'destructive'
+          variant: 'destructive',
         });
       });
     });
@@ -673,15 +715,19 @@ describe('Assignment UI Components', () => {
       mockAssignmentService.assignEntity.mockResolvedValue({
         success: false,
         message: 'Assignment failed',
-        error: 'Database connection failed'
+        error: 'Database connection failed',
       });
 
-      render(<LeadAssignment {...{
-        leadId: 'lead-1',
-        currentOwner: null,
-        leadName: 'Test Lead',
-        onAssignmentChange: vi.fn()
-      }} />);
+      render(
+        <LeadAssignment
+          {...{
+            leadId: 'lead-1',
+            currentOwner: null,
+            leadName: 'Test Lead',
+            onAssignmentChange: vi.fn(),
+          }}
+        />
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Select team member...')).toBeInTheDocument();
@@ -700,7 +746,7 @@ describe('Assignment UI Components', () => {
         expect(mockToast).toHaveBeenCalledWith({
           title: 'Assignment Failed',
           description: 'Database connection failed',
-          variant: 'destructive'
+          variant: 'destructive',
         });
       });
     });

@@ -41,7 +41,7 @@ export function validateProviderSetup(): ProviderValidationResult {
             return false;
           }
         },
-        error: 'QueryClientProvider missing - React Query hooks will fail'
+        error: 'QueryClientProvider missing - React Query hooks will fail',
       },
       {
         name: 'BrowserRouter',
@@ -53,7 +53,7 @@ export function validateProviderSetup(): ProviderValidationResult {
             return false;
           }
         },
-        error: 'BrowserRouter missing - routing hooks will fail'
+        error: 'BrowserRouter missing - routing hooks will fail',
       },
       {
         name: 'AuthProvider',
@@ -65,8 +65,8 @@ export function validateProviderSetup(): ProviderValidationResult {
             return false;
           }
         },
-        error: 'AuthProvider missing - authentication hooks will fail'
-      }
+        error: 'AuthProvider missing - authentication hooks will fail',
+      },
     ];
 
     commonIssues.forEach(issue => {
@@ -76,13 +76,15 @@ export function validateProviderSetup(): ProviderValidationResult {
     });
 
     // Check for potential provider order issues
-    warnings.push('Ensure providers are in correct order: ErrorBoundary > QueryClientProvider > BrowserRouter > AuthProvider > App');
+    warnings.push(
+      'Ensure providers are in correct order: ErrorBoundary > QueryClientProvider > BrowserRouter > AuthProvider > App'
+    );
   }
 
   return {
     isValid: errors.length === 0,
     errors,
-    warnings
+    warnings,
   };
 }
 
@@ -92,13 +94,13 @@ export function validateProviderSetup(): ProviderValidationResult {
 export function logProviderValidation(): void {
   if (import.meta.env.DEV) {
     const result = validateProviderSetup();
-    
+
     if (result.isValid) {
       console.log('✅ Provider validation passed');
     } else {
       console.error('❌ Provider validation failed:', result.errors);
     }
-    
+
     if (result.warnings.length > 0) {
       console.warn('⚠️ Provider warnings:', result.warnings);
     }
@@ -126,7 +128,7 @@ export function withProviderValidation<P extends object>(
   };
 
   WrappedComponent.displayName = `withProviderValidation(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 }
 
@@ -139,15 +141,15 @@ export const PROVIDER_ERROR_PATTERNS = {
   ROUTER: 'useNavigate must be used within a Router',
   BROWSER_HISTORY: 'Browser history needs a DOM',
   CONTEXT_UNDEFINED: 'Context is undefined',
-  HOOK_OUTSIDE_PROVIDER: 'must be used within'
+  HOOK_OUTSIDE_PROVIDER: 'must be used within',
 } as const;
 
 /**
  * Checks if an error is provider-related
  */
 export function isProviderError(error: Error): boolean {
-  return Object.values(PROVIDER_ERROR_PATTERNS).some(pattern => 
-    error.message.includes(pattern) || error.stack?.includes(pattern)
+  return Object.values(PROVIDER_ERROR_PATTERNS).some(
+    pattern => error.message.includes(pattern) || error.stack?.includes(pattern)
   );
 }
 
@@ -156,16 +158,20 @@ export function isProviderError(error: Error): boolean {
  */
 export function getProviderErrorSuggestions(error: Error): string[] {
   const suggestions: string[] = [];
-  
+
   if (error.message.includes(PROVIDER_ERROR_PATTERNS.AUTH)) {
     suggestions.push('Wrap components using useAuth with <AuthProvider>');
   }
   if (error.message.includes(PROVIDER_ERROR_PATTERNS.QUERY)) {
-    suggestions.push('Wrap components using useQuery with <QueryClientProvider>');
+    suggestions.push(
+      'Wrap components using useQuery with <QueryClientProvider>'
+    );
   }
   if (error.message.includes(PROVIDER_ERROR_PATTERNS.ROUTER)) {
-    suggestions.push('Wrap components using routing hooks with <BrowserRouter>');
+    suggestions.push(
+      'Wrap components using routing hooks with <BrowserRouter>'
+    );
   }
-  
+
   return suggestions;
 }

@@ -29,18 +29,16 @@ export function useDebounce<T>(value: T, delay: number): T {
  * Includes empty string handling and minimum character requirements
  */
 export function useDebouncedSearch(
-  searchTerm: string, 
+  searchTerm: string,
   delay: number = 300,
   minLength: number = 0
 ): string {
   const debouncedValue = useDebounce(searchTerm, delay);
-  
+
   // Only return debounced value if it meets minimum length requirement
   if (debouncedValue.length < minLength) {
     return '';
   }
-  
+
   return debouncedValue;
 }
-
-

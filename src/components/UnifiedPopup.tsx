@@ -4,7 +4,8 @@ import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
 
 const UnifiedPopupComponent: React.FC = () => {
   try {
-    const { currentEntity, popupState, closePopup, navigateToEntity } = usePopupNavigation();
+    const { currentEntity, popupState, closePopup, navigateToEntity } =
+      usePopupNavigation();
 
     if (!popupState.isOpen) {
       return null;

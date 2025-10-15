@@ -65,7 +65,7 @@ export class AuditLogger {
       details,
       timestamp: new Date().toISOString(),
       ipAddress: this.getClientIP(),
-      userAgent: navigator.userAgent
+      userAgent: navigator.userAgent,
     };
 
     this.logs.push(logEntry);
@@ -102,17 +102,26 @@ export class AuditLogger {
         filteredLogs = filteredLogs.filter(log => log.action === filter.action);
       }
       if (filter.resource) {
-        filteredLogs = filteredLogs.filter(log => log.resource === filter.resource);
+        filteredLogs = filteredLogs.filter(
+          log => log.resource === filter.resource
+        );
       }
       if (filter.startDate) {
-        filteredLogs = filteredLogs.filter(log => log.timestamp >= filter.startDate!);
+        filteredLogs = filteredLogs.filter(
+          log => log.timestamp >= filter.startDate!
+        );
       }
       if (filter.endDate) {
-        filteredLogs = filteredLogs.filter(log => log.timestamp <= filter.endDate!);
+        filteredLogs = filteredLogs.filter(
+          log => log.timestamp <= filter.endDate!
+        );
       }
     }
 
-    return filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return filteredLogs.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
   }
 
   public exportLogs(): string {
@@ -133,40 +142,53 @@ export class AuditLogger {
     this.log(userId, userEmail, 'LOGOUT', 'AUTH', {});
   }
 
-  public logSettingsChange(userId: string, userEmail: string, settingsChanged: string[]): void {
+  public logSettingsChange(
+    userId: string,
+    userEmail: string,
+    settingsChanged: string[]
+  ): void {
     this.log(userId, userEmail, 'UPDATE', 'SYSTEM_SETTINGS', {
       settingsChanged,
-      changeCount: settingsChanged.length
+      changeCount: settingsChanged.length,
     });
   }
 
-  public logUserRoleChange(userId: string, userEmail: string, targetUserId: string, oldRole: string, newRole: string): void {
+  public logUserRoleChange(
+    userId: string,
+    userEmail: string,
+    targetUserId: string,
+    oldRole: string,
+    newRole: string
+  ): void {
     this.log(userId, userEmail, 'UPDATE', 'USER_ROLE', {
       targetUserId,
       oldRole,
-      newRole
+      newRole,
     });
   }
 
-  public logDataExport(userId: string, userEmail: string, resource: string, recordCount: number): void {
+  public logDataExport(
+    userId: string,
+    userEmail: string,
+    resource: string,
+    recordCount: number
+  ): void {
     this.log(userId, userEmail, 'EXPORT', resource, {
-      recordCount
+      recordCount,
     });
   }
 
-  public logDataDelete(userId: string, userEmail: string, resource: string, recordId: string): void {
+  public logDataDelete(
+    userId: string,
+    userEmail: string,
+    resource: string,
+    recordId: string
+  ): void {
     this.log(userId, userEmail, 'DELETE', resource, {
-      recordId
+      recordId,
     });
   }
 }
 
 // Export singleton instance
 export const auditLogger = AuditLogger.getInstance();
-
-
-
-
-
-
-

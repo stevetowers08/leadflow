@@ -14,6 +14,7 @@ This guide shows you how to use AI-powered features in your Empowr CRM applicati
 ### 2. Add to Environment Variables
 
 Add to your `.env` file:
+
 ```bash
 # Google Gemini AI API (FREE - 60 requests per minute)
 VITE_GEMINI_API_KEY=your-gemini-api-key-here
@@ -22,6 +23,7 @@ VITE_GEMINI_API_KEY=your-gemini-api-key-here
 ### 3. Server-Side Configuration (Recommended)
 
 For production use, configure server-side processing:
+
 ```bash
 # Set Gemini API key securely on server
 supabase secrets set GEMINI_API_KEY=your-gemini-api-key-here
@@ -30,6 +32,7 @@ supabase secrets set GEMINI_API_KEY=your-gemini-api-key-here
 ### 3. Server-Side Configuration (Recommended)
 
 For production use, configure server-side processing:
+
 ```bash
 # Set Gemini API key securely on server
 supabase secrets set GEMINI_API_KEY=your-gemini-api-key-here
@@ -40,21 +43,25 @@ supabase secrets set GEMINI_API_KEY=your-gemini-api-key-here
 Our AI system uses a **hybrid approach** that combines the best of both client-side and server-side processing:
 
 ### Client-Side Processing
+
 - **Lead Scoring**: Fast, real-time scoring for immediate feedback
 - **UI Components**: Interactive AI features with instant responses
 - **Development**: Quick iteration and testing
 
-### Server-Side Processing  
+### Server-Side Processing
+
 - **Job Summarization**: Secure, scalable processing via Supabase Edge Functions
 - **Batch Operations**: Large-scale data processing
 - **Production**: Secure API key handling
 
 ### Automatic Fallback
+
 The system automatically falls back to client-side processing if server-side fails, ensuring reliability.
 
 ## 📋 Available AI Features
 
 ### 1. Job Summarization (Server-Side)
+
 Generate intelligent summaries using secure server-side processing:
 
 ```tsx
@@ -62,17 +69,17 @@ import { AIJobSummary } from './components/popup/AIJobSummary';
 
 function JobPage() {
   const jobData = {
-    id: "job-uuid",
-    title: "Senior React Developer",
-    company: "Tech Corp",
+    id: 'job-uuid',
+    title: 'Senior React Developer',
+    company: 'Tech Corp',
     description: "We're looking for an experienced React developer...",
-    location: "San Francisco, CA"
+    location: 'San Francisco, CA',
   };
 
   return (
-    <AIJobSummary 
+    <AIJobSummary
       job={jobData}
-      onSummaryGenerated={(summary) => {
+      onSummaryGenerated={summary => {
         console.log('Generated summary:', summary);
         // Automatically saved to database
       }}
@@ -82,6 +89,7 @@ function JobPage() {
 ```
 
 ### 2. Lead Scoring (Client-Side)
+
 Calculate AI-powered scores with instant feedback:
 
 ```tsx
@@ -89,19 +97,19 @@ import { AIScoreBadge } from './components/ai/AIScoreBadge';
 
 function LeadPage() {
   const leadData = {
-    name: "John Doe",
-    company: "Startup Inc",
-    role: "CTO",
-    location: "New York, NY",
-    experience: "10+ years",
-    industry: "Technology",
-    company_size: "50-200 employees"
+    name: 'John Doe',
+    company: 'Startup Inc',
+    role: 'CTO',
+    location: 'New York, NY',
+    experience: '10+ years',
+    industry: 'Technology',
+    company_size: '50-200 employees',
   };
 
   return (
-    <AIScoreBadge 
+    <AIScoreBadge
       leadData={leadData}
-      onScoreUpdate={(score) => {
+      onScoreUpdate={score => {
         console.log('Lead score:', score.score);
         // Update lead score in database
       }}
@@ -111,6 +119,7 @@ function LeadPage() {
 ```
 
 ### 3. AI Context Usage
+
 Check AI status and configuration:
 
 ```tsx
@@ -135,24 +144,25 @@ function Dashboard() {
 ## 🔧 Using AI Hooks Directly
 
 ### Job Summary Hook (Server-Side)
+
 ```tsx
 import { useAIJobSummary } from './hooks/useAI';
 
 function CustomJobComponent() {
   const { generateSummary, isLoading, error, lastResult } = useAIJobSummary({
     enableCaching: true,
-    enableAutoRetry: true
+    enableAutoRetry: true,
   });
 
   const handleGenerate = async () => {
     const summary = await generateSummary({
-      id: "job-uuid", // Required for server-side processing
-      title: "Software Engineer",
-      company: "Tech Company",
-      description: "Job description here...",
-      location: "Remote"
+      id: 'job-uuid', // Required for server-side processing
+      title: 'Software Engineer',
+      company: 'Tech Company',
+      description: 'Job description here...',
+      location: 'Remote',
     });
-    
+
     if (summary) {
       console.log(summary.summary);
       console.log(summary.key_requirements);
@@ -164,7 +174,7 @@ function CustomJobComponent() {
       <button onClick={handleGenerate} disabled={isLoading}>
         {isLoading ? 'Generating...' : 'Generate Summary'}
       </button>
-      {error && <div className="error">{error}</div>}
+      {error && <div className='error'>{error}</div>}
       {lastResult && <div>{lastResult.summary}</div>}
     </div>
   );
@@ -172,6 +182,7 @@ function CustomJobComponent() {
 ```
 
 ### Lead Scoring Hook (Client-Side)
+
 ```tsx
 import { useAI } from './hooks/useAI';
 
@@ -180,27 +191,24 @@ function LeadScoringComponent() {
 
   const handleScore = async () => {
     const score = await calculateLeadScore({
-      name: "Jane Smith",
-      company: "Enterprise Corp",
-      role: "VP Engineering",
-      location: "San Francisco, CA"
+      name: 'Jane Smith',
+      company: 'Enterprise Corp',
+      role: 'VP Engineering',
+      location: 'San Francisco, CA',
     });
-    
+
     console.log('Score:', score.score);
     console.log('Reason:', score.reason);
   };
 
-  return (
-    <button onClick={handleScore}>
-      Calculate AI Score
-    </button>
-  );
+  return <button onClick={handleScore}>Calculate AI Score</button>;
 }
 ```
 
 ## 🎯 AI Context Usage
 
 ### Check AI Status
+
 ```tsx
 import { useAI, AIStatusIndicator } from './contexts/AIContext';
 
@@ -221,6 +229,7 @@ function Dashboard() {
 ```
 
 ### AI Configuration Panel
+
 ```tsx
 import { AIConfigurationPanel } from './contexts/AIContext';
 
@@ -237,6 +246,7 @@ function SettingsPage() {
 ## 🔄 Utility Functions
 
 ### Direct Service Usage
+
 ```tsx
 import { aiService } from './services/aiService';
 import { serverAIService } from './services/serverAIService';
@@ -250,19 +260,21 @@ const summary = await serverAIService.generateJobSummary({
   title: jobData.title,
   company: jobData.company,
   description: jobData.description,
-  location: jobData.location
+  location: jobData.location,
 });
 ```
 
 ## 📊 Rate Limits & Costs
 
 ### Google Gemini API (FREE)
+
 - **Rate Limit**: 60 requests per minute
 - **Cost**: FREE for basic usage
 - **Model**: gemini-1.5-flash
 - **Features**: Job summarization, lead scoring, text analysis
 
 ### Hybrid Benefits
+
 - **Security**: Server-side processing protects API keys
 - **Performance**: Client-side provides instant feedback
 - **Reliability**: Automatic fallback ensures uptime
@@ -271,13 +283,14 @@ const summary = await serverAIService.generateJobSummary({
 ## 🛠️ Advanced Configuration
 
 ### Custom AI Service Configuration
+
 ```tsx
 import { AIService } from './services/aiService';
 
 // Create custom AI service instance
 const customAIService = new AIService({
   provider: 'gemini', // Force Gemini usage
-  fallbackProvider: 'openai'
+  fallbackProvider: 'openai',
 });
 
 // Use the custom service
@@ -285,12 +298,13 @@ const score = await customAIService.calculateLeadScore(leadData);
 ```
 
 ### Error Handling
+
 ```tsx
 import { useAIJobSummary } from './hooks/useAI';
 
 function RobustJobComponent() {
   const { generateSummary, isLoading, error, retry } = useAIJobSummary({
-    enableAutoRetry: true
+    enableAutoRetry: true,
   });
 
   const handleGenerate = async () => {
@@ -306,7 +320,7 @@ function RobustJobComponent() {
   return (
     <div>
       {error && (
-        <div className="error">
+        <div className='error'>
           <p>AI generation failed: {error}</p>
           <button onClick={retry}>Retry</button>
         </div>
@@ -344,14 +358,15 @@ function RobustJobComponent() {
    - Check browser console for errors
 
 ### Debug Mode
+
 ```tsx
 import { useAI } from './contexts/AIContext';
 
 function DebugPanel() {
   const { status, usage, lastError } = useAI();
-  
+
   return (
-    <div className="debug-panel">
+    <div className='debug-panel'>
       <h3>AI Debug Info</h3>
       <pre>{JSON.stringify({ status, usage, lastError }, null, 2)}</pre>
     </div>

@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import type { JobFilters } from '@/lib/queryKeys';
 
-export type Job = Tables<"jobs"> & {
+export type Job = Tables<'jobs'> & {
   company_name?: string;
   company_industry?: string;
   company_logo_url?: string;
@@ -24,17 +24,19 @@ export type Job = Tables<"jobs"> & {
 export const jobsService = {
   async getJobs(filters: JobFilters = {}): Promise<Job[]> {
     console.log('🔍 JobsService.getJobs called with filters:', filters);
-    
+
     const { data, error } = await supabase
       .from('jobs')
-      .select(`
+      .select(
+        `
         id, title, company_id, location, description, employment_type, 
         seniority_level, automation_active, created_at, priority, 
         lead_score_job, salary, function, logo_url, owner_id, 
         posted_date, valid_through
-      `)
-      .order(filters.sortBy || 'posted_date', { 
-        ascending: filters.sortOrder === 'asc' 
+      `
+      )
+      .order(filters.sortBy || 'posted_date', {
+        ascending: filters.sortOrder === 'asc',
       });
 
     if (error) {
@@ -48,7 +50,7 @@ export const jobsService = {
 
   async getJob(id: string): Promise<Job> {
     console.log('🔍 JobsService.getJob called with id:', id);
-    
+
     const { data, error } = await supabase
       .from('jobs')
       .select('*')
@@ -66,7 +68,7 @@ export const jobsService = {
 
   async updateJob(id: string, updates: Partial<Job>): Promise<Job> {
     console.log('🔍 JobsService.updateJob called:', { id, updates });
-    
+
     const { data, error } = await supabase
       .from('jobs')
       .update(updates)
@@ -85,7 +87,7 @@ export const jobsService = {
 
   async createJob(job: Omit<Job, 'id' | 'created_at'>): Promise<Job> {
     console.log('🔍 JobsService.createJob called:', job);
-    
+
     const { data, error } = await supabase
       .from('jobs')
       .insert(job)
@@ -103,11 +105,8 @@ export const jobsService = {
 
   async deleteJob(id: string): Promise<void> {
     console.log('🔍 JobsService.deleteJob called with id:', id);
-    
-    const { error } = await supabase
-      .from('jobs')
-      .delete()
-      .eq('id', id);
+
+    const { error } = await supabase.from('jobs').delete().eq('id', id);
 
     if (error) {
       console.error('❌ JobsService.deleteJob error:', error);

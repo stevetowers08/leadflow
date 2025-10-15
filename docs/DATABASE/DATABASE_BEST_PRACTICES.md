@@ -3,6 +3,7 @@
 ## 🚨 Common Issues & Solutions
 
 ### 1. **Complex Joins Fail (406 Errors)**
+
 ❌ **BAD**: `user_profiles!inner(id, full_name, email, role)`
 ✅ **GOOD**: Separate queries or use views
 
@@ -24,6 +25,7 @@ if (assignment?.owner_id) {
 ```
 
 ### 2. **Field Mismatches**
+
 ❌ **BAD**: Selecting fields that don't exist
 ✅ **GOOD**: Always verify field names in database
 
@@ -37,6 +39,7 @@ const { data } = await supabase
 ```
 
 ### 3. **Inconsistent Query Patterns**
+
 ❌ **BAD**: Different components use different patterns
 ✅ **GOOD**: Use centralized query utilities
 
@@ -45,6 +48,7 @@ const { data } = await supabase
 ### Tables & Key Fields
 
 #### `people` (Leads)
+
 ```sql
 - id (uuid, primary key)
 - name (text)
@@ -65,6 +69,7 @@ const { data } = await supabase
 ```
 
 #### `companies`
+
 ```sql
 - id (uuid, primary key)
 - name (text)
@@ -85,6 +90,7 @@ const { data } = await supabase
 ```
 
 #### `jobs`
+
 ```sql
 - id (uuid, primary key)
 - title (text)
@@ -98,6 +104,7 @@ const { data } = await supabase
 ```
 
 #### `user_profiles`
+
 ```sql
 - id (uuid, primary key)
 - full_name (text)
@@ -110,6 +117,7 @@ const { data } = await supabase
 ## 🛠️ Query Utilities
 
 ### Centralized Query Functions
+
 ```typescript
 // Use these instead of writing queries directly
 import { DatabaseQueries } from '@/utils/databaseQueries';
@@ -123,6 +131,7 @@ const assignment = await DatabaseQueries.getAssignment('companies', companyId);
 ```
 
 ### Error Handling Pattern
+
 ```typescript
 try {
   const { data, error } = await supabase
@@ -166,12 +175,14 @@ When adding new database queries:
 ## 🐛 Debugging Database Issues
 
 ### Common Error Codes
+
 - **406**: Invalid query syntax (usually joins)
 - **404**: Table or field doesn't exist
 - **401**: Permission denied
 - **400**: Bad request (usually malformed query)
 
 ### Debug Steps
+
 1. Check the actual query in Network tab
 2. Test query in Supabase dashboard
 3. Verify field names match database schema

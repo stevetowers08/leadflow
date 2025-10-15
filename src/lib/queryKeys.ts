@@ -3,21 +3,24 @@ export const queryKeys = {
   jobs: {
     all: ['jobs'] as const,
     lists: () => [...queryKeys.jobs.all, 'list'] as const,
-    list: (filters: JobFilters) => [...queryKeys.jobs.lists(), filters] as const,
+    list: (filters: JobFilters) =>
+      [...queryKeys.jobs.lists(), filters] as const,
     details: () => [...queryKeys.jobs.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.jobs.details(), id] as const,
   },
   companies: {
     all: ['companies'] as const,
     lists: () => [...queryKeys.companies.all, 'list'] as const,
-    list: (filters: CompanyFilters) => [...queryKeys.companies.lists(), filters] as const,
+    list: (filters: CompanyFilters) =>
+      [...queryKeys.companies.lists(), filters] as const,
     details: () => [...queryKeys.companies.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.companies.details(), id] as const,
   },
   leads: {
     all: ['leads'] as const,
     lists: () => [...queryKeys.leads.all, 'list'] as const,
-    list: (filters: LeadFilters) => [...queryKeys.leads.lists(), filters] as const,
+    list: (filters: LeadFilters) =>
+      [...queryKeys.leads.lists(), filters] as const,
     details: () => [...queryKeys.leads.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.leads.details(), id] as const,
   },

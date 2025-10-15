@@ -1,6 +1,7 @@
 # Badge System Architecture - UPDATED ✅
 
 ## Overview
+
 This document outlines the **UPDATED** centralized badge system that implements the unified design principle: **WORDS = BADGES, NUMBERS = CUSTOM STYLING**.
 
 ## ✅ UPDATED: New Design Principle
@@ -8,12 +9,14 @@ This document outlines the **UPDATED** centralized badge system that implements 
 ### Core Rule: **WORDS = StatusBadge, NUMBERS = Custom Styling**
 
 #### ✅ **StatusBadge Component** (For Words Only)
+
 - **Used for**: STATUS, Priority, Text-based AI Scores
 - **Values**: Words like "VERY HIGH", "HIGH", "MEDIUM", "LOW", "High", "Medium", "Low"
 - **Styling**: `rounded-md` (less rounded), fixed width, proper colors
 - **Implementation**: `<StatusBadge status={value} size="sm" />`
 
 #### ✅ **Custom Badge Styling** (For Numbers Only)
+
 - **Used for**: Numeric AI Scores, Count columns
 - **Values**: Numbers like 82, 100, 0, 5, 12
 - **Styling**: `rounded-md`, `px-2 py-1`, `text-xs font-medium`
@@ -22,11 +25,12 @@ This document outlines the **UPDATED** centralized badge system that implements 
 ## ✅ UPDATED: Implementation Examples
 
 ### 1. Words = StatusBadge
+
 ```typescript
 // ✅ CORRECT: Priority (words) uses StatusBadge
 <StatusBadge status={job.priority || "Medium"} size="sm" />
 
-// ✅ CORRECT: Leads AI Score (words) uses StatusBadge  
+// ✅ CORRECT: Leads AI Score (words) uses StatusBadge
 <StatusBadge status={lead.lead_score || "Medium"} size="sm" />
 
 // ✅ CORRECT: Status (words) uses StatusBadge
@@ -34,6 +38,7 @@ This document outlines the **UPDATED** centralized badge system that implements 
 ```
 
 ### 2. Numbers = Custom Styling
+
 ```typescript
 // ✅ CORRECT: Companies AI Score (numbers) uses custom styling
 <span className={cn(
@@ -55,11 +60,12 @@ This document outlines the **UPDATED** centralized badge system that implements 
 ## ✅ UPDATED: StatusBadge Component
 
 ### Current Implementation
+
 ```typescript
 // ✅ UPDATED: StatusBadge now uses rounded-md (less rounded)
 const sizeStyles = {
   sm: "h-7 text-xs font-medium rounded-md text-center px-3",
-  md: "h-8 text-sm font-medium rounded-md text-center px-3", 
+  md: "h-8 text-sm font-medium rounded-md text-center px-3",
   lg: "h-9 text-sm font-medium rounded-md text-center px-4"
 };
 
@@ -75,12 +81,14 @@ className={cn(
 ## ✅ UPDATED: Color Scheme
 
 ### StatusBadge Colors (Words)
+
 - **VERY HIGH**: `bg-red-50 text-red-700 border-red-200`
 - **HIGH**: `bg-orange-50 text-orange-700 border-orange-200`
 - **MEDIUM**: `bg-yellow-50 text-yellow-700 border-yellow-200`
 - **LOW**: `bg-green-50 text-green-700 border-green-200`
 
 ### Custom Badge Colors (Numbers)
+
 - **Score ≥85**: `bg-green-50 text-green-700 border-green-200`
 - **Score ≥70**: `bg-blue-50 text-blue-700 border-blue-200`
 - **Score ≥50**: `bg-yellow-50 text-yellow-700 border-yellow-200`
@@ -90,16 +98,19 @@ className={cn(
 ## ✅ UPDATED: Implementation Rules
 
 ### ✅ **Use StatusBadge When:**
+
 - Value contains words/text
 - Examples: "VERY HIGH", "HIGH", "MEDIUM", "LOW", "High", "Medium", "Low"
 - Status indicators, priority levels, text-based scores
 
 ### ✅ **Use Custom Styling When:**
+
 - Value contains numbers
 - Examples: 82, 100, 0, 5, 12
 - Numeric scores, count columns, statistics
 
 ### ✅ **Consistent Styling:**
+
 - All badges use `rounded-md` (moderate rounding)
 - All badges use `text-xs font-medium`
 - All badges have proper borders and backgrounds
@@ -108,6 +119,7 @@ className={cn(
 ## ✅ UPDATED: Current Implementation Status
 
 ### ✅ **Completed Tables**
+
 1. **Jobs Table**
    - ✅ STATUS: Custom styling with `rounded-md`
    - ✅ Priority: StatusBadge with `rounded-md`
@@ -134,6 +146,7 @@ className={cn(
 ## ✅ UPDATED: Migration Summary
 
 ### What Changed
+
 - **StatusBadge**: Updated from `rounded-full` to `rounded-md`
 - **Priority Column**: Uses StatusBadge (words = badges)
 - **Leads AI Score**: Uses StatusBadge (words = badges)
@@ -141,9 +154,11 @@ className={cn(
 - **All Count Columns**: Use `rounded-md` styling
 
 ### Design Principle Applied
+
 **WORDS = BADGES, NUMBERS = CUSTOM STYLING**
 
 This ensures that:
+
 - Text-based values (Priority, Status, Text AI Scores) use the standardized StatusBadge
 - Numeric values (AI Scores, Counts) use custom styling with proper colors
 - All badges have consistent `rounded-md` styling for visual harmony
@@ -153,6 +168,7 @@ This ensures that:
 **The badge system is now fully standardized and consistent across the entire application!**
 
 All badges now use:
+
 - ✅ **StatusBadge component** for word-based values
 - ✅ **Custom styling** for number-based values
 - ✅ **Consistent rounded-md styling** across all badges

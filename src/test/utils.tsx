@@ -13,15 +13,13 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
 const customRender = (
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>,
+  options?: Omit<RenderOptions, 'wrapper'>
 ) => render(ui, { wrapper: AllTheProviders, ...options });
 
 // Re-export everything
@@ -88,8 +86,3 @@ export const mockSupabaseClient = {
     limit: vi.fn().mockReturnThis(),
   })),
 };
-
-
-
-
-

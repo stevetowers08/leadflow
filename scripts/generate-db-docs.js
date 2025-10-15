@@ -68,7 +68,7 @@ async function generateDatabaseDocs() {
       markdown += '### Columns\n\n';
       markdown += '| Column | Type | Nullable | Default |\n';
       markdown += '|--------|------|----------|----------|\n';
-      
+
       columns.forEach(col => {
         markdown += `| ${col.column_name} | ${col.data_type} | ${col.is_nullable} | ${col.column_default || 'NULL'} |\n`;
       });
@@ -91,7 +91,6 @@ async function generateDatabaseDocs() {
 
     console.log(`✅ Documentation generated: ${filename}`);
     console.log(`📄 Total tables documented: ${tables.length}`);
-
   } catch (error) {
     console.error('❌ Error generating documentation:', error);
     process.exit(1);

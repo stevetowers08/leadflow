@@ -1,10 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Users, UserPlus, Mail, Shield, Crown, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -36,14 +54,14 @@ const Accounts = () => {
   const { user } = useAuth();
   const { hasRole } = usePermissions();
   const { toast } = useToast();
-  
+
   const [users, setUsers] = useState<User[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteData, setInviteData] = useState({
     email: '',
-    role: 'recruiter' as 'admin' | 'recruiter' | 'viewer'
+    role: 'recruiter' as 'admin' | 'recruiter' | 'viewer',
   });
 
   // Check if user has admin permissions
@@ -53,7 +71,7 @@ const Accounts = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch users
       const { data: usersData, error: usersError } = await supabase
         .from('user_profiles')
@@ -63,11 +81,15 @@ const Accounts = () => {
       if (usersError) {
         console.error('Error fetching users:', usersError);
         // If RLS is blocking access, show a message about permissions
-        if (usersError.code === 'PGRST301' || usersError.message.includes('permission')) {
+        if (
+          usersError.code === 'PGRST301' ||
+          usersError.message.includes('permission')
+        ) {
           toast({
-            title: "Permission Required",
-            description: "You need proper permissions to view user profiles. Please contact an administrator.",
-            variant: "destructive",
+            title: 'Permission Required',
+            description:
+              'You need proper permissions to view user profiles. Please contact an administrator.',
+            variant: 'destructive',
           });
           setUsers([]);
           return;
@@ -92,9 +114,9 @@ const Accounts = () => {
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch users",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to fetch users',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -104,9 +126,9 @@ const Accounts = () => {
   const handleInviteUser = async () => {
     if (!inviteData.email.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter an email address",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please enter an email address',
+        variant: 'destructive',
       });
       return;
     }
@@ -114,7 +136,7 @@ const Accounts = () => {
     try {
       // Determine the role to assign
       const assignedRole = canAssignRoles ? inviteData.role : 'recruiter';
-      
+
       // Check if user already exists
       const { data: existingUser } = await supabase
         .from('user_profiles')
@@ -124,9 +146,9 @@ const Accounts = () => {
 
       if (existingUser) {
         toast({
-          title: "Error",
-          description: "User with this email already exists",
-          variant: "destructive",
+          title: 'Error',
+          description: 'User with this email already exists',
+          variant: 'destructive',
         });
         return;
       }
@@ -141,9 +163,9 @@ const Accounts = () => {
 
       if (existingInvitation) {
         toast({
-          title: "Error",
-          description: "An invitation for this email is already pending",
-          variant: "destructive",
+          title: 'Error',
+          description: 'An invitation for this email is already pending',
+          variant: 'destructive',
         });
         return;
       }
@@ -154,7 +176,7 @@ const Accounts = () => {
         .insert({
           email: inviteData.email,
           role: assignedRole,
-          invited_by: user?.id
+          invited_by: user?.id,
         })
         .select()
         .single();
@@ -163,21 +185,21 @@ const Accounts = () => {
         // Check if it's a user limit error
         if (error.message.includes('User limit exceeded')) {
           toast({
-            title: "User Limit Exceeded",
+            title: 'User Limit Exceeded',
             description: error.message,
-            variant: "destructive",
+            variant: 'destructive',
           });
           return;
         }
         throw error;
       }
 
-      const roleMessage = canAssignRoles 
+      const roleMessage = canAssignRoles
         ? `Invitation sent to ${inviteData.email} with ${assignedRole} role`
         : `Invitation sent to ${inviteData.email} as a Recruiter (only owners can assign other roles)`;
 
       toast({
-        title: "Invitation Sent",
+        title: 'Invitation Sent',
         description: roleMessage,
       });
 
@@ -187,27 +209,44 @@ const Accounts = () => {
     } catch (error) {
       console.error('Error inviting user:', error);
       toast({
-        title: "Error",
-        description: "Failed to send invitation",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to send invitation',
+        variant: 'destructive',
       });
     }
   };
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      owner: { label: 'Owner', className: 'bg-orange-100 text-orange-800', icon: Crown },
-      admin: { label: 'Admin', className: 'bg-accent/20 text-accent', icon: Shield },
-      recruiter: { label: 'Recruiter', className: 'bg-green-100 text-green-800', icon: User },
-      viewer: { label: 'Viewer', className: 'bg-gray-100 text-gray-800', icon: User }
+      owner: {
+        label: 'Owner',
+        className: 'bg-orange-100 text-orange-800',
+        icon: Crown,
+      },
+      admin: {
+        label: 'Admin',
+        className: 'bg-accent/20 text-accent',
+        icon: Shield,
+      },
+      recruiter: {
+        label: 'Recruiter',
+        className: 'bg-green-100 text-green-800',
+        icon: User,
+      },
+      viewer: {
+        label: 'Viewer',
+        className: 'bg-gray-100 text-gray-800',
+        icon: User,
+      },
     };
-    
-    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.viewer;
+
+    const config =
+      roleConfig[role as keyof typeof roleConfig] || roleConfig.viewer;
     const Icon = config.icon;
-    
+
     return (
       <Badge className={config.className}>
-        <Icon className="h-3 w-3 mr-1" />
+        <Icon className='h-3 w-3 mr-1' />
         {config.label}
       </Badge>
     );
@@ -223,16 +262,16 @@ const Accounts = () => {
 
   if (!canInviteUsers) {
     return (
-      <div className="space-y-6">
+      <div className='space-y-6'>
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-red-600" />
+            <CardTitle className='flex items-center gap-2'>
+              <Shield className='h-5 w-5 text-red-600' />
               Access Denied
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">
+            <p className='text-muted-foreground'>
               You need admin or owner permissions to manage user accounts.
             </p>
           </CardContent>
@@ -242,13 +281,13 @@ const Accounts = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* User Invitation */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <UserPlus className="h-6 w-6 text-sidebar-primary" />
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <UserPlus className='h-6 w-6 text-sidebar-primary' />
               <div>
                 <CardTitle>Invite New User</CardTitle>
                 <CardDescription>
@@ -259,7 +298,7 @@ const Accounts = () => {
             <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
               <DialogTrigger asChild>
                 <Button>
-                  <UserPlus className="h-4 w-4 mr-2" />
+                  <UserPlus className='h-4 w-4 mr-2' />
                   Invite User
                 </Button>
               </DialogTrigger>
@@ -267,47 +306,59 @@ const Accounts = () => {
                 <DialogHeader>
                   <DialogTitle>Invite New User</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className='space-y-4'>
                   <div>
-                    <Label htmlFor="email">Email Address</Label>
+                    <Label htmlFor='email'>Email Address</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="user@example.com"
+                      id='email'
+                      type='email'
+                      placeholder='user@example.com'
                       value={inviteData.email}
-                      onChange={(e) => setInviteData(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={e =>
+                        setInviteData(prev => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                   <div>
-                    <Label htmlFor="role">Role</Label>
+                    <Label htmlFor='role'>Role</Label>
                     {canAssignRoles ? (
-                      <Select value={inviteData.role} onValueChange={(value: 'admin' | 'recruiter' | 'viewer') => 
-                        setInviteData(prev => ({ ...prev, role: value }))
-                      }>
+                      <Select
+                        value={inviteData.role}
+                        onValueChange={(
+                          value: 'admin' | 'recruiter' | 'viewer'
+                        ) => setInviteData(prev => ({ ...prev, role: value }))}
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="recruiter">Recruiter</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="viewer">Viewer</SelectItem>
+                          <SelectItem value='recruiter'>Recruiter</SelectItem>
+                          <SelectItem value='admin'>Admin</SelectItem>
+                          <SelectItem value='viewer'>Viewer</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
-                      <div className="flex items-center gap-2 p-3 border rounded-md bg-gray-50">
-                        <Shield className="h-4 w-4 text-sidebar-primary" />
-                        <span className="text-sm text-gray-600">
-                          Only owners can assign roles. New users will be assigned as Recruiters by default.
+                      <div className='flex items-center gap-2 p-3 border rounded-md bg-gray-50'>
+                        <Shield className='h-4 w-4 text-sidebar-primary' />
+                        <span className='text-sm text-gray-600'>
+                          Only owners can assign roles. New users will be
+                          assigned as Recruiters by default.
                         </span>
                       </div>
                     )}
                   </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
+                  <div className='flex justify-end gap-2'>
+                    <Button
+                      variant='outline'
+                      onClick={() => setIsInviteOpen(false)}
+                    >
                       Cancel
                     </Button>
                     <Button onClick={handleInviteUser}>
-                      <Mail className="h-4 w-4 mr-2" />
+                      <Mail className='h-4 w-4 mr-2' />
                       Send Invite
                     </Button>
                   </div>
@@ -322,8 +373,8 @@ const Accounts = () => {
       {invitations.filter(inv => inv.status === 'pending').length > 0 && (
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-3">
-              <Mail className="h-6 w-6 text-yellow-600" />
+            <div className='flex items-center gap-3'>
+              <Mail className='h-6 w-6 text-yellow-600' />
               <div>
                 <CardTitle>Pending Invitations</CardTitle>
                 <CardDescription>
@@ -333,25 +384,32 @@ const Accounts = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className='space-y-3'>
               {invitations
                 .filter(inv => inv.status === 'pending')
-                .map((invitation) => (
-                  <div key={invitation.id} className="flex items-center justify-between p-4 border rounded-lg bg-yellow-50">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                        <Mail className="h-5 w-5 text-yellow-600" />
+                .map(invitation => (
+                  <div
+                    key={invitation.id}
+                    className='flex items-center justify-between p-4 border rounded-lg bg-yellow-50'
+                  >
+                    <div className='flex items-center gap-4'>
+                      <div className='w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center'>
+                        <Mail className='h-5 w-5 text-yellow-600' />
                       </div>
                       <div>
-                        <p className="font-medium">{invitation.email}</p>
-                        <p className="text-sm text-gray-600">
-                          Invited {formatDate(invitation.invited_at)} • Expires {formatDate(invitation.expires_at)}
+                        <p className='font-medium'>{invitation.email}</p>
+                        <p className='text-sm text-gray-600'>
+                          Invited {formatDate(invitation.invited_at)} • Expires{' '}
+                          {formatDate(invitation.expires_at)}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className='flex items-center gap-4'>
                       {getRoleBadge(invitation.role)}
-                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+                      <Badge
+                        variant='outline'
+                        className='bg-yellow-100 text-yellow-800'
+                      >
                         Pending
                       </Badge>
                     </div>
@@ -365,9 +423,9 @@ const Accounts = () => {
       {/* User List */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Users className="h-6 w-6 text-green-600" />
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <Users className='h-6 w-6 text-green-600' />
               <div>
                 <CardTitle>Team Members</CardTitle>
                 <CardDescription>
@@ -375,36 +433,43 @@ const Accounts = () => {
                 </CardDescription>
               </div>
             </div>
-            <Button variant="outline" onClick={fetchUsers} disabled={loading}>
+            <Button variant='outline' onClick={fetchUsers} disabled={loading}>
               Refresh
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading users...</p>
+            <div className='text-center py-8'>
+              <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary mx-auto mb-4'></div>
+              <p className='text-gray-600'>Loading users...</p>
             </div>
           ) : users.length > 0 ? (
-            <div className="space-y-3">
-              {users.map((userData) => (
-                <div key={userData.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-gray-600" />
+            <div className='space-y-3'>
+              {users.map(userData => (
+                <div
+                  key={userData.id}
+                  className='flex items-center justify-between p-4 border rounded-lg'
+                >
+                  <div className='flex items-center gap-4'>
+                    <div className='w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center'>
+                      <User className='h-5 w-5 text-gray-600' />
                     </div>
                     <div>
-                      <p className="font-medium">{userData.full_name || userData.email}</p>
-                      <p className="text-sm text-gray-600">{userData.email}</p>
+                      <p className='font-medium'>
+                        {userData.full_name || userData.email}
+                      </p>
+                      <p className='text-sm text-gray-600'>{userData.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className='flex items-center gap-4'>
                     {getRoleBadge(userData.role)}
-                    <div className="text-right text-sm text-gray-600">
+                    <div className='text-right text-sm text-gray-600'>
                       <p>Joined: {formatDate(userData.created_at)}</p>
                       {userData.last_sign_in_at && (
-                        <p>Last login: {formatDate(userData.last_sign_in_at)}</p>
+                        <p>
+                          Last login: {formatDate(userData.last_sign_in_at)}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -412,8 +477,8 @@ const Accounts = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-600">
-              <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <div className='text-center py-8 text-gray-600'>
+              <Users className='h-12 w-12 mx-auto mb-4 text-gray-300' />
               <p>No users found</p>
             </div>
           )}
@@ -424,4 +489,3 @@ const Accounts = () => {
 };
 
 export default Accounts;
-

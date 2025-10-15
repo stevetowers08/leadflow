@@ -1,5 +1,11 @@
 import React, { useEffect } from 'react';
-import { useAnalytics, usePageTracking, useClickTracking, useFormTracking, usePopupTracking } from '@/hooks/useAnalytics';
+import {
+  useAnalytics,
+  usePageTracking,
+  useClickTracking,
+  useFormTracking,
+  usePopupTracking,
+} from '@/hooks/useAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Analytics Dashboard Component
@@ -17,60 +23,60 @@ export const AnalyticsDashboard: React.FC = () => {
   }, [user, trackEvent]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Analytics Dashboard</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">User Behavior</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between">
+    <div className='p-6'>
+      <h1 className='text-2xl font-bold mb-6'>Analytics Dashboard</h1>
+
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+        <div className='bg-white p-6 rounded-lg shadow'>
+          <h3 className='text-lg font-semibold mb-4'>User Behavior</h3>
+          <div className='space-y-2'>
+            <div className='flex justify-between'>
               <span>Page Views:</span>
-              <span className="font-medium">-</span>
+              <span className='font-medium'>-</span>
             </div>
-            <div className="flex justify-between">
+            <div className='flex justify-between'>
               <span>Time on Page:</span>
-              <span className="font-medium">-</span>
+              <span className='font-medium'>-</span>
             </div>
-            <div className="flex justify-between">
+            <div className='flex justify-between'>
               <span>Clicks:</span>
-              <span className="font-medium">-</span>
+              <span className='font-medium'>-</span>
             </div>
-            <div className="flex justify-between">
+            <div className='flex justify-between'>
               <span>Scroll Depth:</span>
-              <span className="font-medium">-</span>
+              <span className='font-medium'>-</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Interactions</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between">
+        <div className='bg-white p-6 rounded-lg shadow'>
+          <h3 className='text-lg font-semibold mb-4'>Interactions</h3>
+          <div className='space-y-2'>
+            <div className='flex justify-between'>
               <span>Form Interactions:</span>
-              <span className="font-medium">-</span>
+              <span className='font-medium'>-</span>
             </div>
-            <div className="flex justify-between">
+            <div className='flex justify-between'>
               <span>Popup Interactions:</span>
-              <span className="font-medium">-</span>
+              <span className='font-medium'>-</span>
             </div>
-            <div className="flex justify-between">
+            <div className='flex justify-between'>
               <span>Search Queries:</span>
-              <span className="font-medium">-</span>
+              <span className='font-medium'>-</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Navigation</h3>
-          <div className="space-y-2">
-            <div className="text-sm">
-              <span className="font-medium">Current Path:</span>
-              <div className="text-gray-600">{window.location.pathname}</div>
+        <div className='bg-white p-6 rounded-lg shadow'>
+          <h3 className='text-lg font-semibold mb-4'>Navigation</h3>
+          <div className='space-y-2'>
+            <div className='text-sm'>
+              <span className='font-medium'>Current Path:</span>
+              <div className='text-gray-600'>{window.location.pathname}</div>
             </div>
-            <div className="text-sm">
-              <span className="font-medium">Session ID:</span>
-              <div className="text-gray-600 font-mono text-xs">-</div>
+            <div className='text-sm'>
+              <span className='font-medium'>Session ID:</span>
+              <div className='text-gray-600 font-mono text-xs'>-</div>
             </div>
           </div>
         </div>
@@ -146,13 +152,13 @@ export const AnalyticsPopup: React.FC<{
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Analytics Popup</h2>
+    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+      <div className='bg-white rounded-lg p-6 max-w-md w-full mx-4'>
+        <div className='flex justify-between items-center mb-4'>
+          <h2 className='text-lg font-semibold'>Analytics Popup</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className='text-gray-500 hover:text-gray-700'
           >
             ✕
           </button>
@@ -186,7 +192,7 @@ export const AnalyticsSearch: React.FC<{
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const query = formData.get('search') as string;
-    
+
     if (query.trim()) {
       trackEvent('search', {
         query: query.trim(),
@@ -199,10 +205,10 @@ export const AnalyticsSearch: React.FC<{
   return (
     <form onSubmit={handleSearch} className={className}>
       <input
-        type="search"
-        name="search"
+        type='search'
+        name='search'
         placeholder={placeholder}
-        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
       />
     </form>
   );
@@ -219,7 +225,7 @@ export const AnalyticsNavigation: React.FC<{
 }> = ({ items, className }) => {
   const { trackEvent } = useAnalytics();
 
-  const handleNavigation = (item: typeof items[0]) => {
+  const handleNavigation = (item: (typeof items)[0]) => {
     trackEvent('navigation', {
       from: window.location.pathname,
       to: item.href,
@@ -229,13 +235,13 @@ export const AnalyticsNavigation: React.FC<{
 
   return (
     <nav className={className}>
-      <ul className="flex space-x-4">
-        {items.map((item) => (
+      <ul className='flex space-x-4'>
+        {items.map(item => (
           <li key={item.name}>
             <a
               href={item.href}
               onClick={() => handleNavigation(item)}
-              className="text-blue-600 hover:text-blue-800"
+              className='text-blue-600 hover:text-blue-800'
             >
               {item.name}
             </a>
@@ -247,5 +253,3 @@ export const AnalyticsNavigation: React.FC<{
 };
 
 export default AnalyticsDashboard;
-
-

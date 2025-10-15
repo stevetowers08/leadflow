@@ -22,17 +22,17 @@ export class QueryPerformanceTests {
    */
   static async testUserAssignmentStats(): Promise<PerformanceTestResult> {
     const startTime = performance.now();
-    
+
     try {
       const stats = await UserAssignmentQueries.getUserAssignmentStats();
       const duration = performance.now() - startTime;
-      
+
       return {
         testName: 'User Assignment Stats',
         duration,
         recordCount: stats.length,
         queryType: 'optimized',
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
@@ -41,7 +41,7 @@ export class QueryPerformanceTests {
         recordCount: 0,
         queryType: 'optimized',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -51,17 +51,19 @@ export class QueryPerformanceTests {
    */
   static async testLeadsWithAssignments(): Promise<PerformanceTestResult> {
     const startTime = performance.now();
-    
+
     try {
-      const leads = await UserAssignmentQueries.getLeadsWithAssignments({ limit: 100 });
+      const leads = await UserAssignmentQueries.getLeadsWithAssignments({
+        limit: 100,
+      });
       const duration = performance.now() - startTime;
-      
+
       return {
         testName: 'Leads with Assignments',
         duration,
         recordCount: leads.length,
         queryType: 'optimized',
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
@@ -70,7 +72,7 @@ export class QueryPerformanceTests {
         recordCount: 0,
         queryType: 'optimized',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -80,17 +82,19 @@ export class QueryPerformanceTests {
    */
   static async testCompaniesWithAssignments(): Promise<PerformanceTestResult> {
     const startTime = performance.now();
-    
+
     try {
-      const companies = await UserAssignmentQueries.getCompaniesWithAssignments({ limit: 100 });
+      const companies = await UserAssignmentQueries.getCompaniesWithAssignments(
+        { limit: 100 }
+      );
       const duration = performance.now() - startTime;
-      
+
       return {
         testName: 'Companies with Assignments',
         duration,
         recordCount: companies.length,
         queryType: 'optimized',
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
@@ -99,7 +103,7 @@ export class QueryPerformanceTests {
         recordCount: 0,
         queryType: 'optimized',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -109,21 +113,21 @@ export class QueryPerformanceTests {
    */
   static async testUnassignedEntities(): Promise<PerformanceTestResult> {
     const startTime = performance.now();
-    
+
     try {
       const [leads, companies] = await Promise.all([
         UserAssignmentQueries.getUnassignedLeads(50),
-        UserAssignmentQueries.getUnassignedCompanies(50)
+        UserAssignmentQueries.getUnassignedCompanies(50),
       ]);
-      
+
       const duration = performance.now() - startTime;
-      
+
       return {
         testName: 'Unassigned Entities',
         duration,
         recordCount: leads.length + companies.length,
         queryType: 'optimized',
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
@@ -132,7 +136,7 @@ export class QueryPerformanceTests {
         recordCount: 0,
         queryType: 'optimized',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -142,24 +146,36 @@ export class QueryPerformanceTests {
    */
   static async testBatchAssignments(): Promise<PerformanceTestResult> {
     const startTime = performance.now();
-    
+
     try {
       // Create test assignments (this would be mocked in real tests)
       const testAssignments = [
-        { entityType: 'people' as const, entityId: 'test-1', ownerId: 'test-user-1' },
-        { entityType: 'people' as const, entityId: 'test-2', ownerId: 'test-user-2' },
-        { entityType: 'companies' as const, entityId: 'test-3', ownerId: 'test-user-1' }
+        {
+          entityType: 'people' as const,
+          entityId: 'test-1',
+          ownerId: 'test-user-1',
+        },
+        {
+          entityType: 'people' as const,
+          entityId: 'test-2',
+          ownerId: 'test-user-2',
+        },
+        {
+          entityType: 'companies' as const,
+          entityId: 'test-3',
+          ownerId: 'test-user-1',
+        },
       ];
-      
+
       await OptimizedQueries.batchUpdateAssignments(testAssignments);
       const duration = performance.now() - startTime;
-      
+
       return {
         testName: 'Batch Assignments',
         duration,
         recordCount: testAssignments.length,
         queryType: 'optimized',
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
@@ -168,7 +184,7 @@ export class QueryPerformanceTests {
         recordCount: 0,
         queryType: 'optimized',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -178,17 +194,20 @@ export class QueryPerformanceTests {
    */
   static async testDashboardStatsOptimized(): Promise<PerformanceTestResult> {
     const startTime = performance.now();
-    
+
     try {
       const stats = await OptimizedQueries.getDashboardStatsOptimized();
       const duration = performance.now() - startTime;
-      
+
       return {
         testName: 'Dashboard Stats Optimized',
         duration,
-        recordCount: stats.recentLeads.length + stats.recentCompanies.length + stats.userStats.length,
+        recordCount:
+          stats.recentLeads.length +
+          stats.recentCompanies.length +
+          stats.userStats.length,
         queryType: 'optimized',
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
@@ -197,7 +216,7 @@ export class QueryPerformanceTests {
         recordCount: 0,
         queryType: 'optimized',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -207,17 +226,17 @@ export class QueryPerformanceTests {
    */
   static async testUserCachePerformance(): Promise<PerformanceTestResult> {
     const startTime = performance.now();
-    
+
     try {
       const userCache = await OptimizedQueries.getUsersWithCache();
       const duration = performance.now() - startTime;
-      
+
       return {
         testName: 'User Cache Performance',
         duration,
         recordCount: Object.keys(userCache).length,
         queryType: 'optimized',
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
@@ -226,7 +245,7 @@ export class QueryPerformanceTests {
         recordCount: 0,
         queryType: 'optimized',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -242,11 +261,11 @@ export class QueryPerformanceTests {
       this.testUnassignedEntities,
       this.testBatchAssignments,
       this.testDashboardStatsOptimized,
-      this.testUserCachePerformance
+      this.testUserCachePerformance,
     ];
 
     const results: PerformanceTestResult[] = [];
-    
+
     for (const test of tests) {
       try {
         const result = await test.call(this);
@@ -258,7 +277,7 @@ export class QueryPerformanceTests {
           recordCount: 0,
           queryType: 'optimized',
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -272,10 +291,13 @@ export class QueryPerformanceTests {
   static generateReport(results: PerformanceTestResult[]): string {
     const successfulTests = results.filter(r => r.success);
     const failedTests = results.filter(r => !r.success);
-    
-    const avgDuration = successfulTests.reduce((sum, r) => sum + r.duration, 0) / successfulTests.length;
-    const slowestTest = successfulTests.reduce((slowest, current) => 
-      current.duration > slowest.duration ? current : slowest, 
+
+    const avgDuration =
+      successfulTests.reduce((sum, r) => sum + r.duration, 0) /
+      successfulTests.length;
+    const slowestTest = successfulTests.reduce(
+      (slowest, current) =>
+        current.duration > slowest.duration ? current : slowest,
       { duration: 0, testName: '' }
     );
 
@@ -291,20 +313,31 @@ export class QueryPerformanceTests {
 
 ## Test Results
 
-${results.map(result => `
+${results
+  .map(
+    result => `
 ### ${result.testName}
 - **Status**: ${result.success ? '✅ PASS' : '❌ FAIL'}
 - **Duration**: ${result.duration.toFixed(2)}ms
 - **Records**: ${result.recordCount}
 - **Type**: ${result.queryType}
 ${result.error ? `- **Error**: ${result.error}` : ''}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 ## Performance Recommendations
 
-${results.filter(r => r.duration > 1000).map(r => 
-  `- **${r.testName}**: Consider further optimization (${r.duration.toFixed(2)}ms)`
-).join('\n') || '- All tests are performing within acceptable limits (< 1000ms)'}
+${
+  results
+    .filter(r => r.duration > 1000)
+    .map(
+      r =>
+        `- **${r.testName}**: Consider further optimization (${r.duration.toFixed(2)}ms)`
+    )
+    .join('\n') ||
+  '- All tests are performing within acceptable limits (< 1000ms)'
+}
 
 ## Index Usage Verification
 
@@ -335,13 +368,13 @@ SELECT * FROM user_assignment_stats;
  */
 export const runPerformanceTests = async (): Promise<string> => {
   console.log('🚀 Starting query performance tests...');
-  
+
   const results = await QueryPerformanceTests.runAllTests();
   const report = QueryPerformanceTests.generateReport(results);
-  
+
   console.log('📊 Performance test results:');
   console.log(report);
-  
+
   return report;
 };
 
@@ -358,7 +391,7 @@ export const usePerformanceTests = () => {
     try {
       const testResults = await QueryPerformanceTests.runAllTests();
       const testReport = QueryPerformanceTests.generateReport(testResults);
-      
+
       setResults(testResults);
       setReport(testReport);
     } catch (error) {
@@ -372,6 +405,6 @@ export const usePerformanceTests = () => {
     runTests,
     isRunning,
     results,
-    report
+    report,
   };
 };

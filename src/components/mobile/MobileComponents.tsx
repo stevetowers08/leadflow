@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
 interface SwipeableProps {
   children: React.ReactNode;
@@ -35,11 +35,11 @@ export const SwipeableComponent: React.FC<SwipeableProps> = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || !startX || !startY) return;
-    
+
     const touch = e.touches[0];
     const deltaX = touch.clientX - startX;
     const deltaY = touch.clientY - startY;
-    
+
     // Prevent default scrolling if we're swiping horizontally
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
       e.preventDefault();
@@ -48,11 +48,11 @@ export const SwipeableComponent: React.FC<SwipeableProps> = ({
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!isDragging || !startX || !startY) return;
-    
+
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - startX;
     const deltaY = touch.clientY - startY;
-    
+
     // Determine swipe direction
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
       // Horizontal swipe
@@ -73,7 +73,7 @@ export const SwipeableComponent: React.FC<SwipeableProps> = ({
         }
       }
     }
-    
+
     setStartX(null);
     setStartY(null);
     setIsDragging(false);
@@ -89,15 +89,15 @@ export const SwipeableComponent: React.FC<SwipeableProps> = ({
     <div
       ref={elementRef}
       className={cn(
-        "touch-none select-none",
-        isDragging && "cursor-grabbing",
+        'touch-none select-none',
+        isDragging && 'cursor-grabbing',
         className
       )}
       style={{
         touchAction: 'pan-y pinch-zoom', // Allow vertical scroll and pinch zoom
         WebkitTouchCallout: 'none', // Disable iOS callout
         WebkitUserSelect: 'none', // Disable text selection
-        userSelect: 'none'
+        userSelect: 'none',
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -151,27 +151,27 @@ export const MobileCard: React.FC<MobileCardProps> = ({
   };
 
   return (
-    <div className="relative overflow-hidden">
+    <div className='relative overflow-hidden'>
       {/* Background actions */}
-      <div className="absolute inset-0 flex">
+      <div className='absolute inset-0 flex'>
         {leftAction && (
-          <div className="flex-1 bg-primary flex items-center justify-center text-white">
+          <div className='flex-1 bg-primary flex items-center justify-center text-white'>
             {leftAction}
           </div>
         )}
         {rightAction && (
-          <div className="flex-1 bg-destructive flex items-center justify-center text-white">
+          <div className='flex-1 bg-destructive flex items-center justify-center text-white'>
             {rightAction}
           </div>
         )}
       </div>
-      
+
       {/* Main content */}
       <SwipeableComponent
         onSwipeLeft={handleSwipeLeft}
         onSwipeRight={handleSwipeRight}
         className={cn(
-          "relative bg-card transition-transform duration-200 border shadow-sm",
+          'relative bg-card transition-transform duration-200 border shadow-sm',
           className
         )}
         style={{
@@ -195,10 +195,10 @@ export const useMobile = () => {
       const width = window.innerWidth;
       const isMobileDevice = width < 768;
       const isTabletDevice = width >= 768 && width < 1024;
-      
+
       setIsMobile(isMobileDevice);
       setIsTablet(isTabletDevice);
-      
+
       if (isMobileDevice) {
         setScreenSize('mobile');
       } else if (isTabletDevice) {
@@ -210,7 +210,7 @@ export const useMobile = () => {
 
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    
+
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
@@ -219,4 +219,3 @@ export const useMobile = () => {
 
 // Re-export Button with mobile-optimized defaults
 export const MobileButton = Button;
-

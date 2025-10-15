@@ -27,7 +27,7 @@ export const VALIDATION_PATTERNS = {
   html: /<[^>]*>/g,
   script: /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
   sql: /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/gi,
-  xss: /<script|javascript:|on\w+\s*=|data:text\/html|vbscript:|<iframe|<object|<embed|<link|<meta/gi
+  xss: /<script|javascript:|on\w+\s*=|data:text\/html|vbscript:|<iframe|<object|<embed|<link|<meta/gi,
 };
 
 // Input length limits
@@ -46,7 +46,7 @@ export const INPUT_LIMITS = {
   username: { min: 3, max: 50 },
   slug: { min: 1, max: 100 },
   tag: { min: 1, max: 50 },
-  search: { min: 1, max: 200 }
+  search: { min: 1, max: 200 },
 };
 
 // Validation result interface
@@ -70,14 +70,17 @@ export interface SanitizationOptions {
 /**
  * Sanitize HTML content to prevent XSS attacks
  */
-export function sanitizeHtml(input: string, options: SanitizationOptions = {}): string {
+export function sanitizeHtml(
+  input: string,
+  options: SanitizationOptions = {}
+): string {
   if (!input || typeof input !== 'string') return '';
 
   const {
     allowHtml = false,
     removeScripts = true,
     removeStyles = true,
-    normalizeWhitespace = true
+    normalizeWhitespace = true,
   } = options;
 
   let sanitized = input;
@@ -90,18 +93,40 @@ export function sanitizeHtml(input: string, options: SanitizationOptions = {}): 
 
   // Remove styles if not allowed
   if (removeStyles) {
-    sanitized = sanitized.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+    sanitized = sanitized.replace(
+      /<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi,
+      ''
+    );
   }
 
   // Use DOMPurify for comprehensive sanitization
   if (allowHtml) {
     sanitized = DOMPurify.sanitize(sanitized, {
-      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+      ALLOWED_TAGS: [
+        'p',
+        'br',
+        'strong',
+        'em',
+        'u',
+        'ol',
+        'ul',
+        'li',
+        'a',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+      ],
       ALLOWED_ATTR: ['href', 'title', 'target'],
-      ALLOW_DATA_ATTR: false
+      ALLOW_DATA_ATTR: false,
     });
   } else {
-    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    sanitized = DOMPurify.sanitize(sanitized, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    });
   }
 
   // Normalize whitespace
@@ -131,7 +156,7 @@ export function validateText(
     minLength = 0,
     maxLength = 1000,
     required = false,
-    sanitize = true
+    sanitize = true,
   } = options;
 
   const errors: string[] = [];
@@ -159,7 +184,9 @@ export function validateText(
   }
 
   if (sanitizedValue.length > maxLength) {
-    errors.push(`${fieldName} must be no more than ${maxLength} characters long`);
+    errors.push(
+      `${fieldName} must be no more than ${maxLength} characters long`
+    );
   }
 
   // Check pattern
@@ -170,148 +197,181 @@ export function validateText(
   return {
     isValid: errors.length === 0,
     errors,
-    sanitizedValue
+    sanitizedValue,
   };
 }
 
 /**
  * Validate email address
  */
-export function validateEmail(email: string, required: boolean = true): ValidationResult {
+export function validateEmail(
+  email: string,
+  required: boolean = true
+): ValidationResult {
   return validateText(email, 'Email', {
     pattern: VALIDATION_PATTERNS.email,
     minLength: INPUT_LIMITS.email.min,
     maxLength: INPUT_LIMITS.email.max,
     required,
-    sanitize: true
+    sanitize: true,
   });
 }
 
 /**
  * Validate phone number
  */
-export function validatePhone(phone: string, required: boolean = false): ValidationResult {
+export function validatePhone(
+  phone: string,
+  required: boolean = false
+): ValidationResult {
   // Remove all non-digit characters except + at the beginning
   const cleaned = phone.replace(/[^\d+]/g, '');
-  
+
   return validateText(cleaned, 'Phone', {
     pattern: VALIDATION_PATTERNS.phone,
     minLength: INPUT_LIMITS.phone.min,
     maxLength: INPUT_LIMITS.phone.max,
     required,
-    sanitize: true
+    sanitize: true,
   });
 }
 
 /**
  * Validate URL
  */
-export function validateUrl(url: string, required: boolean = false): ValidationResult {
+export function validateUrl(
+  url: string,
+  required: boolean = false
+): ValidationResult {
   return validateText(url, 'URL', {
     pattern: VALIDATION_PATTERNS.url,
     minLength: INPUT_LIMITS.url.min,
     maxLength: INPUT_LIMITS.url.max,
     required,
-    sanitize: true
+    sanitize: true,
   });
 }
 
 /**
  * Validate LinkedIn profile URL
  */
-export function validateLinkedIn(url: string, required: boolean = false): ValidationResult {
+export function validateLinkedIn(
+  url: string,
+  required: boolean = false
+): ValidationResult {
   return validateText(url, 'LinkedIn URL', {
     pattern: VALIDATION_PATTERNS.linkedin,
     minLength: INPUT_LIMITS.url.min,
     maxLength: INPUT_LIMITS.url.max,
     required,
-    sanitize: true
+    sanitize: true,
   });
 }
 
 /**
  * Validate company name
  */
-export function validateCompanyName(name: string, required: boolean = true): ValidationResult {
+export function validateCompanyName(
+  name: string,
+  required: boolean = true
+): ValidationResult {
   return validateText(name, 'Company Name', {
     pattern: VALIDATION_PATTERNS.company,
     minLength: INPUT_LIMITS.company.min,
     maxLength: INPUT_LIMITS.company.max,
     required,
-    sanitize: true
+    sanitize: true,
   });
 }
 
 /**
  * Validate job title
  */
-export function validateJobTitle(title: string, required: boolean = true): ValidationResult {
+export function validateJobTitle(
+  title: string,
+  required: boolean = true
+): ValidationResult {
   return validateText(title, 'Job Title', {
     pattern: VALIDATION_PATTERNS.jobTitle,
     minLength: INPUT_LIMITS.jobTitle.min,
     maxLength: INPUT_LIMITS.jobTitle.max,
     required,
-    sanitize: true
+    sanitize: true,
   });
 }
 
 /**
  * Validate person name
  */
-export function validatePersonName(name: string, required: boolean = true): ValidationResult {
+export function validatePersonName(
+  name: string,
+  required: boolean = true
+): ValidationResult {
   return validateText(name, 'Name', {
     pattern: VALIDATION_PATTERNS.name,
     minLength: INPUT_LIMITS.name.min,
     maxLength: INPUT_LIMITS.name.max,
     required,
-    sanitize: true
+    sanitize: true,
   });
 }
 
 /**
  * Validate search query
  */
-export function validateSearchQuery(query: string, required: boolean = true): ValidationResult {
+export function validateSearchQuery(
+  query: string,
+  required: boolean = true
+): ValidationResult {
   return validateText(query, 'Search Query', {
     minLength: INPUT_LIMITS.search.min,
     maxLength: INPUT_LIMITS.search.max,
     required,
-    sanitize: true
+    sanitize: true,
   });
 }
 
 /**
  * Validate message content
  */
-export function validateMessage(message: string, required: boolean = true): ValidationResult {
+export function validateMessage(
+  message: string,
+  required: boolean = true
+): ValidationResult {
   return validateText(message, 'Message', {
     minLength: INPUT_LIMITS.message.min,
     maxLength: INPUT_LIMITS.message.max,
     required,
-    sanitize: true
+    sanitize: true,
   });
 }
 
 /**
  * Validate notes content
  */
-export function validateNotes(notes: string, required: boolean = false): ValidationResult {
+export function validateNotes(
+  notes: string,
+  required: boolean = false
+): ValidationResult {
   return validateText(notes, 'Notes', {
     minLength: INPUT_LIMITS.notes.min,
     maxLength: INPUT_LIMITS.notes.max,
     required,
-    sanitize: true
+    sanitize: true,
   });
 }
 
 /**
  * Validate UUID
  */
-export function validateUuid(uuid: string, required: boolean = true): ValidationResult {
+export function validateUuid(
+  uuid: string,
+  required: boolean = true
+): ValidationResult {
   return validateText(uuid, 'ID', {
     pattern: VALIDATION_PATTERNS.uuid,
     required,
-    sanitize: false
+    sanitize: false,
   });
 }
 
@@ -321,14 +381,18 @@ export function validateUuid(uuid: string, required: boolean = true): Validation
 export function validateFormData<T extends Record<string, any>>(
   data: T,
   validationRules: Record<keyof T, (value: any) => ValidationResult>
-): { isValid: boolean; errors: Record<string, string[]>; sanitizedData: Partial<T> } {
+): {
+  isValid: boolean;
+  errors: Record<string, string[]>;
+  sanitizedData: Partial<T>;
+} {
   const errors: Record<string, string[]> = {};
   const sanitizedData: Partial<T> = {};
   let isValid = true;
 
   for (const [field, validator] of Object.entries(validationRules)) {
     const result = validator(data[field]);
-    
+
     if (!result.isValid) {
       errors[field] = result.errors;
       isValid = false;
@@ -422,6 +486,6 @@ export function useInputValidation() {
     sanitizeHtml,
     detectSqlInjection,
     detectXss,
-    inputRateLimiter
+    inputRateLimiter,
   };
 }

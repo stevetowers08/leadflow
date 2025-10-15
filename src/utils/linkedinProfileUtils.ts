@@ -6,7 +6,7 @@
 /**
  * Generate UI Avatars URL as fallback
  * UI Avatars is a free service that generates avatar images from initials
- * 
+ *
  * @param name - Person's name for initials
  * @param size - Image size in pixels
  * @param backgroundColor - Background color (optional)
@@ -30,12 +30,12 @@ export const getUIAvatarUrl = (
  */
 export const getInitials = (name: string | null | undefined): string => {
   if (!name) return '?';
-  
+
   const words = name.trim().split(' ');
   if (words.length === 1) {
     return words[0].charAt(0).toUpperCase();
   }
-  
+
   return words
     .slice(0, 2)
     .map(word => word.charAt(0).toUpperCase())
@@ -58,10 +58,10 @@ export const getProfileImage = (
 ) => {
   const initials = getInitials(name);
   const avatarUrl = getUIAvatarUrl(name, size, backgroundColor, textColor);
-  
+
   return {
     avatarUrl,
     initials,
-    hasImage: true // UI Avatars always works
+    hasImage: true, // UI Avatars always works
   };
 };

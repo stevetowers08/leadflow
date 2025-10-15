@@ -25,7 +25,14 @@ export const DatabaseInfoCard: React.FC = () => {
         try {
           const count = await dbQuery.getTableStats(table);
           // Get column count (simplified - you could enhance this)
-          const columnCount = table === 'people' ? 40 : table === 'companies' ? 15 : table === 'jobs' ? 20 : 10;
+          const columnCount =
+            table === 'people'
+              ? 40
+              : table === 'companies'
+                ? 15
+                : table === 'jobs'
+                  ? 20
+                  : 10;
           stats.push({ name: table, count: count || 0, columns: columnCount });
         } catch (error) {
           console.error(`Error getting stats for ${table}:`, error);
@@ -48,13 +55,13 @@ export const DatabaseInfoCard: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Database className="h-5 w-5 text-blue-600" />
+        <CardTitle className='flex items-center gap-2'>
+          <Database className='h-5 w-5 text-blue-600' />
           Database Overview
-          <Button 
-            onClick={loadTableStats} 
-            variant="ghost" 
-            size="sm"
+          <Button
+            onClick={loadTableStats}
+            variant='ghost'
+            size='sm'
             disabled={loading}
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -62,26 +69,30 @@ export const DatabaseInfoCard: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          {tableStats.map((table) => (
-            <div key={table.name} className="flex items-center justify-between p-3 border rounded-lg">
+        <div className='grid grid-cols-2 gap-4'>
+          {tableStats.map(table => (
+            <div
+              key={table.name}
+              className='flex items-center justify-between p-3 border rounded-lg'
+            >
               <div>
-                <div className="font-medium capitalize">{table.name}</div>
-                <div className="text-sm text-muted-foreground">
+                <div className='font-medium capitalize'>{table.name}</div>
+                <div className='text-sm text-muted-foreground'>
                   {table.columns} columns
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{table.count.toLocaleString()}</Badge>
-                <Eye className="h-4 w-4 text-muted-foreground" />
+              <div className='flex items-center gap-2'>
+                <Badge variant='outline'>{table.count.toLocaleString()}</Badge>
+                <Eye className='h-4 w-4 text-muted-foreground' />
               </div>
             </div>
           ))}
         </div>
-        
-        <div className="mt-4 pt-4 border-t">
-          <div className="text-sm text-muted-foreground">
-            💡 <strong>Tip:</strong> Go to Admin → Database to explore table schemas and data
+
+        <div className='mt-4 pt-4 border-t'>
+          <div className='text-sm text-muted-foreground'>
+            💡 <strong>Tip:</strong> Go to Admin → Database to explore table
+            schemas and data
           </div>
         </div>
       </CardContent>

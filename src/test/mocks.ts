@@ -6,7 +6,9 @@ export const mockSupabase = {
     getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
     signIn: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
     signOut: vi.fn().mockResolvedValue({ error: null }),
-    onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    onAuthStateChange: vi
+      .fn()
+      .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
   },
   from: vi.fn(() => ({
     select: vi.fn().mockReturnThis(),
@@ -67,8 +69,3 @@ export const mockSessionStorage = {
 Object.defineProperty(window, 'sessionStorage', {
   value: mockSessionStorage,
 });
-
-
-
-
-

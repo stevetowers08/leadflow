@@ -2,7 +2,7 @@
 // Forms
 export * from './forms';
 
-// Tables  
+// Tables
 export * from './tables';
 
 // Layout

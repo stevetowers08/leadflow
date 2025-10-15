@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, X, Tag } from "lucide-react";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/popover';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Plus, X, Tag } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Tag {
   id: string;
@@ -22,7 +22,7 @@ interface Tag {
 
 interface TagSelectorProps {
   entityId: string;
-  entityType: "company" | "person" | "job";
+  entityType: 'company' | 'person' | 'job';
   selectedTags: Tag[];
   onTagsChange: (tags: Tag[]) => void;
   disabled?: boolean;
@@ -40,13 +40,21 @@ export const TagSelector = ({
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
-  const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState("#3B82F6");
+  const [newTagName, setNewTagName] = useState('');
+  const [newTagColor, setNewTagColor] = useState('#3B82F6');
   const { toast } = useToast();
 
   const predefinedColors = [
-    "#EF4444", "#F97316", "#F59E0B", "#10B981", "#059669",
-    "#3B82F6", "#8B5CF6", "#7C3AED", "#EC4899", "#6B7280"
+    '#EF4444',
+    '#F97316',
+    '#F59E0B',
+    '#10B981',
+    '#059669',
+    '#3B82F6',
+    '#8B5CF6',
+    '#7C3AED',
+    '#EC4899',
+    '#6B7280',
   ];
 
   useEffect(() => {
@@ -61,11 +69,11 @@ export const TagSelector = ({
         if (error) throw error;
         setAvailableTags(data || []);
       } catch (error) {
-        console.error("Error fetching tags:", error);
+        console.error('Error fetching tags:', error);
         toast({
-          title: "Error",
-          description: "Failed to load tags",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to load tags',
+          variant: 'destructive',
         });
       } finally {
         setLoading(false);
@@ -76,8 +84,10 @@ export const TagSelector = ({
   }, [toast]);
 
   const handleTagToggle = async (tag: Tag) => {
-    const isSelected = selectedTags.some(selectedTag => selectedTag.id === tag.id);
-    
+    const isSelected = selectedTags.some(
+      selectedTag => selectedTag.id === tag.id
+    );
+
     if (isSelected) {
       // Remove tag
       try {
@@ -90,52 +100,52 @@ export const TagSelector = ({
 
         if (error) throw error;
 
-        onTagsChange(selectedTags.filter(selectedTag => selectedTag.id !== tag.id));
+        onTagsChange(
+          selectedTags.filter(selectedTag => selectedTag.id !== tag.id)
+        );
         toast({
-          title: "Tag Removed",
+          title: 'Tag Removed',
           description: `Removed "${tag.name}" tag`,
         });
       } catch (error) {
-        console.error("Error removing tag:", error);
+        console.error('Error removing tag:', error);
         toast({
-          title: "Error",
-          description: "Failed to remove tag",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to remove tag',
+          variant: 'destructive',
         });
       }
     } else {
       // Add tag
       if (selectedTags.length >= maxTags) {
         toast({
-          title: "Maximum Tags Reached",
+          title: 'Maximum Tags Reached',
           description: `You can only add up to ${maxTags} tags`,
-          variant: "destructive",
+          variant: 'destructive',
         });
         return;
       }
 
       try {
-        const { error } = await supabase
-          .from('entity_tags')
-          .insert({
-            entity_id: entityId,
-            entity_type: entityType,
-            tag_id: tag.id,
-          });
+        const { error } = await supabase.from('entity_tags').insert({
+          entity_id: entityId,
+          entity_type: entityType,
+          tag_id: tag.id,
+        });
 
         if (error) throw error;
 
         onTagsChange([...selectedTags, tag]);
         toast({
-          title: "Tag Added",
+          title: 'Tag Added',
           description: `Added "${tag.name}" tag`,
         });
       } catch (error) {
-        console.error("Error adding tag:", error);
+        console.error('Error adding tag:', error);
         toast({
-          title: "Error",
-          description: "Failed to add tag",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to add tag',
+          variant: 'destructive',
         });
       }
     }
@@ -157,55 +167,58 @@ export const TagSelector = ({
       if (error) throw error;
 
       setAvailableTags(prev => [...prev, data]);
-      setNewTagName("");
+      setNewTagName('');
       toast({
-        title: "Tag Created",
+        title: 'Tag Created',
         description: `Created "${data.name}" tag`,
       });
     } catch (error) {
-      console.error("Error creating tag:", error);
+      console.error('Error creating tag:', error);
       toast({
-        title: "Error",
-        description: "Failed to create tag",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create tag',
+        variant: 'destructive',
       });
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-sm text-muted-foreground">Loading tags...</span>
+      <div className='flex items-center gap-2'>
+        <Loader2 className='h-4 w-4 animate-spin' />
+        <span className='text-sm text-muted-foreground'>Loading tags...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className='space-y-3'>
       {/* Selected Tags */}
       {selectedTags.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selectedTags.map((tag) => (
+        <div className='flex flex-wrap gap-2'>
+          {selectedTags.map(tag => (
             <Badge
               key={tag.id}
-              variant="secondary"
-              className="flex items-center gap-1"
-              style={{ backgroundColor: tag.color + '20', borderColor: tag.color }}
+              variant='secondary'
+              className='flex items-center gap-1'
+              style={{
+                backgroundColor: tag.color + '20',
+                borderColor: tag.color,
+              }}
             >
-              <div 
-                className="w-2 h-2 rounded-full" 
+              <div
+                className='w-2 h-2 rounded-full'
                 style={{ backgroundColor: tag.color }}
               />
               {tag.name}
               <Button
-                variant="ghost"
-                size="sm"
-                className="h-4 w-4 p-0 hover:bg-transparent"
+                variant='ghost'
+                size='sm'
+                className='h-4 w-4 p-0 hover:bg-transparent'
                 onClick={() => handleTagToggle(tag)}
                 disabled={disabled}
               >
-                <X className="h-3 w-3" />
+                <X className='h-3 w-3' />
               </Button>
             </Badge>
           ))}
@@ -216,37 +229,42 @@ export const TagSelector = ({
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
-            size="sm"
+            variant='outline'
+            size='sm'
             disabled={disabled || selectedTags.length >= maxTags}
-            className="h-8"
+            className='h-8'
           >
-            <Plus className="h-3 w-3 mr-1" />
+            <Plus className='h-3 w-3 mr-1' />
             Add Tag
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80" align="start">
-          <div className="space-y-4">
-            <div className="space-y-2">
+        <PopoverContent className='w-80' align='start'>
+          <div className='space-y-4'>
+            <div className='space-y-2'>
               <Label>Available Tags</Label>
-              <div className="max-h-40 overflow-y-auto space-y-1">
+              <div className='max-h-40 overflow-y-auto space-y-1'>
                 {availableTags
-                  .filter(tag => !selectedTags.some(selectedTag => selectedTag.id === tag.id))
-                  .map((tag) => (
+                  .filter(
+                    tag =>
+                      !selectedTags.some(
+                        selectedTag => selectedTag.id === tag.id
+                      )
+                  )
+                  .map(tag => (
                     <Button
                       key={tag.id}
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start h-8"
+                      variant='ghost'
+                      size='sm'
+                      className='w-full justify-start h-8'
                       onClick={() => handleTagToggle(tag)}
                     >
-                      <div 
-                        className="w-2 h-2 rounded-full mr-2" 
+                      <div
+                        className='w-2 h-2 rounded-full mr-2'
                         style={{ backgroundColor: tag.color }}
                       />
                       {tag.name}
                       {tag.description && (
-                        <span className="text-xs text-muted-foreground ml-2">
+                        <span className='text-xs text-muted-foreground ml-2'>
                           - {tag.description}
                         </span>
                       )}
@@ -256,22 +274,24 @@ export const TagSelector = ({
             </div>
 
             {/* Create New Tag */}
-            <div className="space-y-2 border-t pt-3">
+            <div className='space-y-2 border-t pt-3'>
               <Label>Create New Tag</Label>
-              <div className="flex gap-2">
+              <div className='flex gap-2'>
                 <Input
-                  placeholder="Tag name"
+                  placeholder='Tag name'
                   value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                  className="flex-1"
+                  onChange={e => setNewTagName(e.target.value)}
+                  className='flex-1'
                 />
-                <div className="flex gap-1">
-                  {predefinedColors.map((color) => (
+                <div className='flex gap-1'>
+                  {predefinedColors.map(color => (
                     <button
                       key={color}
                       className={cn(
-                        "w-6 h-6 rounded border-2",
-                        newTagColor === color ? "border-gray-400" : "border-gray-200"
+                        'w-6 h-6 rounded border-2',
+                        newTagColor === color
+                          ? 'border-gray-400'
+                          : 'border-gray-200'
                       )}
                       style={{ backgroundColor: color }}
                       onClick={() => setNewTagColor(color)}
@@ -280,12 +300,12 @@ export const TagSelector = ({
                 </div>
               </div>
               <Button
-                size="sm"
+                size='sm'
                 onClick={handleCreateTag}
                 disabled={!newTagName.trim()}
-                className="w-full"
+                className='w-full'
               >
-                <Tag className="h-3 w-3 mr-1" />
+                <Tag className='h-3 w-3 mr-1' />
                 Create Tag
               </Button>
             </div>

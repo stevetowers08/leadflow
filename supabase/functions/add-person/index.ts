@@ -1,9 +1,10 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
 };
 
 interface PersonData {
@@ -41,7 +42,10 @@ function generateUniqueEmail(originalEmail: string): string {
 /**
  * Check if a LinkedIn URL already exists
  */
-async function checkLinkedInUrlExists(supabase: any, linkedinUrl: string): Promise<boolean> {
+async function checkLinkedInUrlExists(
+  supabase: any,
+  linkedinUrl: string
+): Promise<boolean> {
   try {
     const { data, error } = await supabase
       .from('people')
@@ -49,7 +53,8 @@ async function checkLinkedInUrlExists(supabase: any, linkedinUrl: string): Promi
       .eq('linkedin_url', linkedinUrl)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
       throw error;
     }
 
@@ -63,7 +68,10 @@ async function checkLinkedInUrlExists(supabase: any, linkedinUrl: string): Promi
 /**
  * Check if an email address already exists
  */
-async function checkEmailExists(supabase: any, email: string): Promise<boolean> {
+async function checkEmailExists(
+  supabase: any,
+  email: string
+): Promise<boolean> {
   try {
     const { data, error } = await supabase
       .from('people')
@@ -71,7 +79,8 @@ async function checkEmailExists(supabase: any, email: string): Promise<boolean> 
       .eq('email_address', email)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
       throw error;
     }
 
@@ -85,7 +94,10 @@ async function checkEmailExists(supabase: any, email: string): Promise<boolean> 
 /**
  * Insert person with duplicate handling
  */
-async function insertPersonWithDuplicateHandling(supabase: any, personData: PersonData) {
+async function insertPersonWithDuplicateHandling(
+  supabase: any,
+  personData: PersonData
+) {
   try {
     // First attempt: try to insert as-is
     const { data, error } = await supabase
@@ -93,7 +105,7 @@ async function insertPersonWithDuplicateHandling(supabase: any, personData: Pers
       .insert({
         ...personData,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .select();
 
@@ -105,11 +117,15 @@ async function insertPersonWithDuplicateHandling(supabase: any, personData: Pers
     // Handle duplicate key errors
     if (error.code === '23505') {
       if (error.message.includes('linkedin_url_key')) {
-        console.log('Duplicate LinkedIn URL detected, creating unique version...');
-        
+        console.log(
+          'Duplicate LinkedIn URL detected, creating unique version...'
+        );
+
         // Generate a unique LinkedIn URL
-        const uniqueLinkedInUrl = generateUniqueLinkedInUrl(personData.linkedin_url!);
-        
+        const uniqueLinkedInUrl = generateUniqueLinkedInUrl(
+          personData.linkedin_url!
+        );
+
         // Try inserting with the unique LinkedIn URL
         const { data: uniqueData, error: uniqueError } = await supabase
           .from('people')
@@ -117,31 +133,36 @@ async function insertPersonWithDuplicateHandling(supabase: any, personData: Pers
             ...personData,
             linkedin_url: uniqueLinkedInUrl,
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .select();
 
         if (uniqueError) {
-          console.error('Failed to insert person even with unique LinkedIn URL:', uniqueError);
+          console.error(
+            'Failed to insert person even with unique LinkedIn URL:',
+            uniqueError
+          );
           throw uniqueError;
         }
 
         console.log('Person inserted with unique LinkedIn URL:', uniqueData);
-        return { 
-          success: true, 
-          data: uniqueData, 
+        return {
+          success: true,
+          data: uniqueData,
           method: 'unique_linkedin_url',
           originalLinkedInUrl: personData.linkedin_url,
-          uniqueLinkedInUrl 
+          uniqueLinkedInUrl,
         };
       }
-      
+
       if (error.message.includes('email_address_key')) {
-        console.log('Duplicate email address detected, creating unique version...');
-        
+        console.log(
+          'Duplicate email address detected, creating unique version...'
+        );
+
         // Generate a unique email
         const uniqueEmail = generateUniqueEmail(personData.email_address!);
-        
+
         // Try inserting with the unique email
         const { data: uniqueData, error: uniqueError } = await supabase
           .from('people')
@@ -149,22 +170,25 @@ async function insertPersonWithDuplicateHandling(supabase: any, personData: Pers
             ...personData,
             email_address: uniqueEmail,
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .select();
 
         if (uniqueError) {
-          console.error('Failed to insert person even with unique email:', uniqueError);
+          console.error(
+            'Failed to insert person even with unique email:',
+            uniqueError
+          );
           throw uniqueError;
         }
 
         console.log('Person inserted with unique email:', uniqueData);
-        return { 
-          success: true, 
-          data: uniqueData, 
+        return {
+          success: true,
+          data: uniqueData,
           method: 'unique_email',
           originalEmail: personData.email_address,
-          uniqueEmail 
+          uniqueEmail,
         };
       }
     }
@@ -187,11 +211,11 @@ async function upsertPerson(supabase: any, personData: PersonData) {
       .upsert(
         {
           ...personData,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         },
         {
           onConflict: 'linkedin_url,email_address',
-          ignoreDuplicates: false
+          ignoreDuplicates: false,
         }
       )
       .select();
@@ -227,13 +251,13 @@ Deno.serve(async (req: Request) => {
     // Validate required fields
     if (!personData.name) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'Missing required field: name',
-          code: 'VALIDATION_ERROR'
+          code: 'VALIDATION_ERROR',
         }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
@@ -258,43 +282,42 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         message: 'Person added successfully',
-        ...result
+        ...result,
       }),
-      { 
-        status: 201, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 201,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error: any) {
     console.error('Error in add-person function:', error);
 
     // Handle specific error types
     if (error.code === '23505') {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'Duplicate key constraint violation',
           code: error.code,
           details: error.details,
           message: error.message,
-          hint: 'Try using method=upsert to update existing records instead of creating duplicates'
+          hint: 'Try using method=upsert to update existing records instead of creating duplicates',
         }),
-        { 
-          status: 409, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 409,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Internal server error',
         code: 'INTERNAL_ERROR',
-        message: error.message
+        message: error.message,
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }

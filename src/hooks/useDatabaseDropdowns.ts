@@ -6,9 +6,9 @@ export interface DatabaseDropdownOption {
   label: string;
 }
 
-export type DropdownType = 
+export type DropdownType =
   | 'company_status'
-  | 'lead_stage' 
+  | 'lead_stage'
   | 'job_status'
   | 'priority_level'
   | 'automation_status'
@@ -29,7 +29,7 @@ export const useDatabaseDropdowns = (dropdownType: DropdownType) => {
         setError(null);
 
         const { data, error } = await supabase.rpc('get_dropdown_options', {
-          dropdown_type: dropdownType
+          dropdown_type: dropdownType,
         });
 
         if (error) throw error;
@@ -37,7 +37,9 @@ export const useDatabaseDropdowns = (dropdownType: DropdownType) => {
         setOptions(data || []);
       } catch (err) {
         console.error(`Error fetching ${dropdownType} options:`, err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch options');
+        setError(
+          err instanceof Error ? err.message : 'Failed to fetch options'
+        );
       } finally {
         setLoading(false);
       }
@@ -50,12 +52,18 @@ export const useDatabaseDropdowns = (dropdownType: DropdownType) => {
 };
 
 // Convenience hooks for specific dropdown types
-export const useCompanyStatusDropdown = () => useDatabaseDropdowns('company_status');
+export const useCompanyStatusDropdown = () =>
+  useDatabaseDropdowns('company_status');
 export const useLeadStageDropdown = () => useDatabaseDropdowns('lead_stage');
 export const useJobStatusDropdown = () => useDatabaseDropdowns('job_status');
-export const usePriorityLevelDropdown = () => useDatabaseDropdowns('priority_level');
-export const useAutomationStatusDropdown = () => useDatabaseDropdowns('automation_status');
-export const useConfidenceLevelDropdown = () => useDatabaseDropdowns('confidence_level');
+export const usePriorityLevelDropdown = () =>
+  useDatabaseDropdowns('priority_level');
+export const useAutomationStatusDropdown = () =>
+  useDatabaseDropdowns('automation_status');
+export const useConfidenceLevelDropdown = () =>
+  useDatabaseDropdowns('confidence_level');
 export const useLeadSourceDropdown = () => useDatabaseDropdowns('lead_source');
-export const useEmploymentTypeDropdown = () => useDatabaseDropdowns('employment_type');
-export const useSeniorityLevelDropdown = () => useDatabaseDropdowns('seniority_level');
+export const useEmploymentTypeDropdown = () =>
+  useDatabaseDropdowns('employment_type');
+export const useSeniorityLevelDropdown = () =>
+  useDatabaseDropdowns('seniority_level');

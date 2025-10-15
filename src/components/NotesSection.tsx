@@ -1,17 +1,27 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/StatusBadge";
-import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Save, Edit3, Plus, Calendar, User, Trash2, ChevronDown, ChevronUp } from "lucide-react";
-import { formatDistanceToNow, parseISO, format } from "date-fns";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/StatusBadge';
+import { useToast } from '@/hooks/use-toast';
+import {
+  MessageSquare,
+  Save,
+  Edit3,
+  Plus,
+  Calendar,
+  User,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
+import { formatDistanceToNow, parseISO, format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NotesSectionProps {
   entityId: string;
-  entityType: "lead" | "company" | "job";
+  entityType: 'lead' | 'company' | 'job';
   entityName?: string;
   className?: string;
   defaultExpanded?: boolean;
@@ -26,11 +36,17 @@ interface Note {
   updated_at?: string;
 }
 
-export const NotesSection = ({ entityId, entityType, entityName, className, defaultExpanded = true }: NotesSectionProps) => {
+export const NotesSection = ({
+  entityId,
+  entityType,
+  entityName,
+  className,
+  defaultExpanded = true,
+}: NotesSectionProps) => {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [newNoteContent, setNewNoteContent] = useState("");
+  const [newNoteContent, setNewNoteContent] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [editingContent, setEditingContent] = useState("");
+  const [editingContent, setEditingContent] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,12 +56,11 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
 
-
   // Load notes data - optimized to combine count and data queries
   useEffect(() => {
     const fetchNotes = async () => {
       if (!entityId) return;
-      
+
       // If not expanded, just get count
       if (!isExpanded) {
         try {
@@ -54,7 +69,7 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
             .select('*', { count: 'exact', head: true })
             .eq('entity_id', entityId)
             .eq('entity_type', entityType);
-          
+
           setNoteCount(count || 0);
         } catch (error) {
           console.error('Error fetching note count:', error);
@@ -65,18 +80,21 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
 
       // If expanded and not loaded, get full data
       if (hasLoaded) return;
-      
+
       setIsLoading(true);
       try {
         const { data, error, count } = await supabase
           .from('notes')
-          .select(`
+          .select(
+            `
             id,
             content,
             author_id,
             created_at,
             updated_at
-          `, { count: 'exact' })
+          `,
+            { count: 'exact' }
+          )
           .eq('entity_id', entityId)
           .eq('entity_type', entityType)
           .order('created_at', { ascending: false });
@@ -84,9 +102,9 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
         if (error) {
           console.error('Error fetching notes:', error);
           toast({
-            title: "Error",
-            description: "Failed to load notes",
-            variant: "destructive",
+            title: 'Error',
+            description: 'Failed to load notes',
+            variant: 'destructive',
           });
           return;
         }
@@ -101,25 +119,28 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
           .select('id, full_name')
           .in('id', authorIds);
 
-        const authorMap = new Map(authors?.map(author => [author.id, author.full_name]) || []);
+        const authorMap = new Map(
+          authors?.map(author => [author.id, author.full_name]) || []
+        );
 
-        const formattedNotes: Note[] = data?.map(note => ({
-          id: note.id,
-          content: note.content,
-          author_id: note.author_id,
-          author_name: authorMap.get(note.author_id) || 'Unknown User',
-          created_at: note.created_at,
-          updated_at: note.updated_at
-        })) || [];
+        const formattedNotes: Note[] =
+          data?.map(note => ({
+            id: note.id,
+            content: note.content,
+            author_id: note.author_id,
+            author_name: authorMap.get(note.author_id) || 'Unknown User',
+            created_at: note.created_at,
+            updated_at: note.updated_at,
+          })) || [];
 
         setNotes(formattedNotes);
         setHasLoaded(true);
       } catch (error) {
         console.error('Error fetching notes:', error);
         toast({
-          title: "Error",
-          description: "Failed to load notes",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to load notes',
+          variant: 'destructive',
         });
       } finally {
         setIsLoading(false);
@@ -140,15 +161,17 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
           entity_id: entityId,
           entity_type: entityType,
           content: newNoteContent.trim(),
-          author_id: user.id
+          author_id: user.id,
         })
-        .select(`
+        .select(
+          `
           id,
           content,
           author_id,
           created_at,
           updated_at
-        `)
+        `
+        )
         .single();
 
       if (error) throw error;
@@ -166,24 +189,24 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
         author_id: data.author_id,
         author_name: authorData?.full_name || 'Unknown User',
         created_at: data.created_at,
-        updated_at: data.updated_at
+        updated_at: data.updated_at,
       };
 
       setNotes(prev => [newNote, ...prev]);
       setNoteCount(prev => (prev || 0) + 1);
-      setNewNoteContent("");
+      setNewNoteContent('');
       setIsAdding(false);
 
       toast({
-        title: "Note Added",
+        title: 'Note Added',
         description: `Note added to ${entityName || entityType}`,
       });
     } catch (error) {
       console.error('Error adding note:', error);
       toast({
-        title: "Error",
-        description: "Failed to add note",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to add note',
+        variant: 'destructive',
       });
     } finally {
       setIsSaving(false);
@@ -199,14 +222,16 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
         .from('notes')
         .update({ content: editingContent.trim() })
         .eq('id', noteId)
-        .select(`
+        .select(
+          `
           id,
           content,
           author_id,
           created_at,
           updated_at,
           user_profiles!inner(full_name)
-        `)
+        `
+        )
         .single();
 
       if (error) throw error;
@@ -217,26 +242,26 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
         author_id: data.author_id,
         author_name: data.user_profiles?.full_name || 'Unknown User',
         created_at: data.created_at,
-        updated_at: data.updated_at
+        updated_at: data.updated_at,
       };
 
-      setNotes(prev => prev.map(note => 
-        note.id === noteId ? updatedNote : note
-      ));
-      
+      setNotes(prev =>
+        prev.map(note => (note.id === noteId ? updatedNote : note))
+      );
+
       setEditingNoteId(null);
-      setEditingContent("");
+      setEditingContent('');
 
       toast({
-        title: "Note Updated",
-        description: "Note has been updated successfully",
+        title: 'Note Updated',
+        description: 'Note has been updated successfully',
       });
     } catch (error) {
       console.error('Error updating note:', error);
       toast({
-        title: "Error",
-        description: "Failed to update note",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update note',
+        variant: 'destructive',
       });
     } finally {
       setIsSaving(false);
@@ -246,25 +271,22 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
   const deleteNote = async (noteId: string) => {
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('notes')
-        .delete()
-        .eq('id', noteId);
+      const { error } = await supabase.from('notes').delete().eq('id', noteId);
 
       if (error) throw error;
 
       setNotes(prev => prev.filter(note => note.id !== noteId));
 
       toast({
-        title: "Note Deleted",
-        description: "Note has been deleted successfully",
+        title: 'Note Deleted',
+        description: 'Note has been deleted successfully',
       });
     } catch (error) {
       console.error('Error deleting note:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete note",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete note',
+        variant: 'destructive',
       });
     } finally {
       setIsSaving(false);
@@ -278,14 +300,14 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
 
   const cancelEditing = () => {
     setEditingNoteId(null);
-    setEditingContent("");
+    setEditingContent('');
   };
 
   const formatNoteDate = (dateString: string) => {
     const date = parseISO(dateString);
     return {
       relative: formatDistanceToNow(date, { addSuffix: true }),
-      absolute: format(date, "MMM d, yyyy 'at' h:mm a")
+      absolute: format(date, "MMM d, yyyy 'at' h:mm a"),
     };
   };
 
@@ -299,11 +321,11 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
       <div className={className}>
         <button
           onClick={() => setIsExpanded(true)}
-          className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+          className='flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors'
           title={`${noteCount || 0} notes - Click to view`}
         >
-          <MessageSquare className="h-3 w-3" />
-          <span className="font-medium">
+          <MessageSquare className='h-3 w-3' />
+          <span className='font-medium'>
             {noteCount !== null ? noteCount : '...'}
           </span>
         </button>
@@ -314,59 +336,59 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
   return (
     <div className={className}>
       <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center justify-between text-sm font-medium">
-            <div className="flex items-center gap-2">
+        <CardHeader className='pb-4'>
+          <CardTitle className='flex items-center justify-between text-sm font-medium'>
+            <div className='flex items-center gap-2'>
               <button
                 onClick={() => setIsExpanded(false)}
-                className="flex items-center gap-2 hover:text-gray-600 transition-colors"
+                className='flex items-center gap-2 hover:text-gray-600 transition-colors'
               >
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <ChevronUp className='h-4 w-4 text-muted-foreground' />
+                <MessageSquare className='h-4 w-4 text-muted-foreground' />
                 <span>Notes & Comments</span>
                 {noteCount !== null && noteCount > 0 && (
-                  <StatusBadge status={`${noteCount}`} size="sm" />
+                  <StatusBadge status={`${noteCount}`} size='sm' />
                 )}
               </button>
             </div>
             {!isAdding && (
               <button
                 onClick={() => setIsAdding(true)}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md h-8 px-3"
+                className='inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md h-8 px-3'
               >
-                <Plus className="h-3 w-3" />
+                <Plus className='h-3 w-3' />
                 Add Note
               </button>
             )}
           </CardTitle>
         </CardHeader>
-        
-        <CardContent className="space-y-4">
+
+        <CardContent className='space-y-4'>
           {/* Add new note form */}
           {isAdding && (
-            <div className="space-y-3 p-3 bg-muted/20 rounded-lg border">
+            <div className='space-y-3 p-3 bg-muted/20 rounded-lg border'>
               <Textarea
                 placeholder={`Add a note about ${entityName || `this ${entityType}`}...`}
                 value={newNoteContent}
-                onChange={(e) => setNewNoteContent(e.target.value)}
+                onChange={e => setNewNoteContent(e.target.value)}
                 rows={3}
-                className="resize-none"
+                className='resize-none'
               />
-              <div className="flex gap-2">
+              <div className='flex gap-2'>
                 <button
                   onClick={addNote}
                   disabled={!newNoteContent.trim() || isSaving}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 shadow-sm hover:shadow-md h-8 px-3"
+                  className='inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 shadow-sm hover:shadow-md h-8 px-3'
                 >
-                  <Save className="h-3 w-3" />
-                  {isSaving ? "Saving..." : "Save Note"}
+                  <Save className='h-3 w-3' />
+                  {isSaving ? 'Saving...' : 'Save Note'}
                 </button>
                 <button
                   onClick={() => {
                     setIsAdding(false);
-                    setNewNoteContent("");
+                    setNewNoteContent('');
                   }}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md h-8 px-3"
+                  className='inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md h-8 px-3'
                 >
                   Cancel
                 </button>
@@ -376,48 +398,50 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
 
           {/* Notes list */}
           {isLoading ? (
-            <div className="text-center py-6 text-muted-foreground">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary mx-auto mb-2"></div>
-              <div className="text-sm">Loading notes...</div>
+            <div className='text-center py-6 text-muted-foreground'>
+              <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary mx-auto mb-2'></div>
+              <div className='text-sm'>Loading notes...</div>
             </div>
           ) : notes.length === 0 && !isAdding ? (
-            <div className="text-center py-6 text-muted-foreground">
-              <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <div className="text-sm">No notes yet</div>
-              <div className="text-xs">Add notes to track important information</div>
+            <div className='text-center py-6 text-muted-foreground'>
+              <MessageSquare className='w-8 h-8 mx-auto mb-2 opacity-50' />
+              <div className='text-sm'>No notes yet</div>
+              <div className='text-xs'>
+                Add notes to track important information
+              </div>
             </div>
           ) : (
-            <div className="space-y-3">
-              {notes.map((note) => {
+            <div className='space-y-3'>
+              {notes.map(note => {
                 const isEditing = editingNoteId === note.id;
                 const dateInfo = formatNoteDate(note.created_at);
                 const canEdit = canEditNote(note);
-                
+
                 return (
                   <div
                     key={note.id}
-                    className="p-3 bg-white border border-border rounded-lg hover:shadow-sm transition-shadow group"
+                    className='p-3 bg-white border border-border rounded-lg hover:shadow-sm transition-shadow group'
                   >
                     {isEditing ? (
-                      <div className="space-y-3">
+                      <div className='space-y-3'>
                         <Textarea
                           value={editingContent}
-                          onChange={(e) => setEditingContent(e.target.value)}
+                          onChange={e => setEditingContent(e.target.value)}
                           rows={3}
-                          className="resize-none"
+                          className='resize-none'
                         />
-                        <div className="flex gap-2">
+                        <div className='flex gap-2'>
                           <Button
                             onClick={() => updateNote(note.id)}
                             disabled={!editingContent.trim() || isSaving}
-                            size="sm"
+                            size='sm'
                           >
-                            <Save className="h-3 w-3 mr-1" />
-                            {isSaving ? "Saving..." : "Update"}
+                            <Save className='h-3 w-3 mr-1' />
+                            {isSaving ? 'Saving...' : 'Update'}
                           </Button>
                           <Button
-                            variant="outline"
-                            size="sm"
+                            variant='outline'
+                            size='sm'
                             onClick={cancelEditing}
                           >
                             Cancel
@@ -426,44 +450,53 @@ export const NotesSection = ({ entityId, entityType, entityName, className, defa
                       </div>
                     ) : (
                       <>
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
-                              {note.author_name.split(' ').map(namePart => namePart[0]).join('').toUpperCase()}
+                        <div className='flex items-start justify-between mb-2'>
+                          <div className='flex items-center gap-2'>
+                            <div className='flex items-center justify-center w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium'>
+                              {note.author_name
+                                .split(' ')
+                                .map(namePart => namePart[0])
+                                .join('')
+                                .toUpperCase()}
                             </div>
                             <div>
-                              <div className="text-sm font-medium">{note.author_name}</div>
-                              <div className="text-xs text-muted-foreground" title={dateInfo.absolute}>
+                              <div className='text-sm font-medium'>
+                                {note.author_name}
+                              </div>
+                              <div
+                                className='text-xs text-muted-foreground'
+                                title={dateInfo.absolute}
+                              >
                                 {dateInfo.relative}
                                 {note.updated_at && (
-                                  <span className="ml-1">(edited)</span>
+                                  <span className='ml-1'>(edited)</span>
                                 )}
                               </div>
                             </div>
                           </div>
                           {canEdit && (
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className='flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
                               <Button
-                                variant="ghost"
-                                size="sm"
+                                variant='ghost'
+                                size='sm'
                                 onClick={() => startEditing(note)}
-                                className="h-6 w-6 p-0"
+                                className='h-6 w-6 p-0'
                               >
-                                <Edit3 className="h-3 w-3" />
+                                <Edit3 className='h-3 w-3' />
                               </Button>
                               <Button
-                                variant="ghost"
-                                size="sm"
+                                variant='ghost'
+                                size='sm'
                                 onClick={() => deleteNote(note.id)}
-                                className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                className='h-6 w-6 p-0 text-destructive hover:text-destructive'
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className='h-3 w-3' />
                               </Button>
                             </div>
                           )}
                         </div>
-                        
-                        <div className="text-sm text-foreground whitespace-pre-wrap">
+
+                        <div className='text-sm text-foreground whitespace-pre-wrap'>
                           {note.content}
                         </div>
                       </>

@@ -3,11 +3,7 @@
  * Provides better error handling and type safety
  */
 
-import {
-    AppError,
-    Result,
-    ResultBuilder
-} from '@/types/errors';
+import { AppError, Result, ResultBuilder } from '@/types/errors';
 import { enhancedErrorHandler } from '@/utils/enhancedErrorHandler';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -45,7 +41,7 @@ export function useAsyncOperation<T = any>(
     onSuccess,
     onError,
     onRetry,
-    onMaxRetriesReached
+    onMaxRetriesReached,
   } = options;
 
   const [state, setState] = useState<AsyncOperationState<T>>({
@@ -54,111 +50,120 @@ export function useAsyncOperation<T = any>(
     isLoading: false,
     isSuccess: false,
     isError: false,
-    result: null
+    result: null,
   });
 
   const retryCountRef = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const execute = useCallback(async (...args: any[]) => {
-    setState(prev => ({ 
-      ...prev, 
-      isLoading: true, 
-      error: null,
-      isError: false,
-      isSuccess: false
-    }));
-    
-    try {
-      const result = await ResultBuilder.fromPromise(asyncFn(...args));
-      
-      if (result.success) {
-        setState({
-          data: result.data,
-          error: null,
-          isLoading: false,
-          isSuccess: true,
-          isError: false,
-          result
-        });
-        
-        retryCountRef.current = 0;
-        onSuccess?.(result.data);
-        
-        if (showSuccessToast) {
-          // You can integrate with your toast system here
-          console.log('Success:', result.data);
+  const execute = useCallback(
+    async (...args: any[]) => {
+      setState(prev => ({
+        ...prev,
+        isLoading: true,
+        error: null,
+        isError: false,
+        isSuccess: false,
+      }));
+
+      try {
+        const result = await ResultBuilder.fromPromise(asyncFn(...args));
+
+        if (result.success) {
+          setState({
+            data: result.data,
+            error: null,
+            isLoading: false,
+            isSuccess: true,
+            isError: false,
+            result,
+          });
+
+          retryCountRef.current = 0;
+          onSuccess?.(result.data);
+
+          if (showSuccessToast) {
+            // You can integrate with your toast system here
+            console.log('Success:', result.data);
+          }
+        } else {
+          const appError = await enhancedErrorHandler.handleError(
+            result.error,
+            {
+              component: 'useAsyncOperation',
+              action: 'execute',
+              args: args.length > 0 ? args : undefined,
+            }
+          );
+
+          setState({
+            data: null,
+            error: appError,
+            isLoading: false,
+            isSuccess: false,
+            isError: true,
+            result,
+          });
+
+          onError?.(appError);
+
+          if (showErrorToast) {
+            // You can integrate with your toast system here
+            console.error('Error:', appError.userMessage);
+          }
         }
-      } else {
-        const appError = await enhancedErrorHandler.handleError(result.error, {
+
+        return result;
+      } catch (error) {
+        const appError = await enhancedErrorHandler.handleError(error, {
           component: 'useAsyncOperation',
           action: 'execute',
-          args: args.length > 0 ? args : undefined
+          args: args.length > 0 ? args : undefined,
         });
-        
+
         setState({
           data: null,
           error: appError,
           isLoading: false,
           isSuccess: false,
           isError: true,
-          result
+          result: ResultBuilder.failure(appError),
         });
-        
+
         onError?.(appError);
-        
+
         if (showErrorToast) {
-          // You can integrate with your toast system here
           console.error('Error:', appError.userMessage);
         }
+
+        return ResultBuilder.failure(appError);
       }
-      
-      return result;
-    } catch (error) {
-      const appError = await enhancedErrorHandler.handleError(error, {
-        component: 'useAsyncOperation',
-        action: 'execute',
-        args: args.length > 0 ? args : undefined
-      });
-      
-      setState({
-        data: null,
-        error: appError,
-        isLoading: false,
-        isSuccess: false,
-        isError: true,
-        result: ResultBuilder.failure(appError)
-      });
-      
-      onError?.(appError);
-      
-      if (showErrorToast) {
-        console.error('Error:', appError.userMessage);
+    },
+    [asyncFn, onSuccess, onError, showSuccessToast, showErrorToast]
+  );
+
+  const retry = useCallback(
+    async (...args: any[]) => {
+      if (!enableRetry || retryCountRef.current >= maxRetries) {
+        if (retryCountRef.current >= maxRetries) {
+          onMaxRetriesReached?.();
+        }
+        return;
       }
-      
-      return ResultBuilder.failure(appError);
-    }
-  }, [asyncFn, onSuccess, onError, showSuccessToast, showErrorToast]);
 
-  const retry = useCallback(async (...args: any[]) => {
-    if (!enableRetry || retryCountRef.current >= maxRetries) {
-      if (retryCountRef.current >= maxRetries) {
-        onMaxRetriesReached?.();
+      retryCountRef.current++;
+      onRetry?.(retryCountRef.current);
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-      return;
-    }
 
-    retryCountRef.current++;
-    onRetry?.(retryCountRef.current);
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      execute(...args);
-    }, retryDelay * retryCountRef.current);
-  }, [execute, enableRetry, maxRetries, retryDelay, onRetry, onMaxRetriesReached]);
+      timeoutRef.current = setTimeout(() => {
+        execute(...args);
+      }, retryDelay * retryCountRef.current);
+    },
+    [execute, enableRetry, maxRetries, retryDelay, onRetry, onMaxRetriesReached]
+  );
 
   const reset = useCallback(() => {
     setState({
@@ -167,10 +172,10 @@ export function useAsyncOperation<T = any>(
       isLoading: false,
       isSuccess: false,
       isError: false,
-      result: null
+      result: null,
     });
     retryCountRef.current = 0;
-    
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -192,23 +197,28 @@ export function useAsyncOperation<T = any>(
     retry,
     reset,
     retryCount: retryCountRef.current,
-    canRetry: enableRetry && retryCountRef.current < maxRetries
+    canRetry: enableRetry && retryCountRef.current < maxRetries,
   };
 }
 
 // Specialized hook for data fetching
 export function useAsyncData<T = any>(
   fetchFn: (...args: any[]) => Promise<T>,
-  options: AsyncOperationOptions & { 
+  options: AsyncOperationOptions & {
     initialData?: T;
     autoExecute?: boolean;
     dependencies?: any[];
   } = {}
 ) {
-  const { initialData, autoExecute = false, dependencies = [], ...operationOptions } = options;
-  
+  const {
+    initialData,
+    autoExecute = false,
+    dependencies = [],
+    ...operationOptions
+  } = options;
+
   const operation = useAsyncOperation(fetchFn, operationOptions);
-  
+
   useEffect(() => {
     if (autoExecute) {
       operation.execute();
@@ -217,7 +227,7 @@ export function useAsyncData<T = any>(
 
   return {
     ...operation,
-    data: operation.data ?? initialData ?? null
+    data: operation.data ?? initialData ?? null,
   };
 }
 
@@ -229,7 +239,7 @@ export function useAsyncMutation<T = any>(
   return useAsyncOperation(mutationFn, {
     showSuccessToast: true,
     showErrorToast: true,
-    ...options
+    ...options,
   });
 }
 
@@ -242,6 +252,6 @@ export function useFormSubmission<T = any>(
     showSuccessToast: true,
     showErrorToast: true,
     enableRetry: false, // Usually don't retry form submissions
-    ...options
+    ...options,
   });
 }

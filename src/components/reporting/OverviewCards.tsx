@@ -44,13 +44,13 @@ export const OverviewCards = memo<OverviewCardsProps>(({ data }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {cards.map((card) => {
+    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
+      {cards.map(card => {
         const Icon = card.icon;
         return (
-          <Card key={card.title} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+          <Card key={card.title} className='hover:shadow-lg transition-shadow'>
+            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+              <CardTitle className='text-sm font-medium text-gray-600'>
                 {card.title}
               </CardTitle>
               <div className={`p-2 rounded-lg ${card.bgColor}`}>
@@ -58,7 +58,7 @@ export const OverviewCards = memo<OverviewCardsProps>(({ data }) => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className='text-2xl font-bold'>
                 {(card.value ?? 0).toLocaleString()}
               </div>
             </CardContent>

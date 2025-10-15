@@ -1,6 +1,6 @@
 /**
  * Authentication Hook
- * 
+ *
  * Handles core authentication state and operations
  * Separated from profile management for better maintainability
  */
@@ -18,11 +18,13 @@ export const useAuthState = () => {
   const signInWithGoogle = useCallback(async () => {
     try {
       setError(null);
-      
+
       // Check if Google OAuth is configured
       const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
       if (!googleClientId || googleClientId.includes('your-google-client-id')) {
-        const authError = new Error('Google OAuth is not configured. Please contact your administrator.');
+        const authError = new Error(
+          'Google OAuth is not configured. Please contact your administrator.'
+        );
         setError(authError.message);
         return { error: authError };
       }
@@ -30,8 +32,8 @@ export const useAuthState = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
       return { error };
     } catch (error) {
@@ -41,76 +43,82 @@ export const useAuthState = () => {
     }
   }, []);
 
-  const signInWithPassword = useCallback(async (email: string, password: string) => {
-    try {
-      setError(null);
-      
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      return { error };
-    } catch (error) {
-      const authError = error as AuthError;
-      setError(`Email sign-in failed: ${authError.message}`);
-      return { error: authError };
-    }
-  }, []);
+  const signInWithPassword = useCallback(
+    async (email: string, password: string) => {
+      try {
+        setError(null);
+
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        return { error };
+      } catch (error) {
+        const authError = error as AuthError;
+        setError(`Email sign-in failed: ${authError.message}`);
+        return { error: authError };
+      }
+    },
+    []
+  );
 
   const signOut = useCallback(async () => {
     try {
       setError(null);
       console.log('🚪 Signing out...');
       console.log('🔍 Current user before sign out:', user?.email);
-      
+
       // Clear all state first
       setUser(null);
       setSession(null);
       setLoading(false);
-      
+
       // Clear storage
       localStorage.clear();
       sessionStorage.clear();
-      
+
       // Then sign out from Supabase
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         console.warn('⚠️ Supabase sign out error (but state cleared):', error);
       }
-      
+
       console.log('✅ Sign out successful - state cleared');
       return { error: null };
     } catch (error) {
       const authError = error as AuthError;
       console.error('❌ Sign out error:', authError);
-      
+
       // Force clear state even if sign out fails
       setUser(null);
       setSession(null);
       setLoading(false);
       localStorage.clear();
       sessionStorage.clear();
-      
+
       console.log('✅ State cleared despite sign out error');
       return { error: null }; // Return success since state is cleared
     }
   }, [user?.email]);
 
-  const updateProfile = useCallback(async (updates: { full_name?: string; avatar_url?: string }) => {
-    try {
-      setError(null);
-      const { error } = await supabase.auth.updateUser({
-        data: updates,
-      });
-      return { error };
-    } catch (error) {
-      const authError = error as AuthError;
-      setError(`Profile update failed: ${authError.message}`);
-      return { error: authError };
-    }
-  }, []);
+  const updateProfile = useCallback(
+    async (updates: { full_name?: string; avatar_url?: string }) => {
+      try {
+        setError(null);
+        const { error } = await supabase.auth.updateUser({
+          data: updates,
+        });
+        return { error };
+      } catch (error) {
+        const authError = error as AuthError;
+        setError(`Profile update failed: ${authError.message}`);
+        return { error: authError };
+      }
+    },
+    []
+  );
 
   const clearAuthState = useCallback(async () => {
     try {
@@ -123,7 +131,9 @@ export const useAuthState = () => {
       return true;
     } catch (error) {
       console.error('❌ Clear auth state error:', error);
-      setError(`Failed to clear auth state: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setError(
+        `Failed to clear auth state: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       return false;
     }
   }, []);
@@ -132,16 +142,18 @@ export const useAuthState = () => {
     try {
       console.log('🔄 Forcing re-authentication...');
       setError(null);
-      
+
       await supabase.auth.signOut();
       localStorage.clear();
       sessionStorage.clear();
-      
+
       // Reload page to start fresh
       window.location.reload();
     } catch (error) {
       console.error('❌ Error during force re-auth:', error);
-      setError(`Force re-authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setError(
+        `Force re-authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       window.location.reload();
     }
   }, []);
@@ -160,6 +172,6 @@ export const useAuthState = () => {
     signOut,
     updateProfile,
     clearAuthState,
-    forceReAuth
+    forceReAuth,
   };
 };

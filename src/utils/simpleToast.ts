@@ -13,7 +13,7 @@ export const toast = {
       }
     }
   },
-  
+
   error: (message: string) => {
     console.error('❌ Error:', message);
     if (typeof window !== 'undefined') {
@@ -24,7 +24,7 @@ export const toast = {
       }
     }
   },
-  
+
   info: (message: string) => {
     console.info('ℹ️ Info:', message);
     if (typeof window !== 'undefined') {
@@ -35,7 +35,7 @@ export const toast = {
       }
     }
   },
-  
+
   warning: (message: string) => {
     console.warn('⚠️ Warning:', message);
     if (typeof window !== 'undefined') {
@@ -45,5 +45,5 @@ export const toast = {
         console.warn('Warning:', message);
       }
     }
-  }
+  },
 };

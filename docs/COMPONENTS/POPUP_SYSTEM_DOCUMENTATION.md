@@ -29,24 +29,26 @@ User Click → PopupContext → Supabase Query → React Query Cache → Unified
 **Purpose**: Centralized state management and data fetching for all popups.
 
 **Key Features**:
+
 - Manages popup state (`activePopup`, `currentId`, `popupData`)
 - Handles data fetching with React Query caching
 - Processes company data (logo URLs, etc.)
 - Manages lead selection for automation
 
 **API**:
+
 ```typescript
 interface PopupContextType {
   // State
   activePopup: 'lead' | 'company' | 'job' | null;
   popupData: PopupData;
-  
+
   // Actions
   openLeadPopup: (leadId: string) => void;
   openCompanyPopup: (companyId: string) => void;
   openJobPopup: (jobId: string) => void;
   closePopup: () => void;
-  
+
   // Selection
   selectedLeads: any[];
   toggleLeadSelection: (leadId: string) => void;
@@ -55,6 +57,7 @@ interface PopupContextType {
 ```
 
 **Data Processing**:
+
 - Automatically generates company logo URLs using `getClearbitLogo`
 - Handles nested company data structure
 - Provides loading states for all queries
@@ -64,11 +67,13 @@ interface PopupContextType {
 **Purpose**: Single component that renders different content based on popup type.
 
 **Content Types**:
+
 - **Lead Popup**: Lead info + Company info + Related jobs
-- **Company Popup**: Company info + Related leads + Related jobs  
+- **Company Popup**: Company info + Related leads + Related jobs
 - **Job Popup**: Job info + Company info + Related leads
 
 **Layout Structure**:
+
 ```
 PopupModal
 ├── Header (Title, Subtitle, Status Badge, AI Score)
@@ -83,6 +88,7 @@ PopupModal
 **Purpose**: Generic modal wrapper providing consistent styling and behavior.
 
 **Features**:
+
 - Consistent z-index (`z-50`)
 - Responsive design (`max-w-4xl`, `max-h-[90vh]`)
 - Header with close button
@@ -94,6 +100,7 @@ PopupModal
 **Purpose**: Reusable card component for popup content sections.
 
 **Features**:
+
 - Consistent card styling with optimized header sizes (`text-lg`)
 - Optional action buttons
 - Flexible content area
@@ -104,6 +111,7 @@ PopupModal
 **Purpose**: Reusable list item component for displaying related items.
 
 **Features**:
+
 - Avatar/profile image support
 - Title and subtitle
 - Optional badges and checkboxes
@@ -119,12 +127,12 @@ interface PopupData {
   lead?: any;
   company?: any;
   job?: any;
-  
+
   // Related data
   relatedLeads?: any[];
   relatedJobs?: any[];
   relatedCompanies?: any[];
-  
+
   // Loading states
   isLoadingLead?: boolean;
   isLoadingCompany?: boolean;
@@ -137,6 +145,7 @@ interface PopupData {
 ### Company Data Processing
 
 The system automatically processes company data to include:
+
 - **Logo URLs**: Uses `profile_image_url` or generates via `getClearbitLogo`
 - **Nested Structure**: Company data is nested under `companies` property
 - **Complete Fields**: All company fields are fetched and available
@@ -146,6 +155,7 @@ The system automatically processes company data to include:
 ### Header Size Optimization (January 2025)
 
 Recent improvements to popup headers for better visual hierarchy:
+
 - **InfoCard Headers**: Reduced from `text-xl` to `text-lg` for better proportion
 - **Popup Modal Titles**: Standardized to `text-sm` for consistency
 - **Job Info Headers**: Reduced from `text-base` to `text-sm` for better balance
@@ -156,6 +166,7 @@ Recent improvements to popup headers for better visual hierarchy:
 ### Badge Alignment Standardization (January 2025)
 
 All popup badges now align with table badge standards:
+
 - **StatusBadge**: Uses `size="sm"` with `h-8 text-xs font-medium px-3` styling
 - **Custom Badges**: Aligned to match StatusBadge dimensions and typography
 - **LinkedInAutomationModal**: Custom LinkedIn badges updated to `text-xs font-medium px-2 py-1`
@@ -165,6 +176,7 @@ All popup badges now align with table badge standards:
 ### Z-Index System
 
 All modals use consistent z-index values:
+
 - **PopupModal**: `z-50`
 - **LinkedInAutomationModal**: `z-50`
 - **Toast**: `z-[100]`
@@ -193,7 +205,7 @@ const { openLeadPopup, openCompanyPopup, openJobPopup } = usePopup();
 // Open lead popup
 openLeadPopup('lead-id-123');
 
-// Open company popup  
+// Open company popup
 openCompanyPopup('company-id-456');
 
 // Open job popup
@@ -224,10 +236,11 @@ The system uses intelligent query dependencies to ensure data is available:
 
 ```typescript
 // Related leads query waits for main data
-enabled: !!currentId && ['company', 'job', 'lead'].includes(activePopup!) && 
-  (activePopup === 'company' || 
-   (activePopup === 'job' && !!jobData) || 
-   (activePopup === 'lead' && !!leadData))
+enabled: !!currentId &&
+  ['company', 'job', 'lead'].includes(activePopup!) &&
+  (activePopup === 'company' ||
+    (activePopup === 'job' && !!jobData) ||
+    (activePopup === 'lead' && !!leadData));
 ```
 
 ### Caching Strategy
@@ -276,7 +289,7 @@ enabled: !!currentId && ['company', 'job', 'lead'].includes(activePopup!) &&
 // Add to PopupContext for debugging
 console.log('🔍 Popup data:', { activePopup, popupData });
 
-// Add to UnifiedPopup for debugging  
+// Add to UnifiedPopup for debugging
 console.log('🔍 Rendering popup:', { activePopup, company: popupData.company });
 ```
 
@@ -317,19 +330,22 @@ console.log('🔍 Rendering popup:', { activePopup, company: popupData.company }
 ## 📝 Quick Reference
 
 ### File Locations
+
 - **Context**: `src/contexts/PopupContext.tsx`
 - **Main Component**: `src/components/UnifiedPopup.tsx`
 - **Modal Wrapper**: `src/components/shared/PopupModal.tsx`
 - **Shared Components**: `src/components/shared/`
 
 ### Key Functions
+
 - `openLeadPopup(id)` - Open lead popup
-- `openCompanyPopup(id)` - Open company popup  
+- `openCompanyPopup(id)` - Open company popup
 - `openJobPopup(id)` - Open job popup
 - `closePopup()` - Close current popup
 - `toggleLeadSelection(id)` - Toggle lead selection
 
 ### Data Access
+
 - `popupData.lead` - Current lead data
 - `popupData.company` - Current company data
 - `popupData.job` - Current job data
@@ -338,6 +354,5 @@ console.log('🔍 Rendering popup:', { activePopup, company: popupData.company }
 
 ---
 
-*Last Updated: January 2025*
-*Version: 2.2 (Header & Badge Optimization)*
-
+_Last Updated: January 2025_
+_Version: 2.2 (Header & Badge Optimization)_

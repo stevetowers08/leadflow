@@ -1,7 +1,7 @@
 /**
  * Centralized Database Query Utilities
  * Prevents common database query issues and provides consistent patterns
- * 
+ *
  * 📚 Schema reference: src/types/databaseSchema.ts
  * 📖 Best practices: docs/DATABASE_BEST_PRACTICES.md
  */
@@ -58,7 +58,10 @@ export class DatabaseQueries {
         .single();
 
       if (assignmentError) {
-        console.error(`❌ Error fetching assignment for ${table}:`, assignmentError);
+        console.error(
+          `❌ Error fetching assignment for ${table}:`,
+          assignmentError
+        );
         throw new DatabaseError(assignmentError.code, assignmentError.message);
       }
 
@@ -80,7 +83,10 @@ export class DatabaseQueries {
 
       return { ownerId, ownerName };
     } catch (error) {
-      console.error(`❌ Failed to fetch assignment for ${table} ${entityId}:`, error);
+      console.error(
+        `❌ Failed to fetch assignment for ${table} ${entityId}:`,
+        error
+      );
       throw error;
     }
   }
@@ -117,12 +123,14 @@ export class DatabaseQueries {
   /**
    * Safe team members fetching
    */
-  static async getTeamMembers(): Promise<Array<{
-    id: string;
-    full_name: string;
-    email: string;
-    role: string;
-  }>> {
+  static async getTeamMembers(): Promise<
+    Array<{
+      id: string;
+      full_name: string;
+      email: string;
+      role: string;
+    }>
+  > {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -155,16 +163,19 @@ export class DatabaseQueries {
       if (ownerId) {
         const userExists = await this.getUserProfile(ownerId);
         if (!userExists) {
-          throw new DatabaseError('USER_NOT_FOUND', 'Target user does not exist or is not active');
+          throw new DatabaseError(
+            'USER_NOT_FOUND',
+            'Target user does not exist or is not active'
+          );
         }
       }
 
       // Perform the assignment
       const { error } = await supabase
         .from(table)
-        .update({ 
+        .update({
           owner_id: ownerId,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
 
@@ -173,7 +184,10 @@ export class DatabaseQueries {
         throw new DatabaseError(error.code, error.message);
       }
     } catch (error) {
-      console.error(`❌ Failed to update assignment for ${table} ${entityId}:`, error);
+      console.error(
+        `❌ Failed to update assignment for ${table} ${entityId}:`,
+        error
+      );
       throw error;
     }
   }
@@ -194,44 +208,57 @@ export class DatabaseQueries {
         // Fetch leads
         supabase
           .from('people')
-          .select(`
+          .select(
+            `
             id, name, company_id, email_address, employee_location,
             company_role, stage, lead_score, linkedin_url,
             linkedin_request_message, linkedin_connected_message,
             linkedin_follow_up_message, automation_started_at,
             owner_id, created_at, updated_at
-          `)
+          `
+          )
           .eq('company_id', companyId)
           .neq('id', excludeId || '')
           .order('created_at', { ascending: false }),
-        
+
         // Fetch jobs
         supabase
           .from('jobs')
-          .select(`
+          .select(
+            `
             id, title, location, function, employment_type,
             seniority_level, salary, created_at
-          `)
+          `
+          )
           .eq('company_id', companyId)
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: false }),
       ]);
 
       if (leadsResult.error) {
         console.error('❌ Error fetching related leads:', leadsResult.error);
-        throw new DatabaseError(leadsResult.error.code, leadsResult.error.message);
+        throw new DatabaseError(
+          leadsResult.error.code,
+          leadsResult.error.message
+        );
       }
 
       if (jobsResult.error) {
         console.error('❌ Error fetching related jobs:', jobsResult.error);
-        throw new DatabaseError(jobsResult.error.code, jobsResult.error.message);
+        throw new DatabaseError(
+          jobsResult.error.code,
+          jobsResult.error.message
+        );
       }
 
       return {
         leads: leadsResult.data || [],
-        jobs: jobsResult.data || []
+        jobs: jobsResult.data || [],
       };
     } catch (error) {
-      console.error(`❌ Failed to fetch related entities for company ${companyId}:`, error);
+      console.error(
+        `❌ Failed to fetch related entities for company ${companyId}:`,
+        error
+      );
       throw error;
     }
   }
@@ -239,16 +266,10 @@ export class DatabaseQueries {
   /**
    * Validate field exists in table
    */
-  static async validateField(
-    table: string,
-    field: string
-  ): Promise<boolean> {
+  static async validateField(table: string, field: string): Promise<boolean> {
     try {
       // Try a simple query with the field
-      const { error } = await supabase
-        .from(table)
-        .select(field)
-        .limit(1);
+      const { error } = await supabase.from(table).select(field).limit(1);
 
       return !error;
     } catch {

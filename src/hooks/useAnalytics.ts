@@ -108,7 +108,10 @@ class AnalyticsTracker {
 
     // Track popup interactions
     if (this.config.trackPopupInteractions) {
-      document.addEventListener('click', this.handlePopupInteraction.bind(this));
+      document.addEventListener(
+        'click',
+        this.handlePopupInteraction.bind(this)
+      );
     }
 
     // Track search queries
@@ -129,7 +132,7 @@ class AnalyticsTracker {
     this.behavior.pageViews++;
     this.pageStartTime = Date.now();
     this.behavior.navigationPath.push(window.location.pathname);
-    
+
     this.trackEvent('page_view', {
       url: window.location.href,
       path: window.location.pathname,
@@ -144,10 +147,10 @@ class AnalyticsTracker {
 
   private handleClick(event: MouseEvent): void {
     this.behavior.clicks++;
-    
+
     const target = event.target as HTMLElement;
     const elementInfo = this.getElementInfo(target);
-    
+
     this.trackEvent('click', {
       element: elementInfo,
       position: {
@@ -159,13 +162,14 @@ class AnalyticsTracker {
 
   private handleScroll(): void {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const documentHeight =
+      document.documentElement.scrollHeight - window.innerHeight;
     const scrollPercentage = Math.round((scrollTop / documentHeight) * 100);
-    
+
     if (scrollPercentage > this.maxScrollDepth) {
       this.maxScrollDepth = scrollPercentage;
       this.behavior.scrollDepth = scrollPercentage;
-      
+
       this.trackEvent('scroll', {
         depth: scrollPercentage,
         maxDepth: this.maxScrollDepth,
@@ -175,9 +179,13 @@ class AnalyticsTracker {
 
   private handleFormInteraction(event: Event): void {
     const target = event.target as HTMLInputElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+    if (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'SELECT'
+    ) {
       this.behavior.formInteractions++;
-      
+
       this.trackEvent('form_interaction', {
         field: target.name || target.id || target.className,
         type: target.type,
@@ -199,7 +207,7 @@ class AnalyticsTracker {
     const target = event.target as HTMLElement;
     if (target.closest('[role="dialog"]') || target.closest('.popup-modal')) {
       this.behavior.popupInteractions++;
-      
+
       this.trackEvent('popup_interaction', {
         action: 'click',
         element: this.getElementInfo(target),
@@ -209,10 +217,13 @@ class AnalyticsTracker {
 
   private handleSearchQuery(event: Event): void {
     const target = event.target as HTMLInputElement;
-    if (target.type === 'search' || target.placeholder?.toLowerCase().includes('search')) {
+    if (
+      target.type === 'search' ||
+      target.placeholder?.toLowerCase().includes('search')
+    ) {
       if (target.value.length > 2) {
         this.behavior.searchQueries.push(target.value);
-        
+
         this.trackEvent('search_query', {
           query: target.value,
           field: target.name || target.id,
@@ -227,7 +238,7 @@ class AnalyticsTracker {
 
   private handlePageUnload(): void {
     this.behavior.timeOnPage = Date.now() - this.pageStartTime;
-    
+
     this.trackEvent('page_unload', {
       timeOnPage: this.behavior.timeOnPage,
       scrollDepth: this.maxScrollDepth,
@@ -235,7 +246,7 @@ class AnalyticsTracker {
       formInteractions: this.behavior.formInteractions,
       popupInteractions: this.behavior.popupInteractions,
     });
-    
+
     this.sendAnalytics();
   }
 
@@ -313,7 +324,9 @@ class AnalyticsTracker {
 // Global analytics instance
 let analyticsInstance: AnalyticsTracker | null = null;
 
-export const initializeAnalytics = (config?: Partial<AnalyticsConfig>): AnalyticsTracker => {
+export const initializeAnalytics = (
+  config?: Partial<AnalyticsConfig>
+): AnalyticsTracker => {
   if (!analyticsInstance) {
     analyticsInstance = new AnalyticsTracker(config);
   }
@@ -339,9 +352,12 @@ export const useAnalytics = () => {
     };
   }, []);
 
-  const trackEvent = useCallback((event: string, properties?: Record<string, any>) => {
-    analyticsRef.current?.trackEvent(event, properties);
-  }, []);
+  const trackEvent = useCallback(
+    (event: string, properties?: Record<string, any>) => {
+      analyticsRef.current?.trackEvent(event, properties);
+    },
+    []
+  );
 
   const setUserId = useCallback((userId: string) => {
     analyticsRef.current?.setUserId(userId);
@@ -370,9 +386,12 @@ export const usePageTracking = (pageName: string) => {
 export const useClickTracking = (elementName: string) => {
   const { trackEvent } = useAnalytics();
 
-  const trackClick = useCallback((properties?: Record<string, any>) => {
-    trackEvent('click', { element: elementName, ...properties });
-  }, [elementName, trackEvent]);
+  const trackClick = useCallback(
+    (properties?: Record<string, any>) => {
+      trackEvent('click', { element: elementName, ...properties });
+    },
+    [elementName, trackEvent]
+  );
 
   return trackClick;
 };
@@ -380,13 +399,19 @@ export const useClickTracking = (elementName: string) => {
 export const useFormTracking = (formName: string) => {
   const { trackEvent } = useAnalytics();
 
-  const trackFormSubmit = useCallback((properties?: Record<string, any>) => {
-    trackEvent('form_submit', { form: formName, ...properties });
-  }, [formName, trackEvent]);
+  const trackFormSubmit = useCallback(
+    (properties?: Record<string, any>) => {
+      trackEvent('form_submit', { form: formName, ...properties });
+    },
+    [formName, trackEvent]
+  );
 
-  const trackFormError = useCallback((error: string) => {
-    trackEvent('form_error', { form: formName, error });
-  }, [formName, trackEvent]);
+  const trackFormError = useCallback(
+    (error: string) => {
+      trackEvent('form_error', { form: formName, error });
+    },
+    [formName, trackEvent]
+  );
 
   return { trackFormSubmit, trackFormError };
 };
@@ -394,20 +419,21 @@ export const useFormTracking = (formName: string) => {
 export const usePopupTracking = (popupName: string) => {
   const { trackEvent } = useAnalytics();
 
-  const trackPopupOpen = useCallback((properties?: Record<string, any>) => {
-    trackEvent('popup_open', { popup: popupName, ...properties });
-  }, [popupName, trackEvent]);
+  const trackPopupOpen = useCallback(
+    (properties?: Record<string, any>) => {
+      trackEvent('popup_open', { popup: popupName, ...properties });
+    },
+    [popupName, trackEvent]
+  );
 
-  const trackPopupClose = useCallback((properties?: Record<string, any>) => {
-    trackEvent('popup_close', { popup: popupName, ...properties });
-  }, [popupName, trackEvent]);
+  const trackPopupClose = useCallback(
+    (properties?: Record<string, any>) => {
+      trackEvent('popup_close', { popup: popupName, ...properties });
+    },
+    [popupName, trackEvent]
+  );
 
   return { trackPopupOpen, trackPopupClose };
 };
 
 export default AnalyticsTracker;
-
-
-
-
-

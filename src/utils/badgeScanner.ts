@@ -19,13 +19,13 @@ export class BadgeSystemScanner {
 
   async scanCodebase(): Promise<BadgeViolation[]> {
     console.log('🔍 Scanning codebase for badge inconsistencies...');
-    
+
     const files = await glob('src/**/*.{ts,tsx}');
-    
+
     for (const file of files) {
       await this.scanFile(file);
     }
-    
+
     return this.violations;
   }
 
@@ -35,12 +35,16 @@ export class BadgeSystemScanner {
 
     lines.forEach((line, index) => {
       // Check for direct StatusBadge imports (should use centralized Badge)
-      if (line.includes('import { StatusBadge }') && !filePath.includes('BadgeSystem')) {
+      if (
+        line.includes('import { StatusBadge }') &&
+        !filePath.includes('BadgeSystem')
+      ) {
         this.violations.push({
           file: filePath,
           line: index + 1,
           type: 'wrong_component',
-          message: 'Direct StatusBadge import - use centralized Badge component instead'
+          message:
+            'Direct StatusBadge import - use centralized Badge component instead',
         });
       }
 
@@ -50,7 +54,8 @@ export class BadgeSystemScanner {
           file: filePath,
           line: index + 1,
           type: 'wrong_component',
-          message: 'AIScoreBadge used in related leads - should use stage badge instead'
+          message:
+            'AIScoreBadge used in related leads - should use stage badge instead',
         });
       }
 
@@ -60,7 +65,8 @@ export class BadgeSystemScanner {
           file: filePath,
           line: index + 1,
           type: 'manual_capitalization',
-          message: 'Manual capitalization detected - use centralized getStatusDisplayText function'
+          message:
+            'Manual capitalization detected - use centralized getStatusDisplayText function',
         });
       }
 
@@ -70,7 +76,7 @@ export class BadgeSystemScanner {
           file: filePath,
           line: index + 1,
           type: 'inconsistent_usage',
-          message: 'StatusBadge missing required status prop'
+          message: 'StatusBadge missing required status prop',
         });
       }
     });
@@ -82,12 +88,15 @@ export class BadgeSystemScanner {
     }
 
     let report = `🚨 Found ${this.violations.length} badge inconsistencies:\n\n`;
-    
-    const grouped = this.violations.reduce((acc, violation) => {
-      if (!acc[violation.type]) acc[violation.type] = [];
-      acc[violation.type].push(violation);
-      return acc;
-    }, {} as Record<string, BadgeViolation[]>);
+
+    const grouped = this.violations.reduce(
+      (acc, violation) => {
+        if (!acc[violation.type]) acc[violation.type] = [];
+        acc[violation.type].push(violation);
+        return acc;
+      },
+      {} as Record<string, BadgeViolation[]>
+    );
 
     Object.entries(grouped).forEach(([type, violations]) => {
       report += `## ${type.replace('_', ' ').toUpperCase()}\n`;
@@ -106,9 +115,9 @@ export const runBadgeScan = async () => {
   const scanner = new BadgeSystemScanner();
   const violations = await scanner.scanCodebase();
   const report = scanner.generateReport();
-  
+
   console.log(report);
-  
+
   if (violations.length > 0) {
     process.exit(1); // Fail build if violations found
   }

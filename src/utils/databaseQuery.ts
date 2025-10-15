@@ -4,11 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 export class DatabaseQueryTool {
   static async quickQuery(query: string, params?: any[]) {
     try {
-      const { data, error } = await supabase.rpc('execute_sql', { 
-        query, 
-        params: params || [] 
+      const { data, error } = await supabase.rpc('execute_sql', {
+        query,
+        params: params || [],
       });
-      
+
       if (error) throw error;
       return data;
     } catch (error) {
@@ -22,7 +22,7 @@ export class DatabaseQueryTool {
       const { count, error } = await supabase
         .from(tableName)
         .select('*', { count: 'exact', head: true });
-      
+
       if (error) throw error;
       return count;
     } catch (error) {
@@ -39,11 +39,14 @@ export class DatabaseQueryTool {
         .not(columnName, 'is', null);
 
       if (error) throw error;
-      
+
       const uniqueValues = [...new Set(data?.map(row => row[columnName]))];
       return uniqueValues.sort();
     } catch (error) {
-      console.error(`Error getting values for ${tableName}.${columnName}:`, error);
+      console.error(
+        `Error getting values for ${tableName}.${columnName}:`,
+        error
+      );
       return [];
     }
   }

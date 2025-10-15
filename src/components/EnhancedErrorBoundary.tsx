@@ -4,11 +4,11 @@
  */
 
 import {
-    AppError,
-    ErrorCategory,
-    ErrorFactory,
-    ErrorSeverity,
-    ErrorType
+  AppError,
+  ErrorCategory,
+  ErrorFactory,
+  ErrorSeverity,
+  ErrorType,
 } from '@/types/errors';
 import { enhancedErrorHandler } from '@/utils/enhancedErrorHandler';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
@@ -35,7 +35,10 @@ export interface ErrorBoundaryProps {
   resetOnPropsChange?: boolean;
 }
 
-export class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class EnhancedErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   private resetTimeoutId: number | null = null;
 
   constructor(props: ErrorBoundaryProps) {
@@ -45,14 +48,14 @@ export class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       error: null,
       errorInfo: null,
       retryCount: 0,
-      lastErrorTime: 0
+      lastErrorTime: 0,
     };
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return {
       hasError: true,
-      lastErrorTime: Date.now()
+      lastErrorTime: Date.now(),
     };
   }
 
@@ -63,13 +66,13 @@ export class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       metadata: {
         componentStack: errorInfo.componentStack,
         retryCount: this.state.retryCount,
-        props: this.props.componentName
-      }
+        props: this.props.componentName,
+      },
     });
 
     this.setState({
       error: appError,
-      errorInfo
+      errorInfo,
     });
 
     // Call custom error handler
@@ -78,12 +81,12 @@ export class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
 
   componentDidUpdate(prevProps: ErrorBoundaryProps) {
     const { resetKeys, resetOnPropsChange } = this.props;
-    
+
     if (resetOnPropsChange && resetKeys) {
-      const hasResetKeyChanged = resetKeys.some((key, index) => 
-        key !== prevProps.resetKeys?.[index]
+      const hasResetKeyChanged = resetKeys.some(
+        (key, index) => key !== prevProps.resetKeys?.[index]
       );
-      
+
       if (hasResetKeyChanged && this.state.hasError) {
         this.resetErrorBoundary();
       }
@@ -102,21 +105,21 @@ export class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       error: null,
       errorInfo: null,
       retryCount: 0,
-      lastErrorTime: 0
+      lastErrorTime: 0,
     });
   };
 
   private handleRetry = (): void => {
     const { maxRetries = 3 } = this.props;
-    
+
     if (this.state.retryCount < maxRetries) {
       this.setState(prevState => ({
         hasError: false,
         error: null,
         errorInfo: null,
-        retryCount: prevState.retryCount + 1
+        retryCount: prevState.retryCount + 1,
       }));
-      
+
       this.props.onRetry?.();
     }
   };
@@ -133,82 +136,98 @@ export class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       }
 
       const { error } = this.state;
-      const { maxRetries = 3, recoverable = true, showDetails = false } = this.props;
+      const {
+        maxRetries = 3,
+        recoverable = true,
+        showDetails = false,
+      } = this.props;
 
       // Default error UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+          <div className='max-w-md w-full bg-white shadow-lg rounded-lg p-6'>
+            <div className='flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4'>
+              <svg
+                className='w-6 h-6 text-red-600'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'
+                />
               </svg>
             </div>
-            
-            <h2 className="text-lg font-semibold text-gray-900 text-center mb-2">
-              {error?.severity === ErrorSeverity.CRITICAL ? 'Critical Error' : 'Something went wrong'}
+
+            <h2 className='text-lg font-semibold text-gray-900 text-center mb-2'>
+              {error?.severity === ErrorSeverity.CRITICAL
+                ? 'Critical Error'
+                : 'Something went wrong'}
             </h2>
-            
-            <p className="text-sm text-gray-600 text-center mb-6">
-              {error?.userMessage || (
-                recoverable 
+
+            <p className='text-sm text-gray-600 text-center mb-6'>
+              {error?.userMessage ||
+                (recoverable
                   ? "We're sorry, but something unexpected happened. You can try again or reload the page."
-                  : "A critical error occurred. Please reload the page to continue."
-              )}
+                  : 'A critical error occurred. Please reload the page to continue.')}
             </p>
 
             {showDetails && error && (
-              <details className="mb-6">
-                <summary className="text-sm font-medium text-gray-700 cursor-pointer">
+              <details className='mb-6'>
+                <summary className='text-sm font-medium text-gray-700 cursor-pointer'>
                   Error Details
                 </summary>
-                <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-600 overflow-auto max-h-32">
-                  <div className="mb-2">
+                <div className='mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-600 overflow-auto max-h-32'>
+                  <div className='mb-2'>
                     <strong>Type:</strong> {error.type}
                   </div>
-                  <div className="mb-2">
+                  <div className='mb-2'>
                     <strong>Code:</strong> {error.code}
                   </div>
-                  <div className="mb-2">
+                  <div className='mb-2'>
                     <strong>Message:</strong> {error.message}
                   </div>
-                  <div className="mb-2">
+                  <div className='mb-2'>
                     <strong>Severity:</strong> {error.severity}
                   </div>
-                  <div className="mb-2">
-                    <strong>Recoverable:</strong> {error.recoverable ? 'Yes' : 'No'}
+                  <div className='mb-2'>
+                    <strong>Recoverable:</strong>{' '}
+                    {error.recoverable ? 'Yes' : 'No'}
                   </div>
                   {error.stack && (
                     <div>
                       <strong>Stack:</strong>
-                      <pre className="whitespace-pre-wrap">{error.stack}</pre>
+                      <pre className='whitespace-pre-wrap'>{error.stack}</pre>
                     </div>
                   )}
                 </div>
               </details>
             )}
 
-            <div className="flex space-x-3">
+            <div className='flex space-x-3'>
               {recoverable && this.props.recoverable !== false && (
                 <button
                   onClick={this.handleRetry}
                   disabled={this.state.retryCount >= maxRetries}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className='flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
                 >
                   Try Again ({this.state.retryCount}/{maxRetries})
                 </button>
               )}
-              
+
               <button
                 onClick={this.handleReload}
-                className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
+                className='flex-1 bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700'
               >
                 Reload Page
               </button>
             </div>
 
             {this.state.retryCount > 0 && (
-              <p className="text-xs text-gray-500 text-center mt-4">
+              <p className='text-xs text-gray-500 text-center mt-4'>
                 Retry attempt {this.state.retryCount} of {maxRetries}
               </p>
             )}
@@ -231,19 +250,32 @@ export const FeatureErrorBoundary: React.FC<{
     <EnhancedErrorBoundary
       componentName={`FeatureErrorBoundary-${feature}`}
       severity={ErrorSeverity.MEDIUM}
-      fallback={fallback || (
-        <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-          <div className="flex items-center gap-2 text-red-800">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-            <span className="text-sm font-medium">{feature} Error</span>
+      fallback={
+        fallback || (
+          <div className='p-4 border border-red-200 rounded-lg bg-red-50'>
+            <div className='flex items-center gap-2 text-red-800'>
+              <svg
+                className='h-4 w-4'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'
+                />
+              </svg>
+              <span className='text-sm font-medium'>{feature} Error</span>
+            </div>
+            <p className='text-sm text-red-700 mt-1'>
+              There was an issue with the {feature.toLowerCase()} feature.
+              Please try again.
+            </p>
           </div>
-          <p className="text-sm text-red-700 mt-1">
-            There was an issue with the {feature.toLowerCase()} feature. Please try again.
-          </p>
-        </div>
-      )}
+        )
+      }
       onError={(error, errorInfo) => {
         console.error(`${feature} Error:`, error, errorInfo);
       }}
@@ -254,30 +286,35 @@ export const FeatureErrorBoundary: React.FC<{
 };
 
 // Assignment-specific error boundary
-export const AssignmentErrorBoundary: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AssignmentErrorBoundary: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   return (
-    <FeatureErrorBoundary feature="Assignment">
-      {children}
-    </FeatureErrorBoundary>
+    <FeatureErrorBoundary feature='Assignment'>{children}</FeatureErrorBoundary>
   );
 };
 
 // Mobile-specific error boundary
-export const MobileErrorBoundary: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const MobileErrorBoundary: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   return (
-    <FeatureErrorBoundary feature="Mobile">
-      {children}
-    </FeatureErrorBoundary>
+    <FeatureErrorBoundary feature='Mobile'>{children}</FeatureErrorBoundary>
   );
 };
 
 // Network error boundary
-export class NetworkErrorBoundary extends Component<{
-  children: ReactNode;
-  onNetworkError?: (error: AppError) => void;
-}, { hasNetworkError: boolean; error: AppError | null }> {
-  
-  constructor(props: { children: ReactNode; onNetworkError?: (error: AppError) => void }) {
+export class NetworkErrorBoundary extends Component<
+  {
+    children: ReactNode;
+    onNetworkError?: (error: AppError) => void;
+  },
+  { hasNetworkError: boolean; error: AppError | null }
+> {
+  constructor(props: {
+    children: ReactNode;
+    onNetworkError?: (error: AppError) => void;
+  }) {
     super(props);
     this.state = { hasNetworkError: false, error: null };
   }
@@ -301,14 +338,14 @@ export class NetworkErrorBoundary extends Component<{
       ErrorType.NETWORK_ERROR,
       'NETWORK_CONNECTION_LOST',
       'Network connection lost',
-      'You\'re currently offline. Please check your internet connection and try again.',
+      "You're currently offline. Please check your internet connection and try again.",
       {
         severity: ErrorSeverity.HIGH,
         category: ErrorCategory.NETWORK,
-        recoverable: true
+        recoverable: true,
       }
     );
-    
+
     this.setState({ hasNetworkError: true, error });
     this.props.onNetworkError?.(error);
   };
@@ -316,25 +353,36 @@ export class NetworkErrorBoundary extends Component<{
   render(): ReactNode {
     if (this.state.hasNetworkError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6 text-center">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-yellow-100 rounded-full mb-4">
-              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+          <div className='max-w-md w-full bg-white shadow-lg rounded-lg p-6 text-center'>
+            <div className='flex items-center justify-center w-12 h-12 mx-auto bg-yellow-100 rounded-full mb-4'>
+              <svg
+                className='w-6 h-6 text-yellow-600'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'
+                />
               </svg>
             </div>
-            
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+
+            <h2 className='text-lg font-semibold text-gray-900 mb-2'>
               Connection Lost
             </h2>
-            
-            <p className="text-sm text-gray-600 mb-6">
-              {this.state.error?.userMessage || 'You\'re currently offline. Please check your internet connection and try again.'}
+
+            <p className='text-sm text-gray-600 mb-6'>
+              {this.state.error?.userMessage ||
+                "You're currently offline. Please check your internet connection and try again."}
             </p>
 
             <button
               onClick={() => window.location.reload()}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+              className='bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700'
             >
               Retry Connection
             </button>
@@ -348,11 +396,13 @@ export class NetworkErrorBoundary extends Component<{
 }
 
 // Error boundary provider for the entire app
-export const ErrorBoundaryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ErrorBoundaryProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   return (
     <NetworkErrorBoundary>
       <EnhancedErrorBoundary
-        componentName="App"
+        componentName='App'
         severity={ErrorSeverity.CRITICAL}
         maxRetries={1}
         recoverable={false}

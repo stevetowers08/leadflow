@@ -3,17 +3,17 @@
  * Uses Result pattern and comprehensive error classification
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 import {
-    AppError,
-    ErrorCategory,
-    ErrorFactory,
-    ErrorSeverity,
-    ErrorType,
-    Result,
-    ResultBuilder
-} from "@/types/errors";
-import { enhancedErrorHandler } from "@/utils/enhancedErrorHandler";
+  AppError,
+  ErrorCategory,
+  ErrorFactory,
+  ErrorSeverity,
+  ErrorType,
+  Result,
+  ResultBuilder,
+} from '@/types/errors';
+import { enhancedErrorHandler } from '@/utils/enhancedErrorHandler';
 
 // Performance monitoring utility
 const measureOperation = async <T>(
@@ -24,15 +24,20 @@ const measureOperation = async <T>(
   try {
     const result = await operation();
     const duration = performance.now() - startTime;
-    
+
     if (process.env.NODE_ENV === 'development' && duration > 1000) {
-      console.warn(`🐌 Slow operation: ${operationName} took ${duration.toFixed(2)}ms`);
+      console.warn(
+        `🐌 Slow operation: ${operationName} took ${duration.toFixed(2)}ms`
+      );
     }
-    
+
     return result;
   } catch (error) {
     const duration = performance.now() - startTime;
-    console.error(`❌ Operation failed: ${operationName} (${duration.toFixed(2)}ms)`, error);
+    console.error(
+      `❌ Operation failed: ${operationName} (${duration.toFixed(2)}ms)`,
+      error
+    );
     throw error;
   }
 };
@@ -65,7 +70,9 @@ export class EnhancedAssignmentService {
   /**
    * Validates that a user exists and is active
    */
-  static async validateUser(userId: string): Promise<Result<boolean, AppError>> {
+  static async validateUser(
+    userId: string
+  ): Promise<Result<boolean, AppError>> {
     try {
       const result = await measureOperation(async () => {
         const { data, error } = await supabase
@@ -87,7 +94,7 @@ export class EnhancedAssignmentService {
       const appError = await enhancedErrorHandler.handleError(error, {
         component: 'AssignmentService',
         action: 'validateUser',
-        userId
+        userId,
       });
       return ResultBuilder.failure(appError);
     }
@@ -116,7 +123,7 @@ export class EnhancedAssignmentService {
     } catch (error) {
       const appError = await enhancedErrorHandler.handleError(error, {
         component: 'AssignmentService',
-        action: 'getTeamMembers'
+        action: 'getTeamMembers',
       });
       return ResultBuilder.failure(appError);
     }
@@ -133,7 +140,12 @@ export class EnhancedAssignmentService {
   ): Promise<Result<AssignmentResult, AppError>> {
     try {
       // Input validation
-      const validationResult = this.validateAssignmentInput(entityType, entityId, newOwnerId, assignedBy);
+      const validationResult = this.validateAssignmentInput(
+        entityType,
+        entityId,
+        newOwnerId,
+        assignedBy
+      );
       if (!validationResult.success) {
         return ResultBuilder.failure(validationResult.error);
       }
@@ -155,7 +167,7 @@ export class EnhancedAssignmentService {
                 recoverable: false,
                 severity: ErrorSeverity.MEDIUM,
                 category: ErrorCategory.BUSINESS_LOGIC,
-                context: { entityType, entityId, newOwnerId, assignedBy }
+                context: { entityType, entityId, newOwnerId, assignedBy },
               }
             )
           );
@@ -163,13 +175,21 @@ export class EnhancedAssignmentService {
       }
 
       // Validate entity exists
-      const entityValidation = await this.validateEntityExists(entityType, entityId);
+      const entityValidation = await this.validateEntityExists(
+        entityType,
+        entityId
+      );
       if (!entityValidation.success) {
         return ResultBuilder.failure(entityValidation.error);
       }
 
       // Perform the assignment
-      const assignmentResult = await this.performAssignment(entityType, entityId, newOwnerId, assignedBy);
+      const assignmentResult = await this.performAssignment(
+        entityType,
+        entityId,
+        newOwnerId,
+        assignedBy
+      );
       if (!assignmentResult.success) {
         return ResultBuilder.failure(assignmentResult.error);
       }
@@ -182,7 +202,7 @@ export class EnhancedAssignmentService {
         entityType,
         entityId,
         newOwnerId,
-        assignedBy
+        assignedBy,
       });
       return ResultBuilder.failure(appError);
     }
@@ -208,13 +228,17 @@ export class EnhancedAssignmentService {
             recoverable: true,
             severity: ErrorSeverity.LOW,
             category: ErrorCategory.VALIDATION,
-            context: { entityType, entityId, newOwnerId, assignedBy }
+            context: { entityType, entityId, newOwnerId, assignedBy },
           }
         )
       );
     }
 
-    if (!entityId || typeof entityId !== 'string' || entityId.trim().length === 0) {
+    if (
+      !entityId ||
+      typeof entityId !== 'string' ||
+      entityId.trim().length === 0
+    ) {
       return ResultBuilder.failure(
         ErrorFactory.create(
           ErrorType.VALIDATION_ERROR,
@@ -225,13 +249,17 @@ export class EnhancedAssignmentService {
             recoverable: true,
             severity: ErrorSeverity.LOW,
             category: ErrorCategory.VALIDATION,
-            context: { entityType, entityId, newOwnerId, assignedBy }
+            context: { entityType, entityId, newOwnerId, assignedBy },
           }
         )
       );
     }
 
-    if (!assignedBy || typeof assignedBy !== 'string' || assignedBy.trim().length === 0) {
+    if (
+      !assignedBy ||
+      typeof assignedBy !== 'string' ||
+      assignedBy.trim().length === 0
+    ) {
       return ResultBuilder.failure(
         ErrorFactory.create(
           ErrorType.VALIDATION_ERROR,
@@ -242,7 +270,7 @@ export class EnhancedAssignmentService {
             recoverable: true,
             severity: ErrorSeverity.LOW,
             category: ErrorCategory.VALIDATION,
-            context: { entityType, entityId, newOwnerId, assignedBy }
+            context: { entityType, entityId, newOwnerId, assignedBy },
           }
         )
       );
@@ -270,7 +298,7 @@ export class EnhancedAssignmentService {
           component: 'AssignmentService',
           action: 'validateEntityExists',
           entityType,
-          entityId
+          entityId,
         });
         return ResultBuilder.failure(appError);
       }
@@ -286,7 +314,7 @@ export class EnhancedAssignmentService {
               recoverable: false,
               severity: ErrorSeverity.MEDIUM,
               category: ErrorCategory.BUSINESS_LOGIC,
-              context: { entityType, entityId }
+              context: { entityType, entityId },
             }
           )
         );
@@ -298,7 +326,7 @@ export class EnhancedAssignmentService {
         component: 'AssignmentService',
         action: 'validateEntityExists',
         entityType,
-        entityId
+        entityId,
       });
       return ResultBuilder.failure(appError);
     }
@@ -316,21 +344,24 @@ export class EnhancedAssignmentService {
     try {
       const { error: updateError } = await supabase
         .from(entityType)
-        .update({ 
+        .update({
           owner_id: newOwnerId,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
 
       if (updateError) {
-        const appError = enhancedErrorHandler.classifySupabaseError(updateError, {
-          component: 'AssignmentService',
-          action: 'performAssignment',
-          entityType,
-          entityId,
-          newOwnerId,
-          assignedBy
-        });
+        const appError = enhancedErrorHandler.classifySupabaseError(
+          updateError,
+          {
+            component: 'AssignmentService',
+            action: 'performAssignment',
+            entityType,
+            entityId,
+            newOwnerId,
+            assignedBy,
+          }
+        );
         return ResultBuilder.failure(appError);
       }
 
@@ -342,20 +373,20 @@ export class EnhancedAssignmentService {
           .select('full_name')
           .eq('id', newOwnerId)
           .single();
-        
+
         ownerName = ownerData?.full_name || 'Unknown User';
       }
 
       const assignmentResult: AssignmentResult = {
         success: true,
-        message: newOwnerId 
+        message: newOwnerId
           ? `${entityType.slice(0, -1)} assigned to ${ownerName}`
           : `${entityType.slice(0, -1)} unassigned`,
         data: {
           entityId,
           newOwnerId,
-          ownerName
-        }
+          ownerName,
+        },
       };
 
       return ResultBuilder.success(assignmentResult);
@@ -366,7 +397,7 @@ export class EnhancedAssignmentService {
         entityType,
         entityId,
         newOwnerId,
-        assignedBy
+        assignedBy,
       });
       return ResultBuilder.failure(appError);
     }
@@ -383,7 +414,12 @@ export class EnhancedAssignmentService {
   ): Promise<Result<BulkAssignmentResult, AppError>> {
     try {
       // Validate inputs
-      const validationResult = this.validateBulkAssignmentInput(entityIds, entityType, newOwnerId, assignedBy);
+      const validationResult = this.validateBulkAssignmentInput(
+        entityIds,
+        entityType,
+        newOwnerId,
+        assignedBy
+      );
       if (!validationResult.success) {
         return ResultBuilder.failure(validationResult.error);
       }
@@ -404,7 +440,7 @@ export class EnhancedAssignmentService {
               recoverable: false,
               severity: ErrorSeverity.MEDIUM,
               category: ErrorCategory.BUSINESS_LOGIC,
-              context: { entityIds, entityType, newOwnerId, assignedBy }
+              context: { entityIds, entityType, newOwnerId, assignedBy },
             }
           )
         );
@@ -415,7 +451,7 @@ export class EnhancedAssignmentService {
         p_entity_ids: entityIds,
         p_entity_type: entityType,
         p_new_owner_id: newOwnerId,
-        p_assigned_by: assignedBy
+        p_assigned_by: assignedBy,
       });
 
       if (error) {
@@ -425,7 +461,7 @@ export class EnhancedAssignmentService {
           entityIds,
           entityType,
           newOwnerId,
-          assignedBy
+          assignedBy,
         });
         return ResultBuilder.failure(appError);
       }
@@ -435,7 +471,7 @@ export class EnhancedAssignmentService {
         updated_count: data?.updated_count || 0,
         total_requested: entityIds.length,
         invalid_entities: data?.invalid_entities || [],
-        errors: data?.errors || []
+        errors: data?.errors || [],
       };
 
       return ResultBuilder.success(bulkResult);
@@ -446,7 +482,7 @@ export class EnhancedAssignmentService {
         entityIds,
         entityType,
         newOwnerId,
-        assignedBy
+        assignedBy,
       });
       return ResultBuilder.failure(appError);
     }
@@ -472,13 +508,17 @@ export class EnhancedAssignmentService {
             recoverable: true,
             severity: ErrorSeverity.LOW,
             category: ErrorCategory.VALIDATION,
-            context: { entityIds, entityType, newOwnerId, assignedBy }
+            context: { entityIds, entityType, newOwnerId, assignedBy },
           }
         )
       );
     }
 
-    if (!newOwnerId || typeof newOwnerId !== 'string' || newOwnerId.trim().length === 0) {
+    if (
+      !newOwnerId ||
+      typeof newOwnerId !== 'string' ||
+      newOwnerId.trim().length === 0
+    ) {
       return ResultBuilder.failure(
         ErrorFactory.create(
           ErrorType.VALIDATION_ERROR,
@@ -489,13 +529,17 @@ export class EnhancedAssignmentService {
             recoverable: true,
             severity: ErrorSeverity.LOW,
             category: ErrorCategory.VALIDATION,
-            context: { entityIds, entityType, newOwnerId, assignedBy }
+            context: { entityIds, entityType, newOwnerId, assignedBy },
           }
         )
       );
     }
 
-    if (!assignedBy || typeof assignedBy !== 'string' || assignedBy.trim().length === 0) {
+    if (
+      !assignedBy ||
+      typeof assignedBy !== 'string' ||
+      assignedBy.trim().length === 0
+    ) {
       return ResultBuilder.failure(
         ErrorFactory.create(
           ErrorType.VALIDATION_ERROR,
@@ -506,7 +550,7 @@ export class EnhancedAssignmentService {
             recoverable: true,
             severity: ErrorSeverity.LOW,
             category: ErrorCategory.VALIDATION,
-            context: { entityIds, entityType, newOwnerId, assignedBy }
+            context: { entityIds, entityType, newOwnerId, assignedBy },
           }
         )
       );

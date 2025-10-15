@@ -18,7 +18,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   children,
   className,
   padding = 'md',
-  spacing = 'md'
+  spacing = 'md',
 }) => {
   const isMobile = useIsMobile();
 
@@ -26,14 +26,14 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
     none: '',
     sm: isMobile ? 'p-2' : 'p-4',
     md: isMobile ? 'p-4' : 'p-6',
-    lg: isMobile ? 'p-6' : 'p-8'
+    lg: isMobile ? 'p-6' : 'p-8',
   };
 
   const spacingClasses = {
     none: '',
     sm: isMobile ? 'space-y-2' : 'space-y-3',
     md: isMobile ? 'space-y-4' : 'space-y-6',
-    lg: isMobile ? 'space-y-6' : 'space-y-8'
+    lg: isMobile ? 'space-y-6' : 'space-y-8',
   };
 
   return (
@@ -61,7 +61,7 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
   children,
   className,
   maxWidth = 'full',
-  centered = false
+  centered = false,
 }) => {
   const isMobile = useIsMobile();
 
@@ -71,7 +71,7 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
     lg: 'max-w-lg',
     xl: 'max-w-xl',
     '2xl': 'max-w-2xl',
-    full: ''
+    full: '',
   };
 
   return (
@@ -101,14 +101,14 @@ export const MobileGrid: React.FC<MobileGridProps> = ({
   className,
   cols = 1,
   gap = 'md',
-  responsive = true
+  responsive = true,
 }) => {
   const isMobile = useIsMobile();
 
   const gapClasses = {
     sm: isMobile ? 'gap-2' : 'gap-3',
     md: isMobile ? 'gap-3' : 'gap-4',
-    lg: isMobile ? 'gap-4' : 'gap-6'
+    lg: isMobile ? 'gap-4' : 'gap-6',
   };
 
   const gridClasses = {
@@ -116,19 +116,16 @@ export const MobileGrid: React.FC<MobileGridProps> = ({
     2: responsive ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2',
     3: responsive ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-3',
     4: responsive ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-4',
-    5: responsive ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5' : 'grid-cols-5',
-    6: responsive ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6' : 'grid-cols-6'
+    5: responsive
+      ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
+      : 'grid-cols-5',
+    6: responsive
+      ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6'
+      : 'grid-cols-6',
   };
 
   return (
-    <div
-      className={cn(
-        'grid',
-        gridClasses[cols],
-        gapClasses[gap],
-        className
-      )}
-    >
+    <div className={cn('grid', gridClasses[cols], gapClasses[gap], className)}>
       {children}
     </div>
   );
@@ -149,21 +146,21 @@ export const MobileCard: React.FC<MobileCardProps> = ({
   padding = 'md',
   shadow = 'sm',
   interactive = false,
-  onClick
+  onClick,
 }) => {
   const isMobile = useIsMobile();
 
   const paddingClasses = {
     sm: isMobile ? 'p-3' : 'p-4',
     md: isMobile ? 'p-4' : 'p-6',
-    lg: isMobile ? 'p-6' : 'p-8'
+    lg: isMobile ? 'p-6' : 'p-8',
   };
 
   const shadowClasses = {
     none: '',
     sm: 'shadow-sm',
     md: 'shadow-md',
-    lg: 'shadow-lg'
+    lg: 'shadow-lg',
   };
 
   return (
@@ -200,7 +197,7 @@ export const MobileButton: React.FC<MobileButtonProps> = ({
   size = 'md',
   fullWidth = false,
   disabled = false,
-  onClick
+  onClick,
 }) => {
   const isMobile = useIsMobile();
 
@@ -208,13 +205,13 @@ export const MobileButton: React.FC<MobileButtonProps> = ({
     primary: 'bg-blue-600 text-white hover:bg-blue-700',
     secondary: 'bg-gray-600 text-white hover:bg-gray-700',
     outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
-    ghost: 'text-gray-700 hover:bg-gray-100'
+    ghost: 'text-gray-700 hover:bg-gray-100',
   };
 
   const sizeClasses = {
     sm: isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-2 text-sm',
     md: isMobile ? 'px-4 py-3 text-sm' : 'px-6 py-3 text-base',
-    lg: isMobile ? 'px-6 py-4 text-base' : 'px-8 py-4 text-lg'
+    lg: isMobile ? 'px-6 py-4 text-base' : 'px-8 py-4 text-lg',
   };
 
   return (
@@ -253,7 +250,7 @@ export const MobileInput: React.FC<MobileInputProps> = ({
   className,
   type = 'text',
   disabled = false,
-  error = false
+  error = false,
 }) => {
   const isMobile = useIsMobile();
 
@@ -261,7 +258,7 @@ export const MobileInput: React.FC<MobileInputProps> = ({
     <input
       type={type}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
       className={cn(
@@ -293,14 +290,14 @@ export const MobileTextarea: React.FC<MobileTextareaProps> = ({
   className,
   rows = 3,
   disabled = false,
-  error = false
+  error = false,
 }) => {
   const isMobile = useIsMobile();
 
   return (
     <textarea
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
@@ -333,14 +330,14 @@ export const MobileSelect: React.FC<MobileSelectProps> = ({
   placeholder,
   className,
   disabled = false,
-  error = false
+  error = false,
 }) => {
   const isMobile = useIsMobile();
 
   return (
     <select
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={e => onChange(e.target.value)}
       disabled={disabled}
       className={cn(
         'w-full rounded-lg border border-gray-300 px-3 py-3 text-base bg-white',
@@ -352,7 +349,7 @@ export const MobileSelect: React.FC<MobileSelectProps> = ({
       )}
     >
       {placeholder && (
-        <option value="" disabled>
+        <option value='' disabled>
           {placeholder}
         </option>
       )}
@@ -366,7 +363,12 @@ export const MobileSelect: React.FC<MobileSelectProps> = ({
 };
 
 export {
-    MobileButton, MobileCard, MobileContainer,
-    MobileGrid, MobileInput, MobileLayout, MobileSelect, MobileTextarea
+  MobileButton,
+  MobileCard,
+  MobileContainer,
+  MobileGrid,
+  MobileInput,
+  MobileLayout,
+  MobileSelect,
+  MobileTextarea,
 };
-

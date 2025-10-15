@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  getJobStatus, 
-  getCompanyStatus, 
-  getBatchJobStatuses, 
+import {
+  getJobStatus,
+  getCompanyStatus,
+  getBatchJobStatuses,
   getBatchCompanyStatuses,
   JobStatus,
   CompanyStatus,
   Job,
-  Company
+  Company,
 } from '@/utils/statusCalculator';
 
 interface StatusInfo {
@@ -29,21 +29,21 @@ export const useJobStatus = (job: Job | null) => {
     status: 'new',
     leadCount: 0,
     isLoading: false,
-    lastUpdated: null
+    lastUpdated: null,
   });
 
   const refreshStatus = useCallback(async () => {
     if (!job) return;
-    
+
     setStatusInfo(prev => ({ ...prev, isLoading: true }));
-    
+
     try {
       const { status, leadCount } = await getJobStatus(job);
       setStatusInfo({
         status,
         leadCount,
         isLoading: false,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       });
     } catch (error) {
       console.error('Error refreshing job status:', error);
@@ -57,7 +57,7 @@ export const useJobStatus = (job: Job | null) => {
 
   return {
     ...statusInfo,
-    refreshStatus
+    refreshStatus,
   };
 };
 
@@ -69,21 +69,21 @@ export const useCompanyStatus = (company: Company | null) => {
     status: 'new',
     leadCount: 0,
     isLoading: false,
-    lastUpdated: null
+    lastUpdated: null,
   });
 
   const refreshStatus = useCallback(async () => {
     if (!company) return;
-    
+
     setStatusInfo(prev => ({ ...prev, isLoading: true }));
-    
+
     try {
       const { status, leadCount } = await getCompanyStatus(company);
       setStatusInfo({
         status,
         leadCount,
         isLoading: false,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       });
     } catch (error) {
       console.error('Error refreshing company status:', error);
@@ -97,7 +97,7 @@ export const useCompanyStatus = (company: Company | null) => {
 
   return {
     ...statusInfo,
-    refreshStatus
+    refreshStatus,
   };
 };
 
@@ -110,21 +110,21 @@ export const useBatchJobStatuses = (jobs: Job[]) => {
 
   const refreshAllStatuses = useCallback(async () => {
     if (jobs.length === 0) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       const batchStatuses = await getBatchJobStatuses(jobs);
       const newStatusMap: BatchStatusMap = {};
-      
+
       batchStatuses.forEach((statusInfo, jobId) => {
         newStatusMap[jobId] = {
           ...statusInfo,
           isLoading: false,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         };
       });
-      
+
       setStatusMap(newStatusMap);
     } catch (error) {
       console.error('Error refreshing batch job statuses:', error);
@@ -137,20 +137,25 @@ export const useBatchJobStatuses = (jobs: Job[]) => {
     refreshAllStatuses();
   }, [refreshAllStatuses]);
 
-  const getJobStatus = useCallback((jobId: string): StatusInfo => {
-    return statusMap[jobId] || {
-      status: 'new',
-      leadCount: 0,
-      isLoading: true,
-      lastUpdated: null
-    };
-  }, [statusMap]);
+  const getJobStatus = useCallback(
+    (jobId: string): StatusInfo => {
+      return (
+        statusMap[jobId] || {
+          status: 'new',
+          leadCount: 0,
+          isLoading: true,
+          lastUpdated: null,
+        }
+      );
+    },
+    [statusMap]
+  );
 
   return {
     statusMap,
     isLoading,
     getJobStatus,
-    refreshAllStatuses
+    refreshAllStatuses,
   };
 };
 
@@ -163,21 +168,21 @@ export const useBatchCompanyStatuses = (companies: Company[]) => {
 
   const refreshAllStatuses = useCallback(async () => {
     if (companies.length === 0) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       const batchStatuses = await getBatchCompanyStatuses(companies);
       const newStatusMap: BatchStatusMap = {};
-      
+
       batchStatuses.forEach((statusInfo, companyId) => {
         newStatusMap[companyId] = {
           ...statusInfo,
           isLoading: false,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         };
       });
-      
+
       setStatusMap(newStatusMap);
     } catch (error) {
       console.error('Error refreshing batch company statuses:', error);
@@ -190,20 +195,25 @@ export const useBatchCompanyStatuses = (companies: Company[]) => {
     refreshAllStatuses();
   }, [refreshAllStatuses]);
 
-  const getCompanyStatus = useCallback((companyId: string): StatusInfo => {
-    return statusMap[companyId] || {
-      status: 'new',
-      leadCount: 0,
-      isLoading: true,
-      lastUpdated: null
-    };
-  }, [statusMap]);
+  const getCompanyStatus = useCallback(
+    (companyId: string): StatusInfo => {
+      return (
+        statusMap[companyId] || {
+          status: 'new',
+          leadCount: 0,
+          isLoading: true,
+          lastUpdated: null,
+        }
+      );
+    },
+    [statusMap]
+  );
 
   return {
     statusMap,
     isLoading,
     getCompanyStatus,
-    refreshAllStatuses
+    refreshAllStatuses,
   };
 };
 
@@ -212,7 +222,9 @@ export const useBatchCompanyStatuses = (companies: Company[]) => {
  */
 export const useRealTimeStatus = (refreshInterval: number = 30000) => {
   const [isEnabled, setIsEnabled] = useState(false);
-  const [refreshCallbacks, setRefreshCallbacks] = useState<Set<() => void>>(new Set());
+  const [refreshCallbacks, setRefreshCallbacks] = useState<Set<() => void>>(
+    new Set()
+  );
 
   const registerRefreshCallback = useCallback((callback: () => void) => {
     setRefreshCallbacks(prev => new Set([...prev, callback]));
@@ -242,7 +254,6 @@ export const useRealTimeStatus = (refreshInterval: number = 30000) => {
     isEnabled,
     enableRealTime,
     disableRealTime,
-    registerRefreshCallback
+    registerRefreshCallback,
   };
 };
-

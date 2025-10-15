@@ -3,13 +3,17 @@
  * Demonstrates how to use the new error handling patterns
  */
 
-import { EnhancedErrorBoundary, FeatureErrorBoundary } from '@/components/EnhancedErrorBoundary';
-import { useAsyncData, useAsyncMutation, useAsyncOperation } from '@/hooks/useEnhancedAsyncOperation';
-import { EnhancedAssignmentService } from '@/services/enhancedAssignmentService';
 import {
-    ErrorSeverity,
-    isSuccess
-} from '@/types/errors';
+  EnhancedErrorBoundary,
+  FeatureErrorBoundary,
+} from '@/components/EnhancedErrorBoundary';
+import {
+  useAsyncData,
+  useAsyncMutation,
+  useAsyncOperation,
+} from '@/hooks/useEnhancedAsyncOperation';
+import { EnhancedAssignmentService } from '@/services/enhancedAssignmentService';
+import { ErrorSeverity, isSuccess } from '@/types/errors';
 import { circuitBreakerManager } from '@/utils/circuitBreaker';
 import React from 'react';
 
@@ -42,7 +46,7 @@ export function ExampleComponent() {
     isError,
     execute,
     retry,
-    canRetry
+    canRetry,
   } = useAsyncOperation(
     async (entityId: string) => {
       const result = await EnhancedAssignmentService.assignEntity(
@@ -51,7 +55,7 @@ export function ExampleComponent() {
         'new-owner',
         'current-user'
       );
-      
+
       if (isSuccess(result)) {
         return result.data;
       } else {
@@ -63,12 +67,12 @@ export function ExampleComponent() {
       maxRetries: 3,
       showSuccessToast: true,
       showErrorToast: true,
-      onSuccess: (data) => {
+      onSuccess: data => {
         console.log('Assignment completed:', data);
       },
-      onError: (error) => {
+      onError: error => {
         console.error('Assignment failed:', error.userMessage);
-      }
+      },
     }
   );
 
@@ -82,12 +86,10 @@ export function ExampleComponent() {
 
   if (isError && error) {
     return (
-      <div className="error-container">
-        <p className="error-message">{error.userMessage}</p>
+      <div className='error-container'>
+        <p className='error-message'>{error.userMessage}</p>
         {canRetry && (
-          <button onClick={() => retry('entity-123')}>
-            Retry Assignment
-          </button>
+          <button onClick={() => retry('entity-123')}>Retry Assignment</button>
         )}
       </div>
     );
@@ -95,17 +97,13 @@ export function ExampleComponent() {
 
   if (isSuccess && data) {
     return (
-      <div className="success-container">
-        <p className="success-message">{data.message}</p>
+      <div className='success-container'>
+        <p className='success-message'>{data.message}</p>
       </div>
     );
   }
 
-  return (
-    <button onClick={handleAssignment}>
-      Assign Entity
-    </button>
-  );
+  return <button onClick={handleAssignment}>Assign Entity</button>;
 }
 
 // Example 3: Using data fetching hook
@@ -114,7 +112,7 @@ export function DataFetchingExample() {
     data: teamMembers,
     error,
     isLoading,
-    refetch
+    refetch,
   } = useAsyncData(
     async () => {
       const result = await EnhancedAssignmentService.getTeamMembers();
@@ -127,9 +125,9 @@ export function DataFetchingExample() {
     {
       autoExecute: true,
       showErrorToast: true,
-      onSuccess: (members) => {
+      onSuccess: members => {
         console.log(`Loaded ${members.length} team members`);
-      }
+      },
     }
   );
 
@@ -139,7 +137,7 @@ export function DataFetchingExample() {
 
   if (error) {
     return (
-      <div className="error-container">
+      <div className='error-container'>
         <p>{error.userMessage}</p>
         <button onClick={refetch}>Retry</button>
       </div>
@@ -164,7 +162,7 @@ export function MutationExample() {
     execute: createAssignment,
     isLoading,
     error,
-    isSuccess
+    isSuccess,
   } = useAsyncMutation(
     async (assignmentData: { entityId: string; ownerId: string }) => {
       const result = await EnhancedAssignmentService.assignEntity(
@@ -173,7 +171,7 @@ export function MutationExample() {
         assignmentData.ownerId,
         'current-user'
       );
-      
+
       if (isSuccess(result)) {
         return result.data;
       } else {
@@ -181,41 +179,32 @@ export function MutationExample() {
       }
     },
     {
-      onSuccess: (data) => {
+      onSuccess: data => {
         console.log('Assignment created:', data);
       },
-      onError: (error) => {
+      onError: error => {
         console.error('Failed to create assignment:', error.userMessage);
-      }
+      },
     }
   );
 
   const handleSubmit = async () => {
     await createAssignment({
       entityId: 'entity-123',
-      ownerId: 'owner-456'
+      ownerId: 'owner-456',
     });
   };
 
   return (
     <div>
-      <button 
-        onClick={handleSubmit} 
-        disabled={isLoading}
-      >
+      <button onClick={handleSubmit} disabled={isLoading}>
         {isLoading ? 'Creating...' : 'Create Assignment'}
       </button>
-      
-      {error && (
-        <div className="error-message">
-          {error.userMessage}
-        </div>
-      )}
-      
+
+      {error && <div className='error-message'>{error.userMessage}</div>}
+
       {isSuccess && (
-        <div className="success-message">
-          Assignment created successfully!
-        </div>
+        <div className='success-message'>Assignment created successfully!</div>
       )}
     </div>
   );
@@ -237,7 +226,7 @@ export async function circuitBreakerExample() {
     {
       failureThreshold: 5,
       timeout: 60000,
-      monitoringPeriod: 300000
+      monitoringPeriod: 300000,
     }
   );
 
@@ -252,7 +241,7 @@ export async function circuitBreakerExample() {
 export function AppWithErrorBoundaries() {
   return (
     <EnhancedErrorBoundary
-      componentName="App"
+      componentName='App'
       severity={ErrorSeverity.CRITICAL}
       maxRetries={1}
       recoverable={false}
@@ -260,16 +249,16 @@ export function AppWithErrorBoundaries() {
         console.error('App-level error:', error, errorInfo);
       }}
     >
-      <div className="app">
-        <FeatureErrorBoundary feature="Assignment">
+      <div className='app'>
+        <FeatureErrorBoundary feature='Assignment'>
           <AssignmentComponent />
         </FeatureErrorBoundary>
-        
-        <FeatureErrorBoundary feature="Reporting">
+
+        <FeatureErrorBoundary feature='Reporting'>
           <ReportingComponent />
         </FeatureErrorBoundary>
-        
-        <FeatureErrorBoundary feature="User Management">
+
+        <FeatureErrorBoundary feature='User Management'>
           <UserManagementComponent />
         </FeatureErrorBoundary>
       </div>
@@ -296,55 +285,49 @@ export function FormWithErrorHandling() {
     execute: submitForm,
     isLoading,
     error,
-    isSuccess
+    isSuccess,
   } = useAsyncOperation(
     async (formData: any) => {
       // Simulate form submission
       const response = await fetch('/api/submit-form', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Form submission failed: ${response.statusText}`);
       }
-      
+
       return response.json();
     },
     {
       showSuccessToast: true,
       showErrorToast: true,
-      enableRetry: false // Don't retry form submissions
+      enableRetry: false, // Don't retry form submissions
     }
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    
+
     await submitForm(Object.fromEntries(formData));
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <input name="name" placeholder="Name" required />
-      <input name="email" type="email" placeholder="Email" required />
-      
-      <button type="submit" disabled={isLoading}>
+      <input name='name' placeholder='Name' required />
+      <input name='email' type='email' placeholder='Email' required />
+
+      <button type='submit' disabled={isLoading}>
         {isLoading ? 'Submitting...' : 'Submit'}
       </button>
-      
-      {error && (
-        <div className="form-error">
-          {error.userMessage}
-        </div>
-      )}
-      
+
+      {error && <div className='form-error'>{error.userMessage}</div>}
+
       {isSuccess && (
-        <div className="form-success">
-          Form submitted successfully!
-        </div>
+        <div className='form-success'>Form submitted successfully!</div>
       )}
     </form>
   );
@@ -353,7 +336,7 @@ export function FormWithErrorHandling() {
 // Example 8: Batch operations with error handling
 export async function batchOperationExample() {
   const entityIds = ['entity-1', 'entity-2', 'entity-3'];
-  
+
   const result = await EnhancedAssignmentService.bulkAssignEntities(
     entityIds,
     'people',
@@ -363,12 +346,14 @@ export async function batchOperationExample() {
 
   if (isSuccess(result)) {
     const { data } = result;
-    console.log(`Successfully assigned ${data.updated_count} out of ${data.total_requested} entities`);
-    
+    console.log(
+      `Successfully assigned ${data.updated_count} out of ${data.total_requested} entities`
+    );
+
     if (data.invalid_entities.length > 0) {
       console.warn('Invalid entities:', data.invalid_entities);
     }
-    
+
     if (data.errors && data.errors.length > 0) {
       console.warn('Errors:', data.errors);
     }

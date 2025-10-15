@@ -3,7 +3,7 @@
  * Reduces N+1 query problems and improves data fetching efficiency
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 export interface BatchQueryOptions {
   staleTime?: number;
@@ -17,11 +17,13 @@ export interface BatchQueryOptions {
 export const batchFetchCompanyData = async (companyId: string) => {
   const { data, error } = await supabase
     .from('companies')
-    .select(`
+    .select(
+      `
       *,
       jobs:jobs(*),
       people:people(*)
-    `)
+    `
+    )
     .eq('id', companyId)
     .single();
 
@@ -35,11 +37,13 @@ export const batchFetchCompanyData = async (companyId: string) => {
 export const batchFetchJobData = async (jobId: string) => {
   const { data, error } = await supabase
     .from('jobs')
-    .select(`
+    .select(
+      `
       *,
       companies!inner(*),
       people:people(*)
-    `)
+    `
+    )
     .eq('id', jobId)
     .single();
 
@@ -53,11 +57,13 @@ export const batchFetchJobData = async (jobId: string) => {
 export const batchFetchLeadData = async (leadId: string) => {
   const { data, error } = await supabase
     .from('people')
-    .select(`
+    .select(
+      `
       *,
       companies!inner(*),
       jobs:jobs(*)
-    `)
+    `
+    )
     .eq('id', leadId)
     .single();
 
@@ -76,14 +82,15 @@ export const batchFetchDashboardData = async () => {
   // Parallel fetch of counts and recent data
   const [countsResult, todayJobsResult, recentLeadsResult] = await Promise.all([
     // Count queries
-    supabase.from("people").select("id", { count: "exact", head: true }),
-    supabase.from("companies").select("id", { count: "exact", head: true }),
-    supabase.from("jobs").select("id", { count: "exact", head: true }),
-    
+    supabase.from('people').select('id', { count: 'exact', head: true }),
+    supabase.from('companies').select('id', { count: 'exact', head: true }),
+    supabase.from('jobs').select('id', { count: 'exact', head: true }),
+
     // Today's jobs with minimal data
     supabase
-      .from("jobs")
-      .select(`
+      .from('jobs')
+      .select(
+        `
         id,
         title,
         company_id,
@@ -92,15 +99,17 @@ export const batchFetchDashboardData = async () => {
         lead_score_job,
         created_at,
         companies!inner(name, logo_url, website)
-      `)
-      .gte("created_at", today.toISOString().split('T')[0])
-      .order("created_at", { ascending: false })
+      `
+      )
+      .gte('created_at', today.toISOString().split('T')[0])
+      .order('created_at', { ascending: false })
       .limit(5),
-    
+
     // Recent leads with minimal data
     supabase
-      .from("people")
-      .select(`
+      .from('people')
+      .select(
+        `
         id,
         name,
         company_id,
@@ -108,19 +117,20 @@ export const batchFetchDashboardData = async () => {
         lead_score,
         created_at,
         companies!inner(name, logo_url, website)
-      `)
-      .order("created_at", { ascending: false })
-      .limit(5)
+      `
+      )
+      .order('created_at', { ascending: false })
+      .limit(5),
   ]);
 
   return {
     counts: {
       leads: countsResult[0].count,
       companies: countsResult[1].count,
-      jobs: countsResult[2].count
+      jobs: countsResult[2].count,
     },
     todayJobs: todayJobsResult.data || [],
-    recentLeads: recentLeadsResult.data || []
+    recentLeads: recentLeadsResult.data || [],
   };
 };
 
@@ -142,7 +152,7 @@ export const batchFetchListData = async (
     limit = 50,
     filters = {},
     orderBy = 'created_at',
-    orderDirection = 'desc'
+    orderDirection = 'desc',
   } = options;
 
   let query = supabase
@@ -165,7 +175,7 @@ export const batchFetchListData = async (
   return {
     data: data || [],
     count: count || 0,
-    hasMore: (count || 0) > (page + 1) * limit
+    hasMore: (count || 0) > (page + 1) * limit,
   };
 };
 
@@ -192,7 +202,7 @@ export const setCachedQuery = (key: string, data: any) => {
  */
 export const clearQueryCache = (pattern?: string) => {
   if (pattern) {
-    const keysToDelete = Array.from(queryCache.keys()).filter(key => 
+    const keysToDelete = Array.from(queryCache.keys()).filter(key =>
       key.includes(pattern)
     );
     keysToDelete.forEach(key => queryCache.delete(key));
@@ -200,4 +210,3 @@ export const clearQueryCache = (pattern?: string) => {
     queryCache.clear();
   }
 };
-

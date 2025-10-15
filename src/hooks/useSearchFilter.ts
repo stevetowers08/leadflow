@@ -24,7 +24,8 @@ export const useSearchFilter = (
 
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<Record<string, string>>(initialFilters);
+  const [filters, setFilters] =
+    useState<Record<string, string>>(initialFilters);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
   // Debounce search term
@@ -42,7 +43,7 @@ export const useSearchFilter = (
       const urlParams = new URLSearchParams(location.search);
       const urlSearchTerm = urlParams.get('search') || '';
       const urlFilters: Record<string, string> = {};
-      
+
       urlParams.forEach((value, key) => {
         if (key !== 'search') {
           urlFilters[key] = value;
@@ -70,11 +71,11 @@ export const useSearchFilter = (
   const saveState = useCallback(() => {
     if (persistInUrl) {
       const urlParams = new URLSearchParams();
-      
+
       if (debouncedSearchTerm) {
         urlParams.set('search', debouncedSearchTerm);
       }
-      
+
       Object.entries(filters).forEach(([key, value]) => {
         if (value) {
           urlParams.set(key, value);
@@ -95,7 +96,13 @@ export const useSearchFilter = (
         console.warn('Failed to save search filters to localStorage:', error);
       }
     }
-  }, [debouncedSearchTerm, filters, persistInUrl, storageKey, location.pathname]);
+  }, [
+    debouncedSearchTerm,
+    filters,
+    persistInUrl,
+    storageKey,
+    location.pathname,
+  ]);
 
   // Save state when it changes
   useEffect(() => {
@@ -122,7 +129,8 @@ export const useSearchFilter = (
     setFilters({});
   }, []);
 
-  const hasActiveFilters = Object.values(filters).some(value => value !== '') || searchTerm !== '';
+  const hasActiveFilters =
+    Object.values(filters).some(value => value !== '') || searchTerm !== '';
 
   return {
     searchTerm,
@@ -157,4 +165,3 @@ export const useLocalSearchFilter = (
     storageKey,
   });
 };
-

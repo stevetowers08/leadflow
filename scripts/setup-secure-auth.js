@@ -2,7 +2,7 @@
 
 /**
  * Security Setup Script
- * 
+ *
  * This script sets up secure authentication by:
  * 1. Creating user profiles for existing auth users
  * 2. Setting up proper roles and permissions
@@ -15,8 +15,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Use the same values as in client.ts
-const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://jedfundfhzytpnbjkspn.supabase.co";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const supabaseUrl =
+  process.env.VITE_SUPABASE_URL || 'https://jedfundfhzytpnbjkspn.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 if (!supabaseServiceKey) {
   console.error('❌ Missing required environment variable:');
@@ -33,8 +34,9 @@ async function setupSecureAuth() {
   try {
     // 1. Get all existing auth users
     console.log('📋 Fetching existing auth users...');
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-    
+    const { data: authUsers, error: authError } =
+      await supabase.auth.admin.listUsers();
+
     if (authError) {
       throw new Error(`Failed to fetch auth users: ${authError.message}`);
     }
@@ -43,15 +45,18 @@ async function setupSecureAuth() {
 
     // 2. Create user profiles for existing users
     console.log('\n👥 Creating user profiles...');
-    
+
     for (const user of authUsers.users) {
       const userProfile = {
         id: user.id,
         email: user.email,
-        full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'Unknown',
+        full_name:
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          'Unknown',
         role: 'admin', // Set all existing users as admin for now
         user_limit: 1000,
-        is_active: true
+        is_active: true,
       };
 
       const { error: insertError } = await supabase
@@ -59,7 +64,9 @@ async function setupSecureAuth() {
         .upsert(userProfile, { onConflict: 'id' });
 
       if (insertError) {
-        console.error(`   ❌ Failed to create profile for ${user.email}: ${insertError.message}`);
+        console.error(
+          `   ❌ Failed to create profile for ${user.email}: ${insertError.message}`
+        );
       } else {
         console.log(`   ✅ Created profile for ${user.email} (admin)`);
       }
@@ -69,7 +76,7 @@ async function setupSecureAuth() {
     if (authUsers.users.length > 0) {
       const firstUser = authUsers.users[0];
       console.log(`\n👑 Setting ${firstUser.email} as owner...`);
-      
+
       const { error: updateError } = await supabase
         .from('user_profiles')
         .update({ role: 'owner' })
@@ -93,10 +100,10 @@ async function setupSecureAuth() {
     }
 
     console.log(`   ✅ Created ${profiles.length} user profiles`);
-    
+
     const ownerCount = profiles.filter(p => p.role === 'owner').length;
     const adminCount = profiles.filter(p => p.role === 'admin').length;
-    
+
     console.log(`   👑 Owners: ${ownerCount}`);
     console.log(`   👨‍💼 Admins: ${adminCount}`);
 
@@ -105,7 +112,6 @@ async function setupSecureAuth() {
     console.log('   1. Apply the security migration: supabase db push');
     console.log('   2. Test authentication in your app');
     console.log('   3. Configure user management through the admin panel');
-
   } catch (error) {
     console.error('\n❌ Setup failed:', error.message);
     process.exit(1);

@@ -9,18 +9,21 @@ import { Conversation } from '../services/conversationService';
 // Modern Conversations Page with Message Notifications
 const ConversationsPage: React.FC = () => {
   console.log('ConversationsPage component mounted');
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Set page meta tags
   usePageMeta({
     title: 'Conversations - Empowr CRM',
-    description: 'Manage all your communication channels in one place. Track LinkedIn messages, email threads, and candidate conversations.',
-    keywords: 'conversations, messages, LinkedIn, email, communication, CRM, candidate engagement',
+    description:
+      'Manage all your communication channels in one place. Track LinkedIn messages, email threads, and candidate conversations.',
+    keywords:
+      'conversations, messages, LinkedIn, email, communication, CRM, candidate engagement',
     ogTitle: 'Conversations - Empowr CRM',
     ogDescription: 'Manage all your communication channels in one place.',
     twitterTitle: 'Conversations - Empowr CRM',
-    twitterDescription: 'Manage all your communication channels in one place.'
+    twitterDescription: 'Manage all your communication channels in one place.',
   });
 
   const handleConversationSelect = (conversation: Conversation) => {
@@ -28,25 +31,22 @@ const ConversationsPage: React.FC = () => {
   };
 
   return (
-    <Page
-      title="Conversations"
-    >
-
+    <Page title='Conversations'>
       {/* Main Conversation Interface - Full Width */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+      <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 w-full'>
         {/* Conversation List - Mobile Stack */}
-        <div className="lg:col-span-5">
-          <Card className="h-[calc(100vh-200px)] lg:h-[calc(100vh-200px)] shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+        <div className='lg:col-span-5'>
+          <Card className='h-[calc(100vh-200px)] lg:h-[calc(100vh-200px)] shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden'>
             <ConversationList
               onConversationSelect={handleConversationSelect}
               selectedConversationId={selectedConversation?.id}
             />
           </Card>
         </div>
-        
+
         {/* Conversation Viewer - Mobile Stack */}
-        <div className="lg:col-span-7">
-          <Card className="h-[calc(100vh-200px)] lg:h-[calc(100vh-200px)] shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+        <div className='lg:col-span-7'>
+          <Card className='h-[calc(100vh-200px)] lg:h-[calc(100vh-200px)] shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden'>
             <ConversationViewer conversation={selectedConversation} />
           </Card>
         </div>

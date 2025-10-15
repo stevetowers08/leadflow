@@ -9,6 +9,7 @@ The Empowr CRM uses **Vite** as the build tool, which requires client-side envir
 ## Required Environment Variables
 
 ### Supabase Configuration (Essential)
+
 These are **required** for the application to function:
 
 ```bash
@@ -18,6 +19,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 ```
 
 **Where to find these values:**
+
 1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
 2. Select your project
 3. Go to Settings → API
@@ -27,6 +29,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
    - **Project API keys** → `service_role` → `SUPABASE_SERVICE_ROLE_KEY`
 
 ### Google OAuth (For Authentication)
+
 Required for Google sign-in functionality:
 
 ```bash
@@ -35,6 +38,7 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
 
 **How to get these:**
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Enable Google+ API
 3. Create OAuth 2.0 credentials
@@ -43,6 +47,7 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 ## Optional Environment Variables
 
 ### LinkedIn Integration
+
 For LinkedIn automation features:
 
 ```bash
@@ -52,6 +57,7 @@ LINKEDIN_REDIRECT_URI=https://your-domain.com/auth/linkedin-callback
 ```
 
 ### GitHub Integration
+
 For GitHub MCP and CSL features:
 
 ```bash
@@ -59,6 +65,7 @@ GITHUB_PERSONAL_ACCESS_TOKEN=your-github-personal-access-token
 ```
 
 ### AI Features
+
 For AI-powered lead scoring and automation:
 
 ```bash
@@ -85,6 +92,7 @@ NODE_ENV=production
 ## Environment-Specific Setup
 
 ### Local Development (.env.local)
+
 Create a `.env.local` file in the project root:
 
 ```bash
@@ -93,6 +101,7 @@ cp env.example .env.local
 ```
 
 ### Vercel Production
+
 Environment variables are configured in Vercel Dashboard:
 
 1. Go to your project in [Vercel Dashboard](https://vercel.com/dashboard)
@@ -103,7 +112,9 @@ Environment variables are configured in Vercel Dashboard:
    - **Development**: Local development
 
 ### Variable Sensitivity
+
 Mark these as **Sensitive** in Vercel:
+
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `GOOGLE_CLIENT_SECRET`
 - `LINKEDIN_CLIENT_SECRET`
@@ -127,6 +138,7 @@ Mark these as **Sensitive** in Vercel:
    - Check that authorized origins include your domain
 
 ### Validation
+
 The app automatically validates environment variables on startup. Check the browser console for validation messages:
 
 - ✅ Green checkmarks indicate properly configured variables
@@ -145,9 +157,9 @@ The app automatically validates environment variables on startup. Check the brow
 
 **Important:** This app uses Vite, not Next.js. Key differences:
 
-| Framework | Client-side Prefix | Example |
-|-----------|-------------------|---------|
-| **Vite** | `VITE_` | `VITE_SUPABASE_URL` |
-| Next.js | `NEXT_PUBLIC_` | `NEXT_PUBLIC_SUPABASE_URL` |
+| Framework | Client-side Prefix | Example                    |
+| --------- | ------------------ | -------------------------- |
+| **Vite**  | `VITE_`            | `VITE_SUPABASE_URL`        |
+| Next.js   | `NEXT_PUBLIC_`     | `NEXT_PUBLIC_SUPABASE_URL` |
 
 Always use `VITE_` prefix for client-side variables in this application.

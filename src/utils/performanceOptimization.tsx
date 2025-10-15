@@ -1,6 +1,6 @@
 /**
  * Performance Optimization Utilities
- * 
+ *
  * This module provides utilities for optimizing React performance including:
  * - Memoization helpers
  * - Lazy loading utilities
@@ -8,7 +8,7 @@
  * - Bundle optimization
  */
 
-import React, { useMemo, useCallback, memo, lazy, Suspense } from 'react';
+import React, { Suspense, lazy, memo, useCallback, useMemo } from 'react';
 
 // Memoization utilities
 export const createMemoizedComponent = <P extends object>(
@@ -28,21 +28,27 @@ export const createLazyComponent = <P extends object>(
 // Performance monitoring hook
 export const usePerformanceMonitor = (componentName: string) => {
   const startTime = useMemo(() => performance.now(), []);
-  
-  const logPerformance = useCallback((action: string) => {
-    const endTime = performance.now();
-    const duration = endTime - startTime;
-    
-    if (duration > 16) { // Log if slower than 60fps
-      console.warn(`🐌 Performance warning: ${componentName} ${action} took ${duration.toFixed(2)}ms`);
-    }
-  }, [componentName, startTime]);
+
+  const logPerformance = useCallback(
+    (action: string) => {
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      if (duration > 16) {
+        // Log if slower than 60fps
+        console.warn(
+          `🐌 Performance warning: ${componentName} ${action} took ${duration.toFixed(2)}ms`
+        );
+      }
+    },
+    [componentName, startTime]
+  );
 
   return { logPerformance };
 };
 
 // Optimized data fetching hook
-export const useOptimizedData = <T>(
+export const useOptimizedData = <T,>(
   fetchFn: () => Promise<T>,
   deps: React.DependencyList,
   options: {
@@ -57,10 +63,10 @@ export const useOptimizedData = <T>(
 
   const fetchData = useCallback(async () => {
     if (!options.enabled) return;
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const result = await fetchFn();
       setData(result);
@@ -84,29 +90,36 @@ export const createCodeSplitComponent = <P extends object>(
   fallback?: React.ReactNode
 ) => {
   const LazyComponent = lazy(importFn);
-  
+
   return memo((props: P) => (
-    <Suspense fallback={fallback || <div className="animate-pulse bg-gray-200 h-32 rounded" />}>
+    <Suspense
+      fallback={
+        fallback || <div className='animate-pulse bg-gray-200 h-32 rounded' />
+      }
+    >
       <LazyComponent {...props} />
     </Suspense>
   ));
 };
 
 // Memory optimization utilities
-export const useMemoryOptimizedState = <T>(
+export const useMemoryOptimizedState = <T,>(
   initialState: T,
   maxHistorySize: number = 10
 ) => {
   const [state, setState] = React.useState(initialState);
   const [history, setHistory] = React.useState<T[]>([]);
 
-  const setOptimizedState = useCallback((newState: T) => {
-    setState(newState);
-    setHistory(prev => {
-      const newHistory = [newState, ...prev].slice(0, maxHistorySize);
-      return newHistory;
-    });
-  }, [maxHistory]);
+  const setOptimizedState = useCallback(
+    (newState: T) => {
+      setState(newState);
+      setHistory(prev => {
+        const newHistory = [newState, ...prev].slice(0, maxHistorySize);
+        return newHistory;
+      });
+    },
+    [maxHistory]
+  );
 
   const undo = useCallback(() => {
     if (history.length > 1) {
@@ -116,7 +129,12 @@ export const useMemoryOptimizedState = <T>(
     }
   }, [history]);
 
-  return { state, setState: setOptimizedState, undo, canUndo: history.length > 1 };
+  return {
+    state,
+    setState: setOptimizedState,
+    undo,
+    canUndo: history.length > 1,
+  };
 };
 
 // Virtual scrolling utilities
@@ -126,44 +144,41 @@ export const useVirtualScrolling = (
   containerHeight: number
 ) => {
   const [scrollTop, setScrollTop] = React.useState(0);
-  
+
   const visibleStart = Math.floor(scrollTop / itemHeight);
   const visibleEnd = Math.min(
     visibleStart + Math.ceil(containerHeight / itemHeight) + 1,
     itemCount
   );
-  
+
   const visibleItems = Array.from(
     { length: visibleEnd - visibleStart },
     (_, i) => visibleStart + i
   );
-  
+
   const totalHeight = itemCount * itemHeight;
   const offsetY = visibleStart * itemHeight;
-  
+
   return {
     visibleItems,
     totalHeight,
     offsetY,
-    setScrollTop
+    setScrollTop,
   };
 };
 
 // Debounced search hook
-export const useDebouncedSearch = (
-  searchTerm: string,
-  delay: number = 300
-) => {
+export const useDebouncedSearch = (searchTerm: string, delay: number = 300) => {
   const [debouncedTerm, setDebouncedTerm] = React.useState(searchTerm);
-  
+
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedTerm(searchTerm);
     }, delay);
-    
+
     return () => clearTimeout(timer);
   }, [searchTerm, delay]);
-  
+
   return debouncedTerm;
 };
 
@@ -173,22 +188,19 @@ export const useIntersectionObserver = (
   options: IntersectionObserverInit = {}
 ) => {
   const [isIntersecting, setIsIntersecting] = React.useState(false);
-  
+
   React.useEffect(() => {
     if (!ref.current) return;
-    
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsIntersecting(entry.isIntersecting);
-      },
-      options
-    );
-    
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsIntersecting(entry.isIntersecting);
+    }, options);
+
     observer.observe(ref.current);
-    
+
     return () => observer.disconnect();
   }, [ref, options]);
-  
+
   return isIntersecting;
 };
 
@@ -198,25 +210,25 @@ export const collectPerformanceMetrics = () => {
     renderTime: 0,
     memoryUsage: 0,
     bundleSize: 0,
-    apiResponseTime: 0
+    apiResponseTime: 0,
   };
-  
+
   // Collect render time
-  const observer = new PerformanceObserver((list) => {
+  const observer = new PerformanceObserver(list => {
     for (const entry of list.getEntries()) {
       if (entry.entryType === 'measure') {
         metrics.renderTime = entry.duration;
       }
     }
   });
-  
+
   observer.observe({ entryTypes: ['measure'] });
-  
+
   // Collect memory usage
   if ('memory' in performance) {
     metrics.memoryUsage = (performance as any).memory.usedJSHeapSize;
   }
-  
+
   return metrics;
 };
 
@@ -230,5 +242,5 @@ export default {
   useVirtualScrolling,
   useDebouncedSearch,
   useIntersectionObserver,
-  collectPerformanceMetrics
+  collectPerformanceMetrics,
 };

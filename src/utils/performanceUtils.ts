@@ -16,8 +16,9 @@ class PerformanceTracker {
 
   constructor() {
     // Enable in development or when performance monitoring is needed
-    this.isEnabled = process.env.NODE_ENV === 'development' || 
-                    localStorage.getItem('enable-performance-tracking') === 'true';
+    this.isEnabled =
+      process.env.NODE_ENV === 'development' ||
+      localStorage.getItem('enable-performance-tracking') === 'true';
   }
 
   /**
@@ -35,7 +36,7 @@ class PerformanceTracker {
       duration,
       timestamp: Date.now(),
       dataSize,
-      metadata: { type: 'sync' }
+      metadata: { type: 'sync' },
     });
 
     return result;
@@ -45,8 +46,8 @@ class PerformanceTracker {
    * Measure the performance of an asynchronous operation
    */
   async measureAsync<T>(
-    operation: string, 
-    fn: () => Promise<T>, 
+    operation: string,
+    fn: () => Promise<T>,
     dataSize?: number
   ): Promise<T> {
     if (!this.isEnabled) return fn();
@@ -60,7 +61,7 @@ class PerformanceTracker {
       duration,
       timestamp: Date.now(),
       dataSize,
-      metadata: { type: 'async' }
+      metadata: { type: 'async' },
     });
 
     return result;
@@ -73,10 +74,12 @@ class PerformanceTracker {
     if (!this.isEnabled) return;
 
     this.metrics.push(metric);
-    
+
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(`⚡ Performance: ${metric.operation} took ${metric.duration.toFixed(2)}ms`);
+      console.log(
+        `⚡ Performance: ${metric.operation} took ${metric.duration.toFixed(2)}ms`
+      );
     }
 
     // Keep only last 100 metrics to prevent memory leaks
@@ -102,7 +105,10 @@ class PerformanceTracker {
     const operationMetrics = this.getMetrics(operation);
     if (operationMetrics.length === 0) return 0;
 
-    const totalDuration = operationMetrics.reduce((sum, metric) => sum + metric.duration, 0);
+    const totalDuration = operationMetrics.reduce(
+      (sum, metric) => sum + metric.duration,
+      0
+    );
     return totalDuration / operationMetrics.length;
   }
 
@@ -129,10 +135,7 @@ export const performanceTracker = new PerformanceTracker();
  */
 export function usePerformanceMeasurement(componentName: string) {
   const measureRender = (renderFn: () => React.ReactNode) => {
-    return performanceTracker.measureSync(
-      `${componentName}-render`,
-      renderFn
-    );
+    return performanceTracker.measureSync(`${componentName}-render`, renderFn);
   };
 
   const measureAsyncOperation = async <T>(
@@ -149,8 +152,8 @@ export function usePerformanceMeasurement(componentName: string) {
     measureRender,
     measureAsyncOperation,
     getMetrics: () => performanceTracker.getMetrics(componentName),
-    getAveragePerformance: (operation: string) => 
-      performanceTracker.getAveragePerformance(`${componentName}-${operation}`)
+    getAveragePerformance: (operation: string) =>
+      performanceTracker.getAveragePerformance(`${componentName}-${operation}`),
   };
 }
 
@@ -202,5 +205,3 @@ export function comparePerformance(
   console.log(`   Improvement: ${improvement.toFixed(1)}%`);
   console.log(`   Speedup: ${speedup.toFixed(2)}x`);
 }
-
-

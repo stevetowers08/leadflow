@@ -11,14 +11,12 @@ export type {
   AIScore,
   JobSummary,
   LeadOptimization,
-  AIServiceConfig
+  AIServiceConfig,
 } from './services/aiService';
 
 export type {
   GeminiJobSummary,
-  GeminiAnalysisResult
+  GeminiAnalysisResult,
 } from './services/geminiService';
 
-export type {
-  JobSummaryUpdate
-} from './utils/jobSummarization';
+export type { JobSummaryUpdate } from './utils/jobSummarization';

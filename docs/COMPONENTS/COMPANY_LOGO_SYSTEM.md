@@ -7,6 +7,7 @@ The 4Twenty CRM uses a **hybrid logo management system** that combines Clearbit 
 ## Architecture
 
 ### Logo Sources (Priority Order)
+
 1. **Cached Database URLs** - Previously successful Clearbit URLs (30-day cache)
 2. **Clearbit API** - Real-time logo fetching using company domains
 3. **Fallback Initials** - Generated initials when logos unavailable
@@ -14,7 +15,9 @@ The 4Twenty CRM uses a **hybrid logo management system** that combines Clearbit 
 ### Core Components
 
 #### `src/utils/logoService.ts`
+
 Enhanced service with caching:
+
 - `getCompanyLogoUrl()` - Async function with smart caching
 - `getCompanyLogoUrlSync()` - Synchronous version for UI components
 - `getClearbitLogo()` - Generate Clearbit API URLs
@@ -23,13 +26,17 @@ Enhanced service with caching:
 - `getLogoStats()` - Get caching statistics
 
 #### `src/services/logoRefreshService.ts`
+
 Background service for automatic logo refresh:
+
 - Runs every hour in production
 - Refreshes stale logos (older than 30 days)
 - Provides service status and controls
 
 #### `src/components/admin/LogoManagement.tsx`
+
 Admin interface for logo management:
+
 - View caching statistics
 - Manual logo refresh
 - Background service controls
@@ -38,6 +45,7 @@ Admin interface for logo management:
 ## Database Schema
 
 ### Companies Table
+
 ```sql
 -- Logo caching fields
 logo_url TEXT,                    -- Cached Clearbit URL
@@ -48,6 +56,7 @@ website TEXT                       -- Used for Clearbit logo generation
 ## Logo URL Generation
 
 ### Smart Caching Strategy
+
 ```typescript
 // 1. Check cached URL (if valid and < 30 days old)
 if (cachedUrl && isCacheValid(cachedAt)) {
@@ -69,6 +78,7 @@ return null;
 ```
 
 ### Clearbit API Strategy
+
 ```typescript
 // Primary: Use website domain
 https://logo.clearbit.com/example.com
@@ -83,6 +93,7 @@ https://logo.clearbit.com/example.com
 ## Usage Examples
 
 ### Getting Company Logo in Components
+
 ```typescript
 // Synchronous (recommended for UI components)
 const logoUrl = getCompanyLogoUrlSync(company.name, company.website);
@@ -104,6 +115,7 @@ const logoUrl = await getCompanyLogoUrl(company.id, company.name, company.websit
 ## Performance Benefits
 
 ### Hybrid Approach Advantages
+
 - **Fast Loading**: Cached URLs load instantly
 - **Always Current**: Stale logos automatically refreshed
 - **Reduced API Calls**: 30-day cache reduces Clearbit requests
@@ -112,6 +124,7 @@ const logoUrl = await getCompanyLogoUrl(company.id, company.name, company.websit
 - **Smart Caching**: Only cache successful URLs
 
 ### Caching Strategy
+
 - **Cache Duration**: 30 days for successful URLs
 - **Background Refresh**: Automatic stale logo updates
 - **Batch Processing**: Process logos in batches of 50
@@ -128,6 +141,7 @@ const logoUrl = await getCompanyLogoUrl(company.id, company.name, company.websit
 ## Error Handling
 
 ### Logo Loading Failures
+
 ```typescript
 // Automatic fallback in components
 <img
@@ -144,6 +158,7 @@ const logoUrl = await getCompanyLogoUrl(company.id, company.name, company.websit
 ## Admin Management
 
 ### Logo Statistics Dashboard
+
 - Total companies count
 - Cached logos percentage
 - Stale logos count
@@ -151,6 +166,7 @@ const logoUrl = await getCompanyLogoUrl(company.id, company.name, company.websit
 - Cache coverage visualization
 
 ### Manual Controls
+
 - **Refresh Now**: Immediate stale logo refresh
 - **Background Service**: Toggle automatic refresh
 - **Service Status**: Real-time service monitoring
@@ -158,6 +174,7 @@ const logoUrl = await getCompanyLogoUrl(company.id, company.name, company.websit
 ## Integration Points
 
 ### Pages Using Logos
+
 - Dashboard company cards
 - Jobs page company columns
 - Companies page listings
@@ -167,12 +184,14 @@ const logoUrl = await getCompanyLogoUrl(company.id, company.name, company.websit
 ## Troubleshooting
 
 ### Common Issues
+
 1. **Slow initial loading**: Normal for uncached logos, cached thereafter
 2. **Missing logos**: Check website field population
 3. **Stale logos**: Background service will refresh automatically
 4. **Service not running**: Check admin dashboard status
 
 ### Debug Commands
+
 ```typescript
 // Get logo statistics
 const stats = await getLogoStats();
@@ -208,7 +227,9 @@ This hybrid system provides the best balance of performance, reliability, and ma
 ### Core Components
 
 #### `src/utils/logoService.ts`
+
 Main service for logo operations:
+
 - `getClearbitLogo()` - Generate Clearbit API URLs
 - `testLogoUrl()` - Validate logo accessibility
 - `updateCompanyLogo()` - Update database with new logo
@@ -216,14 +237,18 @@ Main service for logo operations:
 - `getCompanyLogoUrl()` - Get logo with fallback chain
 
 #### `src/components/LogoManager.tsx`
+
 Admin interface for logo management:
+
 - Auto-update all company logos
 - Replace LinkedIn logos with Clearbit URLs
 - Manual logo URL updates
 - Progress tracking for bulk operations
 
 #### `src/utils/logoUtils.ts`
+
 Utility functions:
+
 - URL validation and image format checking
 - Company initial generation
 - UI-avatars.com fallback generation
@@ -231,6 +256,7 @@ Utility functions:
 ## Database Schema
 
 ### Companies Table
+
 ```sql
 profile_image_url TEXT -- Stores the logo URL
 ```
@@ -238,6 +264,7 @@ profile_image_url TEXT -- Stores the logo URL
 ## Logo URL Generation
 
 ### Clearbit API Strategy
+
 ```typescript
 // Primary: Use website domain
 https://logo.clearbit.com/example.com
@@ -247,6 +274,7 @@ https://logo.clearbit.com/companyname.com
 ```
 
 ### Domain Processing
+
 1. Remove protocol (`https://`, `http://`)
 2. Remove `www.` prefix
 3. Extract domain only (remove paths)
@@ -255,6 +283,7 @@ https://logo.clearbit.com/companyname.com
 ## Usage Examples
 
 ### Getting Company Logo in Components
+
 ```typescript
 import { getCompanyLogoUrl } from '@/utils/logoService';
 
@@ -262,8 +291,8 @@ import { getCompanyLogoUrl } from '@/utils/logoService';
 const logoUrl = getCompanyLogoUrl(company.name, company.website, company.profile_image_url);
 
 // Use in JSX
-<img 
-  src={logoUrl || getCompanyLogoFallback(company.name)} 
+<img
+  src={logoUrl || getCompanyLogoFallback(company.name)}
   alt={company.name}
   onError={(e) => {
     // Fallback to initials
@@ -274,18 +303,20 @@ const logoUrl = getCompanyLogoUrl(company.name, company.website, company.profile
 ```
 
 ### Batch Logo Updates
+
 ```typescript
 import { batchUpdateLogos } from '@/utils/logoService';
 
 const companies = [
   { id: '1', name: 'Company A', website: 'https://companya.com' },
-  { id: '2', name: 'Company B', website: 'https://companyb.com' }
+  { id: '2', name: 'Company B', website: 'https://companyb.com' },
 ];
 
 await batchUpdateLogos(companies);
 ```
 
 ### Manual Logo Updates
+
 ```typescript
 import { setCompanyLogoManually } from '@/utils/logoService';
 
@@ -295,13 +326,16 @@ await setCompanyLogoManually('company-id', 'https://example.com/logo.png');
 ## Admin Features
 
 ### Logo Manager Interface
+
 Access via Admin → Logos tab:
+
 - **Auto-Update All Logos**: Fetches logos for all companies
 - **Replace LinkedIn Logos**: Replaces problematic LinkedIn URLs
 - **Manual Updates**: Set custom logo URLs
 - **Progress Tracking**: Real-time progress for bulk operations
 
 ### Bulk Operations
+
 - Processes companies sequentially with 100ms delays
 - Tests logo accessibility before saving
 - Provides detailed success/failure reporting
@@ -310,10 +344,11 @@ Access via Admin → Logos tab:
 ## Error Handling
 
 ### Logo Loading Failures
+
 ```typescript
 // Automatic fallback in components
-<img 
-  src={logoUrl} 
+<img
+  src={logoUrl}
   onError={(e) => {
     // Hide broken image, show initials
     e.currentTarget.style.display = 'none';
@@ -324,6 +359,7 @@ Access via Admin → Logos tab:
 ```
 
 ### URL Validation
+
 - Validates URL format before saving
 - Tests accessibility with HEAD requests
 - Provides clear error messages for invalid URLs
@@ -331,11 +367,13 @@ Access via Admin → Logos tab:
 ## Performance Considerations
 
 ### Caching Strategy
+
 - Existing URLs are assumed valid (no re-testing)
 - Clearbit URLs are generated synchronously
 - Logo testing happens asynchronously for bulk operations
 
 ### Rate Limiting
+
 - 100ms delays between bulk operations
 - HEAD requests for URL validation (lighter than full image loads)
 - Sequential processing to avoid overwhelming APIs
@@ -350,6 +388,7 @@ Access via Admin → Logos tab:
 ## Integration Points
 
 ### Pages Using Logos
+
 - Dashboard company cards
 - Jobs page company columns
 - Companies page listings
@@ -357,6 +396,7 @@ Access via Admin → Logos tab:
 - Company detail modals
 
 ### Logo Display Patterns
+
 - **Small (32px)**: Table rows, compact cards
 - **Medium (48px)**: Standard cards, lists
 - **Large (64px+)**: Detail views, headers
@@ -364,12 +404,14 @@ Access via Admin → Logos tab:
 ## Troubleshooting
 
 ### Common Issues
+
 1. **Clearbit URLs not loading**: Check domain format and accessibility
 2. **LinkedIn URLs broken**: Use "Replace LinkedIn Logos" feature
 3. **Slow bulk updates**: Normal behavior due to rate limiting
 4. **Missing logos**: Run auto-update or check website field
 
 ### Debug Commands
+
 ```typescript
 // Test specific logo URL
 const isValid = await testLogoUrl('https://logo.clearbit.com/example.com');

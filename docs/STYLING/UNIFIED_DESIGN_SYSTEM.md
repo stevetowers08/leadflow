@@ -1,6 +1,7 @@
 # 🎨 Unified Design System - Empowr CRM
 
 ## Overview
+
 This document consolidates all design system standards for the Empowr CRM, focusing on badge styling, scoring systems, popup design, and UI consistency across all components.
 
 ---
@@ -10,12 +11,14 @@ This document consolidates all design system standards for the Empowr CRM, focus
 ### Core Principle: **WORDS = BADGES, NUMBERS = CUSTOM STYLING**
 
 #### ✅ **StatusBadge Component** (For Words)
+
 - **Used for**: STATUS, Priority, Text-based AI Scores
 - **Values**: Words like "VERY HIGH", "HIGH", "MEDIUM", "LOW", "High", "Medium", "Low"
 - **Styling**: `rounded-md` (less rounded), fixed width, proper colors
 - **Implementation**: `<StatusBadge status={value} size="sm" />`
 
 #### ✅ **Custom Badge Styling** (For Numbers)
+
 - **Used for**: Numeric AI Scores, Count columns
 - **Values**: Numbers like 82, 100, 0, 5, 12
 - **Styling**: `rounded-md`, `px-2 py-1`, `text-xs font-medium`
@@ -26,27 +29,32 @@ This document consolidates all design system standards for the Empowr CRM, focus
 ## 🎨 Popup Design Standards
 
 ### Typography
+
 - **Labels**: `text-xs font-medium text-gray-400 uppercase tracking-wide`
 - **Values**: `text-sm text-gray-900 font-medium`
 - **Prominent Values**: `text-base font-semibold text-gray-900` (for job titles, salary)
 
 ### Layout
+
 - **Grid**: 3-column layout with `gap-4` spacing
 - **Spacing**: `space-y-1` between label and value, `space-y-4` between sections
 - **Alignment**: `justify-start` for badge alignment
 
 ### Badge Styling
+
 - **Custom Badges**: `px-2 py-1 rounded-md text-xs font-medium border`
 - **StatusBadge**: Fixed width, `rounded-md` styling
 - **Colors**: Consistent color schemes using `bg-*-50` backgrounds
 
 ### Header Design
+
 - **Title**: `text-base font-semibold text-gray-900`
 - **Subtitle**: `text-xs font-medium text-gray-400`
 - **Labels**: `capitalize` class for proper capitalization
 - **Badges**: Left-aligned with `justify-start`
 
 ### InfoField Component
+
 ```typescript
 const InfoField: React.FC<InfoFieldProps> = ({ label, value }) => (
   <div className="space-y-1">
@@ -61,6 +69,7 @@ const InfoField: React.FC<InfoFieldProps> = ({ label, value }) => (
 ```
 
 ### Grid Layout
+
 ```typescript
 <div className="grid grid-cols-3 gap-4">
   <InfoField label="Field 1" value={value1} />
@@ -74,24 +83,27 @@ const InfoField: React.FC<InfoFieldProps> = ({ label, value }) => (
 ## 📊 Scoring System Implementation
 
 ### 1. **People Table (Leads)**
+
 ```typescript
 // AI Score Column - WORDS = StatusBadge
 {
   key: "lead_score",
   label: "AI Score",
   render: (lead: Lead) => (
-    <StatusBadge 
-      status={lead.lead_score || "Medium"} 
-      size="sm" 
+    <StatusBadge
+      status={lead.lead_score || "Medium"}
+      size="sm"
     />
   ),
 }
 ```
+
 - **Values**: "High", "Medium", "Low"
 - **Component**: StatusBadge
 - **Colors**: High=red, Medium=yellow, Low=green
 
 ### 2. **Companies Table**
+
 ```typescript
 // AI Score Column - NUMBERS = Custom Styling
 {
@@ -107,20 +119,22 @@ const InfoField: React.FC<InfoFieldProps> = ({ label, value }) => (
   ),
 }
 ```
+
 - **Values**: "0", "36", "50", "82", "100" etc.
 - **Component**: Custom span with colored backgrounds
 - **Colors**: Based on score ranges (85+=green, 70+=blue, 50+=yellow, <50=red)
 
 ### 3. **Jobs Table**
+
 ```typescript
 // Priority Column - WORDS = StatusBadge
 {
   key: "priority",
   label: "Priority",
   render: (job: Job) => (
-    <StatusBadge 
-      status={job.priority || "Medium"} 
-      size="sm" 
+    <StatusBadge
+      status={job.priority || "Medium"}
+      size="sm"
     />
   ),
 }
@@ -139,6 +153,7 @@ const InfoField: React.FC<InfoFieldProps> = ({ label, value }) => (
   ),
 }
 ```
+
 - **Priority Values**: "VERY HIGH", "HIGH", "MEDIUM", "LOW"
 - **AI Score Values**: 0, 36, 44, 50, 82, 100 etc.
 
@@ -147,11 +162,12 @@ const InfoField: React.FC<InfoFieldProps> = ({ label, value }) => (
 ## 🎨 Badge Styling Standards
 
 ### StatusBadge Component
+
 ```typescript
 // Updated styling - LESS ROUNDED
 const sizeStyles = {
   sm: "h-7 text-xs font-medium rounded-md text-center px-3",
-  md: "h-8 text-sm font-medium rounded-md text-center px-3", 
+  md: "h-8 text-sm font-medium rounded-md text-center px-3",
   lg: "h-9 text-sm font-medium rounded-md text-center px-4"
 };
 
@@ -165,12 +181,15 @@ className={cn(
 ```
 
 ### Custom Badge Styling
+
 ```typescript
 // Standard styling for numeric badges
-className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border"
+className =
+  'inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border';
 
 // Count columns (gray styling)
-className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 border border-gray-200"
+className =
+  'inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 border border-gray-200';
 ```
 
 ---
@@ -178,12 +197,14 @@ className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs 
 ## 🎯 Color Scheme
 
 ### StatusBadge Colors (Words)
+
 - **VERY HIGH**: `bg-red-50 text-red-700 border-red-200`
 - **HIGH**: `bg-orange-50 text-orange-700 border-orange-200`
 - **MEDIUM**: `bg-yellow-50 text-yellow-700 border-yellow-200`
 - **LOW**: `bg-green-50 text-green-700 border-green-200`
 
 ### Custom Badge Colors (Numbers)
+
 - **Score ≥85**: `bg-green-50 text-green-700 border-green-200`
 - **Score ≥70**: `bg-blue-50 text-blue-700 border-blue-200`
 - **Score ≥50**: `bg-yellow-50 text-yellow-700 border-yellow-200`
@@ -194,13 +215,14 @@ className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs 
 
 ## 📏 Sizing Standards
 
-
 ### Column Widths
+
 - **StatusBadge Columns**: `width: "120px"` (accommodates fixed width)
 - **Custom Badge Columns**: `width: "100px"` (more compact)
 - **Count Columns**: `width: "100px"` (consistent with custom badges)
 
 ### Badge Dimensions
+
 - **StatusBadge sm**: `h-7` (28px height)
 - **Custom Badges**: `px-2 py-1` (8px horizontal, 4px vertical padding)
 - **Typography**: `text-xs font-medium` (12px, medium weight)
@@ -210,16 +232,19 @@ className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs 
 ## 🔧 Implementation Rules
 
 ### ✅ **Use StatusBadge When:**
+
 - Value contains words/text
 - Examples: "VERY HIGH", "HIGH", "MEDIUM", "LOW", "High", "Medium", "Low"
 - Status indicators, priority levels, text-based scores
 
 ### ✅ **Use Custom Styling When:**
+
 - Value contains numbers
 - Examples: 82, 100, 0, 5, 12
 - Numeric scores, count columns, statistics
 
 ### ✅ **Consistent Styling:**
+
 - All badges use `rounded-md` (moderate rounding)
 - All badges use `text-xs font-medium`
 - All badges have proper borders and backgrounds
@@ -230,6 +255,7 @@ className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs 
 ## 📋 Current Implementation Status
 
 ### ✅ **Completed Tables**
+
 1. **Jobs Table**
    - ✅ STATUS: Custom styling with `rounded-md`
    - ✅ Priority: StatusBadge with `rounded-md`
@@ -246,13 +272,15 @@ className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs 
    - ✅ Jobs Count: Custom styling with `rounded-md`
 
 ### ✅ **Updated Components**
+
 - ✅ StatusBadge: Changed from `rounded-full` to `rounded-md`
 - ✅ All custom badges: Use `rounded-md` styling
 - ✅ All count columns: Use `rounded-md` styling
 
 ### ✅ **Popup Components**
+
 - ✅ Job Info Card: 3-column layout, consistent typography
-- ✅ Company Info Card: 3-column layout, consistent typography  
+- ✅ Company Info Card: 3-column layout, consistent typography
 - ✅ Lead Info Card: 3-column layout, consistent typography
 - ✅ Popup Modal Header: Consistent typography and capitalization
 - ✅ Badge Alignment: All badges use `justify-start` alignment
@@ -274,6 +302,7 @@ className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs 
 ## 📝 Migration Summary
 
 ### What Changed
+
 - **StatusBadge**: Updated from `rounded-full` to `rounded-md`
 - **Priority Column**: Uses StatusBadge (words = badges)
 - **Leads AI Score**: Uses StatusBadge (words = badges)
@@ -283,9 +312,11 @@ className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs 
 - **Header Design**: Proper capitalization, consistent badge alignment
 
 ### Design Principle Applied
+
 **WORDS = BADGES, NUMBERS = CUSTOM STYLING**
 
 This ensures that:
+
 - Text-based values (Priority, Status, Text AI Scores) use the standardized StatusBadge
 - Numeric values (AI Scores, Counts) use custom styling with proper colors
 - All badges have consistent `rounded-md` styling for visual harmony

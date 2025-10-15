@@ -1,6 +1,7 @@
 # Empowr CRM - Development Guide
 
 ## Table of Contents
+
 - [Quick Start](#quick-start)
 - [Environment Setup](#environment-setup)
 - [Development Workflow](#development-workflow)
@@ -13,6 +14,7 @@
 ## Quick Start
 
 ### Prerequisites
+
 - **Node.js**: 18.0.0 or higher
 - **npm**: 9.0.0 or higher (or yarn/pnpm)
 - **Git**: Latest version
@@ -20,6 +22,7 @@
 - **Google Cloud Console**: For OAuth setup
 
 ### Installation
+
 ```bash
 # Clone the repository
 git clone <repository-url>
@@ -36,15 +39,18 @@ npm run dev
 ```
 
 ### Development Server
-- **Local**: http://localhost:8080 (or next available port)
+
+- **Local**: http://localhost:8082 (or next available port)
 - **Network**: Accessible on local network for mobile testing
 - **Hot Reload**: Automatic refresh on file changes
+- **Status**: ✅ Stable - All critical issues resolved
 
 ## Environment Setup
 
 ### Required Environment Variables
 
 #### Core Application
+
 ```env
 # Supabase Configuration
 VITE_SUPABASE_URL=your_supabase_project_url
@@ -60,6 +66,7 @@ VITE_ENVIRONMENT=development
 ```
 
 #### Optional Integrations
+
 ```env
 # LinkedIn API (if using direct integration)
 VITE_LINKEDIN_CLIENT_ID=your_linkedin_client_id
@@ -75,11 +82,13 @@ VITE_GA_TRACKING_ID=your_google_analytics_id
 ### Supabase Setup
 
 #### 1. Create Project
+
 1. Go to [Supabase Dashboard](https://app.supabase.com)
 2. Create new project
 3. Note down project URL and anon key
 
 #### 2. Database Schema
+
 Run the following SQL in Supabase SQL Editor:
 
 ```sql
@@ -151,6 +160,7 @@ CREATE TABLE user_profiles (
 ```
 
 #### 3. Row Level Security (RLS)
+
 ```sql
 -- Enable RLS on all tables
 ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
@@ -168,6 +178,7 @@ CREATE POLICY "Users can access user_profiles" ON user_profiles FOR ALL USING (a
 ```
 
 #### 4. Authentication Setup
+
 1. Go to Authentication > Settings in Supabase
 2. Enable Google OAuth provider
 3. Add your Google OAuth credentials
@@ -176,6 +187,7 @@ CREATE POLICY "Users can access user_profiles" ON user_profiles FOR ALL USING (a
 ## Development Workflow
 
 ### Branch Strategy
+
 ```
 main (production)
 ├── develop (staging)
@@ -185,6 +197,7 @@ main (production)
 ```
 
 ### Commit Convention
+
 ```
 type(scope): description
 
@@ -204,6 +217,7 @@ docs(setup): update environment variables guide
 ```
 
 ### Development Process
+
 1. **Create Branch**: `git checkout -b feature/feature-name`
 2. **Develop**: Make changes following code standards
 3. **Test**: Run tests and manual testing
@@ -216,11 +230,13 @@ docs(setup): update environment variables guide
 ## Reporting Architecture
 
 ### Overview
+
 The reporting system has been optimized for performance and maintainability using modern React patterns and efficient data fetching.
 
 ### Architecture Components
 
 #### 1. Data Fetching with React Query
+
 ```typescript
 // src/hooks/useReportingData.ts
 export const useReportingData = () => {
@@ -236,6 +252,7 @@ export const useReportingData = () => {
 ```
 
 #### 2. Modular Component Structure
+
 The reporting page is split into focused, memoized components:
 
 - **OverviewCards**: Displays key metrics with memoization
@@ -245,15 +262,19 @@ The reporting page is split into focused, memoized components:
 - **TopCompanies**: Company performance rankings
 
 #### 3. Lazy Loading
+
 Heavy chart components are lazy-loaded to improve initial page load:
 
 ```typescript
-const OverviewCards = lazy(() => 
-  import('@/components/reporting/OverviewCards').then(m => ({ default: m.OverviewCards }))
+const OverviewCards = lazy(() =>
+  import('@/components/reporting/OverviewCards').then(m => ({
+    default: m.OverviewCards,
+  }))
 );
 ```
 
 #### 4. Performance Optimizations
+
 - **Memoization**: All chart components use `React.memo()` to prevent unnecessary re-renders
 - **Caching**: React Query provides intelligent caching with 5-minute stale time
 - **Error Handling**: Comprehensive error states with retry mechanisms
@@ -262,6 +283,7 @@ const OverviewCards = lazy(() =>
 ### Database Optimizations
 
 #### Index Strategy
+
 ```sql
 -- Foreign key indexes for better join performance
 CREATE INDEX idx_business_profiles_created_by ON business_profiles(created_by);
@@ -272,6 +294,7 @@ CREATE INDEX idx_invitations_invited_by ON invitations(invited_by);
 ```
 
 #### Query Optimization
+
 - Removed verbose logging from service layer
 - Consolidated error handling
 - Optimized data fetching with Promise.all for parallel queries
@@ -279,6 +302,7 @@ CREATE INDEX idx_invitations_invited_by ON invitations(invited_by);
 ### Best Practices
 
 #### Component Development
+
 ```typescript
 // Use memo for expensive components
 export const ChartComponent = memo<Props>(({ data }) => {
@@ -289,6 +313,7 @@ ChartComponent.displayName = 'ChartComponent';
 ```
 
 #### Data Fetching
+
 ```typescript
 // Use React Query for all data fetching
 const { data, isLoading, error, refetch } = useReportingData();
@@ -299,6 +324,7 @@ if (error) return <ErrorMessage onRetry={refetch} />;
 ```
 
 #### Performance Monitoring
+
 - Monitor component re-renders with React DevTools
 - Use React Query DevTools for cache inspection
 - Monitor database query performance with Supabase logs
@@ -306,12 +332,13 @@ if (error) return <ErrorMessage onRetry={refetch} />;
 ## Code Standards
 
 ### TypeScript Guidelines
+
 ```typescript
 // Use explicit types for function parameters and returns
 function calculateMetrics(data: ReportingData[]): MetricsResult {
   return {
     totalLeads: data.length,
-    conversionRate: calculateRate(data)
+    conversionRate: calculateRate(data),
   };
 }
 
@@ -327,11 +354,12 @@ interface Company {
 enum CompanyStage {
   NEW = 'new',
   CONTACTED = 'contacted',
-  QUALIFIED = 'qualified'
+  QUALIFIED = 'qualified',
 }
 ```
 
 ### React Component Standards
+
 ```tsx
 // Use functional components with TypeScript
 interface ComponentProps {
@@ -340,25 +368,28 @@ interface ComponentProps {
   optional?: boolean;
 }
 
-const Component: React.FC<ComponentProps> = ({ 
-  title, 
-  onAction, 
-  optional = false 
+const Component: React.FC<ComponentProps> = ({
+  title,
+  onAction,
+  optional = false,
 }) => {
   // Use hooks at the top
   const [state, setState] = useState<string>('');
   const { data, loading } = useQuery(['key'], fetchData);
 
   // Event handlers
-  const handleClick = useCallback((id: string) => {
-    onAction(id);
-  }, [onAction]);
+  const handleClick = useCallback(
+    (id: string) => {
+      onAction(id);
+    },
+    [onAction]
+  );
 
   // Early returns for loading/error states
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="component-container">
+    <div className='component-container'>
       <h2>{title}</h2>
       {optional && <OptionalContent />}
     </div>
@@ -367,22 +398,24 @@ const Component: React.FC<ComponentProps> = ({
 ```
 
 ### CSS/Styling Standards
+
 ```tsx
 // Use Tailwind classes with consistent patterns
-<div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300">
-  <span className="text-sm font-medium text-gray-600">Label</span>
-  <span className="text-lg font-semibold text-gray-900">Value</span>
-</div>
+<div className='flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300'>
+  <span className='text-sm font-medium text-gray-600'>Label</span>
+  <span className='text-lg font-semibold text-gray-900'>Value</span>
+</div>;
 
 // Use design tokens for consistency
 import { designTokens } from '@/design-system/tokens';
 
 <div className={designTokens.layout.card}>
   <span className={designTokens.typography.label}>Label</span>
-</div>
+</div>;
 ```
 
 ### File Organization
+
 ```
 src/
 ├── components/
@@ -401,6 +434,7 @@ src/
 ## Testing Guidelines
 
 ### Unit Testing
+
 ```typescript
 // Use Jest and React Testing Library
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -415,7 +449,7 @@ describe('Component', () => {
   it('handles click events', () => {
     const onAction = jest.fn();
     render(<Component title="Test" onAction={onAction} />);
-    
+
     fireEvent.click(screen.getByRole('button'));
     expect(onAction).toHaveBeenCalledWith('expected-id');
   });
@@ -423,6 +457,7 @@ describe('Component', () => {
 ```
 
 ### Integration Testing
+
 ```typescript
 // Test API integration
 import { renderHook, waitFor } from '@testing-library/react';
@@ -431,7 +466,7 @@ import { useReportingData } from './useReportingData';
 describe('useReportingData', () => {
   it('fetches data correctly', async () => {
     const { result } = renderHook(() => useReportingData('30d'));
-    
+
     await waitFor(() => {
       expect(result.current.data).toBeDefined();
       expect(result.current.loading).toBe(false);
@@ -441,6 +476,7 @@ describe('useReportingData', () => {
 ```
 
 ### Manual Testing Checklist
+
 - [ ] All pages load without errors
 - [ ] Authentication flow works
 - [ ] CRUD operations function correctly
@@ -452,6 +488,7 @@ describe('useReportingData', () => {
 ## Database Management
 
 ### Migrations
+
 ```sql
 -- Create migration file: migrations/YYYYMMDD_description.sql
 -- Example: migrations/20241002_add_automation_fields.sql
@@ -469,6 +506,7 @@ CREATE INDEX idx_people_last_activity ON people(last_activity_at);
 ```
 
 ### Data Seeding
+
 ```sql
 -- Insert sample data for development
 INSERT INTO companies (name, industry, stage) VALUES
@@ -482,6 +520,7 @@ INSERT INTO people (name, company_id, stage, lead_score) VALUES
 ```
 
 ### Performance Optimization
+
 ```sql
 -- Add indexes for frequently queried columns
 CREATE INDEX idx_people_stage ON people(stage);
@@ -496,6 +535,7 @@ EXPLAIN ANALYZE SELECT * FROM people WHERE stage = 'connected';
 ## Deployment Process
 
 ### Development Deployment
+
 ```bash
 # Build for development
 npm run build:dev
@@ -508,6 +548,7 @@ npm run deploy:staging
 ```
 
 ### Production Deployment
+
 ```bash
 # Build for production
 npm run build
@@ -520,33 +561,35 @@ npm run deploy:prod
 ```
 
 ### Vercel Deployment
+
 1. **Connect Repository**: Link GitHub repo to Vercel
 2. **Environment Variables**: Add all required env vars
-3. **Build Settings**: 
+3. **Build Settings**:
    - Build Command: `npm run build`
    - Output Directory: `dist`
    - Install Command: `npm install`
 4. **Domain Setup**: Configure custom domain if needed
 
 ### Environment-Specific Configurations
+
 ```typescript
 // config/environments.ts
 export const config = {
   development: {
     apiUrl: 'http://localhost:8080',
     debug: true,
-    logLevel: 'debug'
+    logLevel: 'debug',
   },
   staging: {
     apiUrl: 'https://staging.empowr-crm.com',
     debug: true,
-    logLevel: 'info'
+    logLevel: 'info',
   },
   production: {
     apiUrl: 'https://empowr-crm.com',
     debug: false,
-    logLevel: 'error'
-  }
+    logLevel: 'error',
+  },
 };
 ```
 
@@ -555,6 +598,7 @@ export const config = {
 ### React 18 Performance Best Practices
 
 #### 1. Component Memoization
+
 ```typescript
 // Use React.memo for expensive components
 const ExpensiveComponent = React.memo<Props>(({ data, onAction }) => {
@@ -567,12 +611,16 @@ const expensiveValue = useMemo(() => {
 }, [data]);
 
 // Use useCallback for event handlers
-const handleClick = useCallback((id: string) => {
-  onAction(id);
-}, [onAction]);
+const handleClick = useCallback(
+  (id: string) => {
+    onAction(id);
+  },
+  [onAction]
+);
 ```
 
 #### 2. Database Query Optimization
+
 ```typescript
 // ❌ Bad: Multiple separate queries
 const fetchDashboardData = async () => {
@@ -586,13 +634,14 @@ const fetchDashboardData = async () => {
 const fetchDashboardData = async () => {
   const { data } = await supabase.rpc('get_dashboard_data', {
     start_date: today,
-    end_date: todayEnd
+    end_date: todayEnd,
   });
   // Single database call with optimized query
 };
 ```
 
 #### 3. Loading States and Error Handling
+
 ```typescript
 // Proper loading and error states
 const [isLoading, setIsLoading] = useState(true);
@@ -611,7 +660,7 @@ useEffect(() => {
       setIsLoading(false);
     }
   };
-  
+
   fetchData();
 }, []);
 
@@ -624,6 +673,7 @@ useEffect(() => {
 ```
 
 #### 4. TypeScript Best Practices
+
 ```typescript
 // Define proper interfaces
 interface TodaysData {
@@ -640,18 +690,22 @@ const [todaysData, setTodaysData] = useState<TodaysData>({
   newLeadsToday: 0,
   newCompaniesToday: 0,
   automatedJobs: 0,
-  pendingFollowUps: 0
+  pendingFollowUps: 0,
 });
 
 // Avoid 'any' type
-const handleItemClick = useCallback((item: Job | Company, type: 'job' | 'company') => {
-  // Type-safe implementation
-}, []);
+const handleItemClick = useCallback(
+  (item: Job | Company, type: 'job' | 'company') => {
+    // Type-safe implementation
+  },
+  []
+);
 ```
 
 ### Database Optimization Strategies
 
 #### 1. RPC Functions for Complex Queries
+
 ```sql
 -- Create optimized dashboard data function
 CREATE OR REPLACE FUNCTION get_dashboard_data(start_date text, end_date text)
@@ -663,7 +717,7 @@ RETURNS TABLE (
   pending_follow_ups bigint,
   todays_jobs jsonb,
   todays_companies jsonb
-) 
+)
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
@@ -674,12 +728,12 @@ DECLARE
 BEGIN
   -- Single query to get all counts
   SELECT COUNT(*) INTO jobs_count
-  FROM jobs 
-  WHERE created_at >= start_date::timestamptz 
+  FROM jobs
+  WHERE created_at >= start_date::timestamptz
     AND created_at < end_date::timestamptz;
-    
+
   -- Return aggregated data
-  RETURN QUERY SELECT 
+  RETURN QUERY SELECT
     jobs_count,
     leads_count,
     companies_count,
@@ -692,6 +746,7 @@ $$;
 ```
 
 #### 2. Index Strategy
+
 ```sql
 -- Create indexes for frequently queried columns
 CREATE INDEX idx_jobs_created_at ON jobs(created_at);
@@ -705,6 +760,7 @@ CREATE INDEX idx_interactions_type_created ON interactions(interaction_type, cre
 ```
 
 #### 3. Query Performance Monitoring
+
 ```typescript
 // Monitor query performance
 const { data, error } = await supabase
@@ -721,6 +777,7 @@ if (error) {
 ### Component Architecture Patterns
 
 #### 1. Error Boundaries
+
 ```typescript
 class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -748,6 +805,7 @@ class ErrorBoundary extends React.Component<Props, State> {
 ```
 
 #### 2. Lazy Loading Components
+
 ```typescript
 // Lazy load heavy components
 const HeavyChart = lazy(() => import('./HeavyChart'));
@@ -762,6 +820,7 @@ const Dashboard = () => {
 ```
 
 #### 3. Custom Hooks for Data Fetching
+
 ```typescript
 // Reusable data fetching hook
 export const useDashboardData = () => {
@@ -776,9 +835,9 @@ export const useDashboardData = () => {
         setError(null);
         const result = await supabase.rpc('get_dashboard_data', {
           start_date: new Date().toISOString().split('T')[0],
-          end_date: `${new Date().toISOString().split('T')[0]}T23:59:59.999Z`
+          end_date: `${new Date().toISOString().split('T')[0]}T23:59:59.999Z`,
         });
-        
+
         if (result.error) throw result.error;
         setData(result.data[0]);
       } catch (err) {
@@ -798,6 +857,7 @@ export const useDashboardData = () => {
 ## Best Practices
 
 ### Modern Design System (2025)
+
 - **Card Components**: Use modern card variants (minimal, elevated, glass) for consistency
 - **Glassmorphism**: Apply subtle transparency and backdrop blur effects
 - **Typography**: Use consistent font sizes and weights across components
@@ -807,6 +867,7 @@ export const useDashboardData = () => {
 - **Rounded Corners**: Use `rounded-2xl` for modern card appearance
 
 ### Performance
+
 - **Code Splitting**: Use React.lazy for route-based splitting
 - **Memoization**: Use React.memo, useMemo, useCallback appropriately
 - **Bundle Analysis**: Regular bundle size monitoring
@@ -816,6 +877,7 @@ export const useDashboardData = () => {
 - **Loading States**: Implement proper loading and error states
 
 ### Security
+
 - **Environment Variables**: Never commit secrets to version control
 - **Input Validation**: Validate all user inputs
 - **SQL Injection**: Use parameterized queries
@@ -823,6 +885,7 @@ export const useDashboardData = () => {
 - **HTTPS**: Always use HTTPS in production
 
 ### Accessibility
+
 - **Semantic HTML**: Use proper HTML elements
 - **ARIA Labels**: Add ARIA attributes where needed
 - **Keyboard Navigation**: Ensure keyboard accessibility
@@ -830,6 +893,7 @@ export const useDashboardData = () => {
 - **Screen Readers**: Test with screen reader software
 
 ### Error Handling
+
 ```typescript
 // Global error boundary
 class ErrorBoundary extends React.Component {
@@ -855,6 +919,7 @@ const handleApiError = (error: ApiError) => {
 ```
 
 ### Code Quality Tools
+
 ```json
 // package.json scripts
 {
@@ -871,6 +936,7 @@ const handleApiError = (error: ApiError) => {
 ```
 
 ### Documentation
+
 - **Code Comments**: Document complex logic and business rules
 - **README Updates**: Keep README current with setup instructions
 - **API Documentation**: Document all API endpoints and responses
@@ -879,6 +945,6 @@ const handleApiError = (error: ApiError) => {
 
 ---
 
-*For troubleshooting and debugging, see [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)*
-*For design guidelines, see [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)*
-*For integration setup, see [INTEGRATIONS_GUIDE.md](./INTEGRATIONS_GUIDE.md)*
+_For troubleshooting and debugging, see [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)_
+_For design guidelines, see [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)_
+_For integration setup, see [INTEGRATIONS_GUIDE.md](./INTEGRATIONS_GUIDE.md)_

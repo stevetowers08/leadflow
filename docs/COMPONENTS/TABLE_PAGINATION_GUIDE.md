@@ -1,6 +1,7 @@
 # Table Pagination & Scrolling Best Practices Guide
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Current Implementation Analysis](#current-implementation-analysis)
 - [Pagination Best Practices](#pagination-best-practices)
@@ -15,6 +16,7 @@
 This guide documents the current table pagination implementation in Empowr CRM and provides comprehensive best practices for improving user experience, performance, and accessibility. Based on 2024 industry standards and user research.
 
 ### Key Metrics
+
 - **Target Load Time**: < 500ms for pagination changes
 - **Scroll Performance**: 60fps smooth scrolling
 - **Mobile Usability**: Touch-friendly controls (44px minimum)
@@ -25,39 +27,48 @@ This guide documents the current table pagination implementation in Empowr CRM a
 ### Existing Components
 
 #### 1. **usePagination Hook** (`src/hooks/usePagination.ts`)
+
 **Strengths:**
+
 - ✅ Comprehensive pagination state management
 - ✅ Ellipsis handling for large page counts
 - ✅ Page size customization
 - ✅ TypeScript interfaces
 
 **Issues Identified:**
+
 - ❌ Missing keyboard navigation support
 - ❌ No URL state persistence
 - ❌ Limited mobile optimization
 - ❌ No virtual scrolling for large datasets
 
 #### 2. **PaginationControls Component** (`src/components/utils/PaginationControls.tsx`)
+
 **Strengths:**
+
 - ✅ Clean UI with shadcn/ui components
 - ✅ Page size selector
 - ✅ Item count display
 - ✅ Responsive design considerations
 
 **Issues Identified:**
+
 - ❌ Missing "Go to page" input for large datasets
 - ❌ No keyboard shortcuts
 - ❌ Limited mobile touch targets
 - ❌ No loading states during page changes
 
 #### 3. **EnhancedTable Component** (`src/components/ui/enhanced-table.tsx`)
+
 **Strengths:**
+
 - ✅ Single scrollbar implementation (recommended)
 - ✅ Sticky headers
 - ✅ Scroll synchronization
 - ✅ Responsive design
 
 **Issues Identified:**
+
 - ❌ Performance issues with large datasets
 - ❌ No virtual scrolling
 - ❌ Limited mobile optimization
@@ -66,18 +77,21 @@ This guide documents the current table pagination implementation in Empowr CRM a
 ### Current Scrolling Issues
 
 #### 1. **Performance Issues**
+
 - Large datasets cause slow rendering
 - Scroll synchronization overhead
 - Memory usage with 1000+ rows
 - Re-render cycles during scrolling
 
 #### 2. **Mobile Experience**
+
 - Horizontal scrolling difficult on touch devices
 - Pagination controls too small for touch
 - No swipe gestures for navigation
 - Limited responsive breakpoints
 
 #### 3. **Accessibility Gaps**
+
 - Missing keyboard navigation
 - No screen reader announcements
 - Limited focus management
@@ -89,13 +103,11 @@ This guide documents the current table pagination implementation in Empowr CRM a
 
 ```tsx
 // ✅ Good: Consistent bottom placement
-<div className="flex items-center justify-between mt-6 px-4">
-  <div className="flex items-center gap-4">
+<div className='flex items-center justify-between mt-6 px-4'>
+  <div className='flex items-center gap-4'>
     {/* Item count and page size */}
   </div>
-  <div className="flex items-center gap-2">
-    {/* Pagination controls */}
-  </div>
+  <div className='flex items-center gap-2'>{/* Pagination controls */}</div>
 </div>
 ```
 
@@ -103,14 +115,14 @@ This guide documents the current table pagination implementation in Empowr CRM a
 
 ```tsx
 // ✅ Good: Intuitive labels and states
-<PaginationPrevious 
+<PaginationPrevious
   disabled={!hasPreviousPage}
   aria-label="Go to previous page"
 >
   Previous
 </PaginationPrevious>
 
-<PaginationNext 
+<PaginationNext
   disabled={!hasNextPage}
   aria-label="Go to next page"
 >
@@ -127,16 +139,19 @@ const visiblePages = useMemo(() => {
   if (totalPages <= maxVisiblePages) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
-  
+
   const halfVisible = Math.floor(maxVisiblePages / 2);
   let startPage = Math.max(1, currentPage - halfVisible);
   let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-  
+
   if (endPage - startPage + 1 < maxVisiblePages) {
     startPage = Math.max(1, endPage - maxVisiblePages + 1);
   }
-  
-  return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+
+  return Array.from(
+    { length: endPage - startPage + 1 },
+    (_, i) => startPage + i
+  );
 }, [currentPage, totalPages]);
 ```
 
@@ -147,10 +162,10 @@ const visiblePages = useMemo(() => {
 <PaginationLink
   isActive={page === currentPage}
   className={cn(
-    "cursor-pointer transition-colors",
-    page === currentPage 
-      ? "bg-primary-500 text-white hover:bg-primary-600" 
-      : "hover:bg-gray-100"
+    'cursor-pointer transition-colors',
+    page === currentPage
+      ? 'bg-primary-500 text-white hover:bg-primary-600'
+      : 'hover:bg-gray-100'
   )}
 >
   {page}
@@ -163,18 +178,21 @@ const visiblePages = useMemo(() => {
 // ✅ Good: Flexible page size options
 const pageSizeOptions = [10, 25, 50, 100, 250];
 
-<Select value={pageSize.toString()} onValueChange={(value) => onPageSizeChange(Number(value))}>
-  <SelectTrigger className="w-20 h-8">
+<Select
+  value={pageSize.toString()}
+  onValueChange={value => onPageSizeChange(Number(value))}
+>
+  <SelectTrigger className='w-20 h-8'>
     <SelectValue />
   </SelectTrigger>
   <SelectContent>
-    {pageSizeOptions.map((size) => (
+    {pageSizeOptions.map(size => (
       <SelectItem key={size} value={size.toString()}>
         {size}
       </SelectItem>
     ))}
   </SelectContent>
-</Select>
+</Select>;
 ```
 
 ### 6. **Go-to-Page Input for Large Datasets**
@@ -191,25 +209,27 @@ const handleGoToPage = () => {
   }
 };
 
-<div className="flex items-center gap-2">
-  <span className="text-sm text-gray-500">Go to:</span>
+<div className='flex items-center gap-2'>
+  <span className='text-sm text-gray-500'>Go to:</span>
   <input
-    type="number"
+    type='number'
     value={goToPage}
-    onChange={(e) => setGoToPage(e.target.value)}
-    placeholder="Page"
-    className="w-16 px-2 py-1 text-sm border rounded"
-    min="1"
+    onChange={e => setGoToPage(e.target.value)}
+    placeholder='Page'
+    className='w-16 px-2 py-1 text-sm border rounded'
+    min='1'
     max={totalPages}
   />
-  <Button 
-    size="sm" 
+  <Button
+    size='sm'
     onClick={handleGoToPage}
-    disabled={!goToPage || parseInt(goToPage) < 1 || parseInt(goToPage) > totalPages}
+    disabled={
+      !goToPage || parseInt(goToPage) < 1 || parseInt(goToPage) > totalPages
+    }
   >
     Go
   </Button>
-</div>
+</div>;
 ```
 
 ## Scrolling Issues & Solutions
@@ -229,6 +249,7 @@ const handleGoToPage = () => {
 ```
 
 **Benefits:**
+
 - Cleaner visual design
 - Less confusing for users
 - Better mobile experience
@@ -238,12 +259,12 @@ const handleGoToPage = () => {
 
 ```tsx
 // ✅ Good: Proper sticky header implementation
-<EnhancedTableHeader className="sticky top-0 z-10 bg-white shadow-sm">
+<EnhancedTableHeader className='sticky top-0 z-10 bg-white shadow-sm'>
   <EnhancedTableRow>
-    {columns.map((column) => (
-      <EnhancedTableHead 
+    {columns.map(column => (
+      <EnhancedTableHead
         key={column.key}
-        className="bg-gray-50/80 backdrop-blur-sm"
+        className='bg-gray-50/80 backdrop-blur-sm'
       >
         {column.label}
       </EnhancedTableHead>
@@ -255,6 +276,7 @@ const handleGoToPage = () => {
 ### 3. **Horizontal Scrolling Solutions**
 
 #### Option A: Responsive Column Hiding
+
 ```tsx
 // ✅ Good: Hide non-essential columns on mobile
 const getVisibleColumns = (screenSize: 'mobile' | 'tablet' | 'desktop') => {
@@ -265,31 +287,34 @@ const getVisibleColumns = (screenSize: 'mobile' | 'tablet' | 'desktop') => {
     { key: 'salary', label: 'Salary', priority: 'low' },
     { key: 'status', label: 'Status', priority: 'medium' },
   ];
-  
+
   const priorityMap = {
     mobile: ['high'],
     tablet: ['high', 'medium'],
-    desktop: ['high', 'medium', 'low']
+    desktop: ['high', 'medium', 'low'],
   };
-  
-  return allColumns.filter(col => 
+
+  return allColumns.filter(col =>
     priorityMap[screenSize].includes(col.priority)
   );
 };
 ```
 
 #### Option B: Stacked Mobile Layout
+
 ```tsx
 // ✅ Good: Stacked layout for mobile
 const MobileTableRow = ({ row, columns }) => (
-  <div className="bg-white border rounded-lg p-4 space-y-2">
-    {columns.map((column) => (
-      <div key={column.key} className="flex justify-between">
-        <span className="text-sm font-medium text-gray-500">
+  <div className='bg-white border rounded-lg p-4 space-y-2'>
+    {columns.map(column => (
+      <div key={column.key} className='flex justify-between'>
+        <span className='text-sm font-medium text-gray-500'>
           {column.label}:
         </span>
-        <span className="text-sm text-gray-900">
-          {column.render ? column.render(row[column.key], row) : row[column.key]}
+        <span className='text-sm text-gray-900'>
+          {column.render
+            ? column.render(row[column.key], row)
+            : row[column.key]}
         </span>
       </div>
     ))}
@@ -307,9 +332,11 @@ const VirtualizedTable = ({ data, columns, height = 400 }) => {
   const Row = ({ index, style }) => (
     <div style={style}>
       <EnhancedTableRow>
-        {columns.map((column) => (
+        {columns.map(column => (
           <EnhancedTableCell key={column.key}>
-            {column.render ? column.render(data[index][column.key], data[index]) : data[index][column.key]}
+            {column.render
+              ? column.render(data[index][column.key], data[index])
+              : data[index][column.key]}
           </EnhancedTableCell>
         ))}
       </EnhancedTableRow>
@@ -317,10 +344,10 @@ const VirtualizedTable = ({ data, columns, height = 400 }) => {
   );
 
   return (
-    <div className="border rounded-lg">
+    <div className='border rounded-lg'>
       <EnhancedTableHeader>
         <EnhancedTableRow>
-          {columns.map((column) => (
+          {columns.map(column => (
             <EnhancedTableHead key={column.key}>
               {column.label}
             </EnhancedTableHead>
@@ -331,7 +358,7 @@ const VirtualizedTable = ({ data, columns, height = 400 }) => {
         height={height}
         itemCount={data.length}
         itemSize={48} // Row height
-        className="scrollbar-thin"
+        className='scrollbar-thin'
       >
         {Row}
       </List>
@@ -350,11 +377,11 @@ const useScrollOptimization = () => {
 
   const handleScroll = useCallback(() => {
     setIsScrolling(true);
-    
+
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
-    
+
     scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false);
     }, 150);
@@ -378,35 +405,46 @@ const useScrollOptimization = () => {
 
 ```tsx
 // ✅ Good: Memoized pagination component
-const PaginationControls = React.memo<PaginationControlsProps>(({
-  currentPage,
-  totalPages,
-  pageSize,
-  totalItems,
-  onPageChange,
-  onPageSizeChange,
-  visiblePages,
-  showFirstEllipsis,
-  showLastEllipsis,
-  hasNextPage,
-  hasPreviousPage,
-  pageSizeOptions = [10, 20, 50, 100],
-  showPageSizeSelector = true,
-  showItemCount = true,
-  className,
-}) => {
-  const startItem = useMemo(() => (currentPage - 1) * pageSize + 1, [currentPage, pageSize]);
-  const endItem = useMemo(() => Math.min(currentPage * pageSize, totalItems), [currentPage, pageSize, totalItems]);
+const PaginationControls = React.memo<PaginationControlsProps>(
+  ({
+    currentPage,
+    totalPages,
+    pageSize,
+    totalItems,
+    onPageChange,
+    onPageSizeChange,
+    visiblePages,
+    showFirstEllipsis,
+    showLastEllipsis,
+    hasNextPage,
+    hasPreviousPage,
+    pageSizeOptions = [10, 20, 50, 100],
+    showPageSizeSelector = true,
+    showItemCount = true,
+    className,
+  }) => {
+    const startItem = useMemo(
+      () => (currentPage - 1) * pageSize + 1,
+      [currentPage, pageSize]
+    );
+    const endItem = useMemo(
+      () => Math.min(currentPage * pageSize, totalItems),
+      [currentPage, pageSize, totalItems]
+    );
 
-  // Component implementation...
-});
+    // Component implementation...
+  }
+);
 ```
 
 ### 2. **Debounced Page Changes**
 
 ```tsx
 // ✅ Good: Debounced page changes for better UX
-const useDebouncedPagination = (onPageChange: (page: number) => void, delay = 300) => {
+const useDebouncedPagination = (
+  onPageChange: (page: number) => void,
+  delay = 300
+) => {
   const debouncedPageChange = useMemo(
     () => debounce(onPageChange, delay),
     [onPageChange, delay]
@@ -424,19 +462,22 @@ const useLazyPagination = (totalItems: number, pageSize: number) => {
   const [loadedPages, setLoadedPages] = useState<Set<number>>(new Set([1]));
   const [data, setData] = useState<Record<number, any[]>>({});
 
-  const loadPage = useCallback(async (page: number) => {
-    if (loadedPages.has(page)) return data[page];
+  const loadPage = useCallback(
+    async (page: number) => {
+      if (loadedPages.has(page)) return data[page];
 
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    
-    const pageData = await fetchPageData(startIndex, endIndex);
-    
-    setData(prev => ({ ...prev, [page]: pageData }));
-    setLoadedPages(prev => new Set([...prev, page]));
-    
-    return pageData;
-  }, [loadedPages, pageSize, data]);
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+
+      const pageData = await fetchPageData(startIndex, endIndex);
+
+      setData(prev => ({ ...prev, [page]: pageData }));
+      setLoadedPages(prev => new Set([...prev, page]));
+
+      return pageData;
+    },
+    [loadedPages, pageSize, data]
+  );
 
   return { loadPage, loadedPages, data };
 };
@@ -449,26 +490,29 @@ const useLazyPagination = (totalItems: number, pageSize: number) => {
 ```tsx
 // ✅ Good: Full keyboard support
 const PaginationControls = ({ onPageChange, currentPage, totalPages }) => {
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    switch (e.key) {
-      case 'ArrowLeft':
-        e.preventDefault();
-        if (currentPage > 1) onPageChange(currentPage - 1);
-        break;
-      case 'ArrowRight':
-        e.preventDefault();
-        if (currentPage < totalPages) onPageChange(currentPage + 1);
-        break;
-      case 'Home':
-        e.preventDefault();
-        onPageChange(1);
-        break;
-      case 'End':
-        e.preventDefault();
-        onPageChange(totalPages);
-        break;
-    }
-  }, [currentPage, totalPages, onPageChange]);
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          if (currentPage > 1) onPageChange(currentPage - 1);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          if (currentPage < totalPages) onPageChange(currentPage + 1);
+          break;
+        case 'Home':
+          e.preventDefault();
+          onPageChange(1);
+          break;
+        case 'End':
+          e.preventDefault();
+          onPageChange(totalPages);
+          break;
+      }
+    },
+    [currentPage, totalPages, onPageChange]
+  );
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -476,11 +520,7 @@ const PaginationControls = ({ onPageChange, currentPage, totalPages }) => {
   }, [handleKeyDown]);
 
   return (
-    <div 
-      role="navigation" 
-      aria-label="Pagination Navigation"
-      tabIndex={0}
-    >
+    <div role='navigation' aria-label='Pagination Navigation' tabIndex={0}>
       {/* Pagination controls */}
     </div>
   );
@@ -491,16 +531,12 @@ const PaginationControls = ({ onPageChange, currentPage, totalPages }) => {
 
 ```tsx
 // ✅ Good: Comprehensive ARIA labels
-<div 
-  role="region" 
-  aria-label="Table pagination"
-  aria-live="polite"
->
+<div role='region' aria-label='Table pagination' aria-live='polite'>
   <div aria-label={`Page ${currentPage} of ${totalPages}`}>
     Showing {startItem} to {endItem} of {totalItems} results
   </div>
-  
-  <nav aria-label="Pagination Navigation">
+
+  <nav aria-label='Pagination Navigation'>
     <button
       aria-label={`Go to page ${page}`}
       aria-current={page === currentPage ? 'page' : undefined}
@@ -532,6 +568,7 @@ const useFocusManagement = () => {
 ### 1. **Immediate Improvements**
 
 #### A. Fix PaginationControls Props Issue
+
 ```tsx
 // ❌ Current: Incorrect props destructuring
 export const PaginationControls: React.FC<PaginationControlsProps> = (
@@ -561,23 +598,27 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
 ```
 
 #### B. Add URL State Persistence
+
 ```tsx
 // ✅ Good: URL state persistence
 const useUrlPagination = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const currentPage = parseInt(searchParams.get('page') || '1');
   const pageSize = parseInt(searchParams.get('pageSize') || '25');
-  
-  const updateUrl = useCallback((page: number, size: number) => {
-    setSearchParams(prev => {
-      const newParams = new URLSearchParams(prev);
-      newParams.set('page', page.toString());
-      newParams.set('pageSize', size.toString());
-      return newParams;
-    });
-  }, [setSearchParams]);
-  
+
+  const updateUrl = useCallback(
+    (page: number, size: number) => {
+      setSearchParams(prev => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set('page', page.toString());
+        newParams.set('pageSize', size.toString());
+        return newParams;
+      });
+    },
+    [setSearchParams]
+  );
+
   return { currentPage, pageSize, updateUrl };
 };
 ```
@@ -585,18 +626,21 @@ const useUrlPagination = () => {
 ### 2. **Medium-term Enhancements**
 
 #### A. Implement Virtual Scrolling
+
 - Add react-window dependency
 - Create VirtualizedTable component
 - Implement row height calculation
 - Add scroll position restoration
 
 #### B. Mobile Optimization
+
 - Implement stacked mobile layout
 - Add swipe gestures for navigation
 - Optimize touch targets (44px minimum)
 - Add mobile-specific pagination controls
 
 #### C. Performance Monitoring
+
 - Add pagination performance metrics
 - Implement loading state indicators
 - Add error boundaries for pagination
@@ -605,12 +649,14 @@ const useUrlPagination = () => {
 ### 3. **Long-term Improvements**
 
 #### A. Advanced Features
+
 - Infinite scrolling option
 - Smart prefetching
 - Search within paginated results
 - Export paginated data
 
 #### B. Analytics Integration
+
 - Track pagination usage patterns
 - Monitor performance metrics
 - A/B test different pagination styles
@@ -619,6 +665,7 @@ const useUrlPagination = () => {
 ## Testing Checklist
 
 ### 1. **Functional Testing**
+
 - [ ] Page navigation works correctly
 - [ ] Page size changes update display
 - [ ] Go-to-page input functions properly
@@ -627,6 +674,7 @@ const useUrlPagination = () => {
 - [ ] Screen reader compatibility
 
 ### 2. **Performance Testing**
+
 - [ ] Pagination changes < 500ms
 - [ ] Smooth scrolling at 60fps
 - [ ] Memory usage with large datasets
@@ -634,6 +682,7 @@ const useUrlPagination = () => {
 - [ ] Mobile scroll performance
 
 ### 3. **Accessibility Testing**
+
 - [ ] Keyboard navigation
 - [ ] Screen reader announcements
 - [ ] Focus management
@@ -641,6 +690,7 @@ const useUrlPagination = () => {
 - [ ] Touch target sizes
 
 ### 4. **Cross-browser Testing**
+
 - [ ] Chrome/Chromium
 - [ ] Firefox
 - [ ] Safari
@@ -648,6 +698,7 @@ const useUrlPagination = () => {
 - [ ] Mobile browsers
 
 ### 5. **Responsive Testing**
+
 - [ ] Mobile (320px - 768px)
 - [ ] Tablet (768px - 1024px)
 - [ ] Desktop (1024px+)
@@ -655,4 +706,4 @@ const useUrlPagination = () => {
 
 ---
 
-*This guide is updated regularly as new best practices emerge and implementation improvements are made. For specific implementation details, refer to the actual code in the repository.*
+_This guide is updated regularly as new best practices emerge and implementation improvements are made. For specific implementation details, refer to the actual code in the repository._

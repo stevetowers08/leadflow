@@ -16,7 +16,7 @@ export const CompanyLogo: React.FC<CompanyLogoProps> = ({
   website,
   size = 'md',
   className = '',
-  fallbackToInitials = true
+  fallbackToInitials = true,
 }) => {
   return (
     <ClearbitLogo
@@ -37,7 +37,7 @@ export const CompanyLogoSync: React.FC<CompanyLogoProps> = ({
   website,
   size = 'md',
   className = '',
-  fallbackToInitials = true
+  fallbackToInitials = true,
 }) => {
   return (
     <ClearbitLogo

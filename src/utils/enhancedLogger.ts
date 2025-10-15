@@ -6,7 +6,7 @@ export enum LogLevel {
   INFO = 1,
   WARN = 2,
   ERROR = 3,
-  CRITICAL = 4
+  CRITICAL = 4,
 }
 
 // Log context interface
@@ -67,7 +67,7 @@ class EnhancedLogger {
       maxStorageEntries: 1000,
       remoteEndpoint: '/api/logs',
       enablePerformance: true,
-      enableUserTracking: false
+      enableUserTracking: false,
     };
 
     this.setupGlobalErrorHandling();
@@ -92,19 +92,19 @@ class EnhancedLogger {
   // Setup global error handling
   private setupGlobalErrorHandling(): void {
     // Handle unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener('unhandledrejection', event => {
       this.error('Unhandled Promise Rejection', {
         componentName: 'Global',
         action: 'unhandledRejection',
         metadata: {
           reason: event.reason,
-          promise: event.promise
-        }
+          promise: event.promise,
+        },
       });
     });
 
     // Handle global errors
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       this.error('Global Error', {
         componentName: 'Global',
         action: 'globalError',
@@ -113,8 +113,8 @@ class EnhancedLogger {
           filename: event.filename,
           lineno: event.lineno,
           colno: event.colno,
-          error: event.error
-        }
+          error: event.error,
+        },
       });
     });
   }
@@ -125,17 +125,23 @@ class EnhancedLogger {
 
     // Log page load performance
     window.addEventListener('load', () => {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
+
       this.info('Page Load Performance', {
         componentName: 'Performance',
         action: 'pageLoad',
         metadata: {
           loadTime: navigation.loadEventEnd - navigation.loadEventStart,
-          domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+          domContentLoaded:
+            navigation.domContentLoadedEventEnd -
+            navigation.domContentLoadedEventStart,
           firstPaint: performance.getEntriesByName('first-paint')[0]?.startTime,
-          firstContentfulPaint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime
-        }
+          firstContentfulPaint: performance.getEntriesByName(
+            'first-contentful-paint'
+          )[0]?.startTime,
+        },
       });
     });
 
@@ -149,15 +155,19 @@ class EnhancedLogger {
           metadata: {
             used: memory.usedJSHeapSize,
             total: memory.totalJSHeapSize,
-            limit: memory.jsHeapSizeLimit
-          }
+            limit: memory.jsHeapSizeLimit,
+          },
         });
       }, 30000); // Every 30 seconds
     }
   }
 
   // Core logging method
-  private log(level: LogLevel, message: string, context: LogContext = {}): void {
+  private log(
+    level: LogLevel,
+    message: string,
+    context: LogContext = {}
+  ): void {
     if (level < this.config.level) return;
 
     const logEntry: LogEntry = {
@@ -168,10 +178,10 @@ class EnhancedLogger {
         userId: this.userId,
         sessionId: this.sessionId,
         timestamp: new Date(),
-        level
+        level,
       },
       timestamp: new Date(),
-      stack: level >= LogLevel.ERROR ? new Error().stack : undefined
+      stack: level >= LogLevel.ERROR ? new Error().stack : undefined,
     };
 
     // Add to logs array
@@ -203,12 +213,12 @@ class EnhancedLogger {
     const { message, level, context } = entry;
     const timestamp = entry.timestamp.toISOString();
     const levelName = LogLevel[level];
-    
+
     const logData = {
       message,
       level: levelName,
       timestamp,
-      ...context
+      ...context,
     };
 
     switch (level) {
@@ -236,7 +246,7 @@ class EnhancedLogger {
       await fetch(this.config.remoteEndpoint!, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(entry)
+        body: JSON.stringify(entry),
       });
     } catch (error) {
       // Don't log remote logging errors to avoid infinite loops
@@ -250,7 +260,7 @@ class EnhancedLogger {
       const storageKey = `logs_${this.sessionId}`;
       const existingLogs = JSON.parse(localStorage.getItem(storageKey) || '[]');
       existingLogs.push(entry);
-      
+
       // Keep only last 100 entries in localStorage
       const recentLogs = existingLogs.slice(-100);
       localStorage.setItem(storageKey, JSON.stringify(recentLogs));
@@ -283,15 +293,15 @@ class EnhancedLogger {
   // Get logs
   getLogs(level?: LogLevel, limit?: number): LogEntry[] {
     let filteredLogs = this.logs;
-    
+
     if (level !== undefined) {
       filteredLogs = filteredLogs.filter(log => log.level >= level);
     }
-    
+
     if (limit) {
       filteredLogs = filteredLogs.slice(-limit);
     }
-    
+
     return filteredLogs;
   }
 
@@ -341,28 +351,31 @@ export const logger = EnhancedLogger.getInstance();
 
 // React hook for logging
 export function useLogger(componentName?: string) {
-  const logContext = React.useMemo(() => ({
-    componentName: componentName || 'Unknown'
-  }), [componentName]);
+  const logContext = React.useMemo(
+    () => ({
+      componentName: componentName || 'Unknown',
+    }),
+    [componentName]
+  );
 
   return {
-    debug: (message: string, context?: LogContext) => 
+    debug: (message: string, context?: LogContext) =>
       logger.debug(message, { ...logContext, ...context }),
-    info: (message: string, context?: LogContext) => 
+    info: (message: string, context?: LogContext) =>
       logger.info(message, { ...logContext, ...context }),
-    warn: (message: string, context?: LogContext) => 
+    warn: (message: string, context?: LogContext) =>
       logger.warn(message, { ...logContext, ...context }),
-    error: (message: string, context?: LogContext) => 
+    error: (message: string, context?: LogContext) =>
       logger.error(message, { ...logContext, ...context }),
-    critical: (message: string, context?: LogContext) => 
+    critical: (message: string, context?: LogContext) =>
       logger.critical(message, { ...logContext, ...context }),
     time: logger.time.bind(logger),
     timeEnd: logger.timeEnd.bind(logger),
     group: logger.group.bind(logger),
     groupEnd: logger.groupEnd.bind(logger),
     table: logger.table.bind(logger),
-    trace: (message: string, context?: LogContext) => 
-      logger.trace(message, { ...logContext, ...context })
+    trace: (message: string, context?: LogContext) =>
+      logger.trace(message, { ...logContext, ...context }),
   };
 }
 
@@ -373,7 +386,7 @@ export function withLogging<P extends object>(
 ) {
   return React.memo((props: P) => {
     const log = useLogger(componentName || Component.displayName || 'Unknown');
-    
+
     React.useEffect(() => {
       log.info('Component mounted', { action: 'mount' });
       return () => log.info('Component unmounted', { action: 'unmount' });
@@ -384,7 +397,9 @@ export function withLogging<P extends object>(
 }
 
 // Logging provider
-export const LoggingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const LoggingProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   React.useEffect(() => {
     logger.info('Application started', {
       componentName: 'App',
@@ -392,14 +407,14 @@ export const LoggingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       metadata: {
         userAgent: navigator.userAgent,
         url: window.location.href,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
 
     return () => {
       logger.info('Application stopped', {
         componentName: 'App',
-        action: 'stop'
+        action: 'stop',
       });
     };
   }, []);

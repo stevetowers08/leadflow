@@ -3,27 +3,27 @@
  * Integrates with existing error handling system while adding modern patterns
  */
 
-import { 
-  AppError, 
-  ErrorType, 
-  ErrorSeverity, 
-  ErrorCategory, 
+import {
+  AppError,
+  ErrorType,
+  ErrorSeverity,
+  ErrorCategory,
   ErrorFactory,
   Result,
-  ResultBuilder
+  ResultBuilder,
 } from '@/types/errors';
 import { enhancedErrorLogger } from '@/services/supabaseErrorService';
 
 export class EnhancedErrorHandler {
   private static instance: EnhancedErrorHandler;
-  
+
   static getInstance(): EnhancedErrorHandler {
     if (!EnhancedErrorHandler.instance) {
       EnhancedErrorHandler.instance = new EnhancedErrorHandler();
     }
     return EnhancedErrorHandler.instance;
   }
-  
+
   /**
    * Classify and handle Supabase database errors
    */
@@ -38,11 +38,11 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.MEDIUM,
           category: ErrorCategory.DATABASE,
           context,
-          originalError: error
+          originalError: error,
         }
       );
     }
-    
+
     const errorMap: Record<string, AppError> = {
       '23505': ErrorFactory.create(
         ErrorType.BUSINESS_RULE_VIOLATION,
@@ -54,7 +54,7 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.MEDIUM,
           category: ErrorCategory.DATABASE,
           context,
-          originalError: error
+          originalError: error,
         }
       ),
       '23503': ErrorFactory.create(
@@ -67,7 +67,7 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.MEDIUM,
           category: ErrorCategory.DATABASE,
           context,
-          originalError: error
+          originalError: error,
         }
       ),
       '42501': ErrorFactory.create(
@@ -80,10 +80,10 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.HIGH,
           category: ErrorCategory.DATABASE,
           context,
-          originalError: error
+          originalError: error,
         }
       ),
-      'PGRST116': ErrorFactory.create(
+      PGRST116: ErrorFactory.create(
         ErrorType.PERMISSION_DENIED,
         'RLS_VIOLATION',
         'Row level security violation',
@@ -93,7 +93,7 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.HIGH,
           category: ErrorCategory.DATABASE,
           context,
-          originalError: error
+          originalError: error,
         }
       ),
       '42P01': ErrorFactory.create(
@@ -106,7 +106,7 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.CRITICAL,
           category: ErrorCategory.DATABASE,
           context,
-          originalError: error
+          originalError: error,
         }
       ),
       '42703': ErrorFactory.create(
@@ -119,25 +119,28 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.CRITICAL,
           category: ErrorCategory.DATABASE,
           context,
-          originalError: error
+          originalError: error,
+        }
+      ),
+    };
+
+    return (
+      errorMap[error.code] ||
+      ErrorFactory.create(
+        ErrorType.DATABASE_ERROR,
+        error.code,
+        error.message || 'Database error occurred',
+        'A database error occurred. Please try again.',
+        {
+          severity: ErrorSeverity.MEDIUM,
+          category: ErrorCategory.DATABASE,
+          context,
+          originalError: error,
         }
       )
-    };
-    
-    return errorMap[error.code] || ErrorFactory.create(
-      ErrorType.DATABASE_ERROR,
-      error.code,
-      error.message || 'Database error occurred',
-      'A database error occurred. Please try again.',
-      {
-        severity: ErrorSeverity.MEDIUM,
-        category: ErrorCategory.DATABASE,
-        context,
-        originalError: error
-      }
     );
   }
-  
+
   /**
    * Classify network errors
    */
@@ -152,11 +155,11 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.HIGH,
           category: ErrorCategory.NETWORK,
           context,
-          originalError: error
+          originalError: error,
         }
       );
     }
-    
+
     if (error.status >= 500) {
       return ErrorFactory.create(
         ErrorType.EXTERNAL_SERVICE_ERROR,
@@ -167,11 +170,11 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.HIGH,
           category: ErrorCategory.NETWORK,
           context: { ...context, status: error.status },
-          originalError: error
+          originalError: error,
         }
       );
     }
-    
+
     if (error.status === 404) {
       return ErrorFactory.create(
         ErrorType.EXTERNAL_SERVICE_ERROR,
@@ -182,11 +185,11 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.MEDIUM,
           category: ErrorCategory.NETWORK,
           context: { ...context, status: error.status },
-          originalError: error
+          originalError: error,
         }
       );
     }
-    
+
     if (error.status === 403) {
       return ErrorFactory.create(
         ErrorType.PERMISSION_DENIED,
@@ -197,11 +200,11 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.MEDIUM,
           category: ErrorCategory.NETWORK,
           context: { ...context, status: error.status },
-          originalError: error
+          originalError: error,
         }
       );
     }
-    
+
     if (error.status === 401) {
       return ErrorFactory.create(
         ErrorType.AUTHENTICATION_ERROR,
@@ -212,11 +215,11 @@ export class EnhancedErrorHandler {
           severity: ErrorSeverity.HIGH,
           category: ErrorCategory.AUTHENTICATION,
           context: { ...context, status: error.status },
-          originalError: error
+          originalError: error,
         }
       );
     }
-    
+
     return ErrorFactory.create(
       ErrorType.NETWORK_ERROR,
       'NETWORK_ERROR',
@@ -226,11 +229,11 @@ export class EnhancedErrorHandler {
         severity: ErrorSeverity.MEDIUM,
         category: ErrorCategory.NETWORK,
         context,
-        originalError: error
+        originalError: error,
       }
     );
   }
-  
+
   /**
    * Classify validation errors
    */
@@ -245,11 +248,11 @@ export class EnhancedErrorHandler {
         severity: ErrorSeverity.LOW,
         category: ErrorCategory.VALIDATION,
         context,
-        originalError: error
+        originalError: error,
       }
     );
   }
-  
+
   /**
    * Classify authentication errors
    */
@@ -264,11 +267,11 @@ export class EnhancedErrorHandler {
         severity: ErrorSeverity.HIGH,
         category: ErrorCategory.AUTHENTICATION,
         context,
-        originalError: error
+        originalError: error,
       }
     );
   }
-  
+
   /**
    * Handle and log error with enhanced classification
    */
@@ -277,7 +280,7 @@ export class EnhancedErrorHandler {
     context?: Record<string, any>
   ): Promise<AppError> {
     let appError: AppError;
-    
+
     // If it's already an AppError, use it
     if (error && typeof error === 'object' && 'type' in error) {
       appError = error as AppError;
@@ -289,10 +292,16 @@ export class EnhancedErrorHandler {
       } else if (error.status || error.message?.includes('fetch')) {
         // Likely a network error
         appError = this.classifyNetworkError(error, context);
-      } else if (error.name === 'ValidationError' || error.message?.includes('validation')) {
+      } else if (
+        error.name === 'ValidationError' ||
+        error.message?.includes('validation')
+      ) {
         // Validation error
         appError = this.classifyValidationError(error, context);
-      } else if (error.message?.includes('auth') || error.message?.includes('login')) {
+      } else if (
+        error.message?.includes('auth') ||
+        error.message?.includes('login')
+      ) {
         // Authentication error
         appError = this.classifyAuthError(error, context);
       } else {
@@ -303,7 +312,7 @@ export class EnhancedErrorHandler {
         }
       }
     }
-    
+
     // Log the error using the existing enhanced logger
     try {
       await enhancedErrorLogger.logError(
@@ -317,17 +326,17 @@ export class EnhancedErrorHandler {
             ...appError.context,
             errorType: appError.type,
             errorCode: appError.code,
-            recoverable: appError.recoverable
-          }
+            recoverable: appError.recoverable,
+          },
         }
       );
     } catch (logError) {
       console.error('Failed to log error:', logError);
     }
-    
+
     return appError;
   }
-  
+
   /**
    * Wrap an async operation with error handling
    */

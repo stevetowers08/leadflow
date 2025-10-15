@@ -10,7 +10,10 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+);
 
 async function cleanupDatabase() {
   console.log('🧹 DATABASE CLEANUP - REMOVING UNUSED TABLES');
@@ -18,22 +21,22 @@ async function cleanupDatabase() {
 
   // Tables to KEEP (core tables)
   const keepTables = [
-    'people',      // 394 records - Main lead data
-    'companies',   // 172 records - Company profiles
-    'jobs',        // 172 records - Job postings
+    'people', // 394 records - Main lead data
+    'companies', // 172 records - Company profiles
+    'jobs', // 172 records - Job postings
     'interactions', // 96 records - Activity tracking
-    'user_profiles' // 1 record - User management
+    'user_profiles', // 1 record - User management
   ];
 
   // Tables to REMOVE (unused/empty tables)
   const removeTables = [
-    'conversations',    // 0 records - Empty
-    'email_threads',    // 0 records - Empty
-    'email_messages',   // 0 records - Empty
+    'conversations', // 0 records - Empty
+    'email_threads', // 0 records - Empty
+    'email_messages', // 0 records - Empty
     'dashboard_metrics', // 0 records - Empty
-    'campaigns',        // 0 records - Empty
+    'campaigns', // 0 records - Empty
     'campaign_participants', // 0 records - Empty
-    'system_settings'   // Empty system settings
+    'system_settings', // Empty system settings
   ];
 
   console.log('✅ TABLES TO KEEP:');
@@ -43,7 +46,7 @@ async function cleanupDatabase() {
       const { count, error } = await supabase
         .from(table)
         .select('*', { count: 'exact', head: true });
-      
+
       if (!error) {
         console.log(`✅ ${table}: ${count} records`);
       } else {
@@ -56,7 +59,7 @@ async function cleanupDatabase() {
 
   console.log('\n🗑️ TABLES TO REMOVE:');
   console.log('=====================');
-  
+
   const removedTables = [];
   const failedRemovals = [];
 
@@ -66,14 +69,16 @@ async function cleanupDatabase() {
       const { count, error } = await supabase
         .from(table)
         .select('*', { count: 'exact', head: true });
-      
+
       if (!error) {
         console.log(`🗑️ Removing ${table} (${count} records)...`);
-        
+
         // Drop the table
-        const { error: dropError } = await supabase
-          .rpc('drop_table_if_exists', { table_name: table });
-        
+        const { error: dropError } = await supabase.rpc(
+          'drop_table_if_exists',
+          { table_name: table }
+        );
+
         if (!dropError) {
           console.log(`✅ Successfully removed ${table}`);
           removedTables.push(table);
@@ -96,7 +101,7 @@ async function cleanupDatabase() {
   if (removedTables.length > 0) {
     removedTables.forEach(table => console.log(`   - ${table}`));
   }
-  
+
   console.log(`❌ Failed to remove: ${failedRemovals.length} tables`);
   if (failedRemovals.length > 0) {
     failedRemovals.forEach(table => console.log(`   - ${table}`));
@@ -110,7 +115,7 @@ async function cleanupDatabase() {
       const { count, error } = await supabase
         .from(table)
         .select('*', { count: 'exact', head: true });
-      
+
       if (!error) {
         console.log(`✅ ${table}: ${count} records`);
       }

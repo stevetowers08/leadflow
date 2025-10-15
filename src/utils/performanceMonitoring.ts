@@ -14,21 +14,21 @@ export interface PerformanceMetrics {
   cls?: number; // Cumulative Layout Shift
   fcp?: number; // First Contentful Paint
   ttfb?: number; // Time to First Byte
-  
+
   // Custom metrics
   bundleSize?: number;
   loadTime?: number;
   renderTime?: number;
   memoryUsage?: number;
-  
+
   // User experience metrics
   timeToInteractive?: number;
   firstMeaningfulPaint?: number;
-  
+
   // Network metrics
   networkLatency?: number;
   downloadSpeed?: number;
-  
+
   // Component metrics
   componentRenderTimes?: Record<string, number>;
   apiResponseTimes?: Record<string, number>;
@@ -119,12 +119,17 @@ class PerformanceMonitor {
 
     // Check if largest-contentful-paint is supported
     const supportedEntryTypes = PerformanceObserver.supportedEntryTypes;
-    if (!supportedEntryTypes || !supportedEntryTypes.includes('largest-contentful-paint')) {
-      logger.debug('Largest contentful paint observation not supported in this browser');
+    if (
+      !supportedEntryTypes ||
+      !supportedEntryTypes.includes('largest-contentful-paint')
+    ) {
+      logger.debug(
+        'Largest contentful paint observation not supported in this browser'
+      );
       return;
     }
 
-    const observer = new PerformanceObserver((list) => {
+    const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
       const lastEntry = entries[entries.length - 1];
       this.metrics.lcp = lastEntry.startTime;
@@ -146,11 +151,13 @@ class PerformanceMonitor {
     // Check if first-input is supported
     const supportedEntryTypes = PerformanceObserver.supportedEntryTypes;
     if (!supportedEntryTypes || !supportedEntryTypes.includes('first-input')) {
-      logger.debug('First input delay observation not supported in this browser');
+      logger.debug(
+        'First input delay observation not supported in this browser'
+      );
       return;
     }
 
-    const observer = new PerformanceObserver((list) => {
+    const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
       entries.forEach((entry: any) => {
         this.metrics.fid = entry.processingStart - entry.startTime;
@@ -178,7 +185,7 @@ class PerformanceMonitor {
     }
 
     let clsValue = 0;
-    const observer = new PerformanceObserver((list) => {
+    const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
       entries.forEach((entry: any) => {
         if (!entry.hadRecentInput) {
@@ -201,9 +208,9 @@ class PerformanceMonitor {
   private observeFCP(): void {
     if (!('PerformanceObserver' in window)) return;
 
-    const observer = new PerformanceObserver((list) => {
+    const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
-      entries.forEach((entry) => {
+      entries.forEach(entry => {
         if (entry.name === 'first-contentful-paint') {
           this.metrics.fcp = entry.startTime;
           logger.debug(`FCP: ${entry.startTime}ms`);
@@ -219,7 +226,7 @@ class PerformanceMonitor {
   private observeTTFB(): void {
     if (!('PerformanceObserver' in window)) return;
 
-    const observer = new PerformanceObserver((list) => {
+    const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
       entries.forEach((entry: any) => {
         if (entry.entryType === 'navigation') {
@@ -255,7 +262,9 @@ class PerformanceMonitor {
     if ('memory' in performance) {
       const memory = (performance as any).memory;
       this.metrics.memoryUsage = memory.usedJSHeapSize;
-      logger.debug(`Memory usage: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB`);
+      logger.debug(
+        `Memory usage: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB`
+      );
     }
   }
 
@@ -274,9 +283,9 @@ class PerformanceMonitor {
   // Measure Time to Interactive
   private measureTimeToInteractive(): void {
     let tti = 0;
-    const observer = new PerformanceObserver((list) => {
+    const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
-      entries.forEach((entry) => {
+      entries.forEach(entry => {
         if (entry.entryType === 'measure' && entry.name === 'tti') {
           tti = entry.startTime;
           this.metrics.timeToInteractive = tti;
@@ -309,10 +318,14 @@ class PerformanceMonitor {
     if (metrics.lcp) {
       if (metrics.lcp > 4000) {
         score -= 20;
-        recommendations.push('LCP is poor (>4s). Optimize images and reduce server response time.');
+        recommendations.push(
+          'LCP is poor (>4s). Optimize images and reduce server response time.'
+        );
       } else if (metrics.lcp > 2500) {
         score -= 10;
-        recommendations.push('LCP needs improvement (2.5-4s). Consider image optimization.');
+        recommendations.push(
+          'LCP needs improvement (2.5-4s). Consider image optimization.'
+        );
       }
     }
 
@@ -320,10 +333,14 @@ class PerformanceMonitor {
     if (metrics.fid) {
       if (metrics.fid > 300) {
         score -= 20;
-        recommendations.push('FID is poor (>300ms). Reduce JavaScript execution time.');
+        recommendations.push(
+          'FID is poor (>300ms). Reduce JavaScript execution time.'
+        );
       } else if (metrics.fid > 100) {
         score -= 10;
-        recommendations.push('FID needs improvement (100-300ms). Optimize JavaScript.');
+        recommendations.push(
+          'FID needs improvement (100-300ms). Optimize JavaScript.'
+        );
       }
     }
 
@@ -334,7 +351,9 @@ class PerformanceMonitor {
         recommendations.push('CLS is poor (>0.25). Fix layout shifts.');
       } else if (metrics.cls > 0.1) {
         score -= 10;
-        recommendations.push('CLS needs improvement (0.1-0.25). Reduce layout shifts.');
+        recommendations.push(
+          'CLS needs improvement (0.1-0.25). Reduce layout shifts.'
+        );
       }
     }
 
@@ -343,7 +362,9 @@ class PerformanceMonitor {
       const bundleSizeKB = metrics.bundleSize / 1024;
       if (bundleSizeKB > 1000) {
         score -= 15;
-        recommendations.push('Bundle size is large (>1MB). Consider code splitting.');
+        recommendations.push(
+          'Bundle size is large (>1MB). Consider code splitting.'
+        );
       } else if (bundleSizeKB > 500) {
         score -= 10;
         recommendations.push('Bundle size could be optimized (>500KB).');
@@ -355,14 +376,16 @@ class PerformanceMonitor {
       const memoryMB = metrics.memoryUsage / 1024 / 1024;
       if (memoryMB > 100) {
         score -= 10;
-        recommendations.push('High memory usage (>100MB). Check for memory leaks.');
+        recommendations.push(
+          'High memory usage (>100MB). Check for memory leaks.'
+        );
       }
     }
 
     return {
       score: Math.max(0, score),
       metrics,
-      recommendations
+      recommendations,
     };
   }
 
@@ -379,8 +402,8 @@ class PerformanceMonitor {
           timestamp: new Date().toISOString(),
           url: window.location.href,
           userAgent: navigator.userAgent,
-          ...report
-        })
+          ...report,
+        }),
       });
     } catch (error) {
       logger.error('Failed to send performance data:', error);
@@ -403,7 +426,7 @@ export function usePerformanceMonitor() {
     recordApiResponse: monitor.recordApiResponse.bind(monitor),
     getMetrics: monitor.getMetrics.bind(monitor),
     generateReport: monitor.generateReport.bind(monitor),
-    sendToAnalytics: monitor.sendToAnalytics.bind(monitor)
+    sendToAnalytics: monitor.sendToAnalytics.bind(monitor),
   };
 }
 
@@ -418,7 +441,10 @@ export function withPerformanceMonitoring<P extends object>(
 
     React.useEffect(() => {
       const renderTime = performance.now() - startTime.current;
-      recordComponentRender(componentName || Component.displayName || 'Unknown', renderTime);
+      recordComponentRender(
+        componentName || Component.displayName || 'Unknown',
+        renderTime
+      );
     });
 
     return React.createElement(Component, props);
@@ -426,7 +452,9 @@ export function withPerformanceMonitoring<P extends object>(
 }
 
 // Performance monitoring provider
-export const PerformanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const PerformanceProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const monitor = PerformanceMonitor.getInstance();
 
   React.useEffect(() => {

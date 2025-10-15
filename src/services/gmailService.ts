@@ -96,25 +96,35 @@ export class GmailService {
 
   private async getValidAccessToken(): Promise<string> {
     if (!this.accessToken) {
-      throw new Error('No Gmail access token available. Please authenticate with Gmail.');
+      throw new Error(
+        'No Gmail access token available. Please authenticate with Gmail.'
+      );
     }
     return this.accessToken;
   }
 
-  private async makeGmailRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
+  private async makeGmailRequest(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<any> {
     const token = await this.getValidAccessToken();
-    
-    const response = await fetch(`https://gmail.googleapis.com/gmail/v1/${endpoint}`, {
-      ...options,
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
+
+    const response = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/${endpoint}`,
+      {
+        ...options,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+      }
+    );
 
     if (!response.ok) {
-      throw new Error(`Gmail API error: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Gmail API error: ${response.status} ${response.statusText}`
+      );
     }
 
     return response.json();
@@ -122,15 +132,19 @@ export class GmailService {
 
   async authenticateWithGmail(): Promise<string> {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    
+
     if (!clientId) {
-      throw new Error('Google OAuth is not configured. Please set VITE_GOOGLE_CLIENT_ID environment variable.');
+      throw new Error(
+        'Google OAuth is not configured. Please set VITE_GOOGLE_CLIENT_ID environment variable.'
+      );
     }
-    
+
     const redirectUri = `${window.location.origin}/auth/gmail-callback`;
-    
-    const scope = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+
+    const scope =
+      'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
+    const authUrl =
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
       `client_id=${clientId}&` +
       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
       `scope=${encodeURIComponent(scope)}&` +
@@ -151,10 +165,10 @@ export class GmailService {
       });
 
       const { access_token, refresh_token } = await response.json();
-      
+
       this.accessToken = access_token;
       this.refreshToken = refresh_token;
-      
+
       localStorage.setItem('gmail_access_token', access_token);
       localStorage.setItem('gmail_refresh_token', refresh_token);
     } catch (error) {
@@ -165,14 +179,18 @@ export class GmailService {
 
   async syncInboxEmails(): Promise<EmailThread[]> {
     try {
-      const messages = await this.makeGmailRequest('users/me/messages?maxResults=50');
-      
+      const messages = await this.makeGmailRequest(
+        'users/me/messages?maxResults=50'
+      );
+
       const threads: EmailThread[] = [];
-      
+
       for (const messageRef of messages.messages || []) {
-        const message = await this.makeGmailRequest(`users/me/messages/${messageRef.id}`);
+        const message = await this.makeGmailRequest(
+          `users/me/messages/${messageRef.id}`
+        );
         const thread = await this.processGmailMessage(message);
-        
+
         if (thread) {
           threads.push(thread);
         }
@@ -187,13 +205,15 @@ export class GmailService {
     }
   }
 
-  private async processGmailMessage(gmailMessage: GmailMessage): Promise<EmailThread | null> {
+  private async processGmailMessage(
+    gmailMessage: GmailMessage
+  ): Promise<EmailThread | null> {
     try {
       const headers = gmailMessage.payload.headers;
       const fromHeader = headers.find(header => header.name === 'From');
       const toHeader = headers.find(header => header.name === 'To');
       const subjectHeader = headers.find(header => header.name === 'Subject');
-      
+
       if (!fromHeader || !toHeader) return null;
 
       const fromEmail = this.extractEmail(fromHeader.value);
@@ -216,7 +236,9 @@ export class GmailService {
         person_id: person.id,
         subject,
         participants: [fromEmail, ...toEmails],
-        last_message_at: new Date(parseInt(gmailMessage.internalDate)).toISOString(),
+        last_message_at: new Date(
+          parseInt(gmailMessage.internalDate)
+        ).toISOString(),
         is_read: !gmailMessage.labelIds.includes('UNREAD'),
         sync_status: 'synced' as const,
       };
@@ -229,12 +251,15 @@ export class GmailService {
   }
 
   private extractEmail(emailString: string): string {
-    const match = emailString.match(/<([^>]+)>/) || emailString.match(/([^\s]+@[^\s]+)/);
+    const match =
+      emailString.match(/<([^>]+)>/) || emailString.match(/([^\s]+@[^\s]+)/);
     return match ? match[1] : emailString;
   }
 
   private extractEmails(emailString: string): string[] {
-    const emails = emailString.split(',').map(email => this.extractEmail(email.trim()));
+    const emails = emailString
+      .split(',')
+      .map(email => this.extractEmail(email.trim()));
     return emails.filter(email => email.includes('@'));
   }
 
@@ -277,19 +302,25 @@ export class GmailService {
   async sendEmail(request: SendEmailRequest): Promise<void> {
     try {
       const token = await this.getValidAccessToken();
-      
+
       const emailMessage = this.createEmailMessage(request);
-      
-      const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          raw: btoa(emailMessage).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
-        }),
-      });
+
+      const response = await fetch(
+        'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            raw: btoa(emailMessage)
+              .replace(/\+/g, '-')
+              .replace(/\//g, '_')
+              .replace(/=+$/, ''),
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to send email: ${response.statusText}`);
@@ -298,7 +329,6 @@ export class GmailService {
       const result = await response.json();
       await this.storeSentEmail(request, result.id);
       await this.logSyncSuccess('send_email', 1);
-      
     } catch (error) {
       console.error('Failed to send email:', error);
       await this.logSyncError('send_email', error);
@@ -308,26 +338,26 @@ export class GmailService {
 
   private createEmailMessage(request: SendEmailRequest): string {
     const boundary = '----=_Part_' + Math.random().toString(36).substr(2, 9);
-    
+
     let message = `To: ${request.to.join(', ')}\r\n`;
     if (request.cc) message += `Cc: ${request.cc.join(', ')}\r\n`;
     if (request.bcc) message += `Bcc: ${request.bcc.join(', ')}\r\n`;
     message += `Subject: ${request.subject}\r\n`;
     message += `MIME-Version: 1.0\r\n`;
     message += `Content-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n`;
-    
+
     message += `--${boundary}\r\n`;
     message += `Content-Type: text/plain; charset=UTF-8\r\n\r\n`;
     message += `${request.body}\r\n\r\n`;
-    
+
     if (request.bodyHtml) {
       message += `--${boundary}\r\n`;
       message += `Content-Type: text/html; charset=UTF-8\r\n\r\n`;
       message += `${request.bodyHtml}\r\n\r\n`;
     }
-    
+
     message += `--${boundary}--\r\n`;
-    
+
     return message;
   }
 
@@ -342,9 +372,11 @@ export class GmailService {
     return data || [];
   }
 
-  async createEmailTemplate(template: Omit<EmailTemplate, 'id' | 'created_by'>): Promise<EmailTemplate> {
+  async createEmailTemplate(
+    template: Omit<EmailTemplate, 'id' | 'created_by'>
+  ): Promise<EmailTemplate> {
     const { data: user } = await supabase.auth.getUser();
-    
+
     const { data, error } = await supabase
       .from('email_templates')
       .insert({
@@ -389,16 +421,19 @@ export class GmailService {
       const { error } = await supabase
         .from('email_threads')
         .upsert(thread, { onConflict: 'gmail_thread_id' });
-      
+
       if (error) {
         console.error('Failed to store email thread:', error);
       }
     }
   }
 
-  private async storeSentEmail(request: SendEmailRequest, gmailMessageId: string): Promise<void> {
+  private async storeSentEmail(
+    request: SendEmailRequest,
+    gmailMessageId: string
+  ): Promise<void> {
     const { data: user } = await supabase.auth.getUser();
-    
+
     const messageData = {
       gmail_message_id: gmailMessageId,
       person_id: request.personId,
@@ -416,55 +451,55 @@ export class GmailService {
       sync_status: 'synced' as const,
     };
 
-    const { error } = await supabase
-      .from('email_messages')
-      .insert(messageData);
+    const { error } = await supabase.from('email_messages').insert(messageData);
 
     if (error) {
       console.error('Failed to store sent email:', error);
     }
   }
 
-  private async logSyncSuccess(operationType: string, messageCount: number): Promise<void> {
+  private async logSyncSuccess(
+    operationType: string,
+    messageCount: number
+  ): Promise<void> {
     const { data: user } = await supabase.auth.getUser();
-    
-    await supabase
-      .from('email_sync_logs')
-      .insert({
-        user_id: user.user?.id,
-        operation_type: operationType,
-        status: 'success',
-        message_count: messageCount,
-      });
+
+    await supabase.from('email_sync_logs').insert({
+      user_id: user.user?.id,
+      operation_type: operationType,
+      status: 'success',
+      message_count: messageCount,
+    });
   }
 
   private async logSyncError(operationType: string, error: any): Promise<void> {
     const { data: user } = await supabase.auth.getUser();
-    
-    await supabase
-      .from('email_sync_logs')
-      .insert({
-        user_id: user.user?.id,
-        operation_type: operationType,
-        status: 'error',
-        error_message: error.message || 'Unknown error',
-      });
+
+    await supabase.from('email_sync_logs').insert({
+      user_id: user.user?.id,
+      operation_type: operationType,
+      status: 'error',
+      error_message: error.message || 'Unknown error',
+    });
   }
 
   async markAsRead(threadId: string): Promise<void> {
     try {
       const token = await this.getValidAccessToken();
-      
-      await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}/modify`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          removeLabelIds: ['UNREAD'],
-        }),
-      });
+
+      await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}/modify`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            removeLabelIds: ['UNREAD'],
+          }),
+        }
+      );
 
       await supabase
         .from('email_threads')
@@ -481,14 +516,3 @@ export class GmailService {
 }
 
 export const gmailService = new GmailService();
-
-
-
-
-
-
-
-
-
-
-

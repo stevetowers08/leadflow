@@ -5,7 +5,13 @@
 
 import { useCallback } from 'react';
 
-export type HapticFeedbackType = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
+export type HapticFeedbackType =
+  | 'light'
+  | 'medium'
+  | 'heavy'
+  | 'success'
+  | 'warning'
+  | 'error';
 
 interface HapticFeedbackOptions {
   type?: HapticFeedbackType;
@@ -29,11 +35,11 @@ export const useHapticFeedback = () => {
       heavy: 30,
       success: [10, 50, 10],
       warning: [20, 50, 20],
-      error: [30, 100, 30]
+      error: [30, 100, 30],
     };
 
     const pattern = patterns[type];
-    
+
     try {
       navigator.vibrate(pattern);
     } catch (error) {
@@ -42,12 +48,30 @@ export const useHapticFeedback = () => {
     }
   }, []);
 
-  const lightHaptic = useCallback(() => triggerHaptic({ type: 'light' }), [triggerHaptic]);
-  const mediumHaptic = useCallback(() => triggerHaptic({ type: 'medium' }), [triggerHaptic]);
-  const heavyHaptic = useCallback(() => triggerHaptic({ type: 'heavy' }), [triggerHaptic]);
-  const successHaptic = useCallback(() => triggerHaptic({ type: 'success' }), [triggerHaptic]);
-  const warningHaptic = useCallback(() => triggerHaptic({ type: 'warning' }), [triggerHaptic]);
-  const errorHaptic = useCallback(() => triggerHaptic({ type: 'error' }), [triggerHaptic]);
+  const lightHaptic = useCallback(
+    () => triggerHaptic({ type: 'light' }),
+    [triggerHaptic]
+  );
+  const mediumHaptic = useCallback(
+    () => triggerHaptic({ type: 'medium' }),
+    [triggerHaptic]
+  );
+  const heavyHaptic = useCallback(
+    () => triggerHaptic({ type: 'heavy' }),
+    [triggerHaptic]
+  );
+  const successHaptic = useCallback(
+    () => triggerHaptic({ type: 'success' }),
+    [triggerHaptic]
+  );
+  const warningHaptic = useCallback(
+    () => triggerHaptic({ type: 'warning' }),
+    [triggerHaptic]
+  );
+  const errorHaptic = useCallback(
+    () => triggerHaptic({ type: 'error' }),
+    [triggerHaptic]
+  );
 
   return {
     triggerHaptic,
@@ -56,6 +80,6 @@ export const useHapticFeedback = () => {
     heavyHaptic,
     successHaptic,
     warningHaptic,
-    errorHaptic
+    errorHaptic,
   };
 };

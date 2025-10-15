@@ -1,13 +1,13 @@
 import { Card, CardContent } from '@/components/ui/card';
 import {
-    Bot,
-    Calendar,
-    Clock,
-    Mail,
-    MessageSquare,
-    TrendingUp,
-    UserPlus,
-    Users
+  Bot,
+  Calendar,
+  Clock,
+  Mail,
+  MessageSquare,
+  TrendingUp,
+  UserPlus,
+  Users,
 } from 'lucide-react';
 import React from 'react';
 
@@ -21,18 +21,28 @@ interface AutomationMetricsCardsProps {
   period: '7d' | '30d' | '90d';
 }
 
-const AutomationMetricsCards: React.FC<AutomationMetricsCardsProps> = ({ data, period }) => {
+const AutomationMetricsCards: React.FC<AutomationMetricsCardsProps> = ({
+  data,
+  period,
+}) => {
   // Calculate metrics based on actual database actions
   // These would be passed from the parent component with real data
   const messagesSent = Math.round(data.totalInteractions * 0.4); // Messages sent from interactions
   const connectionsAccepted = Math.round(data.totalInteractions * 0.3); // Connections accepted
   const repliesReceived = Math.round(data.totalInteractions * 0.15); // Replies received
   const positiveReplies = Math.round(repliesReceived * 0.6); // Positive replies (60% of replies)
-  
+
   // Calculate rates
-  const connectionRate = messagesSent > 0 ? Math.round((connectionsAccepted / messagesSent) * 100) : 0;
-  const responseRate = messagesSent > 0 ? Math.round((repliesReceived / messagesSent) * 100) : 0;
-  const positiveReplyRate = repliesReceived > 0 ? Math.round((positiveReplies / repliesReceived) * 100) : 0;
+  const connectionRate =
+    messagesSent > 0
+      ? Math.round((connectionsAccepted / messagesSent) * 100)
+      : 0;
+  const responseRate =
+    messagesSent > 0 ? Math.round((repliesReceived / messagesSent) * 100) : 0;
+  const positiveReplyRate =
+    repliesReceived > 0
+      ? Math.round((positiveReplies / repliesReceived) * 100)
+      : 0;
 
   const metrics = [
     {
@@ -46,7 +56,7 @@ const AutomationMetricsCards: React.FC<AutomationMetricsCardsProps> = ({ data, p
       iconColor: 'text-blue-700',
       iconBg: 'bg-blue-200',
       valueColor: 'text-blue-900',
-      subtitleColor: 'text-blue-700'
+      subtitleColor: 'text-blue-700',
     },
     {
       title: 'Connected',
@@ -59,7 +69,7 @@ const AutomationMetricsCards: React.FC<AutomationMetricsCardsProps> = ({ data, p
       iconColor: 'text-green-700',
       iconBg: 'bg-green-200',
       valueColor: 'text-green-900',
-      subtitleColor: 'text-green-700'
+      subtitleColor: 'text-green-700',
     },
     {
       title: 'Replied',
@@ -72,7 +82,7 @@ const AutomationMetricsCards: React.FC<AutomationMetricsCardsProps> = ({ data, p
       iconColor: 'text-orange-700',
       iconBg: 'bg-orange-200',
       valueColor: 'text-orange-900',
-      subtitleColor: 'text-orange-700'
+      subtitleColor: 'text-orange-700',
     },
     {
       title: 'Positive Reply',
@@ -85,19 +95,22 @@ const AutomationMetricsCards: React.FC<AutomationMetricsCardsProps> = ({ data, p
       iconColor: 'text-emerald-700',
       iconBg: 'bg-emerald-200',
       valueColor: 'text-emerald-900',
-      subtitleColor: 'text-emerald-700'
-    }
+      subtitleColor: 'text-emerald-700',
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
       {metrics.map((metric, index) => {
         const IconComponent = metric.icon;
         return (
-          <Card key={index} className={`bg-gradient-to-br ${metric.bgColor} ${metric.borderColor} border-2 hover:shadow-lg transition-all duration-200`}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
+          <Card
+            key={index}
+            className={`bg-gradient-to-br ${metric.bgColor} ${metric.borderColor} border-2 hover:shadow-lg transition-all duration-200`}
+          >
+            <CardContent className='p-6'>
+              <div className='flex items-center justify-between'>
+                <div className='flex-1'>
                   <p className={`text-sm font-medium ${metric.iconColor} mb-1`}>
                     {metric.title}
                   </p>

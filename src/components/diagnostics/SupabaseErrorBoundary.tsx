@@ -20,19 +20,19 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: null,
       errorInfo: null,
-      errorId: ''
+      errorId: '',
     };
   }
 
   static getDerivedStateFromError(error: Error): State {
     // Generate unique error ID for tracking
     const errorId = `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return {
       hasError: true,
       error,
       errorInfo: null,
-      errorId
+      errorId,
     };
   }
 
@@ -45,7 +45,7 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
 
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
 
     // Call custom error handler if provided
@@ -57,7 +57,7 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: null,
       errorInfo: null,
-      errorId: ''
+      errorId: '',
     });
   };
 
@@ -73,32 +73,41 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
       'connection',
       'environment',
       'VITE_SUPABASE',
-      'fetch'
+      'fetch',
     ];
 
     const errorMessage = error.message.toLowerCase();
     const errorStack = error.stack?.toLowerCase() || '';
 
-    return supabaseErrorPatterns.some(pattern => 
-      errorMessage.includes(pattern) || errorStack.includes(pattern)
+    return supabaseErrorPatterns.some(
+      pattern => errorMessage.includes(pattern) || errorStack.includes(pattern)
     );
   };
 
   getErrorType = (error: Error): string => {
     if (this.isSupabaseError(error)) {
-      if (error.message.includes('environment') || error.message.includes('VITE_SUPABASE')) {
+      if (
+        error.message.includes('environment') ||
+        error.message.includes('VITE_SUPABASE')
+      ) {
         return 'Environment Configuration Error';
       }
       if (error.message.includes('auth') || error.message.includes('session')) {
         return 'Authentication Error';
       }
-      if (error.message.includes('database') || error.message.includes('connection')) {
+      if (
+        error.message.includes('database') ||
+        error.message.includes('connection')
+      ) {
         return 'Database Connection Error';
       }
       return 'Supabase Service Error';
     }
 
-    if (error.message.includes('ChunkLoadError') || error.message.includes('Loading chunk')) {
+    if (
+      error.message.includes('ChunkLoadError') ||
+      error.message.includes('Loading chunk')
+    ) {
       return 'Code Loading Error';
     }
 
@@ -113,7 +122,10 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
     const suggestions: string[] = [];
 
     if (this.isSupabaseError(error)) {
-      if (error.message.includes('environment') || error.message.includes('VITE_SUPABASE')) {
+      if (
+        error.message.includes('environment') ||
+        error.message.includes('VITE_SUPABASE')
+      ) {
         suggestions.push('Check your .env file configuration');
         suggestions.push('Verify Supabase URL and API keys are correct');
         suggestions.push('Ensure environment variables start with VITE_');
@@ -152,31 +164,37 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
       const isSupabaseError = this.isSupabaseError(this.state.error);
 
       return (
-        <div style={{
-          minHeight: '100vh',
-          backgroundColor: '#f9fafb',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-          fontFamily: 'Arial, sans-serif'
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            padding: '24px',
-            maxWidth: '600px',
-            width: '100%'
-          }}>
+        <div
+          style={{
+            minHeight: '100vh',
+            backgroundColor: '#f9fafb',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            fontFamily: 'Arial, sans-serif',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              padding: '24px',
+              maxWidth: '600px',
+              width: '100%',
+            }}
+          >
             {/* Error Header */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '16px',
-              color: '#dc2626'
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '16px',
+                color: '#dc2626',
+              }}
+            >
               <span style={{ fontSize: '20px' }}>⚠️</span>
               <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
                 {errorType}
@@ -184,27 +202,44 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
             </div>
 
             {/* Error Message */}
-            <div style={{
-              backgroundColor: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: '6px',
-              padding: '16px',
-              marginBottom: '16px'
-            }}>
-              <h3 style={{ margin: '0 0 8px 0', color: '#991b1b', fontSize: '14px', fontWeight: 'bold' }}>
+            <div
+              style={{
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '6px',
+                padding: '16px',
+                marginBottom: '16px',
+              }}
+            >
+              <h3
+                style={{
+                  margin: '0 0 8px 0',
+                  color: '#991b1b',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                }}
+              >
                 Error Details:
               </h3>
-              <p style={{
-                color: '#7f1d1d',
-                fontSize: '12px',
-                fontFamily: 'monospace',
-                margin: 0,
-                wordBreak: 'break-word'
-              }}>
+              <p
+                style={{
+                  color: '#7f1d1d',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  margin: 0,
+                  wordBreak: 'break-word',
+                }}
+              >
                 {this.state.error.message}
               </p>
               {this.state.errorId && (
-                <p style={{ color: '#dc2626', fontSize: '10px', margin: '8px 0 0 0' }}>
+                <p
+                  style={{
+                    color: '#dc2626',
+                    fontSize: '10px',
+                    margin: '8px 0 0 0',
+                  }}
+                >
                   Error ID: {this.state.errorId}
                 </p>
               )}
@@ -212,40 +247,106 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
 
             {/* Supabase-specific help */}
             {isSupabaseError && (
-              <div style={{
-                backgroundColor: '#eff6ff',
-                border: '1px solid #bfdbfe',
-                borderRadius: '6px',
-                padding: '16px',
-                marginBottom: '16px'
-              }}>
-                <h3 style={{ margin: '0 0 8px 0', color: '#1e40af', fontSize: '14px', fontWeight: 'bold' }}>
+              <div
+                style={{
+                  backgroundColor: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '6px',
+                  padding: '16px',
+                  marginBottom: '16px',
+                }}
+              >
+                <h3
+                  style={{
+                    margin: '0 0 8px 0',
+                    color: '#1e40af',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                  }}
+                >
                   🔧 Supabase Setup Help:
                 </h3>
                 <div style={{ color: '#1e3a8a', fontSize: '12px' }}>
-                  <p style={{ margin: '0 0 8px 0' }}>This appears to be a Supabase configuration issue. Here's how to fix it:</p>
+                  <p style={{ margin: '0 0 8px 0' }}>
+                    This appears to be a Supabase configuration issue. Here's
+                    how to fix it:
+                  </p>
                   <ol style={{ margin: 0, paddingLeft: '16px' }}>
-                    <li>Create a <code style={{ backgroundColor: '#dbeafe', padding: '2px 4px', borderRadius: '2px' }}>.env</code> file in your project root</li>
-                    <li>Copy the template from <code style={{ backgroundColor: '#dbeafe', padding: '2px 4px', borderRadius: '2px' }}>env.example</code></li>
-                    <li>Replace placeholder values with your actual Supabase credentials</li>
-                    <li>Get credentials from: <a href="https://supabase.com/dashboard" target="_blank" style={{ color: '#1e40af', textDecoration: 'underline' }}>Supabase Dashboard</a></li>
+                    <li>
+                      Create a{' '}
+                      <code
+                        style={{
+                          backgroundColor: '#dbeafe',
+                          padding: '2px 4px',
+                          borderRadius: '2px',
+                        }}
+                      >
+                        .env
+                      </code>{' '}
+                      file in your project root
+                    </li>
+                    <li>
+                      Copy the template from{' '}
+                      <code
+                        style={{
+                          backgroundColor: '#dbeafe',
+                          padding: '2px 4px',
+                          borderRadius: '2px',
+                        }}
+                      >
+                        env.example
+                      </code>
+                    </li>
+                    <li>
+                      Replace placeholder values with your actual Supabase
+                      credentials
+                    </li>
+                    <li>
+                      Get credentials from:{' '}
+                      <a
+                        href='https://supabase.com/dashboard'
+                        target='_blank'
+                        style={{
+                          color: '#1e40af',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        Supabase Dashboard
+                      </a>
+                    </li>
                   </ol>
                 </div>
               </div>
             )}
 
             {/* Suggestions */}
-            <div style={{
-              backgroundColor: '#fffbeb',
-              border: '1px solid #fed7aa',
-              borderRadius: '6px',
-              padding: '16px',
-              marginBottom: '16px'
-            }}>
-              <h3 style={{ margin: '0 0 8px 0', color: '#92400e', fontSize: '14px', fontWeight: 'bold' }}>
+            <div
+              style={{
+                backgroundColor: '#fffbeb',
+                border: '1px solid #fed7aa',
+                borderRadius: '6px',
+                padding: '16px',
+                marginBottom: '16px',
+              }}
+            >
+              <h3
+                style={{
+                  margin: '0 0 8px 0',
+                  color: '#92400e',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                }}
+              >
                 💡 Suggested Solutions:
               </h3>
-              <ul style={{ margin: 0, paddingLeft: '16px', color: '#92400e', fontSize: '12px' }}>
+              <ul
+                style={{
+                  margin: 0,
+                  paddingLeft: '16px',
+                  color: '#92400e',
+                  fontSize: '12px',
+                }}
+              >
                 {suggestions.map((suggestion, index) => (
                   <li key={index} style={{ marginBottom: '4px' }}>
                     {suggestion}
@@ -266,7 +367,7 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
                   padding: '8px 16px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
                 }}
               >
                 🔄 Try Again
@@ -281,7 +382,7 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
                   padding: '8px 16px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
                 }}
               >
                 🔄 Reload Page

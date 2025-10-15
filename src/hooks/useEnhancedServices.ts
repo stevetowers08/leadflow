@@ -1,5 +1,14 @@
-import { useAsyncOperation, useAsyncData, useAsyncMutation } from '@/hooks/useAsyncOperation';
-import { useRetryLogic, useNetworkRetry, useApiRetry, useDatabaseRetry } from '@/hooks/useRetryLogic';
+import {
+  useAsyncOperation,
+  useAsyncData,
+  useAsyncMutation,
+} from '@/hooks/useAsyncOperation';
+import {
+  useRetryLogic,
+  useNetworkRetry,
+  useApiRetry,
+  useDatabaseRetry,
+} from '@/hooks/useRetryLogic';
 import { useUserFeedback, useActionFeedback } from '@/hooks/useUserFeedback';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,17 +37,23 @@ export function useSupabaseService<T = any>(
       maxRetries: 3,
       baseDelay: 1000,
       maxDelay: 10000,
-      backoffMultiplier: 2
+      backoffMultiplier: 2,
     },
     enableFeedback = true,
-    enableErrorHandling = true
+    enableErrorHandling = true,
   } = options;
 
   const retryLogic = enableRetry ? useDatabaseRetry(retryConfig) : null;
-  const { handleSave, handleDelete, handleUpdate, handleCreate } = enableFeedback ? useActionFeedback() : {};
-  const { logError } = enableErrorHandling ? useErrorHandler() : { logError: () => {} };
+  const { handleSave, handleDelete, handleUpdate, handleCreate } =
+    enableFeedback ? useActionFeedback() : {};
+  const { logError } = enableErrorHandling
+    ? useErrorHandler()
+    : { logError: () => {} };
 
-  const executeWithRetry = async <R>(operation: () => Promise<R>, operationName: string): Promise<R> => {
+  const executeWithRetry = async <R>(
+    operation: () => Promise<R>,
+    operationName: string
+  ): Promise<R> => {
     if (retryLogic) {
       return retryLogic.executeWithRetry(operation, operationName);
     }
@@ -52,7 +67,7 @@ export function useSupabaseService<T = any>(
         const { data, error } = await supabase
           .from(tableName)
           .select(query || '*');
-        
+
         if (error) throw error;
         return data;
       }, `fetch-${tableName}`);
@@ -61,7 +76,8 @@ export function useSupabaseService<T = any>(
       enableRetry,
       showSuccessToast: false,
       showErrorToast: enableFeedback,
-      onError: (error) => logError(error, { table: tableName, operation: 'fetch' })
+      onError: error =>
+        logError(error, { table: tableName, operation: 'fetch' }),
     }
   );
 
@@ -73,13 +89,13 @@ export function useSupabaseService<T = any>(
         if (tableName === 'companies') {
           return await insertCompanyWithOwner(record);
         }
-        
+
         const { data, error } = await supabase
           .from(tableName)
           .insert(record)
           .select()
           .single();
-        
+
         if (error) throw error;
         return data;
       }, `create-${tableName}`);
@@ -90,11 +106,11 @@ export function useSupabaseService<T = any>(
       showErrorToast: enableFeedback,
       successMessage: 'Record created successfully',
       errorMessage: 'Failed to create record',
-      onSuccess: (data) => handleCreate?.(true, `Record created successfully`),
-      onError: (error) => {
+      onSuccess: data => handleCreate?.(true, `Record created successfully`),
+      onError: error => {
         logError(error, { table: tableName, operation: 'create' });
         handleCreate?.(false, error.message);
-      }
+      },
     }
   );
 
@@ -108,7 +124,7 @@ export function useSupabaseService<T = any>(
           .eq('id', id)
           .select()
           .single();
-        
+
         if (error) throw error;
         return data;
       }, `update-${tableName}`);
@@ -119,11 +135,11 @@ export function useSupabaseService<T = any>(
       showErrorToast: enableFeedback,
       successMessage: 'Record updated successfully',
       errorMessage: 'Failed to update record',
-      onSuccess: (data) => handleUpdate?.(true, `Record updated successfully`),
-      onError: (error) => {
+      onSuccess: data => handleUpdate?.(true, `Record updated successfully`),
+      onError: error => {
         logError(error, { table: tableName, operation: 'update' });
         handleUpdate?.(false, error.message);
-      }
+      },
     }
   );
 
@@ -131,11 +147,8 @@ export function useSupabaseService<T = any>(
   const deleteRecord = useAsyncMutation(
     async (id: string) => {
       return executeWithRetry(async () => {
-        const { error } = await supabase
-          .from(tableName)
-          .delete()
-          .eq('id', id);
-        
+        const { error } = await supabase.from(tableName).delete().eq('id', id);
+
         if (error) throw error;
         return { id };
       }, `delete-${tableName}`);
@@ -146,11 +159,11 @@ export function useSupabaseService<T = any>(
       showErrorToast: enableFeedback,
       successMessage: 'Record deleted successfully',
       errorMessage: 'Failed to delete record',
-      onSuccess: (data) => handleDelete?.(true, `Record deleted successfully`),
-      onError: (error) => {
+      onSuccess: data => handleDelete?.(true, `Record deleted successfully`),
+      onError: error => {
         logError(error, { table: tableName, operation: 'delete' });
         handleDelete?.(false, error.message);
-      }
+      },
     }
   );
 
@@ -167,12 +180,12 @@ export function useSupabaseService<T = any>(
           }
           return results;
         }
-        
+
         const { data, error } = await supabase
           .from(tableName)
           .insert(records)
           .select();
-        
+
         if (error) throw error;
         return data;
       }, `batch-create-${tableName}`);
@@ -183,7 +196,8 @@ export function useSupabaseService<T = any>(
       showErrorToast: enableFeedback,
       successMessage: `${records.length} records created successfully`,
       errorMessage: 'Failed to create records',
-      onError: (error) => logError(error, { table: tableName, operation: 'batch-create' })
+      onError: error =>
+        logError(error, { table: tableName, operation: 'batch-create' }),
     }
   );
 
@@ -198,7 +212,7 @@ export function useSupabaseService<T = any>(
             .eq('id', id)
             .select()
             .single();
-          
+
           if (error) throw error;
           results.push(data);
         }
@@ -211,7 +225,8 @@ export function useSupabaseService<T = any>(
       showErrorToast: enableFeedback,
       successMessage: `${updates.length} records updated successfully`,
       errorMessage: 'Failed to update records',
-      onError: (error) => logError(error, { table: tableName, operation: 'batch-update' })
+      onError: error =>
+        logError(error, { table: tableName, operation: 'batch-update' }),
     }
   );
 
@@ -223,12 +238,12 @@ export function useSupabaseService<T = any>(
     deleteRecord,
     batchCreate,
     batchUpdate,
-    
+
     // Retry state
     retryState: retryLogic?.retryState,
     isRetrying: retryLogic?.isRetrying || false,
     retryCount: retryLogic?.retryCount || 0,
-    
+
     // Utility functions
     refetch: fetchData.refetch,
     reset: () => {
@@ -238,7 +253,7 @@ export function useSupabaseService<T = any>(
       deleteRecord.reset();
       batchCreate.reset();
       batchUpdate.reset();
-    }
+    },
   };
 }
 
@@ -263,17 +278,22 @@ export function useNetworkService(options: ServiceOptions = {}) {
       maxRetries: 3,
       baseDelay: 1000,
       maxDelay: 10000,
-      backoffMultiplier: 2
+      backoffMultiplier: 2,
     },
     enableFeedback = true,
-    enableErrorHandling = true
+    enableErrorHandling = true,
   } = options;
 
   const retryLogic = enableRetry ? useNetworkRetry(retryConfig) : null;
   const { showSuccess, showError } = enableFeedback ? useUserFeedback() : {};
-  const { logError } = enableErrorHandling ? useErrorHandler() : { logError: () => {} };
+  const { logError } = enableErrorHandling
+    ? useErrorHandler()
+    : { logError: () => {} };
 
-  const executeWithRetry = async <R>(operation: () => Promise<R>, operationName: string): Promise<R> => {
+  const executeWithRetry = async <R>(
+    operation: () => Promise<R>,
+    operationName: string
+  ): Promise<R> => {
     if (retryLogic) {
       return retryLogic.executeWithRetry(operation, operationName);
     }
@@ -287,8 +307,8 @@ export function useNetworkService(options: ServiceOptions = {}) {
           ...options,
           headers: {
             'Content-Type': 'application/json',
-            ...options?.headers
-          }
+            ...options?.headers,
+          },
         });
 
         if (!response.ok) {
@@ -302,7 +322,7 @@ export function useNetworkService(options: ServiceOptions = {}) {
       enableRetry,
       showSuccessToast: false,
       showErrorToast: enableFeedback,
-      onError: (error) => logError(error, { operation: 'network-request' })
+      onError: error => logError(error, { operation: 'network-request' }),
     }
   );
 
@@ -310,7 +330,7 @@ export function useNetworkService(options: ServiceOptions = {}) {
     makeRequest,
     retryState: retryLogic?.retryState,
     isRetrying: retryLogic?.isRetrying || false,
-    retryCount: retryLogic?.retryCount || 0
+    retryCount: retryLogic?.retryCount || 0,
   };
 }
 
@@ -322,17 +342,22 @@ export function useAIService(options: ServiceOptions = {}) {
       maxRetries: 2, // Fewer retries for AI calls
       baseDelay: 2000,
       maxDelay: 15000,
-      backoffMultiplier: 2
+      backoffMultiplier: 2,
     },
     enableFeedback = true,
-    enableErrorHandling = true
+    enableErrorHandling = true,
   } = options;
 
   const retryLogic = enableRetry ? useApiRetry(retryConfig) : null;
   const { showSuccess, showError } = enableFeedback ? useUserFeedback() : {};
-  const { logError } = enableErrorHandling ? useErrorHandler() : { logError: () => {} };
+  const { logError } = enableErrorHandling
+    ? useErrorHandler()
+    : { logError: () => {} };
 
-  const executeWithRetry = async <R>(operation: () => Promise<R>, operationName: string): Promise<R> => {
+  const executeWithRetry = async <R>(
+    operation: () => Promise<R>,
+    operationName: string
+  ): Promise<R> => {
     if (retryLogic) {
       return retryLogic.executeWithRetry(operation, operationName);
     }
@@ -340,12 +365,18 @@ export function useAIService(options: ServiceOptions = {}) {
   };
 
   const generateContent = useAsyncOperation(
-    async ({ prompt, model = 'gpt-3.5-turbo' }: { prompt: string; model?: string }) => {
+    async ({
+      prompt,
+      model = 'gpt-3.5-turbo',
+    }: {
+      prompt: string;
+      model?: string;
+    }) => {
       return executeWithRetry(async () => {
         const response = await fetch('/api/ai/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, model })
+          body: JSON.stringify({ prompt, model }),
         });
 
         if (!response.ok) {
@@ -359,7 +390,7 @@ export function useAIService(options: ServiceOptions = {}) {
       enableRetry,
       showSuccessToast: false,
       showErrorToast: enableFeedback,
-      onError: (error) => logError(error, { operation: 'ai-generate' })
+      onError: error => logError(error, { operation: 'ai-generate' }),
     }
   );
 
@@ -369,7 +400,7 @@ export function useAIService(options: ServiceOptions = {}) {
         const response = await fetch('/api/ai/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ data, analysisType })
+          body: JSON.stringify({ data, analysisType }),
         });
 
         if (!response.ok) {
@@ -383,7 +414,7 @@ export function useAIService(options: ServiceOptions = {}) {
       enableRetry,
       showSuccessToast: false,
       showErrorToast: enableFeedback,
-      onError: (error) => logError(error, { operation: 'ai-analyze' })
+      onError: error => logError(error, { operation: 'ai-analyze' }),
     }
   );
 
@@ -392,6 +423,6 @@ export function useAIService(options: ServiceOptions = {}) {
     analyzeData,
     retryState: retryLogic?.retryState,
     isRetrying: retryLogic?.isRetrying || false,
-    retryCount: retryLogic?.retryCount || 0
+    retryCount: retryLogic?.retryCount || 0,
   };
 }

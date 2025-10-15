@@ -4,13 +4,16 @@ test.describe('Empowr CRM - User Journey Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Mock authenticated state
     await page.addInitScript(() => {
-      window.localStorage.setItem('sb-jedfundfhzytpnbjkspn-auth-token', JSON.stringify({
-        access_token: 'mock-token',
-        user: {
-          id: 'test-user-id',
-          email: 'test@example.com',
-        },
-      }));
+      window.localStorage.setItem(
+        'sb-jedfundfhzytpnbjkspn-auth-token',
+        JSON.stringify({
+          access_token: 'mock-token',
+          user: {
+            id: 'test-user-id',
+            email: 'test@example.com',
+          },
+        })
+      );
     });
 
     // Mock API responses for complete user journey
@@ -189,9 +192,11 @@ test.describe('Empowr CRM - User Journey Tests', () => {
     ];
 
     for (const pageInfo of pages) {
-      await page.getByRole('link', { name: new RegExp(pageInfo.name, 'i') }).click();
+      await page
+        .getByRole('link', { name: new RegExp(pageInfo.name, 'i') })
+        .click();
       await expect(page).toHaveURL(new RegExp(pageInfo.url.replace('/', '.*')));
-      
+
       // Wait for page to load
       await page.waitForLoadState('networkidle');
     }
@@ -220,7 +225,7 @@ test.describe('Empowr CRM - User Journey Tests', () => {
     const stageFilter = page.getByRole('button', { name: /filter/i });
     if (await stageFilter.isVisible()) {
       await stageFilter.click();
-      
+
       // Look for stage options
       const newStageOption = page.getByText(/new/i);
       if (await newStageOption.isVisible()) {
@@ -233,17 +238,19 @@ test.describe('Empowr CRM - User Journey Tests', () => {
   test('responsive navigation on mobile', async ({ page }) => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
-    
+
     await page.goto('/');
 
     // Check if mobile menu exists
     const mobileMenuButton = page.getByRole('button', { name: /menu/i });
     if (await mobileMenuButton.isVisible()) {
       await mobileMenuButton.click();
-      
+
       // Check if navigation items are visible
       await expect(page.getByRole('link', { name: /Leads/i })).toBeVisible();
-      await expect(page.getByRole('link', { name: /Companies/i })).toBeVisible();
+      await expect(
+        page.getByRole('link', { name: /Companies/i })
+      ).toBeVisible();
     }
   });
 
@@ -253,7 +260,7 @@ test.describe('Empowr CRM - User Journey Tests', () => {
     // Test keyboard navigation
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
-    
+
     // Check if focus is visible
     const focusedElement = page.locator(':focus');
     await expect(focusedElement).toBeVisible();
@@ -261,12 +268,12 @@ test.describe('Empowr CRM - User Journey Tests', () => {
     // Test ARIA labels
     const buttons = page.getByRole('button');
     const buttonCount = await buttons.count();
-    
+
     for (let i = 0; i < buttonCount; i++) {
       const button = buttons.nth(i);
       const ariaLabel = await button.getAttribute('aria-label');
       const textContent = await button.textContent();
-      
+
       // Should have either aria-label or text content
       expect(ariaLabel || textContent).toBeTruthy();
     }
@@ -314,8 +321,3 @@ test.describe('Empowr CRM - User Journey Tests', () => {
     await expect(page.getByText('John Doe')).toBeVisible();
   });
 });
-
-
-
-
-

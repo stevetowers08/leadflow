@@ -38,7 +38,7 @@ export const useEmailSync = () => {
 
   const syncEmails = async () => {
     setStatus(prev => ({ ...prev, isSyncing: true, error: null }));
-    
+
     try {
       await gmailService.syncInboxEmails();
       setStatus(prev => ({
@@ -74,11 +74,3 @@ export const useEmailSync = () => {
     checkConnectionStatus,
   };
 };
-
-
-
-
-
-
-
-

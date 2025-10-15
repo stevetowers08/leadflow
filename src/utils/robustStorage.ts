@@ -23,7 +23,7 @@ class RobustStorage {
     totalOperations: 0,
     successfulOperations: 0,
     failedOperations: 0,
-    fallbackOperations: 0
+    fallbackOperations: 0,
   };
 
   constructor(
@@ -35,7 +35,7 @@ class RobustStorage {
       fallbackToSession: true,
       maxRetries: 3,
       retryDelay: 100,
-      ...options
+      ...options,
     };
   }
 
@@ -50,9 +50,12 @@ class RobustStorage {
       this.stats.successfulOperations++;
       return value;
     } catch (error) {
-      console.warn(`Failed to read from ${this.storage.constructor.name}:`, error);
+      console.warn(
+        `Failed to read from ${this.storage.constructor.name}:`,
+        error
+      );
       this.stats.failedOperations++;
-      
+
       // Try memory fallback
       if (this.options.fallbackToMemory && this.memoryFallback.has(key)) {
         this.stats.fallbackOperations++;
@@ -74,16 +77,19 @@ class RobustStorage {
       try {
         this.storage.setItem(key, value);
         this.stats.successfulOperations++;
-        
+
         // Also store in memory fallback for reliability
         if (this.options.fallbackToMemory) {
           this.memoryFallback.set(key, value);
         }
-        
+
         return true;
       } catch (error) {
-        console.warn(`Attempt ${attempt + 1} failed to write to ${this.storage.constructor.name}:`, error);
-        
+        console.warn(
+          `Attempt ${attempt + 1} failed to write to ${this.storage.constructor.name}:`,
+          error
+        );
+
         // Wait before retry
         if (attempt < (this.options.maxRetries || 1) - 1) {
           this.sleep(this.options.retryDelay || 100);
@@ -129,23 +135,26 @@ class RobustStorage {
     try {
       this.storage.removeItem(key);
       this.stats.successfulOperations++;
-      
+
       // Also remove from memory fallback
       if (this.options.fallbackToMemory) {
         this.memoryFallback.delete(key);
       }
-      
+
       return true;
     } catch (error) {
-      console.warn(`Failed to remove from ${this.storage.constructor.name}:`, error);
+      console.warn(
+        `Failed to remove from ${this.storage.constructor.name}:`,
+        error
+      );
       this.stats.failedOperations++;
-      
+
       // Remove from memory fallback anyway
       if (this.options.fallbackToMemory) {
         this.memoryFallback.delete(key);
         this.stats.fallbackOperations++;
       }
-      
+
       return false;
     }
   }
@@ -159,23 +168,23 @@ class RobustStorage {
     try {
       this.storage.clear();
       this.stats.successfulOperations++;
-      
+
       // Clear memory fallback
       if (this.options.fallbackToMemory) {
         this.memoryFallback.clear();
       }
-      
+
       return true;
     } catch (error) {
       console.warn(`Failed to clear ${this.storage.constructor.name}:`, error);
       this.stats.failedOperations++;
-      
+
       // Clear memory fallback anyway
       if (this.options.fallbackToMemory) {
         this.memoryFallback.clear();
         this.stats.fallbackOperations++;
       }
-      
+
       return false;
     }
   }
@@ -195,7 +204,7 @@ class RobustStorage {
       totalOperations: 0,
       successfulOperations: 0,
       failedOperations: 0,
-      fallbackOperations: 0
+      fallbackOperations: 0,
     };
   }
 
@@ -230,7 +239,7 @@ class RobustStorage {
             }
           }
         }
-        
+
         // Most browsers have 5-10MB limit
         const estimatedLimit = 5 * 1024 * 1024; // 5MB
         return Math.max(0, estimatedLimit - totalSize);
@@ -238,7 +247,7 @@ class RobustStorage {
     } catch (error) {
       console.warn('Could not estimate storage space:', error);
     }
-    
+
     return 0;
   }
 
@@ -255,14 +264,14 @@ export const robustLocalStorage = new RobustStorage(localStorage, {
   fallbackToMemory: true,
   fallbackToSession: true,
   maxRetries: 3,
-  retryDelay: 100
+  retryDelay: 100,
 });
 
 export const robustSessionStorage = new RobustStorage(sessionStorage, {
   fallbackToMemory: true,
   fallbackToSession: false,
   maxRetries: 2,
-  retryDelay: 50
+  retryDelay: 50,
 });
 
 /**
@@ -291,7 +300,7 @@ export const jsonStorage = {
 
   removeItem: (key: string): boolean => {
     return robustLocalStorage.removeItem(key);
-  }
+  },
 };
 
 /**
@@ -304,7 +313,7 @@ export function useRobustStorage() {
     jsonStorage,
     stats: {
       localStorage: robustLocalStorage.getStats(),
-      sessionStorage: robustSessionStorage.getStats()
-    }
+      sessionStorage: robustSessionStorage.getStats(),
+    },
   };
 }

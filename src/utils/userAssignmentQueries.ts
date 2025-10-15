@@ -78,9 +78,7 @@ export class UserAssignmentQueries {
       offset?: number;
     } = {}
   ): Promise<LeadWithAssignment[]> {
-    let query = supabase
-      .from('lead_assignments_with_users')
-      .select('*');
+    let query = supabase.from('lead_assignments_with_users').select('*');
 
     if (filters.ownerId) {
       query = query.eq('owner_id', filters.ownerId);
@@ -91,7 +89,9 @@ export class UserAssignmentQueries {
     }
 
     if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,company_role.ilike.%${filters.search}%,email_address.ilike.%${filters.search}%`);
+      query = query.or(
+        `name.ilike.%${filters.search}%,company_role.ilike.%${filters.search}%,email_address.ilike.%${filters.search}%`
+      );
     }
 
     query = query.order('created_at', { ascending: false });
@@ -101,7 +101,10 @@ export class UserAssignmentQueries {
     }
 
     if (filters.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1);
+      query = query.range(
+        filters.offset,
+        filters.offset + (filters.limit || 50) - 1
+      );
     }
 
     const { data, error } = await query;
@@ -123,9 +126,7 @@ export class UserAssignmentQueries {
       offset?: number;
     } = {}
   ): Promise<CompanyWithAssignment[]> {
-    let query = supabase
-      .from('company_assignments_with_users')
-      .select('*');
+    let query = supabase.from('company_assignments_with_users').select('*');
 
     if (filters.ownerId) {
       query = query.eq('owner_id', filters.ownerId);
@@ -136,7 +137,9 @@ export class UserAssignmentQueries {
     }
 
     if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,industry.ilike.%${filters.search}%`);
+      query = query.or(
+        `name.ilike.%${filters.search}%,industry.ilike.%${filters.search}%`
+      );
     }
 
     query = query.order('created_at', { ascending: false });
@@ -146,7 +149,10 @@ export class UserAssignmentQueries {
     }
 
     if (filters.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1);
+      query = query.range(
+        filters.offset,
+        filters.offset + (filters.limit || 50) - 1
+      );
     }
 
     const { data, error } = await query;
@@ -159,7 +165,9 @@ export class UserAssignmentQueries {
    * Get unassigned leads efficiently
    * Uses partial index for optimal performance
    */
-  static async getUnassignedLeads(limit: number = 50): Promise<LeadWithAssignment[]> {
+  static async getUnassignedLeads(
+    limit: number = 50
+  ): Promise<LeadWithAssignment[]> {
     const { data, error } = await supabase
       .from('lead_assignments_with_users')
       .select('*')
@@ -175,7 +183,9 @@ export class UserAssignmentQueries {
    * Get unassigned companies efficiently
    * Uses partial index for optimal performance
    */
-  static async getUnassignedCompanies(limit: number = 50): Promise<CompanyWithAssignment[]> {
+  static async getUnassignedCompanies(
+    limit: number = 50
+  ): Promise<CompanyWithAssignment[]> {
     const { data, error } = await supabase
       .from('company_assignments_with_users')
       .select('*')
@@ -224,27 +234,35 @@ export class UserAssignmentQueries {
    * Get assignment counts by user efficiently
    * Uses materialized view for optimal performance
    */
-  static async getAssignmentCountsByUser(): Promise<Record<string, {
-    leads: number;
-    companies: number;
-    jobs: number;
-    qualified_leads: number;
-    active_companies: number;
-    active_jobs: number;
-  }>> {
+  static async getAssignmentCountsByUser(): Promise<
+    Record<
+      string,
+      {
+        leads: number;
+        companies: number;
+        jobs: number;
+        qualified_leads: number;
+        active_companies: number;
+        active_jobs: number;
+      }
+    >
+  > {
     const stats = await this.getUserAssignmentStats();
-    
-    return stats.reduce((acc, stat) => {
-      acc[stat.id] = {
-        leads: stat.total_leads,
-        companies: stat.total_companies,
-        jobs: stat.total_jobs,
-        qualified_leads: stat.qualified_leads,
-        active_companies: stat.active_companies,
-        active_jobs: stat.active_jobs,
-      };
-      return acc;
-    }, {} as Record<string, any>);
+
+    return stats.reduce(
+      (acc, stat) => {
+        acc[stat.id] = {
+          leads: stat.total_leads,
+          companies: stat.total_companies,
+          jobs: stat.total_jobs,
+          qualified_leads: stat.qualified_leads,
+          active_companies: stat.active_companies,
+          active_jobs: stat.active_jobs,
+        };
+        return acc;
+      },
+      {} as Record<string, any>
+    );
   }
 
   /**
@@ -272,7 +290,11 @@ export const useUserAssignmentStats = () => {
   });
 };
 
-export const useLeadsWithAssignments = (filters: Parameters<typeof UserAssignmentQueries.getLeadsWithAssignments>[0] = {}) => {
+export const useLeadsWithAssignments = (
+  filters: Parameters<
+    typeof UserAssignmentQueries.getLeadsWithAssignments
+  >[0] = {}
+) => {
   return useQuery({
     queryKey: ['leads-with-assignments', filters],
     queryFn: () => UserAssignmentQueries.getLeadsWithAssignments(filters),
@@ -281,7 +303,11 @@ export const useLeadsWithAssignments = (filters: Parameters<typeof UserAssignmen
   });
 };
 
-export const useCompaniesWithAssignments = (filters: Parameters<typeof UserAssignmentQueries.getCompaniesWithAssignments>[0] = {}) => {
+export const useCompaniesWithAssignments = (
+  filters: Parameters<
+    typeof UserAssignmentQueries.getCompaniesWithAssignments
+  >[0] = {}
+) => {
   return useQuery({
     queryKey: ['companies-with-assignments', filters],
     queryFn: () => UserAssignmentQueries.getCompaniesWithAssignments(filters),
@@ -294,16 +320,23 @@ export const useBatchAssignEntities = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ entityType, entityIds, ownerId }: {
+    mutationFn: ({
+      entityType,
+      entityIds,
+      ownerId,
+    }: {
       entityType: 'people' | 'companies' | 'jobs';
       entityIds: string[];
       ownerId: string;
-    }) => UserAssignmentQueries.batchAssignEntities(entityType, entityIds, ownerId),
+    }) =>
+      UserAssignmentQueries.batchAssignEntities(entityType, entityIds, ownerId),
     onSuccess: () => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['user-assignment-stats'] });
       queryClient.invalidateQueries({ queryKey: ['leads-with-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['companies-with-assignments'] });
+      queryClient.invalidateQueries({
+        queryKey: ['companies-with-assignments'],
+      });
       queryClient.invalidateQueries({ queryKey: ['unassigned-leads'] });
       queryClient.invalidateQueries({ queryKey: ['unassigned-companies'] });
     },
@@ -314,7 +347,10 @@ export const useBatchUnassignEntities = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ entityType, entityIds }: {
+    mutationFn: ({
+      entityType,
+      entityIds,
+    }: {
       entityType: 'people' | 'companies' | 'jobs';
       entityIds: string[];
     }) => UserAssignmentQueries.batchUnassignEntities(entityType, entityIds),
@@ -322,7 +358,9 @@ export const useBatchUnassignEntities = () => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['user-assignment-stats'] });
       queryClient.invalidateQueries({ queryKey: ['leads-with-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['companies-with-assignments'] });
+      queryClient.invalidateQueries({
+        queryKey: ['companies-with-assignments'],
+      });
       queryClient.invalidateQueries({ queryKey: ['unassigned-leads'] });
       queryClient.invalidateQueries({ queryKey: ['unassigned-companies'] });
     },

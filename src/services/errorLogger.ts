@@ -7,7 +7,7 @@ export enum ErrorSeverity {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
 }
 
 export enum ErrorCategory {
@@ -17,7 +17,7 @@ export enum ErrorCategory {
   VALIDATION = 'validation',
   UI = 'ui',
   BUSINESS_LOGIC = 'business_logic',
-  UNKNOWN = 'unknown'
+  UNKNOWN = 'unknown',
 }
 
 export interface ErrorContext {
@@ -57,7 +57,7 @@ class ErrorLogger {
   ): string {
     const errorId = this.generateErrorId();
     const timestamp = new Date().toISOString();
-    
+
     const loggedError: LoggedError = {
       id: errorId,
       message: typeof error === 'string' ? error : error.message,
@@ -67,15 +67,18 @@ class ErrorLogger {
       context: {
         ...context,
         timestamp,
-        userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
+        userAgent:
+          typeof window !== 'undefined'
+            ? window.navigator.userAgent
+            : undefined,
         url: typeof window !== 'undefined' ? window.location.href : undefined,
       },
       timestamp,
-      resolved: false
+      resolved: false,
     };
 
     this.errors.unshift(loggedError);
-    
+
     // Keep only the most recent errors
     if (this.errors.length > this.maxErrors) {
       this.errors = this.errors.slice(0, this.maxErrors);
@@ -102,28 +105,51 @@ class ErrorLogger {
    * Log authentication errors
    */
   logAuthError(error: Error | string, context: ErrorContext = {}): string {
-    return this.logError(error, ErrorSeverity.HIGH, ErrorCategory.AUTHENTICATION, context);
+    return this.logError(
+      error,
+      ErrorSeverity.HIGH,
+      ErrorCategory.AUTHENTICATION,
+      context
+    );
   }
 
   /**
    * Log database errors
    */
   logDatabaseError(error: Error | string, context: ErrorContext = {}): string {
-    return this.logError(error, ErrorSeverity.HIGH, ErrorCategory.DATABASE, context);
+    return this.logError(
+      error,
+      ErrorSeverity.HIGH,
+      ErrorCategory.DATABASE,
+      context
+    );
   }
 
   /**
    * Log network errors
    */
   logNetworkError(error: Error | string, context: ErrorContext = {}): string {
-    return this.logError(error, ErrorSeverity.MEDIUM, ErrorCategory.NETWORK, context);
+    return this.logError(
+      error,
+      ErrorSeverity.MEDIUM,
+      ErrorCategory.NETWORK,
+      context
+    );
   }
 
   /**
    * Log validation errors
    */
-  logValidationError(error: Error | string, context: ErrorContext = {}): string {
-    return this.logError(error, ErrorSeverity.LOW, ErrorCategory.VALIDATION, context);
+  logValidationError(
+    error: Error | string,
+    context: ErrorContext = {}
+  ): string {
+    return this.logError(
+      error,
+      ErrorSeverity.LOW,
+      ErrorCategory.VALIDATION,
+      context
+    );
   }
 
   /**
@@ -137,7 +163,12 @@ class ErrorLogger {
    * Log business logic errors
    */
   logBusinessError(error: Error | string, context: ErrorContext = {}): string {
-    return this.logError(error, ErrorSeverity.MEDIUM, ErrorCategory.BUSINESS_LOGIC, context);
+    return this.logError(
+      error,
+      ErrorSeverity.MEDIUM,
+      ErrorCategory.BUSINESS_LOGIC,
+      context
+    );
   }
 
   /**
@@ -224,7 +255,7 @@ class ErrorLogger {
         [ErrorCategory.UNKNOWN]: 0,
       } as Record<ErrorCategory, number>,
       unresolved: 0,
-      resolved: 0
+      resolved: 0,
     };
 
     this.errors.forEach(error => {
@@ -247,7 +278,7 @@ class ErrorLogger {
   private sendToErrorService(error: LoggedError): void {
     // In production, implement your error tracking service integration here
     // Examples: Sentry, LogRocket, Bugsnag, etc.
-    
+
     if (import.meta.env.PROD) {
       // Example: Send to external service
       // fetch('/api/errors', {
@@ -255,7 +286,7 @@ class ErrorLogger {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(error)
       // }).catch(console.error);
-      
+
       // For now, just log to console in production
       console.error('Production Error:', error);
     }
@@ -267,7 +298,7 @@ export const errorLogger = new ErrorLogger();
 
 // Global error handler for unhandled errors
 if (typeof window !== 'undefined') {
-  window.addEventListener('error', (event) => {
+  window.addEventListener('error', event => {
     errorLogger.logError(
       event.error || event.message,
       ErrorSeverity.HIGH,
@@ -278,13 +309,13 @@ if (typeof window !== 'undefined') {
         metadata: {
           filename: event.filename,
           lineno: event.lineno,
-          colno: event.colno
-        }
+          colno: event.colno,
+        },
       }
     );
   });
 
-  window.addEventListener('unhandledrejection', (event) => {
+  window.addEventListener('unhandledrejection', event => {
     errorLogger.logError(
       event.reason,
       ErrorSeverity.HIGH,
@@ -293,8 +324,8 @@ if (typeof window !== 'undefined') {
         component: 'global',
         action: 'unhandled_promise_rejection',
         metadata: {
-          promise: event.promise
-        }
+          promise: event.promise,
+        },
       }
     );
   });
@@ -302,16 +333,11 @@ if (typeof window !== 'undefined') {
 
 // React Error Boundary integration
 export const logReactError = (error: Error, errorInfo: any) => {
-  errorLogger.logError(
-    error,
-    ErrorSeverity.HIGH,
-    ErrorCategory.UI,
-    {
-      component: 'react_error_boundary',
-      action: 'component_error',
-      metadata: {
-        componentStack: errorInfo.componentStack
-      }
-    }
-  );
+  errorLogger.logError(error, ErrorSeverity.HIGH, ErrorCategory.UI, {
+    component: 'react_error_boundary',
+    action: 'component_error',
+    metadata: {
+      componentStack: errorInfo.componentStack,
+    },
+  });
 };

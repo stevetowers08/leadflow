@@ -1,6 +1,6 @@
 /**
  * Modern UI Components with Glassmorphism and Neumorphism Effects
- * 
+ *
  * Implements 2025 design trends:
  * - Glassmorphism with backdrop blur and transparency
  * - Neumorphism with soft shadows and highlights
@@ -9,36 +9,36 @@
  * - Compatible with existing CSS variable system
  */
 
-import { cn } from "@/lib/utils";
-import { cva, type VariantProps } from "class-variance-authority";
-import { forwardRef } from "react";
+import { cn } from '@/lib/utils';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { forwardRef } from 'react';
 
 // Glassmorphism Card Component
 const glassCardVariants = cva(
-  "relative overflow-hidden transition-all duration-300 ease-out",
+  'relative overflow-hidden transition-all duration-300 ease-out',
   {
     variants: {
       variant: {
-        light: "glass-light",
-        dark: "glass-dark",
-        primary: "glass-primary",
+        light: 'glass-light',
+        dark: 'glass-dark',
+        primary: 'glass-primary',
       },
       size: {
-        sm: "p-4 rounded-lg",
-        md: "p-6 rounded-xl",
-        lg: "p-8 rounded-2xl",
+        sm: 'p-4 rounded-lg',
+        md: 'p-6 rounded-xl',
+        lg: 'p-8 rounded-2xl',
       },
       shadow: {
-        none: "",
-        sm: "shadow-glass-light",
-        md: "shadow-glass-dark",
-        lg: "shadow-xl",
+        none: '',
+        sm: 'shadow-glass-light',
+        md: 'shadow-glass-dark',
+        lg: 'shadow-xl',
       },
     },
     defaultVariants: {
-      variant: "light",
-      size: "md",
-      shadow: "md",
+      variant: 'light',
+      size: 'md',
+      shadow: 'md',
     },
   }
 );
@@ -51,14 +51,18 @@ export interface GlassCardProps
 }
 
 const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
-  ({ className, variant, size, shadow, hover = true, glow = false, ...props }, ref) => {
+  (
+    { className, variant, size, shadow, hover = true, glow = false, ...props },
+    ref
+  ) => {
     return (
       <div
         ref={ref}
         className={cn(
           glassCardVariants({ variant, size, shadow }),
-          hover && "hover:scale-[1.02] hover:shadow-xl",
-          glow && "before:absolute before:inset-0 before:rounded-inherit before:bg-gradient-to-r before:from-primary/20 before:to-secondary/20 before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100",
+          hover && 'hover:scale-[1.02] hover:shadow-xl',
+          glow &&
+            'before:absolute before:inset-0 before:rounded-inherit before:bg-gradient-to-r before:from-primary/20 before:to-secondary/20 before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100',
           className
         )}
         {...props}
@@ -66,31 +70,31 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
     );
   }
 );
-GlassCard.displayName = "GlassCard";
+GlassCard.displayName = 'GlassCard';
 
 // Neumorphism Card Component
 const neumorphismCardVariants = cva(
-  "relative transition-all duration-300 ease-out",
+  'relative transition-all duration-300 ease-out',
   {
     variants: {
       variant: {
-        light: "neumorphism-light",
-        dark: "neumorphism-dark",
-        pressed: "neumorphism-pressed",
+        light: 'neumorphism-light',
+        dark: 'neumorphism-dark',
+        pressed: 'neumorphism-pressed',
       },
       size: {
-        sm: "p-4 rounded-lg",
-        md: "p-6 rounded-xl",
-        lg: "p-8 rounded-2xl",
+        sm: 'p-4 rounded-lg',
+        md: 'p-6 rounded-xl',
+        lg: 'p-8 rounded-2xl',
       },
       interactive: {
-        true: "hover:shadow-lg active:shadow-neumorphism-pressed active:scale-[0.98]",
-        false: "",
+        true: 'hover:shadow-lg active:shadow-neumorphism-pressed active:scale-[0.98]',
+        false: '',
       },
     },
     defaultVariants: {
-      variant: "light",
-      size: "md",
+      variant: 'light',
+      size: 'md',
       interactive: true,
     },
   }
@@ -114,33 +118,38 @@ const NeumorphismCard = forwardRef<HTMLDivElement, NeumorphismCardProps>(
     );
   }
 );
-NeumorphismCard.displayName = "NeumorphismCard";
+NeumorphismCard.displayName = 'NeumorphismCard';
 
 // Modern Button Component with Glassmorphism
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl",
-        glass: "glass-light text-white hover:bg-white/20 hover:border-white/30",
-        neumorphism: "neumorphism-light text-gray-700 hover:shadow-lg active:shadow-neumorphism-pressed active:scale-[0.98]",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        link: "text-primary underline-offset-4 hover:underline",
+        default:
+          'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl',
+        glass: 'glass-light text-white hover:bg-white/20 hover:border-white/30',
+        neumorphism:
+          'neumorphism-light text-gray-700 hover:shadow-lg active:shadow-neumorphism-pressed active:scale-[0.98]',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
+        outline:
+          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+        secondary:
+          'bg-secondary text-secondary-foreground hover:bg-secondary/90',
+        destructive:
+          'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-8 w-8",
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 rounded-md px-3',
+        lg: 'h-11 rounded-md px-8',
+        icon: 'h-8 w-8',
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: 'default',
+      size: 'default',
     },
   }
 );
@@ -162,27 +171,28 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     );
   }
 );
-Button.displayName = "Button";
+Button.displayName = 'Button';
 
 // Modern Input Component
 const inputVariants = cva(
-  "flex w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300",
+  'flex w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300',
   {
     variants: {
       variant: {
-        default: "border-gray-300 focus:border-primary focus:ring-primary",
-        glass: "glass-light text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20",
-        neumorphism: "neumorphism-light focus:shadow-lg focus:bg-white",
+        default: 'border-gray-300 focus:border-primary focus:ring-primary',
+        glass:
+          'glass-light text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20',
+        neumorphism: 'neumorphism-light focus:shadow-lg focus:bg-white',
       },
       size: {
-        default: "h-10",
-        sm: "h-9 px-2 text-xs",
-        lg: "h-11 px-4",
+        default: 'h-10',
+        sm: 'h-9 px-2 text-xs',
+        lg: 'h-11 px-4',
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: 'default',
+      size: 'default',
     },
   }
 );
@@ -203,22 +213,22 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     );
   }
 );
-Input.displayName = "Input";
+Input.displayName = 'Input';
 
 // Modern Card Components
 const cardVariants = cva(
-  "rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300",
+  'rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300',
   {
     variants: {
       variant: {
-        default: "bg-white border-gray-200 hover:shadow-md",
-        glass: "glass-light hover:bg-white/20",
-        neumorphism: "neumorphism-light hover:shadow-lg",
-        elevated: "bg-white border-gray-200 shadow-lg hover:shadow-xl",
+        default: 'bg-white border-gray-200 hover:shadow-md',
+        glass: 'glass-light hover:bg-white/20',
+        neumorphism: 'neumorphism-light hover:shadow-lg',
+        elevated: 'bg-white border-gray-200 shadow-lg hover:shadow-xl',
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: 'default',
     },
   }
 );
@@ -238,7 +248,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     );
   }
 );
-Card.displayName = "Card";
+Card.displayName = 'Card';
 
 const CardHeader = forwardRef<
   HTMLDivElement,
@@ -246,11 +256,11 @@ const CardHeader = forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    className={cn('flex flex-col space-y-1.5 p-6', className)}
     {...props}
   />
 ));
-CardHeader.displayName = "CardHeader";
+CardHeader.displayName = 'CardHeader';
 
 const CardTitle = forwardRef<
   HTMLParagraphElement,
@@ -258,11 +268,14 @@ const CardTitle = forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
+    className={cn(
+      'text-2xl font-semibold leading-none tracking-tight',
+      className
+    )}
     {...props}
   />
 ));
-CardTitle.displayName = "CardTitle";
+CardTitle.displayName = 'CardTitle';
 
 const CardDescription = forwardRef<
   HTMLParagraphElement,
@@ -270,19 +283,19 @@ const CardDescription = forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn('text-sm text-muted-foreground', className)}
     {...props}
   />
 ));
-CardDescription.displayName = "CardDescription";
+CardDescription.displayName = 'CardDescription';
 
 const CardContent = forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("pt-0", className)} {...props} />
+  <div ref={ref} className={cn('pt-0', className)} {...props} />
 ));
-CardContent.displayName = "CardContent";
+CardContent.displayName = 'CardContent';
 
 const CardFooter = forwardRef<
   HTMLDivElement,
@@ -290,28 +303,31 @@ const CardFooter = forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
+    className={cn('flex items-center p-6 pt-0', className)}
     {...props}
   />
 ));
-CardFooter.displayName = "CardFooter";
+CardFooter.displayName = 'CardFooter';
 
 // Modern Badge Component
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-        glass: "glass-light text-white",
-        neumorphism: "neumorphism-light text-gray-700",
+        default:
+          'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
+        secondary:
+          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        destructive:
+          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
+        outline: 'text-foreground',
+        glass: 'glass-light text-white',
+        neumorphism: 'neumorphism-light text-gray-700',
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: 'default',
     },
   }
 );
@@ -323,32 +339,36 @@ export interface BadgeProps
 const Badge = forwardRef<HTMLDivElement, BadgeProps>(
   ({ className, variant, ...props }, ref) => {
     return (
-      <div ref={ref} className={cn(badgeVariants({ variant }), className)} {...props} />
+      <div
+        ref={ref}
+        className={cn(badgeVariants({ variant }), className)}
+        {...props}
+      />
     );
   }
 );
-Badge.displayName = "Badge";
+Badge.displayName = 'Badge';
 
 // Modern Avatar Component
 const avatarVariants = cva(
-  "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
+  'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full',
   {
     variants: {
       size: {
-        sm: "h-8 w-8",
-        md: "h-10 w-10",
-        lg: "h-12 w-12",
-        xl: "h-16 w-16",
+        sm: 'h-8 w-8',
+        md: 'h-10 w-10',
+        lg: 'h-12 w-12',
+        xl: 'h-16 w-16',
       },
       variant: {
-        default: "bg-gray-100",
-        glass: "glass-light",
-        neumorphism: "neumorphism-light",
+        default: 'bg-gray-100',
+        glass: 'glass-light',
+        neumorphism: 'neumorphism-light',
       },
     },
     defaultVariants: {
-      size: "md",
-      variant: "default",
+      size: 'md',
+      variant: 'default',
     },
   }
 );
@@ -368,7 +388,7 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
     );
   }
 );
-Avatar.displayName = "Avatar";
+Avatar.displayName = 'Avatar';
 
 const AvatarImage = forwardRef<
   HTMLImageElement,
@@ -376,11 +396,11 @@ const AvatarImage = forwardRef<
 >(({ className, ...props }, ref) => (
   <img
     ref={ref}
-    className={cn("aspect-square h-full w-full object-cover", className)}
+    className={cn('aspect-square h-full w-full object-cover', className)}
     {...props}
   />
 ));
-AvatarImage.displayName = "AvatarImage";
+AvatarImage.displayName = 'AvatarImage';
 
 const AvatarFallback = forwardRef<
   HTMLDivElement,
@@ -389,15 +409,32 @@ const AvatarFallback = forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-muted text-muted-foreground",
+      'flex h-full w-full items-center justify-center rounded-full bg-muted text-muted-foreground',
       className
     )}
     {...props}
   />
 ));
-AvatarFallback.displayName = "AvatarFallback";
+AvatarFallback.displayName = 'AvatarFallback';
 
 export {
-    Avatar, AvatarFallback, AvatarImage, avatarVariants, Badge, badgeVariants, Button, buttonVariants, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cardVariants, GlassCard, Input, inputVariants, NeumorphismCard
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  avatarVariants,
+  Badge,
+  badgeVariants,
+  Button,
+  buttonVariants,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  cardVariants,
+  GlassCard,
+  Input,
+  inputVariants,
+  NeumorphismCard,
 };
-

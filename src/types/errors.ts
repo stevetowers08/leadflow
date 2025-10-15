@@ -4,7 +4,7 @@
  */
 
 // Result type pattern for functional error handling
-export type Result<T, E = Error> = 
+export type Result<T, E = Error> =
   | { success: true; data: T }
   | { success: false; error: E };
 
@@ -15,25 +15,25 @@ export enum ErrorType {
   BUSINESS_RULE_VIOLATION = 'BUSINESS_RULE_VIOLATION',
   PERMISSION_DENIED = 'PERMISSION_DENIED',
   USER_INPUT_ERROR = 'USER_INPUT_ERROR',
-  
+
   // Unexpected errors (system issues)
   NETWORK_ERROR = 'NETWORK_ERROR',
   DATABASE_ERROR = 'DATABASE_ERROR',
   AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
   SYSTEM_ERROR = 'SYSTEM_ERROR',
   EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
-  
+
   // UI/UX errors
   RENDER_ERROR = 'RENDER_ERROR',
   COMPONENT_ERROR = 'COMPONENT_ERROR',
-  STATE_ERROR = 'STATE_ERROR'
+  STATE_ERROR = 'STATE_ERROR',
 }
 
 export enum ErrorSeverity {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
 }
 
 export enum ErrorCategory {
@@ -44,7 +44,7 @@ export enum ErrorCategory {
   UI = 'ui',
   BUSINESS_LOGIC = 'business_logic',
   EXTERNAL_SERVICE = 'external_service',
-  UNKNOWN = 'unknown'
+  UNKNOWN = 'unknown',
 }
 
 export interface AppError {
@@ -77,14 +77,12 @@ export class ResultBuilder {
   static success<T>(data: T): Result<T> {
     return { success: true, data };
   }
-  
+
   static failure<E>(error: E): Result<never, E> {
     return { success: false, error };
   }
-  
-  static async fromPromise<T>(
-    promise: Promise<T>
-  ): Promise<Result<T, Error>> {
+
+  static async fromPromise<T>(promise: Promise<T>): Promise<Result<T, Error>> {
     try {
       const data = await promise;
       return ResultBuilder.success(data);
@@ -92,8 +90,11 @@ export class ResultBuilder {
       return ResultBuilder.failure(error as Error);
     }
   }
-  
-  static fromValue<T>(value: T | null | undefined, errorMessage: string): Result<T> {
+
+  static fromValue<T>(
+    value: T | null | undefined,
+    errorMessage: string
+  ): Result<T> {
     if (value === null || value === undefined) {
       return ResultBuilder.failure(new Error(errorMessage));
     }
@@ -127,11 +128,14 @@ export class ErrorFactory {
       context: options.context,
       timestamp: new Date(),
       stack: options.originalError?.stack,
-      originalError: options.originalError
+      originalError: options.originalError,
     };
   }
-  
-  static fromError(error: Error, type: ErrorType = ErrorType.SYSTEM_ERROR): AppError {
+
+  static fromError(
+    error: Error,
+    type: ErrorType = ErrorType.SYSTEM_ERROR
+  ): AppError {
     return ErrorFactory.create(
       type,
       'UNKNOWN_ERROR',
@@ -140,7 +144,7 @@ export class ErrorFactory {
       {
         originalError: error,
         severity: ErrorSeverity.MEDIUM,
-        recoverable: true
+        recoverable: true,
       }
     );
   }
@@ -150,7 +154,7 @@ export class ErrorFactory {
 export enum CircuitBreakerState {
   CLOSED = 'CLOSED',
   OPEN = 'OPEN',
-  HALF_OPEN = 'HALF_OPEN'
+  HALF_OPEN = 'HALF_OPEN',
 }
 
 export interface CircuitBreakerConfig {
@@ -178,11 +182,15 @@ export interface ErrorMonitoringConfig {
 }
 
 // Type guards for Result types
-export function isSuccess<T, E>(result: Result<T, E>): result is { success: true; data: T } {
+export function isSuccess<T, E>(
+  result: Result<T, E>
+): result is { success: true; data: T } {
   return result.success === true;
 }
 
-export function isFailure<T, E>(result: Result<T, E>): result is { success: false; error: E } {
+export function isFailure<T, E>(
+  result: Result<T, E>
+): result is { success: false; error: E } {
   return result.success === false;
 }
 
@@ -211,10 +219,7 @@ export function flatMapResult<T, U, E>(
   return result;
 }
 
-export function getOrElse<T, E>(
-  result: Result<T, E>,
-  defaultValue: T
-): T {
+export function getOrElse<T, E>(result: Result<T, E>, defaultValue: T): T {
   return isSuccess(result) ? result.data : defaultValue;
 }
 

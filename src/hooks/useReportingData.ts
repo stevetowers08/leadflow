@@ -47,7 +47,7 @@ export const useReportingData = () => {
     queryKey: ['reporting-data', user?.id],
     queryFn: async () => {
       const serviceData = await ReportingService.getReportingData();
-      
+
       // Transform service data to match hook interface
       return {
         totalPeople: serviceData.totalLeads,
@@ -56,12 +56,13 @@ export const useReportingData = () => {
         totalInteractions: serviceData.totalLeads, // Using totalLeads as proxy
         peopleByStage: serviceData.stageDistribution.map(item => ({
           stage: item.stage,
-          count: item.count
+          count: item.count,
         })),
-        companiesByStage: serviceData.companyPipelineMetrics.companiesByStage.map(item => ({
-          stage: item.stage,
-          count: item.count
-        })),
+        companiesByStage:
+          serviceData.companyPipelineMetrics.companiesByStage.map(item => ({
+            stage: item.stage,
+            count: item.count,
+          })),
         interactionsByType: [], // Not available in service
         recentInteractions: [], // Not available in service
         monthlyStats: [], // Not available in service
@@ -70,9 +71,9 @@ export const useReportingData = () => {
           name: company.companyName,
           industry: company.industry,
           people_count: company.leadCount,
-          interactions_count: company.automationActive
+          interactions_count: company.automationActive,
         })),
-        userStats: [] // Not available in service
+        userStats: [], // Not available in service
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
