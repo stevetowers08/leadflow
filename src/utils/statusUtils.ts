@@ -149,10 +149,8 @@ export function getStatusDisplayText(status: string): string {
     email_reply: 'Email Reply',
     EMAIL_REPLY: 'Email Reply',
     meeting_booked: 'Meeting Booked',
-    'meeting booked': 'Meeting Booked',
     MEETING_BOOKED: 'Meeting Booked',
     meeting_held: 'Meeting Held',
-    'meeting held': 'Meeting Held',
     MEETING_HELD: 'Meeting Held',
     disqualified: 'Disqualified',
     DISQUALIFIED: 'Disqualified',
@@ -162,10 +160,6 @@ export function getStatusDisplayText(status: string): string {
     // Campaign status - all variations
     draft: 'Draft',
     DRAFT: 'Draft',
-    active: 'Active',
-    ACTIVE: 'Active',
-    paused: 'Paused',
-    PAUSED: 'Paused',
 
     // Additional status mappings - all variations
     assigned: 'Assigned',

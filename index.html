@@ -55,12 +55,44 @@
     <script>
       // Prevent SES lockdown from browser extensions (MetaMask, etc.)
       if (typeof window !== 'undefined') {
-        window.lockdown = undefined;
-        window.harden = undefined;
+        // Remove SES functions from window and globalThis
+        delete window.lockdown;
+        delete window.harden;
+        delete window.SES;
+
         if (window.globalThis) {
-          window.globalThis.lockdown = undefined;
-          window.globalThis.harden = undefined;
+          delete window.globalThis.lockdown;
+          delete window.globalThis.harden;
+          delete window.globalThis.SES;
         }
+
+        // Override console methods early to catch SES warnings
+        const originalWarn = console.warn;
+        const originalError = console.error;
+
+        console.warn = function (...args) {
+          const message = args.join(' ');
+          if (
+            message.includes('SES') ||
+            message.includes('lockdown') ||
+            message.includes('toTemporalInstant')
+          ) {
+            return; // Suppress SES warnings
+          }
+          originalWarn.apply(console, args);
+        };
+
+        console.error = function (...args) {
+          const message = args.join(' ');
+          if (
+            message.includes('SES') ||
+            message.includes('lockdown') ||
+            message.includes('toTemporalInstant')
+          ) {
+            return; // Suppress SES errors
+          }
+          originalError.apply(console, args);
+        };
       }
 
       // Unregister service workers in development

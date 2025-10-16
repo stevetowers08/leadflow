@@ -1,11 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
@@ -13,15 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import {
-  Loader2,
-  Save,
-  Building2,
-  Target,
-  Users,
-  TrendingUp,
-} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Building2, Loader2, Save, Target, TrendingUp } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 interface BusinessProfile {
   id?: string;
@@ -63,12 +55,6 @@ const BusinessProfileSettings: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchBusinessProfile();
-    }
-  }, [user?.id, fetchBusinessProfile]);
-
   const fetchBusinessProfile = useCallback(async () => {
     if (!user?.id) return;
 
@@ -80,13 +66,29 @@ const BusinessProfileSettings: React.FC = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching business profile:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load business profile.',
-          variant: 'destructive',
-        });
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No profile found - this is normal for new users
+          console.log('No business profile found for user, using defaults');
+        } else if (error.code === '42P01') {
+          // Table doesn't exist
+          console.error(
+            'business_profiles table does not exist. Please run the migration to create it.'
+          );
+          toast({
+            title: 'Database Error',
+            description:
+              'The business profiles table has not been created yet. Please contact your administrator.',
+            variant: 'destructive',
+          });
+        } else {
+          console.error('Error fetching business profile:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load business profile.',
+            variant: 'destructive',
+          });
+        }
       } else if (data) {
         setProfile({
           ...data,
@@ -112,6 +114,12 @@ const BusinessProfileSettings: React.FC = () => {
     }
   }, [user?.id, toast]);
 
+  useEffect(() => {
+    if (user?.id) {
+      fetchBusinessProfile();
+    }
+  }, [user?.id, fetchBusinessProfile]);
+
   const handleSave = async () => {
     if (!user?.id) return;
 
@@ -130,7 +138,14 @@ const BusinessProfileSettings: React.FC = () => {
           .update(profileData)
           .eq('id', profile.id);
 
-        if (error) throw error;
+        if (error) {
+          if (error.code === '42P01') {
+            throw new Error(
+              'The business profiles table has not been created yet. Please contact your administrator.'
+            );
+          }
+          throw error;
+        }
       } else {
         // Create new profile
         const { data, error } = await supabase
@@ -139,7 +154,14 @@ const BusinessProfileSettings: React.FC = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          if (error.code === '42P01') {
+            throw new Error(
+              'The business profiles table has not been created yet. Please contact your administrator.'
+            );
+          }
+          throw error;
+        }
         setProfile({ ...profile, id: data.id });
       }
 
@@ -151,7 +173,7 @@ const BusinessProfileSettings: React.FC = () => {
       console.error('Error saving business profile:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save business profile.',
+        description: error.message || 'Failed to save business profile.',
         variant: 'destructive',
       });
     } finally {

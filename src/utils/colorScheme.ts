@@ -50,26 +50,26 @@ export interface StatusColorScheme {
  */
 export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
   leadStages: {
-    // Initial/New - Modern Dark Blue (fresh, starting point) - WCAG compliant
+    // Initial/New - Light Grey (neutral, starting point)
     'NEW LEAD': {
-      background: 'bg-blue-600',
-      text: 'text-white',
-      border: 'border-blue-700',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
     new: {
-      background: 'bg-blue-600',
-      text: 'text-white',
-      border: 'border-blue-700',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
     'new lead': {
-      background: 'bg-blue-600',
-      text: 'text-white',
-      border: 'border-blue-700',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
     contacted: {
-      background: 'bg-blue-600',
-      text: 'text-white',
-      border: 'border-blue-700',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
 
     // Active/In Progress - Modern Dark Amber/Orange (work in progress) - Better contrast
@@ -196,501 +196,527 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
 
   jobStatuses: {
     'job-new': {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
     new: {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
     'new job': {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
     'job-active': {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     active: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     automated: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     paused: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
     'job-completed': {
-      background: 'bg-emerald-50',
-      text: 'text-emerald-700',
-      border: 'border-emerald-200',
+      background: 'bg-emerald-600',
+      text: 'text-white',
+      border: 'border-emerald-700',
     },
     completed: {
-      background: 'bg-emerald-50',
-      text: 'text-emerald-700',
-      border: 'border-emerald-200',
+      background: 'bg-emerald-600',
+      text: 'text-white',
+      border: 'border-emerald-700',
     },
     'job-failed': {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     failed: {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     '-': {
-      background: 'bg-slate-50',
-      text: 'text-slate-500',
-      border: 'border-slate-200',
+      background: 'bg-gray-600',
+      text: 'text-white',
+      border: 'border-gray-700',
     },
   },
 
   companyStatuses: {
     active: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     inactive: {
-      background: 'bg-slate-50',
-      text: 'text-slate-700',
-      border: 'border-slate-200',
+      background: 'bg-gray-600',
+      text: 'text-white',
+      border: 'border-gray-700',
     },
     prospect: {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
-    // Company pipeline stages
+    // Company pipeline stages - Modern Dark Colors
     new_lead: {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
     automated: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     replied: {
-      background: 'bg-emerald-50',
-      text: 'text-emerald-700',
-      border: 'border-emerald-200',
+      background: 'bg-amber-600',
+      text: 'text-white',
+      border: 'border-amber-700',
     },
     meeting_scheduled: {
-      background: 'bg-purple-50',
-      text: 'text-purple-700',
-      border: 'border-purple-200',
+      background: 'bg-orange-600',
+      text: 'text-white',
+      border: 'border-orange-700',
     },
     closed_lost: {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
   },
 
-  // Company Pipeline Stages - Professional sales pipeline colors
+  // Company Pipeline Stages - Modern Dark Colors (2024-2025 Standards)
   companyPipelineStages: {
-    // Initial stages - Blue (fresh, starting)
+    // Initial stages - Light Grey (neutral, starting point)
     new_lead: {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
     NEW_LEAD: {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
     'new lead': {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-gray-100',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
     },
 
-    // Automated/Processed - Green (system working)
+    // Automated/Processed - Modern Dark Green (system working)
     automated: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     AUTOMATED: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
 
-    // Engagement - Yellow/Orange (active communication)
+    // Engagement - Modern Dark Amber/Orange (active communication)
     replied: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-amber-600',
+      text: 'text-white',
+      border: 'border-amber-700',
     },
     REPLIED: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-amber-600',
+      text: 'text-white',
+      border: 'border-amber-700',
     },
     meeting_scheduled: {
-      background: 'bg-orange-50',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
+      background: 'bg-orange-600',
+      text: 'text-white',
+      border: 'border-orange-700',
     },
     'meeting scheduled': {
-      background: 'bg-orange-50',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
+      background: 'bg-orange-600',
+      text: 'text-white',
+      border: 'border-orange-700',
     },
     MEETING_SCHEDULED: {
-      background: 'bg-orange-50',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
+      background: 'bg-orange-600',
+      text: 'text-white',
+      border: 'border-orange-700',
     },
 
-    // Business stages - Purple/Amber (serious business)
+    // Business stages - Modern Dark Purple/Amber (serious business)
     proposal_sent: {
-      background: 'bg-purple-50',
-      text: 'text-purple-700',
-      border: 'border-purple-200',
+      background: 'bg-purple-600',
+      text: 'text-white',
+      border: 'border-purple-700',
     },
     'proposal sent': {
-      background: 'bg-purple-50',
-      text: 'text-purple-700',
-      border: 'border-purple-200',
+      background: 'bg-purple-600',
+      text: 'text-white',
+      border: 'border-purple-700',
     },
     PROPOSAL_SENT: {
-      background: 'bg-purple-50',
-      text: 'text-purple-700',
-      border: 'border-purple-200',
+      background: 'bg-purple-600',
+      text: 'text-white',
+      border: 'border-purple-700',
     },
     negotiation: {
-      background: 'bg-amber-50',
-      text: 'text-amber-700',
-      border: 'border-amber-200',
+      background: 'bg-amber-600',
+      text: 'text-white',
+      border: 'border-amber-700',
     },
     NEGOTIATION: {
-      background: 'bg-amber-50',
-      text: 'text-amber-700',
-      border: 'border-amber-200',
+      background: 'bg-amber-600',
+      text: 'text-white',
+      border: 'border-amber-700',
     },
 
-    // Final outcomes - Green/Red (success/failure)
+    // Final outcomes - Modern Dark Green/Red (success/failure)
     closed_won: {
-      background: 'bg-emerald-50',
-      text: 'text-emerald-700',
-      border: 'border-emerald-200',
+      background: 'bg-emerald-600',
+      text: 'text-white',
+      border: 'border-emerald-700',
     },
     'closed won': {
-      background: 'bg-emerald-50',
-      text: 'text-emerald-700',
-      border: 'border-emerald-200',
+      background: 'bg-emerald-600',
+      text: 'text-white',
+      border: 'border-emerald-700',
     },
     CLOSED_WON: {
-      background: 'bg-emerald-50',
-      text: 'text-emerald-700',
-      border: 'border-emerald-200',
+      background: 'bg-emerald-600',
+      text: 'text-white',
+      border: 'border-emerald-700',
     },
     closed_lost: {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     'closed lost': {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     CLOSED_LOST: {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
 
-    // Hold status - Gray (paused)
+    // Hold status - Modern Dark Gray (paused)
     on_hold: {
-      background: 'bg-gray-50',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-gray-600',
+      text: 'text-white',
+      border: 'border-gray-700',
     },
     'on hold': {
-      background: 'bg-gray-50',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-gray-600',
+      text: 'text-white',
+      border: 'border-gray-700',
     },
     ON_HOLD: {
-      background: 'bg-gray-50',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-gray-600',
+      text: 'text-white',
+      border: 'border-gray-700',
     },
   },
 
-  // Reply Types - Sentiment-based colors
+  // Reply Types - Modern Dark Colors
   replyTypes: {
     interested: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     INTERESTED: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     not_interested: {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     'not interested': {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     NOT_INTERESTED: {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     maybe: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
     MAYBE: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
   },
 
-  // Campaign Status - Action-based colors
+  // Campaign Status - Modern Dark Colors
   campaignStatus: {
     draft: {
-      background: 'bg-gray-50',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-gray-600',
+      text: 'text-white',
+      border: 'border-gray-700',
     },
     DRAFT: {
-      background: 'bg-gray-50',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-gray-600',
+      text: 'text-white',
+      border: 'border-gray-700',
     },
     active: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     ACTIVE: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     paused: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
     PAUSED: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
   },
 
   priorities: {
     low: {
-      background: 'bg-slate-50',
-      text: 'text-slate-600',
-      border: 'border-slate-200',
+      background: 'bg-gray-600',
+      text: 'text-white',
+      border: 'border-gray-700',
     },
     LOW: {
-      background: 'bg-slate-50',
-      text: 'text-slate-600',
-      border: 'border-slate-200',
+      background: 'bg-gray-600',
+      text: 'text-white',
+      border: 'border-gray-700',
     },
     medium: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
     MEDIUM: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
     high: {
-      background: 'bg-orange-50',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
+      background: 'bg-orange-600',
+      text: 'text-white',
+      border: 'border-orange-700',
     },
     HIGH: {
-      background: 'bg-orange-50',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
+      background: 'bg-orange-600',
+      text: 'text-white',
+      border: 'border-orange-700',
     },
     urgent: {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     'very high': {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     'VERY HIGH': {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     'very-high': {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
   },
 
   employmentTypes: {
     'full-time': {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-blue-600',
+      text: 'text-white',
+      border: 'border-blue-700',
     },
     'part-time': {
-      background: 'bg-purple-50',
-      text: 'text-purple-700',
-      border: 'border-purple-200',
+      background: 'bg-purple-600',
+      text: 'text-white',
+      border: 'border-purple-700',
     },
     contract: {
-      background: 'bg-orange-50',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
+      background: 'bg-orange-600',
+      text: 'text-white',
+      border: 'border-orange-700',
     },
     internship: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     freelance: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
   },
 
   automationStatuses: {
     queued: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
     running: {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-blue-600',
+      text: 'text-white',
+      border: 'border-blue-700',
     },
     'automation-completed': {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     automated: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     Automated: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     pending: {
-      background: 'bg-orange-50',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
+      background: 'bg-orange-600',
+      text: 'text-white',
+      border: 'border-orange-700',
     },
     Pending: {
-      background: 'bg-orange-50',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
+      background: 'bg-orange-600',
+      text: 'text-white',
+      border: 'border-orange-700',
     },
   },
 
   leadScores: {
     'very high': {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     'VERY HIGH': {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     high: {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     High: {
-      background: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
     },
     medium: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
     Medium: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
     low: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     Low: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
+    },
+    // Numeric score ranges for AI scores
+    'score-high': {
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
+    },
+    'score-medium-high': {
+      background: 'bg-blue-600',
+      text: 'text-white',
+      border: 'border-blue-700',
+    },
+    'score-medium': {
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
+    },
+    'score-low': {
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
+    },
+    'score-empty': {
+      background: 'bg-gray-600',
+      text: 'text-white',
+      border: 'border-gray-700',
     },
   },
 
   workflowSteps: {
     trigger: {
-      background: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
+      background: 'bg-blue-600',
+      text: 'text-white',
+      border: 'border-blue-700',
     },
     condition: {
-      background: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
+      background: 'bg-yellow-600',
+      text: 'text-white',
+      border: 'border-yellow-700',
     },
     action: {
-      background: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
     },
     delay: {
-      background: 'bg-purple-50',
-      text: 'text-purple-700',
-      border: 'border-purple-200',
+      background: 'bg-purple-600',
+      text: 'text-white',
+      border: 'border-purple-700',
     },
   },
 };
@@ -698,11 +724,21 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
 /**
  * Get the unified color scheme for any status
  * Searches across all categories to find the appropriate colors
+ * Optimized with early returns and memoization
  */
 export function getUnifiedStatusColors(status: string): ColorScheme {
+  // Early return for empty status
+  if (!status || status.trim() === '') {
+    return {
+      background: 'bg-slate-50',
+      text: 'text-slate-700',
+      border: 'border-slate-200',
+    };
+  }
+
   const normalizedStatus = status.toLowerCase().trim();
 
-  // Search in all categories
+  // Search in all categories with early returns
   const categories = [
     UNIFIED_COLOR_SCHEME.leadStages,
     UNIFIED_COLOR_SCHEME.jobStatuses,
@@ -718,7 +754,7 @@ export function getUnifiedStatusColors(status: string): ColorScheme {
   ];
 
   for (const category of categories) {
-    // Check exact match first
+    // Check exact match first (most common case)
     if (category[status]) {
       return category[status];
     }
@@ -738,11 +774,55 @@ export function getUnifiedStatusColors(status: string): ColorScheme {
 }
 
 /**
- * Get the CSS class string for a status
+ * Convert numeric AI score to status-like value for unified styling
  */
+export function convertNumericScoreToStatus(
+  score: string | number | null
+): string {
+  if (score === null || score === undefined || score === '') {
+    return 'score-empty';
+  }
+
+  const numScore = typeof score === 'string' ? parseInt(score, 10) : score;
+
+  if (Number.isNaN(numScore)) {
+    return 'score-empty';
+  }
+
+  if (numScore >= 85) {
+    return 'score-high';
+  }
+
+  if (numScore >= 70) {
+    return 'score-medium-high';
+  }
+
+  if (numScore >= 50) {
+    return 'score-medium';
+  }
+
+  return 'score-low';
+}
+
+/**
+ * Get the CSS class string for a status
+ * Optimized with memoization for repeated calls
+ */
+const statusClassCache = new Map<string, string>();
+
 export function getUnifiedStatusClass(status: string): string {
+  // Check cache first
+  if (statusClassCache.has(status)) {
+    return statusClassCache.get(status)!;
+  }
+
   const colors = getUnifiedStatusColors(status);
-  return `${colors.background} ${colors.text} ${colors.border}`;
+  const classString = `${colors.background} ${colors.text} ${colors.border}`;
+
+  // Cache the result
+  statusClassCache.set(status, classString);
+
+  return classString;
 }
 
 /**

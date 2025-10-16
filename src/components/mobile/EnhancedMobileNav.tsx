@@ -20,6 +20,7 @@ import {
   Settings,
   Target,
   Users,
+  Megaphone,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -67,6 +68,12 @@ const allNavItems: NavItem[] = [
     label: 'Pipeline',
     icon: <Target className='h-5 w-5' />,
     permission: 'leads',
+  },
+  {
+    to: '/campaigns',
+    label: 'Campaigns',
+    icon: <Megaphone className='h-5 w-5' />,
+    permission: 'campaigns',
   },
   {
     to: '/conversations',

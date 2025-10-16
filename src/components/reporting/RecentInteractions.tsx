@@ -1,13 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../ui/table';
+import { UnifiedTable, ColumnConfig } from '../ui/unified-table';
 
 interface RecentInteractionsProps {
   recentInteractions: Array<{
@@ -43,44 +36,60 @@ export const RecentInteractions: React.FC<RecentInteractionsProps> = ({
     return colors[type.toLowerCase()] || colors.other;
   };
 
+  const columns: ColumnConfig[] = [
+    {
+      key: 'type',
+      label: 'Type',
+      width: '100px',
+      cellType: 'regular',
+      render: value => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(String(value))}`}
+        >
+          {value}
+        </span>
+      ),
+    },
+    {
+      key: 'description',
+      label: 'Description',
+      width: '300px',
+      cellType: 'regular',
+      render: value => <div className='max-w-xs truncate'>{String(value)}</div>,
+    },
+    {
+      key: 'person_name',
+      label: 'Person',
+      width: '150px',
+      cellType: 'regular',
+    },
+    {
+      key: 'company_name',
+      label: 'Company',
+      width: '150px',
+      cellType: 'regular',
+    },
+    {
+      key: 'occurred_at',
+      label: 'Date',
+      width: '120px',
+      cellType: 'regular',
+      render: value => formatDate(String(value)),
+    },
+  ];
+
   return (
     <Card className='mb-8'>
       <CardHeader>
         <CardTitle>Recent Interactions</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className='overflow-x-auto'>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Type</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Person</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentInteractions.map(interaction => (
-                <TableRow key={interaction.id}>
-                  <TableCell>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(interaction.type)}`}
-                    >
-                      {interaction.type}
-                    </span>
-                  </TableCell>
-                  <TableCell className='max-w-xs truncate'>
-                    {interaction.description}
-                  </TableCell>
-                  <TableCell>{interaction.person_name}</TableCell>
-                  <TableCell>{interaction.company_name}</TableCell>
-                  <TableCell>{formatDate(interaction.occurred_at)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <UnifiedTable
+          data={recentInteractions}
+          columns={columns}
+          pagination={false}
+          emptyMessage='No recent interactions'
+        />
       </CardContent>
     </Card>
   );

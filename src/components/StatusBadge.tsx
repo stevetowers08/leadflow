@@ -1,50 +1,50 @@
 import { cn } from '@/lib/utils';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
-import { getStatusDisplayText } from '@/utils/statusUtils';
+import React from 'react';
+
+/**
+ * StatusBadge Component
+ *
+ * NOTE: Do NOT use this component in table cells!
+ * Tables use the unified table system which applies status colors
+ * directly to cell backgrounds via getUnifiedStatusClass().
+ *
+ * Use this component for:
+ * - Popup modals
+ * - Cards
+ * - Forms
+ * - Any non-table UI elements
+ */
 
 interface StatusBadgeProps {
   status: string;
-  className?: string;
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
-// STANDARDIZED STYLING - Dynamic colors based on status value
-const sizeStyles = {
-  sm: 'h-8 text-xs font-medium rounded-md text-center px-3',
-  md: 'h-9 text-sm font-medium rounded-md text-center px-3',
-  lg: 'h-10 text-sm font-medium rounded-md text-center px-4',
-};
-
-export const StatusBadge = ({
+export const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
-  className,
   size = 'md',
-}: StatusBadgeProps) => {
-  if (!status) return null;
+  className,
+}) => {
+  const sizeStyles = {
+    sm: 'text-xs px-2 py-1',
+    md: 'text-sm px-3 py-1.5',
+    lg: 'text-base px-4 py-2',
+  };
 
-  // Use the unified color scheme for consistent colors across the app
-  const styleClass = getUnifiedStatusClass(status);
-  const displayText = getStatusDisplayText(status);
-
-  // Fixed width for consistent sizing
-  const fixedWidth =
-    size === 'sm' ? '115px' : size === 'md' ? '125px' : '135px';
+  const statusClass = getUnifiedStatusClass(status);
 
   return (
-    <div
+    <span
       className={cn(
-        'border font-medium justify-center items-center flex rounded-md mx-auto',
-        styleClass,
+        'inline-flex items-center rounded-full font-medium text-white',
         sizeStyles[size],
+        statusClass,
         className
       )}
-      style={{
-        width: `${fixedWidth}`,
-        minWidth: `${fixedWidth}`,
-        maxWidth: `${fixedWidth}`,
-      }}
     >
-      {displayText}
-    </div>
+      {status}
+    </span>
   );
 };

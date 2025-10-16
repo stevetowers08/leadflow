@@ -9,6 +9,7 @@
  * - Enhanced accessibility and keyboard navigation
  */
 
+import { designTokens } from '@/design-system/tokens';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
@@ -181,7 +182,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
           ],
           // Desktop: Fixed sidebar with glassmorphism
           !isMobile && [
-            'fixed left-0 top-0 h-screen w-60 z-30',
+            'fixed left-0 top-0 h-screen w-52 z-30',
             'bg-sidebar text-sidebar-foreground border-r border-sidebar-border',
             'shadow-2xl',
           ]
@@ -198,7 +199,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         className={cn(
           'relative z-10 transition-all duration-300 w-full',
           // Desktop: Add left padding for fixed sidebar
-          !isMobile && 'pl-60'
+          !isMobile && 'pl-52'
         )}
         role='main'
       >
@@ -217,17 +218,12 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         {/* Content Container */}
         <div
           className={cn(
-            'h-screen w-full flex flex-col',
-            // Mobile: Reduced padding for better space utilization
-            isMobile && [
-              'px-4 py-4 pb-20',
-              'safe-area-inset-left safe-area-inset-right',
-            ],
-            // Desktop: Match top bar padding, more vertical padding
-            !isMobile && 'px-6 py-6'
+            'w-full flex flex-col',
+            // Use standardized responsive padding
+            designTokens.spacing.pagePadding.responsive
           )}
         >
-          <div className='flex-1 overflow-hidden'>{children}</div>
+          <div className='flex-1 w-full'>{children}</div>
         </div>
       </main>
 

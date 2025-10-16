@@ -4,8 +4,9 @@
  */
 
 import React from 'react';
-import { StatusBadge } from '../StatusBadge';
 import { AIScoreBadge } from '../ai/AIScoreBadge';
+import { getStatusDisplayText } from '@/utils/statusUtils';
+import { cn } from '@/lib/utils';
 
 export type BadgeType = 'stage' | 'priority' | 'score' | 'status';
 
@@ -14,7 +15,7 @@ export interface BadgeProps {
   value: string | number;
   size?: 'sm' | 'md' | 'lg';
   showDetails?: boolean;
-  leadData?: any;
+  leadData?: Record<string, unknown>;
 }
 
 /**
@@ -28,20 +29,42 @@ export const Badge: React.FC<BadgeProps> = ({
   showDetails = false,
   leadData,
 }) => {
+  const sizeStyles = {
+    sm: 'text-xs font-medium',
+    md: 'text-sm font-medium',
+    lg: 'text-base font-medium',
+  };
+
   switch (type) {
     case 'stage':
-      return <StatusBadge status={String(value)} size={size} />;
+      return (
+        <span className={cn('text-xs font-medium', sizeStyles[size])}>
+          {getStatusDisplayText(String(value))}
+        </span>
+      );
 
     case 'priority':
-      return <StatusBadge status={String(value)} size={size} />;
+      return (
+        <span className={cn('text-xs font-medium', sizeStyles[size])}>
+          {getStatusDisplayText(String(value))}
+        </span>
+      );
 
     case 'status':
-      return <StatusBadge status={String(value)} size={size} />;
+      return (
+        <span className={cn('text-xs font-medium', sizeStyles[size])}>
+          {getStatusDisplayText(String(value))}
+        </span>
+      );
 
     case 'score':
       if (!leadData) {
         console.warn('AIScoreBadge requires leadData');
-        return <StatusBadge status='N/A' size={size} />;
+        return (
+          <span className={cn('text-xs font-medium', sizeStyles[size])}>
+            N/A
+          </span>
+        );
       }
       return (
         <AIScoreBadge
@@ -55,7 +78,11 @@ export const Badge: React.FC<BadgeProps> = ({
 
     default:
       console.error(`Unknown badge type: ${type}`);
-      return <StatusBadge status='Unknown' size={size} />;
+      return (
+        <span className={cn('text-xs font-medium', sizeStyles[size])}>
+          Unknown
+        </span>
+      );
   }
 };
 

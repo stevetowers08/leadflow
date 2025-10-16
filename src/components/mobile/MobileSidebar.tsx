@@ -25,6 +25,7 @@ import {
   User,
   Users,
   X,
+  Megaphone,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -83,6 +84,13 @@ const sidebarItems: SidebarItem[] = [
     label: 'Pipeline',
     icon: <Target className='h-5 w-5' />,
     permission: 'leads',
+    category: 'main',
+  },
+  {
+    to: '/campaigns',
+    label: 'Campaigns',
+    icon: <Megaphone className='h-5 w-5' />,
+    permission: 'campaigns',
     category: 'main',
   },
 

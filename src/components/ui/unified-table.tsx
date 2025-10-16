@@ -37,7 +37,7 @@ export const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={cn(
-      'transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-300 bg-gray-50/50',
+      'transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50',
       className
     )}
     {...props}
@@ -61,7 +61,7 @@ export const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'data-[state=selected]:bg-muted border-b border-gray-300 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-400 transition-colors duration-200 group cursor-pointer relative min-h-[48px]',
+      'data-[state=selected]:bg-muted border-b border-gray-200 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-300 transition-colors duration-200 group cursor-pointer relative min-h-[48px]',
       onClick && 'cursor-pointer',
       className
     )}
@@ -83,17 +83,22 @@ export const TableCell = React.forwardRef<
 >(({ className, cellType, align = 'left', statusValue, ...props }, ref) => {
   const dataAttributes = cellType ? { 'data-cell-type': cellType } : {};
 
-  // Get unified colors for status cells
-  const statusClasses =
-    cellType === 'status' && statusValue
-      ? getUnifiedStatusClass(statusValue)
-      : '';
+  // Memoize status classes to prevent recalculation on every render
+  const statusClasses = React.useMemo(() => {
+    if (cellType === 'status' && statusValue) {
+      return getUnifiedStatusClass(statusValue);
+    }
+    if (cellType === 'ai-score' && statusValue) {
+      return getUnifiedStatusClass(statusValue);
+    }
+    return '';
+  }, [cellType, statusValue]);
 
   return (
     <td
       ref={ref}
       className={cn(
-        'align-middle [&:has([role=checkbox])]:pr-0 px-4 border-r border-gray-300 last:border-r-0 group-hover:border-r-gray-400 group-hover:last:border-r-0 min-h-[44px]',
+        'align-middle [&:has([role=checkbox])]:pr-0 px-4 border-r border-gray-200 last:border-r-0 group-hover:border-r-gray-300 group-hover:last:border-r-0 min-h-[44px]',
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
         // Apply table-system CSS classes for cell types
@@ -127,116 +132,127 @@ export const TableHead = React.forwardRef<
 ));
 
 // Main UnifiedTable Component
-export const UnifiedTable = <T,>({
-  data,
-  columns,
-  pagination = true,
-  stickyHeaders = true,
-  maxHeight = '500px',
-  className,
-  onRowClick,
-  loading = false,
-  emptyMessage = 'No data available',
-}: UnifiedTableProps<T>) => {
-  if (loading) {
-    return (
-      <div className='bg-white rounded-lg border border-gray-300 w-full overflow-hidden'>
-        <div className='flex items-center justify-center h-32'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
-        </div>
-      </div>
-    );
-  }
+export const UnifiedTable = React.memo(
+  <T,>({
+    data,
+    columns,
+    pagination = true,
+    stickyHeaders = true,
+    maxHeight = '500px',
+    className,
+    onRowClick,
+    loading = false,
+    emptyMessage = 'No data available',
+  }: UnifiedTableProps<T>) => {
+    // Memoize the table structure to prevent unnecessary re-renders
+    const tableStructure = React.useMemo(() => {
+      if (loading) {
+        return (
+          <div className='bg-white rounded-lg border border-gray-200 w-full overflow-hidden'>
+            <div className='flex items-center justify-center h-32'>
+              <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+            </div>
+          </div>
+        );
+      }
 
-  if (!data || data.length === 0) {
-    return (
-      <div className='bg-white rounded-lg border border-gray-300 w-full overflow-hidden'>
-        <div className='flex items-center justify-center h-32 text-gray-500'>
-          {emptyMessage}
-        </div>
-      </div>
-    );
-  }
+      if (!data || data.length === 0) {
+        return (
+          <div className='bg-white rounded-lg border border-gray-200 w-full overflow-hidden'>
+            <div className='flex items-center justify-center h-32 text-gray-500'>
+              {emptyMessage}
+            </div>
+          </div>
+        );
+      }
 
-  return (
-    <div
-      className={cn(
-        'bg-white rounded-lg border border-gray-300 w-full overflow-x-auto overflow-y-auto',
-        className
-      )}
-      style={{ maxHeight }}
-    >
-      <table className='table-system w-full'>
-        <TableHeader>
-          <tr>
-            {columns.map(column => (
-              <TableHead
-                key={column.key}
-                scope='col'
-                align={column.align}
-                style={{
-                  width: column.width,
-                  minWidth: column.minWidth || column.width,
-                }}
-              >
-                <div
-                  className={cn(
-                    'flex items-center gap-2',
-                    column.align === 'center' && 'justify-center',
-                    column.align === 'right' && 'justify-end'
-                  )}
-                >
-                  <span>{column.label}</span>
-                </div>
-              </TableHead>
-            ))}
-          </tr>
-        </TableHeader>
-
-        <TableBody>
-          {data.map((row, index) => (
-            <TableRow
-              key={index}
-              index={index}
-              onClick={() => onRowClick?.(row, index)}
-            >
-              {columns.map(column => {
-                const value = (row as Record<string, unknown>)[column.key];
-
-                // Get status value for status cells
-                const statusValue =
-                  column.cellType === 'status' && column.getStatusValue
-                    ? column.getStatusValue(row)
-                    : undefined;
-
-                return (
-                  <TableCell
+      return (
+        <div
+          className={cn(
+            'bg-white rounded-lg border border-gray-200 w-full overflow-x-auto',
+            className
+          )}
+        >
+          <table className='table-system w-full'>
+            <TableHeader>
+              <tr>
+                {columns.map(column => (
+                  <TableHead
                     key={column.key}
-                    cellType={column.cellType}
+                    scope='col'
                     align={column.align}
-                    statusValue={statusValue}
+                    className={
+                      column.label === '' ? 'border-none bg-transparent' : ''
+                    }
                     style={{
                       width: column.width,
                       minWidth: column.minWidth || column.width,
                     }}
                   >
-                    <div>
-                      {column.render ? (
-                        column.render(value, row, index)
-                      ) : (
-                        <span>{value || '-'}</span>
+                    <div
+                      className={cn(
+                        'flex items-center gap-2',
+                        column.align === 'center' && 'justify-center',
+                        column.align === 'right' && 'justify-end'
                       )}
+                    >
+                      <span>{column.label}</span>
                     </div>
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableBody>
-      </table>
-    </div>
-  );
-};
+                  </TableHead>
+                ))}
+              </tr>
+            </TableHeader>
+
+            <TableBody>
+              {data.map((row, index) => (
+                <TableRow
+                  key={index}
+                  index={index}
+                  onClick={() => onRowClick?.(row, index)}
+                >
+                  {columns.map(column => {
+                    const value = (row as Record<string, unknown>)[column.key];
+
+                    // Get status value for status and ai-score cells
+                    const statusValue =
+                      (column.cellType === 'status' ||
+                        column.cellType === 'ai-score') &&
+                      column.getStatusValue
+                        ? column.getStatusValue(row)
+                        : undefined;
+
+                    return (
+                      <TableCell
+                        key={column.key}
+                        cellType={column.cellType}
+                        align={column.align}
+                        statusValue={statusValue}
+                        style={{
+                          width: column.width,
+                          minWidth: column.minWidth || column.width,
+                        }}
+                      >
+                        <div>
+                          {column.render ? (
+                            column.render(value, row, index)
+                          ) : (
+                            <span>{value || '-'}</span>
+                          )}
+                        </div>
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableBody>
+          </table>
+        </div>
+      );
+    }, [data, columns, loading, emptyMessage, className, onRowClick]);
+
+    return tableStructure;
+  }
+) as <T>(props: UnifiedTableProps<T>) => JSX.Element;
 
 // Export compound components for advanced usage
 UnifiedTable.Header = TableHeader;

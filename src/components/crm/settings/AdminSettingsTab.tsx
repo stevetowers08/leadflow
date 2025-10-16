@@ -1,10 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { usePermissions } from '@/contexts/PermissionsContext';
-import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
@@ -12,8 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
+import { DataTable } from '@/components/ui/data-table';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -21,20 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DataTable } from '@/components/ui/data-table';
-import {
-  Loader2,
-  Users,
-  UserPlus,
-  Mail,
-  Shield,
-  Trash2,
-  Edit,
-  Save,
-  X,
-} from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/contexts/PermissionsContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/utils/simpleToast';
-import { gmailService } from '@/services/gmailService';
+import { Loader2, Mail, Save, Trash2, UserPlus, Users } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface User {
   id: string;
@@ -58,12 +46,6 @@ const AdminSettingsTab = () => {
   >({});
   const [userLimit, setUserLimit] = useState<number | null>(null);
   const [savingLimit, setSavingLimit] = useState(false);
-
-  // Load users on mount
-  useEffect(() => {
-    loadUsers();
-    loadUserLimit();
-  }, [loadUsers, loadUserLimit]);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -98,11 +80,13 @@ const AdminSettingsTab = () => {
   }, [user]);
 
   const loadUserLimit = useCallback(async () => {
+    if (!user?.id) return; // Skip if no user ID
+
     try {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('user_limit')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
 
       if (error) {
@@ -114,7 +98,13 @@ const AdminSettingsTab = () => {
     } catch (error) {
       console.error('Error loading user limit:', error);
     }
-  }, [user]);
+  }, [user?.id]);
+
+  // Load users on mount
+  useEffect(() => {
+    loadUsers();
+    loadUserLimit();
+  }, [loadUsers, loadUserLimit]);
 
   const handleInviteUser = async () => {
     if (!inviteEmail.trim()) {
@@ -214,7 +204,9 @@ const AdminSettingsTab = () => {
 
       // Update local state
       setUsers(
-        users.map(user => (user.id === userId ? { ...u, role: newRole } : u))
+        users.map(user =>
+          user.id === userId ? { ...user, role: newRole } : user
+        )
       );
       // Clear the change from state
       setUserRoleChanges(prev => {

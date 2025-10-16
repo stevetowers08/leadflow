@@ -1,37 +1,24 @@
+import IntegrationsPage from '@/components/IntegrationsPage';
+import AdminSettingsTab from '@/components/crm/settings/AdminSettingsTab';
+import BusinessProfileSettings from '@/components/crm/settings/BusinessProfileSettings';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { cn } from '@/lib/utils';
-import {
-  Bell,
-  Building2,
-  Palette,
-  Plug,
-  Settings,
-  Shield,
-  User,
-} from 'lucide-react';
-import { Suspense, lazy, useState } from 'react';
-
-// Lazy load heavy components
-const IntegrationsPage = lazy(() => import('@/components/IntegrationsPage'));
-const AdminSettingsTab = lazy(
-  () => import('@/components/crm/settings/AdminSettingsTab')
-);
-const BusinessProfileSettings = lazy(
-  () => import('@/components/crm/settings/BusinessProfileSettings')
-);
+import { Building2, Plug, User, Users } from 'lucide-react';
+import { useState } from 'react';
 
 interface SettingsSection {
   id: string;
   label: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   description: string;
   available: boolean;
 }
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { hasRole } = usePermissions();
   const [activeSection, setActiveSection] = useState('profile');
 
@@ -40,56 +27,8 @@ const Settings = () => {
     description: 'Manage your account settings and preferences',
   });
 
-  const settingsSections: SettingsSection[] = [
-    {
-      id: 'profile',
-      label: 'Profile',
-      icon: User,
-      description: 'Manage your personal information',
-      available: true,
-    },
-    {
-      id: 'preferences',
-      label: 'Preferences',
-      icon: Palette,
-      description: 'Display and behavior settings',
-      available: true,
-    },
-    {
-      id: 'notifications',
-      label: 'Notifications',
-      icon: Bell,
-      description: 'Email and push notification settings',
-      available: true,
-    },
-    {
-      id: 'targeting',
-      label: 'Targeting',
-      icon: Building2,
-      description: 'Configure targeting criteria',
-      available: true,
-    },
-    {
-      id: 'integrations',
-      label: 'Integrations',
-      icon: Plug,
-      description: 'Third-party integrations',
-      available: true,
-    },
-    {
-      id: 'admin',
-      label: 'Users',
-      icon: Shield,
-      description: 'Manage users and permissions',
-      available: hasRole('owner'),
-    },
-  ];
-
-  const availableSections = settingsSections.filter(
-    section => section.available
-  );
-
-  if (!user) {
+  // Show loading only when auth is actually loading, not when user is null in bypass mode
+  if (loading) {
     return (
       <div className='flex items-center justify-center h-64'>
         <div className='text-center'>
@@ -100,198 +39,166 @@ const Settings = () => {
     );
   }
 
+  const settingsSections: SettingsSection[] = [
+    {
+      id: 'profile',
+      label: 'Your profile',
+      icon: User,
+      description: 'Personal information and account details',
+      available: true,
+    },
+    {
+      id: 'business-profile',
+      label: 'Business Profile',
+      icon: Building2,
+      description: 'Configure your business profile and targeting criteria',
+      available: true,
+    },
+    {
+      id: 'integrations',
+      label: 'Integrations',
+      icon: Plug,
+      description: 'Connect external services and APIs',
+      available: true,
+    },
+    {
+      id: 'team-members',
+      label: 'Team Members',
+      icon: Users,
+      description: 'Manage team members and permissions',
+      available: hasRole('owner'),
+    },
+  ];
+
+  const availableSections = settingsSections.filter(
+    section => section.available
+  );
+
   const renderContent = () => {
     switch (activeSection) {
       case 'profile':
-      case 'preferences':
         return (
-          <div className='p-6'>
-            <div className='max-w-2xl'>
-              <h2 className='text-xl font-semibold mb-4'>
-                {activeSection === 'profile'
-                  ? 'Profile Settings'
-                  : 'Preferences'}
+          <div className='space-y-6'>
+            <div>
+              <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+                Your Profile
               </h2>
+              <p className='text-sm text-gray-600'>
+                Manage your personal information and account details
+              </p>
+            </div>
+            <div className='bg-white border border-gray-200 rounded-lg p-6'>
               <div className='space-y-4'>
-                <div className='p-4 border rounded-lg'>
-                  <h3 className='font-medium mb-2'>Personal Information</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Manage your personal details and contact information
-                  </p>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    Full Name
+                  </label>
+                  <input
+                    type='text'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    placeholder='Enter your full name'
+                  />
                 </div>
-                <div className='p-4 border rounded-lg'>
-                  <h3 className='font-medium mb-2'>Display Preferences</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Customize your interface and display settings
-                  </p>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    Email Address
+                  </label>
+                  <input
+                    type='email'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    placeholder='Enter your email'
+                  />
                 </div>
-                <div className='p-4 border rounded-lg'>
-                  <h3 className='font-medium mb-2'>Privacy Settings</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Control your privacy and data sharing preferences
-                  </p>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    Job Title
+                  </label>
+                  <input
+                    type='text'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    placeholder='Enter your job title'
+                  />
                 </div>
+                <Button>Save Changes</Button>
               </div>
             </div>
           </div>
         );
-      case 'targeting':
-        return (
-          <Suspense
-            fallback={
-              <LoadingFallback message='Loading targeting settings...' />
-            }
-          >
-            <BusinessProfileSettings />
-          </Suspense>
-        );
-      case 'admin':
-        return (
-          <Suspense
-            fallback={<LoadingFallback message='Loading admin settings...' />}
-          >
-            <AdminSettingsTab />
-          </Suspense>
-        );
+
+      case 'business-profile':
+        return <BusinessProfileSettings />;
+
       case 'integrations':
-        return (
-          <Suspense
-            fallback={<LoadingFallback message='Loading integrations...' />}
-          >
-            <IntegrationsPage />
-          </Suspense>
-        );
-      case 'notifications':
-        return (
-          <div className='p-6'>
-            <div className='max-w-2xl'>
-              <h2 className='text-xl font-semibold mb-4'>
-                Notification Settings
-              </h2>
-              <div className='space-y-4'>
-                <div className='p-4 border rounded-lg'>
-                  <h3 className='font-medium mb-2'>Email Notifications</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Manage your email notification preferences
-                  </p>
-                </div>
-                <div className='p-4 border rounded-lg'>
-                  <h3 className='font-medium mb-2'>Push Notifications</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Configure browser and mobile push notifications
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <IntegrationsPage />;
+
+      case 'team-members':
+        return <AdminSettingsTab />;
+
       default:
-        return (
-          <div className='p-6'>
-            <div className='max-w-2xl'>
-              <h2 className='text-xl font-semibold mb-4'>Profile Settings</h2>
-              <div className='space-y-4'>
-                <div className='p-4 border rounded-lg'>
-                  <h3 className='font-medium mb-2'>Personal Information</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Manage your personal details and contact information
-                  </p>
-                </div>
-                <div className='p-4 border rounded-lg'>
-                  <h3 className='font-medium mb-2'>Display Preferences</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Customize your interface and display settings
-                  </p>
-                </div>
-                <div className='p-4 border rounded-lg'>
-                  <h3 className='font-medium mb-2'>Privacy Settings</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Control your privacy and data sharing preferences
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return null;
     }
   };
 
   return (
-    <div className='min-h-screen bg-background'>
-      <div className='flex flex-col lg:flex-row min-h-screen'>
-        {/* Clean Settings Navigation */}
-        <div className='w-full lg:w-64 bg-card border-r border-border'>
-          {/* Header */}
-          <div className='p-6 border-b border-border'>
-            <div className='flex items-center gap-3'>
-              <div className='p-2 bg-primary/10 rounded-lg'>
-                <Settings className='h-5 w-5 text-primary' />
+    <div className='bg-white -mx-4 -my-4 lg:-mx-6 lg:-my-6'>
+      <div className='flex bg-white' style={{ height: 'calc(100vh - 4rem)' }}>
+        {/* Left Sidebar - Settings Navigation */}
+        <div className='w-64 bg-gray-50 border-r border-gray-200 flex flex-col flex-shrink-0'>
+          {/* Navigation Items */}
+          <div className='flex-1 p-4'>
+            <nav className='space-y-1'>
+              {availableSections.map(section => {
+                const Icon = section.icon;
+                const isActive = activeSection === section.id;
+
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => setActiveSection(section.id)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors',
+                      'hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+                      isActive
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : 'text-gray-700 hover:text-gray-900'
+                    )}
+                  >
+                    <Icon className='h-4 w-4 flex-shrink-0' />
+                    <span className='font-medium'>{section.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Account Info */}
+          <div className='p-4 border-t border-gray-200 bg-gray-50'>
+            <div className='text-xs text-gray-500 space-y-1'>
+              <div>
+                Account Status:{' '}
+                <span className='font-medium text-green-600'>Active</span>
               </div>
               <div>
-                <h1 className='text-lg font-semibold text-foreground'>
-                  Settings
-                </h1>
-                <p className='text-sm text-muted-foreground'>
-                  Manage your account and preferences
-                </p>
+                Role:{' '}
+                <span className='font-medium text-blue-600'>
+                  {hasRole('owner')
+                    ? 'Owner'
+                    : hasRole('admin')
+                      ? 'Admin'
+                      : 'User'}
+                </span>
               </div>
             </div>
           </div>
-
-          {/* Navigation */}
-          <nav className='p-4 space-y-2'>
-            {availableSections.map(section => {
-              const Icon = section.icon;
-              const isActive = activeSection === section.id;
-
-              return (
-                <button
-                  key={section.id}
-                  onClick={() => setActiveSection(section.id)}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer w-full text-left',
-                    'hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-                    isActive
-                      ? 'bg-primary/10 text-primary border border-primary/20'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      'h-4 w-4 flex-shrink-0',
-                      isActive ? 'text-primary' : 'text-muted-foreground'
-                    )}
-                  />
-                  <div className='flex-1 min-w-0'>
-                    <span className='font-medium truncate'>
-                      {section.label}
-                    </span>
-                    <p className='text-xs text-muted-foreground truncate mt-0.5'>
-                      {section.description}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </nav>
         </div>
 
-        {/* Settings Content - Full Width */}
-        <div className='flex-1 overflow-auto bg-background w-full'>
-          <div className='min-h-screen w-full'>{renderContent()}</div>
+        {/* Main Content Area */}
+        <div className='flex-1 overflow-y-auto'>
+          <div className='p-6'>{renderContent()}</div>
         </div>
       </div>
     </div>
   );
 };
-
-const LoadingFallback = ({ message }: { message: string }) => (
-  <div className='flex items-center justify-center h-64'>
-    <div className='text-center'>
-      <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4'></div>
-      <p className='text-muted-foreground'>{message}</p>
-    </div>
-  </div>
-);
 
 export default Settings;

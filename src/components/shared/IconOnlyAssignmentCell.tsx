@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { User, UserX } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
-interface TableAssignmentCellProps {
+interface IconOnlyAssignmentCellProps {
   ownerId: string | null;
   entityId: string;
   entityType: 'companies' | 'people' | 'jobs';
@@ -22,7 +22,7 @@ interface UserProfile {
   role: string;
 }
 
-export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
+export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   ownerId,
   entityId,
   entityType,
@@ -53,13 +53,10 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
           .from('user_profiles')
           .select('id, full_name, email, role')
           .eq('id', ownerId)
-          .maybeSingle(); // Use maybeSingle instead of single to handle no results gracefully
+          .single();
 
         if (error) {
-          // Only log non-PGRST116 errors (PGRST116 means no rows found, which is normal)
-          if (error.code !== 'PGRST116') {
-            console.error('Error fetching current owner:', error);
-          }
+          console.error('Error fetching current owner:', error);
           setCurrentOwner(null);
         } else {
           setCurrentOwner(data);
@@ -194,15 +191,16 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
   if (!canAssign) {
     if (!currentOwner) {
       return (
-        <div className={cn('flex items-center gap-2 text-gray-400', className)}>
-          <User className='w-4 h-4' />
-          <span className='text-sm'>Unassigned</span>
+        <div className={cn('flex items-center justify-center', className)}>
+          <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center'>
+            <User className='w-3 h-3 text-gray-400' />
+          </div>
         </div>
       );
     }
 
     return (
-      <div className={cn('flex items-center gap-2', className)}>
+      <div className={cn('flex items-center justify-center', className)}>
         <div className='w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center'>
           <span className='text-xs font-medium text-orange-800'>
             {currentOwner.full_name
@@ -212,51 +210,41 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
               .toUpperCase()}
           </span>
         </div>
-        <span className='text-sm font-medium text-gray-700'>
-          {currentOwner.full_name}
-        </span>
       </div>
     );
   }
 
   return (
-    <div className={cn('relative', className)}>
-      {/* Assignment Display */}
+    <div className={cn('relative flex items-center justify-center', className)}>
+      {/* Assignment Display - Icon Only */}
       <div
         className={cn(
-          'flex items-center gap-2 cursor-pointer transition-colors rounded-md px-2 py-1 hover:bg-gray-50',
+          'cursor-pointer transition-colors rounded-md p-1 hover:bg-gray-50',
           isUpdating && 'opacity-50 pointer-events-none'
         )}
         onClick={handleClick}
+        title={currentOwner ? currentOwner.full_name : 'Unassigned'}
       >
         {currentOwner ? (
-          <>
-            <div className='w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center'>
-              <span className='text-xs font-medium text-orange-800'>
-                {currentOwner.full_name
-                  .split(' ')
-                  .map(namePart => namePart[0])
-                  .join('')
-                  .toUpperCase()}
-              </span>
-            </div>
-            <span className='text-sm font-medium text-gray-700'>
-              {currentOwner.full_name}
+          <div className='w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center'>
+            <span className='text-xs font-medium text-orange-800'>
+              {currentOwner.full_name
+                .split(' ')
+                .map(namePart => namePart[0])
+                .join('')
+                .toUpperCase()}
             </span>
-          </>
+          </div>
         ) : (
-          <>
-            <div className='w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center'>
-              <User className='w-3 h-3 text-gray-400' />
-            </div>
-            <span className='text-sm text-gray-500'>Unassigned</span>
-          </>
+          <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center'>
+            <User className='w-3 h-3 text-gray-400' />
+          </div>
         )}
       </div>
 
       {/* User Selection Dropdown */}
       {showUserList && (
-        <div className='absolute top-full left-0 mt-1 w-64 z-50'>
+        <div className='absolute top-full left-1/2 transform -translate-x-1/2 mt-1 w-64 z-50'>
           <div className='relative z-50 max-h-96 min-w-[16rem] overflow-hidden rounded-md border bg-white text-gray-900 shadow-lg'>
             {/* Header */}
             <div className='p-3 border-b border-gray-200'>

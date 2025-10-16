@@ -1,3 +1,4 @@
+import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { TabNavigation } from '@/components/ui/tab-navigation';
@@ -10,6 +11,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { getClearbitLogo } from '@/services/logoService';
 import { Job, UserProfile } from '@/types/database';
+import { convertNumericScoreToStatus } from '@/utils/colorScheme';
 import { getJobStatusFromPipeline } from '@/utils/jobStatus';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { format } from 'date-fns';
@@ -62,10 +64,10 @@ const Jobs: React.FC = () => {
   // Filter options - memoized to prevent re-renders
   const statusOptions = useMemo(
     () => [
-    { label: 'All Statuses', value: 'all' },
-    { label: 'Active', value: 'active' },
+      { label: 'All Statuses', value: 'all' },
+      { label: 'Active', value: 'active' },
       { label: 'Pending', value: 'pending' },
-    { label: 'Expired', value: 'expired' },
+      { label: 'Expired', value: 'expired' },
     ],
     []
   );
@@ -253,17 +255,23 @@ const Jobs: React.FC = () => {
       render: (_, job) => (
         <div className='min-w-0 cursor-pointer hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors duration-150'>
           <div className='flex items-center gap-2'>
-            <div className='w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+            <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
               {job.companies?.website ? (
                 <img
-                  src={getClearbitLogo(job.companies.name || '')}
+                  src={getClearbitLogo(
+                    job.companies.name || '',
+                    job.companies.website
+                  )}
                   alt={job.companies.name}
-                  className='w-6 h-6 rounded-lg object-cover'
+                  className='w-7 h-7 rounded-lg object-cover'
                   onError={e => {
+                    // Silently handle logo loading errors
                     e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove(
-                      'hidden'
-                    );
+                    const fallback = e.currentTarget
+                      .nextElementSibling as HTMLElement;
+                    if (fallback) {
+                      fallback.style.display = 'flex';
+                    }
                   }}
                 />
               ) : null}
@@ -274,6 +282,49 @@ const Jobs: React.FC = () => {
             </div>
           </div>
         </div>
+      ),
+    },
+    {
+      key: 'assigned_icon',
+      label: '', // No header
+      width: '60px',
+      cellType: 'regular',
+      align: 'center',
+      render: (_, job) => (
+        <IconOnlyAssignmentCell
+          ownerId={job.assigned_to}
+          entityId={job.id}
+          entityType='jobs'
+          onAssignmentChange={() => {
+            // Refresh the jobs data
+            const fetchData = async () => {
+              try {
+                const { data, error } = await supabase
+                  .from('jobs')
+                  .select(
+                    `
+                    *,
+                    companies!left (
+                      id,
+                    name,
+                      website,
+                    industry,
+                    lead_score,
+                      pipeline_stage
+                    )
+                  `
+                  )
+                  .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                setJobs((data as Job[]) || []);
+              } catch (err) {
+                console.error('Error refreshing jobs:', err);
+              }
+            };
+            fetchData();
+          }}
+        />
       ),
     },
     {
@@ -326,6 +377,10 @@ const Jobs: React.FC = () => {
       width: '100px',
       cellType: 'ai-score',
       align: 'center',
+      getStatusValue: job => {
+        const score = job.lead_score_job || job.companies?.lead_score;
+        return convertNumericScoreToStatus(score);
+      },
       render: (_, job) => {
         const score = job.lead_score_job || job.companies?.lead_score;
         return <span>{score ?? '-'}</span>;
@@ -403,17 +458,14 @@ const Jobs: React.FC = () => {
       <Page title='Jobs' hideHeader>
         <div className='flex items-center justify-center h-32 text-red-500'>
           Error: {error}
-      </div>
+        </div>
       </Page>
     );
   }
 
   return (
     <Page title='Jobs' hideHeader>
-      <div
-        className='flex flex-col overflow-hidden'
-        style={{ height: 'calc(100vh - 120px)' }}
-      >
+      <div className='flex flex-col h-full'>
         {/* Modern Tab Navigation */}
         <TabNavigation
           tabs={tabCounts}
@@ -425,15 +477,15 @@ const Jobs: React.FC = () => {
         <FilterControls
           statusOptions={statusOptions}
           userOptions={[
-                { label: 'All Users', value: 'all' },
-                ...users.map(userItem => ({
-                  label:
-                    userItem.id === user?.id
-                      ? `${userItem.full_name} (me)`
-                      : userItem.full_name,
-                  value: userItem.id,
-                })),
-              ]}
+            { label: 'All Users', value: 'all' },
+            ...users.map(userItem => ({
+              label:
+                userItem.id === user?.id
+                  ? `${userItem.full_name} (me)`
+                  : userItem.full_name,
+              value: userItem.id,
+            })),
+          ]}
           sortOptions={sortOptions}
           statusFilter={statusFilter}
           selectedUser={selectedUser}
@@ -447,13 +499,12 @@ const Jobs: React.FC = () => {
         />
 
         {/* Unified Table */}
-        <div className='flex-1 min-h-0'>
+        <div className='flex-1'>
           <UnifiedTable
             data={paginatedJobs}
             columns={columns}
             pagination={false} // We handle pagination externally
             stickyHeaders={true}
-            maxHeight='100%'
             onRowClick={handleRowClick}
             loading={loading}
             emptyMessage='No jobs found'

@@ -1,4 +1,6 @@
 import { StatusBadge } from '@/components/StatusBadge';
+import { Input } from '@/components/ui/input';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Page } from '@/design-system/components';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isThisMonth, isThisWeek, isToday } from 'date-fns';
@@ -42,6 +44,10 @@ const Automations = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterTime, setFilterTime] = useState('all');
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const fetchAutomationActivities = async () => {
     try {
@@ -273,6 +279,13 @@ const Automations = () => {
 
   const groupedActivities = groupActivitiesByDay(filteredActivities);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredActivities.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedActivities = filteredActivities.slice(startIndex, endIndex);
+  const paginatedGroupedActivities = groupActivitiesByDay(paginatedActivities);
+
   useEffect(() => {
     fetchAutomationActivities();
   }, []);
@@ -336,141 +349,165 @@ const Automations = () => {
   }
 
   return (
-    <Page title='Automations'>
-      {/* Filters and Search - Full Width */}
-      <div className='flex items-center gap-4 w-full'>
-        <select
-          value={filterType}
-          onChange={e => setFilterType(e.target.value)}
-          className='px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white'
-        >
-          <option value='all'>All automation types</option>
-          <option value='automation_started'>Automation Started</option>
-          <option value='connection_request'>Connection Request</option>
-          <option value='message_sent'>Message Sent</option>
-          <option value='response_received'>Response Received</option>
-          <option value='meeting_booked'>Meeting Booked</option>
-          <option value='email_sent'>Email Sent</option>
-          <option value='email_reply'>Email Reply</option>
-        </select>
+    <Page title='Automations' hideHeader>
+      <div className='space-y-6'>
+        {/* Filters and Search - Full Width */}
+        <div className='flex items-center gap-4 w-full'>
+          <select
+            value={filterType}
+            onChange={e => setFilterType(e.target.value)}
+            className='px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white'
+          >
+            <option value='all'>All automation types</option>
+            <option value='automation_started'>Automation Started</option>
+            <option value='connection_request'>Connection Request</option>
+            <option value='message_sent'>Message Sent</option>
+            <option value='response_received'>Response Received</option>
+            <option value='meeting_booked'>Meeting Booked</option>
+            <option value='email_sent'>Email Sent</option>
+            <option value='email_reply'>Email Reply</option>
+          </select>
 
-        <select
-          value={filterTime}
-          onChange={e => setFilterTime(e.target.value)}
-          className='px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white'
-        >
-          <option value='all'>All time</option>
-          <option value='today'>Today</option>
-          <option value='week'>This week</option>
-          <option value='month'>This month</option>
-        </select>
+          <select
+            value={filterTime}
+            onChange={e => setFilterTime(e.target.value)}
+            className='px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white'
+          >
+            <option value='all'>All time</option>
+            <option value='today'>Today</option>
+            <option value='week'>This week</option>
+            <option value='month'>This month</option>
+          </select>
 
-        <Sparkles className='h-4 w-4 text-green-500' />
+          <Sparkles className='h-4 w-4 text-green-500' />
 
-        <div className='flex-1 max-w-md'>
-          <div className='relative'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-            <Input
-              placeholder='Search'
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className='pl-10'
-            />
+          <div className='flex-1 max-w-md'>
+            <div className='relative'>
+              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <Input
+                placeholder='Search'
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className='pl-10'
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Activities grouped by day */}
-      {Object.keys(groupedActivities).length === 0 ? (
-        <div className='p-8 text-center'>
-          <Bot className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
-          <h3 className='text-lg font-medium text-foreground mb-2'>
-            No automation activities yet
-          </h3>
-          <p className='text-muted-foreground'>
-            Automation activities will appear here as they occur.
-          </p>
-        </div>
-      ) : (
-        <div className='space-y-6'>
-          {Object.entries(groupedActivities).map(([date, dayActivities]) => (
-            <div key={date} className='space-y-3'>
-              {/* Date Header */}
-              <div className='text-sm font-semibold text-foreground bg-muted px-4 py-2 rounded-lg'>
-                {date}
-              </div>
-
-              {/* Activities for this day */}
-              <div className='space-y-2'>
-                {dayActivities.map(activity => (
-                  <div
-                    key={activity.id}
-                    className='bg-white border border-gray-200 rounded-lg px-4 py-1.5 hover:shadow-sm transition-shadow'
-                  >
-                    <div className='grid grid-cols-12 gap-4 items-center'>
-                      {/* Activity Icon */}
-                      <div className='col-span-1'>
-                        <div
-                          className={`p-1 rounded-full ${activity.bgColor} w-fit`}
-                        >
-                          <div className={activity.color}>{activity.icon}</div>
-                        </div>
-                      </div>
-
-                      {/* Activity Type */}
-                      <div className='col-span-2'>
-                        <span className='font-medium text-foreground'>
-                          {getActivityTypeLabel(activity.type)}
-                        </span>
-                      </div>
-
-                      {/* Person Name */}
-                      <div className='col-span-3'>
-                        <div className='text-sm font-medium text-foreground truncate'>
-                          {activity.person_name}
-                        </div>
-                        {activity.company_role && (
-                          <div className='text-xs text-muted-foreground truncate'>
-                            {activity.company_role}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Company */}
-                      <div className='col-span-3'>
-                        <div className='text-sm text-muted-foreground truncate'>
-                          {activity.company_name}
-                        </div>
-                      </div>
-
-                      {/* Stage */}
-                      <div className='col-span-2'>
-                        {activity.stage ? (
-                          <StatusBadge status={activity.stage} size='sm' />
-                        ) : (
-                          <span className='text-xs text-muted-foreground'>
-                            -
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Time */}
-                      <div className='col-span-1 text-right'>
-                        <div className='text-sm text-muted-foreground'>
-                          {format(new Date(activity.occurred_at), 'dd/MM/yyyy')}
-                        </div>
-                        <div className='text-xs text-muted-foreground'>
-                          {format(new Date(activity.occurred_at), 'HH:mm')}
-                        </div>
-                      </div>
-                    </div>
+        {/* Activities grouped by day */}
+        {Object.keys(paginatedGroupedActivities).length === 0 ? (
+          <div className='p-8 text-center'>
+            <Bot className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
+            <h3 className='text-lg font-medium text-foreground mb-2'>
+              No automation activities yet
+            </h3>
+            <p className='text-muted-foreground'>
+              Automation activities will appear here as they occur.
+            </p>
+          </div>
+        ) : (
+          <div className='space-y-6'>
+            {Object.entries(paginatedGroupedActivities).map(
+              ([date, dayActivities]) => (
+                <div key={date} className='space-y-3'>
+                  {/* Date Header */}
+                  <div className='text-sm font-semibold text-foreground bg-muted px-4 py-2 rounded-lg'>
+                    {date}
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+
+                  {/* Activities for this day */}
+                  <div className='space-y-2'>
+                    {dayActivities.map(activity => (
+                      <div
+                        key={activity.id}
+                        className='bg-white border border-gray-200 rounded-lg px-4 py-1.5 hover:shadow-sm transition-shadow'
+                      >
+                        <div className='grid grid-cols-12 gap-4 items-center'>
+                          {/* Activity Icon */}
+                          <div className='col-span-1'>
+                            <div
+                              className={`p-1 rounded-full ${activity.bgColor} w-fit`}
+                            >
+                              <div className={activity.color}>
+                                {activity.icon}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Activity Type */}
+                          <div className='col-span-2'>
+                            <span className='text-sm font-medium text-foreground'>
+                              {getActivityTypeLabel(activity.type)}
+                            </span>
+                          </div>
+
+                          {/* Person Name */}
+                          <div className='col-span-3'>
+                            <div className='text-sm font-medium text-foreground truncate'>
+                              {activity.person_name}
+                            </div>
+                            {activity.company_role && (
+                              <div className='text-xs text-muted-foreground truncate'>
+                                {activity.company_role}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Company */}
+                          <div className='col-span-3'>
+                            <div className='text-sm text-muted-foreground truncate'>
+                              {activity.company_name}
+                            </div>
+                          </div>
+
+                          {/* Stage */}
+                          <div className='col-span-2'>
+                            {activity.stage ? (
+                              <StatusBadge status={activity.stage} size='sm' />
+                            ) : (
+                              <span className='text-xs text-muted-foreground'>
+                                -
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Time */}
+                          <div className='col-span-1 text-right'>
+                            <div className='text-sm text-muted-foreground'>
+                              {format(
+                                new Date(activity.occurred_at),
+                                'dd/MM/yyyy'
+                              )}
+                            </div>
+                            <div className='text-xs text-muted-foreground'>
+                              {format(new Date(activity.occurred_at), 'HH:mm')}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {filteredActivities.length > 0 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={filteredActivities.length}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={size => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
+          />
+        )}
+      </div>
     </Page>
   );
 };

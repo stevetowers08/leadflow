@@ -40,7 +40,7 @@ export const getClearbitLogo = (
 
     return null;
   } catch (error) {
-    console.error('Error generating Clearbit logo URL:', error);
+    // Silently handle errors - logo failures are common and expected
     return null;
   }
 };

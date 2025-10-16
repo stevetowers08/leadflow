@@ -26,7 +26,7 @@ export const designTokens = {
     },
   },
 
-  // Spacing - Complete scale
+  // Spacing - Complete scale with modern best practices
   spacing: {
     xs: 'gap-1',
     sm: 'gap-2',
@@ -36,13 +36,19 @@ export const designTokens = {
     section: 'mb-4',
     container: 'gap-6',
     item: 'gap-2',
-    // Padding scale
+    // Modern padding scale using rem units
     padding: {
-      xs: 'p-2',
-      sm: 'p-3',
-      md: 'p-4',
-      lg: 'p-6',
-      xl: 'p-8',
+      xs: 'p-2', // 0.5rem
+      sm: 'p-3', // 0.75rem
+      md: 'p-4', // 1rem
+      lg: 'p-6', // 1.5rem
+      xl: 'p-8', // 2rem
+    },
+    // Page-level padding following modern best practices
+    pagePadding: {
+      mobile: 'px-4 py-4', // Mobile: 1rem horizontal, 1rem vertical
+      desktop: 'px-6 py-6', // Desktop: 1.5rem horizontal, 1.5rem vertical
+      responsive: 'px-4 py-4 lg:px-6 lg:py-6', // Responsive scaling
     },
     // Card-specific padding patterns
     cardPadding: {

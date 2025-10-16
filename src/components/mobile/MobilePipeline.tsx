@@ -3,27 +3,25 @@
  * Implements CRM mobile best practices for pipeline management
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Building2,
+  Calendar,
   ChevronRight,
+  Filter,
+  Mail,
+  MoreHorizontal,
+  Phone,
+  Search,
   Users,
   Zap,
-  Target,
-  Star,
-  Phone,
-  Mail,
-  Calendar,
-  MoreHorizontal,
-  Filter,
-  Search,
 } from 'lucide-react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 interface Company {
   id: string;
@@ -49,51 +47,57 @@ interface MobilePipelineProps {
 
 const pipelineStages = [
   {
+    key: 'new_lead',
+    label: 'New Lead',
+    color: 'bg-gray-100 text-gray-700 border-gray-200',
+    shortLabel: 'New',
+  },
+  {
     key: 'automated',
     label: 'Automated',
-    color: 'bg-blue-50 text-blue-700 border-blue-200',
+    color: 'bg-green-600 text-white border-green-700',
     shortLabel: 'Auto',
   },
   {
     key: 'replied',
     label: 'Replied',
-    color: 'bg-green-50 text-green-700 border-green-200',
+    color: 'bg-amber-600 text-white border-amber-700',
     shortLabel: 'Reply',
   },
   {
     key: 'meeting_scheduled',
     label: 'Meeting Scheduled',
-    color: 'bg-purple-50 text-purple-700 border-purple-200',
+    color: 'bg-orange-600 text-white border-orange-700',
     shortLabel: 'Meeting',
   },
   {
     key: 'proposal_sent',
     label: 'Proposal Sent',
-    color: 'bg-orange-50 text-orange-700 border-orange-200',
+    color: 'bg-purple-600 text-white border-purple-700',
     shortLabel: 'Proposal',
   },
   {
     key: 'negotiation',
     label: 'Negotiation',
-    color: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    color: 'bg-amber-600 text-white border-amber-700',
     shortLabel: 'Negotiate',
   },
   {
     key: 'closed_won',
     label: 'Closed Won',
-    color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    color: 'bg-emerald-600 text-white border-emerald-700',
     shortLabel: 'Won',
   },
   {
     key: 'closed_lost',
     label: 'Closed Lost',
-    color: 'bg-red-50 text-red-700 border-red-200',
+    color: 'bg-red-600 text-white border-red-700',
     shortLabel: 'Lost',
   },
   {
     key: 'on_hold',
     label: 'On Hold',
-    color: 'bg-gray-50 text-gray-700 border-gray-200',
+    color: 'bg-gray-600 text-white border-gray-700',
     shortLabel: 'Hold',
   },
 ];

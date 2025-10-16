@@ -11,6 +11,7 @@
 
 import { ListCard, MetricCard, ModernCard } from '@/components/ui/modern-cards';
 import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
+import { Page } from '@/design-system/components';
 import { useReportingData } from '@/hooks/useReportingData';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -295,161 +296,155 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <>
-      {/* Full-screen background */}
-      <div className='fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10' />
+    <Page title='Dashboard' hideHeader>
+      <div className='space-y-6 pt-4'>
+        {/* Welcome Header */}
+        <div className='mb-8'>
+          <h1 className='text-2xl font-bold tracking-tight text-foreground mb-2'>
+            {greeting}, Welcome Back!
+          </h1>
+          <p className='text-gray-600'>
+            Here's what's happening with your leads today
+          </p>
+          {error && (
+            <div className='mt-2 p-3 bg-red-50 border border-red-200 rounded-md'>
+              <p className='text-sm text-red-600'>{error}</p>
+            </div>
+          )}
+        </div>
 
-      {/* Content with negative margins to break out of Layout padding - FULL WIDTH */}
-      <div className='relative min-h-screen -mx-4 -my-4 lg:-mx-6 lg:-my-6'>
-        <div className='space-y-6 w-full px-4 py-6 lg:px-6'>
-          {/* Welcome Header */}
-          <div className='mb-8'>
-            <h1 className='text-2xl font-bold tracking-tight text-foreground mb-2'>
-              {greeting}, Welcome Back!
-            </h1>
-            <p className='text-gray-600'>
-              Here's what's happening with your leads today
-            </p>
-            {error && (
-              <div className='mt-2 p-3 bg-red-50 border border-red-200 rounded-md'>
-                <p className='text-sm text-red-600'>{error}</p>
-              </div>
-            )}
-          </div>
+        {/* Key Metrics - Ultra-Modern Minimal Design */}
+        <div className='grid gap-6 grid-cols-2 lg:grid-cols-4'>
+          <MetricCard
+            title='Recent Jobs'
+            value={isLoadingTodaysData ? '...' : todaysData.newJobsToday}
+            icon={Target}
+            variant='minimal'
+          />
 
-          {/* Key Metrics - Ultra-Modern Minimal Design */}
-          <div className='grid gap-6 grid-cols-2 lg:grid-cols-4'>
-            <MetricCard
-              title='Recent Jobs'
-              value={isLoadingTodaysData ? '...' : todaysData.newJobsToday}
-              icon={Target}
-              variant='minimal'
-            />
+          <MetricCard
+            title='Automated Jobs'
+            value={isLoadingTodaysData ? '...' : todaysData.automatedJobs}
+            icon={Zap}
+            variant='minimal'
+          />
 
-            <MetricCard
-              title='Automated Jobs'
-              value={isLoadingTodaysData ? '...' : todaysData.automatedJobs}
-              icon={Zap}
-              variant='minimal'
-            />
+          <MetricCard
+            title='Recent Leads'
+            value={isLoadingTodaysData ? '...' : todaysData.newLeadsToday}
+            icon={Users}
+            variant='minimal'
+          />
 
-            <MetricCard
-              title='Recent Leads'
-              value={isLoadingTodaysData ? '...' : todaysData.newLeadsToday}
-              icon={Users}
-              variant='minimal'
-            />
+          <MetricCard
+            title='Pending Follow-ups'
+            value={isLoadingTodaysData ? '...' : todaysData.pendingFollowUps}
+            icon={MessageSquare}
+            variant='minimal'
+          />
+        </div>
 
-            <MetricCard
-              title='Pending Follow-ups'
-              value={isLoadingTodaysData ? '...' : todaysData.pendingFollowUps}
-              icon={MessageSquare}
-              variant='minimal'
-            />
-          </div>
+        {/* Quick Actions - Clean Minimal Design */}
+        <div className='grid gap-6 grid-cols-1 lg:grid-cols-2'>
+          {/* Recent Jobs - small cards list */}
+          <ModernCard variant='minimal' className='p-4'>
+            <div className='flex items-center justify-between mb-3'>
+              <h3 className='text-sm font-semibold text-gray-900'>
+                Recent Jobs
+              </h3>
+              <button
+                onClick={() => navigate('/jobs')}
+                className='text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline transition-colors duration-200'
+              >
+                View all
+              </button>
+            </div>
+            <div className='space-y-2.5'>
+              {todaysJobs.slice(0, 4).map((job, index) => (
+                <ListCard
+                  key={job.id || index}
+                  title={job.title || 'Untitled Job'}
+                  subtitle={`${job.companies?.name || 'Unknown Company'}${job.companies?.industry ? ` • ${job.companies.industry}` : ''}`}
+                  logo={job.logo || job.companies?.profile_image_url}
+                  onClick={() => handleItemClick(job, 'job')}
+                  variant='minimal'
+                  badge={
+                    <span className='px-2 py-0.5 rounded-md text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200'>
+                      New
+                    </span>
+                  }
+                />
+              ))}
+              {todaysJobs.length === 0 && (
+                <div className='text-xs text-gray-500'>
+                  No recent jobs found.
+                </div>
+              )}
+            </div>
+          </ModernCard>
 
-          {/* Quick Actions - Clean Minimal Design */}
-          <div className='grid gap-6 grid-cols-1 lg:grid-cols-2'>
-            {/* Recent Jobs - small cards list */}
-            <ModernCard variant='minimal' className='p-4'>
-              <div className='flex items-center justify-between mb-3'>
-                <h3 className='text-sm font-semibold text-gray-900'>
-                  Recent Jobs
-                </h3>
-                <button
-                  onClick={() => navigate('/jobs')}
-                  className='text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline transition-colors duration-200'
-                >
-                  View all
-                </button>
-              </div>
-              <div className='space-y-2.5'>
-                {todaysJobs.slice(0, 4).map((job, index) => (
-                  <ListCard
-                    key={job.id || index}
-                    title={job.title || 'Untitled Job'}
-                    subtitle={`${job.companies?.name || 'Unknown Company'}${job.companies?.industry ? ` • ${job.companies.industry}` : ''}`}
-                    logo={job.logo || job.companies?.profile_image_url}
-                    onClick={() => handleItemClick(job, 'job')}
-                    variant='minimal'
-                    badge={
-                      <span className='px-2 py-0.5 rounded-md text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200'>
-                        New
-                      </span>
-                    }
-                  />
-                ))}
-                {todaysJobs.length === 0 && (
-                  <div className='text-xs text-gray-500'>
-                    No recent jobs found.
-                  </div>
-                )}
-              </div>
-            </ModernCard>
+          {/* Recent Companies - matching recent jobs layout */}
+          <ModernCard variant='minimal' className='p-4'>
+            <div className='flex items-center justify-between mb-3'>
+              <h3 className='text-sm font-semibold text-gray-900'>
+                Recent Companies
+              </h3>
+              <button
+                onClick={() => navigate('/companies')}
+                className='text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline transition-colors duration-200'
+              >
+                View all
+              </button>
+            </div>
+            <div className='space-y-2.5'>
+              {todaysCompanies.slice(0, 4).map((company, index) => (
+                <ListCard
+                  key={company.id || index}
+                  title={company.name || 'Untitled Company'}
+                  subtitle={company.industry || 'Unknown Industry'}
+                  logo={company.profile_image_url}
+                  onClick={() => handleItemClick(company, 'company')}
+                  variant='minimal'
+                  badge={
+                    <span className='px-2 py-0.5 rounded-md text-xs font-medium border bg-blue-50 text-blue-700 border-blue-200'>
+                      New
+                    </span>
+                  }
+                />
+              ))}
+              {todaysCompanies.length === 0 && (
+                <div className='text-xs text-gray-500'>
+                  No recent companies found.
+                </div>
+              )}
+            </div>
+          </ModernCard>
+        </div>
 
-            {/* Recent Companies - matching recent jobs layout */}
-            <ModernCard variant='minimal' className='p-4'>
-              <div className='flex items-center justify-between mb-3'>
-                <h3 className='text-sm font-semibold text-gray-900'>
-                  Recent Companies
-                </h3>
-                <button
-                  onClick={() => navigate('/companies')}
-                  className='text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline transition-colors duration-200'
-                >
-                  View all
-                </button>
-              </div>
-              <div className='space-y-2.5'>
-                {todaysCompanies.slice(0, 4).map((company, index) => (
-                  <ListCard
-                    key={company.id || index}
-                    title={company.name || 'Untitled Company'}
-                    subtitle={company.industry || 'Unknown Industry'}
-                    logo={company.profile_image_url}
-                    onClick={() => handleItemClick(company, 'company')}
-                    variant='minimal'
-                    badge={
-                      <span className='px-2 py-0.5 rounded-md text-xs font-medium border bg-blue-50 text-blue-700 border-blue-200'>
-                        New
-                      </span>
-                    }
-                  />
-                ))}
-                {todaysCompanies.length === 0 && (
-                  <div className='text-xs text-gray-500'>
-                    No recent companies found.
-                  </div>
-                )}
-              </div>
-            </ModernCard>
-          </div>
+        {/* Activity Summary - Clean Minimal Design */}
+        <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
+          <MetricCard
+            title='Emails Sent'
+            value='0'
+            icon={MessageSquare}
+            variant='minimal'
+          />
 
-          {/* Activity Summary - Clean Minimal Design */}
-          <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
-            <MetricCard
-              title='Emails Sent'
-              value='0'
-              icon={MessageSquare}
-              variant='minimal'
-            />
+          <MetricCard
+            title='Response Rate'
+            value='0%'
+            icon={TrendingUp}
+            variant='minimal'
+          />
 
-            <MetricCard
-              title='Response Rate'
-              value='0%'
-              icon={TrendingUp}
-              variant='minimal'
-            />
-
-            <MetricCard
-              title='Meetings Booked'
-              value='0'
-              icon={Calendar}
-              variant='minimal'
-            />
-          </div>
+          <MetricCard
+            title='Meetings Booked'
+            value='0'
+            icon={Calendar}
+            variant='minimal'
+          />
         </div>
       </div>
-    </>
+    </Page>
   );
 }

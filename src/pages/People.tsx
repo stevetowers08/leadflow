@@ -9,12 +9,13 @@
  * - Performance optimizations (useCallback, useMemo, useDebounce)
  * - Proper TypeScript interfaces
  * - Centralized design tokens
+ * - AI Score cells with status-like styling
  */
 
+import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
-import { TableAssignmentCell } from '@/components/shared/TableAssignmentCell';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
 import { FilterControls, Page } from '@/design-system/components';
@@ -23,6 +24,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { getClearbitLogo } from '@/services/logoService';
 import { Person, UserProfile } from '@/types/database';
+import { convertNumericScoreToStatus } from '@/utils/colorScheme';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { Building2, CheckCircle, Target, Users, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -122,8 +124,10 @@ const People: React.FC = () => {
         const normalizedPeople = (peopleResult.data || []).map(
           (person: Record<string, unknown>) => ({
             ...person,
-            company_name: (person.companies as Record<string, unknown>)?.name || null,
-            company_website: (person.companies as Record<string, unknown>)?.website || null,
+            company_name:
+              (person.companies as Record<string, unknown>)?.name || null,
+            company_website:
+              (person.companies as Record<string, unknown>)?.website || null,
           })
         );
 
@@ -217,7 +221,11 @@ const People: React.FC = () => {
           return 0;
       }
 
-      return (aValue as number) > (bValue as number) ? 1 : (aValue as number) < (bValue as number) ? -1 : 0;
+      return (aValue as number) > (bValue as number)
+        ? 1
+        : (aValue as number) < (bValue as number)
+          ? -1
+          : 0;
     });
   }, [
     people,
@@ -290,24 +298,13 @@ const People: React.FC = () => {
         },
       },
       {
-        key: 'name',
-        label: 'Person',
-        width: '300px',
-        cellType: 'regular',
-        render: (_, person) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {person.name || '-'}
-          </div>
-        ),
-      },
-      {
         key: 'company_name',
         label: 'Company',
         width: '250px',
         cellType: 'regular',
         render: (_, person) => (
           <div className='flex items-center gap-3'>
-            <div className='w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+            <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
               {person.company_website ? (
                 <img
                   src={getClearbitLogo(
@@ -315,7 +312,7 @@ const People: React.FC = () => {
                     person.company_website
                   )}
                   alt={person.company_name || ''}
-                  className='w-6 h-6 rounded-lg object-cover'
+                  className='w-7 h-7 rounded-lg object-cover'
                   onError={e => {
                     (e.currentTarget as HTMLImageElement).style.display =
                       'none';
@@ -328,7 +325,7 @@ const People: React.FC = () => {
                 />
               ) : null}
               <div
-                className='w-6 h-6 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center'
+                className='w-7 h-7 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center'
                 style={{ display: person.company_website ? 'none' : 'flex' }}
               >
                 <Building2 className='h-3 w-3' />
@@ -339,6 +336,67 @@ const People: React.FC = () => {
                 {person.company_name || '-'}
               </div>
             </div>
+          </div>
+        ),
+      },
+      {
+        key: 'assigned_icon',
+        label: '', // No header
+        width: '60px',
+        cellType: 'regular',
+        align: 'center',
+        render: (_, person) => (
+          <IconOnlyAssignmentCell
+            ownerId={person.owner_id}
+            entityId={person.id}
+            entityType='people'
+            onAssignmentChange={() => {
+              // Refresh the people data
+              const fetchData = async () => {
+                try {
+                  const { data, error } = await supabase
+                    .from('people')
+                    .select(
+                      `
+                      *,
+                      companies!left(name, website)
+                    `
+                    )
+                    .order('created_at', { ascending: false });
+
+                  if (error) throw error;
+
+                  // Normalize the data to match our Person interface
+                  const normalizedPeople = (data || []).map(
+                    (person: Record<string, unknown>) => ({
+                      ...person,
+                      company_name:
+                        (person.companies as Record<string, unknown>)?.name ||
+                        null,
+                      company_website:
+                        (person.companies as Record<string, unknown>)
+                          ?.website || null,
+                    })
+                  );
+
+                  setPeople(normalizedPeople as Person[]);
+                } catch (err) {
+                  console.error('Error refreshing people:', err);
+                }
+              };
+              fetchData();
+            }}
+          />
+        ),
+      },
+      {
+        key: 'name',
+        label: 'Person',
+        width: '300px',
+        cellType: 'regular',
+        render: (_, person) => (
+          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
+            {person.name || '-'}
           </div>
         ),
       },
@@ -365,54 +423,23 @@ const People: React.FC = () => {
         ),
       },
       {
-        key: 'owner_id',
-        label: 'Person',
-        width: '150px',
-        cellType: 'regular',
-        render: (_, person) => (
-          <TableAssignmentCell
-            ownerId={person.owner_id}
-            entityId={person.id}
-            entityType="people"
-            onAssignmentChange={() => {
-              // Refresh the people data
-              const fetchData = async () => {
-                try {
-                  const { data, error } = await supabase
-                    .from('people')
-                    .select(`
-                      *,
-                      companies!left(name, website)
-                    `)
-                    .order('created_at', { ascending: false });
-
-                  if (error) throw error;
-                  
-                  // Normalize the data to match our Person interface
-                  const normalizedPeople = (data || []).map(
-                    (person: Record<string, unknown>) => ({
-                      ...person,
-                      company_name: (person.companies as Record<string, unknown>)?.name || null,
-                      company_website: (person.companies as Record<string, unknown>)?.website || null,
-                    })
-                  );
-
-                  setPeople(normalizedPeople as Person[]);
-                } catch (err) {
-                  console.error('Error refreshing people:', err);
-                }
-              };
-              fetchData();
-            }}
-          />
-        ),
-      },
-      {
         key: 'lead_score',
         label: 'AI Score',
         width: '100px',
         cellType: 'ai-score',
         align: 'center',
+        getStatusValue: person => {
+          // Convert numeric score to status-like value for unified styling
+          const score = person.lead_score;
+          if (
+            typeof score === 'string' &&
+            ['High', 'Medium', 'Low'].includes(score)
+          ) {
+            return score; // Text-based scores for people
+          }
+          // For numeric scores, convert to status-like value
+          return convertNumericScoreToStatus(score);
+        },
         render: score => <span>{score ?? '-'}</span>,
       },
       {
@@ -461,7 +488,7 @@ const People: React.FC = () => {
 
   if (loading) {
     return (
-      <Page stats={stats} title="People" hideHeader>
+      <Page stats={stats} title='People' hideHeader>
         <div className='flex items-center justify-center h-64'>
           <div className='text-muted-foreground'>Loading people...</div>
         </div>
@@ -471,7 +498,7 @@ const People: React.FC = () => {
 
   if (error) {
     return (
-      <Page stats={stats} title="People" hideHeader>
+      <Page stats={stats} title='People' hideHeader>
         <div className='flex items-center justify-center h-64'>
           <div className='text-destructive'>Error: {error}</div>
         </div>
@@ -480,7 +507,7 @@ const People: React.FC = () => {
   }
 
   return (
-    <Page stats={stats} hideHeader>
+    <Page stats={stats} title='People' hideHeader>
       {/* Filter Controls */}
       <FilterControls
         statusOptions={statusOptions}

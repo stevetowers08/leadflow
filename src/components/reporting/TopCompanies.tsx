@@ -1,13 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../ui/table';
+import { UnifiedTable, ColumnConfig } from '../ui/unified-table';
 
 interface TopCompaniesProps {
   topCompanies: Array<{
@@ -20,56 +13,75 @@ interface TopCompaniesProps {
 }
 
 export const TopCompanies: React.FC<TopCompaniesProps> = ({ topCompanies }) => {
+  const columns: ColumnConfig[] = [
+    {
+      key: 'name',
+      label: 'Company',
+      width: '200px',
+      cellType: 'regular',
+    },
+    {
+      key: 'industry',
+      label: 'Industry',
+      width: '150px',
+      cellType: 'regular',
+    },
+    {
+      key: 'people_count',
+      label: 'People',
+      width: '100px',
+      cellType: 'regular',
+      align: 'center',
+    },
+    {
+      key: 'interactions_count',
+      label: 'Interactions',
+      width: '120px',
+      cellType: 'regular',
+      align: 'center',
+    },
+    {
+      key: 'activity_score',
+      label: 'Activity Score',
+      width: '120px',
+      cellType: 'regular',
+      align: 'center',
+      render: (_, company) => {
+        const activityScore = company.people_count + company.interactions_count;
+        return (
+          <div className='flex items-center'>
+            <div className='w-16 bg-gray-200 rounded-full h-2 mr-2'>
+              <div
+                className='bg-blue-600 h-2 rounded-full'
+                style={{
+                  width: `${Math.min(100, (activityScore / 50) * 100)}%`,
+                }}
+              ></div>
+            </div>
+            <span className='text-sm text-gray-600'>{activityScore}</span>
+          </div>
+        );
+      },
+    },
+  ];
+
+  const dataWithActivityScore = topCompanies.map(company => ({
+    ...company,
+    activity_score: company.people_count + company.interactions_count,
+  }));
+
   return (
     <Card className='mb-8'>
       <CardHeader>
         <CardTitle>Top Companies by Activity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className='overflow-x-auto'>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead>Industry</TableHead>
-                <TableHead>People</TableHead>
-                <TableHead>Interactions</TableHead>
-                <TableHead>Activity Score</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {topCompanies.map(company => {
-                const activityScore =
-                  company.people_count + company.interactions_count;
-                return (
-                  <TableRow key={company.id}>
-                    <TableCell className='font-medium'>
-                      {company.name}
-                    </TableCell>
-                    <TableCell>{company.industry}</TableCell>
-                    <TableCell>{company.people_count}</TableCell>
-                    <TableCell>{company.interactions_count}</TableCell>
-                    <TableCell>
-                      <div className='flex items-center'>
-                        <div className='w-16 bg-gray-200 rounded-full h-2 mr-2'>
-                          <div
-                            className='bg-blue-600 h-2 rounded-full'
-                            style={{
-                              width: `${Math.min(100, (activityScore / 50) * 100)}%`,
-                            }}
-                          ></div>
-                        </div>
-                        <span className='text-sm text-gray-600'>
-                          {activityScore}
-                        </span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        <UnifiedTable
+          data={dataWithActivityScore}
+          columns={columns}
+          pagination={false}
+          emptyMessage='No company data available'
+        />
       </CardContent>
     </Card>
   );

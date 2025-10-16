@@ -24,14 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { UnifiedTable, ColumnConfig } from '@/components/ui/unified-table';
 import {
   Users,
   AlertTriangle,

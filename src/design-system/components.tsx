@@ -109,9 +109,9 @@ export const Page: React.FC<PageProps> = ({
         {/* Full-screen background */}
         <div className='fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10' />
 
-        {/* Content with negative margins to break out of Layout padding */}
-        <div className='relative min-h-screen -mx-4 -my-4 lg:-mx-6 lg:-my-6'>
-          <div className='space-y-6 w-full px-4 py-6 lg:px-6'>
+        {/* Full-width content with proper overflow handling for hover elements */}
+        <div className='relative h-screen w-full'>
+          <div className='space-y-6 w-full px-4 py-6 lg:px-6 h-full flex flex-col pb-8'>
             <LoadingState title={title} message={loadingMessage} />
           </div>
         </div>
@@ -124,9 +124,11 @@ export const Page: React.FC<PageProps> = ({
       {/* Full-screen background */}
       <div className='fixed inset-0 bg-white -z-10' />
 
-      {/* Content with negative margins to break out of Layout padding */}
-      <div className='relative min-h-screen -mx-4 -my-4 lg:-mx-6 lg:-my-6'>
-        <div className='space-y-6 w-full px-4 py-6 lg:px-6 min-h-screen flex flex-col'>
+      {/* Full-width content with proper overflow handling for hover elements */}
+      <div className='relative h-screen w-full'>
+        <div
+          className={cn('space-y-6 w-full h-full flex flex-col px-4 lg:px-6')}
+        >
           {!hideHeader && (
             <div className='mb-4 w-full flex-shrink-0'>
               <div className='flex items-center justify-between w-full'>
@@ -155,7 +157,7 @@ export const Page: React.FC<PageProps> = ({
               </div>
             </div>
           )}
-          <div className='flex-1 flex flex-col'>{children}</div>
+          <div className='flex-1 flex flex-col pb-8'>{children}</div>
         </div>
       </div>
     </>

@@ -11,10 +11,10 @@
  * - Centralized design tokens
  */
 
+import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
-import { TableAssignmentCell } from '@/components/shared/TableAssignmentCell';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
 import { FilterControls, Page } from '@/design-system/components';
@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { Company, Person, UserProfile } from '@/types/database';
+import { convertNumericScoreToStatus } from '@/utils/colorScheme';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { Building2, CheckCircle, Target, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -213,7 +214,11 @@ const Companies: React.FC = () => {
           return 0;
       }
 
-      return (aValue as number) > (bValue as number) ? 1 : (aValue as number) < (bValue as number) ? -1 : 0;
+      return (aValue as number) > (bValue as number)
+        ? 1
+        : (aValue as number) < (bValue as number)
+          ? -1
+          : 0;
     });
   }, [
     companies,
@@ -286,11 +291,11 @@ const Companies: React.FC = () => {
         width: '120px',
         cellType: 'status',
         align: 'center',
-        getStatusValue: (company) => company.pipeline_stage || 'new_lead',
+        getStatusValue: company => company.pipeline_stage || 'new_lead',
         render: (_, company) => {
           const status = company.pipeline_stage || 'new_lead';
           const displayText = getStatusDisplayText(status);
-          return <span className="text-xs font-medium">{displayText}</span>;
+          return <span className='text-xs font-medium'>{displayText}</span>;
         },
       },
       {
@@ -300,7 +305,7 @@ const Companies: React.FC = () => {
         cellType: 'regular',
         render: (_, company) => (
           <div className='flex items-center gap-3'>
-            <div className='w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+            <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
               {company.website ? (
                 <img
                   src={`https://logo.clearbit.com/${
@@ -310,7 +315,7 @@ const Companies: React.FC = () => {
                       .split('/')[0]
                   }`}
                   alt={company.name}
-                  className='w-6 h-6 rounded-lg object-cover'
+                  className='w-7 h-7 rounded-lg object-cover'
                   onError={e => {
                     (e.currentTarget as HTMLImageElement).style.display =
                       'none';
@@ -323,7 +328,7 @@ const Companies: React.FC = () => {
                 />
               ) : null}
               <div
-                className='w-6 h-6 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center'
+                className='w-7 h-7 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center'
                 style={{ display: company.website ? 'none' : 'flex' }}
               >
                 <Building2 className='h-3 w-3' />
@@ -335,6 +340,43 @@ const Companies: React.FC = () => {
               </div>
             </div>
           </div>
+        ),
+      },
+      {
+        key: 'assigned_icon',
+        label: '', // No header
+        width: '60px',
+        cellType: 'regular',
+        align: 'center',
+        render: (_, company) => (
+          <IconOnlyAssignmentCell
+            ownerId={company.owner_id}
+            entityId={company.id}
+            entityType='companies'
+            onAssignmentChange={() => {
+              // Refresh the companies data
+              const fetchData = async () => {
+                try {
+                  const { data, error } = await supabase
+                    .from('companies')
+                    .select(
+                      `
+                      *,
+                      people(count),
+                      jobs(count)
+                    `
+                    )
+                    .order('created_at', { ascending: false });
+
+                  if (error) throw error;
+                  setCompanies((data as unknown as Company[]) || []);
+                } catch (err) {
+                  console.error('Error refreshing companies:', err);
+                }
+              };
+              fetchData();
+            }}
+          />
         ),
       },
       {
@@ -371,56 +413,24 @@ const Companies: React.FC = () => {
         ),
       },
       {
-        key: 'owner_id',
-        label: 'Person',
-        width: '150px',
-        cellType: 'regular',
-        render: (_, company) => (
-          <TableAssignmentCell
-            ownerId={company.owner_id}
-            entityId={company.id}
-            entityType="companies"
-            onAssignmentChange={() => {
-              // Refresh the companies data
-              const fetchData = async () => {
-                try {
-                  const { data, error } = await supabase
-                    .from('companies')
-                    .select(`
-                      *,
-                      people(count),
-                      jobs(count)
-                    `)
-                    .order('created_at', { ascending: false });
-
-                  if (error) throw error;
-                  setCompanies((data as unknown as Company[]) || []);
-                } catch (err) {
-                  console.error('Error refreshing companies:', err);
-                }
-              };
-              fetchData();
-            }}
-          />
-        ),
-      },
-      {
         key: 'lead_score',
         label: 'AI Score',
         width: '100px',
         cellType: 'ai-score',
         align: 'center',
+        getStatusValue: company =>
+          convertNumericScoreToStatus(company.lead_score),
         render: score => <span>{(score as string) ?? '-'}</span>,
       },
       {
         key: 'people_count',
         label: 'People',
-        width: '80px',
-        cellType: 'lead-score',
+        width: '100px',
+        cellType: 'regular',
         align: 'center',
         render: (_, company) => {
           const count = people.filter(p => p.company_id === company.id).length;
-          return <span>{count}</span>;
+          return <span className='text-sm font-medium'>{count}</span>;
         },
       },
       {
@@ -430,7 +440,9 @@ const Companies: React.FC = () => {
         cellType: 'lead-score',
         align: 'center',
         render: (_, company) => {
-          const count = ((company as unknown as Record<string, unknown>).jobs as unknown[])?.length || 0;
+          const count =
+            ((company as unknown as Record<string, unknown>).jobs as unknown[])
+              ?.length || 0;
           return <span>{count}</span>;
         },
       },
@@ -479,7 +491,7 @@ const Companies: React.FC = () => {
 
   if (loading) {
     return (
-      <Page stats={stats} title="Companies" hideHeader>
+      <Page stats={stats} title='Companies' hideHeader>
         <div className='flex items-center justify-center h-64'>
           <div className='text-muted-foreground'>Loading companies...</div>
         </div>
@@ -489,7 +501,7 @@ const Companies: React.FC = () => {
 
   if (error) {
     return (
-      <Page stats={stats} title="Companies" hideHeader>
+      <Page stats={stats} title='Companies' hideHeader>
         <div className='flex items-center justify-center h-64'>
           <div className='text-destructive'>Error: {error}</div>
         </div>
@@ -498,7 +510,7 @@ const Companies: React.FC = () => {
   }
 
   return (
-    <Page stats={stats} title="Companies" hideHeader>
+    <Page stats={stats} title='Companies' hideHeader>
       {/* Filter Controls */}
       <FilterControls
         statusOptions={statusOptions}
@@ -519,7 +531,7 @@ const Companies: React.FC = () => {
       <UnifiedTable
         data={paginatedCompanies}
         columns={columns}
-        onRowClick={handleCompanyClick}
+        onRowClick={handleRowClick}
         loading={loading}
         emptyMessage='No companies found'
       />

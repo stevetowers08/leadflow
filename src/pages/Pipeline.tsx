@@ -40,7 +40,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 type Company = Tables<'companies'> & {
   people_count?: number;
@@ -63,37 +63,6 @@ const Pipeline = () => {
   const [showAllAssignedUsers, setShowAllAssignedUsers] = useState(false);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [pipelineWidth, setPipelineWidth] = useState(0);
-  const topScrollRef = useRef<HTMLDivElement>(null);
-  const bottomScrollRef = useRef<HTMLDivElement>(null);
-  // Scrollbar synchronization for Pipeline
-  useEffect(() => {
-    const topScroll = topScrollRef.current;
-    const bottomScroll = bottomScrollRef.current;
-
-    if (!topScroll || !bottomScroll) return;
-
-    const syncScroll = (source: HTMLElement, target: HTMLElement) => {
-      if (source !== target) {
-        target.scrollLeft = source.scrollLeft;
-      }
-    };
-
-    const handleTopScroll = () => {
-      syncScroll(topScroll, bottomScroll);
-    };
-
-    const handleBottomScroll = () => {
-      syncScroll(bottomScroll, topScroll);
-    };
-
-    topScroll.addEventListener('scroll', handleTopScroll);
-    bottomScroll.addEventListener('scroll', handleBottomScroll);
-
-    return () => {
-      topScroll.removeEventListener('scroll', handleTopScroll);
-      bottomScroll.removeEventListener('scroll', handleBottomScroll);
-    };
-  }, []);
 
   // Use React Query for data fetching with caching
   const {
@@ -230,82 +199,59 @@ const Pipeline = () => {
   // Define company pipeline stages in order (matching database enum values)
   const pipelineStages = [
     {
+      key: 'new_lead',
+      label: 'New Lead',
+      color: 'bg-gray-100 text-gray-700 border-gray-200',
+    },
+    {
       key: 'automated',
       label: 'Automated',
-      color: 'bg-blue-50 text-blue-700 border-blue-200',
+      color: 'bg-green-600 text-white border-green-700',
     },
     {
       key: 'replied',
       label: 'Replied',
-      color: 'bg-green-50 text-green-700 border-green-200',
+      color: 'bg-amber-600 text-white border-amber-700',
     },
     {
       key: 'meeting_scheduled',
       label: 'Meeting Scheduled',
-      color: 'bg-purple-50 text-purple-700 border-purple-200',
+      color: 'bg-orange-600 text-white border-orange-700',
     },
     {
       key: 'proposal_sent',
       label: 'Proposal Sent',
-      color: 'bg-orange-50 text-orange-700 border-orange-200',
+      color: 'bg-purple-600 text-white border-purple-700',
     },
     {
       key: 'negotiation',
       label: 'Negotiation',
-      color: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      color: 'bg-amber-600 text-white border-amber-700',
     },
     {
       key: 'closed_won',
       label: 'Closed Won',
-      color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      color: 'bg-emerald-600 text-white border-emerald-700',
     },
     {
       key: 'closed_lost',
       label: 'Closed Lost',
-      color: 'bg-red-50 text-red-700 border-red-200',
+      color: 'bg-red-600 text-white border-red-700',
     },
     {
       key: 'on_hold',
       label: 'On Hold',
-      color: 'bg-gray-50 text-gray-700 border-gray-200',
+      color: 'bg-gray-600 text-white border-gray-700',
     },
   ];
 
-  // Scrollbar synchronization for Pipeline
-  useEffect(() => {
-    const topScroll = topScrollRef.current;
-    const bottomScroll = bottomScrollRef.current;
-
-    if (!topScroll || !bottomScroll) return;
-
-    const syncScroll = (source: HTMLElement, target: HTMLElement) => {
-      if (source !== target) {
-        target.scrollLeft = source.scrollLeft;
-      }
-    };
-
-    const handleTopScroll = () => {
-      syncScroll(topScroll, bottomScroll);
-    };
-
-    const handleBottomScroll = () => {
-      syncScroll(bottomScroll, topScroll);
-    };
-
-    topScroll.addEventListener('scroll', handleTopScroll);
-    bottomScroll.addEventListener('scroll', handleBottomScroll);
-
-    return () => {
-      topScroll.removeEventListener('scroll', handleTopScroll);
-      bottomScroll.removeEventListener('scroll', handleBottomScroll);
-    };
-  }, []);
-
-  // Calculate pipeline width for scrollbar
+  // Calculate pipeline width responsively
   useEffect(() => {
     const calculateWidth = () => {
       const stageCount = pipelineStages.length;
-      const stageWidth = 320; // Approximate width per stage
+      // Responsive stage width based on viewport
+      const stageWidth =
+        window.innerWidth > 1536 ? 360 : window.innerWidth > 1024 ? 320 : 280;
       const gapWidth = 24; // Gap between stages
       const totalWidth = stageCount * stageWidth + (stageCount - 1) * gapWidth;
       setPipelineWidth(totalWidth);
@@ -848,7 +794,7 @@ const Pipeline = () => {
 
   return (
     <div className='min-h-screen'>
-      <Page title='Company Pipeline'>
+      <Page title='Company Pipeline' hideHeader>
         <div className='flex gap-3 mb-6 w-full'>
           <Button
             variant='outline'
@@ -941,21 +887,9 @@ const Pipeline = () => {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          {/* Enhanced Horizontal Scrolling Pipeline Board */}
-          <div className='relative table-scroll-container'>
-            {/* Top scrollbar for better desktop UX */}
+          {/* Modern Single-Scroll Pipeline Board */}
+          <div className='relative'>
             <div
-              className='overflow-x-auto overflow-y-hidden h-3 mb-2 scrollbar-thin'
-              ref={topScrollRef}
-            >
-              <div
-                className='h-1 bg-transparent'
-                style={{ width: `${pipelineWidth}px` }}
-              />
-            </div>
-
-            <div
-              ref={bottomScrollRef}
               className='overflow-x-auto pb-4 scrollbar-thin w-full'
               style={{
                 // Optimize scrolling performance

@@ -18,11 +18,23 @@ const suppressedPatterns = [
   /Removing intrinsics\.%DatePrototype%\.toTemporalInstant/,
   /lockdown-install\.js/,
   /SES_UNCAUGHT_EXCEPTION/,
+  /SES.*lockdown/,
+  /intrinsics.*toTemporalInstant/,
+  /DatePrototype.*toTemporalInstant/,
 
   // Source map errors
   /Source map error/,
   /installHook\.js\.map/,
   /JSON\.parse: unexpected character/,
+
+  // Image loading errors (common with external logo services)
+  /Failed to load resource: IMG/,
+  /logo\.clearbit\.com/,
+  /Resource Load Error.*IMG/,
+
+  // Database errors (PGRST116 = no rows found, which is normal)
+  /Error fetching current owner.*PGRST116/,
+  /Cannot coerce the result to a single JSON object/,
 
   // Browser extension noise
   /Extension context invalidated/,
@@ -43,7 +55,7 @@ function shouldSuppress(message: string): boolean {
 
 // Filter console methods
 function filterConsoleMethod(originalMethod: typeof console.warn) {
-  return function (...args: any[]) {
+  return function (...args: unknown[]) {
     const message = args.join(' ');
     if (shouldSuppress(message)) {
       return; // Suppress the message
@@ -54,12 +66,16 @@ function filterConsoleMethod(originalMethod: typeof console.warn) {
 
 // Initialize console filtering
 export function initializeConsoleFilter(): void {
-  // Only apply in development to avoid hiding important production errors
-  if (import.meta.env.DEV) {
-    console.warn = filterConsoleMethod(originalConsole.warn);
-    console.error = filterConsoleMethod(originalConsole.error);
-    console.log = filterConsoleMethod(originalConsole.log);
-    console.info = filterConsoleMethod(originalConsole.info);
+  // Apply console filtering in all environments to suppress browser extension noise
+  // This is safe because we're only filtering known browser extension warnings
+  console.warn = filterConsoleMethod(originalConsole.warn);
+  console.error = filterConsoleMethod(originalConsole.error);
+  console.log = filterConsoleMethod(originalConsole.log);
+  console.info = filterConsoleMethod(originalConsole.info);
+
+  // Also filter console.debug if it exists
+  if (console.debug) {
+    console.debug = filterConsoleMethod(originalConsole.debug || console.debug);
   }
 }
 

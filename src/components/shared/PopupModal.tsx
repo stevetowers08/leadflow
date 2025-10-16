@@ -1,4 +1,3 @@
-import { StatusBadge } from '@/components/StatusBadge';
 import { LoadingState } from '@/components/loading/LoadingStates';
 import { DropdownOption } from '@/hooks/useDropdownOptions';
 import { cn } from '@/lib/utils';
@@ -177,7 +176,9 @@ export const PopupModal: React.FC<PopupModalProps> = ({
   // Animation handling
   useEffect(() => {
     if (isOpen) {
-      setIsAnimating(true);
+      // Use setTimeout to avoid synchronous setState in effect
+      const timer = setTimeout(() => setIsAnimating(true), 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -294,7 +295,9 @@ export const PopupModal: React.FC<PopupModalProps> = ({
             {/* Center - Status Badge for leads */}
             {entityType === 'lead' && (
               <div className='flex items-center gap-3'>
-                <StatusBadge status={currentStatus || 'new'} size='sm' />
+                <span className='text-xs font-medium'>
+                  {getStatusDisplayText(currentStatus || 'new')}
+                </span>
               </div>
             )}
 

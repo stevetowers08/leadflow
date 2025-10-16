@@ -22,6 +22,7 @@ import {
   Target,
   Users,
   X,
+  Megaphone,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { FourTwentyLogo } from '../FourTwentyLogo';
@@ -41,6 +42,7 @@ const navigationSections = [
   {
     items: [
       { name: 'Pipeline', href: '/pipeline', icon: Target },
+      { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
       { name: 'Conversations', href: '/conversations', icon: MessageSquare },
     ],
   },

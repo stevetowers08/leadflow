@@ -14,7 +14,7 @@
   /* Simple table styling */
   border-collapse: separate !important;
   border-spacing: 0 !important;
-  border: 1px solid #d1d5db !important;
+  border: 1px solid #e5e7eb !important;
   border-radius: 8px !important;
   overflow: hidden !important;
   box-shadow:
@@ -28,8 +28,8 @@
   height: var(--table-row-height) !important;
   min-height: var(--table-row-height) !important;
   vertical-align: middle !important;
-  border-right: 1px solid #d1d5db !important;
-  border-bottom: 1px solid #d1d5db !important;
+  border-right: 1px solid #e5e7eb !important;
+  border-bottom: 1px solid #e5e7eb !important;
 }
 
 /* Headers */
@@ -43,7 +43,7 @@
   letter-spacing: 0.05em !important;
   color: #374151 !important; /* Darker gray for better contrast */
   background-color: #f8fafc !important;
-  border-bottom: 2px solid #d1d5db !important;
+  border-bottom: 1px solid #e5e7eb !important;
   position: sticky !important;
   top: 0 !important;
   z-index: 10 !important;
@@ -72,6 +72,67 @@
   padding: 0 var(--table-padding-regular) !important;
 }
 
+/* Ensure unified status colors override everything */
+.table-system td[data-cell-type='status'].bg-gray-100 {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+}
+
+.table-system td[data-cell-type='status'].bg-green-600 {
+  background-color: #16a34a !important;
+  color: #ffffff !important;
+  border-color: #15803d !important;
+}
+
+.table-system td[data-cell-type='status'].bg-amber-600 {
+  background-color: #d97706 !important;
+  color: #ffffff !important;
+  border-color: #b45309 !important;
+}
+
+.table-system td[data-cell-type='status'].bg-orange-600 {
+  background-color: #ea580c !important;
+  color: #ffffff !important;
+  border-color: #c2410c !important;
+}
+
+.table-system td[data-cell-type='status'].bg-red-600 {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  border-color: #b91c1c !important;
+}
+
+.table-system td[data-cell-type='status'].bg-emerald-600 {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+  border-color: #047857 !important;
+}
+
+.table-system td[data-cell-type='status'].bg-purple-600 {
+  background-color: #9333ea !important;
+  color: #ffffff !important;
+  border-color: #7c3aed !important;
+}
+
+.table-system td[data-cell-type='status'].bg-gray-600 {
+  background-color: #4b5563 !important;
+  color: #ffffff !important;
+  border-color: #374151 !important;
+}
+
+.table-system td[data-cell-type='status'].bg-yellow-600 {
+  background-color: #ca8a04 !important;
+  color: #ffffff !important;
+  border-color: #a16207 !important;
+}
+
+.table-system td[data-cell-type='status'].bg-teal-600 {
+  background-color: #0d9488 !important;
+  color: #ffffff !important;
+  border-color: #0f766e !important;
+}
+
 .table-system td[data-cell-type='priority'] {
   padding: var(--table-padding-status) !important;
   background-color: var(--priority-bg) !important;
@@ -80,10 +141,75 @@
 }
 
 .table-system td[data-cell-type='ai-score'] {
-  padding: var(--table-padding-regular) !important;
-  background-color: white !important;
-  color: #374151 !important;
+  padding: 0 var(--table-padding-regular) !important;
   text-align: center !important;
+}
+
+/* AI Score cell color overrides - same as status cells */
+.table-system td[data-cell-type='ai-score'].bg-gray-100 {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+}
+
+.table-system td[data-cell-type='ai-score'].bg-green-600 {
+  background-color: #16a34a !important;
+  color: #ffffff !important;
+  border-color: #15803d !important;
+}
+
+.table-system td[data-cell-type='ai-score'].bg-blue-600 {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+}
+
+.table-system td[data-cell-type='ai-score'].bg-amber-600 {
+  background-color: #d97706 !important;
+  color: #ffffff !important;
+  border-color: #b45309 !important;
+}
+
+.table-system td[data-cell-type='ai-score'].bg-yellow-600 {
+  background-color: #ca8a04 !important;
+  color: #ffffff !important;
+  border-color: #a16207 !important;
+}
+
+.table-system td[data-cell-type='ai-score'].bg-orange-600 {
+  background-color: #ea580c !important;
+  color: #ffffff !important;
+  border-color: #c2410c !important;
+}
+
+.table-system td[data-cell-type='ai-score'].bg-red-600 {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  border-color: #b91c1c !important;
+}
+
+.table-system td[data-cell-type='ai-score'].bg-emerald-600 {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+  border-color: #047857 !important;
+}
+
+.table-system td[data-cell-type='ai-score'].bg-purple-600 {
+  background-color: #9333ea !important;
+  color: #ffffff !important;
+  border-color: #7c3aed !important;
+}
+
+.table-system td[data-cell-type='ai-score'].bg-gray-600 {
+  background-color: #4b5563 !important;
+  color: #ffffff !important;
+  border-color: #374151 !important;
+}
+
+.table-system td[data-cell-type='ai-score'].bg-teal-600 {
+  background-color: #0d9488 !important;
+  color: #ffffff !important;
+  border-color: #0f766e !important;
 }
 
 .table-system td[data-cell-type='lead-score'] {
@@ -151,7 +277,7 @@
 }
 
 .table-system tr:hover td[data-cell-type='ai-score'] {
-  background-color: #f9fafb !important;
+  /* No overrides - unified system handles hover states */
 }
 
 .table-system tr:hover td[data-cell-type='lead-score'] {

@@ -1,0 +1,161 @@
+/**
+ * Hover Overflow Fixes - 2025 Edition
+ * 
+ * Comprehensive solution for preventing hover elements from being cut off
+ * by container overflow settings.
+ * 
+ * Best Practices Implemented:
+ * - Proper z-index stacking context
+ * - Overflow handling for hover states
+ * - Transform3d for hardware acceleration
+ * - CSS containment for performance
+ */
+
+/* Global hover container fixes */
+.hover-safe-container {
+  /* Ensure hover elements can extend beyond container bounds */
+  overflow: visible !important;
+  /* Create proper stacking context */
+  position: relative;
+  z-index: 1;
+  /* Enable hardware acceleration for smooth animations */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Enhanced z-index stacking for hover elements */
+.hover-element {
+  z-index: 60 !important;
+  /* Ensure proper positioning context */
+  position: relative;
+}
+
+.hover-element-high {
+  z-index: 70 !important;
+  position: relative;
+}
+
+/* Dropdown and popover specific fixes */
+.dropdown-container {
+  /* Prevent clipping by parent containers */
+  overflow: visible !important;
+  /* Ensure proper stacking */
+  z-index: 60;
+  position: relative;
+}
+
+.dropdown-content {
+  /* Portal-like behavior for dropdowns */
+  z-index: 70 !important;
+  /* Ensure visibility */
+  position: relative;
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Tooltip specific fixes */
+.tooltip-container {
+  /* Allow tooltips to extend beyond bounds */
+  overflow: visible !important;
+  /* Proper stacking context */
+  z-index: 1;
+  position: relative;
+}
+
+.tooltip-content {
+  /* High z-index for tooltips */
+  z-index: 70 !important;
+  /* Ensure proper rendering */
+  position: relative;
+  /* Smooth animations */
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Page-level overflow fixes */
+.page-container {
+  /* Allow hover elements to extend beyond page bounds */
+  overflow-x: visible !important;
+  /* Maintain vertical scrolling */
+  overflow-y: auto;
+  /* Proper stacking context */
+  position: relative;
+  z-index: 1;
+}
+
+/* Card hover effects that might extend beyond bounds */
+.card-hover-safe {
+  /* Ensure hover effects aren't clipped */
+  overflow: visible !important;
+  /* Proper stacking */
+  position: relative;
+  z-index: 1;
+  /* Hardware acceleration for smooth hover */
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Table cell hover fixes */
+.table-cell-hover {
+  /* Allow dropdowns to extend beyond cell bounds */
+  overflow: visible !important;
+  /* Proper positioning context */
+  position: relative;
+  z-index: 1;
+}
+
+/* Mobile-specific hover fixes */
+@media (max-width: 768px) {
+  .mobile-hover-safe {
+    /* On mobile, ensure touch targets aren't clipped */
+    overflow: visible !important;
+    /* Prevent horizontal scrolling issues */
+    overflow-x: visible !important;
+    /* Proper stacking */
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* Performance optimizations */
+.hover-optimized {
+  /* Enable hardware acceleration */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* Optimize for hover animations */
+  will-change: transform, opacity;
+  /* Prevent layout thrashing */
+  contain: layout style paint;
+}
+
+/* Accessibility improvements */
+.hover-accessible {
+  /* Ensure hover elements are accessible */
+  z-index: 70 !important;
+  /* Proper focus management */
+  position: relative;
+  /* High contrast for better visibility */
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+/* Dark mode hover fixes */
+@media (prefers-color-scheme: dark) {
+  .hover-dark-safe {
+    /* Enhanced shadows for dark mode */
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+    /* Ensure proper contrast */
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Print media fixes */
+@media print {
+  .hover-print-safe {
+    /* Disable hover effects in print */
+    overflow: visible !important;
+    z-index: auto !important;
+    transform: none !important;
+  }
+}
