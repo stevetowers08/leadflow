@@ -26,7 +26,7 @@ export const getAuthConfig = (): AuthConfig => {
   const isDevelopment = import.meta.env.MODE === 'development' || import.meta.env.DEV;
   const bypassAuth = import.meta.env.VITE_BYPASS_AUTH === 'true';
 
-  // Force bypass in development for now
+  // Force bypass in development for now, or when explicitly enabled in production
   const shouldBypass = isDevelopment || bypassAuth;
 
   console.log('🔍 Auth Config Debug:', {
