@@ -49,7 +49,7 @@ class ServerAIService {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.supabaseAnonKey}`,
+            Authorization: `Bearer ${this.supabaseAnonKey}`,
           },
           body: JSON.stringify({
             jobData: {
@@ -68,17 +68,18 @@ class ServerAIService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Server AI error: ${response.status} - ${errorData.error || response.statusText}`);
+        throw new Error(
+          `Server AI error: ${response.status} - ${errorData.error || response.statusText}`
+        );
       }
 
       const result = await response.json();
       return result;
-
     } catch (error) {
       console.error('Server AI processing error:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -86,25 +87,27 @@ class ServerAIService {
   /**
    * Batch process multiple jobs using server-side AI
    */
-  async batchProcessJobs(jobs: Array<{
-    id: string;
-    title: string;
-    company: string;
-    description: string;
-    location?: string;
-    salary?: string;
-  }>): Promise<Array<{ id: string; result: ServerAIResponse }>> {
+  async batchProcessJobs(
+    jobs: Array<{
+      id: string;
+      title: string;
+      company: string;
+      description: string;
+      location?: string;
+      salary?: string;
+    }>
+  ): Promise<Array<{ id: string; result: ServerAIResponse }>> {
     const results: Array<{ id: string; result: ServerAIResponse }> = [];
-    
+
     // Process jobs in batches to respect rate limits
     const batchSize = 3; // Smaller batches for server processing
     const delayMs = 1000; // 1 second delay between batches
 
     for (let i = 0; i < jobs.length; i += batchSize) {
       const batch = jobs.slice(i, i + batchSize);
-      
+
       // Process batch in parallel
-      const batchPromises = batch.map(async (job) => {
+      const batchPromises = batch.map(async job => {
         const result = await this.generateJobSummary(job);
         return { id: job.id, result };
       });
@@ -134,18 +137,18 @@ class ServerAIService {
         {
           method: 'OPTIONS',
           headers: {
-            'Authorization': `Bearer ${this.supabaseAnonKey}`,
+            Authorization: `Bearer ${this.supabaseAnonKey}`,
           },
         }
       );
 
       return {
-        available: response.ok
+        available: response.ok,
       };
     } catch (error) {
       return {
         available: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }

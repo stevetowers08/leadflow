@@ -28,14 +28,17 @@ async function checkDatabaseState() {
   try {
     // Check auth users
     console.log('👤 Checking auth users...');
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-    
+    const { data: authUsers, error: authError } =
+      await supabase.auth.admin.listUsers();
+
     if (authError) {
       console.log('   ❌ Failed to fetch auth users:', authError.message);
     } else {
       console.log(`   ✅ Found ${authUsers.users.length} auth users`);
       authUsers.users.forEach((user, index) => {
-        console.log(`   ${index + 1}. ${user.email} (${user.email_confirmed_at ? 'verified' : 'unverified'})`);
+        console.log(
+          `   ${index + 1}. ${user.email} (${user.email_confirmed_at ? 'verified' : 'unverified'})`
+        );
       });
     }
 
@@ -66,7 +69,9 @@ async function checkDatabaseState() {
     } else {
       console.log(`   ✅ Found ${companies?.length || 0} companies`);
       companies?.forEach((company, index) => {
-        console.log(`   ${index + 1}. ${company.name || company['Company Name'] || 'Unnamed'}`);
+        console.log(
+          `   ${index + 1}. ${company.name || company['Company Name'] || 'Unnamed'}`
+        );
       });
     }
 
@@ -82,7 +87,9 @@ async function checkDatabaseState() {
     } else {
       console.log(`   ✅ Found ${people?.length || 0} people`);
       people?.forEach((person, index) => {
-        console.log(`   ${index + 1}. ${person.name || person['Name'] || 'Unnamed'}`);
+        console.log(
+          `   ${index + 1}. ${person.name || person['Name'] || 'Unnamed'}`
+        );
       });
     }
 
@@ -98,14 +105,16 @@ async function checkDatabaseState() {
     } else {
       console.log(`   ✅ Found ${jobs?.length || 0} jobs`);
       jobs?.forEach((job, index) => {
-        console.log(`   ${index + 1}. ${job.title || job['Job Title'] || 'Untitled'}`);
+        console.log(
+          `   ${index + 1}. ${job.title || job['Job Title'] || 'Untitled'}`
+        );
       });
     }
 
     // Check RLS status
     console.log('\n🔒 Checking RLS status...');
-    const { data: rlsStatus, error: rlsError } = await supabase
-      .rpc('get_rls_status');
+    const { data: rlsStatus, error: rlsError } =
+      await supabase.rpc('get_rls_status');
 
     if (rlsError) {
       console.log('   ⚠️ Could not check RLS status (function may not exist)');
@@ -114,7 +123,6 @@ async function checkDatabaseState() {
     }
 
     console.log('\n🎯 Database state check complete!');
-
   } catch (error) {
     console.error('\n❌ Database check failed:', error.message);
   }

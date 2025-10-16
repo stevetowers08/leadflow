@@ -1,6 +1,13 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/table';
 
 interface RecentInteractionsProps {
   recentInteractions: Array<{
@@ -13,7 +20,9 @@ interface RecentInteractionsProps {
   }>;
 }
 
-export const RecentInteractions: React.FC<RecentInteractionsProps> = ({ recentInteractions }) => {
+export const RecentInteractions: React.FC<RecentInteractionsProps> = ({
+  recentInteractions,
+}) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -35,12 +44,12 @@ export const RecentInteractions: React.FC<RecentInteractionsProps> = ({ recentIn
   };
 
   return (
-    <Card className="mb-8">
+    <Card className='mb-8'>
       <CardHeader>
         <CardTitle>Recent Interactions</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div className='overflow-x-auto'>
           <Table>
             <TableHeader>
               <TableRow>
@@ -52,14 +61,16 @@ export const RecentInteractions: React.FC<RecentInteractionsProps> = ({ recentIn
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentInteractions.map((interaction) => (
+              {recentInteractions.map(interaction => (
                 <TableRow key={interaction.id}>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(interaction.type)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(interaction.type)}`}
+                    >
                       {interaction.type}
                     </span>
                   </TableCell>
-                  <TableCell className="max-w-xs truncate">
+                  <TableCell className='max-w-xs truncate'>
                     {interaction.description}
                   </TableCell>
                   <TableCell>{interaction.person_name}</TableCell>

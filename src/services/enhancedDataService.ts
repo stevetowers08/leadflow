@@ -1,6 +1,13 @@
 import { supabase } from '@/integrations/supabase/client';
-import { CACHE_PATTERNS, useAdvancedCaching, useOptimisticMutation } from './useAdvancedCaching';
-import { useMultiTableRealtime, useRealtimeSubscription } from './useRealtimeSubscriptions';
+import {
+  CACHE_PATTERNS,
+  useAdvancedCaching,
+  useOptimisticMutation,
+} from './useAdvancedCaching';
+import {
+  useMultiTableRealtime,
+  useRealtimeSubscription,
+} from './useRealtimeSubscriptions';
 
 // Enhanced data service with caching and real-time updates
 export function useEnhancedDataService() {
@@ -9,40 +16,40 @@ export function useEnhancedDataService() {
     {
       table: 'people',
       events: ['INSERT', 'UPDATE', 'DELETE'],
-      onInsert: (payload) => {
+      onInsert: payload => {
         console.log('🆕 New person added:', payload.new);
       },
-      onUpdate: (payload) => {
+      onUpdate: payload => {
         console.log('🔄 Person updated:', payload.new);
       },
-      onDelete: (payload) => {
+      onDelete: payload => {
         console.log('🗑️ Person deleted:', payload.old);
       },
     },
     {
       table: 'companies',
       events: ['INSERT', 'UPDATE', 'DELETE'],
-      onInsert: (payload) => {
+      onInsert: payload => {
         console.log('🏢 New company added:', payload.new);
       },
-      onUpdate: (payload) => {
+      onUpdate: payload => {
         console.log('🏢 Company updated:', payload.new);
       },
     },
     {
       table: 'jobs',
       events: ['INSERT', 'UPDATE', 'DELETE'],
-      onInsert: (payload) => {
+      onInsert: payload => {
         console.log('💼 New job added:', payload.new);
       },
-      onUpdate: (payload) => {
+      onUpdate: payload => {
         console.log('💼 Job updated:', payload.new);
       },
     },
     {
       table: 'interactions',
       events: ['INSERT', 'UPDATE'],
-      onInsert: (payload) => {
+      onInsert: payload => {
         console.log('💬 New interaction:', payload.new);
       },
     },
@@ -74,9 +81,8 @@ export function useEnhancedLeadsService(
       const { column, ascending } = sort;
       const { search, status, ...otherFilters } = filters;
 
-      let query = supabase
-        .from('people')
-        .select(`
+      let query = supabase.from('people').select(
+        `
           id,
           name,
           company_id,
@@ -93,13 +99,17 @@ export function useEnhancedLeadsService(
             name,
             website
           )
-        `, { count: 'exact' });
+        `,
+        { count: 'exact' }
+      );
 
       // Apply filters
       if (search) {
-        query = query.or(`name.ilike.%${search}%,company_role.ilike.%${search}%,email_address.ilike.%${search}%`);
+        query = query.or(
+          `name.ilike.%${search}%,company_role.ilike.%${search}%,email_address.ilike.%${search}%`
+        );
       }
-      
+
       if (status && status !== 'all') {
         query = query.eq('stage', status);
       }
@@ -128,7 +138,7 @@ export function useEnhancedLeadsService(
         totalCount: count || 0,
         hasMore: (count || 0) > to + 1,
         page,
-        pageSize
+        pageSize,
       };
     },
     {
@@ -163,9 +173,8 @@ export function useEnhancedCompaniesService(
       const { column, ascending } = sort;
       const { search, pipeline_stage, ...otherFilters } = filters;
 
-      let query = supabase
-        .from('companies')
-        .select(`
+      let query = supabase.from('companies').select(
+        `
           id,
           name,
           website,
@@ -175,13 +184,15 @@ export function useEnhancedCompaniesService(
           pipeline_stage,
           created_at,
           updated_at
-        `, { count: 'exact' });
+        `,
+        { count: 'exact' }
+      );
 
       // Apply filters
       if (search) {
         query = query.or(`name.ilike.%${search}%,industry.ilike.%${search}%`);
       }
-      
+
       if (pipeline_stage && pipeline_stage !== 'all') {
         query = query.eq('pipeline_stage', pipeline_stage);
       }
@@ -210,7 +221,7 @@ export function useEnhancedCompaniesService(
         totalCount: count || 0,
         hasMore: (count || 0) > to + 1,
         page,
-        pageSize
+        pageSize,
       };
     },
     {
@@ -245,9 +256,8 @@ export function useEnhancedJobsService(
       const { column, ascending } = sort;
       const { search, priority, ...otherFilters } = filters;
 
-      let query = supabase
-        .from('jobs')
-        .select(`
+      let query = supabase.from('jobs').select(
+        `
           id,
           title,
           location,
@@ -263,13 +273,15 @@ export function useEnhancedJobsService(
             website,
             industry
           )
-        `, { count: 'exact' });
+        `,
+        { count: 'exact' }
+      );
 
       // Apply filters
       if (search) {
         query = query.or(`title.ilike.%${search}%,location.ilike.%${search}%`);
       }
-      
+
       if (priority && priority !== 'all') {
         query = query.eq('priority', priority);
       }
@@ -298,7 +310,7 @@ export function useEnhancedJobsService(
         totalCount: count || 0,
         hasMore: (count || 0) > to + 1,
         page,
-        pageSize
+        pageSize,
       };
     },
     {
@@ -322,7 +334,11 @@ export function useEnhancedJobsService(
 
 // Enhanced dashboard service with real-time updates
 export function useEnhancedDashboardService() {
-  const { data: dashboardStats, isLoading, error } = useAdvancedCaching(
+  const {
+    data: dashboardStats,
+    isLoading,
+    error,
+  } = useAdvancedCaching(
     ['dashboard', 'stats'],
     async () => {
       const [
@@ -396,10 +412,19 @@ export function useOptimisticMutations() {
 
   // Optimistic update for company pipeline stage
   const updateCompanyPipelineStage = useOptimisticMutation(
-    async ({ companyId, newStage }: { companyId: string; newStage: string }) => {
+    async ({
+      companyId,
+      newStage,
+    }: {
+      companyId: string;
+      newStage: string;
+    }) => {
       const { data, error } = await supabase
         .from('companies')
-        .update({ pipeline_stage: newStage, updated_at: new Date().toISOString() })
+        .update({
+          pipeline_stage: newStage,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', companyId)
         .select()
         .single();

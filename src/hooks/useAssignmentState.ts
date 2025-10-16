@@ -29,7 +29,13 @@ export interface AssignmentOptions {
 }
 
 export const useAssignmentState = (options: AssignmentOptions) => {
-  const { entityType, entityId, onSuccess, onError, enableOptimisticUpdates = true } = options;
+  const {
+    entityType,
+    entityId,
+    onSuccess,
+    onError,
+    enableOptimisticUpdates = true,
+  } = options;
   const [state, setState] = useState<AssignmentState>({
     ownerId: null,
     ownerName: null,
@@ -45,7 +51,7 @@ export const useAssignmentState = (options: AssignmentOptions) => {
 
   // Check if user can assign
   const canAssign = hasRole('admin') || hasRole('owner');
-  
+
   // Debug logging
   console.log('🔍 Assignment Debug:', {
     entityType,
@@ -55,7 +61,7 @@ export const useAssignmentState = (options: AssignmentOptions) => {
     hasOwnerRole: hasRole('owner'),
     hasRecruiterRole: hasRole('recruiter'),
     userEmail: user?.email,
-    allUserRoles: user?.user_metadata?.role || 'no role metadata'
+    allUserRoles: user?.user_metadata?.role || 'no role metadata',
   });
 
   // Fetch current assignment
@@ -63,7 +69,10 @@ export const useAssignmentState = (options: AssignmentOptions) => {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      const { ownerId, ownerName } = await DatabaseQueries.getAssignment(entityType, entityId);
+      const { ownerId, ownerName } = await DatabaseQueries.getAssignment(
+        entityType,
+        entityId
+      );
 
       setState(prev => ({
         ...prev,
@@ -74,10 +83,11 @@ export const useAssignmentState = (options: AssignmentOptions) => {
       }));
     } catch (error) {
       console.error('Error fetching assignment:', error);
-      const errorMessage = error instanceof DatabaseError 
-        ? error.message 
-        : 'Failed to fetch assignment';
-      
+      const errorMessage =
+        error instanceof DatabaseError
+          ? error.message
+          : 'Failed to fetch assignment';
+
       setState(prev => ({
         ...prev,
         isLoading: false,
@@ -105,9 +115,9 @@ export const useAssignmentState = (options: AssignmentOptions) => {
       // Perform the assignment
       const { error } = await supabase
         .from(entityType)
-        .update({ 
+        .update({
           owner_id: newOwnerId,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
 
@@ -115,11 +125,13 @@ export const useAssignmentState = (options: AssignmentOptions) => {
 
       return { newOwnerId, ownerName: newOwnerId ? 'Loading...' : null };
     },
-    onMutate: async (newOwnerId) => {
+    onMutate: async newOwnerId => {
       if (!enableOptimisticUpdates) return;
 
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['assignment', entityType, entityId] });
+      await queryClient.cancelQueries({
+        queryKey: ['assignment', entityType, entityId],
+      });
 
       // Snapshot the previous value
       const previousState = state;
@@ -142,7 +154,8 @@ export const useAssignmentState = (options: AssignmentOptions) => {
         setState(context.previousState);
       }
 
-      const errorMessage = error instanceof Error ? error.message : 'Assignment failed';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Assignment failed';
       setState(prev => ({
         ...prev,
         isUpdating: false,
@@ -150,14 +163,14 @@ export const useAssignmentState = (options: AssignmentOptions) => {
       }));
 
       toast({
-        title: "Assignment Failed",
+        title: 'Assignment Failed',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
 
       onError?.(errorMessage);
     },
-    onSuccess: (data) => {
+    onSuccess: data => {
       setState(prev => ({
         ...prev,
         ownerId: data.newOwnerId,
@@ -184,10 +197,14 @@ export const useAssignmentState = (options: AssignmentOptions) => {
       }
 
       // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ['assignment', entityType, entityId] });
+      queryClient.invalidateQueries({
+        queryKey: ['assignment', entityType, entityId],
+      });
       queryClient.invalidateQueries({ queryKey: ['user-assignment-stats'] });
       queryClient.invalidateQueries({ queryKey: ['leads-with-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['companies-with-assignments'] });
+      queryClient.invalidateQueries({
+        queryKey: ['companies-with-assignments'],
+      });
       queryClient.invalidateQueries({ queryKey: ['unassigned-leads'] });
       queryClient.invalidateQueries({ queryKey: ['unassigned-companies'] });
       queryClient.invalidateQueries({ queryKey: ['leads'] });
@@ -195,10 +212,10 @@ export const useAssignmentState = (options: AssignmentOptions) => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
 
       toast({
-        title: "Assignment Updated",
-        description: data.newOwnerId 
+        title: 'Assignment Updated',
+        description: data.newOwnerId
           ? `Assigned to ${data.ownerName || 'user'}`
-          : "Assignment removed",
+          : 'Assignment removed',
       });
 
       onSuccess?.(data.newOwnerId);
@@ -206,31 +223,35 @@ export const useAssignmentState = (options: AssignmentOptions) => {
   });
 
   // Assign entity to user
-  const assignToUser = useCallback((newOwnerId: string | null) => {
-    if (!canAssign) {
-      toast({
-        title: "Permission Denied",
-        description: "You don't have permission to assign entities",
-        variant: "destructive",
-      });
-      return;
-    }
+  const assignToUser = useCallback(
+    (newOwnerId: string | null) => {
+      if (!canAssign) {
+        toast({
+          title: 'Permission Denied',
+          description: "You don't have permission to assign entities",
+          variant: 'destructive',
+        });
+        return;
+      }
 
-    assignmentMutation.mutate(newOwnerId);
-  }, [canAssign, assignmentMutation, toast]);
+      assignmentMutation.mutate(newOwnerId);
+    },
+    [canAssign, assignmentMutation, toast]
+  );
 
   // Set up real-time subscription for assignment changes
   useEffect(() => {
     const channel = supabase
       .channel(`${entityType}-assignment-${entityId}`)
-      .on('postgres_changes', 
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
           table: entityType,
-          filter: `id=eq.${entityId}`
-        }, 
-        (payload) => {
+          filter: `id=eq.${entityId}`,
+        },
+        payload => {
           console.log('Assignment changed via real-time:', payload);
           // Refetch assignment data when it changes
           fetchAssignment();

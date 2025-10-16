@@ -25,7 +25,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 async function updateUserRole(email, newRole) {
   try {
     console.log(`🔄 Updating user role for ${email} to ${newRole}...`);
-    
+
     const { data, error } = await supabase
       .from('user_profiles')
       .update({ role: newRole })
@@ -56,7 +56,9 @@ const role = process.argv[3];
 
 if (!email || !role) {
   console.log('Usage: node scripts/update-user-role.js <email> <role>');
-  console.log('Example: node scripts/update-user-role.js stevetowers08@gmail.com owner');
+  console.log(
+    'Example: node scripts/update-user-role.js stevetowers08@gmail.com owner'
+  );
   process.exit(1);
 }
 

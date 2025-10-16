@@ -39,13 +39,13 @@ export class ChatService {
       timeout: 30000,
       retryAttempts: 3,
       enableStreaming: true, // Always enable streaming by default
-      ...config
+      ...config,
     };
   }
 
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
     const { webhookUrl, apiKey, timeout, retryAttempts } = this.config;
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -83,15 +83,22 @@ export class ChatService {
         }
 
         const data = await response.json();
-        
+
         return {
-          message: data.message || data.response || data.text || 'No response received',
-          conversationId: data.conversationId || request.conversationId || this.generateConversationId(),
+          message:
+            data.message ||
+            data.response ||
+            data.text ||
+            'No response received',
+          conversationId:
+            data.conversationId ||
+            request.conversationId ||
+            this.generateConversationId(),
           metadata: data.metadata || data.meta || {},
         };
       } catch (error) {
         lastError = error as Error;
-        
+
         if (attempt < retryAttempts!) {
           // Exponential backoff
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
@@ -100,15 +107,20 @@ export class ChatService {
       }
     }
 
-    throw new Error(`Failed to send message after ${retryAttempts} attempts: ${lastError?.message}`);
+    throw new Error(
+      `Failed to send message after ${retryAttempts} attempts: ${lastError?.message}`
+    );
   }
 
-  async sendMessageStream(request: ChatRequest, onChunk: StreamCallback): Promise<void> {
+  async sendMessageStream(
+    request: ChatRequest,
+    onChunk: StreamCallback
+  ): Promise<void> {
     const { webhookUrl, apiKey, timeout } = this.config;
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Accept': 'text/event-stream',
+      Accept: 'text/event-stream',
     };
 
     if (apiKey) {
@@ -144,7 +156,7 @@ export class ChatService {
       }
 
       const contentType = response.headers.get('content-type') || '';
-      
+
       // Check if response is actually streaming (SSE)
       if (contentType.includes('text/event-stream')) {
         // Handle Server-Sent Events streaming
@@ -155,12 +167,13 @@ export class ChatService {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
-        let conversationId = request.conversationId || this.generateConversationId();
+        let conversationId =
+          request.conversationId || this.generateConversationId();
 
         try {
           while (true) {
             const { done, value } = await reader.read();
-            
+
             if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
@@ -169,10 +182,10 @@ export class ChatService {
 
             for (const line of lines) {
               if (line.trim() === '') continue;
-              
+
               if (line.startsWith('data: ')) {
                 const data = line.slice(6);
-                
+
                 if (data === '[DONE]') {
                   onChunk({ content: '', done: true, conversationId });
                   return;
@@ -181,23 +194,24 @@ export class ChatService {
                 try {
                   const parsed = JSON.parse(data);
                   const chunk: StreamChunk = {
-                    content: parsed.content || parsed.delta || parsed.text || '',
+                    content:
+                      parsed.content || parsed.delta || parsed.text || '',
                     done: parsed.done || false,
                     conversationId: parsed.conversationId || conversationId,
                     metadata: parsed.metadata || parsed.meta || {},
                   };
-                  
+
                   onChunk(chunk);
-                  
+
                   if (chunk.conversationId) {
                     conversationId = chunk.conversationId;
                   }
                 } catch (parseError) {
                   // If it's not JSON, treat as plain text content
-                  onChunk({ 
-                    content: data, 
-                    done: false, 
-                    conversationId 
+                  onChunk({
+                    content: data,
+                    done: false,
+                    conversationId,
                   });
                 }
               }
@@ -210,25 +224,33 @@ export class ChatService {
         // Handle regular response (could be JSON or plain text)
         const responseText = await response.text();
         console.log('Received response from webhook (raw):', responseText);
-        
+
         let responseData;
         let responseContent;
-        
+
         try {
           // Try to parse as JSON first
           responseData = JSON.parse(responseText);
           console.log('Parsed as JSON:', responseData);
-          responseContent = responseData.message || responseData.response || responseData.text || responseData.output || responseText;
+          responseContent =
+            responseData.message ||
+            responseData.response ||
+            responseData.text ||
+            responseData.output ||
+            responseText;
         } catch (parseError) {
           // If not JSON, treat as plain text
           console.log('Not JSON, treating as plain text');
           responseData = {};
           responseContent = responseText;
         }
-        
-        const conversationId = responseData.conversationId || request.conversationId || this.generateConversationId();
+
+        const conversationId =
+          responseData.conversationId ||
+          request.conversationId ||
+          this.generateConversationId();
         console.log('Final response content:', responseContent);
-        
+
         // Send response immediately
         onChunk({
           content: responseContent,
@@ -237,14 +259,15 @@ export class ChatService {
           metadata: responseData.metadata || responseData.meta || {},
         });
       }
-
     } catch (error) {
       console.error('Streaming error:', error);
-      onChunk({ 
-        content: '', 
-        done: true, 
+      onChunk({
+        content: '',
+        done: true,
         conversationId: request.conversationId || this.generateConversationId(),
-        metadata: { error: error instanceof Error ? error.message : 'Streaming failed' }
+        metadata: {
+          error: error instanceof Error ? error.message : 'Streaming failed',
+        },
       });
     }
   }
@@ -257,9 +280,9 @@ export class ChatService {
   async testConnection(): Promise<boolean> {
     try {
       console.log('Testing webhook connection to:', this.config.webhookUrl);
-      
+
       const { webhookUrl, timeout } = this.config;
-      
+
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -297,8 +320,11 @@ export class ChatService {
 
       // Just check if we get a response, don't need to parse it
       const responseText = await response.text();
-      console.log('Test response received:', responseText.substring(0, 100) + '...');
-      
+      console.log(
+        'Test response received:',
+        responseText.substring(0, 100) + '...'
+      );
+
       return true;
     } catch (error) {
       console.error('Webhook connection test failed:', error);
@@ -321,7 +347,8 @@ export class ChatService {
 // Default webhook configurations for popular AI services
 export const AI_SERVICE_CONFIGS = {
   n8n: {
-    webhookUrl: 'https://n8n.srv814433.hstgr.cloud/webhook/9c3e515b-f1cf-4649-a4af-5143e3b7668e',
+    webhookUrl:
+      'https://n8n.srv814433.hstgr.cloud/webhook/9c3e515b-f1cf-4649-a4af-5143e3b7668e',
     timeout: 30000,
     enableStreaming: true,
   },
@@ -339,6 +366,5 @@ export const AI_SERVICE_CONFIGS = {
     webhookUrl: '',
     timeout: 30000,
     enableStreaming: true,
-  }
+  },
 } as const;
-

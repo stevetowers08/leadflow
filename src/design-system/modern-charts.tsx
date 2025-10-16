@@ -10,14 +10,14 @@ import '../lib/chart-config';
 
 // Modern chart color palette - Fixed for Tailwind CSS v4
 export const modernChartColors = {
-  primary: '#0077B5',      // LinkedIn Blue
-  secondary: '#00A0DC',    // Rich Electric Blue
-  success: '#10B981',      // Emerald Green
-  warning: '#F59E0B',      // Amber
-  error: '#EF4444',        // Red
-  info: '#3B82F6',         // Blue
-  muted: '#6B7280',        // Gray
-  accent: '#8B5CF6',       // Purple
+  primary: '#0077B5', // LinkedIn Blue
+  secondary: '#00A0DC', // Rich Electric Blue
+  success: '#10B981', // Emerald Green
+  warning: '#F59E0B', // Amber
+  error: '#EF4444', // Red
+  info: '#3B82F6', // Blue
+  muted: '#6B7280', // Gray
+  accent: '#8B5CF6', // Purple
   // Additional colors for better chart visibility
   blue: '#3B82F6',
   green: '#10B981',
@@ -45,17 +45,17 @@ interface ModernLineChartProps {
   options?: Record<string, unknown>;
 }
 
-export const ModernLineChart: React.FC<ModernLineChartProps> = ({ 
-  data, 
-  height = 300, 
+export const ModernLineChart: React.FC<ModernLineChartProps> = ({
+  data,
+  height = 300,
   loading = false,
-  options = {}
+  options = {},
 }) => {
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
-        <div className="flex items-center space-x-2 text-gray-500">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      <div className='flex items-center justify-center h-64 bg-gray-50 rounded-lg'>
+        <div className='flex items-center space-x-2 text-gray-500'>
+          <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primary'></div>
           <span>Loading chart...</span>
         </div>
       </div>
@@ -73,10 +73,10 @@ export const ModernLineChart: React.FC<ModernLineChartProps> = ({
           padding: 20,
           font: {
             size: 12,
-            family: 'Inter, system-ui, sans-serif'
+            family: 'Inter, system-ui, sans-serif',
           },
-          color: '#374151' // Ensure legend text is not black
-        }
+          color: '#374151', // Ensure legend text is not black
+        },
       },
       tooltip: {
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -97,7 +97,7 @@ export const ModernLineChart: React.FC<ModernLineChartProps> = ({
           family: 'Inter, system-ui, sans-serif',
           size: 12,
         },
-      }
+      },
     },
     scales: {
       x: {
@@ -107,10 +107,10 @@ export const ModernLineChart: React.FC<ModernLineChartProps> = ({
         ticks: {
           font: {
             size: 11,
-            family: 'Inter, system-ui, sans-serif'
+            family: 'Inter, system-ui, sans-serif',
           },
-          color: '#6B7280' // Ensure axis text is not black
-        }
+          color: '#6B7280', // Ensure axis text is not black
+        },
       },
       y: {
         grid: {
@@ -120,29 +120,29 @@ export const ModernLineChart: React.FC<ModernLineChartProps> = ({
         ticks: {
           font: {
             size: 11,
-            family: 'Inter, system-ui, sans-serif'
+            family: 'Inter, system-ui, sans-serif',
           },
-          color: '#6B7280' // Ensure axis text is not black
-        }
-      }
+          color: '#6B7280', // Ensure axis text is not black
+        },
+      },
     },
     elements: {
       point: {
         radius: 4,
         hoverRadius: 6,
         borderWidth: 2,
-        backgroundColor: 'white'
+        backgroundColor: 'white',
       },
       line: {
         borderWidth: 2,
-        tension: 0.4
-      }
+        tension: 0.4,
+      },
     },
     interaction: {
       intersect: false,
       mode: 'index' as const,
     },
-    ...options
+    ...options,
   };
 
   return (
@@ -153,12 +153,22 @@ export const ModernLineChart: React.FC<ModernLineChartProps> = ({
 };
 
 // Additional chart components can be added here
-export const ModernBarChart: React.FC<ModernLineChartProps> = ({ data, height = 300, loading = false, options = {} }) => {
+export const ModernBarChart: React.FC<ModernLineChartProps> = ({
+  data,
+  height = 300,
+  loading = false,
+  options = {},
+}) => {
   // Implementation for bar chart
   return <div>Bar Chart Component (to be implemented)</div>;
 };
 
-export const ModernPieChart: React.FC<ModernLineChartProps> = ({ data, height = 300, loading = false, options = {} }) => {
+export const ModernPieChart: React.FC<ModernLineChartProps> = ({
+  data,
+  height = 300,
+  loading = false,
+  options = {},
+}) => {
   // Implementation for pie chart
   return <div>Pie Chart Component (to be implemented)</div>;
 };

@@ -43,31 +43,31 @@ class GeminiService {
       if (!this.apiKey) {
         return {
           success: false,
-          error: 'Gemini API key not configured. Please add VITE_GEMINI_API_KEY to your environment variables.'
+          error:
+            'Gemini API key not configured. Please add VITE_GEMINI_API_KEY to your environment variables.',
         };
       }
 
       const prompt = this.buildJobSummaryPrompt(jobData);
       const response = await this.callGeminiAPI(prompt);
-      
+
       if (!response.success) {
         return response;
       }
 
       // Parse the JSON response
       const parsedData = JSON.parse(response.data || '{}');
-      
+
       return {
         success: true,
         data: parsedData,
-        tokens_used: response.tokens_used
+        tokens_used: response.tokens_used,
       };
-
     } catch (error) {
       console.error('Gemini job summary error:', error);
       return {
         success: false,
-        error: `Failed to generate job summary: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Failed to generate job summary: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
@@ -76,12 +76,16 @@ class GeminiService {
    * Summarize raw job description text from Supabase
    * Perfect for processing existing job data
    */
-  async summarizeJobDescription(description: string, title?: string, company?: string): Promise<GeminiAnalysisResult> {
+  async summarizeJobDescription(
+    description: string,
+    title?: string,
+    company?: string
+  ): Promise<GeminiAnalysisResult> {
     try {
       if (!this.apiKey) {
         return {
           success: false,
-          error: 'Gemini API key not configured'
+          error: 'Gemini API key not configured',
         };
       }
 
@@ -108,24 +112,23 @@ class GeminiService {
       `;
 
       const response = await this.callGeminiAPI(prompt);
-      
+
       if (!response.success) {
         return response;
       }
 
       const parsedData = JSON.parse(response.data || '{}');
-      
+
       return {
         success: true,
         data: parsedData,
-        tokens_used: response.tokens_used
+        tokens_used: response.tokens_used,
       };
-
     } catch (error) {
       console.error('Gemini description summarization error:', error);
       return {
         success: false,
-        error: `Failed to summarize job description: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Failed to summarize job description: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
@@ -134,23 +137,25 @@ class GeminiService {
    * Batch process multiple job descriptions
    * Respects rate limits (60 requests per minute)
    */
-  async batchSummarizeJobs(jobs: Array<{
-    id: string;
-    title: string;
-    company: string;
-    description: string;
-    location?: string;
-    salary?: string;
-  }>): Promise<Array<{ id: string; result: GeminiAnalysisResult }>> {
+  async batchSummarizeJobs(
+    jobs: Array<{
+      id: string;
+      title: string;
+      company: string;
+      description: string;
+      location?: string;
+      salary?: string;
+    }>
+  ): Promise<Array<{ id: string; result: GeminiAnalysisResult }>> {
     const results: Array<{ id: string; result: GeminiAnalysisResult }> = [];
     const batchSize = 10; // Process 10 at a time to respect rate limits
     const delayMs = 1000; // 1 second delay between batches
 
     for (let i = 0; i < jobs.length; i += batchSize) {
       const batch = jobs.slice(i, i + batchSize);
-      
+
       // Process batch in parallel
-      const batchPromises = batch.map(async (job) => {
+      const batchPromises = batch.map(async job => {
         const result = await this.summarizeJobDescription(
           job.description,
           job.title,
@@ -185,7 +190,7 @@ class GeminiService {
       if (!this.apiKey) {
         return {
           success: false,
-          error: 'Gemini API key not configured'
+          error: 'Gemini API key not configured',
         };
       }
 
@@ -218,24 +223,23 @@ class GeminiService {
       `;
 
       const response = await this.callGeminiAPI(prompt);
-      
+
       if (!response.success) {
         return response;
       }
 
       const parsedData = JSON.parse(response.data || '{}');
-      
+
       return {
         success: true,
         data: parsedData,
-        tokens_used: response.tokens_used
+        tokens_used: response.tokens_used,
       };
-
     } catch (error) {
       console.error('Gemini lead scoring analysis error:', error);
       return {
         success: false,
-        error: `Failed to analyze job for lead scoring: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Failed to analyze job for lead scoring: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
@@ -287,7 +291,12 @@ class GeminiService {
   /**
    * Call Google Gemini API
    */
-  private async callGeminiAPI(prompt: string): Promise<{ success: boolean; data?: string; tokens_used?: number; error?: string }> {
+  private async callGeminiAPI(prompt: string): Promise<{
+    success: boolean;
+    data?: string;
+    tokens_used?: number;
+    error?: string;
+  }> {
     try {
       const response = await fetch(
         `${this.baseUrl}/models/${this.model}:generateContent?key=${this.apiKey}`,
@@ -297,11 +306,15 @@ class GeminiService {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }],
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt,
+                  },
+                ],
+              },
+            ],
             generationConfig: {
               temperature: 0.3,
               topK: 40,
@@ -310,34 +323,40 @@ class GeminiService {
             },
             safetySettings: [
               {
-                category: "HARM_CATEGORY_HARASSMENT",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                category: 'HARM_CATEGORY_HARASSMENT',
+                threshold: 'BLOCK_MEDIUM_AND_ABOVE',
               },
               {
-                category: "HARM_CATEGORY_HATE_SPEECH",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                category: 'HARM_CATEGORY_HATE_SPEECH',
+                threshold: 'BLOCK_MEDIUM_AND_ABOVE',
               },
               {
-                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                threshold: 'BLOCK_MEDIUM_AND_ABOVE',
               },
               {
-                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
-              }
-            ]
-          })
+                category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+              },
+            ],
+          }),
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Gemini API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+        throw new Error(
+          `Gemini API error: ${response.status} - ${errorData.error?.message || response.statusText}`
+        );
       }
 
       const data = await response.json();
-      
-      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+
+      if (
+        !data.candidates ||
+        !data.candidates[0] ||
+        !data.candidates[0].content
+      ) {
         throw new Error('Invalid response format from Gemini API');
       }
 
@@ -347,14 +366,13 @@ class GeminiService {
       return {
         success: true,
         data: content,
-        tokens_used: tokensUsed
+        tokens_used: tokensUsed,
       };
-
     } catch (error) {
       console.error('Gemini API call failed:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown API error'
+        error: error instanceof Error ? error.message : 'Unknown API error',
       };
     }
   }
@@ -369,9 +387,9 @@ class GeminiService {
   /**
    * Get service status and capabilities
    */
-  getStatus(): { 
-    available: boolean; 
-    model: string; 
+  getStatus(): {
+    available: boolean;
+    model: string;
     features: string[];
     rateLimit: string;
     cost: string;
@@ -381,14 +399,14 @@ class GeminiService {
       model: this.model,
       features: [
         'job_summarization',
-        'description_analysis', 
+        'description_analysis',
         'lead_scoring_analysis',
         'batch_processing',
         'skill_extraction',
-        'salary_analysis'
+        'salary_analysis',
       ],
       rateLimit: '60 requests per minute (free tier)',
-      cost: 'FREE - No cost for basic usage'
+      cost: 'FREE - No cost for basic usage',
     };
   }
 }

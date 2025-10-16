@@ -9,28 +9,28 @@ export const REALTIME_CONFIG = {
   // Different subscription types for different data
   SUBSCRIPTION_TYPES: {
     PEOPLE: 'people',
-    COMPANIES: 'companies', 
+    COMPANIES: 'companies',
     JOBS: 'jobs',
     INTERACTIONS: 'interactions',
     CAMPAIGNS: 'campaigns',
     CAMPAIGN_PARTICIPANTS: 'campaign_participants',
     USER_PROFILES: 'user_profiles',
   },
-  
+
   // Event types to listen for
   EVENTS: {
     INSERT: 'INSERT',
-    UPDATE: 'UPDATE', 
+    UPDATE: 'UPDATE',
     DELETE: 'DELETE',
-    ALL: '*'
+    ALL: '*',
   },
-  
+
   // Debounce delays for different event types
   DEBOUNCE_DELAYS: {
     INSERT: 100, // 100ms
     UPDATE: 200, // 200ms
-    DELETE: 50,  // 50ms
-  }
+    DELETE: 50, // 50ms
+  },
 };
 
 // Real-time subscription hook
@@ -51,7 +51,7 @@ export function useRealtimeSubscription(
   const channelRef = useRef<RealtimeChannel | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<any>(null);
-  
+
   const {
     events = [REALTIME_CONFIG.EVENTS.ALL],
     filter,
@@ -59,7 +59,7 @@ export function useRealtimeSubscription(
     onUpdate,
     onDelete,
     enabled = true,
-    debounceMs = 100
+    debounceMs = 100,
   } = options;
 
   // Debounced event handler
@@ -77,36 +77,39 @@ export function useRealtimeSubscription(
   );
 
   // Handle real-time events
-  const handleRealtimeEvent = useCallback((eventType: string, payload: any) => {
-    console.log(`🔄 Real-time ${eventType} event for ${table}:`, payload);
-    
-    setLastEvent({ eventType, payload, timestamp: new Date() });
-    
-    // Invalidate relevant queries
-    queryClient.invalidateQueries({ queryKey: [table] });
-    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-    
-    // Call custom handlers
-    switch (eventType) {
-      case REALTIME_CONFIG.EVENTS.INSERT:
-        if (onInsert) onInsert(payload);
-        toast({
-          title: "New Data",
-          description: `New ${table} record added`,
-        });
-        break;
-      case REALTIME_CONFIG.EVENTS.UPDATE:
-        if (onUpdate) onUpdate(payload);
-        break;
-      case REALTIME_CONFIG.EVENTS.DELETE:
-        if (onDelete) onDelete(payload);
-        toast({
-          title: "Data Removed",
-          description: `${table} record deleted`,
-        });
-        break;
-    }
-  }, [table, queryClient, toast, onInsert, onUpdate, onDelete]);
+  const handleRealtimeEvent = useCallback(
+    (eventType: string, payload: any) => {
+      console.log(`🔄 Real-time ${eventType} event for ${table}:`, payload);
+
+      setLastEvent({ eventType, payload, timestamp: new Date() });
+
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: [table] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+
+      // Call custom handlers
+      switch (eventType) {
+        case REALTIME_CONFIG.EVENTS.INSERT:
+          if (onInsert) onInsert(payload);
+          toast({
+            title: 'New Data',
+            description: `New ${table} record added`,
+          });
+          break;
+        case REALTIME_CONFIG.EVENTS.UPDATE:
+          if (onUpdate) onUpdate(payload);
+          break;
+        case REALTIME_CONFIG.EVENTS.DELETE:
+          if (onDelete) onDelete(payload);
+          toast({
+            title: 'Data Removed',
+            description: `${table} record deleted`,
+          });
+          break;
+      }
+    },
+    [table, queryClient, toast, onInsert, onUpdate, onDelete]
+  );
 
   // Subscribe to real-time changes
   useEffect(() => {
@@ -122,22 +125,22 @@ export function useRealtimeSubscription(
           table: table,
           filter: filter,
         },
-        (payload) => {
+        payload => {
           debouncedEventHandler(payload.eventType, payload);
         }
       )
-      .subscribe((status) => {
+      .subscribe(status => {
         console.log(`📡 Real-time subscription status for ${table}:`, status);
         setIsConnected(status === 'SUBSCRIBED');
-        
+
         if (status === 'SUBSCRIBED') {
           console.log(`✅ Successfully subscribed to ${table} changes`);
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to ${table} changes`);
           toast({
-            title: "Connection Error",
+            title: 'Connection Error',
             description: `Failed to connect to real-time updates for ${table}`,
-            variant: "destructive",
+            variant: 'destructive',
           });
         }
       });
@@ -191,7 +194,7 @@ export function useMultiTableRealtime(
   const { toast } = useToast();
   const [connections, setConnections] = useState<Record<string, boolean>>({});
   const [lastEvents, setLastEvents] = useState<Record<string, any>>({});
-  
+
   const { enabled = true, debounceMs = 100 } = options;
 
   // Create subscriptions for each table
@@ -202,60 +205,72 @@ export function useMultiTableRealtime(
     const connectionStates: Record<string, boolean> = {};
     const eventStates: Record<string, any> = {};
 
-    tables.forEach(({ table, events = ['*'], filter, onInsert, onUpdate, onDelete }) => {
-      const channel = supabase
-        .channel(`${table}-multi-subscription`)
-        .on(
-          'postgres_changes',
-          {
-            event: events.includes('*') ? '*' : events.join(','),
-            schema: 'public',
-            table: table,
-            filter: filter,
-          },
-          (payload) => {
-            // Debounced event handling
-            setTimeout(() => {
-              console.log(`🔄 Multi-table ${payload.eventType} event for ${table}:`, payload);
-              
-              eventStates[table] = { eventType: payload.eventType, payload, timestamp: new Date() };
-              setLastEvents({ ...eventStates });
-              
-              // Invalidate queries
-              queryClient.invalidateQueries({ queryKey: [table] });
-              queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-              
-              // Call custom handlers
-              switch (payload.eventType) {
-                case REALTIME_CONFIG.EVENTS.INSERT:
-                  if (onInsert) onInsert(payload);
-                  break;
-                case REALTIME_CONFIG.EVENTS.UPDATE:
-                  if (onUpdate) onUpdate(payload);
-                  break;
-                case REALTIME_CONFIG.EVENTS.DELETE:
-                  if (onDelete) onDelete(payload);
-                  break;
-              }
-            }, debounceMs);
-          }
-        )
-        .subscribe((status) => {
-          console.log(`📡 Multi-table subscription status for ${table}:`, status);
-          connectionStates[table] = status === 'SUBSCRIBED';
-          setConnections({ ...connectionStates });
-          
-          if (status === 'CHANNEL_ERROR') {
-            toast({
-              title: "Connection Error",
-              description: `Failed to connect to real-time updates for ${table}`,
-              variant: "destructive",
-            });
-          }
-        });
+    tables.forEach(
+      ({ table, events = ['*'], filter, onInsert, onUpdate, onDelete }) => {
+        const channel = supabase
+          .channel(`${table}-multi-subscription`)
+          .on(
+            'postgres_changes',
+            {
+              event: events.includes('*') ? '*' : events.join(','),
+              schema: 'public',
+              table: table,
+              filter: filter,
+            },
+            payload => {
+              // Debounced event handling
+              setTimeout(() => {
+                console.log(
+                  `🔄 Multi-table ${payload.eventType} event for ${table}:`,
+                  payload
+                );
 
-      channels.push(channel);
-    });
+                eventStates[table] = {
+                  eventType: payload.eventType,
+                  payload,
+                  timestamp: new Date(),
+                };
+                setLastEvents({ ...eventStates });
+
+                // Invalidate queries
+                queryClient.invalidateQueries({ queryKey: [table] });
+                queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+
+                // Call custom handlers
+                switch (payload.eventType) {
+                  case REALTIME_CONFIG.EVENTS.INSERT:
+                    if (onInsert) onInsert(payload);
+                    break;
+                  case REALTIME_CONFIG.EVENTS.UPDATE:
+                    if (onUpdate) onUpdate(payload);
+                    break;
+                  case REALTIME_CONFIG.EVENTS.DELETE:
+                    if (onDelete) onDelete(payload);
+                    break;
+                }
+              }, debounceMs);
+            }
+          )
+          .subscribe(status => {
+            console.log(
+              `📡 Multi-table subscription status for ${table}:`,
+              status
+            );
+            connectionStates[table] = status === 'SUBSCRIBED';
+            setConnections({ ...connectionStates });
+
+            if (status === 'CHANNEL_ERROR') {
+              toast({
+                title: 'Connection Error',
+                description: `Failed to connect to real-time updates for ${table}`,
+                variant: 'destructive',
+              });
+            }
+          });
+
+        channels.push(channel);
+      }
+    );
 
     return () => {
       channels.forEach(channel => {
@@ -299,13 +314,8 @@ export function useRealtimePresence(
   const [presence, setPresence] = useState<any>({});
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const channelRef = useRef<RealtimeChannel | null>(null);
-  
-  const {
-    enabled = true,
-    onPresenceChange,
-    onJoin,
-    onLeave
-  } = options;
+
+  const { enabled = true, onPresenceChange, onJoin, onLeave } = options;
 
   useEffect(() => {
     if (!enabled) return;
@@ -315,10 +325,10 @@ export function useRealtimePresence(
       .on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState();
         setPresence(newState);
-        
+
         const users = Object.keys(newState);
         setOnlineUsers(users);
-        
+
         if (onPresenceChange) {
           onPresenceChange(newState);
         }
@@ -326,22 +336,22 @@ export function useRealtimePresence(
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
         console.log(`👤 User joined: ${key}`);
         if (onJoin) onJoin(key, newPresences);
-        
+
         toast({
-          title: "User Online",
+          title: 'User Online',
           description: `${key} is now online`,
         });
       })
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
         console.log(`👋 User left: ${key}`);
         if (onLeave) onLeave(key, leftPresences);
-        
+
         toast({
-          title: "User Offline",
+          title: 'User Offline',
           description: `${key} went offline`,
         });
       })
-      .subscribe(async (status) => {
+      .subscribe(async status => {
         if (status === 'SUBSCRIBED') {
           // Track current user's presence
           await channel.track({

@@ -8,8 +8,8 @@ export const mockUsers = {
     user_metadata: {
       role: 'owner',
       full_name: 'Owner User',
-      avatar_url: 'https://example.com/owner-avatar.jpg'
-    }
+      avatar_url: 'https://example.com/owner-avatar.jpg',
+    },
   },
   admin: {
     id: 'admin-user-id',
@@ -17,8 +17,8 @@ export const mockUsers = {
     user_metadata: {
       role: 'admin',
       full_name: 'Admin User',
-      avatar_url: 'https://example.com/admin-avatar.jpg'
-    }
+      avatar_url: 'https://example.com/admin-avatar.jpg',
+    },
   },
   recruiter: {
     id: 'recruiter-user-id',
@@ -26,8 +26,8 @@ export const mockUsers = {
     user_metadata: {
       role: 'recruiter',
       full_name: 'Recruiter User',
-      avatar_url: 'https://example.com/recruiter-avatar.jpg'
-    }
+      avatar_url: 'https://example.com/recruiter-avatar.jpg',
+    },
   },
   viewer: {
     id: 'viewer-user-id',
@@ -35,8 +35,8 @@ export const mockUsers = {
     user_metadata: {
       role: 'viewer',
       full_name: 'Viewer User',
-      avatar_url: 'https://example.com/viewer-avatar.jpg'
-    }
+      avatar_url: 'https://example.com/viewer-avatar.jpg',
+    },
   },
   deleted: {
     id: 'deleted-user-id',
@@ -44,9 +44,9 @@ export const mockUsers = {
     user_metadata: {
       role: 'recruiter',
       full_name: 'Deleted User',
-      avatar_url: 'https://example.com/deleted-avatar.jpg'
-    }
-  }
+      avatar_url: 'https://example.com/deleted-avatar.jpg',
+    },
+  },
 };
 
 // Mock user profiles
@@ -59,7 +59,7 @@ export const mockUserProfiles = {
     user_limit: 1000,
     is_active: true,
     created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
+    updated_at: '2024-01-01T00:00:00Z',
   },
   admin: {
     id: 'admin-user-id',
@@ -69,7 +69,7 @@ export const mockUserProfiles = {
     user_limit: 100,
     is_active: true,
     created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
+    updated_at: '2024-01-01T00:00:00Z',
   },
   recruiter: {
     id: 'recruiter-user-id',
@@ -79,7 +79,7 @@ export const mockUserProfiles = {
     user_limit: 50,
     is_active: true,
     created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
+    updated_at: '2024-01-01T00:00:00Z',
   },
   viewer: {
     id: 'viewer-user-id',
@@ -89,7 +89,7 @@ export const mockUserProfiles = {
     user_limit: 10,
     is_active: true,
     created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
+    updated_at: '2024-01-01T00:00:00Z',
   },
   deleted: {
     id: 'deleted-user-id',
@@ -99,8 +99,8 @@ export const mockUserProfiles = {
     user_limit: 50,
     is_active: false,
     created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
-  }
+    updated_at: '2024-01-01T00:00:00Z',
+  },
 };
 
 // Mock CRM data with ownership
@@ -113,7 +113,7 @@ export const mockCrmData = {
       industry: 'Technology',
       owner_id: 'recruiter-user-id',
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z'
+      updated_at: '2024-01-01T00:00:00Z',
     },
     {
       id: 'company-2',
@@ -122,7 +122,7 @@ export const mockCrmData = {
       industry: 'Finance',
       owner_id: 'admin-user-id',
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z'
+      updated_at: '2024-01-01T00:00:00Z',
     },
     {
       id: 'company-3',
@@ -131,8 +131,8 @@ export const mockCrmData = {
       industry: 'Healthcare',
       owner_id: 'deleted-user-id',
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z'
-    }
+      updated_at: '2024-01-01T00:00:00Z',
+    },
   ],
   people: [
     {
@@ -144,7 +144,7 @@ export const mockCrmData = {
       stage: 'new',
       lead_score: '85',
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z'
+      updated_at: '2024-01-01T00:00:00Z',
     },
     {
       id: 'person-2',
@@ -155,7 +155,7 @@ export const mockCrmData = {
       stage: 'qualified',
       lead_score: '92',
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z'
+      updated_at: '2024-01-01T00:00:00Z',
     },
     {
       id: 'person-3',
@@ -166,8 +166,8 @@ export const mockCrmData = {
       stage: 'contacted',
       lead_score: '78',
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z'
-    }
+      updated_at: '2024-01-01T00:00:00Z',
+    },
   ],
   jobs: [
     {
@@ -180,7 +180,7 @@ export const mockCrmData = {
       salary_max: 120000,
       status: 'active',
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z'
+      updated_at: '2024-01-01T00:00:00Z',
     },
     {
       id: 'job-2',
@@ -192,9 +192,9 @@ export const mockCrmData = {
       salary_max: 150000,
       status: 'active',
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z'
-    }
-  ]
+      updated_at: '2024-01-01T00:00:00Z',
+    },
+  ],
 };
 
 // Mock Supabase client with authorization checks
@@ -203,12 +203,12 @@ export const createMockSupabaseClient = (currentUser: any = null) => {
     auth: {
       getUser: vi.fn().mockResolvedValue({
         data: { user: currentUser },
-        error: null
+        error: null,
       }),
       getSession: vi.fn().mockResolvedValue({
         data: { session: currentUser ? { user: currentUser } : null },
-        error: null
-      })
+        error: null,
+      }),
     },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
@@ -217,67 +217,78 @@ export const createMockSupabaseClient = (currentUser: any = null) => {
       delete: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockReturnThis(),
-      then: vi.fn().mockImplementation((resolve) => {
+      then: vi.fn().mockImplementation(resolve => {
         // Simulate RLS filtering based on current user
-        const tableName = mockClient.from.mock.calls[mockClient.from.mock.calls.length - 1]?.[0];
+        const tableName =
+          mockClient.from.mock.calls[
+            mockClient.from.mock.calls.length - 1
+          ]?.[0];
         let filteredData = [];
-        
+
         if (tableName === 'companies') {
-          filteredData = mockCrmData.companies.filter(item => 
-            !currentUser || 
-            currentUser.user_metadata?.role === 'owner' || 
-            currentUser.user_metadata?.role === 'admin' ||
-            item.owner_id === currentUser.id
+          filteredData = mockCrmData.companies.filter(
+            item =>
+              !currentUser ||
+              currentUser.user_metadata?.role === 'owner' ||
+              currentUser.user_metadata?.role === 'admin' ||
+              item.owner_id === currentUser.id
           );
         } else if (tableName === 'people') {
-          filteredData = mockCrmData.people.filter(item => 
-            !currentUser || 
-            currentUser.user_metadata?.role === 'owner' || 
-            currentUser.user_metadata?.role === 'admin' ||
-            item.owner_id === currentUser.id
+          filteredData = mockCrmData.people.filter(
+            item =>
+              !currentUser ||
+              currentUser.user_metadata?.role === 'owner' ||
+              currentUser.user_metadata?.role === 'admin' ||
+              item.owner_id === currentUser.id
           );
         } else if (tableName === 'jobs') {
-          filteredData = mockCrmData.jobs.filter(item => 
-            !currentUser || 
-            currentUser.user_metadata?.role === 'owner' || 
-            currentUser.user_metadata?.role === 'admin' ||
-            item.owner_id === currentUser.id
+          filteredData = mockCrmData.jobs.filter(
+            item =>
+              !currentUser ||
+              currentUser.user_metadata?.role === 'owner' ||
+              currentUser.user_metadata?.role === 'admin' ||
+              item.owner_id === currentUser.id
           );
         } else if (tableName === 'user_profiles') {
-          filteredData = Object.values(mockUserProfiles).filter(profile => 
-            !currentUser || 
-            currentUser.user_metadata?.role === 'owner' || 
-            currentUser.user_metadata?.role === 'admin' ||
-            profile.id === currentUser.id
+          filteredData = Object.values(mockUserProfiles).filter(
+            profile =>
+              !currentUser ||
+              currentUser.user_metadata?.role === 'owner' ||
+              currentUser.user_metadata?.role === 'admin' ||
+              profile.id === currentUser.id
           );
         }
-        
+
         resolve({
           data: filteredData,
-          error: null
+          error: null,
         });
-      })
-    })
+      }),
+    }),
   };
-  
+
   return mockClient;
 };
 
 // Mock authentication context
 export const createMockAuthContext = (user: any = null, loading = false) => ({
   user,
-  userProfile: user ? mockUserProfiles[user.user_metadata?.role as keyof typeof mockUserProfiles] : null,
+  userProfile: user
+    ? mockUserProfiles[
+        user.user_metadata?.role as keyof typeof mockUserProfiles
+      ]
+    : null,
   authLoading: loading,
   signInWithGoogle: vi.fn(),
   signOut: vi.fn(),
-  refreshUser: vi.fn()
+  refreshUser: vi.fn(),
 });
 
 // Mock permissions context
 export const createMockPermissionsContext = (user: any = null) => {
   const role = user?.user_metadata?.role || 'recruiter';
   const permissions = getUserPermissions(role);
-  
+
   return {
     hasRole: vi.fn().mockImplementation((requiredRole: string | string[]) => {
       const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
@@ -287,18 +298,26 @@ export const createMockPermissionsContext = (user: any = null) => {
       return permissions.some(p => p.id === permission);
     }),
     canView: vi.fn().mockImplementation((resource: string) => {
-      return permissions.some(p => p.resource === resource && p.action === 'view');
+      return permissions.some(
+        p => p.resource === resource && p.action === 'view'
+      );
     }),
     canEdit: vi.fn().mockImplementation((resource: string) => {
-      return permissions.some(p => p.resource === resource && p.action === 'edit');
+      return permissions.some(
+        p => p.resource === resource && p.action === 'edit'
+      );
     }),
     canDelete: vi.fn().mockImplementation((resource: string) => {
-      return permissions.some(p => p.resource === resource && p.action === 'delete');
+      return permissions.some(
+        p => p.resource === resource && p.action === 'delete'
+      );
     }),
     canBulkAction: vi.fn().mockImplementation((resource: string) => {
-      return permissions.some(p => p.resource === resource && p.action === 'bulk');
+      return permissions.some(
+        p => p.resource === resource && p.action === 'bulk'
+      );
     }),
-    loading: false
+    loading: false,
   };
 };
 
@@ -320,7 +339,7 @@ function getUserPermissions(role: string) {
       { id: 'jobs_view', resource: 'jobs', action: 'view' },
       { id: 'jobs_edit', resource: 'jobs', action: 'edit' },
       { id: 'jobs_delete', resource: 'jobs', action: 'delete' },
-      { id: 'jobs_bulk', resource: 'jobs', action: 'bulk' }
+      { id: 'jobs_bulk', resource: 'jobs', action: 'bulk' },
     ],
     admin: [
       { id: 'users_view', resource: 'users', action: 'view' },
@@ -336,7 +355,7 @@ function getUserPermissions(role: string) {
       { id: 'jobs_view', resource: 'jobs', action: 'view' },
       { id: 'jobs_edit', resource: 'jobs', action: 'edit' },
       { id: 'jobs_delete', resource: 'jobs', action: 'delete' },
-      { id: 'jobs_bulk', resource: 'jobs', action: 'bulk' }
+      { id: 'jobs_bulk', resource: 'jobs', action: 'bulk' },
     ],
     recruiter: [
       { id: 'leads_view', resource: 'leads', action: 'view' },
@@ -344,14 +363,16 @@ function getUserPermissions(role: string) {
       { id: 'companies_view', resource: 'companies', action: 'view' },
       { id: 'companies_edit', resource: 'companies', action: 'edit' },
       { id: 'jobs_view', resource: 'jobs', action: 'view' },
-      { id: 'jobs_edit', resource: 'jobs', action: 'edit' }
+      { id: 'jobs_edit', resource: 'jobs', action: 'edit' },
     ],
     viewer: [
       { id: 'leads_view', resource: 'leads', action: 'view' },
       { id: 'companies_view', resource: 'companies', action: 'view' },
-      { id: 'jobs_view', resource: 'jobs', action: 'view' }
-    ]
+      { id: 'jobs_view', resource: 'jobs', action: 'view' },
+    ],
   };
-  
-  return permissionMap[role as keyof typeof permissionMap] || permissionMap.recruiter;
+
+  return (
+    permissionMap[role as keyof typeof permissionMap] || permissionMap.recruiter
+  );
 }

@@ -13,7 +13,7 @@ export const useSydneyTimezone = () => {
     fallback: string = 'Not specified'
   ): string => {
     if (!utcTimestamp) return fallback;
-    
+
     try {
       return formatDateForSydney(utcTimestamp, format);
     } catch (error) {
@@ -62,10 +62,10 @@ export const useSydneyTimezone = () => {
    */
   const getTimezoneInfo = () => ({
     timezone: SYDNEY_TIMEZONE,
-    offset: new Date().toLocaleString('en-AU', { 
+    offset: new Date().toLocaleString('en-AU', {
       timeZone: SYDNEY_TIMEZONE,
-      timeZoneName: 'longOffset' 
-    })
+      timeZoneName: 'longOffset',
+    }),
   });
 
   return {
@@ -76,8 +76,6 @@ export const useSydneyTimezone = () => {
     formatLong,
     getCurrentSydneyTime,
     getTimezoneInfo,
-    timezone: SYDNEY_TIMEZONE
+    timezone: SYDNEY_TIMEZONE,
   };
 };
-
-

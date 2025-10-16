@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Tag {
   id: string;
@@ -11,7 +11,7 @@ interface Tag {
 
 interface UseEntityTagsProps {
   entityId: string;
-  entityType: "company" | "person" | "job";
+  entityType: 'company' | 'person' | 'job';
 }
 
 export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
@@ -31,7 +31,8 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
         setLoading(true);
         const { data, error } = await supabase
           .from('entity_tags')
-          .select(`
+          .select(
+            `
             tag_id,
             tags!inner (
               id,
@@ -39,26 +40,28 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
               color,
               description
             )
-          `)
+          `
+          )
           .eq('entity_id', entityId)
           .eq('entity_type', entityType);
 
         if (error) throw error;
 
-        const formattedTags = data?.map(item => ({
-          id: item.tags.id,
-          name: item.tags.name,
-          color: item.tags.color,
-          description: item.tags.description,
-        })) || [];
+        const formattedTags =
+          data?.map(item => ({
+            id: item.tags.id,
+            name: item.tags.name,
+            color: item.tags.color,
+            description: item.tags.description,
+          })) || [];
 
         setTags(formattedTags);
       } catch (error) {
-        console.error("Error fetching entity tags:", error);
+        console.error('Error fetching entity tags:', error);
         toast({
-          title: "Error",
-          description: "Failed to load tags",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to load tags',
+          variant: 'destructive',
         });
       } finally {
         setLoading(false);
@@ -70,27 +73,25 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
 
   const addTag = async (tag: Tag) => {
     try {
-      const { error } = await supabase
-        .from('entity_tags')
-        .insert({
-          entity_id: entityId,
-          entity_type: entityType,
-          tag_id: tag.id,
-        });
+      const { error } = await supabase.from('entity_tags').insert({
+        entity_id: entityId,
+        entity_type: entityType,
+        tag_id: tag.id,
+      });
 
       if (error) throw error;
 
       setTags(prev => [...prev, tag]);
       toast({
-        title: "Tag Added",
+        title: 'Tag Added',
         description: `Added "${tag.name}" tag`,
       });
     } catch (error) {
-      console.error("Error adding tag:", error);
+      console.error('Error adding tag:', error);
       toast({
-        title: "Error",
-        description: "Failed to add tag",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to add tag',
+        variant: 'destructive',
       });
     }
   };
@@ -108,17 +109,17 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
 
       const tagToRemove = tags.find(type => type.id === tagId);
       setTags(prev => prev.filter(tag => tag.id !== tagId));
-      
+
       toast({
-        title: "Tag Removed",
+        title: 'Tag Removed',
         description: `Removed "${tagToRemove?.name}" tag`,
       });
     } catch (error) {
-      console.error("Error removing tag:", error);
+      console.error('Error removing tag:', error);
       toast({
-        title: "Error",
-        description: "Failed to remove tag",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to remove tag',
+        variant: 'destructive',
       });
     }
   };
@@ -135,7 +136,3 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
     updateTags,
   };
 };
-
-
-
-

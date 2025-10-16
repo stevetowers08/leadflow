@@ -31,7 +31,7 @@ export function useOfflineSupport<T>(
     cacheExpiry = 5 * 60 * 1000, // 5 minutes
     maxRetries = 3,
     retryDelay = 1000,
-    enableSync = true
+    enableSync = true,
   } = options;
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -39,7 +39,7 @@ export function useOfflineSupport<T>(
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [syncQueue, setSyncQueue] = useState<SyncQueueItem[]>([]);
   const { toast } = useToast();
-  
+
   const cacheRef = useRef<Map<string, CacheEntry<any>>>(new Map());
   const syncQueueRef = useRef<SyncQueueItem[]>([]);
 
@@ -48,8 +48,8 @@ export function useOfflineSupport<T>(
     const handleOnline = () => {
       setIsOnline(true);
       toast({
-        title: "Back Online",
-        description: "Connection restored. Syncing pending changes...",
+        title: 'Back Online',
+        description: 'Connection restored. Syncing pending changes...',
       });
       if (enableSync) {
         processSyncQueue();
@@ -59,9 +59,10 @@ export function useOfflineSupport<T>(
     const handleOffline = () => {
       setIsOnline(false);
       toast({
-        title: "Offline Mode",
-        description: "You're offline. Changes will be synced when connection is restored.",
-        variant: "destructive",
+        title: 'Offline Mode',
+        description:
+          "You're offline. Changes will be synced when connection is restored.",
+        variant: 'destructive',
       });
     };
 
@@ -88,33 +89,35 @@ export function useOfflineSupport<T>(
   }, []);
 
   // Save data to cache
-  const setCachedData = useCallback(<T>(cacheKey: string, data: T): void => {
-    const entry: CacheEntry<T> = {
-      data,
-      timestamp: Date.now(),
-      expiry: Date.now() + cacheExpiry
-    };
-    cacheRef.current.set(cacheKey, entry);
-  }, [cacheExpiry]);
+  const setCachedData = useCallback(
+    <T>(cacheKey: string, data: T): void => {
+      const entry: CacheEntry<T> = {
+        data,
+        timestamp: Date.now(),
+        expiry: Date.now() + cacheExpiry,
+      };
+      cacheRef.current.set(cacheKey, entry);
+    },
+    [cacheExpiry]
+  );
 
   // Add item to sync queue
-  const addToSyncQueue = useCallback((
-    action: SyncQueueItem['action'],
-    table: string,
-    data: any
-  ) => {
-    const item: SyncQueueItem = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      action,
-      table,
-      data,
-      timestamp: Date.now(),
-      retries: 0
-    };
+  const addToSyncQueue = useCallback(
+    (action: SyncQueueItem['action'], table: string, data: any) => {
+      const item: SyncQueueItem = {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        action,
+        table,
+        data,
+        timestamp: Date.now(),
+        retries: 0,
+      };
 
-    setSyncQueue(prev => [...prev, item]);
-    syncQueueRef.current = [...syncQueueRef.current, item];
-  }, []);
+      setSyncQueue(prev => [...prev, item]);
+      syncQueueRef.current = [...syncQueueRef.current, item];
+    },
+    []
+  );
 
   // Process sync queue
   const processSyncQueue = useCallback(async () => {
@@ -129,7 +132,7 @@ export function useOfflineSupport<T>(
       try {
         // Simulate API call - replace with actual Supabase calls
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         // In a real implementation, you would call the appropriate Supabase method:
         // switch (item.action) {
         //   case 'create':
@@ -142,7 +145,7 @@ export function useOfflineSupport<T>(
         //     await supabase.from(item.table).delete().eq('id', item.data.id);
         //     break;
         // }
-        
+
         successful.push(item.id);
       } catch (error) {
         if (item.retries < maxRetries) {
@@ -161,7 +164,7 @@ export function useOfflineSupport<T>(
 
     if (successful.length > 0) {
       toast({
-        title: "Sync Complete",
+        title: 'Sync Complete',
         description: `Successfully synced ${successful.length} changes`,
       });
     }
@@ -180,8 +183,8 @@ export function useOfflineSupport<T>(
   const clearCache = useCallback(() => {
     cacheRef.current.clear();
     toast({
-      title: "Cache Cleared",
-      description: "All cached data has been cleared",
+      title: 'Cache Cleared',
+      description: 'All cached data has been cleared',
     });
   }, [toast]);
 
@@ -196,7 +199,7 @@ export function useOfflineSupport<T>(
       entryCount: entries.length,
       totalSize,
       oldestEntry: Math.min(...entries.map(([, entry]) => entry.timestamp)),
-      newestEntry: Math.max(...entries.map(([, entry]) => entry.timestamp))
+      newestEntry: Math.max(...entries.map(([, entry]) => entry.timestamp)),
     };
   }, []);
 
@@ -210,7 +213,7 @@ export function useOfflineSupport<T>(
     addToSyncQueue,
     retrySync,
     clearCache,
-    getCacheInfo
+    getCacheInfo,
   };
 }
 
@@ -225,7 +228,7 @@ export function useOfflineData<T extends { id: string }>(
     syncQueue,
     getCachedData,
     setCachedData,
-    addToSyncQueue
+    addToSyncQueue,
   } = useOfflineSupport(tableName, options);
 
   const [data, setData] = useState<T[]>([]);
@@ -240,7 +243,7 @@ export function useOfflineData<T extends { id: string }>(
     try {
       // Try to get cached data first
       const cachedData = getCachedData<T[]>(`${tableName}_list`);
-      
+
       if (cachedData && !isOnline) {
         setData(cachedData);
         setLoading(false);
@@ -252,7 +255,7 @@ export function useOfflineData<T extends { id: string }>(
         // TODO: Replace with actual Supabase call
         // For now, return empty array
         const freshData: T[] = [];
-        
+
         setData(freshData);
         setCachedData(`${tableName}_list`, freshData);
       } else {
@@ -261,7 +264,7 @@ export function useOfflineData<T extends { id: string }>(
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
-      
+
       // Fallback to cached data
       const cachedData = getCachedData<T[]>(`${tableName}_list`);
       if (cachedData) {
@@ -273,44 +276,53 @@ export function useOfflineData<T extends { id: string }>(
   }, [tableName, isOnline, getCachedData, setCachedData]);
 
   // Create new item
-  const createItem = useCallback(async (itemData: Omit<T, 'id'>) => {
-    const newItem = {
-      ...itemData,
-      id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    } as T;
+  const createItem = useCallback(
+    async (itemData: Omit<T, 'id'>) => {
+      const newItem = {
+        ...itemData,
+        id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      } as T;
 
-    // Add to local data immediately
-    setData(prev => [newItem, ...prev]);
-    setCachedData(`${tableName}_list`, [newItem, ...data]);
+      // Add to local data immediately
+      setData(prev => [newItem, ...prev]);
+      setCachedData(`${tableName}_list`, [newItem, ...data]);
 
-    // Add to sync queue
-    addToSyncQueue('create', tableName, itemData);
+      // Add to sync queue
+      addToSyncQueue('create', tableName, itemData);
 
-    return newItem;
-  }, [tableName, data, setCachedData, addToSyncQueue]);
+      return newItem;
+    },
+    [tableName, data, setCachedData, addToSyncQueue]
+  );
 
   // Update item
-  const updateItem = useCallback(async (id: string, updates: Partial<T>) => {
-    const updatedData = data.map(item => 
-      item.id === id ? { ...item, ...updates } : item
-    );
+  const updateItem = useCallback(
+    async (id: string, updates: Partial<T>) => {
+      const updatedData = data.map(item =>
+        item.id === id ? { ...item, ...updates } : item
+      );
 
-    setData(updatedData);
-    setCachedData(`${tableName}_list`, updatedData);
+      setData(updatedData);
+      setCachedData(`${tableName}_list`, updatedData);
 
-    // Add to sync queue
-    addToSyncQueue('update', tableName, { id, ...updates });
-  }, [data, setCachedData, addToSyncQueue]);
+      // Add to sync queue
+      addToSyncQueue('update', tableName, { id, ...updates });
+    },
+    [data, setCachedData, addToSyncQueue]
+  );
 
   // Delete item
-  const deleteItem = useCallback(async (id: string) => {
-    const filteredData = data.filter(item => item.id !== id);
-    setData(filteredData);
-    setCachedData(`${tableName}_list`, filteredData);
+  const deleteItem = useCallback(
+    async (id: string) => {
+      const filteredData = data.filter(item => item.id !== id);
+      setData(filteredData);
+      setCachedData(`${tableName}_list`, filteredData);
 
-    // Add to sync queue
-    addToSyncQueue('delete', tableName, { id });
-  }, [data, setCachedData, addToSyncQueue]);
+      // Add to sync queue
+      addToSyncQueue('delete', tableName, { id });
+    },
+    [data, setCachedData, addToSyncQueue]
+  );
 
   // Load data on mount
   useEffect(() => {
@@ -327,7 +339,7 @@ export function useOfflineData<T extends { id: string }>(
     createItem,
     updateItem,
     deleteItem,
-    refresh: loadData
+    refresh: loadData,
   };
 }
 
@@ -336,7 +348,8 @@ export function registerServiceWorker() {
   // Only register service worker in production
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
+      navigator.serviceWorker
+        .register('/sw.js')
         .then(registration => {
           console.log('SW registered: ', registration);
         })
@@ -348,5 +361,3 @@ export function registerServiceWorker() {
     console.log('Skipping service worker registration in development mode');
   }
 }
-
-

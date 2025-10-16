@@ -1,801 +1,487 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { DataTable } from "@/components";
-import { StatusBadge } from "@/components/StatusBadge";
-import { JobsStatsCards } from "@/components/StatsCards";
-import { FavoriteToggle } from "@/components/FavoriteToggle";
-import { useToast } from "@/hooks/use-toast";
-import { usePopupNavigation } from "@/contexts/PopupNavigationContext";
-import { DropdownSelect } from "@/components/ui/dropdown-select";
-import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Clock, DollarSign, Bot, Users, Briefcase, Zap, Target, AlertTriangle, Trash2 } from "lucide-react";
-import { getClearbitLogo } from "@/utils/logoService";
-import { Page } from "@/design-system/components";
-import { cn } from "@/lib/utils";
-import { getScoreBadgeClasses } from "@/utils/scoreUtils";
-import type { Tables } from "@/integrations/supabase/types";
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { SearchModal } from '@/components/ui/search-modal';
+import { TabNavigation } from '@/components/ui/tab-navigation';
+import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
+import { FilterControls, Page } from '@/design-system/components';
+import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/useDebounce';
+import { supabase } from '@/integrations/supabase/client';
+import { getClearbitLogo } from '@/services/logoService';
+import { Job, UserProfile } from '@/types/database';
+import { getJobStatusFromPipeline } from '@/utils/jobStatus';
+import { getStatusDisplayText } from '@/utils/statusUtils';
+import { format } from 'date-fns';
+import { Building2 } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-type Job = Tables<"jobs"> & {
-  company_name?: string;
-  company_industry?: string;
-  company_logo_url?: string;
-  company_head_office?: string;
-  company_size?: string;
-  company_website?: string;
-  company_lead_score?: string;
-  company_priority?: string;
-  company_automation_active?: boolean;
-  company_confidence_level?: string;
-  company_linkedin_url?: string;
-  company_score_reason?: string;
-  company_is_favourite?: boolean;
-  total_leads?: number;
-  new_leads?: number;
-  automation_started_leads?: number;
-};
-
-const Jobs = () => {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<string>("posted_date");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const { toast } = useToast();
+const Jobs: React.FC = () => {
+  const { user } = useAuth();
   const { openPopup } = usePopupNavigation();
-  
-  // Sort options
-  const sortOptions = [
-    { label: "Posted Date", value: "posted_date" },
-    { label: "Job Title", value: "title" },
-    { label: "Company", value: "company_name" },
-    { label: "Location", value: "location" },
-    { label: "Priority", value: "priority" },
-    { label: "AI Score", value: "lead_score_job" },
-    { label: "Valid Through", value: "valid_through" },
-  ];
+  const { toast } = useToast();
 
-  // Status filter options
-  const statusOptions = [
-    { label: "All Statuses", value: "all" },
-    { label: "Active", value: "active" },
-    { label: "Expired", value: "expired" },
-    { label: "Expiring Soon", value: "expiring_soon" },
-  ];
+  // State management
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Priority filter options
-  const priorityOptions = [
-    { label: "All Priorities", value: "all" },
-    { label: "High", value: "high" },
-    { label: "Medium", value: "medium" },
-    { label: "Low", value: "low" },
-    { label: "Urgent", value: "urgent" },
-  ];
+  // Filter and search state
+  const [activeTab, setActiveTab] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedUser, setSelectedUser] = useState<string>('all');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<string>('created_at');
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
-  // Calculate stats for design system
-  const jobsStats = {
-    activeJobs: jobs.filter(job => !job.valid_through || new Date(job.valid_through) >= new Date()).length,
-    automatedJobs: jobs.filter(job => job.automation_started_leads && job.automation_started_leads > 0).length,
-    pendingJobs: jobs.filter(job => job.new_leads && job.new_leads > 0).length,
-    endingSoonJobs: jobs.filter(job => {
-      if (!job.valid_through) return false;
-      const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      return new Date(job.valid_through) <= sevenDaysFromNow && new Date(job.valid_through) >= new Date();
-    }).length
-  };
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
-  // Stats for design system StatsBar
-  const stats: StatItemProps[] = [
-    {
-      icon: Briefcase,
-      value: jobsStats.activeJobs,
-      label: "active jobs"
-    },
-    {
-      icon: Zap,
-      value: jobsStats.automatedJobs,
-      label: "automated"
-    },
-    {
-      icon: Clock,
-      value: jobsStats.pendingJobs,
-      label: "pending"
-    },
-    {
-      icon: AlertTriangle,
-      value: jobsStats.endingSoonJobs,
-      label: "ending soon"
-    }
-  ];
+  // Debounced search term for better performance
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Debug logging
-  console.log('Jobs Stats Debug:', {
-    totalJobs: jobs.length,
-    automatedJobs: jobsStats.automatedJobs,
-    pendingJobs: jobsStats.pendingJobs,
-    sampleJobs: jobs.slice(0, 3).map(job => ({
-      title: job.title,
-      new_leads: job.new_leads,
-      automation_started_leads: job.automation_started_leads,
-      total_leads: job.total_leads
-    }))
-  });
-
-  // Debug logging
-  console.log('🔍 Current filter state:', { statusFilter, searchTerm, priorityFilter });
-  console.log('🔍 Total jobs:', jobs.length);
-
-  // Filter and sort jobs
-  const filteredAndSortedJobs = jobs.filter(job => {
-    // Search filter
-    const matchesSearch = !searchTerm || (
-      job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.function?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company_industry?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    // Status filter
-    const matchesStatus = statusFilter === "all" || (() => {
-      if (statusFilter === "recent") {
-        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        return job.created_at && new Date(job.created_at) >= oneDayAgo;
-      } else if (statusFilter === "sales") {
-        return job.title?.toLowerCase().includes('sales');
-      } else if (statusFilter === "not_automated") {
-        // Show jobs where there are leads with stage "new" AND no automation has started
-        return job.new_leads && job.new_leads > 0 && job.automation_started_leads === 0;
-      }
-      return true;
-    })();
-
-    // Filter out expired jobs for all tabs
-    const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
-
-    // Priority filter
-    const matchesPriority = priorityFilter === "all" || job.priority === priorityFilter;
-
-    return matchesSearch && matchesStatus && matchesPriority && isActiveJob;
-  });
-
-  console.log('🔍 Filtered jobs count:', filteredAndSortedJobs.length);
-
-  const sortedJobs = filteredAndSortedJobs.sort((a, b) => {
-    let aValue: any;
-    let bValue: any;
-
-    switch (sortBy) {
-      case "posted_date":
-        aValue = new Date(a.posted_date || 0).getTime();
-        bValue = new Date(b.posted_date || 0).getTime();
-        break;
-      case "title":
-        aValue = a.title?.toLowerCase() || "";
-        bValue = b.title?.toLowerCase() || "";
-        break;
-      case "company_name":
-        aValue = a.company_name?.toLowerCase() || "";
-        bValue = b.company_name?.toLowerCase() || "";
-        break;
-      case "location":
-        aValue = a.location?.toLowerCase() || "";
-        bValue = b.location?.toLowerCase() || "";
-        break;
-      case "priority":
-        const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
-        aValue = priorityOrder[a.priority?.toLowerCase() as keyof typeof priorityOrder] || 0;
-        bValue = priorityOrder[b.priority?.toLowerCase() as keyof typeof priorityOrder] || 0;
-        break;
-      case "lead_score_job":
-        aValue = a.lead_score_job || 0;
-        bValue = b.lead_score_job || 0;
-        break;
-      case "valid_through":
-        aValue = new Date(a.valid_through || 0).getTime();
-        bValue = new Date(b.valid_through || 0).getTime();
-        break;
-      default:
-        return 0;
-    }
-
-    if (sortOrder === "asc") {
-      return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
-    } else {
-      return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
-    }
-  });
-
-  const fetchJobs = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch jobs first
-      const { data: jobsData, error: jobsError } = await supabase
-        .from("jobs")
-        .select("*")
-        .order("posted_date", { ascending: false });
-
-      console.log('🔍 Jobs fetch result:', { jobsData, jobsError });
-
-      if (jobsError) throw jobsError;
-
-      // Fetch companies separately
-      const { data: companiesData, error: companiesError } = await supabase
-        .from("companies")
-        .select("id, name, industry, head_office, company_size, website, lead_score, priority, automation_active, confidence_level, linkedin_url, score_reason");
-
-      if (companiesError) throw companiesError;
-
-      // Fetch people separately
-      const { data: peopleData, error: peopleError } = await supabase
-        .from("people")
-        .select("id, company_id, stage, automation_started_at");
-
-      if (peopleError) throw peopleError;
-
-      // Create maps for quick lookup
-      const companiesMap = new Map(companiesData?.map(company => [company.id, company]) || []);
-      const peopleMap = new Map();
-      
-      // Group people by company_id
-      peopleData?.forEach(person => {
-        if (person.company_id) {
-          if (!peopleMap.has(person.company_id)) {
-            peopleMap.set(person.company_id, []);
-          }
-          peopleMap.get(person.company_id).push(person);
-        }
-      });
-
-      // Transform the data to include company information and lead counts
-      const jobsWithCompanyAndLeads = (jobsData || []).map(job => {
-        const company = companiesMap.get(job.company_id);
-        const leads = peopleMap.get(job.company_id) || [];
-        
-        const newLeadsCount = leads.filter(lead => lead.stage === 'new').length;
-        const automatedLeadsCount = leads.filter(lead => lead.stage !== 'new' || lead.automation_started_at).length;
-        
-        // Debug logging for first few jobs
-        if (job.id && jobsData.indexOf(job) < 3) {
-          console.log(`Job ${job.title}:`, {
-            company_id: job.company_id,
-            company_data: company,
-            clearbit_logo_url: company?.website ? getClearbitLogo(company.name, company.website) : null,
-            total_leads: leads.length,
-            new_leads: newLeadsCount,
-            automation_started_leads: automatedLeadsCount,
-            lead_stages: leads.map(lead => lead.stage)
-          });
-        }
-        
-        return {
-          ...job,
-          company_name: company?.name,
-          company_industry: company?.industry,
-          company_logo_url: company?.website ? getClearbitLogo(company.name, company.website) : null,
-          company_head_office: company?.head_office,
-          company_size: company?.company_size,
-          company_website: company?.website,
-          company_lead_score: company?.lead_score,
-          company_priority: company?.priority,
-          company_automation_active: company?.automation_active,
-          company_confidence_level: company?.confidence_level,
-          company_linkedin_url: company?.linkedin_url,
-          company_score_reason: company?.score_reason,
-          company_is_favourite: company?.is_favourite,
-          total_leads: leads.length,
-          new_leads: newLeadsCount,
-          automation_started_leads: automatedLeadsCount
-        };
-      });
-
-      console.log('🔍 Jobs data:', jobsWithCompanyAndLeads);
-      setJobs(jobsWithCompanyAndLeads);
-    } catch (error) {
-      console.error('Error fetching jobs:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch jobs",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchJobs();
-
-    // Set up real-time subscriptions for automatic updates
-    const companiesSubscription = supabase
-      .channel('companies-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'companies' 
-        }, 
-        (payload) => {
-          console.log('Companies table changed:', payload);
-          // Refresh jobs data when companies are added/updated/deleted
-          fetchJobs();
-        }
-      )
-      .subscribe();
-
-    const jobsSubscription = supabase
-      .channel('jobs-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'jobs' 
-        }, 
-        (payload) => {
-          console.log('Jobs table changed:', payload);
-          // Refresh jobs data when jobs are added/updated/deleted
-          fetchJobs();
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscriptions on unmount
-    return () => {
-      supabase.removeChannel(companiesSubscription);
-      supabase.removeChannel(jobsSubscription);
-    };
+  // Calculate job status based on company's pipeline stage - memoized
+  const getJobStatusFromCompany = useCallback((job: Job): string => {
+    return getJobStatusFromPipeline(job.companies?.pipeline_stage);
   }, []);
 
-  useEffect(() => {
-    console.log('🔍 StatusFilter changed to:', statusFilter);
-    console.log('🔍 Jobs after filter change:', jobs.length);
-  }, [statusFilter, jobs]);
+  // Tab options - memoized to prevent re-renders
+  const tabOptions = useMemo(
+    () => [
+      { id: 'all', label: 'All Jobs', count: 0, icon: null },
+      { id: 'active', label: 'Active', count: 0, icon: null },
+      { id: 'pending', label: 'Pending', count: 0, icon: null },
+      { id: 'expired', label: 'Expired', count: 0, icon: null },
+    ],
+    []
+  );
 
-  const columns = [
+  // Filter options - memoized to prevent re-renders
+  const statusOptions = useMemo(
+    () => [
+    { label: 'All Statuses', value: 'all' },
+    { label: 'Active', value: 'active' },
+      { label: 'Pending', value: 'pending' },
+    { label: 'Expired', value: 'expired' },
+    ],
+    []
+  );
+
+  const sortOptions = useMemo(
+    () => [
+      { label: 'Newest First', value: 'created_at' },
+      { label: 'Oldest First', value: 'created_at_asc' },
+      { label: 'Job Title A-Z', value: 'title' },
+      { label: 'Job Title Z-A', value: 'title_desc' },
+      { label: 'Company A-Z', value: 'company' },
+      { label: 'Company Z-A', value: 'company_desc' },
+    ],
+    []
+  );
+
+  // Fetch data with parallel requests for better performance
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Parallel data fetching for better performance
+        const [jobsResult, usersResult] = await Promise.all([
+          supabase
+            .from('jobs')
+            .select(
+              `
+              *,
+              companies!left (
+                id,
+              name,
+                website,
+              industry,
+              lead_score,
+                pipeline_stage
+              )
+            `
+            )
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('user_profiles')
+            .select('id, full_name')
+            .order('full_name'),
+        ]);
+
+        if (jobsResult.error) throw jobsResult.error;
+        if (usersResult.error) throw usersResult.error;
+
+        setJobs((jobsResult.data as Job[]) || []);
+        setUsers((usersResult.data as unknown as UserProfile[]) || []);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        toast({
+          title: 'Error',
+          description: 'Failed to load jobs data',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [toast]);
+
+  // Filter and sort jobs
+  const filteredJobs = useMemo(() => {
+    let filtered = jobs;
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(job => {
+        const status = getJobStatusFromCompany(job);
+        return status === statusFilter;
+      });
+    }
+
+    // User filter
+    if (selectedUser !== 'all') {
+      filtered = filtered.filter(job => job.assigned_to === selectedUser);
+    }
+
+    // Favorites filter
+    if (showFavoritesOnly) {
+      filtered = filtered.filter(job => job.is_favorite);
+    }
+
+    // Search filter using debounced term
+    if (debouncedSearchTerm) {
+      const term = debouncedSearchTerm.toLowerCase();
+      filtered = filtered.filter(
+        job =>
+          job.title?.toLowerCase().includes(term) ||
+          job.companies?.name?.toLowerCase().includes(term) ||
+          job.location?.toLowerCase().includes(term) ||
+          job.function?.toLowerCase().includes(term)
+      );
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'created_at':
+          return (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+        case 'created_at_asc':
+          return (
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+        case 'title':
+          return (a.title || '').localeCompare(b.title || '');
+        case 'title_desc':
+          return (b.title || '').localeCompare(a.title || '');
+        case 'company':
+          return (a.companies?.name || '').localeCompare(
+            b.companies?.name || ''
+          );
+        case 'company_desc':
+          return (b.companies?.name || '').localeCompare(
+            a.companies?.name || ''
+          );
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [
+    jobs,
+    statusFilter,
+    selectedUser,
+    showFavoritesOnly,
+    debouncedSearchTerm,
+    sortBy,
+  ]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredJobs.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
+
+  // Update tab counts - memoized to prevent re-renders
+  const tabCounts = useMemo(() => {
+    const counts = {
+      all: jobs.length,
+      active: jobs.filter(job => getJobStatusFromCompany(job) === 'active')
+        .length,
+      pending: jobs.filter(job => getJobStatusFromCompany(job) === 'pending')
+        .length,
+      expired: jobs.filter(job => getJobStatusFromCompany(job) === 'expired')
+        .length,
+    };
+
+    return tabOptions.map(tab => ({
+      ...tab,
+      count: counts[tab.id as keyof typeof counts] || 0,
+    }));
+  }, [jobs, tabOptions]);
+
+  // Column configuration
+  const columns: ColumnConfig<Job>[] = [
     {
-      key: "status",
-      label: "Status",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      width: "120px",
-      render: (job: Job) => {
-        if (job.automation_started_leads && job.automation_started_leads > 0) {
-          return (
-            <div className="px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-md border border-green-200 w-32 flex justify-center">
-              AUTOMATED ({job.automation_started_leads})
-            </div>
-          );
-        } else if (job.new_leads && job.new_leads > 0) {
-          return (
-            <div className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-md border border-blue-200 w-32 flex justify-center">
-              NEW JOB
-            </div>
-          );
-        } else {
-          return (
-            <div className="px-3 py-1 bg-slate-50 text-slate-500 text-xs font-medium rounded-md border border-slate-200 w-32 flex justify-center">
-              -
-            </div>
-          );
-        }
+      key: 'status',
+      label: 'Status',
+      width: '120px',
+      cellType: 'status',
+      align: 'center',
+      getStatusValue: job => getJobStatusFromCompany(job),
+      render: (_, job) => {
+        const status = getJobStatusFromCompany(job);
+        const displayText = getStatusDisplayText(status);
+        return <span className='text-xs font-medium'>{displayText}</span>;
       },
     },
     {
-      key: "title",
-      label: "Job Title",
-      render: (job: Job) => (
-        <div className="min-w-0 w-80">
-          <div className="text-sm font-medium break-words leading-tight">{job.title || "-"}</div>
-        </div>
-      ),
-    },
-    {
-      key: "company_name",
-      label: "Company",
-      render: (job: Job) => (
-        <div 
-          className="min-w-0 w-64 cursor-pointer hover:bg-gray-50 rounded-md p-2 -m-2 transition-colors duration-150"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (job.company_id) {
-              setSelectedCompany({ id: job.company_id, name: job.company_name || 'Unknown Company' });
-              setIsCompanyModalOpen(true);
-            }
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-              {job.company_logo_url ? (
-                <img 
-                  src={job.company_logo_url} 
-                  alt={job.company_name}
-                  className="w-8 h-8 rounded-lg object-cover"
-                  onError={(e) => {
-                    console.log(`Failed to load company logo for ${job.company_name}: ${job.company_logo_url}`);
+      key: 'company',
+      label: 'Company',
+      width: '300px',
+      cellType: 'regular',
+      render: (_, job) => (
+        <div className='min-w-0 cursor-pointer hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors duration-150'>
+          <div className='flex items-center gap-2'>
+            <div className='w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+              {job.companies?.website ? (
+                <img
+                  src={getClearbitLogo(job.companies.name || '')}
+                  alt={job.companies.name}
+                  className='w-6 h-6 rounded-lg object-cover'
+                  onError={e => {
                     e.currentTarget.style.display = 'none';
-                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                    if (nextElement) {
-                      nextElement.style.display = 'flex';
-                    }
-                  }}
-                  onLoad={() => {
-                    console.log(`Successfully loaded company logo for ${job.company_name}: ${job.company_logo_url}`);
+                    e.currentTarget.nextElementSibling?.classList.remove(
+                      'hidden'
+                    );
                   }}
                 />
               ) : null}
-              <div 
-                className={`w-8 h-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-xs font-semibold ${job.company_logo_url ? 'hidden' : 'flex'}`}
-              >
-                {job.company_name ? job.company_name.charAt(0).toUpperCase() : '?'}
-              </div>
+              <Building2 className='h-3 w-3 text-gray-400' />
             </div>
-            <div className="flex flex-col min-w-0 flex-1">
-              <div className="text-sm font-medium break-words leading-tight hover:text-sidebar-primary transition-colors duration-150">
-                {job.company_name || "-"}
-              </div>
+            <div className='text-sm font-medium text-gray-900'>
+              {job.companies?.name || '-'}
             </div>
-            {job.company_id && (
-              <div onClick={(e) => e.stopPropagation()}>
-                <FavoriteToggle
-                  entityId={job.company_id}
-                  entityType="company"
-                  isFavorite={job.company_is_favourite || false}
-                  onToggle={(isFavorite) => {
-                    setJobs(prev => prev.map(job => job.company_id === job.company_id ? { ...j, company_is_favourite: isFavorite } : j
-                    ));
-                  }}
-                  size="sm"
-                />
-              </div>
-            )}
           </div>
         </div>
       ),
     },
     {
-      key: "company_industry",
-      label: "Industry",
-      render: (job: Job) => (
-        <div className="min-w-0 w-80">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
-            {job.company_industry || "-"}
-          </div>
+      key: 'title',
+      label: 'Job Title',
+      width: '450px',
+      cellType: 'regular',
+      render: value => (
+        <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
+          {(value as string) || '-'}
         </div>
       ),
     },
     {
-      key: "location",
-      label: "Location",
-      render: (job: Job) => (
-        <div className="min-w-0 w-56">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
-            {job.location || "-"}
-          </div>
+      key: 'industry',
+      label: 'Industry',
+      width: '200px',
+      cellType: 'regular',
+      render: (_, job) => (
+        <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
+          {job.companies?.industry || '-'}
         </div>
       ),
     },
     {
-      key: "function",
-      label: "Function",
-      render: (job: Job) => (
-        <div className="min-w-0 w-64">
-          <div className="text-sm text-muted-foreground break-words leading-tight">
-            {job.function || "-"}
-          </div>
+      key: 'location',
+      label: 'Location',
+      width: '150px',
+      cellType: 'regular',
+      render: value => (
+        <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
+          {(value as string) || '-'}
         </div>
       ),
     },
     {
-      key: "priority",
-      label: "Priority",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      width: "120px",
-      render: (job: Job) => (
-        <div className="flex items-center justify-center">
-          <StatusBadge 
-            status={job.priority || "Medium"} 
-            size="sm" 
-          />
+      key: 'function',
+      label: 'Function',
+      width: '180px',
+      cellType: 'regular',
+      render: value => (
+        <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
+          {(value as string) || '-'}
         </div>
       ),
     },
     {
-      key: "lead_score_job",
-      label: "AI Score",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      width: "100px",
-      render: (job: Job) => (
-        <div className="flex items-center justify-center">
-          <span
-            className={cn(
-              "inline-flex items-center justify-center px-3 py-2 rounded-md text-xs font-medium border",
-              getScoreBadgeClasses(job.lead_score_job ?? null)
-            )}
-          >
-            {job.lead_score_job ?? "-"}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "total_leads",
-      label: "Leads",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      width: "100px",
-      render: (job: Job) => (
-        <div className="flex items-center justify-center">
-          <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 border border-gray-200">
-            {job.total_leads || 0}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "posted_date",
-      label: "Posted",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (job: Job) => {
-        if (!job.posted_date) return <span className="text-sm">-</span>;
-        
-        try {
-          const date = new Date(job.posted_date);
-          const now = new Date();
-          const diffTime = Math.abs(now.getTime() - date.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
-          return (
-            <div className="text-center">
-              <div className="text-sm text-muted-foreground">
-                {diffDays === 0 ? 'Today' : 
-                 diffDays === 1 ? '1 day ago' : 
-                 `${diffDays} days ago`}
-              </div>
-            </div>
-          );
-        } catch {
-          return <span className="text-sm">-</span>;
-        }
+      key: 'ai_score',
+      label: 'AI Score',
+      width: '100px',
+      cellType: 'ai-score',
+      align: 'center',
+      render: (_, job) => {
+        const score = job.lead_score_job || job.companies?.lead_score;
+        return <span>{score ?? '-'}</span>;
       },
     },
     {
-      key: "valid_through",
-      label: "Expires",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (job: Job) => {
-        if (!job.valid_through) return <span className="text-sm">-</span>;
-        
-        try {
-          const expiryDate = new Date(job.valid_through);
-          const now = new Date();
-          const diffTime = expiryDate.getTime() - now.getTime();
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
-          let className = "text-sm";
-          if (diffDays < 0) {
-            className += " text-red-600 font-medium";
-          } else if (diffDays <= 7) {
-            className += " text-yellow-600 font-medium";
-          } else {
-            className += " text-muted-foreground";
-          }
-          
-          return (
-            <div className="text-center">
-              <div className={className}>
-                {diffDays < 0 ? 'Expired' :
-                 diffDays === 0 ? 'Today' :
-                 diffDays === 1 ? 'Tomorrow' :
-                 `${diffDays} days`}
-              </div>
-            </div>
-          );
-        } catch {
-          return <span className="text-sm">-</span>;
-        }
-      },
+      key: 'leads',
+      label: 'Leads',
+      width: '100px',
+      cellType: 'lead-score',
+      align: 'center',
+      render: value => <span>{(value as number) || 0}</span>,
     },
     {
-      key: "actions",
-      label: "Actions",
-      headerAlign: "center" as const,
-      cellAlign: "center" as const,
-      render: (job: Job) => (
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDeleteJob(job.id, job.title);
-          }}
-          className="h-8 w-8 p-0"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+      key: 'posted',
+      label: 'Posted',
+      width: '120px',
+      cellType: 'regular',
+      render: (_, job) => (
+        <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
+          {job.created_at
+            ? format(new Date(job.created_at), 'MMM d, yyyy')
+            : '-'}
+        </div>
+      ),
+    },
+    {
+      key: 'expires',
+      label: 'Expires',
+      width: '120px',
+      cellType: 'regular',
+      render: (_, job) => (
+        <span>
+          {job.valid_through
+            ? format(new Date(job.valid_through), 'MMM d, yyyy')
+            : '-'}
+        </span>
       ),
     },
   ];
 
-  const handleRowClick = (job: Job) => {
-    console.log('🔍 Job clicked:', job.title, job.id);
-    console.log('🔍 openPopup function:', openPopup);
-    openPopup('job', job.id, job.title);
-    console.log('🔍 openPopup called');
-  };
+  // Handle row click - memoized for performance
+  const handleRowClick = useCallback(
+    (job: Job) => {
+      openPopup('job', job.id, job.title);
+    },
+    [openPopup]
+  );
 
-  const handleCompanyNavigation = (companyId: string, companyName: string) => {
-    openPopup('company', companyId, companyName);
-  };
+  // Handle search - memoized for performance
+  const handleSearch = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page
+  }, []);
 
-  const handleDeleteJob = async (jobId: string, jobTitle: string) => {
-    if (!confirm(`Are you sure you want to delete the job "${jobTitle}"? This action cannot be undone.`)) {
-      return;
-    }
+  // Handle tab change - memoized for performance
+  const handleTabChange = useCallback((tabId: string) => {
+    setActiveTab(tabId);
+    setStatusFilter(tabId);
+    setCurrentPage(1); // Reset to first page when changing tabs
+  }, []);
 
-    try {
-      const { error } = await supabase
-        .from('jobs')
-        .delete()
-        .eq('id', jobId);
+  // Handle favorites toggle - memoized for performance
+  const handleFavoritesToggle = useCallback(() => {
+    setShowFavoritesOnly(prev => !prev);
+  }, []);
 
-      if (error) throw error;
+  // Handle search modal toggle - memoized for performance
+  const handleSearchModalToggle = useCallback(() => {
+    setIsSearchModalOpen(prev => !prev);
+  }, []);
 
-      toast({
-        title: "Success",
-        description: `Job "${jobTitle}" has been deleted.`,
-      });
-
-      // Refresh the jobs list
-      fetchJobs();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: `Failed to delete job: ${error.message}`,
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (loading) {
+  if (error) {
     return (
-      <Page
-        title="Jobs"
-        loading={true}
-        loadingMessage="Loading jobs..."
-      />
+      <Page title='Jobs' hideHeader>
+        <div className='flex items-center justify-center h-32 text-red-500'>
+          Error: {error}
+      </div>
+      </Page>
     );
   }
 
   return (
-    <Page
-      title="Jobs"
-      stats={stats}
-    >
+    <Page title='Jobs' hideHeader>
+      <div
+        className='flex flex-col overflow-hidden'
+        style={{ height: 'calc(100vh - 120px)' }}
+      >
+        {/* Modern Tab Navigation */}
+        <TabNavigation
+          tabs={tabCounts}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+        />
 
+        {/* Search, Filter and Sort Controls */}
+        <FilterControls
+          statusOptions={statusOptions}
+          userOptions={[
+                { label: 'All Users', value: 'all' },
+                ...users.map(userItem => ({
+                  label:
+                    userItem.id === user?.id
+                      ? `${userItem.full_name} (me)`
+                      : userItem.full_name,
+                  value: userItem.id,
+                })),
+              ]}
+          sortOptions={sortOptions}
+          statusFilter={statusFilter}
+          selectedUser={selectedUser}
+          sortBy={sortBy}
+          showFavoritesOnly={showFavoritesOnly}
+          onStatusChange={setStatusFilter}
+          onUserChange={setSelectedUser}
+          onSortChange={setSortBy}
+          onFavoritesToggle={handleFavoritesToggle}
+          onSearchClick={handleSearchModalToggle}
+        />
 
-        {/* Tabs and Controls Row */}
-        <div className="flex items-center justify-between gap-4 mb-4">
-          {/* Navigation Tabs - Design 7: Floating Pills */}
-          <div className="flex gap-3">
-            {[
-              { 
-                id: "recent", 
-                label: "LAST 24HRS", 
-                icon: Clock, 
-                count: jobs.filter(job => {
-                  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-                  const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
-                  return job.created_at && new Date(job.created_at) >= oneDayAgo && isActiveJob;
-                }).length
-              },
-              { 
-                id: "sales", 
-                label: "SALES ROLES", 
-                icon: DollarSign, 
-                count: jobs.filter(job => {
-                  const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
-                  return job.title?.toLowerCase().includes('sales') && isActiveJob;
-                }).length
-              },
-              { 
-                id: "not_automated", 
-                label: "NEW JOBS", 
-                icon: Bot, 
-                count: jobs.filter(job => {
-                  const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
-                  return job.new_leads && job.new_leads > 0 && job.automation_started_leads === 0 && isActiveJob;
-                }).length
-              },
-              { 
-                id: "all", 
-                label: "ALL JOBS", 
-                icon: Briefcase, 
-                count: jobs.filter(job => {
-                  const isActiveJob = !job.valid_through || new Date(job.valid_through) >= new Date();
-                  return isActiveJob;
-                }).length
-              }
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setStatusFilter(tab.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 shadow-sm",
-                    statusFilter === tab.id
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md ring-1 ring-sidebar-primary/20"
-                      : "bg-white text-gray-700 border border-gray-200 hover:shadow-md hover:border-gray-300"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
-                  <span className={cn(
-                    "text-xs px-2 py-0.5 rounded-md",
-                    statusFilter === tab.id
-                      ? "bg-white/20 text-white"
-                      : "bg-gray-100 text-gray-600"
-                  )}>
-                    {tab.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Priority Filter and Sort Controls - Far Right */}
-          <div className="flex items-center gap-3">
-            {/* Priority Filter */}
-            <DropdownSelect
-              options={priorityOptions}
-              value={priorityFilter}
-              onValueChange={(value) => setPriorityFilter(value)}
-              placeholder="All Priorities"
-              className="min-w-32 bg-white"
-            />
-            
-            {/* Sort Controls */}
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Sort:</span>
-              <DropdownSelect
-                options={sortOptions}
-                value={sortBy}
-                onValueChange={(value) => setSortBy(value)}
-                placeholder="Select sort"
-                className="min-w-32 bg-white"
-              />
-              <button
-                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                className="px-2 py-1 text-sm border rounded hover:bg-gray-50"
-              >
-                {sortOrder === "asc" ? "↑" : "↓"}
-              </button>
-            </div>
-          </div>
+        {/* Unified Table */}
+        <div className='flex-1 min-h-0'>
+          <UnifiedTable
+            data={paginatedJobs}
+            columns={columns}
+            pagination={false} // We handle pagination externally
+            stickyHeaders={true}
+            maxHeight='100%'
+            onRowClick={handleRowClick}
+            loading={loading}
+            emptyMessage='No jobs found'
+          />
         </div>
 
-        <DataTable
-          data={sortedJobs}
-          columns={columns}
-          loading={loading}
-          onRowClick={handleRowClick}
-          pagination={{
-            enabled: true,
-            pageSize: 25,
-            pageSizeOptions: [10, 25, 50, 100],
-            showPageSizeSelector: true,
-            showItemCount: true,
+        {/* Pagination */}
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={filteredJobs.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={size => {
+            setPageSize(size);
+            setCurrentPage(1);
           }}
         />
-      
-      {/* Job Detail Modal - Now handled by UnifiedPopup */}
+
+        {/* Search Modal */}
+        <SearchModal
+          isOpen={isSearchModalOpen}
+          onClose={handleSearchModalToggle}
+          value={searchTerm}
+          onChange={setSearchTerm}
+          onSearch={handleSearch}
+        />
+      </div>
     </Page>
   );
 };

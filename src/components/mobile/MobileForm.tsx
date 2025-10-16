@@ -8,7 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 interface MobileFormFieldProps {
@@ -19,23 +25,21 @@ interface MobileFormFieldProps {
   className?: string;
 }
 
-export function MobileFormField({ 
-  label, 
-  error, 
-  required = false, 
-  children, 
-  className 
+export function MobileFormField({
+  label,
+  error,
+  required = false,
+  children,
+  className,
 }: MobileFormFieldProps) {
   return (
-    <div className={cn("space-y-2", className)}>
-      <Label className="text-sm font-medium text-foreground">
+    <div className={cn('space-y-2', className)}>
+      <Label className='text-sm font-medium text-foreground'>
         {label}
-        {required && <span className="text-destructive ml-1">*</span>}
+        {required && <span className='text-destructive ml-1'>*</span>}
       </Label>
       {children}
-      {error && (
-        <p className="text-sm text-destructive">{error}</p>
-      )}
+      {error && <p className='text-sm text-destructive'>{error}</p>}
     </div>
   );
 }
@@ -46,19 +50,19 @@ interface MobileInputProps extends React.ComponentProps<typeof Input> {
   required?: boolean;
 }
 
-export function MobileInput({ 
-  label, 
-  error, 
-  required = false, 
+export function MobileInput({
+  label,
+  error,
+  required = false,
   className,
-  ...props 
+  ...props
 }: MobileInputProps) {
   return (
     <MobileFormField label={label} error={error} required={required}>
       <Input
         className={cn(
-          "w-full min-h-[48px] text-base", // Larger touch target and text
-          "touch-manipulation", // Better touch handling
+          'w-full min-h-[48px] text-base', // Larger touch target and text
+          'touch-manipulation', // Better touch handling
           className
         )}
         {...props}
@@ -73,19 +77,19 @@ interface MobileTextareaProps extends React.ComponentProps<typeof Textarea> {
   required?: boolean;
 }
 
-export function MobileTextarea({ 
-  label, 
-  error, 
-  required = false, 
+export function MobileTextarea({
+  label,
+  error,
+  required = false,
   className,
-  ...props 
+  ...props
 }: MobileTextareaProps) {
   return (
     <MobileFormField label={label} error={error} required={required}>
       <Textarea
         className={cn(
-          "w-full min-h-[48px] text-base resize-none", // Larger touch target and text
-          "touch-manipulation", // Better touch handling
+          'w-full min-h-[48px] text-base resize-none', // Larger touch target and text
+          'touch-manipulation', // Better touch handling
           className
         )}
         {...props}
@@ -105,32 +109,34 @@ interface MobileSelectProps {
   className?: string;
 }
 
-export function MobileSelect({ 
-  label, 
-  error, 
-  required = false, 
-  placeholder = "Select an option",
+export function MobileSelect({
+  label,
+  error,
+  required = false,
+  placeholder = 'Select an option',
   value,
   onValueChange,
   options,
-  className
+  className,
 }: MobileSelectProps) {
   return (
     <MobileFormField label={label} error={error} required={required}>
       <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger className={cn(
-          "w-full min-h-[48px] text-base", // Larger touch target and text
-          "touch-manipulation", // Better touch handling
-          className
-        )}>
+        <SelectTrigger
+          className={cn(
+            'w-full min-h-[48px] text-base', // Larger touch target and text
+            'touch-manipulation', // Better touch handling
+            className
+          )}
+        >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {options.map((option) => (
-            <SelectItem 
-              key={option.value} 
+          {options.map(option => (
+            <SelectItem
+              key={option.value}
               value={option.value}
-              className="min-h-[44px] text-base" // Larger touch targets
+              className='min-h-[44px] text-base' // Larger touch targets
             >
               {option.label}
             </SelectItem>
@@ -145,18 +151,18 @@ interface MobileButtonProps extends React.ComponentProps<typeof Button> {
   fullWidth?: boolean;
 }
 
-export function MobileButton({ 
-  fullWidth = false, 
+export function MobileButton({
+  fullWidth = false,
   className,
   children,
-  ...props 
+  ...props
 }: MobileButtonProps) {
   return (
     <Button
       className={cn(
-        "min-h-[48px] text-base font-medium", // Larger touch target and text
-        "touch-manipulation", // Better touch handling
-        fullWidth && "w-full",
+        'min-h-[48px] text-base font-medium', // Larger touch target and text
+        'touch-manipulation', // Better touch handling
+        fullWidth && 'w-full',
         className
       )}
       {...props}
@@ -175,10 +181,7 @@ interface MobileFormProps {
 
 export function MobileForm({ children, onSubmit, className }: MobileFormProps) {
   return (
-    <form 
-      onSubmit={onSubmit}
-      className={cn("space-y-6", className)}
-    >
+    <form onSubmit={onSubmit} className={cn('space-y-6', className)}>
       {children}
     </form>
   );
@@ -190,15 +193,19 @@ interface MobileFormActionsProps {
   className?: string;
 }
 
-export function MobileFormActions({ children, className }: MobileFormActionsProps) {
+export function MobileFormActions({
+  children,
+  className,
+}: MobileFormActionsProps) {
   return (
-    <div className={cn(
-      "flex flex-col gap-3 pt-4",
-      "sm:flex-row sm:justify-end",
-      className
-    )}>
+    <div
+      className={cn(
+        'flex flex-col gap-3 pt-4',
+        'sm:flex-row sm:justify-end',
+        className
+      )}
+    >
       {children}
     </div>
   );
 }
-

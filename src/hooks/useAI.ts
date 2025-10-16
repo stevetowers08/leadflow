@@ -1,14 +1,22 @@
 // AI Hooks for React integration
 import { useState, useCallback, useEffect } from 'react';
 import { useAsyncOperation } from './useAsyncOperation';
-import { aiService, type AIScore, type JobSummary, type LeadOptimization } from '../services/aiService';
-import { geminiService, type GeminiAnalysisResult } from '../services/geminiService';
-import { 
-  summarizeJobFromSupabase, 
+import {
+  aiService,
+  type AIScore,
+  type JobSummary,
+  type LeadOptimization,
+} from '../services/aiService';
+import {
+  geminiService,
+  type GeminiAnalysisResult,
+} from '../services/geminiService';
+import {
+  summarizeJobFromSupabase,
   batchSummarizeJobsFromSupabase,
   processJobSummarizationWorkflow,
   getJobsNeedingSummarization,
-  type JobSummaryUpdate 
+  type JobSummaryUpdate,
 } from '../utils/jobSummarization';
 
 export interface UseAIJobSummaryOptions {
@@ -34,7 +42,9 @@ export interface UseAIJobSummaryResult {
 /**
  * Hook for generating AI job summaries
  */
-export function useAIJobSummary(options: UseAIJobSummaryOptions = {}): UseAIJobSummaryResult {
+export function useAIJobSummary(
+  options: UseAIJobSummaryOptions = {}
+): UseAIJobSummaryResult {
   const [lastResult, setLastResult] = useState<JobSummary | null>(null);
   const [cache, setCache] = useState<Map<string, JobSummary>>(new Map());
 
@@ -42,59 +52,62 @@ export function useAIJobSummary(options: UseAIJobSummaryOptions = {}): UseAIJobS
     execute: executeSummary,
     isLoading,
     error,
-    retry
+    retry,
   } = useAsyncOperation<JobSummary>();
 
-  const generateSummary = useCallback(async (jobData: {
-    title: string;
-    company: string;
-    description: string;
-    location?: string;
-    salary?: string;
-  }) => {
-    // Check cache if enabled
-    if (options.enableCaching) {
-      const cacheKey = `${jobData.title}-${jobData.company}-${jobData.description.slice(0, 100)}`;
-      const cached = cache.get(cacheKey);
-      if (cached) {
-        setLastResult(cached);
-        return cached;
-      }
-    }
-
-    const result = await executeSummary(async () => {
-      return await aiService.generateJobSummary({
-        title: jobData.title,
-        company: jobData.company,
-        description: jobData.description,
-        location: jobData.location || '',
-        salary: jobData.salary
-      });
-    });
-
-    if (result) {
-      setLastResult(result);
-      
-      // Cache result if enabled
+  const generateSummary = useCallback(
+    async (jobData: {
+      title: string;
+      company: string;
+      description: string;
+      location?: string;
+      salary?: string;
+    }) => {
+      // Check cache if enabled
       if (options.enableCaching) {
         const cacheKey = `${jobData.title}-${jobData.company}-${jobData.description.slice(0, 100)}`;
-        setCache(prev => {
-          const newCache = new Map(prev);
-          newCache.set(cacheKey, result);
-          return newCache;
-        });
+        const cached = cache.get(cacheKey);
+        if (cached) {
+          setLastResult(cached);
+          return cached;
+        }
       }
-    }
 
-    return result;
-  }, [executeSummary, options.enableCaching, cache]);
+      const result = await executeSummary(async () => {
+        return await aiService.generateJobSummary({
+          title: jobData.title,
+          company: jobData.company,
+          description: jobData.description,
+          location: jobData.location || '',
+          salary: jobData.salary,
+        });
+      });
+
+      if (result) {
+        setLastResult(result);
+
+        // Cache result if enabled
+        if (options.enableCaching) {
+          const cacheKey = `${jobData.title}-${jobData.company}-${jobData.description.slice(0, 100)}`;
+          setCache(prev => {
+            const newCache = new Map(prev);
+            newCache.set(cacheKey, result);
+            return newCache;
+          });
+        }
+      }
+
+      return result;
+    },
+    [executeSummary, options.enableCaching, cache]
+  );
 
   return {
     generateSummary,
     isLoading,
     error,
     lastResult,
-    retry
+    retry,
   };
 }
 
@@ -124,85 +137,110 @@ export interface UseAISupabaseJobSummaryResult {
 /**
  * Hook for AI-powered Supabase job summarization
  */
-export function useAISupabaseJobSummary(options: UseAISupabaseJobSummaryOptions = {}): UseAISupabaseJobSummaryResult {
-  const [progress, setProgress] = useState({ current: 0, total: 0, percentage: 0 });
+export function useAISupabaseJobSummary(
+  options: UseAISupabaseJobSummaryOptions = {}
+): UseAISupabaseJobSummaryResult {
+  const [progress, setProgress] = useState({
+    current: 0,
+    total: 0,
+    percentage: 0,
+  });
 
   const {
     execute: executeSummarizeJob,
     isLoading: isLoadingJob,
-    error: jobError
+    error: jobError,
   } = useAsyncOperation<JobSummaryUpdate>();
 
   const {
     execute: executeBatchSummarize,
     isLoading: isLoadingBatch,
-    error: batchError
+    error: batchError,
   } = useAsyncOperation<JobSummaryUpdate[]>();
 
   const {
     execute: executeWorkflow,
     isLoading: isLoadingWorkflow,
-    error: workflowError
-  } = useAsyncOperation<{ processed: number; updated: number; errors: string[] }>();
+    error: workflowError,
+  } = useAsyncOperation<{
+    processed: number;
+    updated: number;
+    errors: string[];
+  }>();
 
   const {
     execute: executeGetJobs,
     isLoading: isLoadingJobs,
-    error: jobsError
+    error: jobsError,
   } = useAsyncOperation<any[]>();
 
-  const summarizeJob = useCallback(async (jobId: string) => {
-    return await executeSummarizeJob(async () => {
-      const result = await summarizeJobFromSupabase(jobId);
-      if (!result.success) {
-        throw new Error(result.error);
-      }
-      return result.data || null;
-    });
-  }, [executeSummarizeJob]);
-
-  const batchSummarizeJobs = useCallback(async (jobIds: string[]) => {
-    setProgress({ current: 0, total: jobIds.length, percentage: 0 });
-    
-    return await executeBatchSummarize(async () => {
-      const result = await batchSummarizeJobsFromSupabase(jobIds);
-      
-      // Update progress
-      const successful = result.results.filter(resultItem => resultItem.success).length;
-      setProgress({
-        current: successful,
-        total: jobIds.length,
-        percentage: Math.round((successful / jobIds.length) * 100)
+  const summarizeJob = useCallback(
+    async (jobId: string) => {
+      return await executeSummarizeJob(async () => {
+        const result = await summarizeJobFromSupabase(jobId);
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+        return result.data || null;
       });
+    },
+    [executeSummarizeJob]
+  );
 
-      return result.results
-        .filter(resultItem => resultItem.success && resultItem.data)
-        .map(resultItem => resultItem.data!);
-    });
-  }, [executeBatchSummarize]);
+  const batchSummarizeJobs = useCallback(
+    async (jobIds: string[]) => {
+      setProgress({ current: 0, total: jobIds.length, percentage: 0 });
 
-  const processWorkflow = useCallback(async (limit: number = 10) => {
-    return await executeWorkflow(async () => {
-      const result = await processJobSummarizationWorkflow(limit);
-      return {
-        processed: result.processed,
-        updated: result.updated,
-        errors: result.errors
-      };
-    });
-  }, [executeWorkflow]);
+      return await executeBatchSummarize(async () => {
+        const result = await batchSummarizeJobsFromSupabase(jobIds);
 
-  const getJobsNeedingSummarization = useCallback(async (limit: number = 50) => {
-    return await executeGetJobs(async () => {
-      const result = await getJobsNeedingSummarization(limit);
-      if (!result.success) {
-        throw new Error(result.error);
-      }
-      return result.data || [];
-    });
-  }, [executeGetJobs]);
+        // Update progress
+        const successful = result.results.filter(
+          resultItem => resultItem.success
+        ).length;
+        setProgress({
+          current: successful,
+          total: jobIds.length,
+          percentage: Math.round((successful / jobIds.length) * 100),
+        });
 
-  const isLoading = isLoadingJob || isLoadingBatch || isLoadingWorkflow || isLoadingJobs;
+        return result.results
+          .filter(resultItem => resultItem.success && resultItem.data)
+          .map(resultItem => resultItem.data!);
+      });
+    },
+    [executeBatchSummarize]
+  );
+
+  const processWorkflow = useCallback(
+    async (limit: number = 10) => {
+      return await executeWorkflow(async () => {
+        const result = await processJobSummarizationWorkflow(limit);
+        return {
+          processed: result.processed,
+          updated: result.updated,
+          errors: result.errors,
+        };
+      });
+    },
+    [executeWorkflow]
+  );
+
+  const getJobsNeedingSummarization = useCallback(
+    async (limit: number = 50) => {
+      return await executeGetJobs(async () => {
+        const result = await getJobsNeedingSummarization(limit);
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+        return result.data || [];
+      });
+    },
+    [executeGetJobs]
+  );
+
+  const isLoading =
+    isLoadingJob || isLoadingBatch || isLoadingWorkflow || isLoadingJobs;
   const error = jobError || batchError || workflowError || jobsError;
 
   return {
@@ -212,7 +250,7 @@ export function useAISupabaseJobSummary(options: UseAISupabaseJobSummaryOptions 
     getJobsNeedingSummarization,
     isLoading,
     error,
-    progress
+    progress,
   };
 }
 
@@ -240,42 +278,47 @@ export interface UseAILeadScoringResult {
 /**
  * Hook for AI-powered lead scoring
  */
-export function useAILeadScoring(options: UseAILeadScoringOptions = {}): UseAILeadScoringResult {
+export function useAILeadScoring(
+  options: UseAILeadScoringOptions = {}
+): UseAILeadScoringResult {
   const [lastScore, setLastScore] = useState<AIScore | null>(null);
 
   const {
     execute: executeScoring,
     isLoading,
     error,
-    retry
+    retry,
   } = useAsyncOperation<AIScore>();
 
-  const calculateScore = useCallback(async (leadData: {
-    name: string;
-    company: string;
-    role: string;
-    location: string;
-    experience?: string;
-    industry?: string;
-    company_size?: string;
-  }) => {
-    const result = await executeScoring(async () => {
-      return await aiService.calculateLeadScore(leadData);
-    });
+  const calculateScore = useCallback(
+    async (leadData: {
+      name: string;
+      company: string;
+      role: string;
+      location: string;
+      experience?: string;
+      industry?: string;
+      company_size?: string;
+    }) => {
+      const result = await executeScoring(async () => {
+        return await aiService.calculateLeadScore(leadData);
+      });
 
-    if (result) {
-      setLastScore(result);
-    }
+      if (result) {
+        setLastScore(result);
+      }
 
-    return result;
-  }, [executeScoring]);
+      return result;
+    },
+    [executeScoring]
+  );
 
   return {
     calculateScore,
     isLoading,
     error,
     lastScore,
-    retry
+    retry,
   };
 }
 
@@ -300,40 +343,46 @@ export interface UseAILeadOptimizationResult {
 /**
  * Hook for AI-powered lead outreach optimization
  */
-export function useAILeadOptimization(options: UseAILeadOptimizationOptions = {}): UseAILeadOptimizationResult {
-  const [lastOptimization, setLastOptimization] = useState<LeadOptimization | null>(null);
+export function useAILeadOptimization(
+  options: UseAILeadOptimizationOptions = {}
+): UseAILeadOptimizationResult {
+  const [lastOptimization, setLastOptimization] =
+    useState<LeadOptimization | null>(null);
 
   const {
     execute: executeOptimization,
     isLoading,
     error,
-    retry
+    retry,
   } = useAsyncOperation<LeadOptimization>();
 
-  const optimizeOutreach = useCallback(async (leadData: {
-    name: string;
-    company: string;
-    role: string;
-    industry?: string;
-    previous_interactions?: string[];
-  }) => {
-    const result = await executeOptimization(async () => {
-      return await aiService.optimizeLeadOutreach(leadData);
-    });
+  const optimizeOutreach = useCallback(
+    async (leadData: {
+      name: string;
+      company: string;
+      role: string;
+      industry?: string;
+      previous_interactions?: string[];
+    }) => {
+      const result = await executeOptimization(async () => {
+        return await aiService.optimizeLeadOutreach(leadData);
+      });
 
-    if (result) {
-      setLastOptimization(result);
-    }
+      if (result) {
+        setLastOptimization(result);
+      }
 
-    return result;
-  }, [executeOptimization]);
+      return result;
+    },
+    [executeOptimization]
+  );
 
   return {
     optimizeOutreach,
     isLoading,
     error,
     lastOptimization,
-    retry
+    retry,
   };
 }
 
@@ -371,12 +420,14 @@ export function useAIServiceStatus(): UseAIServiceStatusResult {
   const refresh = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       setStatus(aiService.getStatus());
       setGeminiStatus(geminiService.getStatus());
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get AI service status');
+      setError(
+        err instanceof Error ? err.message : 'Failed to get AI service status'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -391,6 +442,6 @@ export function useAIServiceStatus(): UseAIServiceStatusResult {
     geminiStatus,
     isLoading,
     error,
-    refresh
+    refresh,
   };
 }

@@ -13,7 +13,9 @@ interface TableBulkActionsProps<T> {
   enableBulkActions: boolean;
 }
 
-export function TableBulkActions<T extends Record<string, any> & { id: string }>({
+export function TableBulkActions<
+  T extends Record<string, any> & { id: string },
+>({
   selectedItems,
   onSelectionChange,
   allItems,
@@ -22,7 +24,7 @@ export function TableBulkActions<T extends Record<string, any> & { id: string }>
   actions,
   itemName,
   itemNamePlural,
-  enableBulkActions
+  enableBulkActions,
 }: TableBulkActionsProps<T>) {
   if (!enableBulkActions) return null;
 

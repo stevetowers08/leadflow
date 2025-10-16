@@ -14,7 +14,7 @@ const LOG_LEVELS: LogLevel = {
   DEBUG: 'debug',
   INFO: 'info',
   WARN: 'warn',
-  ERROR: 'error'
+  ERROR: 'error',
 };
 
 class Logger {
@@ -59,4 +59,3 @@ class Logger {
 
 export const logger = new Logger();
 export default logger;
-

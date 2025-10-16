@@ -1,6 +1,6 @@
 /**
  * MCP Server Implementation
- * 
+ *
  * This creates an MCP server that can be hosted within your application.
  * It provides tools and resources for AI models to interact with your CRM data.
  */
@@ -8,7 +8,10 @@
 import express from 'express';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 
 const app = express();
 app.use(express.json());
@@ -105,23 +108,23 @@ class CRMMCPServer {
     });
 
     // Handle tool calls
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    this.server.setRequestHandler(CallToolRequestSchema, async request => {
       const { name, arguments: args } = request.params;
 
       try {
         switch (name) {
           case 'get_company_info':
             return await this.getCompanyInfo(args.companyId);
-          
+
           case 'get_company_employees':
             return await this.getCompanyEmployees(args.companyId);
-          
+
           case 'search_leads':
             return await this.searchLeads(args.query, args.limit || 10);
-          
+
           case 'get_lead_details':
             return await this.getLeadDetails(args.leadId);
-          
+
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
@@ -198,10 +201,10 @@ class CRMMCPServer {
 app.post('/mcp/tools', async (req, res) => {
   try {
     const { name, arguments: args } = req.body;
-    
+
     // Handle MCP tool calls via HTTP
     const mcpServer = new CRMMCPServer();
-    
+
     // Process the tool call
     res.json({ success: true, result: 'Tool executed' });
   } catch (error) {

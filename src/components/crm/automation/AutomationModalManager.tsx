@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { LinkedInConfirmationModal } from "./LinkedInConfirmationModal";
+import { useState, useEffect } from 'react';
+import { LinkedInConfirmationModal } from './LinkedInConfirmationModal';
 
 interface AutomationModalManagerProps {
   selectedLeads: any[];
@@ -7,23 +7,30 @@ interface AutomationModalManagerProps {
   companyName?: string;
 }
 
-export function AutomationModalManager({ selectedLeads, jobTitle, companyName }: AutomationModalManagerProps) {
+export function AutomationModalManager({
+  selectedLeads,
+  jobTitle,
+  companyName,
+}: AutomationModalManagerProps) {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (selectedLeads.length > 0) {
-      console.log("🚀 AutomationModalManager: Opening modal with leads:", selectedLeads.length);
+      console.log(
+        '🚀 AutomationModalManager: Opening modal with leads:',
+        selectedLeads.length
+      );
       setShowModal(true);
     }
   }, [selectedLeads]);
 
   const handleClose = () => {
-    console.log("🚀 AutomationModalManager: Closing modal");
+    console.log('🚀 AutomationModalManager: Closing modal');
     setShowModal(false);
   };
 
   const handleConfirm = () => {
-    console.log("🚀 AutomationModalManager: Confirming automation");
+    console.log('🚀 AutomationModalManager: Confirming automation');
     setShowModal(false);
   };
 
@@ -38,14 +45,3 @@ export function AutomationModalManager({ selectedLeads, jobTitle, companyName }:
     />
   );
 }
-
-
-
-
-
-
-
-
-
-
-

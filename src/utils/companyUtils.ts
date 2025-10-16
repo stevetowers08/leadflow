@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Handles company insertion with optional owner_id assignment
@@ -7,13 +7,16 @@ import { supabase } from "@/integrations/supabase/client";
 export const insertCompanyWithOwner = async (companyData: any) => {
   try {
     // Get the current user (optional)
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     // Prepare company data - owner_id is optional
     const companyDataWithOwner = {
       ...companyData,
       // Only set owner_id if user is authenticated and not already provided
-      owner_id: companyData.owner_id || (user?.id || null)
+      owner_id: companyData.owner_id || user?.id || null,
     };
 
     // Insert the company
@@ -42,12 +45,15 @@ export const insertCompanyWithOwner = async (companyData: any) => {
 export const insertCompanyWithDuplicateHandling = async (companyData: any) => {
   try {
     // Get the current user (optional)
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     // Prepare company data - owner_id is optional
     const companyDataWithOwner = {
       ...companyData,
-      owner_id: companyData.owner_id || (user?.id || null)
+      owner_id: companyData.owner_id || user?.id || null,
     };
 
     // First attempt: try to insert as-is
@@ -63,24 +69,29 @@ export const insertCompanyWithDuplicateHandling = async (companyData: any) => {
 
     // If it's a duplicate key error, handle it
     if (error.code === '23505' && error.message.includes('name')) {
-      console.log('Duplicate company name detected, creating unique version...');
-      
+      console.log(
+        'Duplicate company name detected, creating unique version...'
+      );
+
       // Generate a unique company name by adding a timestamp suffix
       const originalName = companyData.name;
       const timestamp = Date.now();
       const uniqueName = `${originalName} (${timestamp})`;
-      
+
       // Try inserting with the unique name
       const { data: uniqueData, error: uniqueError } = await supabase
         .from('companies')
         .insert({
           ...companyDataWithOwner,
-          name: uniqueName
+          name: uniqueName,
         })
         .select();
 
       if (uniqueError) {
-        console.error('Failed to insert company even with unique name:', uniqueError);
+        console.error(
+          'Failed to insert company even with unique name:',
+          uniqueError
+        );
         throw uniqueError;
       }
 
@@ -103,8 +114,11 @@ export const insertCompanyWithDuplicateHandling = async (companyData: any) => {
 export const upsertCompany = async (companyData: any) => {
   try {
     // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       throw new Error('User must be authenticated to create companies');
     }
@@ -113,18 +127,15 @@ export const upsertCompany = async (companyData: any) => {
     const companyDataWithOwner = {
       ...companyData,
       owner_id: user.id,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const { data, error } = await supabase
       .from('companies')
-      .upsert(
-        companyDataWithOwner,
-        {
-          onConflict: 'name,owner_id', // Handle conflicts on both fields
-          ignoreDuplicates: false
-        }
-      )
+      .upsert(companyDataWithOwner, {
+        onConflict: 'name,owner_id', // Handle conflicts on both fields
+        ignoreDuplicates: false,
+      })
       .select();
 
     if (error) {
@@ -146,8 +157,11 @@ export const upsertCompany = async (companyData: any) => {
 export const checkCompanyNameExists = async (companyName: string) => {
   try {
     // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       throw new Error('User must be authenticated to check company names');
     }
@@ -159,7 +173,8 @@ export const checkCompanyNameExists = async (companyName: string) => {
       .eq('owner_id', user.id)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
       throw error;
     }
 
@@ -173,26 +188,33 @@ export const checkCompanyNameExists = async (companyName: string) => {
 /**
  * Generate a unique company name by checking for conflicts
  */
-export const generateUniqueCompanyName = async (originalName: string): Promise<string> => {
+export const generateUniqueCompanyName = async (
+  originalName: string
+): Promise<string> => {
   let uniqueName = originalName;
   let counter = 1;
-  
+
   while (await checkCompanyNameExists(uniqueName)) {
     uniqueName = `${originalName} (${counter})`;
     counter++;
   }
-  
+
   return uniqueName;
 };
 
 /**
  * Handle both name and owner duplicates in one function
  */
-export const insertCompanyWithAllDuplicateHandling = async (companyData: any) => {
+export const insertCompanyWithAllDuplicateHandling = async (
+  companyData: any
+) => {
   try {
     // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       throw new Error('User must be authenticated to create companies');
     }
@@ -200,15 +222,17 @@ export const insertCompanyWithAllDuplicateHandling = async (companyData: any) =>
     // Check for existing company name
     const nameExists = await checkCompanyNameExists(companyData.name);
 
-    let processedData = { 
+    let processedData = {
       ...companyData,
-      owner_id: user.id
+      owner_id: user.id,
     };
 
     // Handle name duplicate
     if (nameExists) {
       processedData.name = await generateUniqueCompanyName(companyData.name);
-      console.log(`Company name conflict resolved: ${companyData.name} -> ${processedData.name}`);
+      console.log(
+        `Company name conflict resolved: ${companyData.name} -> ${processedData.name}`
+      );
     }
 
     // Insert with processed data
@@ -218,11 +242,17 @@ export const insertCompanyWithAllDuplicateHandling = async (companyData: any) =>
       .select();
 
     if (error) {
-      console.error('Failed to insert company after conflict resolution:', error);
+      console.error(
+        'Failed to insert company after conflict resolution:',
+        error
+      );
       throw error;
     }
 
-    console.log('Company inserted successfully with conflict resolution:', data);
+    console.log(
+      'Company inserted successfully with conflict resolution:',
+      data
+    );
     return data;
   } catch (error) {
     console.error('Failed to insert company with conflict resolution:', error);

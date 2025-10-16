@@ -4,7 +4,12 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { errorLogger, ErrorSeverity, ErrorCategory, ErrorContext, LoggedError } from '../utils/errorLogger';
+import {
+  ErrorCategory,
+  ErrorContext,
+  ErrorSeverity,
+  errorLogger,
+} from './errorLogger';
 
 export interface ErrorNotificationSettings {
   emailNotifications: boolean;
@@ -51,7 +56,9 @@ class SupabaseErrorService {
    */
   private async loadNotificationSettings(): Promise<void> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: settings, error } = await supabase
@@ -90,7 +97,12 @@ class SupabaseErrorService {
       }
     } catch (error) {
       // Only log unexpected errors, not table missing errors
-      if (error && typeof error === 'object' && 'code' in error && error.code !== 'PGRST205') {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code !== 'PGRST205'
+      ) {
         console.error('Failed to load notification settings:', error);
       }
       // Set default settings on error
@@ -111,25 +123,38 @@ class SupabaseErrorService {
     context: ErrorContext = {}
   ): Promise<string> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       const errorId = this.generateErrorId();
       const timestamp = new Date().toISOString();
 
       const errorData = {
-        error_id: errorId,
+        id: errorId,
         message: typeof error === 'string' ? error : error.message,
-        stack: typeof error === 'object' && error.stack ? error.stack : undefined,
+        stack:
+          typeof error === 'object' && error.stack ? error.stack : undefined,
         severity,
-        category,
+        type: category,
         user_id: user?.id,
         session_id: context.sessionId,
-        component: context.component,
-        action: context.action,
-        metadata: context.metadata || {},
-        user_agent: context.userAgent || (typeof window !== 'undefined' ? window.navigator.userAgent : undefined),
-        url: context.url || (typeof window !== 'undefined' ? window.location.href : undefined),
-        resolved: false,
-        created_at: timestamp,
+        component_name: context.component,
+        metadata: {
+          ...context.metadata,
+          action: context.action,
+          url:
+            context.url ||
+            (typeof window !== 'undefined' ? window.location.href : undefined),
+        },
+        user_agent:
+          context.userAgent ||
+          (typeof window !== 'undefined'
+            ? window.navigator.userAgent
+            : undefined),
+        url:
+          context.url ||
+          (typeof window !== 'undefined' ? window.location.href : undefined),
+        timestamp: timestamp,
       };
 
       const { data, error: insertError } = await supabase
@@ -198,7 +223,8 @@ class SupabaseErrorService {
     };
 
     const currentLevel = severityLevels[severity];
-    const thresholdLevel = severityLevels[this.notificationSettings.notificationSeverity];
+    const thresholdLevel =
+      severityLevels[this.notificationSettings.notificationSeverity];
 
     return currentLevel >= thresholdLevel;
   }
@@ -206,9 +232,12 @@ class SupabaseErrorService {
   /**
    * Send email notification for critical errors
    */
-  private async sendEmailNotification(errorLog: SupabaseErrorLog): Promise<void> {
+  private async sendEmailNotification(
+    errorLog: SupabaseErrorLog
+  ): Promise<void> {
     try {
-      const recipientEmail = this.notificationSettings?.notificationEmail || this.adminEmail;
+      const recipientEmail =
+        this.notificationSettings?.notificationEmail || this.adminEmail;
       if (!recipientEmail) return;
 
       const emailSubject = `🚨 ${errorLog.severity.toUpperCase()} Error in Empowr CRM`;
@@ -216,7 +245,7 @@ class SupabaseErrorService {
 
       // Use the existing Gmail service to send the email
       const { gmailService } = await import('@/services/gmailService');
-      
+
       await gmailService.sendEmail({
         to: [recipientEmail],
         subject: emailSubject,
@@ -227,14 +256,22 @@ class SupabaseErrorService {
       await this.logNotification(errorLog.id, 'email', recipientEmail, 'sent');
     } catch (error) {
       console.error('Failed to send email notification:', error);
-      await this.logNotification(errorLog.id, 'email', this.notificationSettings?.notificationEmail, 'failed', error.message);
+      await this.logNotification(
+        errorLog.id,
+        'email',
+        this.notificationSettings?.notificationEmail,
+        'failed',
+        error.message
+      );
     }
   }
 
   /**
    * Send Slack notification
    */
-  private async sendSlackNotification(errorLog: SupabaseErrorLog): Promise<void> {
+  private async sendSlackNotification(
+    errorLog: SupabaseErrorLog
+  ): Promise<void> {
     try {
       const webhookUrl = this.notificationSettings?.slackWebhookUrl;
       if (!webhookUrl) return;
@@ -286,14 +323,22 @@ class SupabaseErrorService {
       await this.logNotification(errorLog.id, 'slack', webhookUrl, 'sent');
     } catch (error) {
       console.error('Failed to send Slack notification:', error);
-      await this.logNotification(errorLog.id, 'slack', this.notificationSettings?.slackWebhookUrl, 'failed', error.message);
+      await this.logNotification(
+        errorLog.id,
+        'slack',
+        this.notificationSettings?.slackWebhookUrl,
+        'failed',
+        error.message
+      );
     }
   }
 
   /**
    * Send webhook notification
    */
-  private async sendWebhookNotification(errorLog: SupabaseErrorLog): Promise<void> {
+  private async sendWebhookNotification(
+    errorLog: SupabaseErrorLog
+  ): Promise<void> {
     try {
       const webhookUrl = this.notificationSettings?.webhookUrl;
       if (!webhookUrl) return;
@@ -311,7 +356,13 @@ class SupabaseErrorService {
       await this.logNotification(errorLog.id, 'webhook', webhookUrl, 'sent');
     } catch (error) {
       console.error('Failed to send webhook notification:', error);
-      await this.logNotification(errorLog.id, 'webhook', this.notificationSettings?.webhookUrl, 'failed', error.message);
+      await this.logNotification(
+        errorLog.id,
+        'webhook',
+        this.notificationSettings?.webhookUrl,
+        'failed',
+        error.message
+      );
     }
   }
 
@@ -368,19 +419,27 @@ class SupabaseErrorService {
           </table>
         </div>
 
-        ${errorLog.stack ? `
+        ${
+          errorLog.stack
+            ? `
           <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
             <h3 style="margin-top: 0; color: #333;">Stack Trace</h3>
             <pre style="background-color: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; margin: 0;">${errorLog.stack}</pre>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
-        ${errorLog.metadata && Object.keys(errorLog.metadata).length > 0 ? `
+        ${
+          errorLog.metadata && Object.keys(errorLog.metadata).length > 0
+            ? `
           <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
             <h3 style="margin-top: 0; color: #333;">Additional Metadata</h3>
             <pre style="background-color: white; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; margin: 0; border: 1px solid #e9ecef;">${JSON.stringify(errorLog.metadata, null, 2)}</pre>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <div style="background-color: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
           <h3 style="margin-top: 0; color: #1976d2;">Next Steps</h3>
@@ -452,7 +511,9 @@ class SupabaseErrorService {
     resolved?: boolean
   ): Promise<{ data: SupabaseErrorLog[]; count: number }> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return { data: [], count: 0 };
 
       let query = supabase
@@ -485,7 +546,9 @@ class SupabaseErrorService {
    */
   async resolveError(errorId: string): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return false;
 
       const { error } = await supabase
@@ -508,21 +571,23 @@ class SupabaseErrorService {
   /**
    * Update notification settings
    */
-  async updateNotificationSettings(settings: Partial<ErrorNotificationSettings>): Promise<boolean> {
+  async updateNotificationSettings(
+    settings: Partial<ErrorNotificationSettings>
+  ): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return false;
 
-      const { error } = await supabase
-        .from('error_settings')
-        .upsert({
-          user_id: user.id,
-          email_notifications: settings.emailNotifications,
-          notification_severity: settings.notificationSeverity,
-          notification_email: settings.notificationEmail,
-          slack_webhook_url: settings.slackWebhookUrl,
-          webhook_url: settings.webhookUrl,
-        });
+      const { error } = await supabase.from('error_settings').upsert({
+        user_id: user.id,
+        email_notifications: settings.emailNotifications,
+        notification_severity: settings.notificationSeverity,
+        notification_email: settings.notificationEmail,
+        slack_webhook_url: settings.slackWebhookUrl,
+        webhook_url: settings.webhookUrl,
+      });
 
       if (!error) {
         await this.loadNotificationSettings();
@@ -558,47 +623,92 @@ export class EnhancedErrorLogger {
     context: ErrorContext = {}
   ): Promise<string> {
     // Log to local error logger
-    const localErrorId = errorLogger.logError(error, severity, category, context);
-    
+    const localErrorId = errorLogger.logError(
+      error,
+      severity,
+      category,
+      context
+    );
+
     // Log to Supabase
-    const supabaseErrorId = await supabaseErrorService.logErrorToSupabase(error, severity, category, context);
-    
+    const supabaseErrorId = await supabaseErrorService.logErrorToSupabase(
+      error,
+      severity,
+      category,
+      context
+    );
+
     return supabaseErrorId || localErrorId;
   }
 
   /**
    * Log authentication errors
    */
-  async logAuthError(error: Error | string, context: ErrorContext = {}): Promise<string> {
-    return this.logError(error, ErrorSeverity.HIGH, ErrorCategory.AUTHENTICATION, context);
+  async logAuthError(
+    error: Error | string,
+    context: ErrorContext = {}
+  ): Promise<string> {
+    return this.logError(
+      error,
+      ErrorSeverity.HIGH,
+      ErrorCategory.AUTHENTICATION,
+      context
+    );
   }
 
   /**
    * Log database errors
    */
-  async logDatabaseError(error: Error | string, context: ErrorContext = {}): Promise<string> {
-    return this.logError(error, ErrorSeverity.HIGH, ErrorCategory.DATABASE, context);
+  async logDatabaseError(
+    error: Error | string,
+    context: ErrorContext = {}
+  ): Promise<string> {
+    return this.logError(
+      error,
+      ErrorSeverity.HIGH,
+      ErrorCategory.DATABASE,
+      context
+    );
   }
 
   /**
    * Log network errors
    */
-  async logNetworkError(error: Error | string, context: ErrorContext = {}): Promise<string> {
-    return this.logError(error, ErrorSeverity.MEDIUM, ErrorCategory.NETWORK, context);
+  async logNetworkError(
+    error: Error | string,
+    context: ErrorContext = {}
+  ): Promise<string> {
+    return this.logError(
+      error,
+      ErrorSeverity.MEDIUM,
+      ErrorCategory.NETWORK,
+      context
+    );
   }
 
   /**
    * Log UI errors
    */
-  async logUIError(error: Error | string, context: ErrorContext = {}): Promise<string> {
+  async logUIError(
+    error: Error | string,
+    context: ErrorContext = {}
+  ): Promise<string> {
     return this.logError(error, ErrorSeverity.LOW, ErrorCategory.UI, context);
   }
 
   /**
    * Log critical errors
    */
-  async logCriticalError(error: Error | string, context: ErrorContext = {}): Promise<string> {
-    return this.logError(error, ErrorSeverity.CRITICAL, ErrorCategory.UNKNOWN, context);
+  async logCriticalError(
+    error: Error | string,
+    context: ErrorContext = {}
+  ): Promise<string> {
+    return this.logError(
+      error,
+      ErrorSeverity.CRITICAL,
+      ErrorCategory.UNKNOWN,
+      context
+    );
   }
 }
 

@@ -17,7 +17,7 @@ interface UserProfile {
 export const AssignedUserBadge: React.FC<AssignedUserBadgeProps> = ({
   ownerId,
   automationStatus,
-  className
+  className,
 }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
@@ -59,12 +59,14 @@ export const AssignedUserBadge: React.FC<AssignedUserBadgeProps> = ({
   }
 
   return (
-    <span className={cn(
-      "inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border",
-      "bg-blue-50 text-blue-700 border-blue-200",
-      className
-    )}>
-      {loading ? "Loading..." : userProfile.full_name}
+    <span
+      className={cn(
+        'inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border',
+        'bg-blue-50 text-blue-700 border-blue-200',
+        className
+      )}
+    >
+      {loading ? 'Loading...' : userProfile.full_name}
     </span>
   );
 };

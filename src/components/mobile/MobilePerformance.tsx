@@ -14,7 +14,11 @@ interface LazyLoadProps {
   threshold?: number;
 }
 
-export function MobileLazyLoad({ children, fallback, threshold = 0.1 }: LazyLoadProps) {
+export function MobileLazyLoad({
+  children,
+  fallback,
+  threshold = 0.1,
+}: LazyLoadProps) {
   const [isVisible, setIsVisible] = React.useState(false);
   const [hasLoaded, setHasLoaded] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -47,7 +51,11 @@ export function MobileLazyLoad({ children, fallback, threshold = 0.1 }: LazyLoad
 
   return (
     <div ref={ref}>
-      {isVisible ? children : (fallback || <div className="animate-pulse bg-gray-200 h-32 rounded" />)}
+      {isVisible
+        ? children
+        : fallback || (
+            <div className='animate-pulse bg-gray-200 h-32 rounded' />
+          )}
     </div>
   );
 }
@@ -61,12 +69,12 @@ interface VirtualScrollProps {
   className?: string;
 }
 
-export function MobileVirtualScroll({ 
-  items, 
-  itemHeight, 
-  containerHeight, 
-  renderItem, 
-  className 
+export function MobileVirtualScroll({
+  items,
+  itemHeight,
+  containerHeight,
+  renderItem,
+  className,
 }: VirtualScrollProps) {
   const [scrollTop, setScrollTop] = React.useState(0);
   const isMobile = useIsMobile();
@@ -82,7 +90,7 @@ export function MobileVirtualScroll({
 
     return items.slice(startIndex, endIndex).map((item, index) => ({
       item,
-      index: startIndex + index
+      index: startIndex + index,
     }));
   }, [items, scrollTop, itemHeight, containerHeight, isMobile]);
 
@@ -98,10 +106,10 @@ export function MobileVirtualScroll({
   }
 
   return (
-    <div 
-      className={cn("overflow-auto", className)}
+    <div
+      className={cn('overflow-auto', className)}
       style={{ height: containerHeight }}
-      onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
+      onScroll={e => setScrollTop(e.currentTarget.scrollTop)}
     >
       <div style={{ height: totalHeight, position: 'relative' }}>
         <div style={{ transform: `translateY(${offsetY}px)` }}>
@@ -124,13 +132,13 @@ interface MobileImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   lazy?: boolean;
 }
 
-export function MobileImage({ 
-  src, 
-  alt, 
-  fallback, 
-  lazy = true, 
+export function MobileImage({
+  src,
+  alt,
+  fallback,
+  lazy = true,
   className,
-  ...props 
+  ...props
 }: MobileImageProps) {
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [hasError, setHasError] = React.useState(false);
@@ -150,8 +158,8 @@ export function MobileImage({
           onLoad={handleLoad}
           onError={handleError}
           className={cn(
-            "transition-opacity duration-200",
-            isLoaded ? "opacity-100" : "opacity-0",
+            'transition-opacity duration-200',
+            isLoaded ? 'opacity-100' : 'opacity-0',
             className
           )}
           {...props}
@@ -167,8 +175,8 @@ export function MobileImage({
       onLoad={handleLoad}
       onError={handleError}
       className={cn(
-        "transition-opacity duration-200",
-        isLoaded ? "opacity-100" : "opacity-0",
+        'transition-opacity duration-200',
+        isLoaded ? 'opacity-100' : 'opacity-0',
         className
       )}
       {...props}
@@ -187,9 +195,12 @@ export function useMobileSearch<T>(
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(query);
-    }, isMobile ? delay : 0); // No delay on desktop
+    const timer = setTimeout(
+      () => {
+        setDebouncedQuery(query);
+      },
+      isMobile ? delay : 0
+    ); // No delay on desktop
 
     return () => clearTimeout(timer);
   }, [query, delay, isMobile]);
@@ -203,7 +214,7 @@ export function useMobileSearch<T>(
     query,
     setQuery,
     filteredItems,
-    isSearching: query !== debouncedQuery
+    isSearching: query !== debouncedQuery,
   };
 }
 
@@ -225,23 +236,29 @@ export function TouchGestureHandler({
   onSwipeDown,
   threshold = 50,
   children,
-  className
+  className,
 }: TouchGestureProps) {
-  const [touchStart, setTouchStart] = React.useState<{ x: number; y: number } | null>(null);
-  const [touchEnd, setTouchEnd] = React.useState<{ x: number; y: number } | null>(null);
+  const [touchStart, setTouchStart] = React.useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [touchEnd, setTouchEnd] = React.useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart({
       x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
+      y: e.targetTouches[0].clientY,
     });
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     setTouchEnd({
       x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
+      y: e.targetTouches[0].clientY,
     });
   };
 
@@ -264,7 +281,7 @@ export function TouchGestureHandler({
 
   return (
     <div
-      className={cn("touch-none", className)}
+      className={cn('touch-none', className)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -279,7 +296,7 @@ export function useMobilePerformance() {
   const [performanceMetrics, setPerformanceMetrics] = React.useState({
     loadTime: 0,
     memoryUsage: 0,
-    isSlowConnection: false
+    isSlowConnection: false,
   });
 
   useEffect(() => {
@@ -292,18 +309,19 @@ export function useMobilePerformance() {
     // Monitor memory usage (if available)
     if ('memory' in performance) {
       const memory = (performance as any).memory;
-      setPerformanceMetrics(prev => ({ 
-        ...prev, 
-        memoryUsage: memory.usedJSHeapSize / memory.totalJSHeapSize 
+      setPerformanceMetrics(prev => ({
+        ...prev,
+        memoryUsage: memory.usedJSHeapSize / memory.totalJSHeapSize,
       }));
     }
 
     // Monitor connection speed
     if ('connection' in navigator) {
       const connection = (navigator as any).connection;
-      const isSlowConnection = connection.effectiveType === 'slow-2g' || 
-                              connection.effectiveType === '2g' ||
-                              connection.saveData;
+      const isSlowConnection =
+        connection.effectiveType === 'slow-2g' ||
+        connection.effectiveType === '2g' ||
+        connection.saveData;
       setPerformanceMetrics(prev => ({ ...prev, isSlowConnection }));
     }
   }, []);

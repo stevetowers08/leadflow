@@ -1,6 +1,6 @@
 /**
  * Data-Aware Gemini Chat Service
- * 
+ *
  * This service extends the existing Gemini service to provide chat capabilities
  * with direct access to CRM data. It intelligently queries relevant data based
  * on user questions and provides context-aware responses.
@@ -26,7 +26,11 @@ export interface ChatContext {
 
 export interface DataQueryResult {
   type: 'companies' | 'leads' | 'jobs' | 'mixed';
-  data: CompanyData[] | LeadData[] | JobData[] | (CompanyData | LeadData | JobData)[];
+  data:
+    | CompanyData[]
+    | LeadData[]
+    | JobData[]
+    | (CompanyData | LeadData | JobData)[];
   query: string;
 }
 
@@ -94,9 +98,14 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
    * Main chat method that handles user messages with CRM data context
    */
   async chatWithData(
-    userMessage: string, 
+    userMessage: string,
     context: ChatContext,
-    onChunk?: (chunk: { content: string; done: boolean; conversationId: string; dataContext?: any }) => void
+    onChunk?: (chunk: {
+      content: string;
+      done: boolean;
+      conversationId: string;
+      dataContext?: any;
+    }) => void
   ): Promise<{ message: string; dataContext?: any; conversationId: string }> {
     try {
       if (!this.apiKey) {
@@ -106,79 +115,90 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
       // Send initial status update
       if (onChunk) {
         onChunk({
-          content: "Let me check that for you...",
+          content: 'Let me check that for you...',
           done: false,
-          conversationId: context.conversationId
+          conversationId: context.conversationId,
         });
-        
+
         // Add a small delay to make it feel more natural
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       // 1. Query relevant CRM data based on user message
       const dataQuery = await this.queryRelevantData(userMessage);
-      
+
       // Send data found update
       if (onChunk && dataQuery.data.length > 0) {
         const statusMessages = [
           `Found ${dataQuery.data.length} ${dataQuery.type} records. Analyzing...`,
           `Looking through ${dataQuery.data.length} ${dataQuery.type}...`,
           `Checking ${dataQuery.data.length} ${dataQuery.type} records...`,
-          `Found ${dataQuery.data.length} ${dataQuery.type}. Processing...`
+          `Found ${dataQuery.data.length} ${dataQuery.type}. Processing...`,
         ];
-        
+
         onChunk({
-          content: statusMessages[Math.floor(Math.random() * statusMessages.length)],
+          content:
+            statusMessages[Math.floor(Math.random() * statusMessages.length)],
           done: false,
-          conversationId: context.conversationId
+          conversationId: context.conversationId,
         });
-        
+
         // Add another small delay
         await new Promise(resolve => setTimeout(resolve, 300));
       }
-      
+
       // 2. Build context-aware prompt
-      const prompt = this.buildContextualPrompt(userMessage, dataQuery, context.messages);
-      
+      const prompt = this.buildContextualPrompt(
+        userMessage,
+        dataQuery,
+        context.messages
+      );
+
       // 3. Send to Gemini
       const response = await this.callGeminiAPI(prompt);
-      
+
       if (!response.success) {
         throw new Error(response.error || 'Failed to get AI response');
       }
 
       const finalMessage = response.data || 'No response received';
-      
+
       // Send final response
       if (onChunk) {
         onChunk({
           content: finalMessage,
           done: true,
           conversationId: context.conversationId,
-          dataContext: dataQuery
+          dataContext: dataQuery,
         });
       }
 
       return {
         message: finalMessage,
         dataContext: dataQuery,
-        conversationId: context.conversationId
+        conversationId: context.conversationId,
       };
-
     } catch (error) {
       console.error('Data-aware chat error:', error);
-      
+
       let errorMessage = 'Sorry, I encountered an error';
       let errorType = 'unknown';
-      
+
       if (error instanceof Error) {
         if (error.message.includes('API key')) {
-          errorMessage = 'API key not configured. Please check your Gemini API key.';
+          errorMessage =
+            'API key not configured. Please check your Gemini API key.';
           errorType = 'config';
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        } else if (
+          error.message.includes('network') ||
+          error.message.includes('fetch')
+        ) {
           errorMessage = 'Network error. Please check your connection.';
           errorType = 'network';
-        } else if (error.message.includes('quota') || error.message.includes('limit')) {
+        } else if (
+          error.message.includes('quota') ||
+          error.message.includes('limit')
+        ) {
           errorMessage = 'API quota exceeded. Please try again later.';
           errorType = 'quota';
         } else {
@@ -186,19 +206,19 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
           errorType = 'api';
         }
       }
-      
+
       if (onChunk) {
         onChunk({
           content: errorMessage,
           done: true,
-          conversationId: context.conversationId
+          conversationId: context.conversationId,
         });
       }
-      
+
       return {
         message: errorMessage,
         conversationId: context.conversationId,
-        error: errorType
+        error: errorType,
       };
     }
   }
@@ -206,7 +226,9 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
   /**
    * Intelligently query relevant CRM data based on user message
    */
-  private async queryRelevantData(userMessage: string): Promise<DataQueryResult> {
+  private async queryRelevantData(
+    userMessage: string
+  ): Promise<DataQueryResult> {
     const message = userMessage.toLowerCase();
     const queries: Promise<CompanyData[] | LeadData[] | JobData[]>[] = [];
     const queryTypes: string[] = [];
@@ -217,12 +239,22 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
       queryTypes.push('companies');
     }
 
-    if (message.includes('lead') || message.includes('leads') || message.includes('people') || message.includes('employee')) {
+    if (
+      message.includes('lead') ||
+      message.includes('leads') ||
+      message.includes('people') ||
+      message.includes('employee')
+    ) {
       queries.push(this.queryLeads(userMessage));
       queryTypes.push('leads');
     }
 
-    if (message.includes('job') || message.includes('jobs') || message.includes('position') || message.includes('role')) {
+    if (
+      message.includes('job') ||
+      message.includes('jobs') ||
+      message.includes('position') ||
+      message.includes('role')
+    ) {
       queries.push(this.queryJobs(userMessage));
       queryTypes.push('jobs');
     }
@@ -240,9 +272,9 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
     const allData = results.flat();
 
     return {
-      type: queryTypes.length === 1 ? queryTypes[0] as any : 'mixed',
+      type: queryTypes.length === 1 ? (queryTypes[0] as any) : 'mixed',
       data: allData,
-      query: userMessage
+      query: userMessage,
     };
   }
 
@@ -258,7 +290,7 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
 
       // Add filters based on message content
       const message = userMessage.toLowerCase();
-      
+
       if (message.includes('tech') || message.includes('technology')) {
         query = query.ilike('industry', '%tech%');
       } else if (message.includes('finance') || message.includes('financial')) {
@@ -277,7 +309,9 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
         query = query.eq('automation_active', true);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order('created_at', {
+        ascending: false,
+      });
 
       if (error) {
         console.error('Error querying companies:', error);
@@ -298,18 +332,28 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
     try {
       let query = supabase
         .from('people')
-        .select('id, name, company_id, company_role, employee_location, stage, lead_score')
+        .select(
+          'id, name, company_id, company_role, employee_location, stage, lead_score'
+        )
         .limit(5);
 
       // Add filters based on message content
       const message = userMessage.toLowerCase();
-      
-      if (message.includes('senior') || message.includes('director') || message.includes('manager')) {
-        query = query.or('company_role.ilike.%senior%,company_role.ilike.%director%,company_role.ilike.%manager%');
+
+      if (
+        message.includes('senior') ||
+        message.includes('director') ||
+        message.includes('manager')
+      ) {
+        query = query.or(
+          'company_role.ilike.%senior%,company_role.ilike.%director%,company_role.ilike.%manager%'
+        );
       }
 
       if (message.includes('sales') || message.includes('marketing')) {
-        query = query.or('company_role.ilike.%sales%,company_role.ilike.%marketing%');
+        query = query.or(
+          'company_role.ilike.%sales%,company_role.ilike.%marketing%'
+        );
       }
 
       if (message.includes('replied') || message.includes('responded')) {
@@ -322,7 +366,9 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
         query = query.gte('lead_score', 80);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order('created_at', {
+        ascending: false,
+      });
 
       if (error) {
         console.error('Error querying leads:', error);
@@ -348,20 +394,26 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
 
       // Add filters based on message content
       const message = userMessage.toLowerCase();
-      
+
       if (message.includes('remote') || message.includes('work from home')) {
         query = query.ilike('location', '%remote%');
       }
 
       if (message.includes('senior') || message.includes('lead')) {
-        query = query.or('title.ilike.%senior%,title.ilike.%lead%,seniority_level.ilike.%senior%');
+        query = query.or(
+          'title.ilike.%senior%,title.ilike.%lead%,seniority_level.ilike.%senior%'
+        );
       }
 
       if (message.includes('sales') || message.includes('marketing')) {
-        query = query.or('title.ilike.%sales%,title.ilike.%marketing%,function.ilike.%sales%,function.ilike.%marketing%');
+        query = query.or(
+          'title.ilike.%sales%,title.ilike.%marketing%,function.ilike.%sales%,function.ilike.%marketing%'
+        );
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order('created_at', {
+        ascending: false,
+      });
 
       if (error) {
         console.error('Error querying jobs:', error);
@@ -379,12 +431,12 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
    * Build contextual prompt with CRM data and conversation history
    */
   private buildContextualPrompt(
-    userMessage: string, 
-    dataQuery: DataQueryResult, 
+    userMessage: string,
+    dataQuery: DataQueryResult,
     conversationHistory: ChatMessage[]
   ): string {
     const recentHistory = conversationHistory.slice(-6); // Last 6 messages for context
-    
+
     return `
 ${this.SYSTEM_MESSAGE}
 
@@ -402,7 +454,9 @@ Please provide a helpful response based on the CRM data and conversation context
   /**
    * Call Gemini API with the contextual prompt
    */
-  private async callGeminiAPI(prompt: string): Promise<{ success: boolean; data?: string; error?: string }> {
+  private async callGeminiAPI(
+    prompt: string
+  ): Promise<{ success: boolean; data?: string; error?: string }> {
     try {
       const response = await fetch(
         `${this.baseUrl}/models/${this.model}:generateContent?key=${this.apiKey}`,
@@ -412,11 +466,15 @@ Please provide a helpful response based on the CRM data and conversation context
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }],
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt,
+                  },
+                ],
+              },
+            ],
             generationConfig: {
               temperature: 0.3,
               topK: 40,
@@ -425,34 +483,40 @@ Please provide a helpful response based on the CRM data and conversation context
             },
             safetySettings: [
               {
-                category: "HARM_CATEGORY_HARASSMENT",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                category: 'HARM_CATEGORY_HARASSMENT',
+                threshold: 'BLOCK_MEDIUM_AND_ABOVE',
               },
               {
-                category: "HARM_CATEGORY_HATE_SPEECH",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                category: 'HARM_CATEGORY_HATE_SPEECH',
+                threshold: 'BLOCK_MEDIUM_AND_ABOVE',
               },
               {
-                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                threshold: 'BLOCK_MEDIUM_AND_ABOVE',
               },
               {
-                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-                threshold: "BLOCK_MEDIUM_AND_ABOVE"
-              }
-            ]
-          })
+                category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+              },
+            ],
+          }),
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Gemini API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+        throw new Error(
+          `Gemini API error: ${response.status} - ${errorData.error?.message || response.statusText}`
+        );
       }
 
       const data = await response.json();
-      
-      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+
+      if (
+        !data.candidates ||
+        !data.candidates[0] ||
+        !data.candidates[0].content
+      ) {
         throw new Error('Invalid response format from Gemini API');
       }
 
@@ -460,14 +524,13 @@ Please provide a helpful response based on the CRM data and conversation context
 
       return {
         success: true,
-        data: content
+        data: content,
       };
-
     } catch (error) {
       console.error('Gemini API call failed:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown API error'
+        error: error instanceof Error ? error.message : 'Unknown API error',
       };
     }
   }
@@ -489,9 +552,9 @@ Please provide a helpful response based on the CRM data and conversation context
   /**
    * Get service status
    */
-  getStatus(): { 
-    available: boolean; 
-    model: string; 
+  getStatus(): {
+    available: boolean;
+    model: string;
     features: string[];
   } {
     return {
@@ -504,8 +567,8 @@ Please provide a helpful response based on the CRM data and conversation context
         'companies_analysis',
         'leads_analysis',
         'jobs_analysis',
-        'real_time_data'
-      ]
+        'real_time_data',
+      ],
     };
   }
 }

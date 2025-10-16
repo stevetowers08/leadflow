@@ -38,7 +38,7 @@ export function useAsyncOperation<T = any>(
     errorMessage = 'Operation failed',
     onSuccess,
     onError,
-    onRetry
+    onRetry,
   } = options;
 
   const [state, setState] = useState<AsyncOperationState<T>>({
@@ -47,76 +47,90 @@ export function useAsyncOperation<T = any>(
     error: null,
     isRetrying: false,
     retryCount: 0,
-    lastExecutedAt: null
+    lastExecutedAt: null,
   });
 
   const { toast } = useToast();
   const { logError } = useErrorHandler();
   const { executeWithRetry, isRetrying, retryCount } = useRetry(asyncFn, {
     ...retryOptions,
-    onRetry: (attempt) => {
+    onRetry: attempt => {
       setState(prev => ({ ...prev, isRetrying: true, retryCount: attempt }));
       onRetry?.(attempt);
     },
     onMaxRetriesReached: () => {
       setState(prev => ({ ...prev, isRetrying: false, retryCount: 0 }));
-    }
+    },
   });
 
-  const execute = useCallback(async (...args: any[]) => {
-    setState(prev => ({
-      ...prev,
-      isLoading: true,
-      error: null,
-      isRetrying: false,
-      retryCount: 0
-    }));
-
-    try {
-      const result = await executeWithRetry(...args);
-      
+  const execute = useCallback(
+    async (...args: any[]) => {
       setState(prev => ({
         ...prev,
-        data: result,
-        isLoading: false,
+        isLoading: true,
         error: null,
-        lastExecutedAt: new Date()
-      }));
-
-      if (showSuccessToast) {
-        toast({
-          title: "Success",
-          description: successMessage,
-        });
-      }
-
-      onSuccess?.(result);
-      return result;
-    } catch (error) {
-      const errorObj = error as Error;
-      
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorObj.message,
         isRetrying: false,
-        retryCount: 0
+        retryCount: 0,
       }));
 
-      if (showErrorToast) {
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      }
+      try {
+        const result = await executeWithRetry(...args);
 
-      logError(errorObj, { operation: asyncFn.name }, 'medium');
-      onError?.(errorObj);
-      
-      throw errorObj;
-    }
-  }, [asyncFn, executeWithRetry, showSuccessToast, showErrorToast, successMessage, errorMessage, onSuccess, onError, toast, logError]);
+        setState(prev => ({
+          ...prev,
+          data: result,
+          isLoading: false,
+          error: null,
+          lastExecutedAt: new Date(),
+        }));
+
+        if (showSuccessToast) {
+          toast({
+            title: 'Success',
+            description: successMessage,
+          });
+        }
+
+        onSuccess?.(result);
+        return result;
+      } catch (error) {
+        const errorObj = error as Error;
+
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: errorObj.message,
+          isRetrying: false,
+          retryCount: 0,
+        }));
+
+        if (showErrorToast) {
+          toast({
+            title: 'Error',
+            description: errorMessage,
+            variant: 'destructive',
+          });
+        }
+
+        logError(errorObj, { operation: asyncFn.name }, 'medium');
+        onError?.(errorObj);
+
+        throw errorObj;
+      }
+    },
+    [
+      asyncFn,
+      executeWithRetry,
+      showSuccessToast,
+      showErrorToast,
+      successMessage,
+      errorMessage,
+      onSuccess,
+      onError,
+      toast,
+      logError,
+    ]
+  );
 
   const reset = useCallback(() => {
     setState({
@@ -125,13 +139,16 @@ export function useAsyncOperation<T = any>(
       error: null,
       isRetrying: false,
       retryCount: 0,
-      lastExecutedAt: null
+      lastExecutedAt: null,
     });
   }, []);
 
-  const retry = useCallback(async (...args: any[]) => {
-    return execute(...args);
-  }, [execute]);
+  const retry = useCallback(
+    async (...args: any[]) => {
+      return execute(...args);
+    },
+    [execute]
+  );
 
   return {
     ...state,
@@ -139,23 +156,28 @@ export function useAsyncOperation<T = any>(
     retry,
     reset,
     isRetrying: state.isRetrying || isRetrying,
-    retryCount: state.retryCount || retryCount
+    retryCount: state.retryCount || retryCount,
   };
 }
 
 // Specialized hook for data fetching operations
 export function useAsyncData<T = any>(
   fetchFn: (...args: any[]) => Promise<T>,
-  options: AsyncOperationOptions & { 
+  options: AsyncOperationOptions & {
     initialData?: T;
     autoExecute?: boolean;
     executeArgs?: any[];
   } = {}
 ) {
-  const { initialData, autoExecute = false, executeArgs = [], ...operationOptions } = options;
-  
+  const {
+    initialData,
+    autoExecute = false,
+    executeArgs = [],
+    ...operationOptions
+  } = options;
+
   const operation = useAsyncOperation(fetchFn, operationOptions);
-  
+
   const [hasExecuted, setHasExecuted] = useState(false);
 
   // Auto-execute on mount if enabled
@@ -169,7 +191,7 @@ export function useAsyncData<T = any>(
   return {
     ...operation,
     data: operation.data || initialData,
-    refetch: () => operation.execute(...executeArgs)
+    refetch: () => operation.execute(...executeArgs),
   };
 }
 
@@ -181,7 +203,7 @@ export function useAsyncMutation<T = any>(
   return useAsyncOperation(mutationFn, {
     showSuccessToast: true,
     showErrorToast: true,
-    ...options
+    ...options,
   });
 }
 
@@ -194,39 +216,39 @@ export function useAsyncBatchOperation<T = any>(
   } = {}
 ) {
   const { batchSize = 10, onProgress, ...operationOptions } = options;
-  
+
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
-  
+
   const operation = useAsyncOperation(async (items: any[]) => {
     const results: T[] = [];
     const batches = [];
-    
+
     // Split items into batches
     for (let i = 0; i < items.length; i += batchSize) {
       batches.push(items.slice(i, i + batchSize));
     }
-    
+
     setProgress({ completed: 0, total: items.length });
-    
+
     // Process each batch
     for (const batch of batches) {
       const batchResults = await batchFn(batch);
       results.push(...batchResults);
-      
+
       setProgress(prev => ({
         completed: prev.completed + batch.length,
-        total: items.length
+        total: items.length,
       }));
-      
+
       onProgress?.(prev.completed + batch.length, items.length);
     }
-    
+
     return results;
   }, operationOptions);
 
   return {
     ...operation,
     progress,
-    isComplete: progress.completed === progress.total && progress.total > 0
+    isComplete: progress.completed === progress.total && progress.total > 0,
   };
 }

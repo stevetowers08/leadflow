@@ -16,7 +16,7 @@ interface TableInfo {
 
 export class DatabaseSchemaExplorer {
   private static instance: DatabaseSchemaExplorer;
-  
+
   static getInstance(): DatabaseSchemaExplorer {
     if (!DatabaseSchemaExplorer.instance) {
       DatabaseSchemaExplorer.instance = new DatabaseSchemaExplorer();
@@ -46,7 +46,7 @@ export class DatabaseSchemaExplorer {
       return {
         table_name: tableName,
         columns: columns || [],
-        sample_data: sampleData || []
+        sample_data: sampleData || [],
       };
     } catch (error) {
       console.error(`Error getting schema for ${tableName}:`, error);
@@ -73,8 +73,9 @@ export class DatabaseSchemaExplorer {
 
   async getEnumValues(enumName: string): Promise<string[]> {
     try {
-      const { data, error } = await supabase
-        .rpc('get_enum_values', { enum_name: enumName });
+      const { data, error } = await supabase.rpc('get_enum_values', {
+        enum_name: enumName,
+      });
 
       if (error) throw error;
       return data || [];
@@ -101,22 +102,22 @@ export class DatabaseSchemaExplorer {
 
   async exportSchemaAsMarkdown(): Promise<string> {
     const schema = await this.generateFullSchema();
-    
+
     let markdown = '# Database Schema Documentation\n\n';
     markdown += `Generated on: ${new Date().toISOString()}\n\n`;
 
     for (const [tableName, tableInfo] of Object.entries(schema)) {
       markdown += `## Table: ${tableName}\n\n`;
-      
+
       // Columns
       markdown += '### Columns\n\n';
       markdown += '| Column | Type | Nullable | Default |\n';
       markdown += '|--------|------|----------|----------|\n';
-      
+
       tableInfo.columns.forEach(col => {
         markdown += `| ${col.column_name} | ${col.data_type} | ${col.is_nullable} | ${col.column_default || 'NULL'} |\n`;
       });
-      
+
       // Sample data
       if (tableInfo.sample_data && tableInfo.sample_data.length > 0) {
         markdown += '\n### Sample Data\n\n';
@@ -124,7 +125,7 @@ export class DatabaseSchemaExplorer {
         markdown += JSON.stringify(tableInfo.sample_data, null, 2);
         markdown += '\n```\n';
       }
-      
+
       markdown += '\n---\n\n';
     }
 

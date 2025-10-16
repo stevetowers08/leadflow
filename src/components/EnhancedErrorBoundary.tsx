@@ -1,34 +1,45 @@
 /**
- * Enhanced Error Handling System
- * 
- * This module provides comprehensive error handling including:
- * - Error boundaries for different component types
- * - Retry mechanisms
- * - Error recovery strategies
- * - User-friendly error messages
+ * Enhanced Error Boundary with Modern Error Handling
+ * Provides better error recovery and user experience
  */
 
+import {
+  AppError,
+  ErrorCategory,
+  ErrorFactory,
+  ErrorSeverity,
+  ErrorType,
+} from '@/types/errors';
+import { enhancedErrorHandler } from '@/utils/enhancedErrorHandler';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
 
-interface ErrorBoundaryState {
+export interface ErrorBoundaryState {
   hasError: boolean;
-  error: Error | null;
+  error: AppError | null;
   errorInfo: ErrorInfo | null;
   retryCount: number;
+  lastErrorTime: number;
 }
 
-interface ErrorBoundaryProps {
+export interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  onError?: (error: AppError, errorInfo: ErrorInfo) => void;
+  onRetry?: () => void;
   maxRetries?: number;
+  recoverable?: boolean;
+  showDetails?: boolean;
+  componentName?: string;
+  severity?: ErrorSeverity;
+  resetKeys?: Array<string | number>;
   resetOnPropsChange?: boolean;
 }
 
-class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  private resetTimeoutId: NodeJS.Timeout | null = null;
+export class EnhancedErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  private resetTimeoutId: number | null = null;
 
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -36,145 +47,190 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
       hasError: false,
       error: null,
       errorInfo: null,
-      retryCount: 0
+      retryCount: 0,
+      lastErrorTime: 0,
     };
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return {
       hasError: true,
-      error
+      lastErrorTime: Date.now(),
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    this.setState({
-      error,
-      errorInfo
+  async componentDidCatch(error: Error, errorInfo: ErrorInfo): Promise<void> {
+    const appError = await enhancedErrorHandler.handleError(error, {
+      component: this.props.componentName || 'ErrorBoundary',
+      action: 'component_error',
+      metadata: {
+        componentStack: errorInfo.componentStack,
+        retryCount: this.state.retryCount,
+        props: this.props.componentName,
+      },
     });
 
-    // Log error to monitoring service
-    console.error('Error caught by boundary:', error, errorInfo);
-    
-    // Call custom error handler
-    this.props.onError?.(error, errorInfo);
+    this.setState({
+      error: appError,
+      errorInfo,
+    });
 
-    // Auto-reset after 5 seconds if max retries not reached
-    if (this.state.retryCount < (this.props.maxRetries || 3)) {
-      this.resetTimeoutId = setTimeout(() => {
-        this.handleRetry();
-      }, 5000);
-    }
+    // Call custom error handler
+    this.props.onError?.(appError, errorInfo);
   }
 
   componentDidUpdate(prevProps: ErrorBoundaryProps) {
-    if (this.props.resetOnPropsChange && prevProps.children !== this.props.children) {
-      this.setState({
-        hasError: false,
-        error: null,
-        errorInfo: null,
-        retryCount: 0
-      });
+    const { resetKeys, resetOnPropsChange } = this.props;
+
+    if (resetOnPropsChange && resetKeys) {
+      const hasResetKeyChanged = resetKeys.some(
+        (key, index) => key !== prevProps.resetKeys?.[index]
+      );
+
+      if (hasResetKeyChanged && this.state.hasError) {
+        this.resetErrorBoundary();
+      }
     }
   }
 
-  componentWillUnmount() {
+  componentWillUnmount(): void {
     if (this.resetTimeoutId) {
       clearTimeout(this.resetTimeoutId);
     }
   }
 
-  handleRetry = () => {
-    this.setState(prevState => ({
+  private resetErrorBoundary = (): void => {
+    this.setState({
       hasError: false,
       error: null,
       errorInfo: null,
-      retryCount: prevState.retryCount + 1
-    }));
+      retryCount: 0,
+      lastErrorTime: 0,
+    });
   };
 
-  handleGoHome = () => {
-    window.location.href = '/';
+  private handleRetry = (): void => {
+    const { maxRetries = 3 } = this.props;
+
+    if (this.state.retryCount < maxRetries) {
+      this.setState(prevState => ({
+        hasError: false,
+        error: null,
+        errorInfo: null,
+        retryCount: prevState.retryCount + 1,
+      }));
+
+      this.props.onRetry?.();
+    }
   };
 
-  handleGoBack = () => {
-    window.history.back();
+  private handleReload = (): void => {
+    window.location.reload();
   };
 
-  render() {
+  render(): ReactNode {
     if (this.state.hasError) {
+      // Custom fallback UI
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
-      const { error, retryCount } = this.state;
-      const maxRetries = this.props.maxRetries || 3;
-      const canRetry = retryCount < maxRetries;
+      const { error } = this.state;
+      const {
+        maxRetries = 3,
+        recoverable = true,
+        showDetails = false,
+      } = this.props;
 
+      // Default error UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
-              <AlertCircle className="w-6 h-6 text-red-600" />
+        <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+          <div className='max-w-md w-full bg-white shadow-lg rounded-lg p-6'>
+            <div className='flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4'>
+              <svg
+                className='w-6 h-6 text-red-600'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'
+                />
+              </svg>
             </div>
-            
-            <div className="text-center">
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                Something went wrong
-              </h2>
-              
-              <p className="text-sm text-gray-600 mb-4">
-                {canRetry 
-                  ? `We encountered an error. Retrying automatically... (${retryCount}/${maxRetries})`
-                  : 'An unexpected error occurred. Please try again or contact support.'
-                }
-              </p>
 
-              {process.env.NODE_ENV === 'development' && error && (
-                <details className="mb-4 text-left">
-                  <summary className="text-sm font-medium text-gray-700 cursor-pointer">
-                    Error Details
-                  </summary>
-                  <pre className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded overflow-auto">
-                    {error.message}
-                    {error.stack}
-                  </pre>
-                </details>
+            <h2 className='text-lg font-semibold text-gray-900 text-center mb-2'>
+              {error?.severity === ErrorSeverity.CRITICAL
+                ? 'Critical Error'
+                : 'Something went wrong'}
+            </h2>
+
+            <p className='text-sm text-gray-600 text-center mb-6'>
+              {error?.userMessage ||
+                (recoverable
+                  ? "We're sorry, but something unexpected happened. You can try again or reload the page."
+                  : 'A critical error occurred. Please reload the page to continue.')}
+            </p>
+
+            {showDetails && error && (
+              <details className='mb-6'>
+                <summary className='text-sm font-medium text-gray-700 cursor-pointer'>
+                  Error Details
+                </summary>
+                <div className='mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-600 overflow-auto max-h-32'>
+                  <div className='mb-2'>
+                    <strong>Type:</strong> {error.type}
+                  </div>
+                  <div className='mb-2'>
+                    <strong>Code:</strong> {error.code}
+                  </div>
+                  <div className='mb-2'>
+                    <strong>Message:</strong> {error.message}
+                  </div>
+                  <div className='mb-2'>
+                    <strong>Severity:</strong> {error.severity}
+                  </div>
+                  <div className='mb-2'>
+                    <strong>Recoverable:</strong>{' '}
+                    {error.recoverable ? 'Yes' : 'No'}
+                  </div>
+                  {error.stack && (
+                    <div>
+                      <strong>Stack:</strong>
+                      <pre className='whitespace-pre-wrap'>{error.stack}</pre>
+                    </div>
+                  )}
+                </div>
+              </details>
+            )}
+
+            <div className='flex space-x-3'>
+              {recoverable && this.props.recoverable !== false && (
+                <button
+                  onClick={this.handleRetry}
+                  disabled={this.state.retryCount >= maxRetries}
+                  className='flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                >
+                  Try Again ({this.state.retryCount}/{maxRetries})
+                </button>
               )}
 
-              <div className="flex flex-col gap-2">
-                {canRetry && (
-                  <Button
-                    onClick={this.handleRetry}
-                    className="w-full"
-                    variant="default"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Retry Now
-                  </Button>
-                )}
-                
-                <div className="flex gap-2">
-                  <Button
-                    onClick={this.handleGoBack}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Go Back
-                  </Button>
-                  
-                  <Button
-                    onClick={this.handleGoHome}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    <Home className="w-4 h-4 mr-2" />
-                    Home
-                  </Button>
-                </div>
-              </div>
+              <button
+                onClick={this.handleReload}
+                className='flex-1 bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700'
+              >
+                Reload Page
+              </button>
             </div>
+
+            {this.state.retryCount > 0 && (
+              <p className='text-xs text-gray-500 text-center mt-4'>
+                Retry attempt {this.state.retryCount} of {maxRetries}
+              </p>
+            )}
           </div>
         </div>
       );
@@ -184,126 +240,178 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
   }
 }
 
-// Specialized error boundaries for different use cases
-export const PopupErrorBoundary: React.FC<{ children: ReactNode }> = ({ children }) => (
-  <EnhancedErrorBoundary
-    maxRetries={2}
-    resetOnPropsChange={true}
-    fallback={
-      <div className="p-4 text-center text-red-500">
-        <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-        <p className="text-sm">Failed to load popup content</p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => window.location.reload()}
-          className="mt-2"
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Reload Page
-        </Button>
-      </div>
-    }
-  >
-    {children}
-  </EnhancedErrorBoundary>
-);
-
-export const DataTableErrorBoundary: React.FC<{ children: ReactNode }> = ({ children }) => (
-  <EnhancedErrorBoundary
-    maxRetries={1}
-    fallback={
-      <div className="p-8 text-center">
-        <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
-        <h3 className="text-lg font-semibold mb-2">Failed to load data</h3>
-        <p className="text-gray-600 mb-4">There was an error loading the table data.</p>
-        <Button
-          onClick={() => window.location.reload()}
-          variant="default"
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Reload Page
-        </Button>
-      </div>
-    }
-  >
-    {children}
-  </EnhancedErrorBoundary>
-);
-
-export const AssignmentErrorBoundary: React.FC<{ children: ReactNode }> = ({ children }) => (
-  <EnhancedErrorBoundary
-    maxRetries={3}
-    fallback={
-      <div className="p-4 text-center text-red-500">
-        <AlertCircle className="w-6 h-6 mx-auto mb-2" />
-        <p className="text-sm">Assignment failed</p>
-        <p className="text-xs text-gray-500">Please try again or contact support</p>
-      </div>
-    }
-  >
-    {children}
-  </EnhancedErrorBoundary>
-);
-
-// Error recovery utilities
-export const useErrorRecovery = () => {
-  const [error, setError] = React.useState<Error | null>(null);
-  const [retryCount, setRetryCount] = React.useState(0);
-
-  const handleError = React.useCallback((error: Error) => {
-    setError(error);
-    console.error('Error occurred:', error);
-  }, []);
-
-  const retry = React.useCallback(() => {
-    setError(null);
-    setRetryCount(prev => prev + 1);
-  }, []);
-
-  const reset = React.useCallback(() => {
-    setError(null);
-    setRetryCount(0);
-  }, []);
-
-  return {
-    error,
-    retryCount,
-    handleError,
-    retry,
-    reset,
-    hasError: !!error
-  };
+// Feature-specific error boundary
+export const FeatureErrorBoundary: React.FC<{
+  feature: string;
+  children: ReactNode;
+  fallback?: ReactNode;
+}> = ({ feature, children, fallback }) => {
+  return (
+    <EnhancedErrorBoundary
+      componentName={`FeatureErrorBoundary-${feature}`}
+      severity={ErrorSeverity.MEDIUM}
+      fallback={
+        fallback || (
+          <div className='p-4 border border-red-200 rounded-lg bg-red-50'>
+            <div className='flex items-center gap-2 text-red-800'>
+              <svg
+                className='h-4 w-4'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'
+                />
+              </svg>
+              <span className='text-sm font-medium'>{feature} Error</span>
+            </div>
+            <p className='text-sm text-red-700 mt-1'>
+              There was an issue with the {feature.toLowerCase()} feature.
+              Please try again.
+            </p>
+          </div>
+        )
+      }
+      onError={(error, errorInfo) => {
+        console.error(`${feature} Error:`, error, errorInfo);
+      }}
+    >
+      {children}
+    </EnhancedErrorBoundary>
+  );
 };
 
-// Network error handling
-export const useNetworkErrorHandler = () => {
-  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
-  const [retryCount, setRetryCount] = React.useState(0);
-
-  React.useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  const retry = React.useCallback(() => {
-    setRetryCount(prev => prev + 1);
-  }, []);
-
-  return {
-    isOnline,
-    retryCount,
-    retry,
-    isOffline: !isOnline
-  };
+// Assignment-specific error boundary
+export const AssignmentErrorBoundary: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  return (
+    <FeatureErrorBoundary feature='Assignment'>{children}</FeatureErrorBoundary>
+  );
 };
 
-export default EnhancedErrorBoundary;
+// Mobile-specific error boundary
+export const MobileErrorBoundary: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  return (
+    <FeatureErrorBoundary feature='Mobile'>{children}</FeatureErrorBoundary>
+  );
+};
+
+// Network error boundary
+export class NetworkErrorBoundary extends Component<
+  {
+    children: ReactNode;
+    onNetworkError?: (error: AppError) => void;
+  },
+  { hasNetworkError: boolean; error: AppError | null }
+> {
+  constructor(props: {
+    children: ReactNode;
+    onNetworkError?: (error: AppError) => void;
+  }) {
+    super(props);
+    this.state = { hasNetworkError: false, error: null };
+  }
+
+  componentDidMount(): void {
+    window.addEventListener('online', this.handleOnline);
+    window.addEventListener('offline', this.handleOffline);
+  }
+
+  componentWillUnmount(): void {
+    window.removeEventListener('online', this.handleOnline);
+    window.removeEventListener('offline', this.handleOffline);
+  }
+
+  private handleOnline = (): void => {
+    this.setState({ hasNetworkError: false, error: null });
+  };
+
+  private handleOffline = (): void => {
+    const error = ErrorFactory.create(
+      ErrorType.NETWORK_ERROR,
+      'NETWORK_CONNECTION_LOST',
+      'Network connection lost',
+      "You're currently offline. Please check your internet connection and try again.",
+      {
+        severity: ErrorSeverity.HIGH,
+        category: ErrorCategory.NETWORK,
+        recoverable: true,
+      }
+    );
+
+    this.setState({ hasNetworkError: true, error });
+    this.props.onNetworkError?.(error);
+  };
+
+  render(): ReactNode {
+    if (this.state.hasNetworkError) {
+      return (
+        <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+          <div className='max-w-md w-full bg-white shadow-lg rounded-lg p-6 text-center'>
+            <div className='flex items-center justify-center w-12 h-12 mx-auto bg-yellow-100 rounded-full mb-4'>
+              <svg
+                className='w-6 h-6 text-yellow-600'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'
+                />
+              </svg>
+            </div>
+
+            <h2 className='text-lg font-semibold text-gray-900 mb-2'>
+              Connection Lost
+            </h2>
+
+            <p className='text-sm text-gray-600 mb-6'>
+              {this.state.error?.userMessage ||
+                "You're currently offline. Please check your internet connection and try again."}
+            </p>
+
+            <button
+              onClick={() => window.location.reload()}
+              className='bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700'
+            >
+              Retry Connection
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Error boundary provider for the entire app
+export const ErrorBoundaryProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  return (
+    <NetworkErrorBoundary>
+      <EnhancedErrorBoundary
+        componentName='App'
+        severity={ErrorSeverity.CRITICAL}
+        maxRetries={1}
+        recoverable={false}
+        onError={(error, errorInfo) => {
+          console.error('App-level error:', error, errorInfo);
+        }}
+      >
+        {children}
+      </EnhancedErrorBoundary>
+    </NetworkErrorBoundary>
+  );
+};

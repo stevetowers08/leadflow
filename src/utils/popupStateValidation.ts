@@ -21,7 +21,9 @@ export interface NavigationState {
 /**
  * Validates popup state for consistency
  */
-export const validatePopupState = (state: NavigationState): {
+export const validatePopupState = (
+  state: NavigationState
+): {
   isValid: boolean;
   errors: string[];
   warnings: string[];
@@ -58,32 +60,35 @@ export const validatePopupState = (state: NavigationState): {
   return {
     isValid: errors.length === 0,
     errors,
-    warnings
+    warnings,
   };
 };
 
 /**
  * Debug utility for popup state
  */
-export const debugPopupState = (state: NavigationState, context: string = 'Unknown') => {
+export const debugPopupState = (
+  state: NavigationState,
+  context: string = 'Unknown'
+) => {
   const validation = validatePopupState(state);
-  
+
   console.group(`🔍 Popup State Debug - ${context}`);
   console.log('State:', state);
   console.log('Validation:', validation);
-  
+
   if (validation.errors.length > 0) {
     console.error('❌ Errors:', validation.errors);
   }
-  
+
   if (validation.warnings.length > 0) {
     console.warn('⚠️ Warnings:', validation.warnings);
   }
-  
+
   if (validation.isValid && validation.warnings.length === 0) {
     console.log('✅ State is valid');
   }
-  
+
   console.groupEnd();
 };
 
@@ -96,19 +101,25 @@ export const safeStateUpdate = <T>(
   validator?: (newState: T) => boolean
 ): T => {
   const newState = { ...currentState, ...updates };
-  
+
   if (validator && !validator(newState)) {
-    console.warn('🔍 State update rejected by validator:', { currentState, updates, newState });
+    console.warn('🔍 State update rejected by validator:', {
+      currentState,
+      updates,
+      newState,
+    });
     return currentState;
   }
-  
+
   return newState;
 };
 
 /**
  * Entity type validation
  */
-export const isValidEntityType = (type: string): type is 'lead' | 'company' | 'job' => {
+export const isValidEntityType = (
+  type: string
+): type is 'lead' | 'company' | 'job' => {
   return ['lead', 'company', 'job'].includes(type);
 };
 
@@ -118,6 +129,7 @@ export const isValidEntityType = (type: string): type is 'lead' | 'company' | 'j
 export const isValidEntityId = (id: string | null): boolean => {
   if (!id) return false;
   // Check if it's a valid UUID format
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(id);
 };

@@ -1,22 +1,28 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useBulkActionConfirmation } from '@/contexts/ConfirmationContext';
-import { 
-  MoreHorizontal, 
-  Download, 
-  Trash2, 
-  Edit, 
-  Mail, 
-  Users, 
-  Tag, 
+import {
+  MoreHorizontal,
+  Download,
+  Trash2,
+  Edit,
+  Mail,
+  Users,
+  Tag,
   Archive,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 
 export interface BulkAction<T = any> {
@@ -50,7 +56,7 @@ export function BulkActions<T extends { id: string }>({
   actions,
   itemName = 'item',
   itemNamePlural = 'items',
-  className = ''
+  className = '',
 }: BulkActionsProps<T>) {
   const [isExecuting, setIsExecuting] = useState(false);
   const { toast } = useToast();
@@ -76,15 +82,15 @@ export function BulkActions<T extends { id: string }>({
     try {
       await action.action(selectedItems);
       toast({
-        title: "Success",
+        title: 'Success',
         description: `Action completed for ${selectedCount} ${selectedCount === 1 ? itemName : itemNamePlural}`,
       });
       onClearSelection();
     } catch (error) {
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to execute action: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setIsExecuting(false);
@@ -93,16 +99,14 @@ export function BulkActions<T extends { id: string }>({
 
   const handleActionClick = async (action: BulkAction<T>) => {
     if (action.requiresConfirmation) {
-      showBulkActionConfirmation(
-        () => executeAction(action),
-        {
-          customTitle: action.label,
-          customDescription: action.confirmationMessage || 
-            `Are you sure you want to ${action.label.toLowerCase()} ${selectedCount} ${selectedCount === 1 ? itemName : itemNamePlural}?`,
-          actionName: action.label.toLowerCase(),
-          itemCount: selectedCount,
-        }
-      );
+      showBulkActionConfirmation(() => executeAction(action), {
+        customTitle: action.label,
+        customDescription:
+          action.confirmationMessage ||
+          `Are you sure you want to ${action.label.toLowerCase()} ${selectedCount} ${selectedCount === 1 ? itemName : itemNamePlural}?`,
+        actionName: action.label.toLowerCase(),
+        itemCount: selectedCount,
+      });
     } else {
       await executeAction(action);
     }
@@ -111,20 +115,22 @@ export function BulkActions<T extends { id: string }>({
   if (totalCount === 0) return null;
 
   return (
-    <div className={`flex items-center gap-3 p-3 bg-muted/50 border-b ${className}`}>
+    <div
+      className={`flex items-center gap-3 p-3 bg-muted/50 border-b ${className}`}
+    >
       {/* Selection Controls */}
-      <div className="flex items-center gap-2">
+      <div className='flex items-center gap-2'>
         <Checkbox
           checked={isAllSelected}
-          ref={(el) => {
+          ref={el => {
             if (el) el.indeterminate = isPartiallySelected;
           }}
           onCheckedChange={handleSelectAll}
         />
-        <span className="text-sm text-muted-foreground">
+        <span className='text-sm text-muted-foreground'>
           {selectedCount > 0 ? (
             <>
-              <Badge variant="secondary" className="mr-2">
+              <Badge variant='secondary' className='mr-2'>
                 {selectedCount} selected
               </Badge>
               {selectedCount} of {totalCount} {itemNamePlural}
@@ -137,20 +143,20 @@ export function BulkActions<T extends { id: string }>({
 
       {/* Bulk Actions */}
       {selectedCount > 0 && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Actions:</span>
-          
+        <div className='flex items-center gap-2'>
+          <span className='text-sm text-muted-foreground'>Actions:</span>
+
           {/* Quick Actions */}
-          {actions.slice(0, 3).map((action) => (
+          {actions.slice(0, 3).map(action => (
             <Button
               key={action.id}
               variant={action.variant || 'outline'}
-              size="sm"
+              size='sm'
               onClick={() => handleActionClick(action)}
               disabled={isExecuting}
-              className="h-8"
+              className='h-8'
             >
-              <action.icon className="h-3 w-3 mr-1" />
+              <action.icon className='h-3 w-3 mr-1' />
               {action.label}
             </Button>
           ))}
@@ -159,19 +165,26 @@ export function BulkActions<T extends { id: string }>({
           {actions.length > 3 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" disabled={isExecuting} className="h-8">
-                  <MoreHorizontal className="h-3 w-3 mr-1" />
+                <Button
+                  variant='outline'
+                  size='sm'
+                  disabled={isExecuting}
+                  className='h-8'
+                >
+                  <MoreHorizontal className='h-3 w-3 mr-1' />
                   More
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                {actions.slice(3).map((action) => (
+              <DropdownMenuContent align='start'>
+                {actions.slice(3).map(action => (
                   <DropdownMenuItem
                     key={action.id}
                     onClick={() => handleActionClick(action)}
-                    className={action.variant === 'destructive' ? 'text-destructive' : ''}
+                    className={
+                      action.variant === 'destructive' ? 'text-destructive' : ''
+                    }
                   >
-                    <action.icon className="h-3 w-3 mr-2" />
+                    <action.icon className='h-3 w-3 mr-2' />
                     {action.label}
                   </DropdownMenuItem>
                 ))}
@@ -181,10 +194,10 @@ export function BulkActions<T extends { id: string }>({
 
           {/* Clear Selection */}
           <Button
-            variant="ghost"
-            size="sm"
+            variant='ghost'
+            size='sm'
             onClick={onClearSelection}
-            className="h-8 text-muted-foreground hover:text-foreground"
+            className='h-8 text-muted-foreground hover:text-foreground'
           >
             Clear
           </Button>
@@ -210,7 +223,7 @@ export const createBulkActions = <T extends { id: string }>(
       label: 'Export',
       icon: Download,
       action: onExport,
-      variant: 'secondary'
+      variant: 'secondary',
     });
   }
 
@@ -220,15 +233,15 @@ export const createBulkActions = <T extends { id: string }>(
         id: 'mark-active',
         label: 'Mark Active',
         icon: CheckCircle,
-        action: (items) => onUpdateStatus(items, 'active'),
-        variant: 'secondary'
+        action: items => onUpdateStatus(items, 'active'),
+        variant: 'secondary',
       },
       {
         id: 'mark-inactive',
         label: 'Mark Inactive',
         icon: XCircle,
-        action: (items) => onUpdateStatus(items, 'inactive'),
-        variant: 'secondary'
+        action: items => onUpdateStatus(items, 'inactive'),
+        variant: 'secondary',
       }
     );
   }
@@ -238,11 +251,11 @@ export const createBulkActions = <T extends { id: string }>(
       id: 'assign',
       label: 'Assign',
       icon: Users,
-      action: (items) => {
+      action: items => {
         const assignee = prompt('Enter assignee name:');
         if (assignee) onAssign(items, assignee);
       },
-      variant: 'secondary'
+      variant: 'secondary',
     });
   }
 
@@ -252,7 +265,7 @@ export const createBulkActions = <T extends { id: string }>(
       label: 'Archive',
       icon: Archive,
       action: onArchive,
-      variant: 'secondary'
+      variant: 'secondary',
     });
   }
 
@@ -264,12 +277,10 @@ export const createBulkActions = <T extends { id: string }>(
       action: onDelete,
       variant: 'destructive',
       requiresConfirmation: true,
-      confirmationMessage: 'Are you sure you want to delete the selected items? This action cannot be undone.'
+      confirmationMessage:
+        'Are you sure you want to delete the selected items? This action cannot be undone.',
     });
   }
 
   return actions;
 };
-
-
-

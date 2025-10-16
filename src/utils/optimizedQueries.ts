@@ -10,7 +10,12 @@ export class OptimizedQueries {
    * BEFORE: Individual user profile fetches causing N+1 queries
    * AFTER: Batch fetch all users and create lookup cache
    */
-  static async getUsersWithCache(): Promise<Record<string, { id: string; full_name: string; email: string; role: string }>> {
+  static async getUsersWithCache(): Promise<
+    Record<
+      string,
+      { id: string; full_name: string; email: string; role: string }
+    >
+  > {
     const { data, error } = await supabase
       .from('user_profiles')
       .select('id, full_name, email, role')
@@ -19,7 +24,10 @@ export class OptimizedQueries {
 
     if (error) throw error;
 
-    const cache: Record<string, { id: string; full_name: string; email: string; role: string }> = {};
+    const cache: Record<
+      string,
+      { id: string; full_name: string; email: string; role: string }
+    > = {};
     data?.forEach(user => {
       cache[user.id] = user;
     });
@@ -37,7 +45,7 @@ export class OptimizedQueries {
       leadsWithAssignments,
       companiesWithAssignments,
       userStats,
-      unassignedCounts
+      unassignedCounts,
     ] = await Promise.all([
       // Get recent leads with assignment info in one query
       supabase
@@ -54,9 +62,7 @@ export class OptimizedQueries {
         .limit(5),
 
       // Get user assignment statistics
-      supabase
-        .from('user_assignment_stats')
-        .select('*'),
+      supabase.from('user_assignment_stats').select('*'),
 
       // Get unassigned counts efficiently
       Promise.all([
@@ -71,8 +77,8 @@ export class OptimizedQueries {
         supabase
           .from('jobs')
           .select('*', { count: 'exact', head: true })
-          .is('owner_id', null)
-      ])
+          .is('owner_id', null),
+      ]),
     ]);
 
     return {
@@ -82,8 +88,8 @@ export class OptimizedQueries {
       unassignedCounts: {
         leads: unassignedCounts[0].count || 0,
         companies: unassignedCounts[1].count || 0,
-        jobs: unassignedCounts[2].count || 0
-      }
+        jobs: unassignedCounts[2].count || 0,
+      },
     };
   }
 
@@ -91,20 +97,24 @@ export class OptimizedQueries {
    * BEFORE: Fetching leads with separate company queries
    * AFTER: Single query with proper joins
    */
-  static async getLeadsOptimized(filters: {
-    search?: string;
-    status?: string;
-    ownerId?: string;
-    limit?: number;
-    offset?: number;
-  } = {}) {
+  static async getLeadsOptimized(
+    filters: {
+      search?: string;
+      status?: string;
+      ownerId?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ) {
     let query = supabase
       .from('lead_assignments_with_users')
       .select('*', { count: 'exact' });
 
     // Apply filters efficiently
     if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,company_role.ilike.%${filters.search}%,email_address.ilike.%${filters.search}%`);
+      query = query.or(
+        `name.ilike.%${filters.search}%,company_role.ilike.%${filters.search}%,email_address.ilike.%${filters.search}%`
+      );
     }
 
     if (filters.status && filters.status !== 'all') {
@@ -122,7 +132,10 @@ export class OptimizedQueries {
     }
 
     if (filters.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1);
+      query = query.range(
+        filters.offset,
+        filters.offset + (filters.limit || 50) - 1
+      );
     }
 
     return await query;
@@ -132,20 +145,24 @@ export class OptimizedQueries {
    * BEFORE: Fetching companies with separate lead/job count queries
    * AFTER: Single query with aggregated counts
    */
-  static async getCompaniesOptimized(filters: {
-    search?: string;
-    status?: string;
-    ownerId?: string;
-    limit?: number;
-    offset?: number;
-  } = {}) {
+  static async getCompaniesOptimized(
+    filters: {
+      search?: string;
+      status?: string;
+      ownerId?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ) {
     let query = supabase
       .from('company_assignments_with_users')
       .select('*', { count: 'exact' });
 
     // Apply filters efficiently
     if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,industry.ilike.%${filters.search}%`);
+      query = query.or(
+        `name.ilike.%${filters.search}%,industry.ilike.%${filters.search}%`
+      );
     }
 
     if (filters.status && filters.status !== 'all') {
@@ -163,7 +180,10 @@ export class OptimizedQueries {
     }
 
     if (filters.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1);
+      query = query.range(
+        filters.offset,
+        filters.offset + (filters.limit || 50) - 1
+      );
     }
 
     return await query;
@@ -181,50 +201,57 @@ export class OptimizedQueries {
     }>
   ) {
     // Group by entity type for batch updates
-    const grouped = assignments.reduce((acc, assignment) => {
-      if (!acc[assignment.entityType]) {
-        acc[assignment.entityType] = { assign: [], unassign: [] };
-      }
-      
-      if (assignment.ownerId) {
-        acc[assignment.entityType].assign.push({
-          id: assignment.entityId,
-          owner_id: assignment.ownerId
-        });
-      } else {
-        acc[assignment.entityType].unassign.push(assignment.entityId);
-      }
-      
-      return acc;
-    }, {} as Record<string, { assign: any[]; unassign: string[] }>);
+    const grouped = assignments.reduce(
+      (acc, assignment) => {
+        if (!acc[assignment.entityType]) {
+          acc[assignment.entityType] = { assign: [], unassign: [] };
+        }
+
+        if (assignment.ownerId) {
+          acc[assignment.entityType].assign.push({
+            id: assignment.entityId,
+            owner_id: assignment.ownerId,
+          });
+        } else {
+          acc[assignment.entityType].unassign.push(assignment.entityId);
+        }
+
+        return acc;
+      },
+      {} as Record<string, { assign: any[]; unassign: string[] }>
+    );
 
     // Execute batch updates
-    const promises = Object.entries(grouped).map(async ([entityType, operations]) => {
-      const results = [];
-      
-      if (operations.assign.length > 0) {
-        const { error: assignError } = await supabase
-          .from(entityType)
-          .upsert(operations.assign);
-        results.push(assignError);
+    const promises = Object.entries(grouped).map(
+      async ([entityType, operations]) => {
+        const results = [];
+
+        if (operations.assign.length > 0) {
+          const { error: assignError } = await supabase
+            .from(entityType)
+            .upsert(operations.assign);
+          results.push(assignError);
+        }
+
+        if (operations.unassign.length > 0) {
+          const { error: unassignError } = await supabase
+            .from(entityType)
+            .update({ owner_id: null })
+            .in('id', operations.unassign);
+          results.push(unassignError);
+        }
+
+        return results;
       }
-      
-      if (operations.unassign.length > 0) {
-        const { error: unassignError } = await supabase
-          .from(entityType)
-          .update({ owner_id: null })
-          .in('id', operations.unassign);
-        results.push(unassignError);
-      }
-      
-      return results;
-    });
+    );
 
     const results = await Promise.all(promises);
     const errors = results.flat().filter(Boolean);
-    
+
     if (errors.length > 0) {
-      throw new Error(`Batch update failed: ${errors.map(error => error.message).join(', ')}`);
+      throw new Error(
+        `Batch update failed: ${errors.map(error => error.message).join(', ')}`
+      );
     }
   }
 
@@ -232,14 +259,14 @@ export class OptimizedQueries {
    * BEFORE: Multiple queries for pipeline data
    * AFTER: Single optimized query with proper filtering
    */
-  static async getPipelineDataOptimized(filters: {
-    stage?: string;
-    ownerId?: string;
-    showFavorites?: boolean;
-  } = {}) {
-    let query = supabase
-      .from('company_assignments_with_users')
-      .select('*');
+  static async getPipelineDataOptimized(
+    filters: {
+      stage?: string;
+      ownerId?: string;
+      showFavorites?: boolean;
+    } = {}
+  ) {
+    let query = supabase.from('company_assignments_with_users').select('*');
 
     if (filters.stage && filters.stage !== 'all') {
       query = query.eq('status', filters.stage);
@@ -266,7 +293,12 @@ export class OptimizedQueries {
    * BEFORE: Individual user profile fetches in OwnerDisplay components
    * AFTER: Pre-fetch all users and pass as props
    */
-  static async prefetchUsersForComponents(): Promise<Record<string, { id: string; full_name: string; email: string; role: string }>> {
+  static async prefetchUsersForComponents(): Promise<
+    Record<
+      string,
+      { id: string; full_name: string; email: string; role: string }
+    >
+  > {
     return await this.getUsersWithCache();
   }
 }
@@ -279,25 +311,30 @@ export class QueryPerformanceMonitor {
 
   static startTiming(queryName: string): () => void {
     const startTime = performance.now();
-    
+
     return () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
-      
+
       if (!this.queryTimes.has(queryName)) {
         this.queryTimes.set(queryName, []);
       }
-      
+
       this.queryTimes.get(queryName)!.push(duration);
-      
+
       // Log slow queries
-      if (duration > 1000) { // 1 second
-        console.warn(`🐌 Slow query detected: ${queryName} took ${duration.toFixed(2)}ms`);
+      if (duration > 1000) {
+        // 1 second
+        console.warn(
+          `🐌 Slow query detected: ${queryName} took ${duration.toFixed(2)}ms`
+        );
       }
     };
   }
 
-  static getQueryStats(queryName: string): { avg: number; min: number; max: number; count: number } | null {
+  static getQueryStats(
+    queryName: string
+  ): { avg: number; min: number; max: number; count: number } | null {
     const times = this.queryTimes.get(queryName);
     if (!times || times.length === 0) return null;
 
@@ -308,13 +345,16 @@ export class QueryPerformanceMonitor {
     return { avg, min, max, count: times.length };
   }
 
-  static getAllQueryStats(): Record<string, { avg: number; min: number; max: number; count: number }> {
+  static getAllQueryStats(): Record<
+    string,
+    { avg: number; min: number; max: number; count: number }
+  > {
     const stats: Record<string, any> = {};
-    
+
     for (const [queryName] of this.queryTimes) {
       stats[queryName] = this.getQueryStats(queryName);
     }
-    
+
     return stats;
   }
 }

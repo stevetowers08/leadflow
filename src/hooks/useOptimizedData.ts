@@ -1,7 +1,10 @@
 // Performance-optimized hook for data fetching with intelligent caching
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { PerformanceMonitor } from '@/utils/performanceMonitor';
-import { OptimizedDataService, OptimizedDashboardData } from '@/services/optimizedDataService';
+import { PerformanceMonitor } from '@/services/performanceService';
+import {
+  OptimizedDataService,
+  OptimizedDashboardData,
+} from '@/services/optimizedDataService';
 
 interface UseOptimizedDataOptions {
   enablePreloading?: boolean;
@@ -20,21 +23,24 @@ export function useOptimizedData(options: UseOptimizedDataOptions = {}) {
     try {
       setLoading(true);
       setError(null);
-      
+
       const startTime = monitor.current.startTracking();
       const result = await OptimizedDataService.getDashboardData();
       monitor.current.endTracking('useOptimizedData', startTime);
-      
+
       setData(result);
     } catch (err) {
       setError(err as Error);
-      monitor.current.logError({
-        component: 'useOptimizedData',
-        action: 'fetchData',
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        url: window.location.href
-      }, err as Error);
+      monitor.current.logError(
+        {
+          component: 'useOptimizedData',
+          action: 'fetchData',
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          url: window.location.href,
+        },
+        err as Error
+      );
     } finally {
       setLoading(false);
     }
@@ -42,11 +48,14 @@ export function useOptimizedData(options: UseOptimizedDataOptions = {}) {
 
   useEffect(() => {
     fetchData();
-    
+
     if (options.refreshInterval) {
-      refreshIntervalRef.current = setInterval(fetchData, options.refreshInterval);
+      refreshIntervalRef.current = setInterval(
+        fetchData,
+        options.refreshInterval
+      );
     }
-    
+
     return () => {
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
@@ -58,6 +67,6 @@ export function useOptimizedData(options: UseOptimizedDataOptions = {}) {
     data,
     loading,
     error,
-    refetch: fetchData
+    refetch: fetchData,
   };
 }

@@ -7,21 +7,21 @@ export const clearOAuthState = async () => {
   try {
     // Clear any existing session
     await supabase.auth.signOut();
-    
+
     // Clear localStorage items that might cause state conflicts
     const keysToRemove = [
       'sb-jedfundfhzytpnbjkspn-auth-token',
       'supabase.auth.token',
       'supabase.auth.refresh_token',
     ];
-    
+
     keysToRemove.forEach(key => {
       localStorage.removeItem(key);
     });
-    
+
     // Clear any sessionStorage items
     sessionStorage.clear();
-    
+
     return true;
   } catch (error) {
     console.error('Error clearing OAuth state:', error);
@@ -45,11 +45,13 @@ export const getOAuthError = () => {
   const error = urlParams.get('error');
   const errorCode = urlParams.get('error_code');
   const errorDescription = urlParams.get('error_description');
-  
+
   return {
     error,
     errorCode,
-    errorDescription: errorDescription ? decodeURIComponent(errorDescription) : null,
+    errorDescription: errorDescription
+      ? decodeURIComponent(errorDescription)
+      : null,
   };
 };
 
@@ -64,8 +66,7 @@ export const cleanOAuthErrorFromUrl = () => {
     url.searchParams.delete('error_description');
     url.searchParams.delete('state');
     url.searchParams.delete('code');
-    
+
     window.history.replaceState({}, document.title, url.toString());
   }
 };
-

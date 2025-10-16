@@ -1,6 +1,10 @@
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { validateEnvironment, logEnvironmentStatus, safeSupabaseOperation } from '@/utils/environmentValidation';
+import {
+  validateEnvironment,
+  logEnvironmentStatus,
+  safeSupabaseOperation,
+} from '@/utils/environmentValidation';
 
 export interface AuthState {
   user: User | null;
@@ -19,9 +23,9 @@ export class AuthManager {
     session: null,
     loading: true,
     error: null,
-    initialized: false
+    initialized: false,
   };
-  
+
   private listeners: ((state: AuthState) => void)[] = [];
 
   private constructor() {
@@ -38,30 +42,31 @@ export class AuthManager {
   private async initialize(): Promise<void> {
     try {
       console.log('🚀 Initializing AuthManager...');
-      
+
       // Validate environment first
       const envConfig = validateEnvironment();
       if (!envConfig.isValid) {
-        throw new Error(`Environment validation failed: ${envConfig.errors.join(', ')}`);
+        throw new Error(
+          `Environment validation failed: ${envConfig.errors.join(', ')}`
+        );
       }
-      
+
       logEnvironmentStatus();
-      
+
       // Initialize auth state
       await this.initializeAuth();
-      
+
       // Set up auth state listener
       this.setupAuthListener();
-      
+
       this.setState({ initialized: true, loading: false });
       console.log('✅ AuthManager initialized successfully');
-      
     } catch (error) {
       console.error('❌ AuthManager initialization failed:', error);
-      this.setState({ 
+      this.setState({
         error: error instanceof Error ? error.message : 'Unknown error',
         loading: false,
-        initialized: true
+        initialized: true,
       });
     }
   }
@@ -69,8 +74,11 @@ export class AuthManager {
   private async initializeAuth(): Promise<void> {
     try {
       // Try to get existing session
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
       if (error) {
         console.warn('⚠️ Session retrieval failed:', error);
         return;
@@ -79,14 +87,13 @@ export class AuthManager {
       if (session?.user) {
         console.log('👤 Found existing session for:', session.user.email);
         this.setState({ user: session.user, session });
-        
+
         // Fetch user profile
         const profile = await this.fetchUserProfile(session.user.id);
         this.setState({ userProfile: profile });
       } else {
         console.log('📝 No existing session found');
       }
-      
     } catch (error) {
       console.error('❌ Auth initialization error:', error);
       throw error;
@@ -96,10 +103,10 @@ export class AuthManager {
   private setupAuthListener(): void {
     supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth state changed:', event, session?.user?.email);
-      
-      this.setState({ 
-        user: session?.user ?? null, 
-        session: session ?? null 
+
+      this.setState({
+        user: session?.user ?? null,
+        session: session ?? null,
       });
 
       if (session?.user) {
@@ -122,7 +129,7 @@ export class AuthManager {
             .select('*')
             .eq('id', userId)
             .single();
-            
+
           if (!error && data) {
             console.log('✅ Profile fetched with admin client');
             return data;
@@ -189,8 +196,8 @@ export class AuthManager {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
       return { error };
     } catch (error) {

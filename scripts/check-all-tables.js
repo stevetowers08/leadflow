@@ -10,22 +10,42 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+);
 
 async function checkAllPossibleTables() {
   console.log('🔍 Checking ALL possible table names...\n');
 
   // Possible table name variations
   const possibleTables = [
-    'People', 'people', 'PEOPLE',
-    'Companies', 'companies', 'COMPANIES', 
-    'Jobs', 'jobs', 'JOBS',
-    'Leads', 'leads', 'LEADS',
-    'Interactions', 'interactions', 'INTERACTIONS',
-    'Campaigns', 'campaigns', 'CAMPAIGNS',
-    'Conversations', 'conversations', 'CONVERSATIONS',
-    'user_profiles', 'User_Profiles', 'USER_PROFILES',
-    'auth.users', 'auth_users'
+    'People',
+    'people',
+    'PEOPLE',
+    'Companies',
+    'companies',
+    'COMPANIES',
+    'Jobs',
+    'jobs',
+    'JOBS',
+    'Leads',
+    'leads',
+    'LEADS',
+    'Interactions',
+    'interactions',
+    'INTERACTIONS',
+    'Campaigns',
+    'campaigns',
+    'CAMPAIGNS',
+    'Conversations',
+    'conversations',
+    'CONVERSATIONS',
+    'user_profiles',
+    'User_Profiles',
+    'USER_PROFILES',
+    'auth.users',
+    'auth_users',
   ];
 
   const results = [];
@@ -40,7 +60,7 @@ async function checkAllPossibleTables() {
         results.push({
           table: tableName,
           count: count || 0,
-          accessible: true
+          accessible: true,
         });
         console.log(`✅ ${tableName}: ${count || 0} records`);
       } else {
@@ -53,7 +73,7 @@ async function checkAllPossibleTables() {
 
   console.log('\n📊 Summary:');
   console.log('============');
-  
+
   const accessibleTables = results.filter(r => r.accessible);
   accessibleTables.forEach(result => {
     console.log(`${result.table}: ${result.count} records`);
@@ -71,9 +91,9 @@ async function checkAllPossibleTables() {
   // Try to get table names from information_schema
   console.log('\n🔍 Checking information_schema for all tables...');
   try {
-    const { data: schemaTables, error: schemaError } = await supabase
-      .rpc('get_table_names');
-    
+    const { data: schemaTables, error: schemaError } =
+      await supabase.rpc('get_table_names');
+
     if (!schemaError && schemaTables) {
       console.log('Tables from schema:', schemaTables);
     } else {

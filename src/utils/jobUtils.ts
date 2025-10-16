@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Handles job insertion with automatic duplicate resolution
@@ -18,20 +18,25 @@ export const insertJobWithDuplicateHandling = async (jobData: any) => {
     }
 
     // If it's a duplicate key error, handle it
-    if (error.code === '23505' && error.message.includes('linkedin_job_id_key')) {
-      console.log('Duplicate LinkedIn job ID detected, creating unique version...');
-      
+    if (
+      error.code === '23505' &&
+      error.message.includes('linkedin_job_id_key')
+    ) {
+      console.log(
+        'Duplicate LinkedIn job ID detected, creating unique version...'
+      );
+
       // Generate a unique LinkedIn job ID by adding a timestamp suffix
       const originalLinkedInId = jobData.linkedin_job_id;
       const timestamp = Date.now();
       const uniqueLinkedInId = `${originalLinkedInId}_${timestamp}`;
-      
+
       // Try inserting with the unique ID
       const { data: uniqueData, error: uniqueError } = await supabase
         .from('jobs')
         .insert({
           ...jobData,
-          linkedin_job_id: uniqueLinkedInId
+          linkedin_job_id: uniqueLinkedInId,
         })
         .select();
 
@@ -63,11 +68,11 @@ export const upsertJob = async (jobData: any) => {
       .upsert(
         {
           ...jobData,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         },
         {
           onConflict: 'linkedin_job_id',
-          ignoreDuplicates: false
+          ignoreDuplicates: false,
         }
       )
       .select();
@@ -96,7 +101,8 @@ export const checkLinkedInJobExists = async (linkedinJobId: string) => {
       .eq('linkedin_job_id', linkedinJobId)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
       throw error;
     }
 
@@ -110,15 +116,16 @@ export const checkLinkedInJobExists = async (linkedinJobId: string) => {
 /**
  * Generate a unique LinkedIn job ID by checking for conflicts
  */
-export const generateUniqueLinkedInJobId = async (originalLinkedInId: string): Promise<string> => {
+export const generateUniqueLinkedInJobId = async (
+  originalLinkedInId: string
+): Promise<string> => {
   let uniqueId = originalLinkedInId;
   let counter = 1;
-  
+
   while (await checkLinkedInJobExists(uniqueId)) {
     uniqueId = `${originalLinkedInId}_${counter}`;
     counter++;
   }
-  
+
   return uniqueId;
 };
-

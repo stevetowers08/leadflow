@@ -34,7 +34,7 @@
  *         updated_at:
  *           type: string
  *           format: date-time
- *     
+ *
  *     Person:
  *       type: object
  *       required:
@@ -73,7 +73,7 @@
  *         updated_at:
  *           type: string
  *           format: date-time
- *     
+ *
  *     Job:
  *       type: object
  *       required:
@@ -110,7 +110,7 @@
  *         updated_at:
  *           type: string
  *           format: date-time
- *     
+ *
  *     UserProfile:
  *       type: object
  *       required:
@@ -145,7 +145,7 @@
  *         updated_at:
  *           type: string
  *           format: date-time
- *     
+ *
  *     Error:
  *       type: object
  *       properties:
@@ -158,14 +158,14 @@
  *         details:
  *           type: object
  *           description: Additional error details
- *   
+ *
  *   securitySchemes:
  *     BearerAuth:
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
  *       description: JWT token from Supabase Auth
- * 
+ *
  *   responses:
  *     UnauthorizedError:
  *       description: Authentication information is missing or invalid
@@ -173,21 +173,21 @@
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Error'
- *     
+ *
  *     ForbiddenError:
  *       description: User does not have permission to access this resource
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Error'
- *     
+ *
  *     NotFoundError:
  *       description: Resource not found
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Error'
- *     
+ *
  *     ValidationError:
  *       description: Request validation failed
  *       content:
@@ -250,7 +250,7 @@
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
- * 
+ *
  *   post:
  *     summary: Create a new company
  *     tags: [Companies]
@@ -322,7 +322,7 @@
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
- * 
+ *
  *   put:
  *     summary: Update company
  *     tags: [Companies]
@@ -367,7 +367,7 @@
  *         $ref: '#/components/responses/ForbiddenError'
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
- * 
+ *
  *   delete:
  *     summary: Delete company
  *     tags: [Companies]
@@ -437,7 +437,7 @@
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
- * 
+ *
  *   post:
  *     summary: Create a new person/lead
  *     tags: [People]
@@ -586,7 +586,7 @@
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
- * 
+ *
  *   post:
  *     summary: Create user profile
  *     tags: [User Management]
@@ -626,8 +626,3 @@
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
  */
-
-
-
-
-

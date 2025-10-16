@@ -19,32 +19,60 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Enhanced safe area handling for better edge-to-edge experience */
+.safe-area-inset-left {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.safe-area-inset-right {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Prevent zoom on input focus */
 @media screen and (max-width: 767px) {
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="search"],
-  input[type="tel"],
-  input[type="url"],
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='search'],
+  input[type='tel'],
+  input[type='url'],
   textarea,
   select {
     font-size: 16px;
     transform: translateZ(0); /* Force hardware acceleration */
   }
-  
+
   /* Override Tailwind's text-sm for mobile inputs */
   .mobile-input {
     font-size: 16px;
   }
 }
 
+/* Action bar icons - keep them at h-8 w-8 on ALL devices */
+.action-bar-icon,
+button[title='Search'],
+button[title*='favorite'],
+button[title*='Favorite'] {
+  min-height: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  width: 32px !important;
+}
+
 /* Better touch targets */
 @media (hover: none) and (pointer: coarse) {
   button,
-  [role="button"],
-  input[type="button"],
-  input[type="submit"],
+  [role='button'],
+  input[type='button'],
+  input[type='submit'],
   a {
     min-height: 48px;
     min-width: 48px;
@@ -52,7 +80,7 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   /* Remove hover effects on touch devices */
   .hover\:bg-gray-50:hover,
   .hover\:shadow-md:hover,
@@ -61,29 +89,29 @@
     box-shadow: none !important;
     transform: none !important;
   }
-  
+
   /* Better touch feedback */
   button:active,
-  [role="button"]:active,
+  [role='button']:active,
   a:active {
     transform: scale(0.98);
     transition: transform 0.1s ease;
   }
-  
+
   /* Enhanced touch interactions */
   .touch-manipulation {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
-  
+
   /* Improved focus indicators for touch */
   button:focus-visible,
-  [role="button"]:focus-visible,
+  [role='button']:focus-visible,
   a:focus-visible {
     outline: 2px solid hsl(201 100% 35%);
     outline-offset: 2px;
   }
-  
+
   /* Override focus outline for sidebar navigation links */
   .sidebar a:focus-visible {
     outline: none;
@@ -103,7 +131,7 @@
     backdrop-filter: blur(10px);
     border-top: 1px solid rgba(0, 0, 0, 0.1);
   }
-  
+
   /* Sidebar overlay */
   .mobile-sidebar-overlay {
     position: fixed;
@@ -114,7 +142,7 @@
     background: rgba(0, 0, 0, 0.5);
     z-index: 40;
   }
-  
+
   /* Mobile sidebar */
   .mobile-sidebar {
     position: fixed;
@@ -127,7 +155,7 @@
     transform: translateX(-100%);
     transition: transform 0.3s ease;
   }
-  
+
   .mobile-sidebar.open {
     transform: translateX(0);
   }
@@ -138,31 +166,31 @@
   .mobile-table {
     display: block;
   }
-  
+
   .mobile-table thead {
     display: none;
   }
-  
+
   .mobile-table tbody,
   .mobile-table tr,
   .mobile-table td {
     display: block;
   }
-  
+
   .mobile-table tr {
     border: 1px solid #e5e7eb;
     margin-bottom: 1rem;
     border-radius: 0.5rem;
     padding: 1rem;
   }
-  
+
   .mobile-table td {
     border: none;
     padding: 0.25rem 0;
   }
-  
+
   .mobile-table td:before {
-    content: attr(data-label) ": ";
+    content: attr(data-label) ': ';
     font-weight: 600;
     display: inline-block;
     width: 40%;
@@ -176,12 +204,12 @@
     border-radius: 0.75rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
-  
+
   .mobile-card-header {
     padding: 1rem;
     border-bottom: 1px solid #e5e7eb;
   }
-  
+
   .mobile-card-content {
     padding: 1rem;
   }
@@ -192,18 +220,18 @@
   .mobile-form {
     padding: 1rem;
   }
-  
+
   .mobile-form-field {
     margin-bottom: 1.5rem;
   }
-  
+
   .mobile-form-label {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
     font-size: 0.875rem;
   }
-  
+
   .mobile-form-input {
     width: 100%;
     min-height: 48px;
@@ -212,7 +240,7 @@
     border-radius: 0.5rem;
     font-size: 16px; /* Prevent zoom */
   }
-  
+
   .mobile-form-button {
     width: 100%;
     min-height: 48px;
@@ -232,12 +260,12 @@
     background: white;
     overflow-y: auto;
   }
-  
+
   .mobile-modal-content {
     padding: 1rem;
     min-height: 100vh;
   }
-  
+
   .mobile-modal-header {
     position: sticky;
     top: 0;
@@ -255,30 +283,30 @@
     animation-duration: 0.15s !important;
     transition-duration: 0.15s !important;
   }
-  
+
   /* Optimize scrolling */
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;
     overflow-scrolling: touch;
   }
-  
+
   /* Reduce shadows for better performance */
   .mobile-shadow {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
   }
-  
+
   /* Optimize sidebar animations */
   .sidebar {
     will-change: transform;
     transform: translateZ(0); /* Force hardware acceleration */
   }
-  
+
   /* Optimize mobile navigation */
   .mobile-nav {
     will-change: transform;
     transform: translateZ(0);
   }
-  
+
   /* Reduce motion for users who prefer it */
   @media (prefers-reduced-motion: reduce) {
     * {
@@ -299,7 +327,7 @@
     outline: 2px solid hsl(201 100% 35%);
     outline-offset: 2px;
   }
-  
+
   /* High contrast mode support */
   @media (prefers-contrast: high) {
     .mobile-high-contrast {
@@ -308,7 +336,7 @@
       color: ButtonText;
     }
   }
-  
+
   /* Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
     .mobile-reduced-motion {
@@ -344,16 +372,15 @@
   .mobile-grid-1 {
     grid-template-columns: 1fr;
   }
-  
+
   .mobile-grid-2 {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
-  
+
   .mobile-stack {
     display: flex;
     flex-direction: column;
     gap: 1rem;
   }
 }
-

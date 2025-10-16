@@ -1,2 +1,2 @@
 // Table Components Barrel Export
-export { DataTable } from './DataTable';
+// DataTable is now exported from design-system/modern-components

@@ -16,7 +16,9 @@ const defaultBreakpoints: BreakpointConfig = {
   '2xl': 1536,
 };
 
-export const useResponsive = (breakpoints: BreakpointConfig = defaultBreakpoints) => {
+export const useResponsive = (
+  breakpoints: BreakpointConfig = defaultBreakpoints
+) => {
   const [windowSize, setWindowSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 0,
     height: typeof window !== 'undefined' ? window.innerHeight : 0,
@@ -35,7 +37,8 @@ export const useResponsive = (breakpoints: BreakpointConfig = defaultBreakpoints
   }, []);
 
   const isMobile = windowSize.width < breakpoints.md;
-  const isTablet = windowSize.width >= breakpoints.md && windowSize.width < breakpoints.lg;
+  const isTablet =
+    windowSize.width >= breakpoints.md && windowSize.width < breakpoints.lg;
   const isDesktop = windowSize.width >= breakpoints.lg;
   const isLargeDesktop = windowSize.width >= breakpoints.xl;
 
@@ -59,24 +62,22 @@ export const useResponsive = (breakpoints: BreakpointConfig = defaultBreakpoints
 };
 
 // Hook for responsive values
-export const useResponsiveValue = <T>(
-  values: {
-    mobile?: T;
-    tablet?: T;
-    desktop?: T;
-    default: T;
-  }
-): T => {
+export const useResponsiveValue = <T>(values: {
+  mobile?: T;
+  tablet?: T;
+  desktop?: T;
+  default: T;
+}): T => {
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
   if (isMobile && values.mobile !== undefined) {
     return values.mobile;
   }
-  
+
   if (isTablet && values.tablet !== undefined) {
     return values.tablet;
   }
-  
+
   if (isDesktop && values.desktop !== undefined) {
     return values.desktop;
   }
@@ -96,15 +97,14 @@ export const useResponsiveColumns = (config: {
   if (isMobile && config.mobile !== undefined) {
     return config.mobile;
   }
-  
+
   if (isTablet && config.tablet !== undefined) {
     return config.tablet;
   }
-  
+
   if (isDesktop && config.desktop !== undefined) {
     return config.desktop;
   }
 
   return config.default;
 };
-

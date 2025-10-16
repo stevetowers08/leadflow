@@ -3,6 +3,10 @@
 
 @import './styles/mobile.css';
 
+@import './styles/mobile-improvements.css';
+
+@import './styles/mobile-typography.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -65,21 +69,55 @@ All colors MUST be HSL.
 
     /* Shadow System */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-md:
+      0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg:
+      0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl:
+      0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
     /* Professional Subtle Backgrounds - Very Light Tints */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.9) 100%);
-    --gradient-primary-subtle: linear-gradient(135deg, hsl(var(--primary) / 0.05) 0%, hsl(var(--primary) / 0.02) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(142 76% 36% / 0.9) 100%);
-    --gradient-success-subtle: linear-gradient(135deg, hsl(142 76% 36% / 0.05) 0%, hsl(142 76% 36% / 0.02) 100%);
-    --gradient-warning: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(38 92% 50% / 0.9) 100%);
-    --gradient-warning-subtle: linear-gradient(135deg, hsl(38 92% 50% / 0.05) 0%, hsl(38 92% 50% / 0.02) 100%);
-    --gradient-info: linear-gradient(135deg, hsl(201 100% 35%) 0%, hsl(201 100% 35% / 0.9) 100%);
-    --gradient-info-subtle: linear-gradient(135deg, hsl(201 100% 35% / 0.05) 0%, hsl(201 100% 35% / 0.02) 100%);
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--primary) / 0.9) 100%
+    );
+    --gradient-primary-subtle: linear-gradient(
+      135deg,
+      hsl(var(--primary) / 0.05) 0%,
+      hsl(var(--primary) / 0.02) 100%
+    );
+    --gradient-success: linear-gradient(
+      135deg,
+      hsl(142 76% 36%) 0%,
+      hsl(142 76% 36% / 0.9) 100%
+    );
+    --gradient-success-subtle: linear-gradient(
+      135deg,
+      hsl(142 76% 36% / 0.05) 0%,
+      hsl(142 76% 36% / 0.02) 100%
+    );
+    --gradient-warning: linear-gradient(
+      135deg,
+      hsl(38 92% 50%) 0%,
+      hsl(38 92% 50% / 0.9) 100%
+    );
+    --gradient-warning-subtle: linear-gradient(
+      135deg,
+      hsl(38 92% 50% / 0.05) 0%,
+      hsl(38 92% 50% / 0.02) 100%
+    );
+    --gradient-info: linear-gradient(
+      135deg,
+      hsl(201 100% 35%) 0%,
+      hsl(201 100% 35% / 0.9) 100%
+    );
+    --gradient-info-subtle: linear-gradient(
+      135deg,
+      hsl(201 100% 35% / 0.05) 0%,
+      hsl(201 100% 35% / 0.02) 100%
+    );
   }
-
 }
 
 @layer base {
@@ -87,14 +125,25 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    height: 100%;
+    width: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
     min-height: 100vh;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
     /* Enhanced font rendering for better clarity */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-feature-settings: "kern" 1, "liga" 1;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
   }
 
   /* Enhanced table font rendering */
@@ -102,14 +151,19 @@ All colors MUST be HSL.
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-feature-settings: "kern" 1, "liga" 1;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
   }
 
-  th, td {
+  th,
+  td {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-feature-settings: "kern" 1, "liga" 1;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
   }
 
   /* Enhanced font rendering for better clarity */
@@ -117,7 +171,9 @@ All colors MUST be HSL.
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-feature-settings: "kern" 1, "liga" 1;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
   }
 
   /* Specific improvements for table text */
@@ -125,7 +181,9 @@ All colors MUST be HSL.
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-feature-settings: "kern" 1, "liga" 1;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
     font-variant-ligatures: common-ligatures;
   }
 }
@@ -135,31 +193,31 @@ All colors MUST be HSL.
   .gradient-primary {
     background: var(--gradient-primary);
   }
-  
+
   .gradient-primary-subtle {
     background: var(--gradient-primary-subtle);
   }
-  
+
   .gradient-success {
     background: var(--gradient-success);
   }
-  
+
   .gradient-success-subtle {
     background: var(--gradient-success-subtle);
   }
-  
+
   .gradient-warning {
     background: var(--gradient-warning);
   }
-  
+
   .gradient-warning-subtle {
     background: var(--gradient-warning-subtle);
   }
-  
+
   .gradient-info {
     background: var(--gradient-info);
   }
-  
+
   .gradient-info-subtle {
     background: var(--gradient-info-subtle);
   }
@@ -169,15 +227,15 @@ All colors MUST be HSL.
     .mobile-hidden {
       display: none !important;
     }
-    
+
     .mobile-full-width {
       width: 100% !important;
     }
-    
+
     .mobile-stack {
       flex-direction: column !important;
     }
-    
+
     .mobile-center {
       text-align: center !important;
     }
@@ -193,6 +251,60 @@ All colors MUST be HSL.
     .desktop-only {
       display: block !important;
     }
+  }
+
+  /* Enhanced scrollbar styling for tables */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #9ca3af #f3f4f6;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-radius: 4px;
+    border: 1px solid #f3f4f6;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+
+  /* Table-specific scrollbar improvements */
+  .table-scroll-container {
+    position: relative;
+  }
+
+  .table-scroll-container .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f9fafb;
+  }
+
+  .table-scroll-container .scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .table-scroll-container .scrollbar-thin::-webkit-scrollbar-track {
+    background: #f9fafb;
+    border-radius: 3px;
+  }
+
+  .table-scroll-container .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+  }
+
+  .table-scroll-container .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
   }
 
   /* Touch-friendly improvements */
@@ -234,29 +346,29 @@ All colors MUST be HSL.
   /* Mobile-specific improvements */
   @media (max-width: 767px) {
     /* Prevent zoom on input focus */
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="search"],
+    input[type='text'],
+    input[type='email'],
+    input[type='password'],
+    input[type='search'],
     textarea,
     select {
       font-size: 16px !important;
     }
-    
+
     /* Better touch targets */
     button,
-    [role="button"],
-    input[type="button"],
-    input[type="submit"] {
+    [role='button'],
+    input[type='button'],
+    input[type='submit'] {
       min-height: 48px;
       min-width: 48px;
     }
-    
+
     /* Prevent horizontal scroll */
     body {
       overflow-x: hidden;
     }
-    
+
     /* Better spacing for mobile */
     .container {
       padding-left: 1rem;
@@ -270,28 +382,28 @@ All colors MUST be HSL.
     .hover\:shadow-md:hover {
       box-shadow: none;
     }
-    
+
     /* Better touch feedback */
     button:active,
-    [role="button"]:active {
+    [role='button']:active {
       transform: scale(0.98);
       transition: transform 0.1s ease;
     }
-    
+
     /* Enhanced touch interactions */
     .touch-manipulation {
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
-    
+
     /* Improved focus indicators for touch */
     button:focus-visible,
-    [role="button"]:focus-visible,
+    [role='button']:focus-visible,
     a:focus-visible {
       outline: 2px solid hsl(var(--ring));
       outline-offset: 2px;
     }
-    
+
     /* Override focus outline for sidebar navigation links */
     .sidebar a:focus-visible {
       outline: none;

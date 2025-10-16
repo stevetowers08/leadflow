@@ -10,23 +10,23 @@ interface ClearbitLogoProps {
 
 const sizeMap = {
   sm: 'w-6 h-6',
-  md: 'w-8 h-8', 
+  md: 'w-8 h-8',
   lg: 'w-12 h-12',
-  xl: 'w-16 h-16'
+  xl: 'w-16 h-16',
 };
 
 const textSizeMap = {
   sm: 'text-xs',
   md: 'text-sm',
   lg: 'text-base',
-  xl: 'text-lg'
+  xl: 'text-lg',
 };
 
 export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
   companyName,
   website,
   size = 'md',
-  className = ''
+  className = '',
 }) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -34,14 +34,14 @@ export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
   // Generate Clearbit URL from website domain
   const getClearbitUrl = useCallback((website?: string): string | null => {
     if (!website) return null;
-    
+
     try {
       const domain = website
         .replace(/^https?:\/\//, '')
         .replace(/^www\./, '')
         .split('/')[0]
         .split('?')[0];
-      
+
       return `https://logo.clearbit.com/${domain}`;
     } catch {
       return null;
@@ -63,12 +63,14 @@ export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
   // If no website or image failed, show initials fallback
   if (!clearbitUrl || imageError) {
     return (
-      <div className={cn(
-        'rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold',
-        sizeClass,
-        textSizeClass,
-        className
-      )}>
+      <div
+        className={cn(
+          'rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold',
+          sizeClass,
+          textSizeClass,
+          className
+        )}
+      >
         {companyName ? companyName.charAt(0).toUpperCase() : '?'}
       </div>
     );
@@ -86,18 +88,20 @@ export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
         )}
         onError={handleError}
         onLoad={handleLoad}
-        loading="lazy"
+        loading='lazy'
         style={{
-          aspectRatio: '1 / 1'
+          aspectRatio: '1 / 1',
         }}
       />
-      
+
       {/* Loading skeleton */}
       {!imageLoaded && !imageError && (
-        <div className={cn(
-          'absolute inset-0 rounded-lg bg-gray-200 animate-pulse',
-          sizeClass
-        )} />
+        <div
+          className={cn(
+            'absolute inset-0 rounded-lg bg-gray-200 animate-pulse',
+            sizeClass
+          )}
+        />
       )}
     </div>
   );
@@ -111,20 +115,20 @@ export const ClearbitLogoSync: React.FC<ClearbitLogoProps> = ({
   companyName,
   website,
   size = 'md',
-  className = ''
+  className = '',
 }) => {
   const [hasError, setHasError] = useState(false);
-  
+
   const getClearbitUrl = (website?: string): string | null => {
     if (!website) return null;
-    
+
     try {
       const domain = website
         .replace(/^https?:\/\//, '')
         .replace(/^www\./, '')
         .split('/')[0]
         .split('?')[0];
-      
+
       return `https://logo.clearbit.com/${domain}`;
     } catch {
       return null;
@@ -141,12 +145,14 @@ export const ClearbitLogoSync: React.FC<ClearbitLogoProps> = ({
 
   if (hasError || !clearbitUrl) {
     return (
-      <div className={cn(
-        'rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold',
-        sizeClass,
-        textSizeClass,
-        className
-      )}>
+      <div
+        className={cn(
+          'rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold',
+          sizeClass,
+          textSizeClass,
+          className
+        )}
+      >
         {companyName ? companyName.charAt(0).toUpperCase() : '?'}
       </div>
     );
@@ -158,7 +164,7 @@ export const ClearbitLogoSync: React.FC<ClearbitLogoProps> = ({
       alt={`${companyName} logo`}
       className={cn('rounded-lg object-cover', sizeClass, className)}
       onError={handleImageError}
-      loading="lazy"
+      loading='lazy'
     />
   );
 };

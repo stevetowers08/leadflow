@@ -24,10 +24,16 @@ export class AuthService {
   /**
    * Get current session and validate token
    */
-  async getCurrentSession(): Promise<{ session: Session | null; user: User | null }> {
+  async getCurrentSession(): Promise<{
+    session: Session | null;
+    user: User | null;
+  }> {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
       if (error) {
         console.error('Error getting session:', error);
         return { session: null, user: null };
@@ -51,7 +57,7 @@ export class AuthService {
         expiresAt: null,
         userId: null,
         email: null,
-        role: null
+        role: null,
       };
     }
 
@@ -64,7 +70,7 @@ export class AuthService {
           expiresAt: null,
           userId: null,
           email: null,
-          role: null
+          role: null,
         };
       }
 
@@ -78,7 +84,7 @@ export class AuthService {
         expiresAt: new Date(payload.exp * 1000),
         userId: payload.sub || null,
         email: payload.email || null,
-        role: payload.role || null
+        role: payload.role || null,
       };
     } catch (error) {
       console.error('Error analyzing token:', error);
@@ -88,7 +94,7 @@ export class AuthService {
         expiresAt: null,
         userId: null,
         email: null,
-        role: null
+        role: null,
       };
     }
   }
@@ -98,7 +104,9 @@ export class AuthService {
    */
   async getAccessToken(): Promise<string | null> {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       return session?.access_token || null;
     } catch (error) {
       console.error('Error getting access token:', error);
@@ -109,10 +117,16 @@ export class AuthService {
   /**
    * Refresh the current session
    */
-  async refreshSession(): Promise<{ session: Session | null; user: User | null }> {
+  async refreshSession(): Promise<{
+    session: Session | null;
+    user: User | null;
+  }> {
     try {
-      const { data: { session }, error } = await supabase.auth.refreshSession();
-      
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.refreshSession();
+
       if (error) {
         console.error('Error refreshing session:', error);
         return { session: null, user: null };
@@ -220,19 +234,22 @@ export class AuthService {
   async clearAuthData(): Promise<void> {
     try {
       await supabase.auth.signOut();
-      
+
       // Clear localStorage auth items
-      const authKeys = Object.keys(localStorage).filter(key => 
-        key.includes('supabase') || key.includes('auth') || key.includes('token')
+      const authKeys = Object.keys(localStorage).filter(
+        key =>
+          key.includes('supabase') ||
+          key.includes('auth') ||
+          key.includes('token')
       );
-      
+
       authKeys.forEach(key => {
         localStorage.removeItem(key);
       });
-      
+
       // Clear sessionStorage
       sessionStorage.clear();
-      
+
       console.log('Authentication data cleared');
     } catch (error) {
       console.error('Error clearing auth data:', error);
@@ -252,7 +269,7 @@ export class AuthService {
       user,
       session,
       token: tokenInfo,
-      needsRefresh: tokenInfo.isValid && tokenInfo.isExpired
+      needsRefresh: tokenInfo.isValid && tokenInfo.isExpired,
     };
   }
 }

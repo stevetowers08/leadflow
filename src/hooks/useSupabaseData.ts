@@ -1,4 +1,8 @@
-import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useInfiniteQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCallback, useMemo } from 'react';
 
@@ -43,9 +47,8 @@ export const useLeads = (
       const { column, ascending } = sort;
       const { search, status, ...otherFilters } = filters;
 
-      let query = supabase
-        .from('people')
-        .select(`
+      let query = supabase.from('people').select(
+        `
           id,
           name,
           company_id,
@@ -62,13 +65,17 @@ export const useLeads = (
             name,
             website
           )
-        `, { count: 'exact' });
+        `,
+        { count: 'exact' }
+      );
 
       // Apply filters
       if (search) {
-        query = query.or(`name.ilike.%${search}%,company_role.ilike.%${search}%,email_address.ilike.%${search}%`);
+        query = query.or(
+          `name.ilike.%${search}%,company_role.ilike.%${search}%,email_address.ilike.%${search}%`
+        );
       }
-      
+
       if (status && status !== 'all') {
         query = query.eq('stage', status);
       }
@@ -97,7 +104,7 @@ export const useLeads = (
         totalCount: count || 0,
         hasMore: (count || 0) > to + 1,
         page,
-        pageSize
+        pageSize,
       };
     },
     enabled: options.enabled !== false,
@@ -121,9 +128,8 @@ export const useJobs = (
       const { column, ascending } = sort;
       const { search, priority, ...otherFilters } = filters;
 
-      let query = supabase
-        .from('jobs')
-        .select(`
+      let query = supabase.from('jobs').select(
+        `
           id,
           title,
           location,
@@ -139,13 +145,15 @@ export const useJobs = (
             website,
             industry
           )
-        `, { count: 'exact' });
+        `,
+        { count: 'exact' }
+      );
 
       // Apply filters
       if (search) {
         query = query.or(`title.ilike.%${search}%,location.ilike.%${search}%`);
       }
-      
+
       if (priority && priority !== 'all') {
         query = query.eq('priority', priority);
       }
@@ -174,7 +182,7 @@ export const useJobs = (
         totalCount: count || 0,
         hasMore: (count || 0) > to + 1,
         page,
-        pageSize
+        pageSize,
       };
     },
     enabled: options.enabled !== false,
@@ -199,19 +207,22 @@ export const useCompanies = (
       const { search, status, ...otherFilters } = filters;
 
       // Build the main query with counts using a single optimized query
-      let query = supabase
-        .from('companies')
-        .select(`
+      let query = supabase.from('companies').select(
+        `
           *,
           people_count:people(count),
           jobs_count:jobs(count)
-        `, { count: 'exact' });
+        `,
+        { count: 'exact' }
+      );
 
       // Apply filters
       if (search) {
-        query = query.or(`name.ilike.%${search}%,industry.ilike.%${search}%,head_office.ilike.%${search}%`);
+        query = query.or(
+          `name.ilike.%${search}%,industry.ilike.%${search}%,head_office.ilike.%${search}%`
+        );
       }
-      
+
       if (status && status !== 'all') {
         if (status === 'active') {
           query = query.eq('automation_active', true);
@@ -248,7 +259,7 @@ export const useCompanies = (
         totalCount: count || 0,
         hasMore: (count || 0) > to + 1,
         page,
-        pageSize
+        pageSize,
       };
     },
     enabled: options.enabled !== false,
@@ -264,22 +275,21 @@ export const useDashboardStats = (options: QueryOptions = {}) => {
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
       const today = new Date();
-      const sydneyDate = new Date(today.toLocaleString("en-US", {timeZone: "Australia/Sydney"}));
+      const sydneyDate = new Date(
+        today.toLocaleString('en-US', { timeZone: 'Australia/Sydney' })
+      );
       const todayDateString = sydneyDate.toISOString().split('T')[0];
 
       // Use materialized view for dashboard metrics and optimized queries
-      const [
-        dashboardMetrics,
-        todayJobs,
-        expiringJobs
-      ] = await Promise.all([
+      const [dashboardMetrics, todayJobs, expiringJobs] = await Promise.all([
         // Get dashboard metrics from materialized view
-        supabase.from("dashboard_metrics").select("*").single(),
-        
+        supabase.from('dashboard_metrics').select('*').single(),
+
         // Today's jobs - optimized with limit
         supabase
-          .from("jobs")
-          .select(`
+          .from('jobs')
+          .select(
+            `
             id,
             title,
             company_id,
@@ -288,26 +298,33 @@ export const useDashboardStats = (options: QueryOptions = {}) => {
             lead_score_job,
             created_at,
             companies!inner(name, website)
-          `)
+          `
+          )
           .gte('created_at', todayDateString)
-          .order("created_at", { ascending: false })
+          .order('created_at', { ascending: false })
           .limit(5),
-        
+
         // Expiring jobs - optimized query
         supabase
-          .from("jobs")
-          .select("id, priority, valid_through")
+          .from('jobs')
+          .select('id, priority, valid_through')
           .not('valid_through', 'is', null)
-          .lte('valid_through', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())
+          .lte(
+            'valid_through',
+            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+          ),
       ]);
 
       // Process expiring jobs count
-      const expiringCount = expiringJobs.data?.filter(job => {
-        if (!job.valid_through) return false;
-        const validThrough = new Date(job.valid_through);
-        const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        return validThrough <= sevenDaysFromNow;
-      }).length || 0;
+      const expiringCount =
+        expiringJobs.data?.filter(job => {
+          if (!job.valid_through) return false;
+          const validThrough = new Date(job.valid_through);
+          const sevenDaysFromNow = new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+          );
+          return validThrough <= sevenDaysFromNow;
+        }).length || 0;
 
       return {
         totalLeads: dashboardMetrics.data?.total_leads || 0,
@@ -317,7 +334,7 @@ export const useDashboardStats = (options: QueryOptions = {}) => {
         expiringJobs: expiringCount,
         todayJobs: todayJobs.data || [],
         activeAutomations: dashboardMetrics.data?.active_automations || 0,
-        avgLeadScore: dashboardMetrics.data?.avg_lead_score || 0
+        avgLeadScore: dashboardMetrics.data?.avg_lead_score || 0,
       };
     },
     enabled: options.enabled !== false,
@@ -340,9 +357,7 @@ export const useInfiniteLeads = (
       const { column, ascending } = sort;
       const { search, status, ...otherFilters } = filters;
 
-      let query = supabase
-        .from('people')
-        .select(`
+      let query = supabase.from('people').select(`
           id,
           name,
           company_id,
@@ -363,9 +378,11 @@ export const useInfiniteLeads = (
 
       // Apply filters
       if (search) {
-        query = query.or(`name.ilike.%${search}%,company_role.ilike.%${search}%,email_address.ilike.%${search}%`);
+        query = query.or(
+          `name.ilike.%${search}%,company_role.ilike.%${search}%,email_address.ilike.%${search}%`
+        );
       }
-      
+
       if (status && status !== 'all') {
         query = query.eq('stage', status);
       }
@@ -391,11 +408,12 @@ export const useInfiniteLeads = (
 
       return {
         data: data || [],
-        nextCursor: data && data.length === pageSize ? pageParam + 1 : undefined,
-        hasMore: data && data.length === pageSize
+        nextCursor:
+          data && data.length === pageSize ? pageParam + 1 : undefined,
+        hasMore: data && data.length === pageSize,
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: lastPage => lastPage.nextCursor,
     enabled: options.enabled !== false,
     staleTime: options.staleTime || 2 * 60 * 1000,
     cacheTime: options.cacheTime || 5 * 60 * 1000,
@@ -407,13 +425,15 @@ export const useInfiniteLeads = (
 export const usePrefetchData = () => {
   const queryClient = useQueryClient();
 
-  const prefetchLead = useCallback((leadId: string) => {
-    queryClient.prefetchQuery({
-      queryKey: ['popup-lead', leadId],
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from('people')
-          .select(`
+  const prefetchLead = useCallback(
+    (leadId: string) => {
+      queryClient.prefetchQuery({
+        queryKey: ['popup-lead', leadId],
+        queryFn: async () => {
+          const { data, error } = await supabase
+            .from('people')
+            .select(
+              `
             *,
             companies(
               id,
@@ -435,41 +455,49 @@ export const usePrefetchData = () => {
               created_at,
               updated_at
             )
-          `)
-          .eq('id', leadId)
-          .single();
-        
-        if (error) throw error;
-        return data;
-      },
-      staleTime: 5 * 60 * 1000,
-    });
-  }, [queryClient]);
+          `
+            )
+            .eq('id', leadId)
+            .single();
 
-  const prefetchCompany = useCallback((companyId: string) => {
-    queryClient.prefetchQuery({
-      queryKey: ['popup-company', companyId],
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', companyId)
-          .single();
-        
-        if (error) throw error;
-        return data;
-      },
-      staleTime: 5 * 60 * 1000,
-    });
-  }, [queryClient]);
+          if (error) throw error;
+          return data;
+        },
+        staleTime: 5 * 60 * 1000,
+      });
+    },
+    [queryClient]
+  );
 
-  const prefetchJob = useCallback((jobId: string) => {
-    queryClient.prefetchQuery({
-      queryKey: ['popup-job', jobId],
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from('jobs')
-          .select(`
+  const prefetchCompany = useCallback(
+    (companyId: string) => {
+      queryClient.prefetchQuery({
+        queryKey: ['popup-company', companyId],
+        queryFn: async () => {
+          const { data, error } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('id', companyId)
+            .single();
+
+          if (error) throw error;
+          return data;
+        },
+        staleTime: 5 * 60 * 1000,
+      });
+    },
+    [queryClient]
+  );
+
+  const prefetchJob = useCallback(
+    (jobId: string) => {
+      queryClient.prefetchQuery({
+        queryKey: ['popup-job', jobId],
+        queryFn: async () => {
+          const { data, error } = await supabase
+            .from('jobs')
+            .select(
+              `
             *,
             companies!inner(
               id,
@@ -491,21 +519,24 @@ export const usePrefetchData = () => {
               created_at,
               updated_at
             )
-          `)
-          .eq('id', jobId)
-          .single();
-        
-        if (error) throw error;
-        return data;
-      },
-      staleTime: 5 * 60 * 1000,
-    });
-  }, [queryClient]);
+          `
+            )
+            .eq('id', jobId)
+            .single();
+
+          if (error) throw error;
+          return data;
+        },
+        staleTime: 5 * 60 * 1000,
+      });
+    },
+    [queryClient]
+  );
 
   return {
     prefetchLead,
     prefetchCompany,
-    prefetchJob
+    prefetchJob,
   };
 };
 
@@ -539,6 +570,6 @@ export const useCacheInvalidation = () => {
     invalidateJobs,
     invalidateCompanies,
     invalidateDashboard,
-    invalidateAll
+    invalidateAll,
   };
 };

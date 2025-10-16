@@ -1,0 +1,61 @@
+import { cn } from '@/lib/utils';
+import React from 'react';
+
+export interface TabOption {
+  id: string;
+  label: string;
+  count: number;
+  icon?: React.ComponentType<{ className?: string }> | null;
+}
+
+export interface TabNavigationProps {
+  tabs: TabOption[];
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+  className?: string;
+}
+
+export const TabNavigation: React.FC<TabNavigationProps> = ({
+  tabs,
+  activeTab,
+  onTabChange,
+  className,
+}) => {
+  return (
+    <div
+      className={cn('border-b border-gray-300 mb-4 flex-shrink-0', className)}
+    >
+      <nav className='flex space-x-6'>
+        {tabs.map(tab => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={cn(
+                'relative flex items-center gap-2 py-3 px-1 text-sm font-medium transition-colors duration-200',
+                'border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300',
+                activeTab === tab.id
+                  ? 'text-blue-600 border-blue-600'
+                  : 'text-gray-500'
+              )}
+            >
+              {Icon && <Icon className='h-4 w-4' />}
+              <span>{tab.label}</span>
+              <span
+                className={cn(
+                  'inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full',
+                  activeTab === tab.id
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-gray-100 text-gray-500'
+                )}
+              >
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
+  );
+};

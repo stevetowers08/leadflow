@@ -8,7 +8,9 @@ interface SidebarContextType {
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
-export const SidebarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const SidebarProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleSidebar = () => {
@@ -16,7 +18,9 @@ export const SidebarProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   return (
-    <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed, toggleSidebar }}>
+    <SidebarContext.Provider
+      value={{ isCollapsed, setIsCollapsed, toggleSidebar }}
+    >
       {children}
     </SidebarContext.Provider>
   );

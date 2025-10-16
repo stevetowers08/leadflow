@@ -14,23 +14,28 @@ export const useAssignmentRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['people'] });
     queryClient.invalidateQueries({ queryKey: ['companies'] });
     queryClient.invalidateQueries({ queryKey: ['jobs'] });
-    
+
     // Also invalidate any entity-specific queries
     queryClient.invalidateQueries({ queryKey: ['entity-data'] });
-    
+
     console.log('🔄 Assignment lists refreshed via React Query invalidation');
   }, [queryClient]);
 
-  const refreshSpecificEntity = useCallback((entityType: 'people' | 'companies' | 'jobs', entityId: string) => {
-    // Invalidate specific entity queries
-    queryClient.invalidateQueries({ queryKey: [entityType, entityId] });
-    queryClient.invalidateQueries({ queryKey: ['entity-data', entityType, entityId] });
-    
-    console.log(`🔄 Refreshed ${entityType} entity ${entityId}`);
-  }, [queryClient]);
+  const refreshSpecificEntity = useCallback(
+    (entityType: 'people' | 'companies' | 'jobs', entityId: string) => {
+      // Invalidate specific entity queries
+      queryClient.invalidateQueries({ queryKey: [entityType, entityId] });
+      queryClient.invalidateQueries({
+        queryKey: ['entity-data', entityType, entityId],
+      });
+
+      console.log(`🔄 Refreshed ${entityType} entity ${entityId}`);
+    },
+    [queryClient]
+  );
 
   return {
     refreshAssignmentLists,
-    refreshSpecificEntity
+    refreshSpecificEntity,
   };
 };

@@ -9,7 +9,10 @@ export const SYDNEY_TIMEZONE = 'Australia/Sydney';
 /**
  * Convert UTC timestamp to local timezone
  */
-export const convertToLocalTimezone = (utcTimestamp: string, timezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone): Date => {
+export const convertToLocalTimezone = (
+  utcTimestamp: string,
+  timezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone
+): Date => {
   return new Date(utcTimestamp);
 };
 
@@ -17,18 +20,21 @@ export const convertToLocalTimezone = (utcTimestamp: string, timezone: string = 
  * Format date for display in Sydney timezone
  */
 export const formatDateForDisplay = (
-  utcTimestamp: string, 
+  utcTimestamp: string,
   options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    timeZoneName: 'short'
+    timeZoneName: 'short',
   }
 ): string => {
   const date = new Date(utcTimestamp);
-  return date.toLocaleString('en-AU', { ...options, timeZone: SYDNEY_TIMEZONE });
+  return date.toLocaleString('en-AU', {
+    ...options,
+    timeZone: SYDNEY_TIMEZONE,
+  });
 };
 
 /**
@@ -39,7 +45,7 @@ export const formatDateForSydney = (
   format: 'short' | 'long' | 'time' | 'date' = 'short'
 ): string => {
   const date = new Date(utcTimestamp);
-  
+
   const formatOptions: Record<string, Intl.DateTimeFormatOptions> = {
     short: {
       year: 'numeric',
@@ -47,7 +53,7 @@ export const formatDateForSydney = (
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: SYDNEY_TIMEZONE
+      timeZone: SYDNEY_TIMEZONE,
     },
     long: {
       year: 'numeric',
@@ -56,20 +62,20 @@ export const formatDateForSydney = (
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      timeZone: SYDNEY_TIMEZONE
+      timeZone: SYDNEY_TIMEZONE,
     },
     time: {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      timeZone: SYDNEY_TIMEZONE
+      timeZone: SYDNEY_TIMEZONE,
     },
     date: {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      timeZone: SYDNEY_TIMEZONE
-    }
+      timeZone: SYDNEY_TIMEZONE,
+    },
   };
 
   return date.toLocaleString('en-AU', formatOptions[format]);
@@ -100,7 +106,7 @@ export const formatDateInTimezone = (
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   }
 ): string => {
   const date = new Date(utcTimestamp);
@@ -128,12 +134,15 @@ export const COMMON_TIMEZONES = [
   'Asia/Tokyo',
   'Asia/Shanghai',
   'Australia/Sydney',
-  'UTC'
+  'UTC',
 ];
 
 /**
  * Create a Supabase query with timezone conversion
  */
-export const createTimezoneQuery = (column: string, timezone: string = 'UTC') => {
+export const createTimezoneQuery = (
+  column: string,
+  timezone: string = 'UTC'
+) => {
   return `timezone('${timezone}', ${column})`;
 };

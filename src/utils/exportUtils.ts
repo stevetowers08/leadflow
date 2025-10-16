@@ -21,7 +21,7 @@ export function exportToCSV<T extends ExportableItem>(
     filename = `export-${format(new Date(), 'yyyy-MM-dd-HH-mm-ss')}.csv`,
     includeHeaders = true,
     columns,
-    excludeColumns = ['id', 'created_at', 'updated_at']
+    excludeColumns = ['id', 'created_at', 'updated_at'],
   } = options;
 
   if (data.length === 0) {
@@ -30,7 +30,8 @@ export function exportToCSV<T extends ExportableItem>(
 
   // Determine which columns to export
   const allColumns = Object.keys(data[0]);
-  const exportColumns = columns || allColumns.filter(col => !excludeColumns.includes(col));
+  const exportColumns =
+    columns || allColumns.filter(col => !excludeColumns.includes(col));
 
   // Create CSV content
   let csvContent = '';
@@ -42,15 +43,17 @@ export function exportToCSV<T extends ExportableItem>(
 
   // Add data rows
   data.forEach(item => {
-    const row = exportColumns.map(col => {
-      const value = item[col];
-      if (value === null || value === undefined) {
-        return '""';
-      }
-      // Escape quotes and wrap in quotes
-      const stringValue = String(value).replace(/"/g, '""');
-      return `"${stringValue}"`;
-    }).join(',');
+    const row = exportColumns
+      .map(col => {
+        const value = item[col];
+        if (value === null || value === undefined) {
+          return '""';
+        }
+        // Escape quotes and wrap in quotes
+        const stringValue = String(value).replace(/"/g, '""');
+        return `"${stringValue}"`;
+      })
+      .join(',');
     csvContent += row + '\n';
   });
 
@@ -67,7 +70,7 @@ export function exportToExcel<T extends ExportableItem>(
     filename = `export-${format(new Date(), 'yyyy-MM-dd-HH-mm-ss')}.xlsx`,
     includeHeaders = true,
     columns,
-    excludeColumns = ['id', 'created_at', 'updated_at']
+    excludeColumns = ['id', 'created_at', 'updated_at'],
   } = options;
 
   if (data.length === 0) {
@@ -76,7 +79,8 @@ export function exportToExcel<T extends ExportableItem>(
 
   // Determine which columns to export
   const allColumns = Object.keys(data[0]);
-  const exportColumns = columns || allColumns.filter(col => !excludeColumns.includes(col));
+  const exportColumns =
+    columns || allColumns.filter(col => !excludeColumns.includes(col));
 
   // Create Excel content (simplified - in a real app you'd use a library like xlsx)
   let excelContent = '';
@@ -88,13 +92,15 @@ export function exportToExcel<T extends ExportableItem>(
 
   // Add data rows
   data.forEach(item => {
-    const row = exportColumns.map(col => {
-      const value = item[col];
-      if (value === null || value === undefined) {
-        return '';
-      }
-      return String(value).replace(/\t/g, ' '); // Replace tabs to avoid Excel issues
-    }).join('\t');
+    const row = exportColumns
+      .map(col => {
+        const value = item[col];
+        if (value === null || value === undefined) {
+          return '';
+        }
+        return String(value).replace(/\t/g, ' '); // Replace tabs to avoid Excel issues
+      })
+      .join('\t');
     excelContent += row + '\n';
   });
 
@@ -110,7 +116,7 @@ export function exportToJSON<T extends ExportableItem>(
   const {
     filename = `export-${format(new Date(), 'yyyy-MM-dd-HH-mm-ss')}.json`,
     columns,
-    excludeColumns = ['id', 'created_at', 'updated_at']
+    excludeColumns = ['id', 'created_at', 'updated_at'],
   } = options;
 
   if (data.length === 0) {
@@ -119,7 +125,8 @@ export function exportToJSON<T extends ExportableItem>(
 
   // Determine which columns to export
   const allColumns = Object.keys(data[0]);
-  const exportColumns = columns || allColumns.filter(col => !excludeColumns.includes(col));
+  const exportColumns =
+    columns || allColumns.filter(col => !excludeColumns.includes(col));
 
   // Filter data to only include selected columns
   const filteredData = data.map(item => {
@@ -138,19 +145,23 @@ export function exportToJSON<T extends ExportableItem>(
 }
 
 // Generic file download utility
-function downloadFile(content: string, filename: string, mimeType: string): void {
+function downloadFile(
+  content: string,
+  filename: string,
+  mimeType: string
+): void {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
-  
+
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
   link.style.display = 'none';
-  
+
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
+
   URL.revokeObjectURL(url);
 }
 
@@ -194,6 +205,3 @@ export function formatDataForExport<T extends ExportableItem>(data: T[]): T[] {
     return formattedItem as T;
   });
 }
-
-
-

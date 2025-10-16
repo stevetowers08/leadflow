@@ -1,10 +1,10 @@
 /**
  * Database Schema Reference
- * 
+ *
  * This file serves as the central source of truth for all database operations.
  * Always reference this file when writing database queries to ensure field names
  * and types are correct.
- * 
+ *
  * 📚 Full documentation: docs/DATABASE_BEST_PRACTICES.md
  * 🔧 Query utilities: src/utils/databaseQueries.ts
  */
@@ -13,7 +13,7 @@ export const DATABASE_SCHEMA = {
   // Table names
   TABLES: {
     PEOPLE: 'people',
-    COMPANIES: 'companies', 
+    COMPANIES: 'companies',
     JOBS: 'jobs',
     USER_PROFILES: 'user_profiles',
     INTERACTIONS: 'interactions',
@@ -27,7 +27,7 @@ export const DATABASE_SCHEMA = {
     ASSIGNMENT_LOGS: 'assignment_logs',
     INVITATIONS: 'invitations',
     SYSTEM_SETTINGS: 'system_settings',
-    LEAD_SOURCES: 'lead_sources'
+    LEAD_SOURCES: 'lead_sources',
   },
 
   // Field definitions for each table
@@ -60,7 +60,7 @@ export const DATABASE_SCHEMA = {
       lead_source: 'text',
       source_details: 'text',
       source_date: 'timestamptz',
-      reply_type: 'reply_type_enum'
+      reply_type: 'reply_type_enum',
     },
     companies: {
       id: 'uuid',
@@ -89,7 +89,7 @@ export const DATABASE_SCHEMA = {
       lead_source: 'text',
       source_details: 'text',
       source_date: 'timestamptz',
-      pipeline_stage: 'company_pipeline_stage'
+      pipeline_stage: 'company_pipeline_stage',
     },
     jobs: {
       id: 'uuid',
@@ -113,7 +113,7 @@ export const DATABASE_SCHEMA = {
       salary: 'text',
       function: 'text',
       logo_url: 'text',
-      owner_id: 'uuid'
+      owner_id: 'uuid',
     },
     user_profiles: {
       id: 'uuid',
@@ -123,16 +123,37 @@ export const DATABASE_SCHEMA = {
       user_limit: 'integer',
       is_active: 'boolean',
       created_at: 'timestamptz',
-      updated_at: 'timestamptz'
-    }
+      updated_at: 'timestamptz',
+    },
   },
 
   // Enum values
   ENUMS: {
-    stage_enum: ['new', 'connection_requested', 'connected', 'messaged', 'replied', 'meeting_booked', 'meeting_held', 'disqualified', 'in queue', 'lead_lost'],
+    stage_enum: [
+      'new',
+      'connection_requested',
+      'connected',
+      'messaged',
+      'replied',
+      'meeting_booked',
+      'meeting_held',
+      'disqualified',
+      'in queue',
+      'lead_lost',
+    ],
     confidence_level_enum: ['low', 'medium', 'high'],
-    company_pipeline_stage: ['new_lead', 'automated', 'replied', 'meeting_scheduled', 'proposal_sent', 'negotiation', 'closed_won', 'closed_lost', 'on_hold'],
-    reply_type: ['interested', 'not_interested', 'maybe']
+    company_pipeline_stage: [
+      'new_lead',
+      'automated',
+      'replied',
+      'meeting_scheduled',
+      'proposal_sent',
+      'negotiation',
+      'closed_won',
+      'closed_lost',
+      'on_hold',
+    ],
+    reply_type: ['interested', 'not_interested', 'maybe'],
   },
 
   // Foreign key relationships
@@ -153,34 +174,44 @@ export const DATABASE_SCHEMA = {
     'business_profiles.created_by': 'auth.users.id',
     'invitations.accepted_by': 'user_profiles.id',
     'invitations.invited_by': 'user_profiles.id',
-    'user_profiles.id': 'auth.users.id'
-  }
+    'user_profiles.id': 'auth.users.id',
+  },
 } as const;
 
 // Type definitions for TypeScript
 export type TableName = keyof typeof DATABASE_SCHEMA.FIELDS;
-export type FieldName<T extends TableName> = keyof typeof DATABASE_SCHEMA.FIELDS[T];
+export type FieldName<T extends TableName> =
+  keyof (typeof DATABASE_SCHEMA.FIELDS)[T];
 
 // Utility functions
 export const getTableFields = (table: TableName): string[] => {
   return Object.keys(DATABASE_SCHEMA.FIELDS[table]);
 };
 
-export const getFieldType = <T extends TableName>(table: T, field: FieldName<T>): string => {
+export const getFieldType = <T extends TableName>(
+  table: T,
+  field: FieldName<T>
+): string => {
   return DATABASE_SCHEMA.FIELDS[table][field];
 };
 
-export const isValidField = <T extends TableName>(table: T, field: string): field is FieldName<T> => {
+export const isValidField = <T extends TableName>(
+  table: T,
+  field: string
+): field is FieldName<T> => {
   return field in DATABASE_SCHEMA.FIELDS[table];
 };
 
 // Common field selections for queries
 export const COMMON_SELECTIONS = {
-  people: 'id, name, company_id, email_address, linkedin_url, employee_location, company_role, lead_score, stage, automation_started_at, linkedin_request_message, linkedin_follow_up_message, linkedin_connected_message, connected_at, last_reply_at, last_reply_channel, last_reply_message, last_interaction_at, owner_id, created_at, updated_at, confidence_level, email_draft, is_favourite, lead_source, source_details, source_date, reply_type',
-  
-  companies: 'id, name, website, linkedin_url, head_office, industry_id, industry, company_size, confidence_level, lead_score, score_reason, automation_active, automation_started_at, is_favourite, ai_info, key_info_raw, loxo_company_id, created_at, updated_at, priority, logo_url, logo_cached_at, owner_id, lead_source, source_details, source_date, pipeline_stage',
-  
+  people:
+    'id, name, company_id, email_address, linkedin_url, employee_location, company_role, lead_score, stage, automation_started_at, linkedin_request_message, linkedin_follow_up_message, linkedin_connected_message, connected_at, last_reply_at, last_reply_channel, last_reply_message, last_interaction_at, owner_id, created_at, updated_at, confidence_level, email_draft, is_favourite, lead_source, source_details, source_date, reply_type',
+
+  companies:
+    'id, name, website, linkedin_url, head_office, industry_id, industry, company_size, confidence_level, lead_score, score_reason, automation_active, automation_started_at, is_favourite, ai_info, key_info_raw, loxo_company_id, created_at, updated_at, priority, logo_url, logo_cached_at, owner_id, lead_source, source_details, source_date, pipeline_stage',
+
   jobs: 'id, title, company_id, job_url, posted_date, valid_through, location, description, summary, employment_type, seniority_level, linkedin_job_id, automation_active, automation_started_at, created_at, updated_at, priority, lead_score_job, salary, function, logo_url, owner_id',
-  
-  user_profiles: 'id, email, full_name, role, user_limit, is_active, created_at, updated_at'
+
+  user_profiles:
+    'id, email, full_name, role, user_limit, is_active, created_at, updated_at',
 } as const;

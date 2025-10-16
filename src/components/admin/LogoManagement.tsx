@@ -7,7 +7,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, BarChart3, CheckCircle, Clock, XCircle } from 'lucide-react';
+import {
+  RefreshCw,
+  BarChart3,
+  CheckCircle,
+  Clock,
+  XCircle,
+} from 'lucide-react';
 import { getLogoStats, refreshStaleLogos } from '@/utils/logoService';
 import { logoRefreshService } from '@/services/logoRefreshService';
 
@@ -21,7 +27,9 @@ interface LogoStats {
 export const LogoManagement: React.FC = () => {
   const [stats, setStats] = useState<LogoStats | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [serviceStatus, setServiceStatus] = useState(logoRefreshService.getStatus());
+  const [serviceStatus, setServiceStatus] = useState(
+    logoRefreshService.getStatus()
+  );
 
   const loadStats = async () => {
     try {
@@ -55,7 +63,7 @@ export const LogoManagement: React.FC = () => {
 
   useEffect(() => {
     loadStats();
-    
+
     // Update service status every 5 seconds
     const interval = setInterval(() => {
       setServiceStatus(logoRefreshService.getStatus());
@@ -67,57 +75,66 @@ export const LogoManagement: React.FC = () => {
   if (!stats) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <RefreshCw className="h-6 w-6 animate-spin" />
-            <span className="ml-2">Loading logo statistics...</span>
+        <CardContent className='p-6'>
+          <div className='flex items-center justify-center'>
+            <RefreshCw className='h-6 w-6 animate-spin' />
+            <span className='ml-2'>Loading logo statistics...</span>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const cachePercentage = stats.totalCompanies > 0 
-    ? Math.round((stats.cachedLogos / stats.totalCompanies) * 100) 
-    : 0;
+  const cachePercentage =
+    stats.totalCompanies > 0
+      ? Math.round((stats.cachedLogos / stats.totalCompanies) * 100)
+      : 0;
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
+          <CardTitle className='flex items-center gap-2'>
+            <BarChart3 className='h-5 w-5' />
             Logo Statistics
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold">{stats.totalCompanies}</div>
-              <div className="text-sm text-muted-foreground">Total Companies</div>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+            <div className='text-center'>
+              <div className='text-2xl font-bold'>{stats.totalCompanies}</div>
+              <div className='text-sm text-muted-foreground'>
+                Total Companies
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.cachedLogos}</div>
-              <div className="text-sm text-muted-foreground">Cached Logos</div>
+            <div className='text-center'>
+              <div className='text-2xl font-bold text-green-600'>
+                {stats.cachedLogos}
+              </div>
+              <div className='text-sm text-muted-foreground'>Cached Logos</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">{stats.staleLogos}</div>
-              <div className="text-sm text-muted-foreground">Stale Logos</div>
+            <div className='text-center'>
+              <div className='text-2xl font-bold text-yellow-600'>
+                {stats.staleLogos}
+              </div>
+              <div className='text-sm text-muted-foreground'>Stale Logos</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{stats.missingLogos}</div>
-              <div className="text-sm text-muted-foreground">Missing Logos</div>
+            <div className='text-center'>
+              <div className='text-2xl font-bold text-red-600'>
+                {stats.missingLogos}
+              </div>
+              <div className='text-sm text-muted-foreground'>Missing Logos</div>
             </div>
           </div>
-          
-          <div className="mt-4">
-            <div className="flex items-center justify-between text-sm">
+
+          <div className='mt-4'>
+            <div className='flex items-center justify-between text-sm'>
               <span>Cache Coverage</span>
               <span>{cachePercentage}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-              <div 
-                className="bg-green-600 h-2 rounded-full transition-all duration-300"
+            <div className='w-full bg-gray-200 rounded-full h-2 mt-1'>
+              <div
+                className='bg-green-600 h-2 rounded-full transition-all duration-300'
                 style={{ width: `${cachePercentage}%` }}
               />
             </div>
@@ -129,51 +146,53 @@ export const LogoManagement: React.FC = () => {
         <CardHeader>
           <CardTitle>Logo Management</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
+        <CardContent className='space-y-4'>
+          <div className='flex items-center justify-between'>
             <div>
-              <h3 className="font-medium">Manual Refresh</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className='font-medium'>Manual Refresh</h3>
+              <p className='text-sm text-muted-foreground'>
                 Refresh all stale logos now
               </p>
             </div>
-            <Button 
+            <Button
               onClick={handleRefreshLogos}
               disabled={isRefreshing}
-              className="flex items-center gap-2"
+              className='flex items-center gap-2'
             >
               {isRefreshing ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
+                <RefreshCw className='h-4 w-4 animate-spin' />
               ) : (
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className='h-4 w-4' />
               )}
               {isRefreshing ? 'Refreshing...' : 'Refresh Now'}
             </Button>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className='flex items-center justify-between'>
             <div>
-              <h3 className="font-medium">Background Service</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className='font-medium'>Background Service</h3>
+              <p className='text-sm text-muted-foreground'>
                 Automatically refresh stale logos every hour
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={serviceStatus.hasInterval ? "default" : "secondary"}>
+            <div className='flex items-center gap-2'>
+              <Badge
+                variant={serviceStatus.hasInterval ? 'default' : 'secondary'}
+              >
                 {serviceStatus.hasInterval ? (
                   <>
-                    <CheckCircle className="h-3 w-3 mr-1" />
+                    <CheckCircle className='h-3 w-3 mr-1' />
                     Running
                   </>
                 ) : (
                   <>
-                    <XCircle className="h-3 w-3 mr-1" />
+                    <XCircle className='h-3 w-3 mr-1' />
                     Stopped
                   </>
                 )}
               </Badge>
-              <Button 
-                variant="outline"
+              <Button
+                variant='outline'
                 onClick={handleToggleService}
                 disabled={serviceStatus.isRunning}
               >
@@ -183,8 +202,8 @@ export const LogoManagement: React.FC = () => {
           </div>
 
           {serviceStatus.isRunning && (
-            <div className="flex items-center gap-2 text-sm text-blue-600">
-              <Clock className="h-4 w-4" />
+            <div className='flex items-center gap-2 text-sm text-blue-600'>
+              <Clock className='h-4 w-4' />
               Background refresh in progress...
             </div>
           )}
@@ -196,23 +215,26 @@ export const LogoManagement: React.FC = () => {
           <CardTitle>How It Works</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-start gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+          <div className='space-y-3 text-sm'>
+            <div className='flex items-start gap-2'>
+              <CheckCircle className='h-4 w-4 text-green-600 mt-0.5' />
               <div>
-                <strong>Cached Logos:</strong> Logos stored in database, valid for 30 days
+                <strong>Cached Logos:</strong> Logos stored in database, valid
+                for 30 days
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <Clock className="h-4 w-4 text-yellow-600 mt-0.5" />
+            <div className='flex items-start gap-2'>
+              <Clock className='h-4 w-4 text-yellow-600 mt-0.5' />
               <div>
-                <strong>Stale Logos:</strong> Cached logos older than 30 days, need refresh
+                <strong>Stale Logos:</strong> Cached logos older than 30 days,
+                need refresh
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <XCircle className="h-4 w-4 text-red-600 mt-0.5" />
+            <div className='flex items-start gap-2'>
+              <XCircle className='h-4 w-4 text-red-600 mt-0.5' />
               <div>
-                <strong>Missing Logos:</strong> No logo URL cached, will use Clearbit API
+                <strong>Missing Logos:</strong> No logo URL cached, will use
+                Clearbit API
               </div>
             </div>
           </div>

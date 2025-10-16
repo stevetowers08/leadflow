@@ -22,13 +22,13 @@ interface Lead {
   company_role: string;
 }
 
-export function AddNoteModal({ 
-  isOpen, 
-  onClose, 
-  entityType, 
-  entityId, 
+export function AddNoteModal({
+  isOpen,
+  onClose,
+  entityType,
+  entityId,
   entityName,
-  onNoteAdded 
+  onNoteAdded,
 }: AddNoteModalProps) {
   const [noteText, setNoteText] = useState('');
   const [selectedLeadId, setSelectedLeadId] = useState<string>('');
@@ -65,8 +65,8 @@ export function AddNoteModal({
     { value: '', label: 'General company note' },
     ...leads.map(lead => ({
       value: lead.id,
-      label: `${lead.name}${lead.company_role ? ` (${lead.company_role})` : ''}`
-    }))
+      label: `${lead.name}${lead.company_role ? ` (${lead.company_role})` : ''}`,
+    })),
   ];
 
   const handleSubmit = async () => {
@@ -80,22 +80,20 @@ export function AddNoteModal({
         content: noteText.trim(),
         created_at: new Date().toISOString(),
         // Only include related_lead_id if a specific lead is selected
-        ...(selectedLeadId && { related_lead_id: selectedLeadId })
+        ...(selectedLeadId && { related_lead_id: selectedLeadId }),
       };
 
-      const { error } = await supabase
-        .from('entity_notes')
-        .insert(noteData);
+      const { error } = await supabase.from('entity_notes').insert(noteData);
 
       if (error) throw error;
 
       // Reset form
       setNoteText('');
       setSelectedLeadId('');
-      
+
       // Notify parent component
       onNoteAdded?.();
-      
+
       // Close modal
       onClose();
     } catch (error) {
@@ -115,82 +113,78 @@ export function AddNoteModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className='fixed inset-0 z-50 flex items-center justify-center'>
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+      <div
+        className='absolute inset-0 bg-black/50 backdrop-blur-sm'
         onClick={onClose}
       />
-      
+
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+      <div className='relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4'>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-sidebar-primary/10 rounded-lg flex items-center justify-center">
-              <Plus className="w-4 h-4 text-sidebar-primary" />
+        <div className='flex items-center justify-between p-6 border-b border-gray-200'>
+          <div className='flex items-center gap-3'>
+            <div className='w-8 h-8 bg-sidebar-primary/10 rounded-lg flex items-center justify-center'>
+              <Plus className='w-4 h-4 text-sidebar-primary' />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Add Note</h2>
-              <p className="text-sm text-gray-500">{entityName}</p>
+              <h2 className='text-lg font-semibold text-gray-900'>Add Note</h2>
+              <p className='text-sm text-gray-500'>{entityName}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+            className='text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100'
           >
-            <X className="w-5 h-5" />
+            <X className='w-5 h-5' />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-4">
+        <div className='p-6 space-y-4'>
           {/* Lead Selection (only for companies) */}
           {entityType === 'company' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
+            <div className='space-y-2'>
+              <label className='text-sm font-medium text-gray-700'>
                 Related Lead (Optional)
               </label>
               <DropdownSelect
                 options={leadOptions}
                 value={selectedLeadId}
                 onValueChange={setSelectedLeadId}
-                placeholder="Select a lead or leave for general note"
-                className="w-full"
+                placeholder='Select a lead or leave for general note'
+                className='w-full'
                 loading={isLoading}
               />
             </div>
           )}
 
           {/* Note Text */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
+          <div className='space-y-2'>
+            <label className='text-sm font-medium text-gray-700'>
               Note Content
             </label>
             <Textarea
               value={noteText}
-              onChange={(e) => setNoteText(e.target.value)}
+              onChange={e => setNoteText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Enter your note here..."
-              className="min-h-[120px] resize-none"
+              placeholder='Enter your note here...'
+              className='min-h-[120px] resize-none'
               disabled={isSubmitting}
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
+        <div className='flex items-center justify-end gap-3 p-6 border-t border-gray-200'>
+          <Button variant='outline' onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!noteText.trim() || isSubmitting}
-            className="bg-sidebar-primary hover:bg-sidebar-primary/90"
+            className='bg-sidebar-primary hover:bg-sidebar-primary/90'
           >
             {isSubmitting ? 'Adding...' : 'Add Note'}
           </Button>

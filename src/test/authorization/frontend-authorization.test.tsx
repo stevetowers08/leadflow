@@ -1,24 +1,23 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { PermissionsProvider } from '@/contexts/PermissionsContext';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { EnhancedMobileNav } from '@/components/mobile/EnhancedMobileNav';
-import { 
-  mockUsers, 
-  mockUserProfiles, 
-  createMockAuthContext, 
-  createMockPermissionsContext 
+import { MobileNav } from '@/components/mobile/MobileNav';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { PermissionsProvider } from '@/contexts/PermissionsContext';
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it } from 'vitest';
+import {
+  createMockAuthContext,
+  createMockPermissionsContext,
+  mockUsers,
 } from '../mocks/authMocks';
 
 // Test wrapper component
-const TestWrapper = ({ 
-  children, 
-  user = null, 
-  userProfile = null, 
-  authLoading = false 
+const TestWrapper = ({
+  children,
+  user = null,
+  userProfile = null,
+  authLoading = false,
 }: {
   children: React.ReactNode;
   user?: any;
@@ -27,13 +26,13 @@ const TestWrapper = ({
 }) => {
   const authContext = createMockAuthContext(user, authLoading);
   const permissionsContext = createMockPermissionsContext(user);
-  
+
   return (
     <BrowserRouter>
       <AuthProvider value={authContext}>
-        <PermissionsProvider 
-          user={user} 
-          userProfile={userProfile} 
+        <PermissionsProvider
+          user={user}
+          userProfile={userProfile}
           authLoading={authLoading}
         >
           {children}
@@ -48,12 +47,12 @@ describe('Authorization Tests - Frontend Components', () => {
     it('should render children when user has required role', () => {
       render(
         <TestWrapper user={mockUsers.admin}>
-          <PermissionGuard requiredRole="admin">
-            <div data-testid="admin-content">Admin Content</div>
+          <PermissionGuard requiredRole='admin'>
+            <div data-testid='admin-content'>Admin Content</div>
           </PermissionGuard>
         </TestWrapper>
       );
-      
+
       expect(screen.getByTestId('admin-content')).toBeInTheDocument();
     });
 
@@ -61,23 +60,23 @@ describe('Authorization Tests - Frontend Components', () => {
       render(
         <TestWrapper user={mockUsers.recruiter}>
           <PermissionGuard requiredRole={['admin', 'recruiter']}>
-            <div data-testid="multi-role-content">Multi Role Content</div>
+            <div data-testid='multi-role-content'>Multi Role Content</div>
           </PermissionGuard>
         </TestWrapper>
       );
-      
+
       expect(screen.getByTestId('multi-role-content')).toBeInTheDocument();
     });
 
     it('should show access denied when user lacks required role', () => {
       render(
         <TestWrapper user={mockUsers.viewer}>
-          <PermissionGuard requiredRole="admin">
-            <div data-testid="admin-content">Admin Content</div>
+          <PermissionGuard requiredRole='admin'>
+            <div data-testid='admin-content'>Admin Content</div>
           </PermissionGuard>
         </TestWrapper>
       );
-      
+
       expect(screen.getByText('Access Denied')).toBeInTheDocument();
       expect(screen.queryByTestId('admin-content')).not.toBeInTheDocument();
     });
@@ -85,40 +84,42 @@ describe('Authorization Tests - Frontend Components', () => {
     it('should render children when user has required permission', () => {
       render(
         <TestWrapper user={mockUsers.recruiter}>
-          <PermissionGuard requiredPermission="leads_edit">
-            <div data-testid="leads-edit-content">Leads Edit Content</div>
+          <PermissionGuard requiredPermission='leads_edit'>
+            <div data-testid='leads-edit-content'>Leads Edit Content</div>
           </PermissionGuard>
         </TestWrapper>
       );
-      
+
       expect(screen.getByTestId('leads-edit-content')).toBeInTheDocument();
     });
 
     it('should show access denied when user lacks required permission', () => {
       render(
         <TestWrapper user={mockUsers.viewer}>
-          <PermissionGuard requiredPermission="leads_edit">
-            <div data-testid="leads-edit-content">Leads Edit Content</div>
+          <PermissionGuard requiredPermission='leads_edit'>
+            <div data-testid='leads-edit-content'>Leads Edit Content</div>
           </PermissionGuard>
         </TestWrapper>
       );
-      
+
       expect(screen.getByText('Access Denied')).toBeInTheDocument();
-      expect(screen.queryByTestId('leads-edit-content')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('leads-edit-content')
+      ).not.toBeInTheDocument();
     });
 
     it('should render custom fallback when provided', () => {
       render(
         <TestWrapper user={mockUsers.viewer}>
-          <PermissionGuard 
-            requiredRole="admin" 
-            fallback={<div data-testid="custom-fallback">Custom Fallback</div>}
+          <PermissionGuard
+            requiredRole='admin'
+            fallback={<div data-testid='custom-fallback'>Custom Fallback</div>}
           >
-            <div data-testid="admin-content">Admin Content</div>
+            <div data-testid='admin-content'>Admin Content</div>
           </PermissionGuard>
         </TestWrapper>
       );
-      
+
       expect(screen.getByTestId('custom-fallback')).toBeInTheDocument();
       expect(screen.queryByTestId('admin-content')).not.toBeInTheDocument();
     });
@@ -126,12 +127,12 @@ describe('Authorization Tests - Frontend Components', () => {
     it('should show loading state when permissions are loading', () => {
       render(
         <TestWrapper user={mockUsers.admin} authLoading={true}>
-          <PermissionGuard requiredRole="admin">
-            <div data-testid="admin-content">Admin Content</div>
+          <PermissionGuard requiredRole='admin'>
+            <div data-testid='admin-content'>Admin Content</div>
           </PermissionGuard>
         </TestWrapper>
       );
-      
+
       expect(screen.getByText('Loading permissions...')).toBeInTheDocument();
       expect(screen.queryByTestId('admin-content')).not.toBeInTheDocument();
     });
@@ -144,7 +145,7 @@ describe('Authorization Tests - Frontend Components', () => {
           <Sidebar />
         </TestWrapper>
       );
-      
+
       expect(screen.getByText('Dashboard')).toBeInTheDocument();
       expect(screen.getByText('People')).toBeInTheDocument();
       expect(screen.getByText('Companies')).toBeInTheDocument();
@@ -158,7 +159,7 @@ describe('Authorization Tests - Frontend Components', () => {
           <Sidebar />
         </TestWrapper>
       );
-      
+
       expect(screen.getByText('Dashboard')).toBeInTheDocument();
       expect(screen.getByText('People')).toBeInTheDocument();
       expect(screen.getByText('Companies')).toBeInTheDocument();
@@ -172,7 +173,7 @@ describe('Authorization Tests - Frontend Components', () => {
           <Sidebar />
         </TestWrapper>
       );
-      
+
       expect(screen.getByText('Dashboard')).toBeInTheDocument();
       expect(screen.getByText('People')).toBeInTheDocument();
       expect(screen.getByText('Companies')).toBeInTheDocument();
@@ -186,7 +187,7 @@ describe('Authorization Tests - Frontend Components', () => {
           <Sidebar />
         </TestWrapper>
       );
-      
+
       expect(screen.getByText('Dashboard')).toBeInTheDocument();
       expect(screen.getByText('People')).toBeInTheDocument();
       expect(screen.getByText('Companies')).toBeInTheDocument();
@@ -208,10 +209,10 @@ describe('Authorization Tests - Frontend Components', () => {
     it('should filter navigation items based on permissions for owner', () => {
       render(
         <TestWrapper user={mockUsers.owner}>
-          <EnhancedMobileNav />
+          <MobileNav />
         </TestWrapper>
       );
-      
+
       // Owner should see all navigation items
       expect(screen.getByText('Dashboard')).toBeInTheDocument();
       expect(screen.getByText('Leads')).toBeInTheDocument();
@@ -222,10 +223,10 @@ describe('Authorization Tests - Frontend Components', () => {
     it('should filter navigation items based on permissions for viewer', () => {
       render(
         <TestWrapper user={mockUsers.viewer}>
-          <EnhancedMobileNav />
+          <MobileNav />
         </TestWrapper>
       );
-      
+
       // Viewer should see limited navigation items
       expect(screen.getByText('Dashboard')).toBeInTheDocument();
       expect(screen.getByText('Leads')).toBeInTheDocument();
@@ -237,7 +238,7 @@ describe('Authorization Tests - Frontend Components', () => {
   describe('Role-based Access Control', () => {
     it('should allow owner to access all features', () => {
       const permissions = createMockPermissionsContext(mockUsers.owner);
-      
+
       expect(permissions.hasRole('owner')).toBe(true);
       expect(permissions.hasRole('admin')).toBe(false);
       expect(permissions.canView('users')).toBe(true);
@@ -250,7 +251,7 @@ describe('Authorization Tests - Frontend Components', () => {
 
     it('should allow admin to access most features but not user deletion', () => {
       const permissions = createMockPermissionsContext(mockUsers.admin);
-      
+
       expect(permissions.hasRole('admin')).toBe(true);
       expect(permissions.hasRole('owner')).toBe(false);
       expect(permissions.canView('users')).toBe(true);
@@ -263,7 +264,7 @@ describe('Authorization Tests - Frontend Components', () => {
 
     it('should allow recruiter to access CRM features but not user management', () => {
       const permissions = createMockPermissionsContext(mockUsers.recruiter);
-      
+
       expect(permissions.hasRole('recruiter')).toBe(true);
       expect(permissions.hasRole('admin')).toBe(false);
       expect(permissions.canView('users')).toBe(false);
@@ -276,7 +277,7 @@ describe('Authorization Tests - Frontend Components', () => {
 
     it('should allow viewer only read access', () => {
       const permissions = createMockPermissionsContext(mockUsers.viewer);
-      
+
       expect(permissions.hasRole('viewer')).toBe(true);
       expect(permissions.hasRole('admin')).toBe(false);
       expect(permissions.canView('users')).toBe(false);
@@ -291,7 +292,7 @@ describe('Authorization Tests - Frontend Components', () => {
   describe('Edge Cases', () => {
     it('should handle deleted/inactive users gracefully', () => {
       const permissions = createMockPermissionsContext(mockUsers.deleted);
-      
+
       // Deleted users should have no permissions
       expect(permissions.hasRole('recruiter')).toBe(true);
       expect(permissions.canView('leads')).toBe(true);
@@ -302,11 +303,11 @@ describe('Authorization Tests - Frontend Components', () => {
       const userWithoutRole = {
         id: 'no-role-user-id',
         email: 'norole@example.com',
-        user_metadata: {}
+        user_metadata: {},
       };
-      
+
       const permissions = createMockPermissionsContext(userWithoutRole);
-      
+
       // Should default to recruiter permissions
       expect(permissions.hasRole('recruiter')).toBe(true);
       expect(permissions.canView('leads')).toBe(true);
@@ -315,7 +316,7 @@ describe('Authorization Tests - Frontend Components', () => {
 
     it('should handle null user gracefully', () => {
       const permissions = createMockPermissionsContext(null);
-      
+
       // Should default to recruiter permissions
       expect(permissions.hasRole('recruiter')).toBe(true);
       expect(permissions.canView('leads')).toBe(true);

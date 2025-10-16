@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AssignmentService } from '@/services/assignmentService';
-import { 
-  mockUsers, 
-  mockUserProfiles, 
+import {
+  mockUsers,
+  mockUserProfiles,
   mockCrmData,
-  createMockSupabaseClient 
+  createMockSupabaseClient,
 } from '../mocks/authMocks';
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
-  supabase: createMockSupabaseClient()
+  supabase: createMockSupabaseClient(),
 }));
 
 describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
@@ -20,19 +20,21 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
 
     it('should handle entities owned by deleted users', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.admin);
-      
+
       // Mock company owned by deleted user
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
-          data: mockCrmData.companies.filter(company => company.owner_id === 'deleted-user-id'),
-          error: null
-        })
+          data: mockCrmData.companies.filter(
+            company => company.owner_id === 'deleted-user-id'
+          ),
+          error: null,
+        }),
       } as any);
 
       const result = await mockSupabase.from('companies').select('*');
-      
+
       // Admin should see company owned by deleted user
       expect(result.data).toHaveLength(1);
       expect(result.data[0].owner_id).toBe('deleted-user-id');
@@ -40,32 +42,32 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
 
     it('should prevent deleted users from accessing system', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.deleted);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: [],
-          error: { message: 'User account is deactivated' }
-        })
+          error: { message: 'User account is deactivated' },
+        }),
       } as any);
 
       const result = await mockSupabase.from('companies').select('*');
-      
+
       expect(result.data).toHaveLength(0);
       expect(result.error).toContain('deactivated');
     });
 
     it('should allow admin to reassign entities from deleted users', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.admin);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: { ...mockCrmData.companies[2], owner_id: 'admin-user-id' },
-          error: null
-        })
+          error: null,
+        }),
       } as any);
 
       const result = await AssignmentService.assignEntity(
@@ -80,18 +82,20 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
 
     it('should prevent regular users from accessing deleted user data', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.recruiter);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
-          data: mockCrmData.companies.filter(company => company.owner_id === 'recruiter-user-id'),
-          error: null
-        })
+          data: mockCrmData.companies.filter(
+            company => company.owner_id === 'recruiter-user-id'
+          ),
+          error: null,
+        }),
       } as any);
 
       const result = await mockSupabase.from('companies').select('*');
-      
+
       // Should not see company owned by deleted user
       expect(result.data).toHaveLength(1);
       expect(result.data[0].owner_id).toBe('recruiter-user-id');
@@ -107,8 +111,8 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: mockCrmData.companies, // All companies
-          error: null
-        })
+          error: null,
+        }),
       } as any);
 
       let result = await mockSupabase.from('companies').select('*');
@@ -120,9 +124,11 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
-          data: mockCrmData.companies.filter(company => company.owner_id === 'recruiter-user-id'),
-          error: null
-        })
+          data: mockCrmData.companies.filter(
+            company => company.owner_id === 'recruiter-user-id'
+          ),
+          error: null,
+        }),
       } as any);
 
       result = await mockSupabase.from('companies').select('*');
@@ -136,9 +142,11 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
-          data: mockCrmData.companies.filter(company => company.owner_id === 'recruiter-user-id'),
-          error: null
-        })
+          data: mockCrmData.companies.filter(
+            company => company.owner_id === 'recruiter-user-id'
+          ),
+          error: null,
+        }),
       } as any);
 
       let result = await mockSupabase.from('companies').select('*');
@@ -151,8 +159,8 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: mockCrmData.companies, // All companies
-          error: null
-        })
+          error: null,
+        }),
       } as any);
 
       result = await mockSupabase.from('companies').select('*');
@@ -166,9 +174,11 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
-          data: mockCrmData.companies.filter(company => company.owner_id === 'recruiter-user-id'),
-          error: null
-        })
+          data: mockCrmData.companies.filter(
+            company => company.owner_id === 'recruiter-user-id'
+          ),
+          error: null,
+        }),
       } as any);
 
       let result = await mockSupabase.from('companies').select('*');
@@ -181,8 +191,8 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: [],
-          error: { message: 'User account is deactivated' }
-        })
+          error: { message: 'User account is deactivated' },
+        }),
       } as any);
 
       result = await mockSupabase.from('companies').select('*');
@@ -193,14 +203,14 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
   describe('Concurrent Assignment Operations', () => {
     it('should handle multiple users trying to assign same entity', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.admin);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Entity already assigned to another user' }
-        })
+          error: { message: 'Entity already assigned to another user' },
+        }),
       } as any);
 
       const result = await AssignmentService.assignEntity(
@@ -216,14 +226,14 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
 
     it('should handle assignment to user who becomes inactive', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.admin);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Target user is no longer active' }
-        })
+          error: { message: 'Target user is no longer active' },
+        }),
       } as any);
 
       const result = await AssignmentService.assignEntity(
@@ -239,7 +249,7 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
 
     it('should handle race conditions in bulk assignments', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.admin);
-      
+
       let callCount = 0;
       vi.mocked(mockSupabase.from).mockReturnValue({
         update: vi.fn().mockReturnThis(),
@@ -249,24 +259,39 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
           if (callCount === 2) {
             return Promise.resolve({
               data: null,
-              error: { message: 'Concurrent modification detected' }
+              error: { message: 'Concurrent modification detected' },
             });
           }
           return Promise.resolve({
             data: { id: `entity-${callCount}` },
-            error: null
+            error: null,
           });
-        })
+        }),
       } as any);
 
       const reassignmentPromises = [
-        AssignmentService.assignEntity('companies', 'company-1', 'admin-user-id', 'admin-user-id'),
-        AssignmentService.assignEntity('companies', 'company-2', 'admin-user-id', 'admin-user-id'),
-        AssignmentService.assignEntity('people', 'person-1', 'admin-user-id', 'admin-user-id')
+        AssignmentService.assignEntity(
+          'companies',
+          'company-1',
+          'admin-user-id',
+          'admin-user-id'
+        ),
+        AssignmentService.assignEntity(
+          'companies',
+          'company-2',
+          'admin-user-id',
+          'admin-user-id'
+        ),
+        AssignmentService.assignEntity(
+          'people',
+          'person-1',
+          'admin-user-id',
+          'admin-user-id'
+        ),
       ];
 
       const results = await Promise.all(reassignmentPromises);
-      
+
       // First should succeed, second should fail, third should succeed
       expect(results[0].success).toBe(true);
       expect(results[1].success).toBe(false);
@@ -277,27 +302,52 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
   describe('Data Integrity During Reassignments', () => {
     it('should maintain referential integrity during bulk reassignments', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.admin);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: { count: 5 },
-          error: null
-        })
+          error: null,
+        }),
       } as any);
 
       // Simulate bulk reassignment of all entities from one user to another
       const reassignmentPromises = [
-        AssignmentService.assignEntity('companies', 'company-1', 'admin-user-id', 'admin-user-id'),
-        AssignmentService.assignEntity('companies', 'company-2', 'admin-user-id', 'admin-user-id'),
-        AssignmentService.assignEntity('people', 'person-1', 'admin-user-id', 'admin-user-id'),
-        AssignmentService.assignEntity('people', 'person-2', 'admin-user-id', 'admin-user-id'),
-        AssignmentService.assignEntity('jobs', 'job-1', 'admin-user-id', 'admin-user-id')
+        AssignmentService.assignEntity(
+          'companies',
+          'company-1',
+          'admin-user-id',
+          'admin-user-id'
+        ),
+        AssignmentService.assignEntity(
+          'companies',
+          'company-2',
+          'admin-user-id',
+          'admin-user-id'
+        ),
+        AssignmentService.assignEntity(
+          'people',
+          'person-1',
+          'admin-user-id',
+          'admin-user-id'
+        ),
+        AssignmentService.assignEntity(
+          'people',
+          'person-2',
+          'admin-user-id',
+          'admin-user-id'
+        ),
+        AssignmentService.assignEntity(
+          'jobs',
+          'job-1',
+          'admin-user-id',
+          'admin-user-id'
+        ),
       ];
 
       const results = await Promise.all(reassignmentPromises);
-      
+
       // All reassignments should succeed
       results.forEach(result => {
         expect(result.success).toBe(true);
@@ -306,7 +356,7 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
 
     it('should handle partial failure during bulk reassignments', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.admin);
-      
+
       let callCount = 0;
       vi.mocked(mockSupabase.from).mockReturnValue({
         update: vi.fn().mockReturnThis(),
@@ -316,25 +366,45 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
           if (callCount === 3) {
             return Promise.resolve({
               data: null,
-              error: { message: 'Database constraint violation' }
+              error: { message: 'Database constraint violation' },
             });
           }
           return Promise.resolve({
             data: { id: `entity-${callCount}` },
-            error: null
+            error: null,
           });
-        })
+        }),
       } as any);
 
       const reassignmentPromises = [
-        AssignmentService.assignEntity('companies', 'company-1', 'admin-user-id', 'admin-user-id'),
-        AssignmentService.assignEntity('companies', 'company-2', 'admin-user-id', 'admin-user-id'),
-        AssignmentService.assignEntity('people', 'person-1', 'admin-user-id', 'admin-user-id'),
-        AssignmentService.assignEntity('people', 'person-2', 'admin-user-id', 'admin-user-id')
+        AssignmentService.assignEntity(
+          'companies',
+          'company-1',
+          'admin-user-id',
+          'admin-user-id'
+        ),
+        AssignmentService.assignEntity(
+          'companies',
+          'company-2',
+          'admin-user-id',
+          'admin-user-id'
+        ),
+        AssignmentService.assignEntity(
+          'people',
+          'person-1',
+          'admin-user-id',
+          'admin-user-id'
+        ),
+        AssignmentService.assignEntity(
+          'people',
+          'person-2',
+          'admin-user-id',
+          'admin-user-id'
+        ),
       ];
 
       const results = await Promise.all(reassignmentPromises);
-      
+
       // First two should succeed, third should fail, fourth should succeed
       expect(results[0].success).toBe(true);
       expect(results[1].success).toBe(true);
@@ -344,15 +414,15 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
 
     it('should validate entity existence before assignment', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.admin);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Entity not found' }
-        })
+          error: { message: 'Entity not found' },
+        }),
       } as any);
 
       const result = await AssignmentService.assignEntity(
@@ -370,14 +440,14 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
   describe('Permission Escalation Prevention', () => {
     it('should prevent users from escalating their own permissions', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.recruiter);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Forbidden: Cannot modify your own role' }
-        })
+          error: { message: 'Forbidden: Cannot modify your own role' },
+        }),
       } as any);
 
       // Try to update own profile to admin role
@@ -391,33 +461,33 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
 
     it('should prevent users from accessing admin functions', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.recruiter);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: [],
-          error: { message: 'Forbidden: Insufficient permissions' }
-        })
+          error: { message: 'Forbidden: Insufficient permissions' },
+        }),
       } as any);
 
       // Try to access user management functions
       const result = await mockSupabase.from('user_profiles').select('*');
-      
+
       expect(result.data).toHaveLength(0);
       expect(result.error).toContain('Forbidden');
     });
 
     it('should prevent viewers from performing write operations', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.viewer);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Forbidden: Viewers cannot modify data' }
-        })
+          error: { message: 'Forbidden: Viewers cannot modify data' },
+        }),
       } as any);
 
       // Try to update a lead
@@ -431,14 +501,14 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
 
     it('should prevent unauthorized role changes', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.recruiter);
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Forbidden: Only admins can change user roles' }
-        })
+          error: { message: 'Forbidden: Only admins can change user roles' },
+        }),
       } as any);
 
       // Try to change another user's role
@@ -454,18 +524,18 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
   describe('Session Management Edge Cases', () => {
     it('should handle expired sessions gracefully', async () => {
       const mockSupabase = createMockSupabaseClient(null); // No user
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: [],
-          error: { message: 'Unauthorized: Session expired' }
-        })
+          error: { message: 'Unauthorized: Session expired' },
+        }),
       } as any);
 
       const result = await mockSupabase.from('companies').select('*');
-      
+
       expect(result.data).toHaveLength(0);
       expect(result.error).toContain('Unauthorized');
     });
@@ -474,20 +544,20 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
       const mockSupabase = createMockSupabaseClient({
         id: 'invalid-user',
         email: 'invalid@example.com',
-        user_metadata: { role: 'invalid-role' }
+        user_metadata: { role: 'invalid-role' },
       });
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: [],
-          error: { message: 'Unauthorized: Invalid token' }
-        })
+          error: { message: 'Unauthorized: Invalid token' },
+        }),
       } as any);
 
       const result = await mockSupabase.from('companies').select('*');
-      
+
       expect(result.data).toHaveLength(0);
       expect(result.error).toContain('Unauthorized');
     });
@@ -496,20 +566,20 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
       const mockSupabase = createMockSupabaseClient({
         id: 'malformed-user',
         email: 'malformed@example.com',
-        user_metadata: null // Missing metadata
+        user_metadata: null, // Missing metadata
       });
-      
+
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: [],
-          error: { message: 'Unauthorized: Invalid user metadata' }
-        })
+          error: { message: 'Unauthorized: Invalid user metadata' },
+        }),
       } as any);
 
       const result = await mockSupabase.from('companies').select('*');
-      
+
       expect(result.data).toHaveLength(0);
       expect(result.error).toContain('Unauthorized');
     });
@@ -518,15 +588,15 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
   describe('Complex Authorization Scenarios', () => {
     it('should handle cascading permission changes', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.admin);
-      
+
       // Mock cascading updates when user role changes
       vi.mocked(mockSupabase.from).mockReturnValue({
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: { count: 3 },
-          error: null
-        })
+          error: null,
+        }),
       } as any);
 
       // Simulate role change from recruiter to viewer
@@ -540,7 +610,7 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
 
     it('should handle permission inheritance in team structures', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.admin);
-      
+
       // Mock team-based permissions
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
@@ -548,33 +618,37 @@ describe('Authorization Tests - Edge Cases and Complex Scenarios', () => {
         then: vi.fn().mockResolvedValue({
           data: [
             { id: 'team-1', name: 'Sales Team', manager_id: 'admin-user-id' },
-            { id: 'team-2', name: 'Marketing Team', manager_id: 'recruiter-user-id' }
+            {
+              id: 'team-2',
+              name: 'Marketing Team',
+              manager_id: 'recruiter-user-id',
+            },
           ],
-          error: null
-        })
+          error: null,
+        }),
       } as any);
 
       const result = await mockSupabase.from('teams').select('*');
-      
+
       expect(result.data).toHaveLength(2);
     });
 
     it('should handle time-based permission changes', async () => {
       const mockSupabase = createMockSupabaseClient(mockUsers.recruiter);
-      
+
       // Mock temporary permission grant
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         then: vi.fn().mockResolvedValue({
           data: mockCrmData.companies,
-          error: null
-        })
+          error: null,
+        }),
       } as any);
 
       // Simulate temporary admin access
       const result = await mockSupabase.from('companies').select('*');
-      
+
       expect(result.data).toHaveLength(3);
     });
   });

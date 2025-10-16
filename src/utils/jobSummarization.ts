@@ -1,5 +1,9 @@
 // Utility functions for integrating Gemini AI with Supabase job data
-import { geminiService, type GeminiAnalysisResult, type GeminiJobSummary } from '../services/geminiService';
+import {
+  geminiService,
+  type GeminiAnalysisResult,
+  type GeminiJobSummary,
+} from '../services/geminiService';
 import { supabase } from '../integrations/supabase/client';
 
 export interface JobSummaryUpdate {
@@ -40,7 +44,8 @@ export async function summarizeJobFromSupabase(jobId: string): Promise<{
     // Fetch job data from Supabase
     const { data: jobData, error: fetchError } = await supabase
       .from('jobs')
-      .select(`
+      .select(
+        `
         id,
         title,
         company_id,
@@ -52,14 +57,15 @@ export async function summarizeJobFromSupabase(jobId: string): Promise<{
         seniority_level,
         created_at,
         updated_at
-      `)
+      `
+      )
       .eq('id', jobId)
       .single();
 
     if (fetchError || !jobData) {
       return {
         success: false,
-        error: `Failed to fetch job data: ${fetchError?.message || 'Job not found'}`
+        error: `Failed to fetch job data: ${fetchError?.message || 'Job not found'}`,
       };
     }
 
@@ -71,7 +77,7 @@ export async function summarizeJobFromSupabase(jobId: string): Promise<{
         .select('name')
         .eq('id', jobData.company_id)
         .single();
-      
+
       if (companyData?.name) {
         companyName = companyData.name;
       }
@@ -85,13 +91,13 @@ export async function summarizeJobFromSupabase(jobId: string): Promise<{
       location: jobData.location || undefined,
       salary: jobData.salary || undefined,
       employment_type: jobData.employment_type || undefined,
-      seniority_level: jobData.seniority_level || undefined
+      seniority_level: jobData.seniority_level || undefined,
     });
 
     if (!geminiResult.success || !geminiResult.data) {
       return {
         success: false,
-        error: geminiResult.error || 'Failed to generate summary'
+        error: geminiResult.error || 'Failed to generate summary',
       };
     }
 
@@ -105,19 +111,18 @@ export async function summarizeJobFromSupabase(jobId: string): Promise<{
       market_demand: geminiResult.data.market_demand,
       skills_extracted: geminiResult.data.skills_extracted,
       salary_range: geminiResult.data.salary_range,
-      remote_flexibility: geminiResult.data.remote_flexibility
+      remote_flexibility: geminiResult.data.remote_flexibility,
     };
 
     return {
       success: true,
-      data: summaryData
+      data: summaryData,
     };
-
   } catch (error) {
     console.error('Error summarizing job from Supabase:', error);
     return {
       success: false,
-      error: `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      error: `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
     };
   }
 }
@@ -125,9 +130,16 @@ export async function summarizeJobFromSupabase(jobId: string): Promise<{
 /**
  * Batch summarize multiple jobs from Supabase
  */
-export async function batchSummarizeJobsFromSupabase(jobIds: string[]): Promise<{
+export async function batchSummarizeJobsFromSupabase(
+  jobIds: string[]
+): Promise<{
   success: boolean;
-  results: Array<{ id: string; success: boolean; data?: JobSummaryUpdate; error?: string }>;
+  results: Array<{
+    id: string;
+    success: boolean;
+    data?: JobSummaryUpdate;
+    error?: string;
+  }>;
   summary: {
     total: number;
     successful: number;
@@ -135,7 +147,12 @@ export async function batchSummarizeJobsFromSupabase(jobIds: string[]): Promise<
     tokens_used: number;
   };
 }> {
-  const results: Array<{ id: string; success: boolean; data?: JobSummaryUpdate; error?: string }> = [];
+  const results: Array<{
+    id: string;
+    success: boolean;
+    data?: JobSummaryUpdate;
+    error?: string;
+  }> = [];
   let totalTokensUsed = 0;
 
   // Process jobs in batches to respect rate limits
@@ -144,15 +161,15 @@ export async function batchSummarizeJobsFromSupabase(jobIds: string[]): Promise<
 
   for (let i = 0; i < jobIds.length; i += batchSize) {
     const batch = jobIds.slice(i, i + batchSize);
-    
+
     // Process batch in parallel
-    const batchPromises = batch.map(async (jobId) => {
+    const batchPromises = batch.map(async jobId => {
       const result = await summarizeJobFromSupabase(jobId);
       return {
         id: jobId,
         success: result.success,
         data: result.data,
-        error: result.error
+        error: result.error,
       };
     });
 
@@ -175,15 +192,17 @@ export async function batchSummarizeJobsFromSupabase(jobIds: string[]): Promise<
       total: jobIds.length,
       successful,
       failed,
-      tokens_used: totalTokensUsed
-    }
+      tokens_used: totalTokensUsed,
+    },
   };
 }
 
 /**
  * Update job summary in Supabase database
  */
-export async function updateJobSummaryInSupabase(summaryData: JobSummaryUpdate): Promise<{
+export async function updateJobSummaryInSupabase(
+  summaryData: JobSummaryUpdate
+): Promise<{
   success: boolean;
   error?: string;
 }> {
@@ -192,24 +211,23 @@ export async function updateJobSummaryInSupabase(summaryData: JobSummaryUpdate):
       .from('jobs')
       .update({
         summary: summaryData.summary,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', summaryData.id);
 
     if (error) {
       return {
         success: false,
-        error: `Failed to update job summary: ${error.message}`
+        error: `Failed to update job summary: ${error.message}`,
       };
     }
 
     return { success: true };
-
   } catch (error) {
     console.error('Error updating job summary:', error);
     return {
       success: false,
-      error: `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      error: `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
     };
   }
 }
@@ -225,7 +243,8 @@ export async function getJobsNeedingSummarization(limit: number = 50): Promise<{
   try {
     const { data, error } = await supabase
       .from('jobs')
-      .select(`
+      .select(
+        `
         id,
         title,
         company_id,
@@ -237,8 +256,12 @@ export async function getJobsNeedingSummarization(limit: number = 50): Promise<{
         seniority_level,
         created_at,
         updated_at
-      `)
-      .or('summary.is.null,updated_at.lt.' + new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // No summary or older than 7 days
+      `
+      )
+      .or(
+        'summary.is.null,updated_at.lt.' +
+          new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      ) // No summary or older than 7 days
       .not('description', 'is', null)
       .limit(limit)
       .order('created_at', { ascending: false });
@@ -246,20 +269,19 @@ export async function getJobsNeedingSummarization(limit: number = 50): Promise<{
     if (error) {
       return {
         success: false,
-        error: `Failed to fetch jobs: ${error.message}`
+        error: `Failed to fetch jobs: ${error.message}`,
       };
     }
 
     return {
       success: true,
-      data: data || []
+      data: data || [],
     };
-
   } catch (error) {
     console.error('Error fetching jobs needing summarization:', error);
     return {
       success: false,
-      error: `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      error: `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
     };
   }
 }
@@ -267,7 +289,9 @@ export async function getJobsNeedingSummarization(limit: number = 50): Promise<{
 /**
  * Complete workflow: Get jobs needing summarization, summarize them, and update database
  */
-export async function processJobSummarizationWorkflow(limit: number = 10): Promise<{
+export async function processJobSummarizationWorkflow(
+  limit: number = 10
+): Promise<{
   success: boolean;
   processed: number;
   updated: number;
@@ -299,8 +323,8 @@ export async function processJobSummarizationWorkflow(limit: number = 10): Promi
           processed_jobs: 0,
           updated_jobs: 0,
           failed_jobs: 0,
-          total_tokens_used: 0
-        }
+          total_tokens_used: 0,
+        },
       };
     }
 
@@ -309,7 +333,7 @@ export async function processJobSummarizationWorkflow(limit: number = 10): Promi
 
     // Batch summarize jobs
     const batchResult = await batchSummarizeJobsFromSupabase(jobIds);
-    
+
     processed = batchResult.summary.successful;
     totalTokensUsed = batchResult.summary.tokens_used;
 
@@ -320,7 +344,9 @@ export async function processJobSummarizationWorkflow(limit: number = 10): Promi
         if (updateResult.success) {
           updated++;
         } else {
-          errors.push(`Failed to update job ${result.id}: ${updateResult.error}`);
+          errors.push(
+            `Failed to update job ${result.id}: ${updateResult.error}`
+          );
         }
       } else {
         errors.push(`Failed to summarize job ${result.id}: ${result.error}`);
@@ -337,24 +363,26 @@ export async function processJobSummarizationWorkflow(limit: number = 10): Promi
         processed_jobs: processed,
         updated_jobs: updated,
         failed_jobs: jobs.length - updated,
-        total_tokens_used: totalTokensUsed
-      }
+        total_tokens_used: totalTokensUsed,
+      },
     };
-
   } catch (error) {
     console.error('Error in job summarization workflow:', error);
     return {
       success: false,
       processed,
       updated,
-      errors: [...errors, `Workflow error: ${error instanceof Error ? error.message : 'Unknown error'}`],
+      errors: [
+        ...errors,
+        `Workflow error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      ],
       summary: {
         total_jobs: 0,
         processed_jobs: processed,
         updated_jobs: updated,
         failed_jobs: 0,
-        total_tokens_used: totalTokensUsed
-      }
+        total_tokens_used: totalTokensUsed,
+      },
     };
   }
 }

@@ -31,47 +31,55 @@ export const usePerformanceMonitoring = (
   const renderCountRef = useRef<number>(0);
   const mergedConfig = { ...defaultConfig, ...config };
 
-  const logPerformance = useCallback((renderTime: number) => {
-    if (!mergedConfig.enabled) return;
+  const logPerformance = useCallback(
+    (renderTime: number) => {
+      if (!mergedConfig.enabled) return;
 
-    const shouldSample = Math.random() < mergedConfig.sampleRate;
-    if (!shouldSample) return;
+      const shouldSample = Math.random() < mergedConfig.sampleRate;
+      if (!shouldSample) return;
 
-    const metrics: PerformanceMetrics = {
-      renderTime,
-      timestamp: Date.now(),
-      componentName,
-      memoryUsage: (performance as any).memory?.usedJSHeapSize,
-    };
+      const metrics: PerformanceMetrics = {
+        renderTime,
+        timestamp: Date.now(),
+        componentName,
+        memoryUsage: (performance as any).memory?.usedJSHeapSize,
+      };
 
-    performanceData.push(metrics);
+      performanceData.push(metrics);
 
-    // Keep only the most recent samples
-    if (performanceData.length > mergedConfig.maxSamples) {
-      performanceData.splice(0, performanceData.length - mergedConfig.maxSamples);
-    }
-
-    // Log slow renders
-    if (renderTime > mergedConfig.logThreshold) {
-      console.warn(
-        `🐌 Slow render detected in ${componentName}: ${renderTime.toFixed(2)}ms`
-      );
-    }
-
-    // Log performance summary periodically
-    if (renderCountRef.current % 50 === 0) {
-      const recentMetrics = performanceData
-        .filter(metric => metric.componentName === componentName)
-        .slice(-10);
-      
-      if (recentMetrics.length > 0) {
-        const avgRenderTime = recentMetrics.reduce((sum, metric) => sum + metric.renderTime, 0) / recentMetrics.length;
-        console.log(
-          `📊 ${componentName} performance (last 10 renders): avg ${avgRenderTime.toFixed(2)}ms`
+      // Keep only the most recent samples
+      if (performanceData.length > mergedConfig.maxSamples) {
+        performanceData.splice(
+          0,
+          performanceData.length - mergedConfig.maxSamples
         );
       }
-    }
-  }, [componentName, mergedConfig]);
+
+      // Log slow renders
+      if (renderTime > mergedConfig.logThreshold) {
+        console.warn(
+          `🐌 Slow render detected in ${componentName}: ${renderTime.toFixed(2)}ms`
+        );
+      }
+
+      // Log performance summary periodically
+      if (renderCountRef.current % 50 === 0) {
+        const recentMetrics = performanceData
+          .filter(metric => metric.componentName === componentName)
+          .slice(-10);
+
+        if (recentMetrics.length > 0) {
+          const avgRenderTime =
+            recentMetrics.reduce((sum, metric) => sum + metric.renderTime, 0) /
+            recentMetrics.length;
+          console.log(
+            `📊 ${componentName} performance (last 10 renders): avg ${avgRenderTime.toFixed(2)}ms`
+          );
+        }
+      }
+    },
+    [componentName, mergedConfig]
+  );
 
   useEffect(() => {
     if (!mergedConfig.enabled) return;
@@ -94,9 +102,12 @@ export const usePerformanceMonitoring = (
       logPerformance(renderTime);
       return renderTime;
     },
-    getPerformanceData: () => performanceData.filter(metric => metric.componentName === componentName),
+    getPerformanceData: () =>
+      performanceData.filter(metric => metric.componentName === componentName),
     clearPerformanceData: () => {
-      const index = performanceData.findIndex(metric => metric.componentName === componentName);
+      const index = performanceData.findIndex(
+        metric => metric.componentName === componentName
+      );
       if (index !== -1) {
         performanceData.splice(index, 1);
       }
@@ -114,7 +125,7 @@ export const useOperationTiming = (operationName: string) => {
 
   const endTiming = useCallback(() => {
     const duration = performance.now() - startTimeRef.current;
-    
+
     if (process.env.NODE_ENV === 'development') {
       console.log(`⏱️ ${operationName}: ${duration.toFixed(2)}ms`);
     }
@@ -129,26 +140,31 @@ export const useOperationTiming = (operationName: string) => {
 export const useAssignmentPerformance = () => {
   const { startTiming, endTiming } = useOperationTiming('Assignment Operation');
 
-  const measureAssignment = useCallback(async <T>(
-    operation: () => Promise<T>,
-    operationName: string
-  ): Promise<T> => {
-    startTiming();
-    try {
-      const result = await operation();
-      const duration = endTiming();
-      
-      // Log slow assignment operations
-      if (duration > 1000) {
-        console.warn(`🐌 Slow assignment operation: ${operationName} took ${duration.toFixed(2)}ms`);
+  const measureAssignment = useCallback(
+    async <T>(
+      operation: () => Promise<T>,
+      operationName: string
+    ): Promise<T> => {
+      startTiming();
+      try {
+        const result = await operation();
+        const duration = endTiming();
+
+        // Log slow assignment operations
+        if (duration > 1000) {
+          console.warn(
+            `🐌 Slow assignment operation: ${operationName} took ${duration.toFixed(2)}ms`
+          );
+        }
+
+        return result;
+      } catch (error) {
+        endTiming();
+        throw error;
       }
-      
-      return result;
-    } catch (error) {
-      endTiming();
-      throw error;
-    }
-  }, [startTiming, endTiming]);
+    },
+    [startTiming, endTiming]
+  );
 
   return { measureAssignment };
 };
@@ -159,23 +175,34 @@ export const getPerformanceSummary = () => {
     return { message: 'No performance data available' };
   }
 
-  const avgRenderTime = performanceData.reduce((sum, metric) => sum + metric.renderTime, 0) / performanceData.length;
-  const slowRenders = performanceData.filter(metric => metric.renderTime > 16).length;
-  const componentStats = performanceData.reduce((acc, metric) => {
-    if (!acc[metric.componentName]) {
-      acc[metric.componentName] = { count: 0, totalTime: 0, avgTime: 0 };
-    }
-    acc[metric.componentName].count += 1;
-    acc[metric.componentName].totalTime += metric.renderTime;
-    acc[metric.componentName].avgTime = acc[metric.componentName].totalTime / acc[metric.componentName].count;
-    return acc;
-  }, {} as Record<string, { count: number; totalTime: number; avgTime: number }>);
+  const avgRenderTime =
+    performanceData.reduce((sum, metric) => sum + metric.renderTime, 0) /
+    performanceData.length;
+  const slowRenders = performanceData.filter(
+    metric => metric.renderTime > 16
+  ).length;
+  const componentStats = performanceData.reduce(
+    (acc, metric) => {
+      if (!acc[metric.componentName]) {
+        acc[metric.componentName] = { count: 0, totalTime: 0, avgTime: 0 };
+      }
+      acc[metric.componentName].count += 1;
+      acc[metric.componentName].totalTime += metric.renderTime;
+      acc[metric.componentName].avgTime =
+        acc[metric.componentName].totalTime / acc[metric.componentName].count;
+      return acc;
+    },
+    {} as Record<string, { count: number; totalTime: number; avgTime: number }>
+  );
 
   return {
     totalSamples: performanceData.length,
     avgRenderTime: avgRenderTime.toFixed(2),
     slowRenders,
-    slowRenderPercentage: ((slowRenders / performanceData.length) * 100).toFixed(1),
+    slowRenderPercentage: (
+      (slowRenders / performanceData.length) *
+      100
+    ).toFixed(1),
     componentStats,
   };
 };

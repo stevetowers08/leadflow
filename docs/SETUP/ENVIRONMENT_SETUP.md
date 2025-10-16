@@ -51,14 +51,17 @@ Without it, you'll see error messages about missing configuration.
 ## Troubleshooting
 
 ### Error: "Service role key not configured"
+
 - Make sure you've created `.env.local` file
 - Verify the key name is exactly `VITE_SUPABASE_SERVICE_ROLE_KEY`
 - Restart the development server after adding the variable
 
 ### Error: "Invalid API key"
+
 - Double-check you copied the **service_role** key, not the **anon** key
 - Make sure there are no extra spaces or characters
 
 ### Still having issues?
+
 - Check the browser console for detailed error messages
 - Verify your Supabase project is active and accessible

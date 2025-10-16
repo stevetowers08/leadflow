@@ -1,9 +1,10 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
 };
 
 Deno.serve(async (req: Request) => {
@@ -18,9 +19,9 @@ Deno.serve(async (req: Request) => {
     if (!message || !personId) {
       return new Response(
         JSON.stringify({ error: 'Message and personId are required' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
@@ -36,15 +37,19 @@ Deno.serve(async (req: Request) => {
       throw new Error('Google AI API key not configured');
     }
 
-    const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${googleApiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `Analyze the following message from a potential lead and determine their interest level in our recruitment services.
+    const aiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${googleApiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Analyze the following message from a potential lead and determine their interest level in our recruitment services.
 
 Channel: ${channel || 'unknown'}
 Message: "${message}"
@@ -61,11 +66,14 @@ Respond with a JSON object in this exact format:
   "reasoning": "Brief explanation of why you classified it this way"
 }
 
-The confidence should be a number between 0 and 1, where 1 is completely confident.`
-          }]
-        }]
-      })
-    });
+The confidence should be a number between 0 and 1, where 1 is completely confident.`,
+                },
+              ],
+            },
+          ],
+        }),
+      }
+    );
 
     if (!aiResponse.ok) {
       throw new Error(`Google AI API error: ${aiResponse.status}`);
@@ -73,16 +81,16 @@ The confidence should be a number between 0 and 1, where 1 is completely confide
 
     const aiData = await aiResponse.json();
     const analysisText = aiData.candidates[0].content.parts[0].text;
-    
+
     // Parse the JSON response
     const analysis = JSON.parse(analysisText.trim());
-    
+
     // Update the person's reply_type in the database
     const { error } = await supabase
       .from('people')
-      .update({ 
+      .update({
         reply_type: analysis.replyType,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', personId);
 
@@ -91,30 +99,29 @@ The confidence should be a number between 0 and 1, where 1 is completely confide
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         analysis: {
           replyType: analysis.replyType,
           confidence: analysis.confidence,
-          reasoning: analysis.reasoning
-        }
+          reasoning: analysis.reasoning,
+        },
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error) {
     console.error('Error in analyze-reply function:', error);
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error.message,
-        success: false 
+        success: false,
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }

@@ -26,46 +26,46 @@ export class ConsoleInspector {
    */
   startMonitoring(): void {
     if (this.isMonitoring) return;
-    
+
     this.logs = [];
     this.isMonitoring = true;
 
     // Listen to all console events
-    this.page.on('console', (msg) => {
+    this.page.on('console', msg => {
       const log: ConsoleLog = {
         type: msg.type() as ConsoleLog['type'],
         message: msg.text(),
         timestamp: Date.now(),
         location: msg.location()?.url,
       };
-      
+
       this.logs.push(log);
-      
+
       // Also log to test output for immediate visibility
       console.log(`[BROWSER ${log.type.toUpperCase()}] ${log.message}`);
     });
 
     // Listen to page errors
-    this.page.on('pageerror', (error) => {
+    this.page.on('pageerror', error => {
       const log: ConsoleLog = {
         type: 'error',
         message: `Page Error: ${error.message}`,
         timestamp: Date.now(),
         location: error.stack,
       };
-      
+
       this.logs.push(log);
       console.log(`[BROWSER ERROR] ${log.message}`);
     });
 
     // Listen to unhandled promise rejections
-    this.page.on('unhandledrejection', (error) => {
+    this.page.on('unhandledrejection', error => {
       const log: ConsoleLog = {
         type: 'error',
         message: `Unhandled Promise Rejection: ${error}`,
         timestamp: Date.now(),
       };
-      
+
       this.logs.push(log);
       console.log(`[BROWSER ERROR] ${log.message}`);
     });
@@ -153,7 +153,9 @@ export class ConsoleInspector {
     if (errors.length > 0) {
       console.log('\n--- ERRORS ---');
       errors.forEach(error => {
-        console.log(`[${new Date(error.timestamp).toISOString()}] ${error.message}`);
+        console.log(
+          `[${new Date(error.timestamp).toISOString()}] ${error.message}`
+        );
         if (error.location) console.log(`  Location: ${error.location}`);
       });
     }
@@ -161,7 +163,9 @@ export class ConsoleInspector {
     if (warnings.length > 0) {
       console.log('\n--- WARNINGS ---');
       warnings.forEach(warning => {
-        console.log(`[${new Date(warning.timestamp).toISOString()}] ${warning.message}`);
+        console.log(
+          `[${new Date(warning.timestamp).toISOString()}] ${warning.message}`
+        );
       });
     }
   }
@@ -193,12 +197,14 @@ export class ConsoleInspector {
    */
   assertErrorExists(expectedMessage: string): void {
     const errors = this.getErrors();
-    const hasError = errors.some(error => 
+    const hasError = errors.some(error =>
       error.message.includes(expectedMessage)
     );
-    
+
     if (!hasError) {
-      throw new Error(`Expected error message "${expectedMessage}" not found in console`);
+      throw new Error(
+        `Expected error message "${expectedMessage}" not found in console`
+      );
     }
   }
 
@@ -207,12 +213,14 @@ export class ConsoleInspector {
    */
   assertWarningExists(expectedMessage: string): void {
     const warnings = this.getWarnings();
-    const hasWarning = warnings.some(warning => 
+    const hasWarning = warnings.some(warning =>
       warning.message.includes(expectedMessage)
     );
-    
+
     if (!hasWarning) {
-      throw new Error(`Expected warning message "${expectedMessage}" not found in console`);
+      throw new Error(
+        `Expected warning message "${expectedMessage}" not found in console`
+      );
     }
   }
 }
@@ -233,7 +241,7 @@ export async function withConsoleMonitoring<T>(
 ): Promise<{ result: T; inspector: ConsoleInspector }> {
   const inspector = createConsoleInspector(page);
   inspector.startMonitoring();
-  
+
   try {
     const result = await action();
     return { result, inspector };

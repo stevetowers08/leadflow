@@ -10,7 +10,10 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+);
 
 async function assessDatabaseStructure() {
   console.log('🔍 COMPREHENSIVE SUPABASE DATABASE ASSESSMENT');
@@ -20,14 +23,22 @@ async function assessDatabaseStructure() {
     // 1. Check RLS Status on all tables
     console.log('🔒 ROW LEVEL SECURITY (RLS) STATUS:');
     console.log('==================================');
-    
-    const tablesToCheck = ['people', 'companies', 'jobs', 'interactions', 'campaigns', 'user_profiles'];
-    
+
+    const tablesToCheck = [
+      'people',
+      'companies',
+      'jobs',
+      'interactions',
+      'campaigns',
+      'user_profiles',
+    ];
+
     for (const table of tablesToCheck) {
       try {
-        const { data, error } = await supabase
-          .rpc('check_rls_status', { table_name: table });
-        
+        const { data, error } = await supabase.rpc('check_rls_status', {
+          table_name: table,
+        });
+
         if (!error) {
           console.log(`✅ ${table}: RLS ${data ? 'ENABLED' : 'DISABLED'}`);
         } else {
@@ -36,7 +47,7 @@ async function assessDatabaseStructure() {
             .from(table)
             .select('*')
             .limit(1);
-          
+
           if (queryError && queryError.message.includes('RLS')) {
             console.log(`✅ ${table}: RLS ENABLED (blocked by policy)`);
           } else if (!queryError) {
@@ -59,13 +70,15 @@ async function assessDatabaseStructure() {
       { name: 'companies', count: 172 },
       { name: 'jobs', count: 172 },
       { name: 'interactions', count: 96 },
-      { name: 'user_profiles', count: 1 }
+      { name: 'user_profiles', count: 1 },
     ];
 
     for (const table of tablesWithData) {
-      console.log(`\n🏷️ ${table.name.toUpperCase()} TABLE (${table.count} records):`);
+      console.log(
+        `\n🏷️ ${table.name.toUpperCase()} TABLE (${table.count} records):`
+      );
       console.log('─'.repeat(50));
-      
+
       try {
         // Get sample data to understand structure
         const { data: sampleData, error } = await supabase
@@ -76,11 +89,13 @@ async function assessDatabaseStructure() {
         if (!error && sampleData && sampleData.length > 0) {
           const columns = Object.keys(sampleData[0]);
           console.log(`📊 Columns (${columns.length}): ${columns.join(', ')}`);
-          
+
           // Show sample data
           console.log('📝 Sample data:');
           sampleData.forEach((row, index) => {
-            console.log(`   ${index + 1}. ${JSON.stringify(row, null, 2).substring(0, 200)}...`);
+            console.log(
+              `   ${index + 1}. ${JSON.stringify(row, null, 2).substring(0, 200)}...`
+            );
           });
         } else {
           console.log('❌ Could not fetch sample data');
@@ -100,11 +115,13 @@ async function assessDatabaseStructure() {
         .from('people')
         .select('id, company_id, name')
         .limit(5);
-      
+
       if (peopleSample && peopleSample.length > 0) {
         console.log('👥 People → Companies relationship:');
         peopleSample.forEach(person => {
-          console.log(`   ${person.name}: company_id = ${person.company_id || 'NULL'}`);
+          console.log(
+            `   ${person.name}: company_id = ${person.company_id || 'NULL'}`
+          );
         });
       }
     } catch (e) {
@@ -117,11 +134,13 @@ async function assessDatabaseStructure() {
         .from('jobs')
         .select('id, company_id, title')
         .limit(5);
-      
+
       if (jobsSample && jobsSample.length > 0) {
         console.log('\n💼 Jobs → Companies relationship:');
         jobsSample.forEach(job => {
-          console.log(`   ${job.title}: company_id = ${job.company_id || 'NULL'}`);
+          console.log(
+            `   ${job.title}: company_id = ${job.company_id || 'NULL'}`
+          );
         });
       }
     } catch (e) {
@@ -137,31 +156,36 @@ async function assessDatabaseStructure() {
       const { data: authUsers } = await supabase.auth.admin.listUsers();
       console.log(`🔐 Auth Users: ${authUsers.users.length}`);
       authUsers.users.forEach(user => {
-        console.log(`   - ${user.email} (${user.email_confirmed_at ? 'verified' : 'unverified'})`);
+        console.log(
+          `   - ${user.email} (${user.email_confirmed_at ? 'verified' : 'unverified'})`
+        );
       });
 
       // Check user profiles
       const { data: profiles } = await supabase
         .from('user_profiles')
         .select('*');
-      
+
       console.log(`\n👥 User Profiles: ${profiles.length}`);
       profiles.forEach(profile => {
-        console.log(`   - ${profile.email}: ${profile.role} (${profile.is_active ? 'active' : 'inactive'})`);
+        console.log(
+          `   - ${profile.email}: ${profile.role} (${profile.is_active ? 'active' : 'inactive'})`
+        );
       });
 
       // Check for missing profiles
       const authEmails = authUsers.users.map(u => u.email);
       const profileEmails = profiles.map(p => p.email);
-      const missingProfiles = authEmails.filter(email => !profileEmails.includes(email));
-      
+      const missingProfiles = authEmails.filter(
+        email => !profileEmails.includes(email)
+      );
+
       if (missingProfiles.length > 0) {
         console.log(`\n⚠️ Missing User Profiles:`);
         missingProfiles.forEach(email => {
           console.log(`   - ${email} (needs profile creation)`);
         });
       }
-
     } catch (e) {
       console.log('❌ Could not analyze user management:', e.message);
     }
@@ -177,11 +201,8 @@ async function assessDatabaseStructure() {
     for (const table of ['people', 'companies', 'jobs', 'interactions']) {
       try {
         // Try to access without proper auth context
-        const { error } = await supabase
-          .from(table)
-          .select('*')
-          .limit(1);
-        
+        const { error } = await supabase.from(table).select('*').limit(1);
+
         if (error && error.message.includes('RLS')) {
           rlsEnabledTables.push(table);
         } else if (!error) {
@@ -197,7 +218,9 @@ async function assessDatabaseStructure() {
     console.log(`❌ RLS DISABLED: ${rlsDisabledTables.join(', ') || 'None'}`);
 
     if (rlsDisabledTables.length > 0) {
-      console.log('\n🚨 SECURITY RISK: Tables without RLS can be accessed by anyone!');
+      console.log(
+        '\n🚨 SECURITY RISK: Tables without RLS can be accessed by anyone!'
+      );
     }
 
     // 6. Data Quality Assessment
@@ -207,8 +230,12 @@ async function assessDatabaseStructure() {
     // Check for null/empty values in key fields
     const qualityChecks = [
       { table: 'people', field: 'name', description: 'People without names' },
-      { table: 'companies', field: 'name', description: 'Companies without names' },
-      { table: 'jobs', field: 'title', description: 'Jobs without titles' }
+      {
+        table: 'companies',
+        field: 'name',
+        description: 'Companies without names',
+      },
+      { table: 'jobs', field: 'title', description: 'Jobs without titles' },
     ];
 
     for (const check of qualityChecks) {
@@ -217,7 +244,7 @@ async function assessDatabaseStructure() {
           .from(check.table)
           .select(check.field)
           .is(check.field, null);
-        
+
         if (!error) {
           console.log(`${check.description}: ${data?.length || 0}`);
         }
@@ -243,7 +270,6 @@ async function assessDatabaseStructure() {
 
     console.log('\n🎯 ASSESSMENT COMPLETE!');
     console.log('=======================');
-
   } catch (error) {
     console.error('\n❌ Assessment failed:', error.message);
   }

@@ -1,13 +1,12 @@
-import React from 'react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import { DropdownOption, ReferenceOption } from "@/hooks/useDropdownOptions";
+} from '@/components/ui/select';
+import { DropdownOption, ReferenceOption } from '@/hooks/useDropdownOptions';
+import { cn } from '@/lib/utils';
 
 interface DropdownSelectProps {
   options: DropdownOption[] | ReferenceOption[];
@@ -23,36 +22,46 @@ export const DropdownSelect = ({
   options,
   value,
   onValueChange,
-  placeholder = "Select an option...",
+  placeholder = 'Select an option...',
   disabled = false,
   className,
-  loading = false
+  loading = false,
 }: DropdownSelectProps) => {
-  const isReferenceOption = (option: DropdownOption | ReferenceOption): option is ReferenceOption => {
+  const isReferenceOption = (
+    option: DropdownOption | ReferenceOption
+  ): option is ReferenceOption => {
     return 'id' in option;
   };
 
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled || loading}>
-      <SelectTrigger className={cn("w-full", className)}>
-        <SelectValue placeholder={loading ? "Loading..." : placeholder} />
+    <Select
+      value={value}
+      onValueChange={onValueChange}
+      disabled={disabled || loading}
+    >
+      <SelectTrigger className={cn('w-full', className)}>
+        <SelectValue placeholder={loading ? 'Loading...' : placeholder} />
       </SelectTrigger>
-      <SelectContent className="bg-background/95 backdrop-blur-sm border border-border/50 shadow-lg">
-        {options.map((option) => {
-          const optionValue = isReferenceOption(option) ? option.id : option.value;
-          const optionLabel = isReferenceOption(option) ? option.name : option.label;
-          
+      <SelectContent className='bg-background/95 backdrop-blur-sm border border-gray-300/50 shadow-lg'>
+        {options.map(option => {
+          const optionValue = isReferenceOption(option)
+            ? option.id
+            : option.value;
+          const optionLabel = isReferenceOption(option)
+            ? option.name
+            : option.label;
+
           // Ensure optionValue is never an empty string
-          if (!optionValue || optionValue === "") {
+          if (!optionValue || optionValue === '') {
             return null;
           }
-          
+
           return (
             <SelectItem
               key={optionValue}
               value={optionValue}
               className={cn(
-                "cursor-pointer hover:bg-accent/50 focus:bg-accent/50",
+                'cursor-pointer hover:bg-accent/50 focus:bg-accent/50',
                 !isReferenceOption(option) && option.color
               )}
             >

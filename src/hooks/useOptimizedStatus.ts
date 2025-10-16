@@ -1,8 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-export type JobStatus = 'new' | 'active' | 'paused' | 'completed' | 'failed';
-export type CompanyStatus = 'new' | 'active' | 'paused' | 'completed' | 'failed';
+import { CompanyStatus, JobStatus } from '@/utils/statusCalculator';
+import { useCallback, useEffect, useState } from 'react';
 
 interface StatusInfo {
   status: JobStatus | CompanyStatus;
@@ -26,12 +24,10 @@ export const useOptimizedStatus = () => {
 
   const refreshAllStatuses = useCallback(async () => {
     setIsLoading(true);
-    
+
     try {
       // Single query to get all leads with their job and company associations
-      const { data: leads, error } = await supabase
-        .from('People')
-        .select(`
+      const { data: leads, error } = await supabase.from('People').select(`
           id,
           Stage,
           stage_enum,
@@ -70,7 +66,7 @@ export const useOptimizedStatus = () => {
         jobStatusMap[jobId] = {
           status,
           leadCount: jobLeads.length,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         };
       });
 
@@ -80,14 +76,13 @@ export const useOptimizedStatus = () => {
         companyStatusMap[companyName] = {
           status,
           leadCount: companyLeads.length,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         };
       });
 
       setJobStatuses(jobStatusMap);
       setCompanyStatuses(companyStatusMap);
       setLastRefresh(new Date());
-
     } catch (error) {
       console.error('Error refreshing statuses:', error);
     } finally {
@@ -95,46 +90,62 @@ export const useOptimizedStatus = () => {
     }
   }, []);
 
-  const calculateStatusFromLeads = (leads: any[]): JobStatus | CompanyStatus => {
+  const calculateStatusFromLeads = (
+    leads: any[]
+  ): JobStatus | CompanyStatus => {
     if (!leads || leads.length === 0) return 'new';
 
-    const statuses = leads.map(lead => {
-      const status = lead.stage_enum || lead.Stage?.toLowerCase();
-      return status;
-    }).filter(Boolean);
+    const statuses = leads
+      .map(lead => {
+        const status = lead.stage_enum || lead.Stage?.toLowerCase();
+        return status;
+      })
+      .filter(Boolean);
 
     if (statuses.length === 0) return 'new';
 
     // Determine status based on lead progression
     if (statuses.includes('hired')) return 'completed';
     if (statuses.includes('lead lost')) return 'failed';
-    if (statuses.includes('replied') || statuses.includes('connected')) return 'active';
-    if (statuses.includes('msg sent') || statuses.includes('connect sent')) return 'active';
+    if (statuses.includes('replied') || statuses.includes('connected'))
+      return 'active';
+    if (statuses.includes('msg sent') || statuses.includes('connect sent'))
+      return 'active';
     if (statuses.includes('paused')) return 'paused';
-    
+
     return 'new';
   };
 
-  const getJobStatus = useCallback((jobId: string): StatusInfo => {
-    return jobStatuses[jobId] || {
-      status: 'new',
-      leadCount: 0,
-      lastUpdated: new Date()
-    };
-  }, [jobStatuses]);
+  const getJobStatus = useCallback(
+    (jobId: string): StatusInfo => {
+      return (
+        jobStatuses[jobId] || {
+          status: 'new',
+          leadCount: 0,
+          lastUpdated: new Date(),
+        }
+      );
+    },
+    [jobStatuses]
+  );
 
-  const getCompanyStatus = useCallback((companyName: string): StatusInfo => {
-    return companyStatuses[companyName] || {
-      status: 'new',
-      leadCount: 0,
-      lastUpdated: new Date()
-    };
-  }, [companyStatuses]);
+  const getCompanyStatus = useCallback(
+    (companyName: string): StatusInfo => {
+      return (
+        companyStatuses[companyName] || {
+          status: 'new',
+          leadCount: 0,
+          lastUpdated: new Date(),
+        }
+      );
+    },
+    [companyStatuses]
+  );
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
     refreshAllStatuses();
-    
+
     const interval = setInterval(() => {
       refreshAllStatuses();
     }, 30000);
@@ -149,7 +160,7 @@ export const useOptimizedStatus = () => {
     lastRefresh,
     refreshAllStatuses,
     getJobStatus,
-    getCompanyStatus
+    getCompanyStatus,
   };
 };
 
@@ -164,12 +175,13 @@ export const useRealTimeStatus = () => {
     // Set up real-time subscription for People table changes
     const subscription = supabase
       .channel('people-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'People' 
-        }, 
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'People',
+        },
         () => {
           // Debounce the refresh to avoid too many updates
           setTimeout(() => {
@@ -185,8 +197,6 @@ export const useRealTimeStatus = () => {
   }, [refreshAllStatuses]);
 
   return {
-    refreshAllStatuses
+    refreshAllStatuses,
   };
 };
-
-

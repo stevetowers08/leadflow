@@ -22,10 +22,14 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' 
-          ? 'https://empowr-crm.vercel.app/api' 
-          : 'http://localhost:3000/api',
-        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
+        url:
+          process.env.NODE_ENV === 'production'
+            ? 'https://empowr-crm.vercel.app/api'
+            : 'http://localhost:3000/api',
+        description:
+          process.env.NODE_ENV === 'production'
+            ? 'Production server'
+            : 'Development server',
       },
     ],
     components: {
@@ -54,11 +58,15 @@ const specs = swaggerJsdoc(swaggerOptions);
 
 export const setupSwagger = (app: express.Application) => {
   // Swagger UI
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
-    explorer: true,
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Empowr CRM API Documentation',
-  }));
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(specs, {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'Empowr CRM API Documentation',
+    })
+  );
 
   // JSON endpoint
   app.get('/api-docs.json', (req, res) => {
@@ -70,8 +78,3 @@ export const setupSwagger = (app: express.Application) => {
 };
 
 export default setupSwagger;
-
-
-
-
-

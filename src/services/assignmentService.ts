@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 // Performance monitoring utility
 const measureOperation = async <T>(
@@ -9,15 +9,20 @@ const measureOperation = async <T>(
   try {
     const result = await operation();
     const duration = performance.now() - startTime;
-    
+
     if (process.env.NODE_ENV === 'development' && duration > 1000) {
-      console.warn(`🐌 Slow operation: ${operationName} took ${duration.toFixed(2)}ms`);
+      console.warn(
+        `🐌 Slow operation: ${operationName} took ${duration.toFixed(2)}ms`
+      );
     }
-    
+
     return result;
   } catch (error) {
     const duration = performance.now() - startTime;
-    console.error(`❌ Operation failed: ${operationName} (${duration.toFixed(2)}ms)`, error);
+    console.error(
+      `❌ Operation failed: ${operationName} (${duration.toFixed(2)}ms)`,
+      error
+    );
     throw error;
   }
 };
@@ -101,7 +106,7 @@ export class AssignmentService {
         return {
           success: false,
           message: 'Cannot assign to user',
-          error: 'Target user does not exist or is not active'
+          error: 'Target user does not exist or is not active',
         };
       }
 
@@ -116,16 +121,16 @@ export class AssignmentService {
         return {
           success: false,
           message: 'Assignment failed',
-          error: `${entityType.slice(0, -1)} not found`
+          error: `${entityType === 'people' ? 'person' : entityType.slice(0, -1)} not found`,
         };
       }
 
       // Perform the assignment
       const { error: updateError } = await supabase
         .from(entityType)
-        .update({ 
+        .update({
           owner_id: newOwnerId,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
 
@@ -133,7 +138,7 @@ export class AssignmentService {
         return {
           success: false,
           message: 'Assignment failed',
-          error: updateError.message
+          error: updateError.message,
         };
       }
 
@@ -145,27 +150,27 @@ export class AssignmentService {
           .select('full_name')
           .eq('id', newOwnerId)
           .single();
-        
+
         ownerName = ownerData?.full_name || 'Unknown User';
       }
 
       return {
         success: true,
-        message: newOwnerId 
+        message: newOwnerId
           ? `${entityData.name || entityType.slice(0, -1)} assigned to ${ownerName}`
           : `${entityData.name || entityType.slice(0, -1)} unassigned`,
         data: {
           entityId,
           newOwnerId,
-          ownerName
-        }
+          ownerName,
+        },
       };
     } catch (error) {
       console.error('Error assigning entity:', error);
       return {
         success: false,
         message: 'Assignment failed',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -187,7 +192,7 @@ export class AssignmentService {
           updated_count: 0,
           total_requested: 0,
           invalid_entities: [],
-          errors: ['No entities provided for assignment']
+          errors: ['No entities provided for assignment'],
         };
       }
 
@@ -197,7 +202,7 @@ export class AssignmentService {
           updated_count: 0,
           total_requested: entityIds.length,
           invalid_entities: entityIds,
-          errors: ['New owner ID is required']
+          errors: ['New owner ID is required'],
         };
       }
 
@@ -206,7 +211,7 @@ export class AssignmentService {
         entity_ids: entityIds,
         entity_type: entityType,
         new_owner_id: newOwnerId,
-        assigned_by: assignedBy
+        assigned_by: assignedBy,
       });
 
       if (error) {
@@ -215,7 +220,7 @@ export class AssignmentService {
           updated_count: 0,
           total_requested: entityIds.length,
           invalid_entities: entityIds,
-          errors: [error.message]
+          errors: [error.message],
         };
       }
 
@@ -224,7 +229,7 @@ export class AssignmentService {
         updated_count: data.updated_count || 0,
         total_requested: data.total_requested || entityIds.length,
         invalid_entities: data.invalid_entities || [],
-        errors: data.error ? [data.error] : []
+        errors: data.error ? [data.error] : [],
       };
     } catch (error) {
       console.error('Error in bulk assignment:', error);
@@ -233,7 +238,7 @@ export class AssignmentService {
         updated_count: 0,
         total_requested: entityIds.length,
         invalid_entities: entityIds,
-        errors: [error instanceof Error ? error.message : 'Unknown error']
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
   }
@@ -248,28 +253,28 @@ export class AssignmentService {
     try {
       const { data, error } = await supabase.rpc('reassign_orphaned_records', {
         deleted_user_id: deletedUserId,
-        new_owner_id: newOwnerId
+        new_owner_id: newOwnerId,
       });
 
       if (error) {
         return {
           success: false,
           message: 'Failed to reassign orphaned records',
-          error: error.message
+          error: error.message,
         };
       }
 
       return {
         success: true,
         message: `Successfully reassigned ${data.total_records} records`,
-        data
+        data,
       };
     } catch (error) {
       console.error('Error reassigning orphaned records:', error);
       return {
         success: false,
         message: 'Failed to reassign orphaned records',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -284,7 +289,8 @@ export class AssignmentService {
     try {
       const { data, error } = await supabase
         .from('assignment_logs')
-        .select(`
+        .select(
+          `
           id,
           old_owner_id,
           new_owner_id,
@@ -294,7 +300,8 @@ export class AssignmentService {
           old_owner:old_owner_id(full_name),
           new_owner:new_owner_id(full_name),
           assigned_by_user:assigned_by(full_name)
-        `)
+        `
+        )
         .eq('entity_type', entityType)
         .eq('entity_id', entityId)
         .order('assigned_at', { ascending: false });
@@ -323,42 +330,65 @@ export class AssignmentService {
       const [peopleStats, companiesStats, jobsStats] = await Promise.all([
         supabase.from('people').select('owner_id', { count: 'exact' }),
         supabase.from('companies').select('owner_id', { count: 'exact' }),
-        supabase.from('jobs').select('owner_id', { count: 'exact' })
+        supabase.from('jobs').select('owner_id', { count: 'exact' }),
       ]);
 
-      const totalAssigned = (peopleStats.count || 0) + (companiesStats.count || 0) + (jobsStats.count || 0);
-      
+      const totalAssigned =
+        (peopleStats.count || 0) +
+        (companiesStats.count || 0) +
+        (jobsStats.count || 0);
+
       // Get unassigned counts
-      const [unassignedPeople, unassignedCompanies, unassignedJobs] = await Promise.all([
-        supabase.from('people').select('id', { count: 'exact' }).is('owner_id', null),
-        supabase.from('companies').select('id', { count: 'exact' }).is('owner_id', null),
-        supabase.from('jobs').select('id', { count: 'exact' }).is('owner_id', null)
-      ]);
+      const [unassignedPeople, unassignedCompanies, unassignedJobs] =
+        await Promise.all([
+          supabase
+            .from('people')
+            .select('id', { count: 'exact' })
+            .is('owner_id', null),
+          supabase
+            .from('companies')
+            .select('id', { count: 'exact' })
+            .is('owner_id', null),
+          supabase
+            .from('jobs')
+            .select('id', { count: 'exact' })
+            .is('owner_id', null),
+        ]);
 
-      const unassigned = (unassignedPeople.count || 0) + (unassignedCompanies.count || 0) + (unassignedJobs.count || 0);
+      const unassigned =
+        (unassignedPeople.count || 0) +
+        (unassignedCompanies.count || 0) +
+        (unassignedJobs.count || 0);
 
       // Get assignment counts by user
       const { data: userStats } = await supabase
         .from('user_profiles')
-        .select(`
+        .select(
+          `
           id,
           full_name,
           people:people(count),
           companies:companies(count),
           jobs:jobs(count)
-        `)
+        `
+        )
         .eq('is_active', true);
 
-      const byUser = (userStats || []).map(user => ({
-        userId: user.id,
-        userName: user.full_name || 'Unknown',
-        count: (user.people?.[0]?.count || 0) + (user.companies?.[0]?.count || 0) + (user.jobs?.[0]?.count || 0)
-      })).sort((a, b) => b.count - a.count);
+      const byUser = (userStats || [])
+        .map(user => ({
+          userId: user.id,
+          userName: user.full_name || 'Unknown',
+          count:
+            (user.people?.[0]?.count || 0) +
+            (user.companies?.[0]?.count || 0) +
+            (user.jobs?.[0]?.count || 0),
+        }))
+        .sort((a, b) => b.count - a.count);
 
       return {
         totalAssigned,
         unassigned,
-        byUser
+        byUser,
       };
     } catch (error) {
       console.error('Error fetching assignment stats:', error);

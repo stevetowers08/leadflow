@@ -58,9 +58,8 @@ export function useCompanies(
   return useQuery<CompaniesResponse>({
     queryKey: ['companies', pagination, sort, filters],
     queryFn: async () => {
-      let query = supabase
-        .from('companies')
-        .select(`
+      let query = supabase.from('companies').select(
+        `
           id,
           name,
           website,
@@ -78,11 +77,15 @@ export function useCompanies(
           created_at,
           updated_at,
           logo_url
-        `, { count: 'exact' });
+        `,
+        { count: 'exact' }
+      );
 
       // Apply filters
       if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,industry.ilike.%${filters.search}%,head_office.ilike.%${filters.search}%`);
+        query = query.or(
+          `name.ilike.%${filters.search}%,industry.ilike.%${filters.search}%,head_office.ilike.%${filters.search}%`
+        );
       }
 
       if (filters.status && filters.status !== 'all') {
@@ -117,7 +120,7 @@ export function useCompanies(
 
       // Get people count for each company
       const companiesWithCounts = await Promise.all(
-        (data || []).map(async (company) => {
+        (data || []).map(async company => {
           const { count: peopleCount } = await supabase
             .from('people')
             .select('*', { count: 'exact', head: true })

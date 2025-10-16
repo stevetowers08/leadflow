@@ -35,24 +35,32 @@ export const EnvironmentVerification: React.FC = () => {
         name: 'VITE_SUPABASE_URL',
         value: import.meta.env.VITE_SUPABASE_URL || 'NOT SET',
         isValid: validateSupabaseUrl(import.meta.env.VITE_SUPABASE_URL),
-        error: !import.meta.env.VITE_SUPABASE_URL ? 'Missing' : 
-               !import.meta.env.VITE_SUPABASE_URL.startsWith('https://') ? 'Must start with https://' :
-               !import.meta.env.VITE_SUPABASE_URL.includes('.supabase.co') ? 'Must be a valid Supabase URL' : undefined
+        error: !import.meta.env.VITE_SUPABASE_URL
+          ? 'Missing'
+          : !import.meta.env.VITE_SUPABASE_URL.startsWith('https://')
+            ? 'Must start with https://'
+            : !import.meta.env.VITE_SUPABASE_URL.includes('.supabase.co')
+              ? 'Must be a valid Supabase URL'
+              : undefined,
       },
       {
         name: 'VITE_SUPABASE_ANON_KEY',
-        value: import.meta.env.VITE_SUPABASE_ANON_KEY ? 
-               `${import.meta.env.VITE_SUPABASE_ANON_KEY.substring(0, 20)}...` : 'NOT SET',
+        value: import.meta.env.VITE_SUPABASE_ANON_KEY
+          ? `${import.meta.env.VITE_SUPABASE_ANON_KEY.substring(0, 20)}...`
+          : 'NOT SET',
         isValid: validateSupabaseKey(import.meta.env.VITE_SUPABASE_ANON_KEY),
-        error: !import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Missing' :
-               !import.meta.env.VITE_SUPABASE_ANON_KEY.startsWith('eyJ') ? 'Must be a valid JWT token' : undefined
+        error: !import.meta.env.VITE_SUPABASE_ANON_KEY
+          ? 'Missing'
+          : !import.meta.env.VITE_SUPABASE_ANON_KEY.startsWith('eyJ')
+            ? 'Must be a valid JWT token'
+            : undefined,
       },
       {
         name: 'VITE_GOOGLE_CLIENT_ID',
         value: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'NOT SET (Optional)',
         isValid: true, // Optional
-        error: undefined
-      }
+        error: undefined,
+      },
     ];
 
     setEnvChecks(checks);
@@ -60,7 +68,11 @@ export const EnvironmentVerification: React.FC = () => {
   };
 
   const validateSupabaseUrl = (url: string): boolean => {
-    return !!(url && url.startsWith('https://') && url.includes('.supabase.co'));
+    return !!(
+      url &&
+      url.startsWith('https://') &&
+      url.includes('.supabase.co')
+    );
   };
 
   const validateSupabaseKey = (key: string): boolean => {
@@ -70,19 +82,29 @@ export const EnvironmentVerification: React.FC = () => {
   const testSupabaseConnection = async () => {
     setIsTestingConnection(true);
     setConnectionTests([
-      { name: 'Client Initialization', status: 'pending', message: 'Testing...' },
+      {
+        name: 'Client Initialization',
+        status: 'pending',
+        message: 'Testing...',
+      },
       { name: 'Database Connection', status: 'pending', message: 'Testing...' },
-      { name: 'Authentication', status: 'pending', message: 'Testing...' }
+      { name: 'Authentication', status: 'pending', message: 'Testing...' },
     ]);
 
     try {
       // Test 1: Client Initialization
       if (supabase) {
-        setConnectionTests(prev => prev.map(test => 
-          test.name === 'Client Initialization' 
-            ? { ...test, status: 'success', message: 'Supabase client initialized successfully' }
-            : test
-        ));
+        setConnectionTests(prev =>
+          prev.map(test =>
+            test.name === 'Client Initialization'
+              ? {
+                  ...test,
+                  status: 'success',
+                  message: 'Supabase client initialized successfully',
+                }
+              : test
+          )
+        );
       }
 
       // Test 2: Database Connection
@@ -92,55 +114,91 @@ export const EnvironmentVerification: React.FC = () => {
           .select('count', { count: 'exact', head: true });
 
         if (error) {
-          setConnectionTests(prev => prev.map(test => 
-            test.name === 'Database Connection' 
-              ? { ...test, status: 'error', message: `Database error: ${error.message}` }
-              : test
-          ));
+          setConnectionTests(prev =>
+            prev.map(test =>
+              test.name === 'Database Connection'
+                ? {
+                    ...test,
+                    status: 'error',
+                    message: `Database error: ${error.message}`,
+                  }
+                : test
+            )
+          );
         } else {
-          setConnectionTests(prev => prev.map(test => 
-            test.name === 'Database Connection' 
-              ? { ...test, status: 'success', message: `Connected successfully. Companies count: ${data?.length || 0}` }
-              : test
-          ));
+          setConnectionTests(prev =>
+            prev.map(test =>
+              test.name === 'Database Connection'
+                ? {
+                    ...test,
+                    status: 'success',
+                    message: `Connected successfully. Companies count: ${data?.length || 0}`,
+                  }
+                : test
+            )
+          );
         }
       } catch (dbError) {
-        setConnectionTests(prev => prev.map(test => 
-          test.name === 'Database Connection' 
-            ? { ...test, status: 'error', message: `Connection failed: ${dbError}` }
-            : test
-        ));
+        setConnectionTests(prev =>
+          prev.map(test =>
+            test.name === 'Database Connection'
+              ? {
+                  ...test,
+                  status: 'error',
+                  message: `Connection failed: ${dbError}`,
+                }
+              : test
+          )
+        );
       }
 
       // Test 3: Authentication
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
         if (error) {
-          setConnectionTests(prev => prev.map(test => 
-            test.name === 'Authentication' 
-              ? { ...test, status: 'error', message: `Auth error: ${error.message}` }
-              : test
-          ));
+          setConnectionTests(prev =>
+            prev.map(test =>
+              test.name === 'Authentication'
+                ? {
+                    ...test,
+                    status: 'error',
+                    message: `Auth error: ${error.message}`,
+                  }
+                : test
+            )
+          );
         } else {
-          setConnectionTests(prev => prev.map(test => 
-            test.name === 'Authentication' 
-              ? { 
-                  ...test, 
-                  status: 'success', 
-                  message: session ? `Session found for: ${session.user?.email}` : 'No active session (normal for new users)'
-                }
-              : test
-          ));
+          setConnectionTests(prev =>
+            prev.map(test =>
+              test.name === 'Authentication'
+                ? {
+                    ...test,
+                    status: 'success',
+                    message: session
+                      ? `Session found for: ${session.user?.email}`
+                      : 'No active session (normal for new users)',
+                  }
+                : test
+            )
+          );
         }
       } catch (authError) {
-        setConnectionTests(prev => prev.map(test => 
-          test.name === 'Authentication' 
-            ? { ...test, status: 'error', message: `Auth test failed: ${authError}` }
-            : test
-        ));
+        setConnectionTests(prev =>
+          prev.map(test =>
+            test.name === 'Authentication'
+              ? {
+                  ...test,
+                  status: 'error',
+                  message: `Auth test failed: ${authError}`,
+                }
+              : test
+          )
+        );
       }
-
     } catch (error) {
       console.error('Connection test failed:', error);
     } finally {
@@ -149,62 +207,100 @@ export const EnvironmentVerification: React.FC = () => {
   };
 
   const getStatusIcon = (isValid: boolean) => {
-    return isValid ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />;
+    return isValid ? (
+      <CheckCircle className='h-5 w-5 text-green-500' />
+    ) : (
+      <XCircle className='h-5 w-5 text-red-500' />
+    );
   };
 
   const getConnectionStatusIcon = (status: string) => {
     switch (status) {
-      case 'success': return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'error': return <XCircle className="h-5 w-5 text-red-500" />;
-      case 'pending': return <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />;
-      default: return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+      case 'success':
+        return <CheckCircle className='h-5 w-5 text-green-500' />;
+      case 'error':
+        return <XCircle className='h-5 w-5 text-red-500' />;
+      case 'pending':
+        return <RefreshCw className='h-5 w-5 text-blue-500 animate-spin' />;
+      default:
+        return <AlertCircle className='h-5 w-5 text-yellow-500' />;
     }
   };
 
-  const allEnvValid = envChecks.every(check => check.isValid || check.name.includes('GOOGLE'));
+  const allEnvValid = envChecks.every(
+    check => check.isValid || check.name.includes('GOOGLE')
+  );
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
+          <CardTitle className='flex items-center gap-2'>
+            <AlertCircle className='h-5 w-5' />
             Environment Variables Check
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className='space-y-4'>
           {isLoading ? (
-            <div className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4 animate-spin" />
+            <div className='flex items-center gap-2'>
+              <RefreshCw className='h-4 w-4 animate-spin' />
               <span>Checking environment variables...</span>
             </div>
           ) : (
             <>
-              {envChecks.map((check) => (
-                <div key={check.name} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
+              {envChecks.map(check => (
+                <div
+                  key={check.name}
+                  className='flex items-center justify-between p-3 border rounded-lg'
+                >
+                  <div className='flex items-center gap-3'>
                     {getStatusIcon(check.isValid)}
                     <div>
-                      <div className="font-medium">{check.name}</div>
-                      <div className="text-sm text-gray-600">{check.value}</div>
+                      <div className='font-medium'>{check.name}</div>
+                      <div className='text-sm text-gray-600'>{check.value}</div>
                       {check.error && (
-                        <div className="text-sm text-red-600">{check.error}</div>
+                        <div className='text-sm text-red-600'>
+                          {check.error}
+                        </div>
                       )}
                     </div>
                   </div>
-                  <Badge variant={check.isValid ? "default" : "destructive"}>
-                    {check.isValid ? "Valid" : "Invalid"}
+                  <Badge variant={check.isValid ? 'default' : 'destructive'}>
+                    {check.isValid ? 'Valid' : 'Invalid'}
                   </Badge>
                 </div>
               ))}
-              
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">🔧 Setup Instructions:</h4>
-                <ol className="text-sm text-blue-800 space-y-1">
-                  <li>1. Create a <code className="bg-blue-100 px-1 rounded">.env</code> file in your project root</li>
-                  <li>2. Copy the template from <code className="bg-blue-100 px-1 rounded">env.example</code></li>
-                  <li>3. Replace placeholder values with your actual Supabase credentials</li>
-                  <li>4. Get credentials from: <a href="https://supabase.com/dashboard" target="_blank" className="underline">Supabase Dashboard</a></li>
+
+              <div className='mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg'>
+                <h4 className='font-medium text-blue-900 mb-2'>
+                  🔧 Setup Instructions:
+                </h4>
+                <ol className='text-sm text-blue-800 space-y-1'>
+                  <li>
+                    1. Create a{' '}
+                    <code className='bg-blue-100 px-1 rounded'>.env</code> file
+                    in your project root
+                  </li>
+                  <li>
+                    2. Copy the template from{' '}
+                    <code className='bg-blue-100 px-1 rounded'>
+                      env.example
+                    </code>
+                  </li>
+                  <li>
+                    3. Replace placeholder values with your actual Supabase
+                    credentials
+                  </li>
+                  <li>
+                    4. Get credentials from:{' '}
+                    <a
+                      href='https://supabase.com/dashboard'
+                      target='_blank'
+                      className='underline'
+                    >
+                      Supabase Dashboard
+                    </a>
+                  </li>
                 </ol>
               </div>
             </>
@@ -214,20 +310,20 @@ export const EnvironmentVerification: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <RefreshCw className="h-5 w-5" />
+          <CardTitle className='flex items-center gap-2'>
+            <RefreshCw className='h-5 w-5' />
             Supabase Connection Test
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Button 
-            onClick={testSupabaseConnection} 
+        <CardContent className='space-y-4'>
+          <Button
+            onClick={testSupabaseConnection}
             disabled={!allEnvValid || isTestingConnection}
-            className="w-full"
+            className='w-full'
           >
             {isTestingConnection ? (
               <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                <RefreshCw className='h-4 w-4 mr-2 animate-spin' />
                 Testing Connection...
               </>
             ) : (
@@ -236,20 +332,30 @@ export const EnvironmentVerification: React.FC = () => {
           </Button>
 
           {connectionTests.length > 0 && (
-            <div className="space-y-3">
-              {connectionTests.map((test) => (
-                <div key={test.name} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
+            <div className='space-y-3'>
+              {connectionTests.map(test => (
+                <div
+                  key={test.name}
+                  className='flex items-center justify-between p-3 border rounded-lg'
+                >
+                  <div className='flex items-center gap-3'>
                     {getConnectionStatusIcon(test.status)}
                     <div>
-                      <div className="font-medium">{test.name}</div>
-                      <div className="text-sm text-gray-600">{test.message}</div>
+                      <div className='font-medium'>{test.name}</div>
+                      <div className='text-sm text-gray-600'>
+                        {test.message}
+                      </div>
                     </div>
                   </div>
-                  <Badge variant={
-                    test.status === 'success' ? 'default' : 
-                    test.status === 'error' ? 'destructive' : 'secondary'
-                  }>
+                  <Badge
+                    variant={
+                      test.status === 'success'
+                        ? 'default'
+                        : test.status === 'error'
+                          ? 'destructive'
+                          : 'secondary'
+                    }
+                  >
                     {test.status}
                   </Badge>
                 </div>

@@ -1,9 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export interface PaginationOptions {
   pageSize?: number;
   initialPage?: number;
   maxVisiblePages?: number;
+  persistToUrl?: boolean;
+  urlParams?: {
+    pageParam?: string;
+    pageSizeParam?: string;
+  };
 }
 
 export interface PaginationState {
@@ -38,7 +43,9 @@ export const usePagination = (
   const {
     pageSize: initialPageSize = 10,
     initialPage = 1,
-    maxVisiblePages = 5
+    maxVisiblePages = 5,
+    persistToUrl = false,
+    urlParams = {},
   } = options;
 
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -48,7 +55,7 @@ export const usePagination = (
     const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize - 1, totalItems - 1);
-    
+
     return {
       currentPage: Math.min(currentPage, totalPages),
       pageSize,
@@ -64,7 +71,7 @@ export const usePagination = (
   const paginationInfo = useMemo((): PaginationInfo => {
     const { totalPages } = paginationState;
     const { currentPage } = paginationState;
-    
+
     if (totalPages <= maxVisiblePages) {
       return {
         visiblePages: Array.from({ length: totalPages }, (_, i) => i + 1),
@@ -94,33 +101,39 @@ export const usePagination = (
   }, [paginationState, maxVisiblePages]);
 
   const actions: PaginationActions = {
-    goToPage: (page: number) => {
-      const validPage = Math.max(1, Math.min(page, paginationState.totalPages));
-      setCurrentPage(validPage);
-    },
-    
-    nextPage: () => {
+    goToPage: useCallback(
+      (page: number) => {
+        const validPage = Math.max(
+          1,
+          Math.min(page, paginationState.totalPages)
+        );
+        setCurrentPage(validPage);
+      },
+      [paginationState.totalPages]
+    ),
+
+    nextPage: useCallback(() => {
       if (paginationState.hasNextPage) {
         setCurrentPage(prev => prev + 1);
       }
-    },
-    
-    previousPage: () => {
+    }, [paginationState.hasNextPage]),
+
+    previousPage: useCallback(() => {
       if (paginationState.hasPreviousPage) {
         setCurrentPage(prev => prev - 1);
       }
-    },
-    
-    setPageSize: (size: number) => {
+    }, [paginationState.hasPreviousPage]),
+
+    setPageSize: useCallback((size: number) => {
       const validSize = Math.max(1, size);
       setPageSize(validSize);
       setCurrentPage(1); // Reset to first page when changing page size
-    },
-    
-    reset: () => {
+    }, []),
+
+    reset: useCallback(() => {
       setCurrentPage(initialPage);
       setPageSize(initialPageSize);
-    },
+    }, [initialPage, initialPageSize]),
   };
 
   return {
@@ -139,7 +152,7 @@ export const usePaginatedData = <T>(
   pagination: ReturnType<typeof usePagination>;
 } => {
   const pagination = usePagination(data.length, options);
-  
+
   const paginatedData = useMemo(() => {
     return data.slice(pagination.startIndex, pagination.endIndex + 1);
   }, [data, pagination.startIndex, pagination.endIndex]);
@@ -149,4 +162,3 @@ export const usePaginatedData = <T>(
     pagination,
   };
 };
-

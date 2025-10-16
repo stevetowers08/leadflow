@@ -7,24 +7,24 @@ export interface DashboardMetrics {
   totalPeople: number;
   totalCompanies: number;
   totalJobs: number;
-  
+
   // Activity Metrics
   peopleThisWeek: number;
   companiesThisWeek: number;
   jobsThisWeek: number;
-  
+
   // Automation Metrics
   activeAutomations: number;
   automationSuccessRate: number;
-  
+
   // Pipeline Metrics
   pipelineBreakdown: Record<string, number>;
-  
+
   // Assignment Metrics
   favoritePeople: number;
   unassignedPeople: number;
   unassignedCompanies: number;
-  
+
   // Owner Stats
   ownerStats: Record<string, number>;
 }
@@ -80,8 +80,16 @@ export interface DashboardData {
     person_name?: string | null;
     company_name?: string | null;
   }>;
-  companiesOverTime: Array<{ date: string; newCompanies: number; automatedCompanies: number }>;
-  peopleAutomationOverTime: Array<{ date: string; peopleWithAutomation: number; automationActivity: number }>;
+  companiesOverTime: Array<{
+    date: string;
+    newCompanies: number;
+    automatedCompanies: number;
+  }>;
+  peopleAutomationOverTime: Array<{
+    date: string;
+    peopleWithAutomation: number;
+    automationActivity: number;
+  }>;
 }
 
 export class DashboardService {
@@ -91,13 +99,13 @@ export class DashboardService {
   static async getDashboardData(userId?: string): Promise<DashboardData> {
     try {
       console.log('Fetching dashboard data...');
-      
+
       // Dynamic import to prevent initialization issues
       const { supabase } = await import('@/integrations/supabase/client');
-      
+
       // Calculate date ranges
       const oneWeekAgo = subWeeks(new Date(), 1);
-      
+
       // Fetch all data in parallel
       const [
         peopleCount,
@@ -119,20 +127,32 @@ export class DashboardService {
         personNotesData,
         companyNotesData,
         jobNotesData,
-        peopleByCompanyData
+        peopleByCompanyData,
       ] = await Promise.all([
         // Counts
         supabase.from('people').select('*', { count: 'exact', head: true }),
         supabase.from('companies').select('*', { count: 'exact', head: true }),
         supabase.from('jobs').select('*', { count: 'exact', head: true }),
-        
+
         // This week counts
-        supabase.from('people').select('*', { count: 'exact', head: true }).gte('created_at', oneWeekAgo.toISOString()),
-        supabase.from('companies').select('*', { count: 'exact', head: true }).gte('created_at', oneWeekAgo.toISOString()),
-        supabase.from('jobs').select('*', { count: 'exact', head: true }).gte('created_at', oneWeekAgo.toISOString()),
-        
+        supabase
+          .from('people')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', oneWeekAgo.toISOString()),
+        supabase
+          .from('companies')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', oneWeekAgo.toISOString()),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', oneWeekAgo.toISOString()),
+
         // Recent items with notes count - fix the foreign key references
-        supabase.from('people').select(`
+        supabase
+          .from('people')
+          .select(
+            `
           id,
           name,
           email_address,
@@ -142,9 +162,15 @@ export class DashboardService {
           created_at,
           owner_id,
           companies(name, logo_url)
-        `).order('created_at', { ascending: false }).limit(30),
-        
-        supabase.from('companies').select(`
+        `
+          )
+          .order('created_at', { ascending: false })
+          .limit(30),
+
+        supabase
+          .from('companies')
+          .select(
+            `
           id,
           name,
           industry,
@@ -155,9 +181,15 @@ export class DashboardService {
           pipeline_stage,
           created_at,
           owner_id
-        `).order('created_at', { ascending: false }).limit(20),
-        
-        supabase.from('jobs').select(`
+        `
+          )
+          .order('created_at', { ascending: false })
+          .limit(20),
+
+        supabase
+          .from('jobs')
+          .select(
+            `
           id,
           title,
           location,
@@ -168,10 +200,16 @@ export class DashboardService {
           owner_id,
           company_id,
           companies(name, logo_url, website)
-        `).order('created_at', { ascending: false }).limit(20),
-        
+        `
+          )
+          .order('created_at', { ascending: false })
+          .limit(20),
+
         // Recent activities
-        supabase.from('interactions').select(`
+        supabase
+          .from('interactions')
+          .select(
+            `
           id,
           interaction_type,
           subject,
@@ -179,38 +217,65 @@ export class DashboardService {
           occurred_at,
           people(name),
           companies(name)
-        `).order('occurred_at', { ascending: false }).limit(10),
-        
+        `
+          )
+          .order('occurred_at', { ascending: false })
+          .limit(10),
+
         // Pipeline breakdown
         supabase.from('people').select('stage'),
-        
+
         // Automation metrics - check for automation_started_at
-        supabase.from('people').select('automation_started_at, stage, company_id').not('automation_started_at', 'is', null),
-        
+        supabase
+          .from('people')
+          .select('automation_started_at, stage, company_id')
+          .not('automation_started_at', 'is', null),
+
         // Favorites and unassigned
-        supabase.from('people').select('*', { count: 'exact', head: true }).eq('is_favourite', true),
-        supabase.from('people').select('*', { count: 'exact', head: true }).is('owner_id', null),
-        supabase.from('companies').select('*', { count: 'exact', head: true }).is('owner_id', null),
-        
+        supabase
+          .from('people')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_favourite', true),
+        supabase
+          .from('people')
+          .select('*', { count: 'exact', head: true })
+          .is('owner_id', null),
+        supabase
+          .from('companies')
+          .select('*', { count: 'exact', head: true })
+          .is('owner_id', null),
+
         // Owner stats
         supabase.from('people').select('owner_id'),
-        
+
         // Notes counts for recent items
-        supabase.from('notes').select('entity_id, entity_type').eq('entity_type', 'person'),
-        supabase.from('notes').select('entity_id, entity_type').eq('entity_type', 'company'),
-        supabase.from('notes').select('entity_id, entity_type').eq('entity_type', 'job'),
-        
+        supabase
+          .from('notes')
+          .select('entity_id, entity_type')
+          .eq('entity_type', 'person'),
+        supabase
+          .from('notes')
+          .select('entity_id, entity_type')
+          .eq('entity_type', 'company'),
+        supabase
+          .from('notes')
+          .select('entity_id, entity_type')
+          .eq('entity_type', 'job'),
+
         // People count per company for jobs
-        supabase.from('people').select('company_id').not('company_id', 'is', null)
+        supabase
+          .from('people')
+          .select('company_id')
+          .not('company_id', 'is', null),
       ]);
-      
+
       // Process pipeline breakdown
       const pipelineBreakdown: Record<string, number> = {};
       pipelineData.data?.forEach(person => {
         const stage = person.stage || 'Unassigned';
         pipelineBreakdown[stage] = (pipelineBreakdown[stage] || 0) + 1;
       });
-      
+
       // Process owner stats
       const ownerStats: Record<string, number> = {};
       ownersData.data?.forEach(person => {
@@ -218,12 +283,17 @@ export class DashboardService {
           ownerStats[person.owner_id] = (ownerStats[person.owner_id] || 0) + 1;
         }
       });
-      
+
       // Calculate automation success rate based on companies with people automated
       const totalCompanies = companiesCount.count || 0;
-      const uniqueCompaniesWithAutomation = new Set(automationData.data?.map(person => person.company_id).filter(Boolean)).size;
-      const automationSuccessRate = totalCompanies > 0 ? Math.round((uniqueCompaniesWithAutomation / totalCompanies) * 100) : 0;
-      
+      const uniqueCompaniesWithAutomation = new Set(
+        automationData.data?.map(person => person.company_id).filter(Boolean)
+      ).size;
+      const automationSuccessRate =
+        totalCompanies > 0
+          ? Math.round((uniqueCompaniesWithAutomation / totalCompanies) * 100)
+          : 0;
+
       // Process recent items with notes count
       const processRecentPeople = (data: any[]): RecentPerson[] => {
         return data.map(person => ({
@@ -237,10 +307,10 @@ export class DashboardService {
           assigned_to: person.owner_id,
           company_name: person.companies?.name || null,
           company_logo_url: person.companies?.logo_url || null,
-          notes_count: person.notes?.length || 0
+          notes_count: person.notes?.length || 0,
         }));
       };
-      
+
       const processRecentCompanies = (data: any[]): RecentCompany[] => {
         return data.map(company => ({
           id: company.id,
@@ -252,10 +322,10 @@ export class DashboardService {
           stage: company.pipeline_stage,
           created_at: company.created_at,
           assigned_to: company.owner_id,
-          notes_count: company.notes?.length || 0
+          notes_count: company.notes?.length || 0,
         }));
       };
-      
+
       const processRecentJobs = (data: any[]): RecentJob[] => {
         return data.map(job => ({
           id: job.id,
@@ -270,10 +340,10 @@ export class DashboardService {
           assigned_to: job.owner_id,
           company_name: job.companies?.name || null,
           company_logo_url: job.companies?.logo_url || null,
-          notes_count: job.notes?.length || 0
+          notes_count: job.notes?.length || 0,
         }));
       };
-      
+
       const processRecentActivities = (data: any[]) => {
         return data.map(activity => ({
           id: activity.id,
@@ -282,10 +352,10 @@ export class DashboardService {
           content: activity.content,
           occurred_at: activity.occurred_at,
           person_name: activity.people?.name || null,
-          company_name: activity.companies?.name || null
+          company_name: activity.companies?.name || null,
         }));
       };
-      
+
       const dashboardData: DashboardData = {
         metrics: {
           totalPeople: peopleCount.count || 0,
@@ -300,22 +370,39 @@ export class DashboardService {
           favoritePeople: favoritesData.count || 0,
           unassignedPeople: unassignedPeopleData.count || 0,
           unassignedCompanies: unassignedCompaniesData.count || 0,
-          ownerStats
+          ownerStats,
         },
-        recentPeople: this.processRecentPeople(recentPeopleData.data || [], personNotesData.data || []),
-        recentCompanies: this.processRecentCompanies(recentCompaniesData.data || [], companyNotesData.data || []),
-        recentJobs: this.processRecentJobs(recentJobsData.data || [], jobNotesData.data || [], peopleByCompanyData.data || []),
-        recentActivities: this.processRecentActivities(recentActivitiesData.data || []),
-        companiesOverTime: this.generateCompaniesAndAutomationOverTime(recentCompaniesData.data || [], automationData.data || []),
-        peopleAutomationOverTime: this.generatePeopleAutomationOverTime(automationData.data || [], recentActivitiesData.data || [])
+        recentPeople: this.processRecentPeople(
+          recentPeopleData.data || [],
+          personNotesData.data || []
+        ),
+        recentCompanies: this.processRecentCompanies(
+          recentCompaniesData.data || [],
+          companyNotesData.data || []
+        ),
+        recentJobs: this.processRecentJobs(
+          recentJobsData.data || [],
+          jobNotesData.data || [],
+          peopleByCompanyData.data || []
+        ),
+        recentActivities: this.processRecentActivities(
+          recentActivitiesData.data || []
+        ),
+        companiesOverTime: this.generateCompaniesAndAutomationOverTime(
+          recentCompaniesData.data || [],
+          automationData.data || []
+        ),
+        peopleAutomationOverTime: this.generatePeopleAutomationOverTime(
+          automationData.data || [],
+          recentActivitiesData.data || []
+        ),
       };
-      
+
       console.log('Dashboard data fetched successfully:', dashboardData);
       return dashboardData;
-      
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      
+
       // Return mock data on error
       return {
         metrics: {
@@ -331,19 +418,22 @@ export class DashboardService {
           favoritePeople: 0,
           unassignedPeople: 0,
           unassignedCompanies: 0,
-          ownerStats: {}
+          ownerStats: {},
         },
         recentPeople: [],
         recentCompanies: [],
         recentJobs: [],
         recentActivities: [],
         companiesOverTime: [],
-        peopleAutomationOverTime: []
+        peopleAutomationOverTime: [],
       };
     }
-  };
+  }
 
-  private static processRecentPeople(people: any[], notes: any[]): RecentPerson[] {
+  private static processRecentPeople(
+    people: any[],
+    notes: any[]
+  ): RecentPerson[] {
     const notesCount = new Map<string, number>();
     notes.forEach(note => {
       const count = notesCount.get(note.entity_id) || 0;
@@ -360,11 +450,14 @@ export class DashboardService {
       stage: person.stage || 'New',
       created_at: person.created_at,
       owner_id: person.owner_id,
-      notes_count: notesCount.get(person.id) || 0
+      notes_count: notesCount.get(person.id) || 0,
     }));
   }
 
-  private static processRecentCompanies(companies: any[], notes: any[]): RecentCompany[] {
+  private static processRecentCompanies(
+    companies: any[],
+    notes: any[]
+  ): RecentCompany[] {
     const notesCount = new Map<string, number>();
     notes.forEach(note => {
       const count = notesCount.get(note.entity_id) || 0;
@@ -382,11 +475,15 @@ export class DashboardService {
       stage: company.pipeline_stage || 'New',
       created_at: company.created_at,
       assigned_to: company.owner_id,
-      notes_count: notesCount.get(company.id) || 0
+      notes_count: notesCount.get(company.id) || 0,
     }));
   }
 
-  private static processRecentJobs(jobs: any[], notes: any[], peopleByCompany: any[]): RecentJob[] {
+  private static processRecentJobs(
+    jobs: any[],
+    notes: any[],
+    peopleByCompany: any[]
+  ): RecentJob[] {
     const notesCount = new Map<string, number>();
     notes.forEach(note => {
       const count = notesCount.get(note.entity_id) || 0;
@@ -414,7 +511,9 @@ export class DashboardService {
       created_at: job.created_at,
       assigned_to: job.owner_id,
       notes_count: notesCount.get(job.id) || 0,
-      people_count: job.company_id ? (peopleCountByCompany.get(job.company_id) || 0) : 0
+      people_count: job.company_id
+        ? peopleCountByCompany.get(job.company_id) || 0
+        : 0,
     }));
   }
 
@@ -426,11 +525,14 @@ export class DashboardService {
       entityType: activity.entity_type || 'Unknown',
       entityId: activity.entity_id || '',
       created_at: activity.created_at,
-      author: activity.author_id || 'Unknown'
+      author: activity.author_id || 'Unknown',
     }));
   }
 
-  private static generateCompaniesAndAutomationOverTime(companies: any[], automationData: any[]): Array<{ date: string; newCompanies: number; automatedCompanies: number }> {
+  private static generateCompaniesAndAutomationOverTime(
+    companies: any[],
+    automationData: any[]
+  ): Array<{ date: string; newCompanies: number; automatedCompanies: number }> {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - (6 - i));
@@ -438,41 +540,58 @@ export class DashboardService {
     });
 
     // Count new companies by date
-    const companiesByDate = companies.reduce((acc, company) => {
-      const date = new Date(company.created_at).toISOString().split('T')[0];
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const companiesByDate = companies.reduce(
+      (acc, company) => {
+        const date = new Date(company.created_at).toISOString().split('T')[0];
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     // Count unique companies automated by date
-    const automationByDate = automationData.reduce((acc, person) => {
-      if (person.automation_started_at && person.company_id) {
-        const date = new Date(person.automation_started_at).toISOString().split('T')[0];
-        if (!acc[date]) acc[date] = new Set();
-        acc[date].add(person.company_id);
-      }
-      return acc;
-    }, {} as Record<string, Set<string>>);
+    const automationByDate = automationData.reduce(
+      (acc, person) => {
+        if (person.automation_started_at && person.company_id) {
+          const date = new Date(person.automation_started_at)
+            .toISOString()
+            .split('T')[0];
+          if (!acc[date]) acc[date] = new Set();
+          acc[date].add(person.company_id);
+        }
+        return acc;
+      },
+      {} as Record<string, Set<string>>
+    );
 
     let cumulativeNewCompanies = 0;
     let cumulativeAutomatedCompanies = new Set<string>();
 
     return last7Days.map(date => {
       cumulativeNewCompanies += companiesByDate[date] || 0;
-      
+
       if (automationByDate[date]) {
-        automationByDate[date].forEach(companyId => cumulativeAutomatedCompanies.add(companyId));
+        automationByDate[date].forEach(companyId =>
+          cumulativeAutomatedCompanies.add(companyId)
+        );
       }
 
-      return { 
-        date, 
+      return {
+        date,
         newCompanies: cumulativeNewCompanies,
-        automatedCompanies: cumulativeAutomatedCompanies.size
+        automatedCompanies: cumulativeAutomatedCompanies.size,
       };
     });
   }
 
-  private static generatePeopleAutomationOverTime(automationData: any[], interactions: any[]): Array<{ date: string; peopleWithAutomation: number; automationActivity: number }> {
+  private static generatePeopleAutomationOverTime(
+    automationData: any[],
+    interactions: any[]
+  ): Array<{
+    date: string;
+    peopleWithAutomation: number;
+    automationActivity: number;
+  }> {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - (6 - i));
@@ -480,33 +599,43 @@ export class DashboardService {
     });
 
     // Count people with automation started by date
-    const automationByDate = automationData.reduce((acc, person) => {
-      if (person.automation_started_at) {
-        const date = new Date(person.automation_started_at).toISOString().split('T')[0];
-        acc[date] = (acc[date] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    const automationByDate = automationData.reduce(
+      (acc, person) => {
+        if (person.automation_started_at) {
+          const date = new Date(person.automation_started_at)
+            .toISOString()
+            .split('T')[0];
+          acc[date] = (acc[date] || 0) + 1;
+        }
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     // Count automation activity (interactions) by date
-    const activityByDate = interactions.reduce((acc, interaction) => {
-      const date = new Date(interaction.occurred_at).toISOString().split('T')[0];
-      // Only count automation-related interactions
-      if (interaction.interaction_type?.includes('linkedin')) {
-        acc[date] = (acc[date] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    const activityByDate = interactions.reduce(
+      (acc, interaction) => {
+        const date = new Date(interaction.occurred_at)
+          .toISOString()
+          .split('T')[0];
+        // Only count automation-related interactions
+        if (interaction.interaction_type?.includes('linkedin')) {
+          acc[date] = (acc[date] || 0) + 1;
+        }
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     let cumulativePeopleWithAutomation = 0;
 
     return last7Days.map(date => {
       cumulativePeopleWithAutomation += automationByDate[date] || 0;
-      
-      return { 
-        date, 
+
+      return {
+        date,
         peopleWithAutomation: cumulativePeopleWithAutomation,
-        automationActivity: activityByDate[date] || 0
+        automationActivity: activityByDate[date] || 0,
       };
     });
   }

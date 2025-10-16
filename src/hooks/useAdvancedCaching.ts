@@ -10,7 +10,7 @@ export const CACHE_CONFIG = {
   DYNAMIC_DATA: 5 * 60 * 1000, // 5 minutes (people, companies, jobs)
   REAL_TIME_DATA: 1 * 60 * 1000, // 1 minute (interactions, notifications)
   USER_DATA: 15 * 60 * 1000, // 15 minutes (user profiles, settings)
-  
+
   // Stale time configurations
   STALE_TIME: {
     STATIC: 15 * 60 * 1000, // 15 minutes
@@ -18,14 +18,14 @@ export const CACHE_CONFIG = {
     REAL_TIME: 30 * 1000, // 30 seconds
     USER: 5 * 60 * 1000, // 5 minutes
   },
-  
+
   // Background refetch intervals
   REFETCH_INTERVALS: {
     STATIC: false, // Never refetch static data
     DYNAMIC: 10 * 60 * 1000, // 10 minutes
     REAL_TIME: 2 * 60 * 1000, // 2 minutes
     USER: 5 * 60 * 1000, // 5 minutes
-  }
+  },
 };
 
 // Cache invalidation patterns
@@ -36,7 +36,14 @@ export const CACHE_PATTERNS = {
   INTERACTIONS: ['interactions'],
   USER_PROFILES: ['user_profiles'],
   CAMPAIGNS: ['campaigns', 'campaign_participants', 'campaign_messages'],
-  ALL: ['people', 'companies', 'jobs', 'interactions', 'user_profiles', 'campaigns']
+  ALL: [
+    'people',
+    'companies',
+    'jobs',
+    'interactions',
+    'user_profiles',
+    'campaigns',
+  ],
 };
 
 // Advanced caching hook with intelligent invalidation
@@ -55,14 +62,14 @@ export function useAdvancedCaching<T>(
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const retryCountRef = useRef(0);
-  
+
   const {
     cacheType = 'DYNAMIC',
     enabled = true,
     refetchOnWindowFocus = false,
     refetchOnMount = true,
     retry = 3,
-    retryDelay = 1000
+    retryDelay = 1000,
   } = options;
 
   const cacheTime = CACHE_CONFIG[cacheType];
@@ -78,16 +85,17 @@ export function useAdvancedCaching<T>(
         return result;
       } catch (error) {
         retryCountRef.current++;
-        
+
         // Show toast for persistent errors
         if (retryCountRef.current >= retry) {
           toast({
-            title: "Data Loading Error",
-            description: "Failed to load data after multiple attempts. Please refresh the page.",
-            variant: "destructive",
+            title: 'Data Loading Error',
+            description:
+              'Failed to load data after multiple attempts. Please refresh the page.',
+            variant: 'destructive',
           });
         }
-        
+
         throw error;
       }
     },
@@ -98,42 +106,55 @@ export function useAdvancedCaching<T>(
     refetchOnMount,
     refetchInterval,
     retry,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Intelligent cache invalidation
-  const invalidateCache = useCallback((patterns: string[] = []) => {
-    patterns.forEach(pattern => {
-      queryClient.invalidateQueries({ queryKey: [pattern] });
-    });
-  }, [queryClient]);
+  const invalidateCache = useCallback(
+    (patterns: string[] = []) => {
+      patterns.forEach(pattern => {
+        queryClient.invalidateQueries({ queryKey: [pattern] });
+      });
+    },
+    [queryClient]
+  );
 
   // Prefetch related data
-  const prefetchRelated = useCallback(async (relatedQueries: Array<{key: string[], fn: () => Promise<any>}>) => {
-    const prefetchPromises = relatedQueries.map(({ key, fn }) =>
-      queryClient.prefetchQuery({
-        queryKey: key,
-        queryFn: fn,
-        staleTime: CACHE_CONFIG.STALE_TIME.DYNAMIC,
-      })
-    );
-    
-    await Promise.allSettled(prefetchPromises);
-  }, [queryClient]);
+  const prefetchRelated = useCallback(
+    async (
+      relatedQueries: Array<{ key: string[]; fn: () => Promise<any> }>
+    ) => {
+      const prefetchPromises = relatedQueries.map(({ key, fn }) =>
+        queryClient.prefetchQuery({
+          queryKey: key,
+          queryFn: fn,
+          staleTime: CACHE_CONFIG.STALE_TIME.DYNAMIC,
+        })
+      );
+
+      await Promise.allSettled(prefetchPromises);
+    },
+    [queryClient]
+  );
 
   // Cache warming for critical data
-  const warmCache = useCallback(async (criticalQueries: Array<{key: string[], fn: () => Promise<any>}>) => {
-    const warmPromises = criticalQueries.map(({ key, fn }) =>
-      queryClient.prefetchQuery({
-        queryKey: key,
-        queryFn: fn,
-        staleTime: CACHE_CONFIG.STALE_TIME.DYNAMIC,
-        gcTime: CACHE_CONFIG.DYNAMIC_DATA,
-      })
-    );
-    
-    await Promise.allSettled(warmPromises);
-  }, [queryClient]);
+  const warmCache = useCallback(
+    async (
+      criticalQueries: Array<{ key: string[]; fn: () => Promise<any> }>
+    ) => {
+      const warmPromises = criticalQueries.map(({ key, fn }) =>
+        queryClient.prefetchQuery({
+          queryKey: key,
+          queryFn: fn,
+          staleTime: CACHE_CONFIG.STALE_TIME.DYNAMIC,
+          gcTime: CACHE_CONFIG.DYNAMIC_DATA,
+        })
+      );
+
+      await Promise.allSettled(warmPromises);
+    },
+    [queryClient]
+  );
 
   return {
     ...query,
@@ -149,9 +170,22 @@ export function useOptimisticMutation<TData, TVariables>(
   mutationFn: (variables: TVariables) => Promise<TData>,
   options: {
     onMutate?: (variables: TVariables) => Promise<any>;
-    onError?: (error: Error, variables: TVariables, context: any) => Promise<any>;
-    onSuccess?: (data: TData, variables: TVariables, context: any) => Promise<any>;
-    onSettled?: (data: TData | undefined, error: Error | null, variables: TVariables, context: any) => Promise<any>;
+    onError?: (
+      error: Error,
+      variables: TVariables,
+      context: any
+    ) => Promise<any>;
+    onSuccess?: (
+      data: TData,
+      variables: TVariables,
+      context: any
+    ) => Promise<any>;
+    onSettled?: (
+      data: TData | undefined,
+      error: Error | null,
+      variables: TVariables,
+      context: any
+    ) => Promise<any>;
     invalidateQueries?: string[][];
   } = {}
 ) {
@@ -160,18 +194,18 @@ export function useOptimisticMutation<TData, TVariables>(
 
   return useMutation({
     mutationFn,
-    onMutate: async (variables) => {
+    onMutate: async variables => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries();
-      
+
       // Snapshot previous values
       const previousData = queryClient.getQueriesData({});
-      
+
       // Optimistically update cache
       if (options.onMutate) {
         await options.onMutate(variables);
       }
-      
+
       return { previousData };
     },
     onError: async (error, variables, context) => {
@@ -181,30 +215,30 @@ export function useOptimisticMutation<TData, TVariables>(
           queryClient.setQueryData(queryKey, data);
         });
       }
-      
+
       toast({
-        title: "Update Failed",
-        description: error.message || "An error occurred while updating data.",
-        variant: "destructive",
+        title: 'Update Failed',
+        description: error.message || 'An error occurred while updating data.',
+        variant: 'destructive',
       });
-      
+
       if (options.onError) {
         await options.onError(error, variables, context);
       }
     },
     onSuccess: async (data, variables, context) => {
       toast({
-        title: "Success",
-        description: "Data updated successfully.",
+        title: 'Success',
+        description: 'Data updated successfully.',
       });
-      
+
       // Invalidate related queries
       if (options.invalidateQueries) {
         options.invalidateQueries.forEach(queryKey => {
           queryClient.invalidateQueries({ queryKey });
         });
       }
-      
+
       if (options.onSuccess) {
         await options.onSuccess(data, variables, context);
       }
@@ -220,42 +254,48 @@ export function useOptimisticMutation<TData, TVariables>(
 // Cache statistics and monitoring
 export function useCacheStats() {
   const queryClient = useQueryClient();
-  
+
   const getCacheStats = useCallback(() => {
     const cache = queryClient.getQueryCache();
     const queries = cache.getAll();
-    
+
     const stats = {
       totalQueries: queries.length,
       staleQueries: queries.filter(q => q.isStale()).length,
       fetchingQueries: queries.filter(q => q.state.status === 'pending').length,
       errorQueries: queries.filter(q => q.state.status === 'error').length,
       cacheSize: JSON.stringify(queries).length,
-      queriesByKey: queries.reduce((acc, query) => {
-        const key = query.queryKey[0] as string;
-        acc[key] = (acc[key] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>),
+      queriesByKey: queries.reduce(
+        (acc, query) => {
+          const key = query.queryKey[0] as string;
+          acc[key] = (acc[key] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
     };
-    
+
     return stats;
   }, [queryClient]);
-  
+
   const clearExpiredCache = useCallback(() => {
     const cache = queryClient.getQueryCache();
     const queries = cache.getAll();
-    
+
     queries.forEach(query => {
-      if (query.isStale() && query.state.dataUpdatedAt < Date.now() - CACHE_CONFIG.DYNAMIC_DATA) {
+      if (
+        query.isStale() &&
+        query.state.dataUpdatedAt < Date.now() - CACHE_CONFIG.DYNAMIC_DATA
+      ) {
         queryClient.removeQueries({ queryKey: query.queryKey });
       }
     });
   }, [queryClient]);
-  
+
   const clearAllCache = useCallback(() => {
     queryClient.clear();
   }, [queryClient]);
-  
+
   return {
     getCacheStats,
     clearExpiredCache,
@@ -267,18 +307,39 @@ export function useCacheStats() {
 export function useBackgroundSync() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   const syncInBackground = useCallback(async () => {
     if (!navigator.onLine) return;
-    
+
     try {
       // Sync critical data in background
       const criticalQueries = [
-        { key: ['people'], fn: () => supabase.from('people').select('id, name, stage, updated_at').limit(100) },
-        { key: ['companies'], fn: () => supabase.from('companies').select('id, name, pipeline_stage, updated_at').limit(100) },
-        { key: ['jobs'], fn: () => supabase.from('jobs').select('id, title, priority, updated_at').limit(100) },
+        {
+          key: ['people'],
+          fn: () =>
+            supabase
+              .from('people')
+              .select('id, name, stage, updated_at')
+              .limit(100),
+        },
+        {
+          key: ['companies'],
+          fn: () =>
+            supabase
+              .from('companies')
+              .select('id, name, pipeline_stage, updated_at')
+              .limit(100),
+        },
+        {
+          key: ['jobs'],
+          fn: () =>
+            supabase
+              .from('jobs')
+              .select('id, title, priority, updated_at')
+              .limit(100),
+        },
       ];
-      
+
       await Promise.allSettled(
         criticalQueries.map(({ key, fn }) =>
           queryClient.prefetchQuery({
@@ -288,35 +349,38 @@ export function useBackgroundSync() {
           })
         )
       );
-      
+
       console.log('Background sync completed');
     } catch (error) {
       console.error('Background sync failed:', error);
     }
   }, [queryClient]);
-  
+
   useEffect(() => {
     // Sync every 5 minutes when tab is visible
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        syncInBackground();
-      }
-    }, 5 * 60 * 1000);
-    
+    const interval = setInterval(
+      () => {
+        if (document.visibilityState === 'visible') {
+          syncInBackground();
+        }
+      },
+      5 * 60 * 1000
+    );
+
     // Sync when tab becomes visible
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         syncInBackground();
       }
     };
-    
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [syncInBackground]);
-  
+
   return { syncInBackground };
 }

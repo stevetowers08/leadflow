@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Handles people insertion with automatic duplicate resolution
@@ -20,51 +20,61 @@ export const insertPersonWithDuplicateHandling = async (personData: any) => {
     // Handle duplicate key errors
     if (error.code === '23505') {
       if (error.message.includes('linkedin_url_key')) {
-        console.log('Duplicate LinkedIn URL detected, creating unique version...');
-        
+        console.log(
+          'Duplicate LinkedIn URL detected, creating unique version...'
+        );
+
         // Generate a unique LinkedIn URL by adding a timestamp suffix
         const originalLinkedInUrl = personData.linkedin_url;
         const timestamp = Date.now();
         const uniqueLinkedInUrl = `${originalLinkedInUrl}_${timestamp}`;
-        
+
         // Try inserting with the unique LinkedIn URL
         const { data: uniqueData, error: uniqueError } = await supabase
           .from('people')
           .insert({
             ...personData,
-            linkedin_url: uniqueLinkedInUrl
+            linkedin_url: uniqueLinkedInUrl,
           })
           .select();
 
         if (uniqueError) {
-          console.error('Failed to insert person even with unique LinkedIn URL:', uniqueError);
+          console.error(
+            'Failed to insert person even with unique LinkedIn URL:',
+            uniqueError
+          );
           throw uniqueError;
         }
 
         console.log('Person inserted with unique LinkedIn URL:', uniqueData);
         return uniqueData;
       }
-      
+
       if (error.message.includes('email_address_key')) {
-        console.log('Duplicate email address detected, creating unique version...');
-        
+        console.log(
+          'Duplicate email address detected, creating unique version...'
+        );
+
         // Generate a unique email by adding a timestamp suffix
         const originalEmail = personData.email_address;
         const timestamp = Date.now();
         const [localPart, domain] = originalEmail.split('@');
         const uniqueEmail = `${localPart}_${timestamp}@${domain}`;
-        
+
         // Try inserting with the unique email
         const { data: uniqueData, error: uniqueError } = await supabase
           .from('people')
           .insert({
             ...personData,
-            email_address: uniqueEmail
+            email_address: uniqueEmail,
           })
           .select();
 
         if (uniqueError) {
-          console.error('Failed to insert person even with unique email:', uniqueError);
+          console.error(
+            'Failed to insert person even with unique email:',
+            uniqueError
+          );
           throw uniqueError;
         }
 
@@ -92,11 +102,11 @@ export const upsertPerson = async (personData: any) => {
       .upsert(
         {
           ...personData,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         },
         {
           onConflict: 'linkedin_url,email_address', // Handle conflicts on both fields
-          ignoreDuplicates: false
+          ignoreDuplicates: false,
         }
       )
       .select();
@@ -125,7 +135,8 @@ export const checkLinkedInUrlExists = async (linkedinUrl: string) => {
       .eq('linkedin_url', linkedinUrl)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
       throw error;
     }
 
@@ -147,7 +158,8 @@ export const checkEmailExists = async (email: string) => {
       .eq('email_address', email)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
       throw error;
     }
 
@@ -161,31 +173,35 @@ export const checkEmailExists = async (email: string) => {
 /**
  * Generate a unique LinkedIn URL by checking for conflicts
  */
-export const generateUniqueLinkedInUrl = async (originalLinkedInUrl: string): Promise<string> => {
+export const generateUniqueLinkedInUrl = async (
+  originalLinkedInUrl: string
+): Promise<string> => {
   let uniqueUrl = originalLinkedInUrl;
   let counter = 1;
-  
+
   while (await checkLinkedInUrlExists(uniqueUrl)) {
     uniqueUrl = `${originalLinkedInUrl}_${counter}`;
     counter++;
   }
-  
+
   return uniqueUrl;
 };
 
 /**
  * Generate a unique email address by checking for conflicts
  */
-export const generateUniqueEmail = async (originalEmail: string): Promise<string> => {
+export const generateUniqueEmail = async (
+  originalEmail: string
+): Promise<string> => {
   let uniqueEmail = originalEmail;
   let counter = 1;
-  
+
   while (await checkEmailExists(uniqueEmail)) {
     const [localPart, domain] = originalEmail.split('@');
     uniqueEmail = `${localPart}_${counter}@${domain}`;
     counter++;
   }
-  
+
   return uniqueEmail;
 };
 
@@ -195,21 +211,33 @@ export const generateUniqueEmail = async (originalEmail: string): Promise<string
 export const insertPersonWithAllDuplicateHandling = async (personData: any) => {
   try {
     // Check for existing LinkedIn URL and email
-    const linkedinExists = personData.linkedin_url ? await checkLinkedInUrlExists(personData.linkedin_url) : false;
-    const emailExists = personData.email_address ? await checkEmailExists(personData.email_address) : false;
+    const linkedinExists = personData.linkedin_url
+      ? await checkLinkedInUrlExists(personData.linkedin_url)
+      : false;
+    const emailExists = personData.email_address
+      ? await checkEmailExists(personData.email_address)
+      : false;
 
     let processedData = { ...personData };
 
     // Handle LinkedIn URL duplicate
     if (linkedinExists && personData.linkedin_url) {
-      processedData.linkedin_url = await generateUniqueLinkedInUrl(personData.linkedin_url);
-      console.log(`LinkedIn URL conflict resolved: ${personData.linkedin_url} -> ${processedData.linkedin_url}`);
+      processedData.linkedin_url = await generateUniqueLinkedInUrl(
+        personData.linkedin_url
+      );
+      console.log(
+        `LinkedIn URL conflict resolved: ${personData.linkedin_url} -> ${processedData.linkedin_url}`
+      );
     }
 
     // Handle email duplicate
     if (emailExists && personData.email_address) {
-      processedData.email_address = await generateUniqueEmail(personData.email_address);
-      console.log(`Email conflict resolved: ${personData.email_address} -> ${processedData.email_address}`);
+      processedData.email_address = await generateUniqueEmail(
+        personData.email_address
+      );
+      console.log(
+        `Email conflict resolved: ${personData.email_address} -> ${processedData.email_address}`
+      );
     }
 
     // Insert with processed data
@@ -219,7 +247,10 @@ export const insertPersonWithAllDuplicateHandling = async (personData: any) => {
       .select();
 
     if (error) {
-      console.error('Failed to insert person after conflict resolution:', error);
+      console.error(
+        'Failed to insert person after conflict resolution:',
+        error
+      );
       throw error;
     }
 
@@ -230,5 +261,3 @@ export const insertPersonWithAllDuplicateHandling = async (personData: any) => {
     throw error;
   }
 };
-
-

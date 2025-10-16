@@ -1,5 +1,16 @@
-import React, { createContext, useContext, useCallback, ReactNode } from 'react';
-import { validatePopupState, debugPopupState, safeStateUpdate, isValidEntityType, isValidEntityId } from '@/utils/popupStateValidation';
+import React, {
+  createContext,
+  useContext,
+  useCallback,
+  ReactNode,
+} from 'react';
+import {
+  validatePopupState,
+  debugPopupState,
+  safeStateUpdate,
+  isValidEntityType,
+  isValidEntityId,
+} from '@/utils/popupStateValidation';
 
 /**
  * Centralized navigation context for all popup interactions
@@ -29,83 +40,108 @@ export interface NavigationState {
 }
 
 export interface NavigationActions {
-  navigateToEntity: (type: 'lead' | 'company' | 'job', id: string, name: string) => void;
+  navigateToEntity: (
+    type: 'lead' | 'company' | 'job',
+    id: string,
+    name: string
+  ) => void;
   navigateBack: () => void;
   clearHistory: () => void;
   canNavigateBack: () => boolean;
-  openPopup: (type: 'lead' | 'company' | 'job', id: string, name: string) => void;
+  openPopup: (
+    type: 'lead' | 'company' | 'job',
+    id: string,
+    name: string
+  ) => void;
   closePopup: () => void;
 }
 
-interface PopupNavigationContextType extends NavigationState, NavigationActions {
+interface PopupNavigationContextType
+  extends NavigationState,
+    NavigationActions {
   onAssignmentChange?: () => void;
 }
 
-const PopupNavigationContext = createContext<PopupNavigationContextType | undefined>(undefined);
+const PopupNavigationContext = createContext<
+  PopupNavigationContextType | undefined
+>(undefined);
 
 interface PopupNavigationProviderProps {
   children: ReactNode;
-  onEntityChange?: (type: 'lead' | 'company' | 'job', id: string, name: string) => void;
+  onEntityChange?: (
+    type: 'lead' | 'company' | 'job',
+    id: string,
+    name: string
+  ) => void;
   onAssignmentChange?: () => void;
 }
 
-export const PopupNavigationProvider: React.FC<PopupNavigationProviderProps> = ({
-  children,
-  onEntityChange,
-  onAssignmentChange
-}) => {
-  
-  const [currentEntity, setCurrentEntity] = React.useState<NavigationState['currentEntity']>({
+export const PopupNavigationProvider: React.FC<
+  PopupNavigationProviderProps
+> = ({ children, onEntityChange, onAssignmentChange }) => {
+  const [currentEntity, setCurrentEntity] = React.useState<
+    NavigationState['currentEntity']
+  >({
     type: null,
     id: null,
-    name: null
+    name: null,
   });
 
-  const [popupState, setPopupState] = React.useState<NavigationState['popupState']>({
-    isOpen: false
+  const [popupState, setPopupState] = React.useState<
+    NavigationState['popupState']
+  >({
+    isOpen: false,
   });
 
-  const [navigationHistory, setNavigationHistory] = React.useState<NavigationState['navigationHistory']>([]);
+  const [navigationHistory, setNavigationHistory] = React.useState<
+    NavigationState['navigationHistory']
+  >([]);
 
-  const navigateToEntity = useCallback((type: 'lead' | 'company' | 'job', id: string, name: string) => {
-    // Add current entity to history if it exists
-    if (currentEntity.type && currentEntity.id && currentEntity.name) {
-      setNavigationHistory(prev => [
-        ...prev,
-        {
-          type: currentEntity.type,
-          id: currentEntity.id,
-          name: currentEntity.name,
-          timestamp: Date.now()
-        }
-      ]);
-    }
+  const navigateToEntity = useCallback(
+    (type: 'lead' | 'company' | 'job', id: string, name: string) => {
+      // Add current entity to history if it exists
+      if (currentEntity.type && currentEntity.id && currentEntity.name) {
+        setNavigationHistory(prev => [
+          ...prev,
+          {
+            type: currentEntity.type,
+            id: currentEntity.id,
+            name: currentEntity.name,
+            timestamp: Date.now(),
+          },
+        ]);
+      }
 
-    // Update current entity
-    setCurrentEntity({ type, id, name });
+      // Update current entity
+      setCurrentEntity({ type, id, name });
 
-    // Notify parent component
-    onEntityChange?.(type, id, name);
-  }, [currentEntity, onEntityChange]);
+      // Notify parent component
+      onEntityChange?.(type, id, name);
+    },
+    [currentEntity, onEntityChange]
+  );
 
-  const openPopup = useCallback((type: 'lead' | 'company' | 'job', id: string, name: string) => {
-    // Validate inputs
-    if (!isValidEntityType(type)) {
-      console.error('Invalid entity type:', type);
-      return;
-    }
-    
-    if (!isValidEntityId(id)) {
-      console.error('Invalid entity ID:', id);
-      return;
-    }
-    
-    // Set the entity data first
-    navigateToEntity(type, id, name);
-    
-    // Open the popup immediately after setting entity data
-    setPopupState({ isOpen: true });
-  }, [navigateToEntity]);
+  const openPopup = useCallback(
+    (type: 'lead' | 'company' | 'job', id: string, name: string) => {
+      // Validate inputs
+      if (!isValidEntityType(type)) {
+        console.error('Invalid entity type:', type);
+        return;
+      }
+
+      if (!isValidEntityId(id)) {
+        console.error('Invalid entity ID:', id);
+        return;
+      }
+
+      // Set the entity data first
+      navigateToEntity(type, id, name);
+
+      // Open the popup immediately after setting entity data
+      setPopupState({ isOpen: true });
+    },
+    [navigateToEntity]
+  );
 
   const closePopup = useCallback(() => {
     setPopupState({ isOpen: false });
@@ -119,9 +155,13 @@ export const PopupNavigationProvider: React.FC<PopupNavigationProviderProps> = (
       setCurrentEntity({
         type: previousEntity.type,
         id: previousEntity.id,
-        name: previousEntity.name
+        name: previousEntity.name,
       });
-      onEntityChange?.(previousEntity.type, previousEntity.id, previousEntity.name);
+      onEntityChange?.(
+        previousEntity.type,
+        previousEntity.id,
+        previousEntity.name
+      );
     }
   }, [navigationHistory, onEntityChange]);
 
@@ -143,7 +183,7 @@ export const PopupNavigationProvider: React.FC<PopupNavigationProviderProps> = (
     canNavigateBack,
     openPopup,
     closePopup,
-    onAssignmentChange
+    onAssignmentChange,
   };
 
   return (
@@ -159,11 +199,13 @@ export const PopupNavigationProvider: React.FC<PopupNavigationProviderProps> = (
  */
 export const usePopupNavigation = (): PopupNavigationContextType => {
   const context = useContext(PopupNavigationContext);
-  
+
   if (context === undefined) {
-    throw new Error('usePopupNavigation must be used within a PopupNavigationProvider');
+    throw new Error(
+      'usePopupNavigation must be used within a PopupNavigationProvider'
+    );
   }
-  
+
   return context;
 };
 
@@ -172,22 +214,32 @@ export const usePopupNavigation = (): PopupNavigationContextType => {
  * Provides convenient methods for common navigation patterns
  */
 export const useEntityNavigation = () => {
-  const { navigateToEntity, navigateBack, canNavigateBack } = usePopupNavigation();
+  const { navigateToEntity, navigateBack, canNavigateBack } =
+    usePopupNavigation();
 
   return {
-    navigateToLead: useCallback((id: string, name: string) => {
-      navigateToEntity('lead', id, name);
-    }, [navigateToEntity]),
-    
-    navigateToCompany: useCallback((id: string, name: string) => {
-      navigateToEntity('company', id, name);
-    }, [navigateToEntity]),
-    
-    navigateToJob: useCallback((id: string, name: string) => {
-      navigateToEntity('job', id, name);
-    }, [navigateToEntity]),
-    
+    navigateToLead: useCallback(
+      (id: string, name: string) => {
+        navigateToEntity('lead', id, name);
+      },
+      [navigateToEntity]
+    ),
+
+    navigateToCompany: useCallback(
+      (id: string, name: string) => {
+        navigateToEntity('company', id, name);
+      },
+      [navigateToEntity]
+    ),
+
+    navigateToJob: useCallback(
+      (id: string, name: string) => {
+        navigateToEntity('job', id, name);
+      },
+      [navigateToEntity]
+    ),
+
     navigateBack,
-    canNavigateBack
+    canNavigateBack,
   };
 };

@@ -5,14 +5,16 @@
 
 import { enhancedErrorLogger } from '@/services/supabaseErrorService';
 import { supabaseErrorService } from '@/services/supabaseErrorService';
-import { ErrorSeverity, ErrorCategory } from '@/utils/errorLogger';
+import { ErrorSeverity, ErrorCategory } from '@/services/errorLogger';
 
 // Initialize error service with admin email
-export async function initializeErrorHandling(adminEmail?: string): Promise<void> {
+export async function initializeErrorHandling(
+  adminEmail?: string
+): Promise<void> {
   try {
     // Initialize the Supabase error service
     await supabaseErrorService.initialize(adminEmail);
-    
+
     console.log('✅ Error handling system initialized');
   } catch (error) {
     console.error('❌ Failed to initialize error handling:', error);
@@ -22,7 +24,7 @@ export async function initializeErrorHandling(adminEmail?: string): Promise<void
 // Global error handlers
 export function setupGlobalErrorHandlers(): void {
   // Handle unhandled JavaScript errors
-  window.addEventListener('error', async (event) => {
+  window.addEventListener('error', async event => {
     await enhancedErrorLogger.logError(
       event.error || event.message,
       ErrorSeverity.HIGH,
@@ -35,13 +37,13 @@ export function setupGlobalErrorHandlers(): void {
           lineno: event.lineno,
           colno: event.colno,
           type: 'javascript_error',
-        }
+        },
       }
     );
   });
 
   // Handle unhandled promise rejections
-  window.addEventListener('unhandledrejection', async (event) => {
+  window.addEventListener('unhandledrejection', async event => {
     await enhancedErrorLogger.logError(
       event.reason,
       ErrorSeverity.HIGH,
@@ -52,7 +54,7 @@ export function setupGlobalErrorHandlers(): void {
         metadata: {
           promise: event.promise,
           type: 'promise_rejection',
-        }
+        },
       }
     );
   });
@@ -62,7 +64,7 @@ export function setupGlobalErrorHandlers(): void {
   window.fetch = async (...args) => {
     try {
       const response = await originalFetch(...args);
-      
+
       // Log failed requests
       if (!response.ok) {
         await enhancedErrorLogger.logNetworkError(
@@ -75,24 +77,21 @@ export function setupGlobalErrorHandlers(): void {
               status: response.status,
               statusText: response.statusText,
               method: args[1]?.method || 'GET',
-            }
+            },
           }
         );
       }
-      
+
       return response;
     } catch (error) {
-      await enhancedErrorLogger.logNetworkError(
-        error as Error,
-        {
-          component: 'fetch',
-          action: 'network_error',
-          metadata: {
-            url: args[0]?.toString(),
-            method: args[1]?.method || 'GET',
-          }
-        }
-      );
+      await enhancedErrorLogger.logNetworkError(error as Error, {
+        component: 'fetch',
+        action: 'network_error',
+        metadata: {
+          url: args[0]?.toString(),
+          method: args[1]?.method || 'GET',
+        },
+      });
       throw error;
     }
   };
@@ -112,62 +111,67 @@ export const logReactError = async (error: Error, errorInfo: any) => {
       metadata: {
         componentStack: errorInfo.componentStack,
         errorBoundary: true,
-      }
+      },
     }
   );
 };
 
 // Supabase error handler
-export async function handleSupabaseError(error: any, context: string): Promise<void> {
-  await enhancedErrorLogger.logDatabaseError(
-    error,
-    {
-      component: 'supabase',
-      action: context,
-      metadata: {
-        errorCode: error.code,
-        errorMessage: error.message,
-        errorDetails: error.details,
-        errorHint: error.hint,
-      }
-    }
-  );
+export async function handleSupabaseError(
+  error: any,
+  context: string
+): Promise<void> {
+  await enhancedErrorLogger.logDatabaseError(error, {
+    component: 'supabase',
+    action: context,
+    metadata: {
+      errorCode: error.code,
+      errorMessage: error.message,
+      errorDetails: error.details,
+      errorHint: error.hint,
+    },
+  });
 }
 
 // API error handler
-export async function handleApiError(error: any, context: string, endpoint?: string): Promise<void> {
-  await enhancedErrorLogger.logNetworkError(
-    error,
-    {
-      component: 'api',
-      action: context,
-      metadata: {
-        endpoint,
-        errorMessage: error.message,
-        errorStatus: error.status,
-        errorResponse: error.response,
-      }
-    }
-  );
+export async function handleApiError(
+  error: any,
+  context: string,
+  endpoint?: string
+): Promise<void> {
+  await enhancedErrorLogger.logNetworkError(error, {
+    component: 'api',
+    action: context,
+    metadata: {
+      endpoint,
+      errorMessage: error.message,
+      errorStatus: error.status,
+      errorResponse: error.response,
+    },
+  });
 }
 
 // Authentication error handler
-export async function handleAuthError(error: any, context: string): Promise<void> {
-  await enhancedErrorLogger.logAuthError(
-    error,
-    {
-      component: 'authentication',
-      action: context,
-      metadata: {
-        errorCode: error.code,
-        errorMessage: error.message,
-      }
-    }
-  );
+export async function handleAuthError(
+  error: any,
+  context: string
+): Promise<void> {
+  await enhancedErrorLogger.logAuthError(error, {
+    component: 'authentication',
+    action: context,
+    metadata: {
+      errorCode: error.code,
+      errorMessage: error.message,
+    },
+  });
 }
 
 // Business logic error handler
-export async function handleBusinessError(error: any, context: string, metadata?: Record<string, any>): Promise<void> {
+export async function handleBusinessError(
+  error: any,
+  context: string,
+  metadata?: Record<string, any>
+): Promise<void> {
   await enhancedErrorLogger.logError(
     error,
     ErrorSeverity.MEDIUM,
@@ -178,23 +182,24 @@ export async function handleBusinessError(error: any, context: string, metadata?
       metadata: {
         ...metadata,
         errorMessage: error.message,
-      }
+      },
     }
   );
 }
 
 // Critical error handler for system-level issues
-export async function handleCriticalError(error: any, context: string, metadata?: Record<string, any>): Promise<void> {
-  await enhancedErrorLogger.logCriticalError(
-    error,
-    {
-      component: 'system',
-      action: context,
-      metadata: {
-        ...metadata,
-        errorMessage: error.message,
-        critical: true,
-      }
-    }
-  );
+export async function handleCriticalError(
+  error: any,
+  context: string,
+  metadata?: Record<string, any>
+): Promise<void> {
+  await enhancedErrorLogger.logCriticalError(error, {
+    component: 'system',
+    action: context,
+    metadata: {
+      ...metadata,
+      errorMessage: error.message,
+      critical: true,
+    },
+  });
 }

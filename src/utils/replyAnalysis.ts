@@ -12,10 +12,12 @@ export interface ReplyAnalysisResult {
 /**
  * Analyze a lead's reply message using Google AI to determine interest level
  */
-export async function analyzeReplyMessage(message: string): Promise<ReplyAnalysisResult> {
+export async function analyzeReplyMessage(
+  message: string
+): Promise<ReplyAnalysisResult> {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-    
+
     const prompt = `
 Analyze the following message from a potential lead and determine their interest level in our recruitment services.
 
@@ -39,23 +41,23 @@ The confidence should be a number between 0 and 1, where 1 is completely confide
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
+
     // Parse the JSON response
     const analysis = JSON.parse(text.trim());
-    
+
     return {
       replyType: analysis.replyType,
       confidence: analysis.confidence,
-      reasoning: analysis.reasoning
+      reasoning: analysis.reasoning,
     };
   } catch (error) {
     console.error('Error analyzing reply message:', error);
-    
+
     // Fallback to neutral classification
     return {
       replyType: 'maybe',
       confidence: 0.5,
-      reasoning: 'Unable to analyze message, defaulting to neutral'
+      reasoning: 'Unable to analyze message, defaulting to neutral',
     };
   }
 }
@@ -63,7 +65,9 @@ The confidence should be a number between 0 and 1, where 1 is completely confide
 /**
  * Get reply type emoji for UI display
  */
-export function getReplyTypeEmoji(replyType: 'interested' | 'not_interested' | 'maybe'): string {
+export function getReplyTypeEmoji(
+  replyType: 'interested' | 'not_interested' | 'maybe'
+): string {
   switch (replyType) {
     case 'interested':
       return '😊'; // Green smiling face
@@ -79,7 +83,9 @@ export function getReplyTypeEmoji(replyType: 'interested' | 'not_interested' | '
 /**
  * Get reply type color for UI display
  */
-export function getReplyTypeColor(replyType: 'interested' | 'not_interested' | 'maybe'): string {
+export function getReplyTypeColor(
+  replyType: 'interested' | 'not_interested' | 'maybe'
+): string {
   switch (replyType) {
     case 'interested':
       return 'text-green-600 bg-green-50 border-green-200';
@@ -95,7 +101,9 @@ export function getReplyTypeColor(replyType: 'interested' | 'not_interested' | '
 /**
  * Get reply type label for UI display
  */
-export function getReplyTypeLabel(replyType: 'interested' | 'not_interested' | 'maybe'): string {
+export function getReplyTypeLabel(
+  replyType: 'interested' | 'not_interested' | 'maybe'
+): string {
   switch (replyType) {
     case 'interested':
       return 'Interested';

@@ -23,11 +23,15 @@ const Button: React.FC<ButtonProps> = ({
   disabled = false,
   loading = false,
 }) => {
-  const baseClasses = 'font-medium rounded-md transition-colors focus:outline-none focus:ring-2';
+  const baseClasses =
+    'font-medium rounded-md transition-colors focus:outline-none focus:ring-2';
   const variantClasses = {
-    primary: 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 focus:ring-sidebar-primary',
-    secondary: 'bg-muted text-muted-foreground hover:bg-muted/80 focus:ring-muted',
-    danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive',
+    primary:
+      'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 focus:ring-sidebar-primary',
+    secondary:
+      'bg-muted text-muted-foreground hover:bg-muted/80 focus:ring-muted',
+    danger:
+      'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive',
   };
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm',
@@ -71,35 +75,41 @@ const Form: React.FC<FormProps> = ({ onSubmit, initialData }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} data-testid="form">
-      <div className="space-y-4">
+    <form onSubmit={handleSubmit} data-testid='form'>
+      <div className='space-y-4'>
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor='name'
+            className='block text-sm font-medium text-gray-700'
+          >
             Name
           </label>
           <input
-            id="name"
-            type="text"
+            id='name'
+            type='text'
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            onChange={e => setFormData({ ...formData, name: e.target.value })}
+            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'
             required
           />
         </div>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor='email'
+            className='block text-sm font-medium text-gray-700'
+          >
             Email
           </label>
           <input
-            id="email"
-            type="email"
+            id='email'
+            type='email'
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            onChange={e => setFormData({ ...formData, email: e.target.value })}
+            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'
             required
           />
         </div>
-        <Button type="submit" loading={isSubmitting}>
+        <Button type='submit' loading={isSubmitting}>
           Submit
         </Button>
       </div>
@@ -132,7 +142,7 @@ describe('Button Component', () => {
   it('calls onClick when clicked', async () => {
     const handleClick = vi.fn();
     render(<Button onClick={handleClick}>Click me</Button>);
-    
+
     await userEvent.click(screen.getByText('Click me'));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
@@ -148,13 +158,13 @@ describe('Button Component', () => {
   });
 
   it('applies correct variant classes', () => {
-    render(<Button variant="danger">Delete</Button>);
+    render(<Button variant='danger'>Delete</Button>);
     const button = screen.getByRole('button');
     expect(button).toHaveClass('bg-red-600');
   });
 
   it('applies correct size classes', () => {
-    render(<Button size="lg">Large Button</Button>);
+    render(<Button size='lg'>Large Button</Button>);
     const button = screen.getByRole('button');
     expect(button).toHaveClass('px-6', 'py-3', 'text-lg');
   });
@@ -167,7 +177,7 @@ describe('Form Component', () => {
 
   it('renders form fields', () => {
     render(<Form onSubmit={vi.fn()} />);
-    
+
     expect(screen.getByLabelText('Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Submit' })).toBeInTheDocument();
@@ -175,13 +185,13 @@ describe('Form Component', () => {
 
   it('updates form data on input change', async () => {
     render(<Form onSubmit={vi.fn()} />);
-    
+
     const nameInput = screen.getByLabelText('Name');
     const emailInput = screen.getByLabelText('Email');
-    
+
     await userEvent.type(nameInput, 'John Doe');
     await userEvent.type(emailInput, 'john@example.com');
-    
+
     expect(nameInput).toHaveValue('John Doe');
     expect(emailInput).toHaveValue('john@example.com');
   });
@@ -189,11 +199,11 @@ describe('Form Component', () => {
   it('calls onSubmit with form data', async () => {
     const handleSubmit = vi.fn();
     render(<Form onSubmit={handleSubmit} />);
-    
+
     await userEvent.type(screen.getByLabelText('Name'), 'John Doe');
     await userEvent.type(screen.getByLabelText('Email'), 'john@example.com');
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
-    
+
     expect(handleSubmit).toHaveBeenCalledWith({
       name: 'John Doe',
       email: 'john@example.com',
@@ -201,15 +211,17 @@ describe('Form Component', () => {
   });
 
   it('shows loading state during submission', async () => {
-    const handleSubmit = vi.fn(() => new Promise(resolve => setTimeout(resolve, 100)));
+    const handleSubmit = vi.fn(
+      () => new Promise(resolve => setTimeout(resolve, 100))
+    );
     render(<Form onSubmit={handleSubmit} />);
-    
+
     await userEvent.type(screen.getByLabelText('Name'), 'John Doe');
     await userEvent.type(screen.getByLabelText('Email'), 'john@example.com');
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
-    
+
     expect(screen.getByText('Loading...')).toBeInTheDocument();
-    
+
     await waitFor(() => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
@@ -218,7 +230,7 @@ describe('Form Component', () => {
   it('initializes with provided data', () => {
     const initialData = { name: 'Jane Doe', email: 'jane@example.com' };
     render(<Form onSubmit={vi.fn()} initialData={initialData} />);
-    
+
     expect(screen.getByLabelText('Name')).toHaveValue('Jane Doe');
     expect(screen.getByLabelText('Email')).toHaveValue('jane@example.com');
   });
@@ -232,19 +244,14 @@ describe('Component Integration Tests', () => {
         <Form onSubmit={handleSubmit} />
       </TestWrapper>
     );
-    
+
     await userEvent.type(screen.getByLabelText('Name'), 'Test User');
     await userEvent.type(screen.getByLabelText('Email'), 'test@example.com');
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
-    
+
     expect(handleSubmit).toHaveBeenCalledWith({
       name: 'Test User',
       email: 'test@example.com',
     });
   });
 });
-
-
-
-
-

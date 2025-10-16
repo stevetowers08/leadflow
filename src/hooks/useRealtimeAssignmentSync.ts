@@ -18,67 +18,79 @@ export interface RealtimeAssignmentOptions {
   enabled?: boolean;
 }
 
-export const useRealtimeAssignmentSync = (options: RealtimeAssignmentOptions = {}) => {
+export const useRealtimeAssignmentSync = (
+  options: RealtimeAssignmentOptions = {}
+) => {
   const {
     entityTypes = ['people', 'companies', 'jobs'],
     onAssignmentChange,
-    enabled = true
+    enabled = true,
   } = options;
 
   const queryClient = useQueryClient();
 
   // Cache invalidation function
-  const invalidateAssignmentCaches = useCallback((entityType: string, entityId: string) => {
-    // Invalidate specific entity assignment
-    queryClient.invalidateQueries({ queryKey: ['assignment', entityType, entityId] });
-    
-    // Invalidate general assignment queries
-    queryClient.invalidateQueries({ queryKey: ['user-assignment-stats'] });
-    queryClient.invalidateQueries({ queryKey: ['leads-with-assignments'] });
-    queryClient.invalidateQueries({ queryKey: ['companies-with-assignments'] });
-    queryClient.invalidateQueries({ queryKey: ['unassigned-leads'] });
-    queryClient.invalidateQueries({ queryKey: ['unassigned-companies'] });
-    
-    // Invalidate main entity queries
-    queryClient.invalidateQueries({ queryKey: ['leads'] });
-    queryClient.invalidateQueries({ queryKey: ['companies'] });
-    queryClient.invalidateQueries({ queryKey: ['jobs'] });
-    queryClient.invalidateQueries({ queryKey: ['leads-infinite'] });
-    
-    // Invalidate dashboard stats
-    queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-  }, [queryClient]);
+  const invalidateAssignmentCaches = useCallback(
+    (entityType: string, entityId: string) => {
+      // Invalidate specific entity assignment
+      queryClient.invalidateQueries({
+        queryKey: ['assignment', entityType, entityId],
+      });
+
+      // Invalidate general assignment queries
+      queryClient.invalidateQueries({ queryKey: ['user-assignment-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['leads-with-assignments'] });
+      queryClient.invalidateQueries({
+        queryKey: ['companies-with-assignments'],
+      });
+      queryClient.invalidateQueries({ queryKey: ['unassigned-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['unassigned-companies'] });
+
+      // Invalidate main entity queries
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['companies'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['leads-infinite'] });
+
+      // Invalidate dashboard stats
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+    [queryClient]
+  );
 
   // Handle assignment changes
-  const handleAssignmentChange = useCallback((payload: any) => {
-    const { new: newRecord, old: oldRecord, eventType, table } = payload;
-    
-    if (eventType === 'UPDATE' && newRecord && oldRecord) {
-      const oldOwnerId = oldRecord.owner_id;
-      const newOwnerId = newRecord.owner_id;
-      
-      // Only trigger if owner actually changed
-      if (oldOwnerId !== newOwnerId) {
-        console.log('🔄 Assignment changed via real-time:', {
-          entityType: table,
-          entityId: newRecord.id,
-          oldOwnerId,
-          newOwnerId
-        });
+  const handleAssignmentChange = useCallback(
+    (payload: any) => {
+      const { new: newRecord, old: oldRecord, eventType, table } = payload;
 
-        // Invalidate caches
-        invalidateAssignmentCaches(table, newRecord.id);
+      if (eventType === 'UPDATE' && newRecord && oldRecord) {
+        const oldOwnerId = oldRecord.owner_id;
+        const newOwnerId = newRecord.owner_id;
 
-        // Call custom handler if provided
-        onAssignmentChange?.({
-          entityType: table as 'people' | 'companies' | 'jobs',
-          entityId: newRecord.id,
-          newOwnerId,
-          oldOwnerId
-        });
+        // Only trigger if owner actually changed
+        if (oldOwnerId !== newOwnerId) {
+          console.log('🔄 Assignment changed via real-time:', {
+            entityType: table,
+            entityId: newRecord.id,
+            oldOwnerId,
+            newOwnerId,
+          });
+
+          // Invalidate caches
+          invalidateAssignmentCaches(table, newRecord.id);
+
+          // Call custom handler if provided
+          onAssignmentChange?.({
+            entityType: table as 'people' | 'companies' | 'jobs',
+            entityId: newRecord.id,
+            newOwnerId,
+            oldOwnerId,
+          });
+        }
       }
-    }
-  }, [invalidateAssignmentCaches, onAssignmentChange]);
+    },
+    [invalidateAssignmentCaches, onAssignmentChange]
+  );
 
   useEffect(() => {
     if (!enabled) return;
@@ -89,25 +101,27 @@ export const useRealtimeAssignmentSync = (options: RealtimeAssignmentOptions = {
     entityTypes.forEach(entityType => {
       const channel = supabase
         .channel(`${entityType}-assignment-sync`)
-        .on('postgres_changes', 
-          { 
-            event: 'UPDATE', 
-            schema: 'public', 
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
             table: entityType,
-            filter: 'owner_id=neq.null'
-          }, 
+            filter: 'owner_id=neq.null',
+          },
           handleAssignmentChange
         )
-        .on('postgres_changes', 
-          { 
-            event: 'UPDATE', 
-            schema: 'public', 
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
             table: entityType,
-            filter: 'owner_id=is.null'
-          }, 
+            filter: 'owner_id=is.null',
+          },
           handleAssignmentChange
         )
-        .subscribe((status) => {
+        .subscribe(status => {
           if (status === 'SUBSCRIBED') {
             console.log(`✅ Real-time subscription active for ${entityType}`);
           } else if (status === 'CHANNEL_ERROR') {
@@ -131,6 +145,6 @@ export const useRealtimeAssignmentSync = (options: RealtimeAssignmentOptions = {
   }, [entityTypes.join(','), enabled]); // Remove handleAssignmentChange from dependencies
 
   return {
-    invalidateAssignmentCaches
+    invalidateAssignmentCaches,
   };
 };

@@ -10,17 +10,17 @@ export const browserSupport = {
     chrome: '>=88',
     firefox: '>=85',
     safari: '>=14',
-    edge: '>=88'
+    edge: '>=88',
   },
-  
+
   // Legacy browsers (ES2015+)
   legacy: {
     chrome: '>=60',
     firefox: '>=60',
     safari: '>=12',
     edge: '>=79',
-    ie: '>=11'
-  }
+    ie: '>=11',
+  },
 };
 
 // Feature detection utilities
@@ -78,7 +78,7 @@ export const featureDetection = {
     const test = document.createElement('div');
     test.style.marginInlineStart = '1px';
     return test.style.marginInlineStart === '1px';
-  }
+  },
 };
 
 // Browser-specific fixes and polyfills
@@ -86,12 +86,12 @@ export const browserFixes = {
   // Fix for iOS Safari viewport height issue
   fixIOSViewport: () => {
     if (typeof window === 'undefined') return;
-    
+
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
-    
+
     setVH();
     window.addEventListener('resize', setVH);
     window.addEventListener('orientationchange', setVH);
@@ -100,12 +100,12 @@ export const browserFixes = {
   // Fix for Android Chrome address bar
   fixAndroidViewport: () => {
     if (typeof window === 'undefined') return;
-    
+
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
-    
+
     setVH();
     window.addEventListener('resize', setVH);
   },
@@ -113,7 +113,7 @@ export const browserFixes = {
   // Fix for Firefox scrollbar width
   fixFirefoxScrollbar: () => {
     if (typeof window === 'undefined') return;
-    
+
     const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
     if (isFirefox) {
       document.documentElement.style.setProperty('--scrollbar-width', '17px');
@@ -123,7 +123,7 @@ export const browserFixes = {
   // Fix for Safari flexbox bugs
   fixSafariFlexbox: () => {
     if (typeof window === 'undefined') return;
-    
+
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     if (isSafari) {
       // Add Safari-specific CSS fixes
@@ -141,7 +141,7 @@ export const browserFixes = {
   // Fix for IE11 specific issues
   fixIE11: () => {
     if (typeof window === 'undefined') return;
-    
+
     const isIE11 = /Trident\/7\./.test(navigator.userAgent);
     if (isIE11) {
       // Add IE11-specific fixes
@@ -154,7 +154,7 @@ export const browserFixes = {
       `;
       document.head.appendChild(style);
     }
-  }
+  },
 };
 
 // Responsive breakpoints
@@ -164,7 +164,7 @@ export const breakpoints = {
   md: '768px',
   lg: '1024px',
   xl: '1280px',
-  '2xl': '1536px'
+  '2xl': '1536px',
 };
 
 // Device detection
@@ -198,7 +198,7 @@ export const deviceDetection = {
     if (deviceDetection.isMobile()) return 'mobile';
     if (deviceDetection.isTablet()) return 'tablet';
     return 'desktop';
-  }
+  },
 };
 
 // Performance monitoring
@@ -209,7 +209,7 @@ export const performanceMonitoring = {
 
     // Largest Contentful Paint (LCP)
     if ('PerformanceObserver' in window) {
-      const lcpObserver = new PerformanceObserver((list) => {
+      const lcpObserver = new PerformanceObserver(list => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1];
         console.log('LCP:', lastEntry.startTime);
@@ -217,19 +217,19 @@ export const performanceMonitoring = {
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
 
       // First Input Delay (FID)
-      const fidObserver = new PerformanceObserver((list) => {
+      const fidObserver = new PerformanceObserver(list => {
         const entries = list.getEntries();
-        entries.forEach((entry) => {
+        entries.forEach(entry => {
           console.log('FID:', entry.processingStart - entry.startTime);
         });
       });
       fidObserver.observe({ entryTypes: ['first-input'] });
 
       // Cumulative Layout Shift (CLS)
-      const clsObserver = new PerformanceObserver((list) => {
+      const clsObserver = new PerformanceObserver(list => {
         let clsValue = 0;
         const entries = list.getEntries();
-        entries.forEach((entry) => {
+        entries.forEach(entry => {
           if (!entry.hadRecentInput) {
             clsValue += entry.value;
           }
@@ -243,16 +243,16 @@ export const performanceMonitoring = {
   // Monitor memory usage
   monitorMemory: () => {
     if (typeof window === 'undefined') return;
-    
+
     if ('memory' in performance) {
       const memory = (performance as any).memory;
       console.log('Memory usage:', {
         used: Math.round(memory.usedJSHeapSize / 1048576) + ' MB',
         total: Math.round(memory.totalJSHeapSize / 1048576) + ' MB',
-        limit: Math.round(memory.jsHeapSizeLimit / 1048576) + ' MB'
+        limit: Math.round(memory.jsHeapSizeLimit / 1048576) + ' MB',
       });
     }
-  }
+  },
 };
 
 // Initialize browser compatibility fixes
@@ -288,8 +288,8 @@ export const initializeBrowserCompatibility = () => {
       resizeObserver: featureDetection.resizeObserver(),
       webAnimations: featureDetection.webAnimations(),
       cssContainment: featureDetection.cssContainment(),
-      logicalProperties: featureDetection.logicalProperties()
-    }
+      logicalProperties: featureDetection.logicalProperties(),
+    },
   });
 };
 
@@ -406,5 +406,5 @@ export default {
   deviceDetection,
   performanceMonitoring,
   initializeBrowserCompatibility,
-  cssFallbacks
+  cssFallbacks,
 };

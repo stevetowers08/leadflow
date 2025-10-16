@@ -3,7 +3,7 @@
  * Runs periodically to refresh stale company logos
  */
 
-import { refreshStaleLogos, getLogoStats } from '@/utils/logoService';
+import { refreshStaleLogos, getLogoStats } from '@/services/logoService';
 
 class LogoRefreshService {
   private intervalId: NodeJS.Timeout | null = null;
@@ -18,15 +18,20 @@ class LogoRefreshService {
       return;
     }
 
-    console.log(`Starting logo refresh service (every ${intervalMinutes} minutes)`);
-    
+    console.log(
+      `Starting logo refresh service (every ${intervalMinutes} minutes)`
+    );
+
     // Run immediately
     this.runRefresh();
-    
+
     // Then run on interval
-    this.intervalId = setInterval(() => {
-      this.runRefresh();
-    }, intervalMinutes * 60 * 1000);
+    this.intervalId = setInterval(
+      () => {
+        this.runRefresh();
+      },
+      intervalMinutes * 60 * 1000
+    );
   }
 
   /**
@@ -50,21 +55,21 @@ class LogoRefreshService {
     }
 
     this.isRunning = true;
-    
+
     try {
       console.log('🔄 Starting logo refresh...');
-      
+
       // Get stats before refresh
       const statsBefore = await getLogoStats();
       console.log('📊 Logo stats before refresh:', statsBefore);
-      
+
       // Run refresh
       await refreshStaleLogos();
-      
+
       // Get stats after refresh
       const statsAfter = await getLogoStats();
       console.log('📊 Logo stats after refresh:', statsAfter);
-      
+
       console.log('✅ Logo refresh completed');
     } catch (error) {
       console.error('❌ Error during logo refresh:', error);
@@ -79,7 +84,7 @@ class LogoRefreshService {
   getStatus(): { isRunning: boolean; hasInterval: boolean } {
     return {
       isRunning: this.isRunning,
-      hasInterval: this.intervalId !== null
+      hasInterval: this.intervalId !== null,
     };
   }
 }

@@ -3,21 +3,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
 import { getLabel } from '@/utils/labels';
-import { 
-  Plus, 
-  Trash2, 
-  Play, 
-  Pause, 
-  Settings, 
-  Mail, 
-  MessageSquare, 
+import {
+  Plus,
+  Trash2,
+  Play,
+  Pause,
+  Settings,
+  Mail,
+  MessageSquare,
   Calendar,
   Users,
   Target,
@@ -25,7 +31,7 @@ import {
   CheckCircle,
   AlertCircle,
   Building2,
-  MapPin
+  MapPin,
 } from 'lucide-react';
 
 export interface WorkflowStep {
@@ -62,7 +68,11 @@ const WORKFLOW_TYPES = {
     { value: 'time_based', label: 'Time Based', icon: Clock },
   ],
   condition: [
-    { value: 'lead_score', label: getLabel('workflow', 'ai_score'), icon: Target },
+    {
+      value: 'lead_score',
+      label: getLabel('workflow', 'ai_score'),
+      icon: Target,
+    },
     { value: 'company_size', label: 'Company Size', icon: Users },
     { value: 'industry', label: 'Industry', icon: Building2 },
     { value: 'location', label: 'Location', icon: MapPin },
@@ -70,7 +80,11 @@ const WORKFLOW_TYPES = {
   ],
   action: [
     { value: 'send_email', label: 'Send Email', icon: Mail },
-    { value: 'send_linkedin', label: 'Send LinkedIn Message', icon: MessageSquare },
+    {
+      value: 'send_linkedin',
+      label: 'Send LinkedIn Message',
+      icon: MessageSquare,
+    },
     { value: 'create_task', label: 'Create Task', icon: CheckCircle },
     { value: 'update_status', label: 'Update Status', icon: Target },
     { value: 'assign_user', label: 'Assign User', icon: Users },
@@ -80,10 +94,14 @@ const WORKFLOW_TYPES = {
     { value: 'wait_time', label: 'Wait Time', icon: Clock },
     { value: 'wait_business_hours', label: 'Wait Business Hours', icon: Clock },
     { value: 'wait_weekdays', label: 'Wait Weekdays', icon: Calendar },
-  ]
+  ],
 };
 
-export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderProps) {
+export function WorkflowBuilder({
+  workflow,
+  onSave,
+  onCancel,
+}: WorkflowBuilderProps) {
   const [workflowData, setWorkflowData] = useState<Workflow>(
     workflow || {
       id: '',
@@ -95,11 +113,11 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
         type: 'trigger',
         name: 'Lead Created',
         config: { type: 'lead_created' },
-        position: { x: 100, y: 100 }
+        position: { x: 100, y: 100 },
       },
       steps: [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
   );
 
@@ -112,28 +130,28 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
       type,
       name: `New ${type}`,
       config: {},
-      position: { x: 300, y: 100 + (workflowData.steps.length * 150) }
+      position: { x: 300, y: 100 + workflowData.steps.length * 150 },
     };
 
     setWorkflowData(prev => ({
       ...prev,
-      steps: [...prev.steps, newStep]
+      steps: [...prev.steps, newStep],
     }));
   };
 
   const updateStep = (stepId: string, updates: Partial<WorkflowStep>) => {
     setWorkflowData(prev => ({
       ...prev,
-      steps: prev.steps.map(step => 
+      steps: prev.steps.map(step =>
         step.id === stepId ? { ...step, ...updates } : step
-      )
+      ),
     }));
   };
 
   const deleteStep = (stepId: string) => {
     setWorkflowData(prev => ({
       ...prev,
-      steps: prev.steps.filter(step => step.id !== stepId)
+      steps: prev.steps.filter(step => step.id !== stepId),
     }));
     setSelectedStep(null);
   };
@@ -141,9 +159,9 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
   const handleSave = () => {
     if (!workflowData.name.trim()) {
       toast({
-        title: "Error",
-        description: "Workflow name is required",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Workflow name is required',
+        variant: 'destructive',
       });
       return;
     }
@@ -151,18 +169,20 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
     const workflowToSave = {
       ...workflowData,
       id: workflowData.id || `workflow-${Date.now()}`,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     onSave(workflowToSave);
     toast({
-      title: "Success",
-      description: "Workflow saved successfully",
+      title: 'Success',
+      description: 'Workflow saved successfully',
     });
   };
 
   const getStepIcon = (step: WorkflowStep) => {
-    const typeConfig = WORKFLOW_TYPES[step.type]?.find(type => type.value === step.config.type);
+    const typeConfig = WORKFLOW_TYPES[step.type]?.find(
+      type => type.value === step.config.type
+    );
     return typeConfig?.icon || Settings;
   };
 
@@ -172,47 +192,56 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
   };
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Workflow Header */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
+          <CardTitle className='flex items-center gap-2'>
+            <Settings className='h-5 w-5' />
             Workflow Builder
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="workflow-name">Workflow Name</Label>
+        <CardContent className='space-y-4'>
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='space-y-2'>
+              <Label htmlFor='workflow-name'>Workflow Name</Label>
               <Input
-                id="workflow-name"
+                id='workflow-name'
                 value={workflowData.name}
-                onChange={(e) => setWorkflowData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter workflow name"
+                onChange={e =>
+                  setWorkflowData(prev => ({ ...prev, name: e.target.value }))
+                }
+                placeholder='Enter workflow name'
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="workflow-status">Status</Label>
-              <div className="flex items-center space-x-2">
+            <div className='space-y-2'>
+              <Label htmlFor='workflow-status'>Status</Label>
+              <div className='flex items-center space-x-2'>
                 <Switch
-                  id="workflow-status"
+                  id='workflow-status'
                   checked={workflowData.isActive}
-                  onCheckedChange={(checked) => setWorkflowData(prev => ({ ...prev, isActive: checked }))}
+                  onCheckedChange={checked =>
+                    setWorkflowData(prev => ({ ...prev, isActive: checked }))
+                  }
                 />
-                <Label htmlFor="workflow-status">
+                <Label htmlFor='workflow-status'>
                   {workflowData.isActive ? 'Active' : 'Inactive'}
                 </Label>
               </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="workflow-description">Description</Label>
+          <div className='space-y-2'>
+            <Label htmlFor='workflow-description'>Description</Label>
             <Textarea
-              id="workflow-description"
+              id='workflow-description'
               value={workflowData.description}
-              onChange={(e) => setWorkflowData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe what this workflow does"
+              onChange={e =>
+                setWorkflowData(prev => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+              placeholder='Describe what this workflow does'
               rows={3}
             />
           </div>
@@ -225,14 +254,18 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
           <CardTitle>Workflow Steps</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="relative min-h-[400px] border-2 border-dashed border-gray-200 rounded-lg p-4">
+          <div className='relative min-h-[400px] border-2 border-dashed border-gray-200 rounded-lg p-4'>
             {/* Trigger Step */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className={`px-3 py-2 rounded-lg border ${getStepColor('trigger')} flex items-center gap-2`}>
-                <Play className="h-4 w-4" />
-                <span className="font-medium">Trigger: {workflowData.trigger.name}</span>
+            <div className='flex items-center gap-4 mb-6'>
+              <div
+                className={`px-3 py-2 rounded-lg border ${getStepColor('trigger')} flex items-center gap-2`}
+              >
+                <Play className='h-4 w-4' />
+                <span className='font-medium'>
+                  Trigger: {workflowData.trigger.name}
+                </span>
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className='text-sm text-muted-foreground'>
                 When a lead is created
               </div>
             </div>
@@ -241,56 +274,56 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
             {workflowData.steps.map((step, index) => {
               const IconComponent = getStepIcon(step);
               return (
-                <div key={step.id} className="flex items-center gap-4 mb-4">
-                  <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-medium">
+                <div key={step.id} className='flex items-center gap-4 mb-4'>
+                  <div className='w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-medium'>
                     {index + 1}
                   </div>
-                  <div 
+                  <div
                     className={`px-3 py-2 rounded-lg border ${getStepColor(step.type)} flex items-center gap-2 cursor-pointer hover:opacity-80`}
                     onClick={() => setSelectedStep(step)}
                   >
-                    <IconComponent className="h-4 w-4" />
-                    <span className="font-medium">{step.name}</span>
+                    <IconComponent className='h-4 w-4' />
+                    <span className='font-medium'>{step.name}</span>
                   </div>
                   <Button
-                    variant="ghost"
-                    size="sm"
+                    variant='ghost'
+                    size='sm'
                     onClick={() => deleteStep(step.id)}
-                    className="text-red-600 hover:text-red-700"
+                    className='text-red-600 hover:text-red-700'
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className='h-4 w-4' />
                   </Button>
                 </div>
               );
             })}
 
             {/* Add Step Buttons */}
-            <div className="flex gap-2 mt-6">
+            <div className='flex gap-2 mt-6'>
               <Button
-                variant="outline"
-                size="sm"
+                variant='outline'
+                size='sm'
                 onClick={() => addStep('condition')}
-                className="flex items-center gap-2"
+                className='flex items-center gap-2'
               >
-                <Plus className="h-4 w-4" />
+                <Plus className='h-4 w-4' />
                 Add Condition
               </Button>
               <Button
-                variant="outline"
-                size="sm"
+                variant='outline'
+                size='sm'
                 onClick={() => addStep('action')}
-                className="flex items-center gap-2"
+                className='flex items-center gap-2'
               >
-                <Plus className="h-4 w-4" />
+                <Plus className='h-4 w-4' />
                 Add Action
               </Button>
               <Button
-                variant="outline"
-                size="sm"
+                variant='outline'
+                size='sm'
                 onClick={() => addStep('delay')}
-                className="flex items-center gap-2"
+                className='flex items-center gap-2'
               >
-                <Plus className="h-4 w-4" />
+                <Plus className='h-4 w-4' />
                 Add Delay
               </Button>
             </div>
@@ -304,33 +337,37 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
           <CardHeader>
             <CardTitle>Configure Step: {selectedStep.name}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="step-name">Step Name</Label>
+          <CardContent className='space-y-4'>
+            <div className='space-y-2'>
+              <Label htmlFor='step-name'>Step Name</Label>
               <Input
-                id="step-name"
+                id='step-name'
                 value={selectedStep.name}
-                onChange={(e) => updateStep(selectedStep.id, { name: e.target.value })}
-                placeholder="Enter step name"
+                onChange={e =>
+                  updateStep(selectedStep.id, { name: e.target.value })
+                }
+                placeholder='Enter step name'
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="step-type">Step Type</Label>
+            <div className='space-y-2'>
+              <Label htmlFor='step-type'>Step Type</Label>
               <Select
                 value={selectedStep.config.type || ''}
-                onValueChange={(value) => updateStep(selectedStep.id, { 
-                  config: { ...selectedStep.config, type: value }
-                })}
+                onValueChange={value =>
+                  updateStep(selectedStep.id, {
+                    config: { ...selectedStep.config, type: value },
+                  })
+                }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select step type" />
+                  <SelectValue placeholder='Select step type' />
                 </SelectTrigger>
                 <SelectContent>
-                  {WORKFLOW_TYPES[selectedStep.type]?.map((type) => (
+                  {WORKFLOW_TYPES[selectedStep.type]?.map(type => (
                     <SelectItem key={type.value} value={type.value}>
-                      <div className="flex items-center gap-2">
-                        <type.icon className="h-4 w-4" />
+                      <div className='flex items-center gap-2'>
+                        <type.icon className='h-4 w-4' />
                         {type.label}
                       </div>
                     </SelectItem>
@@ -340,79 +377,104 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
             </div>
 
             {/* Dynamic configuration based on step type */}
-            {selectedStep.type === 'action' && selectedStep.config.type === 'send_email' && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email-subject">Email Subject</Label>
-                  <Input
-                    id="email-subject"
-                    value={selectedStep.config.subject || ''}
-                    onChange={(e) => updateStep(selectedStep.id, { 
-                      config: { ...selectedStep.config, subject: e.target.value }
-                    })}
-                    placeholder="Enter email subject"
-                  />
+            {selectedStep.type === 'action' &&
+              selectedStep.config.type === 'send_email' && (
+                <div className='space-y-4'>
+                  <div className='space-y-2'>
+                    <Label htmlFor='email-subject'>Email Subject</Label>
+                    <Input
+                      id='email-subject'
+                      value={selectedStep.config.subject || ''}
+                      onChange={e =>
+                        updateStep(selectedStep.id, {
+                          config: {
+                            ...selectedStep.config,
+                            subject: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder='Enter email subject'
+                    />
+                  </div>
+                  <div className='space-y-2'>
+                    <Label htmlFor='email-body'>Email Body</Label>
+                    <Textarea
+                      id='email-body'
+                      value={selectedStep.config.body || ''}
+                      onChange={e =>
+                        updateStep(selectedStep.id, {
+                          config: {
+                            ...selectedStep.config,
+                            body: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder='Enter email body'
+                      rows={4}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email-body">Email Body</Label>
-                  <Textarea
-                    id="email-body"
-                    value={selectedStep.config.body || ''}
-                    onChange={(e) => updateStep(selectedStep.id, { 
-                      config: { ...selectedStep.config, body: e.target.value }
-                    })}
-                    placeholder="Enter email body"
-                    rows={4}
-                  />
-                </div>
-              </div>
-            )}
+              )}
 
             {selectedStep.type === 'delay' && (
-              <div className="space-y-2">
-                <Label htmlFor="delay-time">Delay Time (hours)</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='delay-time'>Delay Time (hours)</Label>
                 <Input
-                  id="delay-time"
-                  type="number"
+                  id='delay-time'
+                  type='number'
                   value={selectedStep.config.hours || 1}
-                  onChange={(e) => updateStep(selectedStep.id, { 
-                    config: { ...selectedStep.config, hours: parseInt(e.target.value) }
-                  })}
-                  placeholder="Enter delay in hours"
+                  onChange={e =>
+                    updateStep(selectedStep.id, {
+                      config: {
+                        ...selectedStep.config,
+                        hours: parseInt(e.target.value),
+                      },
+                    })
+                  }
+                  placeholder='Enter delay in hours'
                 />
               </div>
             )}
 
             {selectedStep.type === 'condition' && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="condition-field">Field</Label>
+              <div className='space-y-4'>
+                <div className='space-y-2'>
+                  <Label htmlFor='condition-field'>Field</Label>
                   <Select
                     value={selectedStep.config.field || ''}
-                    onValueChange={(value) => updateStep(selectedStep.id, { 
-                      config: { ...selectedStep.config, field: value }
-                    })}
+                    onValueChange={value =>
+                      updateStep(selectedStep.id, {
+                        config: { ...selectedStep.config, field: value },
+                      })
+                    }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select field" />
+                      <SelectValue placeholder='Select field' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="lead_score">{getLabel('workflow', 'ai_score')}</SelectItem>
-                      <SelectItem value="company_size">Company Size</SelectItem>
-                      <SelectItem value="industry">Industry</SelectItem>
-                      <SelectItem value="stage">Stage</SelectItem>
+                      <SelectItem value='lead_score'>
+                        {getLabel('workflow', 'ai_score')}
+                      </SelectItem>
+                      <SelectItem value='company_size'>Company Size</SelectItem>
+                      <SelectItem value='industry'>Industry</SelectItem>
+                      <SelectItem value='stage'>Stage</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="condition-value">Value</Label>
+                <div className='space-y-2'>
+                  <Label htmlFor='condition-value'>Value</Label>
                   <Input
-                    id="condition-value"
+                    id='condition-value'
                     value={selectedStep.config.value || ''}
-                    onChange={(e) => updateStep(selectedStep.id, { 
-                      config: { ...selectedStep.config, value: e.target.value }
-                    })}
-                    placeholder="Enter condition value"
+                    onChange={e =>
+                      updateStep(selectedStep.id, {
+                        config: {
+                          ...selectedStep.config,
+                          value: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder='Enter condition value'
                   />
                 </div>
               </div>
@@ -422,13 +484,11 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
       )}
 
       {/* Actions */}
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel}>
+      <div className='flex justify-end gap-2'>
+        <Button variant='outline' onClick={onCancel}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          Save Workflow
-        </Button>
+        <Button onClick={handleSave}>Save Workflow</Button>
       </div>
     </div>
   );

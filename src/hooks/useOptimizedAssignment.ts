@@ -1,6 +1,6 @@
 /**
  * Optimized Assignment Hook
- * 
+ *
  * This hook provides efficient assignment management with:
  * - Optimistic updates
  * - Automatic error handling
@@ -40,18 +40,18 @@ export const useOptimizedAssignment = ({
   entityType,
   entityId,
   onSuccess,
-  onError
+  onError,
 }: UseOptimizedAssignmentProps): AssignmentState & AssignmentActions => {
   const { user } = useAuth();
   const { hasRole } = usePermissions();
   const { toast } = useToast();
-  const { 
-    assignmentLoading, 
-    assignmentError, 
-    setAssignmentLoading, 
+  const {
+    assignmentLoading,
+    assignmentError,
+    setAssignmentLoading,
     setAssignmentError,
     refreshAssignmentLists,
-    refreshSpecificEntity 
+    refreshSpecificEntity,
   } = useUnifiedState();
 
   const [ownerId, setOwnerId] = useState<string | null>(null);
@@ -73,14 +73,16 @@ export const useOptimizedAssignment = ({
 
       const { data, error } = await supabase
         .from(entityType)
-        .select(`
+        .select(
+          `
           owner_id,
           user_profiles!owner_id (
             id,
             full_name,
             email
           )
-        `)
+        `
+        )
         .eq('id', entityId)
         .single();
 
@@ -92,131 +94,149 @@ export const useOptimizedAssignment = ({
       setOwnerName(data.user_profiles?.full_name || null);
     } catch (error) {
       console.error('Error fetching assignment:', error);
-      setAssignmentError(error instanceof Error ? error.message : 'Failed to fetch assignment');
+      setAssignmentError(
+        error instanceof Error ? error.message : 'Failed to fetch assignment'
+      );
     } finally {
       setAssignmentLoading(false);
     }
   }, [entityType, entityId, setAssignmentLoading, setAssignmentError]);
 
   // Assign entity to user
-  const assignToUser = useCallback(async (userId: string | null): Promise<boolean> => {
-    if (!user || !canAssign) {
-      toast({
-        title: "Permission Denied",
-        description: "You don't have permission to assign entities",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    setIsUpdating(true);
-    setAssignmentError(null);
-
-    try {
-      // Optimistic update
-      const previousOwnerId = ownerId;
-      const previousOwnerName = ownerName;
-      
-      if (userId) {
-        // Get user name for optimistic update
-        const { data: userData } = await supabase
-          .from('user_profiles')
-          .select('full_name')
-          .eq('id', userId)
-          .single();
-        
-        setOwnerId(userId);
-        setOwnerName(userData?.full_name || null);
-      } else {
-        setOwnerId(null);
-        setOwnerName(null);
+  const assignToUser = useCallback(
+    async (userId: string | null): Promise<boolean> => {
+      if (!user || !canAssign) {
+        toast({
+          title: 'Permission Denied',
+          description: "You don't have permission to assign entities",
+          variant: 'destructive',
+        });
+        return false;
       }
 
-      // Perform the actual assignment
-      const { error } = await supabase
-        .from(entityType)
-        .update({ owner_id: userId })
-        .eq('id', entityId);
+      setIsUpdating(true);
+      setAssignmentError(null);
 
-      if (error) {
-        // Rollback optimistic update
-        setOwnerId(previousOwnerId);
-        setOwnerName(previousOwnerName);
-        throw error;
-      }
+      try {
+        // Optimistic update
+        const previousOwnerId = ownerId;
+        const previousOwnerName = ownerName;
 
-      // Log assignment for audit trail
-      await supabase
-        .from('assignment_history')
-        .insert({
+        if (userId) {
+          // Get user name for optimistic update
+          const { data: userData } = await supabase
+            .from('user_profiles')
+            .select('full_name')
+            .eq('id', userId)
+            .single();
+
+          setOwnerId(userId);
+          setOwnerName(userData?.full_name || null);
+        } else {
+          setOwnerId(null);
+          setOwnerName(null);
+        }
+
+        // Perform the actual assignment
+        const { error } = await supabase
+          .from(entityType)
+          .update({ owner_id: userId })
+          .eq('id', entityId);
+
+        if (error) {
+          // Rollback optimistic update
+          setOwnerId(previousOwnerId);
+          setOwnerName(previousOwnerName);
+          throw error;
+        }
+
+        // Log assignment for audit trail
+        await supabase.from('assignment_history').insert({
           entity_type: entityType,
           entity_id: entityId,
           previous_owner_id: previousOwnerId,
           new_owner_id: userId,
           assigned_by: user.id,
-          assigned_at: new Date().toISOString()
+          assigned_at: new Date().toISOString(),
         });
 
-      // Trigger refresh of all lists
-      refreshAssignmentLists();
-      refreshSpecificEntity(entityType, entityId);
+        // Trigger refresh of all lists
+        refreshAssignmentLists();
+        refreshSpecificEntity(entityType, entityId);
 
-      toast({
-        title: "Assignment Updated",
-        description: userId 
-          ? `Assigned to ${userData?.full_name || 'user'}`
-          : "Assignment removed",
-      });
+        toast({
+          title: 'Assignment Updated',
+          description: userId
+            ? `Assigned to ${userData?.full_name || 'user'}`
+            : 'Assignment removed',
+        });
 
-      onSuccess?.();
-      return true;
+        onSuccess?.();
+        return true;
+      } catch (error) {
+        console.error('Assignment error:', error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to update assignment';
+        setAssignmentError(errorMessage);
 
-    } catch (error) {
-      console.error('Assignment error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update assignment';
-      setAssignmentError(errorMessage);
-      
-      toast({
-        title: "Assignment Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
+        toast({
+          title: 'Assignment Failed',
+          description: errorMessage,
+          variant: 'destructive',
+        });
 
-      onError?.(errorMessage);
-      return false;
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [
-    user, 
-    canAssign, 
-    entityType, 
-    entityId, 
-    ownerId, 
-    ownerName, 
-    toast, 
-    refreshAssignmentLists, 
-    refreshSpecificEntity, 
-    onSuccess, 
-    onError
-  ]);
+        onError?.(errorMessage);
+        return false;
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [
+      user,
+      canAssign,
+      entityType,
+      entityId,
+      ownerId,
+      ownerName,
+      toast,
+      refreshAssignmentLists,
+      refreshSpecificEntity,
+      onSuccess,
+      onError,
+    ]
+  );
 
-  const state = useMemo(() => ({
-    ownerId,
-    ownerName,
-    isLoading: assignmentLoading,
-    isUpdating,
-    error: assignmentError,
-    canAssign
-  }), [ownerId, ownerName, assignmentLoading, isUpdating, assignmentError, canAssign]);
+  const state = useMemo(
+    () => ({
+      ownerId,
+      ownerName,
+      isLoading: assignmentLoading,
+      isUpdating,
+      error: assignmentError,
+      canAssign,
+    }),
+    [
+      ownerId,
+      ownerName,
+      assignmentLoading,
+      isUpdating,
+      assignmentError,
+      canAssign,
+    ]
+  );
 
-  const actions = useMemo(() => ({
-    assignToUser,
-    refreshAssignment
-  }), [assignToUser, refreshAssignment]);
+  const actions = useMemo(
+    () => ({
+      assignToUser,
+      refreshAssignment,
+    }),
+    [assignToUser, refreshAssignment]
+  );
 
   return {
     ...state,
-    ...actions
+    ...actions,
   };
 };
