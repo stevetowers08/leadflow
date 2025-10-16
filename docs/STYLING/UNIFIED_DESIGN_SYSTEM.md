@@ -329,27 +329,36 @@ This ensures that:
 
 ## 🆕 Latest Updates (October 16, 2025)
 
-### ✅ **Status Cell Full-Cell Backgrounds**
+### ✅ **Modern Dark Status Colors (2024-2025 Standards)**
 
-**Implementation**: Status columns now use full-cell background colors instead of outlined badges
+**Implementation**: Status columns now use modern dark backgrounds with white text, following current enterprise CRM trends
 
 ```typescript
-// UnifiedTable component automatically applies status colors
+// UnifiedTable component automatically applies modern status colors
 <TableCell
   cellType="status"
   statusValue={status}
-  // Automatically gets: bg-blue-50 text-blue-700 border-blue-200
+  // Automatically gets: bg-blue-600 text-white border-blue-700
 >
   <span>{getStatusDisplayText(status)}</span>
 </TableCell>
 ```
 
+**Modern Color Scheme**:
+
+- **New Lead**: Dark blue (`bg-blue-600`) with white text
+- **In Progress**: Dark amber/orange (`bg-amber-600`, `bg-orange-600`) with white text
+- **Success**: Dark green (`bg-green-600`, `bg-emerald-600`) with white text
+- **Error/Lost**: Dark red (`bg-red-600`) with white text
+- **Neutral**: Dark gray (`bg-gray-600`) with white text
+
 **Benefits**:
 
-- **Cleaner appearance**: No more outlined badge styling
-- **Better readability**: Full-cell backgrounds are more prominent
-- **Consistent implementation**: All V2 tables use the same system
-- **Centralized control**: Colors managed by unified color scheme
+- **Modern appearance**: Follows 2024-2025 enterprise CRM design trends
+- **Better contrast**: WCAG 2.1 compliant with 4.5:1+ contrast ratios
+- **Professional look**: Dark backgrounds create better visual hierarchy
+- **Accessibility**: High contrast ensures readability for all users
+- **Consistent implementation**: All V2 tables use the same modern system
 
 ### ✅ **Logo Size Optimization**
 

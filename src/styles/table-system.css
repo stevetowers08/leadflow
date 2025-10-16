@@ -37,7 +37,7 @@
   height: var(--table-header-height) !important;
   min-height: var(--table-header-height) !important;
   padding: 0 var(--table-padding-regular) !important;
-  font-size: 0.875rem !important; /* 14px font size - increased for better readability */
+  font-size: 0.8125rem !important; /* 13px font size */
   font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
@@ -47,15 +47,23 @@
   position: sticky !important;
   top: 0 !important;
   z-index: 10 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeSpeed !important; /* Firefox: optimizeSpeed for crisp text */
+  font-smooth: never !important; /* Firefox: disable font smoothing */
 }
 
 /* Regular cells - exclude status cells */
 .table-system td:not([data-cell-type='status']) {
   padding: 0 var(--table-padding-regular) !important;
-  font-size: 0.875rem !important; /* 14px font size - increased for better readability */
+  font-size: 0.8125rem !important; /* 13px font size */
   font-weight: 400 !important;
   color: #111827 !important; /* Darker text for better contrast */
   background-color: white !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeSpeed !important; /* Firefox: optimizeSpeed for crisp text */
+  font-smooth: never !important; /* Firefox: disable font smoothing */
 }
 
 /* Status cells - let unified system handle everything */
@@ -108,6 +116,10 @@
 .table-system td[data-cell-type='lead-score'] span {
   font-size: 0.8125rem !important; /* 13px font size */
   font-weight: 500 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeSpeed !important; /* Firefox: optimizeSpeed for crisp text */
+  font-smooth: never !important; /* Firefox: disable font smoothing */
 }
 
 .table-system td[data-cell-type='ai-score'] span {
@@ -116,9 +128,13 @@
 
 /* Company name styling - consistent across all tables */
 .table-system td .text-sm.font-medium.text-gray-900 {
-  font-size: 0.875rem !important; /* 14px - slightly bigger than regular text */
+  font-size: 0.8125rem !important; /* 13px - consistent with other text */
   font-weight: 500 !important; /* medium weight */
   color: #111827 !important; /* gray-900 - black */
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeSpeed !important; /* Firefox: optimizeSpeed for crisp text */
+  font-smooth: never !important; /* Firefox: disable font smoothing */
 }
 
 /* Hover effects - keep colored cells unchanged */

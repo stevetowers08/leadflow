@@ -63,13 +63,6 @@ const allNavItems: NavItem[] = [
     permission: 'jobs',
   },
   {
-    to: '/jobs-v2',
-    label: 'Jobs V2',
-    icon: <Briefcase className='h-5 w-5' />,
-    isPrimary: true,
-    permission: 'jobs',
-  },
-  {
     to: '/pipeline',
     label: 'Pipeline',
     icon: <Target className='h-5 w-5' />,

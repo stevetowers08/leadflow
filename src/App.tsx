@@ -38,11 +38,8 @@ import { PerformanceProvider } from './utils/performanceMonitoring';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const Jobs = lazy(() => import('./pages/Jobs'));
-const JobsV2 = lazy(() => import('./pages/JobsV2'));
 const People = lazy(() => import('./pages/People'));
-const PeopleV2 = lazy(() => import('./pages/PeopleV2'));
 const Companies = lazy(() => import('./pages/Companies'));
-const CompaniesV2 = lazy(() => import('./pages/CompaniesV2'));
 const Pipeline = lazy(() => import('./pages/Pipeline'));
 const ConversationsPage = lazy(() => import('./pages/Conversations'));
 const Automations = lazy(() => import('./pages/Automations'));
@@ -145,11 +142,8 @@ const AppRoutes = () => {
                         element={<GmailCallback />}
                       />
                       <Route path='/jobs' element={<Jobs />} />
-                      <Route path='/jobs-v2' element={<JobsV2 />} />
                       <Route path='/people' element={<People />} />
-                      <Route path='/people-v2' element={<PeopleV2 />} />
                       <Route path='/companies' element={<Companies />} />
-                      <Route path='/companies-v2' element={<CompaniesV2 />} />
                       <Route path='/pipeline' element={<Pipeline />} />
                       <Route path='/campaigns' element={<Campaigns />} />
                       <Route

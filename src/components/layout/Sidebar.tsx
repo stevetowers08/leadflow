@@ -34,11 +34,8 @@ const navigationSections = [
   {
     items: [
       { name: 'Jobs', href: '/jobs', icon: Briefcase },
-      { name: 'Jobs V2', href: '/jobs-v2', icon: Briefcase },
       { name: 'People', href: '/people', icon: Users },
-      { name: 'People V2', href: '/people-v2', icon: Users },
       { name: 'Companies', href: '/companies', icon: Building2 },
-      { name: 'Companies V2', href: '/companies-v2', icon: Building2 },
     ],
   },
   {

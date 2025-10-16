@@ -285,12 +285,20 @@ const statusClasses = getUnifiedStatusClass(status);
 
 **Core Principle**: **WORDS = StatusBadge, NUMBERS = Custom Styling**
 
-#### ✅ **StatusBadge Component** (For Words)
+#### ✅ **Modern Dark Status Colors (2024-2025 Standards)**
 
-- **Used for**: STATUS, Priority, Text-based AI Scores
-- **Values**: Words like "VERY HIGH", "HIGH", "MEDIUM", "LOW", "New Lead", "Connected"
-- **Styling**: `rounded-md` (moderate rounding), unified colors
-- **Implementation**: `<StatusBadge status={value} size="sm" />`
+- **Used for**: All status indicators in table cells
+- **Values**: Words like "New Lead", "Connected", "In Queue", "Lead Lost"
+- **Styling**: Dark backgrounds with white text for modern enterprise look
+- **Implementation**: `<TableCell cellType="status" statusValue={value} />`
+
+**Modern Color Scheme**:
+
+- **New Lead**: `bg-blue-600 text-white border-blue-700`
+- **In Progress**: `bg-amber-600 text-white border-amber-700`
+- **Success**: `bg-green-600 text-white border-green-700`
+- **Error/Lost**: `bg-red-600 text-white border-red-700`
+- **Neutral**: `bg-gray-600 text-white border-gray-700`
 
 #### ✅ **Custom Badge Styling** (For Numbers)
 
