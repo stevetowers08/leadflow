@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,9 +63,9 @@ const AdminSettingsTab = () => {
   useEffect(() => {
     loadUsers();
     loadUserLimit();
-  }, []);
+  }, [loadUsers, loadUserLimit]);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
       console.log('Loading users...');
@@ -95,9 +95,9 @@ const AdminSettingsTab = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const loadUserLimit = async () => {
+  const loadUserLimit = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -114,7 +114,7 @@ const AdminSettingsTab = () => {
     } catch (error) {
       console.error('Error loading user limit:', error);
     }
-  };
+  }, [user]);
 
   const handleInviteUser = async () => {
     if (!inviteEmail.trim()) {
@@ -293,7 +293,7 @@ const AdminSettingsTab = () => {
     {
       accessorKey: 'role',
       header: 'Role',
-      cell: ({ row }: { row: any }) => {
+      cell: ({ row }: { row: { original: User } }) => {
         const user = row.original;
         const hasChanges = userRoleChanges[user.id];
         const currentRole = hasChanges || user.role;
@@ -327,14 +327,14 @@ const AdminSettingsTab = () => {
     {
       accessorKey: 'created_at',
       header: 'Joined',
-      cell: ({ row }: { row: any }) => {
+      cell: ({ row }: { row: { original: User } }) => {
         return new Date(row.original.created_at).toLocaleDateString();
       },
     },
     {
       id: 'actions',
       header: 'Actions',
-      cell: ({ row }: { row: any }) => {
+      cell: ({ row }: { row: { original: User } }) => {
         const user = row.original;
         return (
           <div className='flex gap-2'>

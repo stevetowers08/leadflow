@@ -576,18 +576,13 @@ describe('AssignmentService', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         is: vi.fn().mockReturnThis(),
-        count: vi
-          .fn()
-          .mockResolvedValue({ count: mockPeopleStats.count, error: null }),
+        count: mockPeopleStats.count,
       };
 
       const mockUnassignedQuery = {
         select: vi.fn().mockReturnThis(),
         is: vi.fn().mockReturnThis(),
-        count: vi.fn().mockResolvedValue({
-          count: mockUnassignedPeople.count,
-          error: null,
-        }),
+        count: mockUnassignedPeople.count,
       };
 
       const mockUserQuery = {

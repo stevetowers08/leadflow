@@ -49,16 +49,6 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
         ? 'companies'
         : 'jobs';
 
-  // Don't render anything while permissions are loading
-  if (permissionsLoading) {
-    return (
-      <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-        <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-sidebar-primary'></div>
-        Loading permissions...
-      </div>
-    );
-  }
-
   // Use unified assignment state management
   const {
     ownerId: currentOwnerId,
@@ -87,6 +77,30 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
       console.error('Assignment error:', error);
     },
   });
+
+  // Load team members when user list is shown
+  useEffect(() => {
+    if (showUserList) {
+      loadTeamMembers();
+    }
+  }, [showUserList]);
+
+  // Fetch team members automatically when component mounts
+  useEffect(() => {
+    if (canAssign) {
+      fetchTeamMembers();
+    }
+  }, [canAssign]);
+
+  // Don't render anything while permissions are loading
+  if (permissionsLoading) {
+    return (
+      <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+        <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-sidebar-primary'></div>
+        Loading permissions...
+      </div>
+    );
+  }
 
   // Debug logging
   console.log('🔍 UserAssignmentDisplay Debug:', {
@@ -123,13 +137,6 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
       console.error('❌ Error fetching team members:', error);
     }
   };
-
-  // Fetch team members automatically when component mounts
-  useEffect(() => {
-    if (canAssign) {
-      fetchTeamMembers();
-    }
-  }, [canAssign]);
 
   const handleAssign = async (newOwnerId: string) => {
     if (!canAssign) return;

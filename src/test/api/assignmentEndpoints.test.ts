@@ -5,6 +5,19 @@ import { AssignmentService } from '@/services/assignmentService';
 // Mock fetch for API calls
 global.fetch = vi.fn();
 
+// Mock Supabase admin functions
+const mockSupabaseAdmin = {
+  listUsers: vi.fn().mockResolvedValue({ 
+    data: { users: [] }, 
+    error: null 
+  }),
+  deleteUser: vi.fn().mockResolvedValue({ error: null }),
+  createUser: vi.fn().mockResolvedValue({ 
+    data: { user: { id: 'test-user-id', email: 'test@example.com' } }, 
+    error: null 
+  }),
+};
+
 // Test configuration
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'http://localhost:54321';
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'test-key';
@@ -14,6 +27,9 @@ const baseUrl =
     : 'http://localhost:3000/api';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Mock the admin functions
+supabase.auth.admin = mockSupabaseAdmin as any;
 
 describe('Assignment API Endpoint Tests', () => {
   let testUserId1: string;
@@ -25,6 +41,13 @@ describe('Assignment API Endpoint Tests', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+
+    // Mock fetch responses
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({ success: true, data: [] }),
+    } as any);
 
     // Clean up test data
     await cleanupTestData();
@@ -148,7 +171,7 @@ describe('Assignment API Endpoint Tests', () => {
       expect(Array.isArray(data)).toBe(true);
       expect(data.length).toBeGreaterThanOrEqual(3);
 
-      const userIds = data.map((member: any) => member.id);
+      const userIds = data.map((member: { id: string }) => member.id);
       expect(userIds).toContain(testUserId1);
       expect(userIds).toContain(testUserId2);
       expect(userIds).toContain(adminUserId);
@@ -183,7 +206,7 @@ describe('Assignment API Endpoint Tests', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
 
-      const userIds = data.map((member: any) => member.id);
+      const userIds = data.map((member: { id: string }) => member.id);
       expect(userIds).not.toContain(testUserId1);
     });
   });
@@ -507,8 +530,8 @@ describe('Assignment API Endpoint Tests', () => {
       expect(Array.isArray(data.byUser)).toBe(true);
       expect(data.byUser.length).toBeGreaterThanOrEqual(2);
 
-      const user1Stats = data.byUser.find((u: any) => u.userId === testUserId1);
-      const user2Stats = data.byUser.find((u: any) => u.userId === testUserId2);
+      const user1Stats = data.byUser.find((u: { userId: string }) => u.userId === testUserId1);
+      const user2Stats = data.byUser.find((u: { userId: string }) => u.userId === testUserId2);
 
       expect(user1Stats).toBeDefined();
       expect(user2Stats).toBeDefined();

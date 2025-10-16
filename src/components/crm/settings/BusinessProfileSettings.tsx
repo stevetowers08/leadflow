@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -67,9 +67,9 @@ const BusinessProfileSettings: React.FC = () => {
     if (user?.id) {
       fetchBusinessProfile();
     }
-  }, [user?.id]);
+  }, [user?.id, fetchBusinessProfile]);
 
-  const fetchBusinessProfile = async () => {
+  const fetchBusinessProfile = useCallback(async () => {
     if (!user?.id) return;
 
     setIsLoading(true);
@@ -110,7 +110,7 @@ const BusinessProfileSettings: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id, toast]);
 
   const handleSave = async () => {
     if (!user?.id) return;

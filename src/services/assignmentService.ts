@@ -121,7 +121,7 @@ export class AssignmentService {
         return {
           success: false,
           message: 'Assignment failed',
-          error: `${entityType.slice(0, -1)} not found`,
+          error: `${entityType === 'people' ? 'person' : entityType.slice(0, -1)} not found`,
         };
       }
 
