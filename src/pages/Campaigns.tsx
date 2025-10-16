@@ -614,19 +614,6 @@ export default function Campaigns() {
                           color='text-blue-500'
                         />
 
-                        {/* Go To Master Inbox Button */}
-                        <Button
-                          variant='link'
-                          size='sm'
-                          className='text-blue-600 hover:text-blue-700 h-auto p-0 text-xs'
-                          onClick={e => {
-                            e.stopPropagation();
-                            // Handle master inbox navigation
-                          }}
-                        >
-                          Go To Master Inbox
-                        </Button>
-
                         <StatIcon
                           icon={DollarSign}
                           count={campaign.stats.positiveReply}
