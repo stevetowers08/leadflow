@@ -533,7 +533,6 @@ export default function Campaigns() {
                 <h3 className='text-lg font-semibold text-gray-900'>
                   Campaign Details
                 </h3>
-                <h3 className='text-lg font-semibold text-gray-900'>Report</h3>
               </div>
             </div>
 
