@@ -3,8 +3,6 @@
  * Uses ONLY the Stage text field from the People table (ignores enum completely)
  */
 
-import { getUnifiedStatusClass } from './colorScheme';
-
 /**
  * Normalizes a status value to a consistent format
  * Uses ONLY the Stage field, ignores stage_enum completely
@@ -103,15 +101,71 @@ export function getStatusDisplayText(status: string): string {
     inactive: 'Inactive',
     INACTIVE: 'Inactive',
 
-    // Company pipeline stages - all variations
+    // Company pipeline stages - all variations (from DB enum)
     new_lead: 'New Lead',
     NEW_LEAD: 'New Lead',
+    automated: 'Automated',
+    AUTOMATED: 'Automated',
+    replied: 'Replied',
+    REPLIED: 'Replied',
     meeting_scheduled: 'Meeting Scheduled',
     'meeting scheduled': 'Meeting Scheduled',
     MEETING_SCHEDULED: 'Meeting Scheduled',
+    proposal_sent: 'Proposal Sent',
+    'proposal sent': 'Proposal Sent',
+    PROPOSAL_SENT: 'Proposal Sent',
+    negotiation: 'Negotiation',
+    NEGOTIATION: 'Negotiation',
+    closed_won: 'Closed Won',
+    'closed won': 'Closed Won',
+    CLOSED_WON: 'Closed Won',
     closed_lost: 'Closed Lost',
     'closed lost': 'Closed Lost',
     CLOSED_LOST: 'Closed Lost',
+    on_hold: 'On Hold',
+    'on hold': 'On Hold',
+    ON_HOLD: 'On Hold',
+
+    // Reply types - all variations (from DB enum)
+    interested: 'Interested',
+    INTERESTED: 'Interested',
+    not_interested: 'Not Interested',
+    'not interested': 'Not Interested',
+    NOT_INTERESTED: 'Not Interested',
+    maybe: 'Maybe',
+    MAYBE: 'Maybe',
+
+    // Interaction types - all variations (from DB enum)
+    linkedin_connection_request_sent: 'LinkedIn Connection Request Sent',
+    LINKEDIN_CONNECTION_REQUEST_SENT: 'LinkedIn Connection Request Sent',
+    linkedin_connected: 'LinkedIn Connected',
+    LINKEDIN_CONNECTED: 'LinkedIn Connected',
+    linkedin_message_sent: 'LinkedIn Message Sent',
+    LINKEDIN_MESSAGE_SENT: 'LinkedIn Message Sent',
+    linkedin_message_reply: 'LinkedIn Message Reply',
+    LINKEDIN_MESSAGE_REPLY: 'LinkedIn Message Reply',
+    email_sent: 'Email Sent',
+    EMAIL_SENT: 'Email Sent',
+    email_reply: 'Email Reply',
+    EMAIL_REPLY: 'Email Reply',
+    meeting_booked: 'Meeting Booked',
+    'meeting booked': 'Meeting Booked',
+    MEETING_BOOKED: 'Meeting Booked',
+    meeting_held: 'Meeting Held',
+    'meeting held': 'Meeting Held',
+    MEETING_HELD: 'Meeting Held',
+    disqualified: 'Disqualified',
+    DISQUALIFIED: 'Disqualified',
+    note: 'Note',
+    NOTE: 'Note',
+
+    // Campaign status - all variations
+    draft: 'Draft',
+    DRAFT: 'Draft',
+    active: 'Active',
+    ACTIVE: 'Active',
+    paused: 'Paused',
+    PAUSED: 'Paused',
 
     // Additional status mappings - all variations
     assigned: 'Assigned',

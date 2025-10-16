@@ -449,54 +449,18 @@ className =
 ### Table Implementation Pattern
 
 ```tsx
-// Import EnhancedTable Components
-import {
-  EnhancedTable,
-  EnhancedTableBody,
-  EnhancedTableCell,
-  EnhancedTableHead,
-  EnhancedTableHeader,
-  EnhancedTableRow,
-} from '@/components/ui/enhanced-table';
+// Import UnifiedTable Components
+import { UnifiedTable, ColumnConfig } from '@/components/ui/unified-table';
 
 // Table Structure
 <div className='bg-white rounded-lg border border-gray-200'>
-  <EnhancedTable dualScrollbars={false} stickyHeader={true} maxHeight='600px'>
-    <EnhancedTableHeader>
-      <EnhancedTableRow className='transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50'>
-        <EnhancedTableHead
-          className='h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]'
-          scope='col'
-          style={{ width: '120px', minWidth: '120px' }}
-        >
-          <div className='flex items-center gap-2 justify-center'>
-            <span>Status</span>
-          </div>
-        </EnhancedTableHead>
-        {/* ... other headers ... */}
-      </EnhancedTableRow>
-    </EnhancedTableHeader>
-    <EnhancedTableBody>
-      {data.map((item, index) => (
-        <EnhancedTableRow
-          key={item.id}
-          className='data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group cursor-pointer relative min-h-[56px]'
-          role='row'
-          tabIndex={0}
-          aria-label={`Row ${index + 1}`}
-          onClick={() => handleRowClick(item)}
-        >
-          <EnhancedTableCell
-            className='align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0 min-h-[56px] text-center'
-            style={{ width: '120px', minWidth: '120px' }}
-          >
-            {/* Cell content */}
-          </EnhancedTableCell>
-          {/* ... other cells ... */}
-        </EnhancedTableRow>
-      ))}
-    </EnhancedTableBody>
-  </EnhancedTable>
+  <UnifiedTable
+    data={data}
+    columns={columns}
+    stickyHeaders={true}
+    maxHeight='600px'
+    onRowClick={handleRowClick}
+  />
 </div>;
 ```
 

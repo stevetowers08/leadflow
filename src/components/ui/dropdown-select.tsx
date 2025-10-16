@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Select,
   SelectContent,
@@ -6,8 +5,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { DropdownOption, ReferenceOption } from '@/hooks/useDropdownOptions';
+import { cn } from '@/lib/utils';
 
 interface DropdownSelectProps {
   options: DropdownOption[] | ReferenceOption[];
@@ -43,7 +42,7 @@ export const DropdownSelect = ({
       <SelectTrigger className={cn('w-full', className)}>
         <SelectValue placeholder={loading ? 'Loading...' : placeholder} />
       </SelectTrigger>
-      <SelectContent className='bg-background/95 backdrop-blur-sm border border-border/50 shadow-lg'>
+      <SelectContent className='bg-background/95 backdrop-blur-sm border border-gray-300/50 shadow-lg'>
         {options.map(option => {
           const optionValue = isReferenceOption(option)
             ? option.id

@@ -11,15 +11,15 @@ const Card = React.forwardRef<
 >(({ className, variant = 'minimal', ...props }, ref) => {
   const variants = {
     default:
-      'bg-white border border-gray-200 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]',
+      'bg-white border border-gray-300 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]',
     elevated:
-      'bg-white border border-gray-200 shadow-lg shadow-gray-300/20 rounded-2xl transition-all duration-200 ease-out hover:shadow-xl hover:scale-[1.01]',
+      'bg-white border border-gray-300 shadow-lg shadow-gray-300/20 rounded-2xl transition-all duration-200 ease-out hover:shadow-xl hover:scale-[1.01]',
     outlined:
       'bg-white border border-gray-300 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]',
     glass:
-      'bg-white border border-gray-200 shadow-xl shadow-gray-400/10 rounded-2xl transition-all duration-200 ease-out hover:shadow-2xl hover:scale-[1.01]',
+      'bg-white border border-gray-300 shadow-xl shadow-gray-400/10 rounded-2xl transition-all duration-200 ease-out hover:shadow-2xl hover:scale-[1.01]',
     minimal:
-      'bg-white border border-gray-200 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]',
+      'bg-white border border-gray-300 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]',
   };
 
   return (

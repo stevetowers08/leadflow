@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { StatusBadge } from './StatusBadge';
-import { AIScoreBadge } from './AIScoreBadge';
+import { StatusBadge } from '../StatusBadge';
+import { AIScoreBadge } from '../ai/AIScoreBadge';
 
 export type BadgeType = 'stage' | 'priority' | 'score' | 'status';
 
@@ -74,7 +74,7 @@ export const ScoreBadge = (props: Omit<BadgeProps, 'type'>) => (
   <Badge {...props} type='score' />
 );
 
-export const StatusBadge = (props: Omit<BadgeProps, 'type'>) => (
+export const StatusBadgeWrapper = (props: Omit<BadgeProps, 'type'>) => (
   <Badge {...props} type='status' />
 );
 

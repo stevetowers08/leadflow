@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { Page, expect, test } from '@playwright/test';
 
 // Define User type for better type safety
 interface User {

@@ -16,7 +16,14 @@ import { ErrorBoundaryProvider } from './components/ErrorBoundary';
 import { GmailCallback } from './components/GmailCallback';
 import { UnifiedPopup } from './components/UnifiedPopup';
 import AuthCallback from './components/auth/AuthCallback';
+import { AuthPage } from './components/auth/AuthPage';
 import { Layout } from './components/layout/Layout';
+import {
+  getAuthConfig,
+  getMockUser,
+  getMockUserProfile,
+  shouldBypassAuth,
+} from './config/auth';
 import { AIProvider } from './contexts/AIContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ConfirmationProvider } from './contexts/ConfirmationContext';
@@ -31,8 +38,11 @@ import { PerformanceProvider } from './utils/performanceMonitoring';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const Jobs = lazy(() => import('./pages/Jobs'));
+const JobsV2 = lazy(() => import('./pages/JobsV2'));
 const People = lazy(() => import('./pages/People'));
+const PeopleV2 = lazy(() => import('./pages/PeopleV2'));
 const Companies = lazy(() => import('./pages/Companies'));
+const CompaniesV2 = lazy(() => import('./pages/CompaniesV2'));
 const Pipeline = lazy(() => import('./pages/Pipeline'));
 const ConversationsPage = lazy(() => import('./pages/Conversations'));
 const Automations = lazy(() => import('./pages/Automations'));
@@ -57,8 +67,21 @@ const AppRoutes = () => {
   usePerformanceMonitoring();
 
   const { user, userProfile, loading } = useAuth();
+  const authConfig = getAuthConfig();
+  const bypassAuth = shouldBypassAuth();
 
-  if (loading) {
+  // Debug logging
+  console.log('🔍 Auth Debug:', {
+    user: !!user,
+    userProfile: !!userProfile,
+    loading,
+    authConfig,
+    bypassAuth,
+    nodeEnv: import.meta.env.NODE_ENV,
+    viteBypassAuth: import.meta.env.VITE_BYPASS_AUTH,
+  });
+
+  if (loading && !bypassAuth) {
     return (
       <div className='min-h-screen flex items-center justify-center'>
         <div className='text-center'>
@@ -69,54 +92,32 @@ const AppRoutes = () => {
     );
   }
 
-  // Temporarily disabled for testing data loading
-  // if (!user) {
-  //   return <AuthPage />;
-  // }
+  // Authentication check - only enforce if not bypassing
+  if (!bypassAuth && !user) {
+    return <AuthPage />;
+  }
 
-  // Mock user for production testing
-  const mockUser = user || {
-    id: 'f100f6bc-22d8-456f-bcce-44c7881b68ef',
-    email: 'test@example.com',
-    user_metadata: {},
-    app_metadata: {},
-    aud: 'authenticated',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    email_confirmed_at: new Date().toISOString(),
-    phone: '',
-    confirmed_at: new Date().toISOString(),
-    last_sign_in_at: new Date().toISOString(),
-    role: 'authenticated',
-    factors: [],
-    identities: [],
-    recovery_sent_at: null,
-    new_email: null,
-    invited_at: null,
-    action_link: null,
-    email_change_sent_at: null,
-    new_phone: null,
-    phone_change_sent_at: null,
-    reauthentication_sent_at: null,
-    reauthentication_token: null,
-    is_anonymous: false,
-  };
+  // Get current user and profile (real or mock)
+  const currentUser = user || (bypassAuth ? getMockUser() : null);
+  const currentUserProfile =
+    userProfile || (bypassAuth ? getMockUserProfile() : null);
 
-  const mockUserProfile = userProfile || {
-    id: 'f100f6bc-22d8-456f-bcce-44c7881b68ef',
-    email: 'test@example.com',
-    full_name: 'Test User',
-    role: 'owner',
-    user_limit: 100,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
+  // If we're bypassing auth but still don't have a user, something is wrong
+  if (bypassAuth && !currentUser) {
+    console.error('❌ Auth bypass enabled but no user available');
+    return (
+      <div className='min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <p className='text-red-600'>Authentication configuration error</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <PermissionsProvider
-      user={mockUser}
-      userProfile={mockUserProfile}
+      user={currentUser}
+      userProfile={currentUserProfile}
       authLoading={false}
     >
       <AIProvider>
@@ -144,8 +145,11 @@ const AppRoutes = () => {
                         element={<GmailCallback />}
                       />
                       <Route path='/jobs' element={<Jobs />} />
+                      <Route path='/jobs-v2' element={<JobsV2 />} />
                       <Route path='/people' element={<People />} />
+                      <Route path='/people-v2' element={<PeopleV2 />} />
                       <Route path='/companies' element={<Companies />} />
+                      <Route path='/companies-v2' element={<CompaniesV2 />} />
                       <Route path='/pipeline' element={<Pipeline />} />
                       <Route path='/campaigns' element={<Campaigns />} />
                       <Route

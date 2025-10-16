@@ -12,7 +12,7 @@ This document outlines the **UPDATED** centralized badge system that implements 
 
 - **Used for**: STATUS, Priority, Text-based AI Scores
 - **Values**: Words like "VERY HIGH", "HIGH", "MEDIUM", "LOW", "High", "Medium", "Low"
-- **Styling**: `rounded-md` (less rounded), fixed width, proper colors
+- **Styling**: `rounded-md` (moderate rounding), fixed width, **DYNAMIC COLORS** based on status value
 - **Implementation**: `<StatusBadge status={value} size="sm" />`
 
 #### ✅ **Custom Badge Styling** (For Numbers Only)

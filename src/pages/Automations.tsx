@@ -1,5 +1,4 @@
 import { StatusBadge } from '@/components/StatusBadge';
-import { Input } from '@/components/ui/input';
 import { Page } from '@/design-system/components';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isThisMonth, isThisWeek, isToday } from 'date-fns';

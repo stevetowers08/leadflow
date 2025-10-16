@@ -33,10 +33,10 @@ const ConversationsPage: React.FC = () => {
   return (
     <Page title='Conversations'>
       {/* Main Conversation Interface - Full Width */}
-      <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 w-full'>
+      <div className='flex flex-col lg:flex-row gap-6 w-full min-h-0 flex-1'>
         {/* Conversation List - Mobile Stack */}
-        <div className='lg:col-span-5'>
-          <Card className='h-[calc(100vh-200px)] lg:h-[calc(100vh-200px)] shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden'>
+        <div className='lg:w-5/12 flex flex-col min-h-0'>
+          <Card className='flex flex-col shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex-1 min-h-0'>
             <ConversationList
               onConversationSelect={handleConversationSelect}
               selectedConversationId={selectedConversation?.id}
@@ -45,8 +45,8 @@ const ConversationsPage: React.FC = () => {
         </div>
 
         {/* Conversation Viewer - Mobile Stack */}
-        <div className='lg:col-span-7'>
-          <Card className='h-[calc(100vh-200px)] lg:h-[calc(100vh-200px)] shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden'>
+        <div className='lg:w-7/12 flex flex-col min-h-0'>
+          <Card className='flex flex-col shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex-1 min-h-0'>
             <ConversationViewer conversation={selectedConversation} />
           </Card>
         </div>

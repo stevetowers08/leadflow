@@ -72,7 +72,7 @@ export const SearchModal = ({
       {/* Modal */}
       <div
         className={cn(
-          'relative bg-white rounded-lg shadow-xl border border-border w-full max-w-md mx-4',
+          'relative bg-white rounded-lg shadow-xl border border-gray-300 w-full max-w-md mx-4',
           className
         )}
       >
@@ -146,7 +146,7 @@ export const SearchIconButton = ({
     <button
       onClick={onClick}
       className={cn(
-        'rounded-md border border-border bg-background hover:bg-muted/50 transition-colors flex items-center justify-center action-bar-icon',
+        'rounded-md border border-gray-300 bg-background hover:bg-muted/50 transition-colors flex items-center justify-center action-bar-icon',
         sizeClasses[size],
         className
       )}

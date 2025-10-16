@@ -164,17 +164,17 @@ const InfoField: React.FC<InfoFieldProps> = ({ label, value }) => (
 ### StatusBadge Component
 
 ```typescript
-// Updated styling - LESS ROUNDED
+// Updated styling - MODERATE ROUNDING with DYNAMIC COLORS
 const sizeStyles = {
-  sm: "h-7 text-xs font-medium rounded-md text-center px-3",
-  md: "h-8 text-sm font-medium rounded-md text-center px-3",
-  lg: "h-9 text-sm font-medium rounded-md text-center px-4"
+  sm: "h-8 text-xs font-medium rounded-md text-center px-3",
+  md: "h-9 text-sm font-medium rounded-md text-center px-3",
+  lg: "h-10 text-sm font-medium rounded-md text-center px-4"
 };
 
-// Main container
+// Main container - DYNAMIC COLORING based on status value
 className={cn(
   "border font-medium justify-center items-center flex rounded-md mx-auto",
-  styleClass,
+  styleClass, // This comes from getUnifiedStatusClass(status)
   sizeStyles[size],
   className
 )}
@@ -196,12 +196,13 @@ className =
 
 ## 🎯 Color Scheme
 
-### StatusBadge Colors (Words)
+### StatusBadge Colors (Words) - DYNAMIC COLORS
 
 - **VERY HIGH**: `bg-red-50 text-red-700 border-red-200`
 - **HIGH**: `bg-orange-50 text-orange-700 border-orange-200`
 - **MEDIUM**: `bg-yellow-50 text-yellow-700 border-yellow-200`
 - **LOW**: `bg-green-50 text-green-700 border-green-200`
+- **Implementation**: Colors are determined by `getUnifiedStatusClass(status)` function
 
 ### Custom Badge Colors (Numbers)
 
@@ -210,6 +211,8 @@ className =
 - **Score ≥50**: `bg-yellow-50 text-yellow-700 border-yellow-200`
 - **Score <50**: `bg-red-50 text-red-700 border-red-200`
 - **Count Columns**: `bg-gray-50 text-gray-500 border-gray-200`
+
+**Note**: AI Score and Leads columns in tables use `cellType: 'ai-score'` and `cellType: 'lead-score'` respectively, but do NOT have background colors. They are centered numeric values with white backgrounds for clean readability.
 
 ---
 
@@ -324,6 +327,81 @@ This ensures that:
 
 ---
 
-**Last Updated**: January 2025  
+## 🆕 Latest Updates (October 16, 2025)
+
+### ✅ **Status Cell Full-Cell Backgrounds**
+
+**Implementation**: Status columns now use full-cell background colors instead of outlined badges
+
+```typescript
+// UnifiedTable component automatically applies status colors
+<TableCell
+  cellType="status"
+  statusValue={status}
+  // Automatically gets: bg-blue-50 text-blue-700 border-blue-200
+>
+  <span>{getStatusDisplayText(status)}</span>
+</TableCell>
+```
+
+**Benefits**:
+
+- **Cleaner appearance**: No more outlined badge styling
+- **Better readability**: Full-cell backgrounds are more prominent
+- **Consistent implementation**: All V2 tables use the same system
+- **Centralized control**: Colors managed by unified color scheme
+
+### ✅ **Logo Size Optimization**
+
+**Size**: Reduced from 32px to 24px (`w-8 h-8` → `w-6 h-6`)
+
+```typescript
+// Updated logo implementation
+<div className='w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+  <img
+    src={getClearbitLogo(company.name)}
+    alt={company.name}
+    className='w-6 h-6 rounded-lg object-cover'
+  />
+  <Building2 className='h-3 w-3 text-gray-400' />
+</div>
+```
+
+**Fallback Icon**: Building2 icon reduced to 12px (`h-4 w-4` → `h-3 w-3`)
+
+### ✅ **Row Height Optimization**
+
+**Height**: Reduced from 48px to 44px for better data density
+
+```css
+.table-system {
+  --table-row-height: 44px;
+  --table-header-height: 44px;
+}
+```
+
+**Impact**: Slightly more compact tables while maintaining readability
+
+### ✅ **CSS Override Resolution**
+
+**Problem**: CSS specificity conflicts prevented unified colors from showing
+
+**Solution**: Updated CSS selectors to exclude status cells from general rules
+
+```css
+/* Before: Applied to all cells */
+.table-system td {
+  background-color: white !important;
+}
+
+/* After: Excludes status cells */
+.table-system td:not([data-cell-type='status']) {
+  background-color: white !important;
+}
+```
+
+---
+
+**Last Updated**: October 16, 2025  
 **Status**: ✅ Complete - All badges and popups updated to unified design system  
 **Build Status**: ✅ Passing - All changes tested and working

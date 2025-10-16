@@ -145,24 +145,24 @@ export const designTokens = {
     button: 'shadow-sm hover:shadow-md',
   },
 
-  // Borders - Consistent border system
+  // Borders - Unified border system (ALL USE border-gray-300)
   borders: {
-    default: 'border border-gray-200',
-    subtle: 'border border-gray-200/60',
+    default: 'border border-gray-300',
+    subtle: 'border border-gray-300/60',
     strong: 'border-2 border-gray-300',
     accent: 'border border-sidebar-primary/20',
     success: 'border border-success/20',
     warning: 'border border-warning/20',
     error: 'border border-destructive/20',
     // Card-specific borders
-    card: 'border border-gray-200',
-    cardHover: 'hover:border-gray-300',
+    card: 'border border-gray-300',
+    cardHover: 'hover:border-gray-400',
     cardFocus: 'focus:border-sidebar-primary',
     // Table-specific borders
-    table: 'border border-gray-200',
-    tableHeader: 'border-b border-gray-200',
-    tableCell: 'border-r border-gray-200 last:border-r-0',
-    tableRow: 'border-b border-gray-200 last:border-b-0',
+    table: 'border border-gray-300',
+    tableHeader: 'border-b border-gray-300',
+    tableCell: 'border-r border-gray-300 last:border-r-0',
+    tableRow: 'border-b border-gray-300 last:border-b-0',
   },
 
   // Transitions - Professional timing system
@@ -187,6 +187,35 @@ export const designTokens = {
     minSize: 'min-h-[44px] min-w-[44px]',
     manipulation: 'touch-manipulation',
     target: 'touch-target',
+  },
+
+  // Filter Controls - Unified styling for all table pages
+  filterControls: {
+    // Container styling
+    container:
+      'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 w-full flex-shrink-0',
+
+    // Group styling
+    leftGroup: 'flex flex-col sm:flex-row items-stretch sm:items-center gap-2',
+    rightGroup: 'flex items-center gap-2',
+
+    // Dropdown styling - CHANGE THIS TO AFFECT ALL DROPDOWNS
+    dropdown:
+      'bg-white h-8 !py-1 text-sm border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50',
+    dropdownSmall: 'min-w-28 sm:min-w-32',
+    dropdownMedium: 'min-w-32 sm:min-w-40',
+    dropdownLarge: 'min-w-32',
+
+    // Button styling - CHANGE THIS TO AFFECT ALL FILTER BUTTONS
+    button:
+      'h-8 w-8 rounded-md border flex items-center justify-center transition-colors action-bar-icon',
+    buttonDefault: 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50',
+    buttonActive:
+      'bg-yellow-500 text-white border-yellow-500 hover:bg-yellow-600',
+
+    // Icon styling
+    icon: 'h-4 w-4',
+    iconActive: 'fill-current',
   },
 } as const;
 

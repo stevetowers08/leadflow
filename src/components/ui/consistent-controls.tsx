@@ -25,7 +25,7 @@ const tabsVariants = cva(
       variant: {
         default: 'bg-transparent text-muted-foreground hover:text-foreground',
         active:
-          'bg-white text-foreground shadow-sm border border-border ring-1 ring-primary/10',
+          'bg-white text-foreground shadow-sm border border-gray-300 ring-1 ring-primary/10',
         glass:
           'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 border border-white/20',
         neumorphism:
@@ -82,7 +82,7 @@ const TabsList = forwardRef<
   <div
     ref={ref}
     className={cn(
-      'inline-flex items-center justify-center rounded-md p-1 bg-white gap-1 border border-border shadow-sm',
+      'inline-flex items-center justify-center rounded-md p-1 bg-white gap-1 border border-gray-300 shadow-sm',
       className
     )}
     {...props}
@@ -92,7 +92,7 @@ TabsList.displayName = 'TabsList';
 
 // Modern Filter Dropdown Component
 const filterVariants = cva(
-  'inline-flex items-center justify-between whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 bg-white border border-border text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-between whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 bg-white border border-gray-300 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -143,7 +143,7 @@ FilterButton.displayName = 'FilterButton';
 
 // Modern Search Input Component
 const searchVariants = cva(
-  'flex w-full items-center rounded-md border border-border bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
+  'flex w-full items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
   {
     variants: {
       variant: {
@@ -209,7 +209,7 @@ const actionButtonVariants = cva(
           'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/90',
-        outline: 'border border-border bg-white',
+        outline: 'border border-gray-300 bg-white',
         ghost: 'text-foreground',
         glass: 'glass-light text-white hover:bg-white/20',
         neumorphism: 'neumorphism-light text-gray-700 hover:shadow-lg',

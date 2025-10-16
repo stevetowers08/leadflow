@@ -23,10 +23,10 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   const baseClasses = 'rounded-2xl transition-all duration-300 ease-out';
 
   const variantClasses = {
-    default: 'bg-white border border-gray-200 shadow-sm',
-    elevated: 'bg-white border border-gray-200 shadow-lg shadow-gray-300/20',
-    glass: 'bg-white border border-gray-200 shadow-xl shadow-gray-400/10',
-    minimal: 'bg-white border border-gray-200 shadow-sm hover:shadow-md',
+    default: 'bg-white border border-gray-300 shadow-sm',
+    elevated: 'bg-white border border-gray-300 shadow-lg shadow-gray-300/20',
+    glass: 'bg-white border border-gray-300 shadow-xl shadow-gray-400/10',
+    minimal: 'bg-white border border-gray-300 shadow-sm hover:shadow-md',
   };
 
   const hoverClasses = hover

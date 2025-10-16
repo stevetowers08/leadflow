@@ -1,4 +1,20 @@
-// Companies page using EnhancedTable directly (like Jobs page)
+/**
+ * DEPRECATED: Companies Page (v1) - Legacy Implementation
+ * 
+ * ⚠️  WARNING: This page uses the old EnhancedTable system and should NOT be used.
+ * 
+ * Please use CompaniesV2.tsx instead, which implements the unified design system:
+ * - UnifiedTable component
+ * - Consistent styling and behavior
+ * - Better performance and maintainability
+ * 
+ * This file will be removed in a future update.
+ * 
+ * Legacy Features (DO NOT USE):
+ * - EnhancedTable component (removed)
+ * - Inconsistent styling
+ * - Old pagination system
+ */
 import { FavoriteToggle } from '@/components/FavoriteToggle';
 import { OwnerDisplay } from '@/components/OwnerDisplay';
 import { AIScoreBadge } from '@/components/ai/AIScoreBadge';
@@ -673,14 +689,14 @@ const Companies = () => {
       </div>
 
       {/* Data Table - Full Width */}
-      <div className='bg-white rounded-lg border border-gray-200 w-full'>
+      <div className='bg-white rounded-lg border border-gray-300 w-full'>
         <EnhancedTable
           dualScrollbars={false}
           stickyHeader={true}
-          maxHeight='calc(100vh - 300px)'
+          maxHeight='auto'
         >
           <EnhancedTableHeader>
-            <EnhancedTableRow className='transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50'>
+            <EnhancedTableRow className='transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-300 bg-gray-50/50'>
               <EnhancedTableHead
                 className='h-8 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider text-center min-h-[56px]'
                 scope='col'

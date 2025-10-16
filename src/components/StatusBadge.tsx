@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
-import { getStatusDisplayText } from '@/utils/statusUtils';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
+import { getStatusDisplayText } from '@/utils/statusUtils';
 
 interface StatusBadgeProps {
   status: string;
@@ -8,7 +8,7 @@ interface StatusBadgeProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-// STANDARDIZED STYLING - Professional LinkedIn-inspired design
+// STANDARDIZED STYLING - Dynamic colors based on status value
 const sizeStyles = {
   sm: 'h-8 text-xs font-medium rounded-md text-center px-3',
   md: 'h-9 text-sm font-medium rounded-md text-center px-3',

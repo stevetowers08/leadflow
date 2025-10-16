@@ -1,0 +1,143 @@
+/* Simple Table System - Clean Approach */
+
+.table-system {
+  /* Global table settings */
+  --table-row-height: 44px;
+  --table-header-height: 44px;
+  --table-padding-regular: 1rem;
+  --table-padding-status: 0;
+
+  /* Priority column colors (still needed) */
+  --priority-bg: #fff7ed;
+  --priority-text: #c2410c;
+
+  /* Simple table styling */
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.1),
+    0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+/* All table cells - simple approach */
+.table-system th,
+.table-system td {
+  height: var(--table-row-height) !important;
+  min-height: var(--table-row-height) !important;
+  vertical-align: middle !important;
+  border-right: 1px solid #d1d5db !important;
+  border-bottom: 1px solid #d1d5db !important;
+}
+
+/* Headers */
+.table-system th {
+  height: var(--table-header-height) !important;
+  min-height: var(--table-header-height) !important;
+  padding: 0 var(--table-padding-regular) !important;
+  font-size: 0.875rem !important; /* 14px font size - increased for better readability */
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #374151 !important; /* Darker gray for better contrast */
+  background-color: #f8fafc !important;
+  border-bottom: 2px solid #d1d5db !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+}
+
+/* Regular cells - exclude status cells */
+.table-system td:not([data-cell-type='status']) {
+  padding: 0 var(--table-padding-regular) !important;
+  font-size: 0.875rem !important; /* 14px font size - increased for better readability */
+  font-weight: 400 !important;
+  color: #111827 !important; /* Darker text for better contrast */
+  background-color: white !important;
+}
+
+/* Status cells - let unified system handle everything */
+.table-system td[data-cell-type='status'] {
+  /* Only set padding - let Tailwind handle colors */
+  padding: 0 var(--table-padding-regular) !important;
+}
+
+.table-system td[data-cell-type='priority'] {
+  padding: var(--table-padding-status) !important;
+  background-color: var(--priority-bg) !important;
+  color: var(--priority-text) !important;
+  text-align: center !important;
+}
+
+.table-system td[data-cell-type='ai-score'] {
+  padding: var(--table-padding-regular) !important;
+  background-color: white !important;
+  color: #374151 !important;
+  text-align: center !important;
+}
+
+.table-system td[data-cell-type='lead-score'] {
+  padding: var(--table-padding-regular) !important;
+  background-color: white !important;
+  color: #374151 !important;
+  text-align: center !important;
+}
+
+/* Content alignment */
+.table-system td > div {
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.table-system td[data-cell-type='status'] > div,
+.table-system td[data-cell-type='priority'] > div,
+.table-system td[data-cell-type='ai-score'] > div,
+.table-system td[data-cell-type='lead-score'] > div {
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+/* Status cell content styling - unified font size */
+.table-system td[data-cell-type='status'] span,
+.table-system td[data-cell-type='priority'] span,
+.table-system td[data-cell-type='ai-score'] span,
+.table-system td[data-cell-type='lead-score'] span {
+  font-size: 0.8125rem !important; /* 13px font size */
+  font-weight: 500 !important;
+}
+
+.table-system td[data-cell-type='ai-score'] span {
+  /* Remove monospace font - use regular font */
+}
+
+/* Company name styling - consistent across all tables */
+.table-system td .text-sm.font-medium.text-gray-900 {
+  font-size: 0.875rem !important; /* 14px - slightly bigger than regular text */
+  font-weight: 500 !important; /* medium weight */
+  color: #111827 !important; /* gray-900 - black */
+}
+
+/* Hover effects - keep colored cells unchanged */
+.table-system tr:hover td:not([data-cell-type]) {
+  background-color: #f9fafb !important;
+}
+
+.table-system tr:hover td[data-cell-type='status'] {
+  /* No overrides - unified system handles hover states */
+}
+
+.table-system tr:hover td[data-cell-type='priority'] {
+  background-color: var(--priority-bg) !important;
+}
+
+.table-system tr:hover td[data-cell-type='ai-score'] {
+  background-color: #f9fafb !important;
+}
+
+.table-system tr:hover td[data-cell-type='lead-score'] {
+  background-color: #f9fafb !important;
+}

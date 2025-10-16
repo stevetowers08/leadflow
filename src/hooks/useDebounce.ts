@@ -1,21 +1,26 @@
-import { useState, useEffect } from 'react';
+/**
+ * Custom useDebounce Hook - 2025 Best Practices
+ * Optimized for performance with proper cleanup
+ */
+
+import { useEffect, useState } from 'react';
 
 /**
- * Custom hook for debouncing values
- * Delays updating the debounced value until after the specified delay
- * Useful for search inputs to avoid excessive API calls or filtering operations
+ * Debounces a value with the specified delay
+ * @param value - The value to debounce
+ * @param delay - The delay in milliseconds
+ * @returns The debounced value
  */
 export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
-    // Set debouncedValue to value (passed in) after the specified delay
+    // Set up a timer to update the debounced value
     const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
-    // Cancel the timeout if value changes (also on component unmount)
-    // This prevents debouncedValue from being updated if value is changed
+    // Cleanup function to clear the timer
     return () => {
       clearTimeout(handler);
     };
@@ -25,20 +30,28 @@ export function useDebounce<T>(value: T, delay: number): T {
 }
 
 /**
- * Hook for debouncing search terms with additional optimizations
- * Includes empty string handling and minimum character requirements
+ * Debounces a callback function
+ * @param callback - The callback function to debounce
+ * @param delay - The delay in milliseconds
+ * @param deps - Dependencies array for the callback
+ * @returns The debounced callback
  */
-export function useDebouncedSearch(
-  searchTerm: string,
-  delay: number = 300,
-  minLength: number = 0
-): string {
-  const debouncedValue = useDebounce(searchTerm, delay);
+export function useDebouncedCallback<T extends (...args: any[]) => any>(
+  callback: T,
+  delay: number,
+  deps: React.DependencyList = []
+): T {
+  const [debouncedCallback, setDebouncedCallback] = useState<T>(callback);
 
-  // Only return debounced value if it meets minimum length requirement
-  if (debouncedValue.length < minLength) {
-    return '';
-  }
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedCallback(() => callback);
+    }, delay);
 
-  return debouncedValue;
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [callback, delay, ...deps]);
+
+  return debouncedCallback;
 }

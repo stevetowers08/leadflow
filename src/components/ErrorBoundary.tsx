@@ -364,15 +364,76 @@ export class ComponentErrorBoundary extends BaseErrorBoundary {
   }
 }
 
-export class CriticalErrorBoundary extends BaseErrorBoundary {
+export class CriticalErrorBoundary extends Component<
+  Omit<ErrorBoundaryProps, 'severity' | 'recoverable'>,
+  ErrorBoundaryState
+> {
+  private errorHandler = GlobalErrorHandler.getInstance();
+
   constructor(props: Omit<ErrorBoundaryProps, 'severity' | 'recoverable'>) {
-    super({
-      ...props,
-      severity: ErrorSeverity.CRITICAL,
-      recoverable: false,
-      enableRetry: false,
-      showDetails: true,
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+      retryCount: 0,
+    };
+  }
+
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+    return {
+      hasError: true,
+      error,
+    };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    this.errorHandler.handleError(error, {
+      component: 'CriticalErrorBoundary',
+      action: 'componentDidCatch',
+      metadata: {
+        errorInfo: errorInfo.componentStack,
+        severity: ErrorSeverity.CRITICAL,
+        recoverable: false,
+      },
     });
+  }
+
+  handleRetry = () => {
+    this.setState(prevState => ({
+      hasError: false,
+      error: null,
+      retryCount: prevState.retryCount + 1,
+    }));
+  };
+
+  handleReload = () => {
+    window.location.reload();
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className='min-h-screen flex items-center justify-center bg-gray-50 px-4'>
+          <div className='max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center'>
+            <div className='text-red-500 text-6xl mb-4'>⚠️</div>
+            <h1 className='text-xl font-semibold text-gray-900 mb-2'>
+              Critical Error
+            </h1>
+            <p className='text-gray-600 mb-4'>
+              A critical error has occurred. Please reload the page.
+            </p>
+            <button
+              onClick={this.handleReload}
+              className='w-full bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700'
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
   }
 }
 
