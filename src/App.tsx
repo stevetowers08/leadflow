@@ -43,10 +43,14 @@ const Companies = lazy(() => import('./pages/Companies'));
 const Pipeline = lazy(() => import('./pages/Pipeline'));
 const ConversationsPage = lazy(() => import('./pages/Conversations'));
 const Automations = lazy(() => import('./pages/Automations'));
+const Workflows = lazy(() => import('./pages/Workflows'));
+const WorkflowBuilder = lazy(() => import('./pages/WorkflowBuilder'));
 const Reporting = lazy(() => import('./pages/Reporting'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Campaigns = lazy(() => import('./pages/Campaigns'));
+// const VoiceAI = lazy(() => import('./pages/VoiceAI'));
 const TabDesignsPage = lazy(() => import('./pages/TabDesignsPage'));
+const SidebarColorOptions = lazy(() => import('./pages/SidebarColorOptions'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -146,14 +150,28 @@ const AppRoutes = () => {
                       <Route path='/companies' element={<Companies />} />
                       <Route path='/pipeline' element={<Pipeline />} />
                       <Route path='/campaigns' element={<Campaigns />} />
+                      {/* <Route path='/voice-ai' element={<VoiceAI />} /> */}
                       <Route
                         path='/conversations'
                         element={<ConversationsPage />}
                       />
                       <Route path='/automations' element={<Automations />} />
+                      <Route path='/workflows' element={<Workflows />} />
+                      <Route
+                        path='/workflows/new'
+                        element={<WorkflowBuilder />}
+                      />
+                      <Route
+                        path='/workflows/:id'
+                        element={<WorkflowBuilder />}
+                      />
                       <Route path='/reporting' element={<Reporting />} />
                       <Route path='/settings' element={<Settings />} />
                       <Route path='/tab-designs' element={<TabDesignsPage />} />
+                      <Route
+                        path='/sidebar-colors'
+                        element={<SidebarColorOptions />}
+                      />
                     </Routes>
                   </Suspense>
                 </Layout>

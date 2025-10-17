@@ -17,12 +17,13 @@ import {
   Briefcase,
   Building2,
   Home,
+  Megaphone,
   MessageSquare,
+  Mic,
   Settings,
   Target,
   Users,
   X,
-  Megaphone,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { FourTwentyLogo } from '../FourTwentyLogo';
@@ -43,12 +44,14 @@ const navigationSections = [
     items: [
       { name: 'Pipeline', href: '/pipeline', icon: Target },
       { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
+      { name: 'Voice AI', href: '/voice-ai', icon: Mic },
       { name: 'Conversations', href: '/conversations', icon: MessageSquare },
     ],
   },
   {
     items: [
       { name: 'Automations', href: '/automations', icon: Bot },
+      { name: 'Workflows', href: '/workflows', icon: Bot },
       { name: 'Reporting', href: '/reporting', icon: BarChart3 },
     ],
   },
@@ -69,7 +72,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
     <aside
       className={cn(
         'flex flex-col h-full w-full',
-        'bg-sidebar text-sidebar-foreground border-r border-sidebar-border',
+        'bg-sidebar text-sidebar-foreground',
         'transition-all duration-300 ease-out'
       )}
     >
@@ -91,7 +94,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                 variant='ghost'
                 size='icon'
                 onClick={onClose}
-                className='lg:hidden h-9 w-9 p-0 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 rounded-lg'
+                className='lg:hidden h-9 w-9 p-0 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-white/10 hover:backdrop-blur-sm rounded-lg'
               >
                 <X className='h-5 w-5' />
               </Button>
@@ -102,11 +105,11 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
 
       {/* Navigation with Section Dividers */}
       <nav className='flex-1 px-3 py-5 overflow-y-auto custom-scrollbar'>
-        <div className='space-y-1'>
+        <div className='space-y-0.5'>
           {navigationSections.map((section, sectionIndex) => (
             <div key={sectionIndex}>
               {/* Section Items - Close together */}
-              <ul className='space-y-1'>
+              <ul className='space-y-0.5'>
                 {section.items.map(item => {
                   const isActive = location.pathname === item.href;
                   const Icon = item.icon;
@@ -119,8 +122,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                           'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
                           'transition-all duration-200 ease-in-out',
                           isActive
-                            ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md'
-                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/20 hover:text-sidebar-foreground',
+                            ? 'bg-sidebar-primary/20 text-sidebar-foreground/65'
+                            : 'text-sidebar-foreground/65 hover:bg-gray-200/80 hover:text-sidebar-foreground/65',
                           'group'
                         )}
                       >
@@ -128,8 +131,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                           className={cn(
                             'h-5 w-5 transition-all duration-200',
                             isActive
-                              ? 'text-sidebar-primary-foreground'
-                              : 'text-sidebar-foreground/60 group-hover:text-sidebar-foreground'
+                              ? 'text-sidebar-foreground/55'
+                              : 'text-sidebar-foreground/55 group-hover:text-sidebar-foreground/55'
                           )}
                         />
                         <span>{item.name}</span>
@@ -141,7 +144,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
 
               {/* Thin Divider Line - Only between sections, not after the last */}
               {sectionIndex < navigationSections.length - 1 && (
-                <div className='my-3 border-t border-sidebar-border/30' />
+                <div className='my-2 border-t border-sidebar-border/30' />
               )}
             </div>
           ))}

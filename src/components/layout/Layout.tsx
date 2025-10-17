@@ -178,13 +178,12 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
             'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw]',
             'transform transition-transform duration-300 ease-out',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-            'bg-sidebar text-sidebar-foreground border-r border-sidebar-border shadow-2xl',
+            'bg-sidebar text-sidebar-foreground',
           ],
           // Desktop: Fixed sidebar with glassmorphism
           !isMobile && [
-            'fixed left-0 top-0 h-screen w-52 z-30',
-            'bg-sidebar text-sidebar-foreground border-r border-sidebar-border',
-            'shadow-2xl',
+            'fixed left-0 top-0 h-screen w-56 z-30',
+            'bg-sidebar text-sidebar-foreground',
           ]
         )}
         role='navigation'
@@ -199,7 +198,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         className={cn(
           'relative z-10 transition-all duration-300 w-full',
           // Desktop: Add left padding for fixed sidebar
-          !isMobile && 'pl-52'
+          !isMobile && 'pl-56'
         )}
         role='main'
       >

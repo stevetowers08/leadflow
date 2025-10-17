@@ -28,45 +28,78 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    /* LinkedIn-Inspired Professional Colors */
-    --primary: 201 100% 35%; /* LinkedIn Blue #0077B5 */
+    /* Monday.com Brand Colors - Unified System */
+    --primary: 240 100% 70%; /* Monday.com Blue #6161FF */
     --primary-foreground: 0 0% 98%;
+    --primary-hover: 240 100% 65%; /* Slightly darker for hover */
+    --primary-light: 240 100% 95%; /* Very light for backgrounds */
+    --primary-medium: 240 100% 85%; /* Medium for borders */
 
-    /* Professional Secondary - Rich Electric Blue */
-    --secondary: 201 100% 43%; /* Rich Electric Blue #00A0DC */
+    /* Professional Secondary - Monday.com Blue Variants */
+    --secondary: 240 100% 60%; /* Monday.com Blue Darker #4A4AFF */
     --secondary-foreground: 0 0% 98%;
+    --secondary-hover: 240 100% 55%;
+    --secondary-light: 240 100% 90%;
+    --secondary-medium: 240 100% 80%;
 
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
-    /* Professional Accent - LinkedIn Blue Variant */
-    --accent: 201 100% 35%;
+    /* Professional Accent - Monday.com Blue Variant */
+    --accent: 240 100% 70%;
     --accent-foreground: 0 0% 98%;
+    --accent-hover: 240 100% 65%;
+    --accent-light: 240 100% 95%;
+    --accent-medium: 240 100% 85%;
 
     /* Semantic Colors */
     --destructive: 0 84.2% 60.2%; /* Red for destructive actions */
     --destructive-foreground: 210 40% 98%;
+    --destructive-hover: 0 84.2% 55%;
+    --destructive-light: 0 84.2% 95%;
+    --destructive-medium: 0 84.2% 85%;
+
     --success: 142 76% 36%; /* Green for success */
     --success-foreground: 0 0% 98%;
+    --success-hover: 142 76% 31%;
+    --success-light: 142 76% 95%;
+    --success-medium: 142 76% 85%;
+
     --warning: 38 92% 50%; /* Orange for warnings */
     --warning-foreground: 0 0% 98%;
+    --warning-hover: 38 92% 45%;
+    --warning-light: 38 92% 95%;
+    --warning-medium: 38 92% 85%;
 
     /* Clean Neutrals */
     --border: 240 5.9% 90%; /* Lighter borders for cleaner look */
     --input: 240 5.9% 95%; /* Very light input backgrounds */
-    --ring: 201 100% 35%; /* LinkedIn blue focus rings */
+    --ring: 240 100% 70%; /* Monday.com blue focus rings */
 
     --radius: 0.5rem; /* Slightly less rounded for professional look */
 
-    /* Professional Sidebar - LinkedIn-Inspired */
+    /* Professional Sidebar - Monday.com Inspired */
     --sidebar-background: 240 28% 23%; /* Dark professional background */
-    --sidebar-foreground: 240 4% 95%;
-    --sidebar-primary: 201 100% 35%; /* LinkedIn Blue */
+    --sidebar-foreground: 240 15% 15%; /* Darker text for better contrast */
+    --sidebar-primary: 240 100% 70%; /* Monday.com Blue */
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 5% 35%;
-    --sidebar-accent-foreground: 240 4% 95%;
+    --sidebar-primary-hover: 240 100% 65%;
+    --sidebar-primary-light: 240 100% 95%;
+    --sidebar-primary-medium: 240 100% 85%;
+    --sidebar-accent: 240 5% 96%; /* Very light gray for hover */
+    --sidebar-accent-foreground: 240 10% 20%; /* Dark text */
     --sidebar-border: 240 5.9% 85%;
-    --sidebar-ring: 201 100% 35%; /* LinkedIn blue focus */
+    --sidebar-ring: 240 100% 70%; /* Monday.com blue focus */
+
+    /* Glassmorphism sidebar background - Enterprise Professional */
+    --sidebar-glass-bg: linear-gradient(
+      135deg,
+      rgba(10, 102, 194, 0.03) 0%,
+      rgba(99, 102, 241, 0.03) 50%,
+      rgba(107, 114, 128, 0.03) 100%
+    );
+    --sidebar-glass-border: transparent;
+    --sidebar-glass-blur: blur(12px);
 
     /* Shadow System */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -110,13 +143,13 @@ All colors MUST be HSL.
     );
     --gradient-info: linear-gradient(
       135deg,
-      hsl(201 100% 35%) 0%,
-      hsl(201 100% 35% / 0.9) 100%
+      hsl(240 100% 70%) 0%,
+      hsl(240 100% 70% / 0.9) 100%
     );
     --gradient-info-subtle: linear-gradient(
       135deg,
-      hsl(201 100% 35% / 0.05) 0%,
-      hsl(201 100% 35% / 0.02) 100%
+      hsl(240 100% 70% / 0.05) 0%,
+      hsl(240 100% 70% / 0.02) 100%
     );
   }
 }
@@ -195,6 +228,110 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  /* Unified Color System Utilities */
+  .bg-primary-light {
+    background-color: hsl(var(--primary-light));
+  }
+  .bg-primary-medium {
+    background-color: hsl(var(--primary-medium));
+  }
+  .text-primary-light {
+    color: hsl(var(--primary-light));
+  }
+  .text-primary-medium {
+    color: hsl(var(--primary-medium));
+  }
+  .border-primary-light {
+    border-color: hsl(var(--primary-light));
+  }
+  .border-primary-medium {
+    border-color: hsl(var(--primary-medium));
+  }
+
+  .bg-secondary-light {
+    background-color: hsl(var(--secondary-light));
+  }
+  .bg-secondary-medium {
+    background-color: hsl(var(--secondary-medium));
+  }
+  .text-secondary-light {
+    color: hsl(var(--secondary-light));
+  }
+  .text-secondary-medium {
+    color: hsl(var(--secondary-medium));
+  }
+  .border-secondary-light {
+    border-color: hsl(var(--secondary-light));
+  }
+  .border-secondary-medium {
+    border-color: hsl(var(--secondary-medium));
+  }
+
+  .bg-accent-light {
+    background-color: hsl(var(--accent-light));
+  }
+  .bg-accent-medium {
+    background-color: hsl(var(--accent-medium));
+  }
+  .text-accent-light {
+    color: hsl(var(--accent-light));
+  }
+  .text-accent-medium {
+    color: hsl(var(--accent-medium));
+  }
+  .border-accent-light {
+    border-color: hsl(var(--accent-light));
+  }
+  .border-accent-medium {
+    border-color: hsl(var(--accent-medium));
+  }
+
+  /* Sidebar Color Utilities */
+  .bg-sidebar-primary-light {
+    background-color: hsl(var(--sidebar-primary-light));
+  }
+  .bg-sidebar-primary-medium {
+    background-color: hsl(var(--sidebar-primary-medium));
+  }
+  .text-sidebar-primary-light {
+    color: hsl(var(--sidebar-primary-light));
+  }
+  .text-sidebar-primary-medium {
+    color: hsl(var(--sidebar-primary-medium));
+  }
+  .border-sidebar-primary-light {
+    border-color: hsl(var(--sidebar-primary-light));
+  }
+  .border-sidebar-primary-medium {
+    border-color: hsl(var(--sidebar-primary-medium));
+  }
+
+  /* Glassmorphism sidebar utilities */
+  .bg-sidebar-glass {
+    background: var(--sidebar-glass-bg) !important;
+    backdrop-filter: var(--sidebar-glass-blur) !important;
+    border: 1px solid var(--sidebar-glass-border) !important;
+  }
+
+  /* Override Tailwind sidebar background */
+  .bg-sidebar {
+    background: var(--sidebar-glass-bg) !important;
+    backdrop-filter: var(--sidebar-glass-blur) !important;
+    border: 1px solid var(--sidebar-glass-border) !important;
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.1),
+      0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+  }
+
+  /* Focus and Hover States */
+  .focus-ring-primary {
+    --tw-ring-color: hsl(var(--primary));
+    --tw-ring-offset-color: hsl(var(--background));
+  }
+  .focus-border-primary {
+    --tw-border-color: hsl(var(--primary));
+  }
+
   /* Gradient Utilities */
   .gradient-primary {
     background: var(--gradient-primary);
