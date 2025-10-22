@@ -487,7 +487,7 @@ const Pipeline = () => {
           isDraggable
             ? 'hover:shadow-lg cursor-grab active:cursor-grabbing'
             : 'cursor-pointer'
-        } ${isDragging ? 'shadow-xl scale-[1.02] z-50 border-blue-300' : ''} ${
+        } ${isDragging ? 'shadow-xl scale-[1.02] z-50 border-primary-medium' : ''} ${
           isCurrentlyUpdating ? 'opacity-60 pointer-events-none' : ''
         } ${designTokens.borders.card} ${designTokens.borders.cardHover}`}
         onClick={e => {
@@ -545,7 +545,7 @@ const Pipeline = () => {
                 />
               ) : null}
               <div
-                className='w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center'
+                className='w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-hover text-primary-foreground flex items-center justify-center'
                 style={{ display: company.website ? 'none' : 'flex' }}
               >
                 <Building2 className='h-5 w-5' />
@@ -584,7 +584,7 @@ const Pipeline = () => {
             {/* Badges with Icons */}
             <div className='flex items-center gap-2'>
               {company.lead_score && (
-                <span className='inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200'>
+                <span className='inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary-light text-primary border-primary-medium'>
                   <Brain className='h-3 w-3 mr-1' />
                   {company.lead_score}
                 </span>
@@ -710,7 +710,7 @@ const Pipeline = () => {
             {/* User Filter Indicator */}
             {(selectedUserId || showAllAssignedUsers) && (
               <div className='mb-3'>
-                <div className='flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded'>
+                <div className='flex items-center gap-2 text-xs text-primary bg-primary-light px-2 py-1 rounded'>
                   <User className='h-3 w-3' />
                   <span>
                     {showAllAssignedUsers

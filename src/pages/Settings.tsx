@@ -1,12 +1,13 @@
 import IntegrationsPage from '@/components/IntegrationsPage';
 import AdminSettingsTab from '@/components/crm/settings/AdminSettingsTab';
 import BusinessProfileSettings from '@/components/crm/settings/BusinessProfileSettings';
+// import VoiceAISettings from '@/components/crm/settings/VoiceAISettings';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { cn } from '@/lib/utils';
-import { Building2, Plug, User, Users } from 'lucide-react';
+import { Building2, Mic, Plug, User, Users } from 'lucide-react';
 import { useState } from 'react';
 
 interface SettingsSection {
@@ -55,6 +56,13 @@ const Settings = () => {
       available: true,
     },
     {
+      id: 'voice-ai',
+      label: 'Voice AI',
+      icon: Mic,
+      description: 'Configure voice AI integration with Retell AI',
+      available: true,
+    },
+    {
       id: 'integrations',
       label: 'Integrations',
       icon: Plug,
@@ -95,7 +103,7 @@ const Settings = () => {
                   </label>
                   <input
                     type='text'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
                     placeholder='Enter your full name'
                   />
                 </div>
@@ -105,7 +113,7 @@ const Settings = () => {
                   </label>
                   <input
                     type='email'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
                     placeholder='Enter your email'
                   />
                 </div>
@@ -115,7 +123,7 @@ const Settings = () => {
                   </label>
                   <input
                     type='text'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
                     placeholder='Enter your job title'
                   />
                 </div>
@@ -127,6 +135,13 @@ const Settings = () => {
 
       case 'business-profile':
         return <BusinessProfileSettings />;
+
+      case 'voice-ai':
+        return (
+          <div className='p-6 text-center text-muted-foreground'>
+            Voice AI settings temporarily disabled
+          </div>
+        );
 
       case 'integrations':
         return <IntegrationsPage />;

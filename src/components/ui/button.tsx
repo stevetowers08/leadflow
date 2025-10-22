@@ -10,22 +10,22 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
         destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
         outline:
-          'border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'border border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
         secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'bg-secondary text-secondary-foreground hover:bg-secondary-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
         ghost:
-          'hover:bg-accent hover:text-accent-foreground hover:scale-[1.02] active:scale-98',
-        link: 'text-sidebar-primary underline-offset-4 hover:underline',
+          'text-primary hover:bg-primary-light hover:scale-[1.02] active:scale-98',
+        link: 'text-primary underline-offset-4 hover:underline',
         danger:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98', // Alias for destructive
+          'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98', // Alias for destructive
         success:
-          'bg-success text-success-foreground hover:bg-success/90 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'bg-success text-success-foreground hover:bg-success-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
         warning:
-          'bg-warning text-warning-foreground hover:bg-warning/90 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'bg-warning text-warning-foreground hover:bg-warning-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
       },
       size: {
         default: 'h-10 px-4 py-2', // Standard button height

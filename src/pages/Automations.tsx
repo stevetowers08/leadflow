@@ -100,8 +100,8 @@ const Automations = () => {
             details: `Automation started for ${person.name} at ${companyName}`,
             stage: person.stage,
             icon: <Bot className='h-4 w-4' />,
-            color: 'text-blue-600',
-            bgColor: 'bg-blue-50',
+            color: 'text-primary',
+            bgColor: 'bg-primary-light',
           });
         }
 
@@ -307,7 +307,8 @@ const Automations = () => {
   const getStageBadgeColor = (stage?: string) => {
     const colors = {
       new: 'bg-muted text-muted-foreground',
-      connection_requested: 'bg-blue-100 text-blue-800',
+      connection_requested:
+        'bg-primary-light text-primary border-primary-medium',
       connected: 'bg-green-100 text-green-800',
       messaged: 'bg-purple-100 text-purple-800',
       replied: 'bg-emerald-100 text-emerald-800',

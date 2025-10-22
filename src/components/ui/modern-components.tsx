@@ -127,17 +127,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl',
+          'bg-primary text-primary-foreground hover:bg-primary-hover shadow-lg hover:shadow-xl',
         glass: 'glass-light text-white hover:bg-white/20 hover:border-white/30',
         neumorphism:
           'neumorphism-light text-gray-700 hover:shadow-lg active:shadow-neumorphism-pressed active:scale-[0.98]',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
+        ghost: 'text-primary hover:bg-primary-light',
         outline:
-          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+          'border border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground',
         secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/90',
+          'bg-secondary text-secondary-foreground hover:bg-secondary-hover',
         destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+          'bg-destructive text-destructive-foreground hover:bg-destructive-hover',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {

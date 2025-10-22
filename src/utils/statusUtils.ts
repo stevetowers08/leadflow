@@ -104,10 +104,6 @@ export function getStatusDisplayText(status: string): string {
     // Company pipeline stages - all variations (from DB enum)
     new_lead: 'New Lead',
     NEW_LEAD: 'New Lead',
-    automated: 'Automated',
-    AUTOMATED: 'Automated',
-    replied: 'Replied',
-    REPLIED: 'Replied',
     meeting_scheduled: 'Meeting Scheduled',
     'meeting scheduled': 'Meeting Scheduled',
     MEETING_SCHEDULED: 'Meeting Scheduled',
@@ -148,12 +144,6 @@ export function getStatusDisplayText(status: string): string {
     EMAIL_SENT: 'Email Sent',
     email_reply: 'Email Reply',
     EMAIL_REPLY: 'Email Reply',
-    meeting_booked: 'Meeting Booked',
-    MEETING_BOOKED: 'Meeting Booked',
-    meeting_held: 'Meeting Held',
-    MEETING_HELD: 'Meeting Held',
-    disqualified: 'Disqualified',
-    DISQUALIFIED: 'Disqualified',
     note: 'Note',
     NOTE: 'Note',
 

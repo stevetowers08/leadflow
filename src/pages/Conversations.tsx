@@ -276,7 +276,7 @@ const ConversationsPage: React.FC = () => {
                   className={cn(
                     'w-full flex items-center justify-between px-3 py-2 text-sm rounded transition-colors',
                     activeView === item.id
-                      ? 'bg-blue-50 text-blue-700'
+                      ? 'bg-primary-light text-primary'
                       : 'text-gray-700 hover:bg-gray-100'
                   )}
                 >
@@ -304,7 +304,7 @@ const ConversationsPage: React.FC = () => {
                 <span>Views</span>
                 <div className='flex gap-1'>
                   <Search className='h-3 w-3' />
-                  <span className='text-blue-600'>+</span>
+                  <span className='text-primary'>+</span>
                 </div>
               </div>
               <div className='text-xs text-gray-400 px-3 py-1 mb-2'>
@@ -326,7 +326,7 @@ const ConversationsPage: React.FC = () => {
                   className={cn(
                     'w-full flex items-center gap-3 px-3 py-2 text-sm rounded transition-colors',
                     activeView === item.id
-                      ? 'bg-blue-50 text-blue-700'
+                      ? 'bg-primary-light text-primary'
                       : 'text-gray-700 hover:bg-gray-100'
                   )}
                 >
@@ -372,7 +372,7 @@ const ConversationsPage: React.FC = () => {
           <div className='flex-1 overflow-y-auto'>
             {loading ? (
               <div className='flex items-center justify-center h-32'>
-                <div className='animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-blue-600' />
+                <div className='animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-primary' />
               </div>
             ) : threads.length === 0 ? (
               <div className='flex flex-col items-center justify-center h-full text-gray-500 p-4'>
@@ -391,14 +391,14 @@ const ConversationsPage: React.FC = () => {
                     className={cn(
                       'p-4 hover:bg-gray-50 cursor-pointer transition-colors border-l-4 border-l-transparent',
                       selectedThread?.id === thread.id &&
-                        'bg-blue-50 border-l-blue-500',
+                        'bg-primary-light border-l-primary',
                       !thread.is_read && 'bg-blue-50/50'
                     )}
                   >
                     <div className='flex items-start gap-3'>
                       <div className='flex-shrink-0 mt-1'>
                         {thread.last_message_preview.includes('LinkedIn') ? (
-                          <Linkedin className='h-4 w-4 text-blue-600' />
+                          <Linkedin className='h-4 w-4 text-primary' />
                         ) : (
                           <Mail className='h-4 w-4 text-gray-400' />
                         )}
@@ -455,7 +455,7 @@ const ConversationsPage: React.FC = () => {
                 <div className='flex items-start justify-between mb-3'>
                   <div className='flex-1'>
                     <div className='flex items-center gap-3 mb-2'>
-                      <div className='w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center'>
+                      <div className='w-8 h-8 bg-gradient-to-br from-primary to-primary-hover rounded-full flex items-center justify-center'>
                         <User className='h-4 w-4 text-white' />
                       </div>
                       <div>
@@ -514,14 +514,14 @@ const ConversationsPage: React.FC = () => {
                       className={cn(
                         'p-3 rounded border',
                         message.is_sent
-                          ? 'bg-blue-50 border-blue-200 ml-6'
+                          ? 'bg-primary-light border-primary-medium ml-6'
                           : 'bg-gray-50 border-gray-200 mr-6'
                       )}
                     >
                       <div className='flex items-start justify-between mb-2'>
                         <div className='flex items-center gap-2'>
                           {message.is_sent ? (
-                            <Mail className='h-3 w-3 text-blue-600' />
+                            <Mail className='h-3 w-3 text-primary' />
                           ) : (
                             <MailOpen className='h-3 w-3 text-gray-600' />
                           )}
