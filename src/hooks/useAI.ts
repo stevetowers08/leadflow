@@ -1,23 +1,20 @@
 // AI Hooks for React integration
-import { useState, useCallback, useEffect } from 'react';
-import { useAsyncOperation } from './useAsyncOperation';
+import { useCallback, useEffect, useState } from 'react';
 import {
   aiService,
   type AIScore,
   type JobSummary,
   type LeadOptimization,
 } from '../services/aiService';
+import { geminiService } from '../services/geminiService';
 import {
-  geminiService,
-  type GeminiAnalysisResult,
-} from '../services/geminiService';
-import {
-  summarizeJobFromSupabase,
   batchSummarizeJobsFromSupabase,
+  getJobsNeedingSummarization as getJobsNeedingSummarizationUtil,
   processJobSummarizationWorkflow,
-  getJobsNeedingSummarization,
+  summarizeJobFromSupabase,
   type JobSummaryUpdate,
 } from '../utils/jobSummarization';
+import { useAsyncOperation } from './useAsyncOperation';
 
 export interface UseAIJobSummaryOptions {
   enableAutoRetry?: boolean;
@@ -27,6 +24,7 @@ export interface UseAIJobSummaryOptions {
 
 export interface UseAIJobSummaryResult {
   generateSummary: (jobData: {
+    id: string;
     title: string;
     company: string;
     description: string;
@@ -53,10 +51,29 @@ export function useAIJobSummary(
     isLoading,
     error,
     retry,
-  } = useAsyncOperation<JobSummary>();
+  } = useAsyncOperation<JobSummary>(
+    async (jobData: {
+      id: string;
+      title: string;
+      company: string;
+      description: string;
+      location?: string;
+      salary?: string;
+    }) => {
+      return await aiService.generateJobSummary({
+        id: jobData.id,
+        title: jobData.title,
+        company: jobData.company,
+        description: jobData.description,
+        location: jobData.location || '',
+        salary: jobData.salary,
+      });
+    }
+  );
 
   const generateSummary = useCallback(
     async (jobData: {
+      id: string;
       title: string;
       company: string;
       description: string;
@@ -73,15 +90,7 @@ export function useAIJobSummary(
         }
       }
 
-      const result = await executeSummary(async () => {
-        return await aiService.generateJobSummary({
-          title: jobData.title,
-          company: jobData.company,
-          description: jobData.description,
-          location: jobData.location || '',
-          salary: jobData.salary,
-        });
-      });
+      const result = await executeSummary(jobData);
 
       if (result) {
         setLastResult(result);
@@ -124,7 +133,9 @@ export interface UseAISupabaseJobSummaryResult {
     updated: number;
     errors: string[];
   }>;
-  getJobsNeedingSummarization: (limit?: number) => Promise<any[]>;
+  getJobsNeedingSummarization: (
+    limit?: number
+  ) => Promise<Array<Record<string, unknown>>>;
   isLoading: boolean;
   error: string | null;
   progress: {
@@ -172,7 +183,7 @@ export function useAISupabaseJobSummary(
     execute: executeGetJobs,
     isLoading: isLoadingJobs,
     error: jobsError,
-  } = useAsyncOperation<any[]>();
+  } = useAsyncOperation<Array<Record<string, unknown>>>();
 
   const summarizeJob = useCallback(
     async (jobId: string) => {
@@ -229,7 +240,7 @@ export function useAISupabaseJobSummary(
   const getJobsNeedingSummarization = useCallback(
     async (limit: number = 50) => {
       return await executeGetJobs(async () => {
-        const result = await getJobsNeedingSummarization(limit);
+        const result = await getJobsNeedingSummarizationUtil(limit);
         if (!result.success) {
           throw new Error(result.error);
         }

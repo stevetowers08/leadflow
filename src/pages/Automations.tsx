@@ -64,15 +64,14 @@ const Automations = () => {
           automation_started_at,
           connection_request_date,
           connection_accepted_date,
-          message_sent_date,
+          last_reply_at,
           response_date,
           meeting_booked,
           meeting_date,
-          email_sent_date,
           email_reply_date,
           stage_updated,
           last_interaction_at,
-          stage,
+          people_stage,
           companies(name)
         `
         )
@@ -98,7 +97,7 @@ const Automations = () => {
             company_role: person.company_role,
             occurred_at: person.automation_started_at,
             details: `Automation started for ${person.name} at ${companyName}`,
-            stage: person.stage,
+            stage: person.people_stage,
             icon: <Bot className='h-4 w-4' />,
             color: 'text-primary',
             bgColor: 'bg-primary-light',
@@ -115,7 +114,7 @@ const Automations = () => {
             company_role: person.company_role,
             occurred_at: person.connection_request_date,
             details: `Connection request sent to ${person.name}`,
-            stage: person.stage,
+            stage: person.people_stage,
             icon: <UserPlus className='h-4 w-4' />,
             color: 'text-green-600',
             bgColor: 'bg-green-50',
@@ -123,16 +122,16 @@ const Automations = () => {
         }
 
         // Message sent
-        if (person.message_sent_date) {
+        if (person.last_reply_at) {
           activitiesList.push({
             id: `${person.id}-message-sent`,
             type: 'message_sent',
             person_name: person.name,
             company_name: companyName,
             company_role: person.company_role,
-            occurred_at: person.message_sent_date,
+            occurred_at: person.last_reply_at,
             details: `Message sent to ${person.name}`,
-            stage: person.stage,
+            stage: person.people_stage,
             icon: <MessageSquare className='h-4 w-4' />,
             color: 'text-purple-600',
             bgColor: 'bg-purple-50',
@@ -149,7 +148,7 @@ const Automations = () => {
             company_role: person.company_role,
             occurred_at: person.response_date,
             details: `Response received from ${person.name}`,
-            stage: person.stage,
+            stage: person.people_stage,
             icon: <CheckCircle className='h-4 w-4' />,
             color: 'text-emerald-600',
             bgColor: 'bg-emerald-50',
@@ -166,29 +165,15 @@ const Automations = () => {
             company_role: person.company_role,
             occurred_at: person.meeting_date,
             details: `Meeting booked with ${person.name}`,
-            stage: person.stage,
+            stage: person.people_stage,
             icon: <Calendar className='h-4 w-4' />,
             color: 'text-orange-600',
             bgColor: 'bg-orange-50',
           });
         }
 
-        // Email sent
-        if (person.email_sent_date) {
-          activitiesList.push({
-            id: `${person.id}-email-sent`,
-            type: 'email_sent',
-            person_name: person.name,
-            company_name: companyName,
-            company_role: person.company_role,
-            occurred_at: person.email_sent_date,
-            details: `Email sent to ${person.name}`,
-            stage: person.stage,
-            icon: <Mail className='h-4 w-4' />,
-            color: 'text-accent',
-            bgColor: 'bg-accent/10',
-          });
-        }
+        // Email sent - removed since email_sent_date column doesn't exist
+        // TODO: Implement email tracking when email_sends table is properly integrated
 
         // Email reply
         if (person.email_reply_date) {
@@ -200,7 +185,7 @@ const Automations = () => {
             company_role: person.company_role,
             occurred_at: person.email_reply_date,
             details: `Email reply received from ${person.name}`,
-            stage: person.stage,
+            stage: person.people_stage,
             icon: <Mail className='h-4 w-4' />,
             color: 'text-accent',
             bgColor: 'bg-accent/10',

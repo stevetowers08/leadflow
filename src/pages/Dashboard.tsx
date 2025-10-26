@@ -9,10 +9,10 @@
  * - Clean, actionable morning view design
  */
 
+import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
+import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
 import { ListCard, MetricCard, ModernCard } from '@/components/ui/modern-cards';
-import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
 import { Page } from '@/design-system/components';
-import { useReportingData } from '@/hooks/useReportingData';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Calendar,
@@ -39,12 +39,12 @@ interface Job {
   title: string;
   automation_active: boolean;
   created_at: string;
-  logo?: string;
+  logo_url?: string;
   companies?: {
     id: string;
     name: string;
     industry: string;
-    profile_image_url?: string;
+    logo_url?: string;
   };
 }
 
@@ -53,13 +53,11 @@ interface Company {
   name: string;
   industry: string;
   created_at: string;
-  profile_image_url?: string;
+  logo_url?: string;
 }
 
 export default function Dashboard() {
-  const { data, isLoading } = useReportingData();
   const navigate = useNavigate();
-  const { openPopup } = usePopupNavigation();
   const [todaysData, setTodaysData] = useState<TodaysData>({
     newJobsToday: 0,
     newLeadsToday: 0,
@@ -72,6 +70,14 @@ export default function Dashboard() {
   const [isLoadingTodaysData, setIsLoadingTodaysData] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Slide-out state
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
+    null
+  );
+  const [isJobSlideOutOpen, setIsJobSlideOutOpen] = useState(false);
+  const [isCompanySlideOutOpen, setIsCompanySlideOutOpen] = useState(false);
+
   // Memoized greeting calculation
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -80,18 +86,21 @@ export default function Dashboard() {
     return 'Good Evening';
   }, []);
 
-  // Memoized click handler
+  // Memoized click handler - open slide-outs
   const handleItemClick = useCallback(
     (item: Job | Company, type: 'job' | 'company' | 'person') => {
       if (type === 'job') {
-        openPopup('job', item.id, (item as Job).title);
+        setSelectedJobId(item.id);
+        setIsJobSlideOutOpen(true);
       } else if (type === 'company') {
-        openPopup('company', item.id, (item as Company).name);
+        setSelectedCompanyId(item.id);
+        setIsCompanySlideOutOpen(true);
       } else if (type === 'person') {
-        openPopup('lead', item.id, (item as Company).name);
+        // Future: add person slide-out
+        navigate(`/people/${item.id}`);
       }
     },
-    [openPopup]
+    [navigate]
   );
 
   // Optimized data fetching with single query
@@ -152,12 +161,12 @@ export default function Dashboard() {
             title,
             automation_active, 
             created_at,
-            logo,
-            companies!left(
+            logo_url,
+            companies!jobs_company_id_fkey(
               id,
               name,
               industry,
-              profile_image_url
+              logo_url
             )
           `
             )
@@ -178,7 +187,7 @@ export default function Dashboard() {
             name,
             industry,
             created_at,
-            profile_image_url
+            logo_url
           `
             )
             .gte('created_at', today)
@@ -228,12 +237,12 @@ export default function Dashboard() {
             title,
             automation_active, 
             created_at,
-            logo,
-            companies!left(
+            logo_url,
+            companies!jobs_company_id_fkey(
               id,
               name,
               industry,
-              profile_image_url
+              logo_url
             )
           `
           )
@@ -243,7 +252,7 @@ export default function Dashboard() {
         // Get recent companies (last 7 days)
         const { data: recentCompanies } = await supabase
           .from('companies')
-          .select('id, name, industry, created_at, profile_image_url')
+          .select('id, name, industry, created_at, logo_url')
           .order('created_at', { ascending: false })
           .limit(10);
 
@@ -316,14 +325,14 @@ export default function Dashboard() {
         {/* Key Metrics - Ultra-Modern Minimal Design */}
         <div className='grid gap-6 grid-cols-2 lg:grid-cols-4'>
           <MetricCard
-            title='Recent Jobs'
+            title='Recent Job Intelligence'
             value={isLoadingTodaysData ? '...' : todaysData.newJobsToday}
             icon={Target}
             variant='minimal'
           />
 
           <MetricCard
-            title='Automated Jobs'
+            title='Automated Job Intelligence'
             value={isLoadingTodaysData ? '...' : todaysData.automatedJobs}
             icon={Zap}
             variant='minimal'
@@ -350,7 +359,7 @@ export default function Dashboard() {
           <ModernCard variant='minimal' className='p-4'>
             <div className='flex items-center justify-between mb-3'>
               <h3 className='text-sm font-semibold text-gray-900'>
-                Recent Jobs
+                Recent Job Intelligence
               </h3>
               <button
                 onClick={() => navigate('/jobs')}
@@ -361,19 +370,20 @@ export default function Dashboard() {
             </div>
             <div className='space-y-2.5'>
               {todaysJobs.slice(0, 4).map((job, index) => (
-                <ListCard
-                  key={job.id || index}
-                  title={job.title || 'Untitled Job'}
-                  subtitle={`${job.companies?.name || 'Unknown Company'}${job.companies?.industry ? ` • ${job.companies.industry}` : ''}`}
-                  logo={job.logo || job.companies?.profile_image_url}
-                  onClick={() => handleItemClick(job, 'job')}
-                  variant='minimal'
-                  badge={
-                    <span className='px-2 py-0.5 rounded-md text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200'>
-                      New
-                    </span>
-                  }
-                />
+                <div key={job.id || index} className='relative'>
+                  <ListCard
+                    title={job.title || 'Untitled Job'}
+                    subtitle={`${job.companies?.name || 'Unknown Company'}${job.companies?.industry ? ` • ${job.companies.industry}` : ''}`}
+                    logo={job.logo_url || job.companies?.logo_url}
+                    onClick={() => handleItemClick(job, 'job')}
+                    variant='minimal'
+                    badge={
+                      <span className='px-2 py-0.5 rounded-md text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200'>
+                        New
+                      </span>
+                    }
+                  />
+                </div>
               ))}
               {todaysJobs.length === 0 && (
                 <div className='text-xs text-gray-500'>
@@ -402,7 +412,7 @@ export default function Dashboard() {
                   key={company.id || index}
                   title={company.name || 'Untitled Company'}
                   subtitle={company.industry || 'Unknown Industry'}
-                  logo={company.profile_image_url}
+                  logo={company.logo_url}
                   onClick={() => handleItemClick(company, 'company')}
                   variant='minimal'
                   badge={
@@ -445,6 +455,25 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
+      {/* Slide-outs */}
+      <JobDetailsSlideOut
+        jobId={selectedJobId}
+        isOpen={isJobSlideOutOpen}
+        onClose={() => {
+          setIsJobSlideOutOpen(false);
+          setSelectedJobId(null);
+        }}
+      />
+
+      <CompanyDetailsSlideOut
+        companyId={selectedCompanyId}
+        isOpen={isCompanySlideOutOpen}
+        onClose={() => {
+          setIsCompanySlideOutOpen(false);
+          setSelectedCompanyId(null);
+        }}
+      />
     </Page>
   );
 }

@@ -118,7 +118,7 @@ export class OptimizedQueries {
     }
 
     if (filters.status && filters.status !== 'all') {
-      query = query.eq('stage', filters.status);
+      query = query.eq('people_stage', filters.status);
     }
 
     if (filters.ownerId && filters.ownerId !== 'all') {
@@ -218,7 +218,10 @@ export class OptimizedQueries {
 
         return acc;
       },
-      {} as Record<string, { assign: any[]; unassign: string[] }>
+      {} as Record<
+        string,
+        { assign: Record<string, unknown>[]; unassign: string[] }
+      >
     );
 
     // Execute batch updates
@@ -268,9 +271,10 @@ export class OptimizedQueries {
   ) {
     let query = supabase.from('company_assignments_with_users').select('*');
 
-    if (filters.stage && filters.stage !== 'all') {
-      query = query.eq('status', filters.stage);
-    }
+    // TODO: Fix this query - company_assignments_with_users table doesn't exist
+    // if (filters.stage && filters.stage !== 'all') {
+    //   query = query.eq('status', filters.stage);
+    // }
 
     if (filters.ownerId && filters.ownerId !== 'all') {
       if (filters.ownerId === 'assigned') {
@@ -349,7 +353,7 @@ export class QueryPerformanceMonitor {
     string,
     { avg: number; min: number; max: number; count: number }
   > {
-    const stats: Record<string, any> = {};
+    const stats: Record<string, unknown> = {};
 
     for (const [queryName] of this.queryTimes) {
       stats[queryName] = this.getQueryStats(queryName);

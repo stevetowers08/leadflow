@@ -324,6 +324,103 @@ export type Database = {
         };
         Relationships: [];
       };
+      email_replies: {
+        Row: {
+          analyzed_at: string | null;
+          company_id: string | null;
+          created_at: string;
+          detected_at: string;
+          from_email: string;
+          gmail_message_id: string;
+          gmail_thread_id: string;
+          id: string;
+          interaction_id: string | null;
+          new_stage: string | null;
+          person_id: string | null;
+          previous_stage: string | null;
+          processed_at: string | null;
+          processing_error: string | null;
+          reply_body_html: string | null;
+          reply_body_plain: string | null;
+          reply_subject: string | null;
+          sentiment: string | null;
+          sentiment_confidence: number | null;
+          sentiment_reasoning: string | null;
+          triggered_stage_change: boolean | null;
+          updated_at: string;
+        };
+        Insert: {
+          analyzed_at?: string | null;
+          company_id?: string | null;
+          created_at?: string;
+          detected_at: string;
+          from_email: string;
+          gmail_message_id: string;
+          gmail_thread_id: string;
+          id?: string;
+          interaction_id?: string | null;
+          new_stage?: string | null;
+          person_id?: string | null;
+          previous_stage?: string | null;
+          processed_at?: string | null;
+          processing_error?: string | null;
+          reply_body_html?: string | null;
+          reply_body_plain?: string | null;
+          reply_subject?: string | null;
+          sentiment?: string | null;
+          sentiment_confidence?: number | null;
+          sentiment_reasoning?: string | null;
+          triggered_stage_change?: boolean | null;
+          updated_at?: string;
+        };
+        Update: {
+          analyzed_at?: string | null;
+          company_id?: string | null;
+          created_at?: string;
+          detected_at?: string;
+          from_email?: string;
+          gmail_message_id?: string;
+          gmail_thread_id?: string;
+          id?: string;
+          interaction_id?: string | null;
+          new_stage?: string | null;
+          person_id?: string | null;
+          previous_stage?: string | null;
+          processed_at?: string | null;
+          processing_error?: string | null;
+          reply_body_html?: string | null;
+          reply_body_plain?: string | null;
+          reply_subject?: string | null;
+          sentiment?: string | null;
+          sentiment_confidence?: number | null;
+          sentiment_reasoning?: string | null;
+          triggered_stage_change?: boolean | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'email_replies_company_id_fkey';
+            columns: ['company_id'];
+            isOneToOne: false;
+            referencedRelation: 'companies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'email_replies_interaction_id_fkey';
+            columns: ['interaction_id'];
+            isOneToOne: false;
+            referencedRelation: 'interactions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'email_replies_person_id_fkey';
+            columns: ['person_id'];
+            isOneToOne: false;
+            referencedRelation: 'people';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       email_threads: {
         Row: {
           created_at: string | null;
@@ -432,6 +529,11 @@ export type Database = {
           logo_url: string | null;
           posted_date: string | null;
           priority: string | null;
+          qualified: boolean | null;
+          qualified_at: string | null;
+          qualified_by: string | null;
+          qualification_notes: string | null;
+          qualification_status: 'new' | 'qualify' | 'skip' | null;
           salary: string | null;
           seniority_level: string | null;
           summary: string | null;
@@ -455,6 +557,11 @@ export type Database = {
           logo_url?: string | null;
           posted_date?: string | null;
           priority?: string | null;
+          qualified?: boolean | null;
+          qualified_at?: string | null;
+          qualified_by?: string | null;
+          qualification_notes?: string | null;
+          qualification_status?: 'new' | 'qualify' | 'skip' | null;
           salary?: string | null;
           seniority_level?: string | null;
           summary?: string | null;
@@ -478,6 +585,11 @@ export type Database = {
           logo_url?: string | null;
           posted_date?: string | null;
           priority?: string | null;
+          qualified?: boolean | null;
+          qualified_at?: string | null;
+          qualified_by?: string | null;
+          qualification_notes?: string | null;
+          qualification_status?: 'new' | 'qualify' | 'skip' | null;
           salary?: string | null;
           seniority_level?: string | null;
           summary?: string | null;
@@ -638,7 +750,6 @@ export type Database = {
           email_reply: string | null;
           email_reply_date: string | null;
           email_sent: string | null;
-          email_sent_date: string | null;
           employee_location: string | null;
           favourite: boolean | null;
           id: string;
@@ -659,12 +770,12 @@ export type Database = {
           meeting_booked: string | null;
           meeting_date: string | null;
           message_sent: string | null;
-          message_sent_date: string | null;
+          last_reply_at: string | null;
           name: string;
           owner_id: string | null | null;
           response_date: string | null;
           reply_type: Database['public']['Enums']['reply_type'] | null;
-          stage: Database['public']['Enums']['stage_enum'];
+          people_stage: Database['public']['Enums']['people_stage_enum'];
           stage_updated: string | null;
           updated_at: string | null;
         };
@@ -684,7 +795,6 @@ export type Database = {
           email_reply?: string | null;
           email_reply_date?: string | null;
           email_sent?: string | null;
-          email_sent_date?: string | null;
           employee_location?: string | null;
           favourite?: boolean | null;
           id?: string;
@@ -705,12 +815,12 @@ export type Database = {
           meeting_booked?: string | null;
           meeting_date?: string | null;
           message_sent?: string | null;
-          message_sent_date?: string | null;
+          last_reply_at?: string | null;
           name: string;
           owner_id?: string | null;
           response_date?: string | null;
           reply_type?: Database['public']['Enums']['reply_type'] | null;
-          stage?: Database['public']['Enums']['stage_enum'];
+          people_stage?: Database['public']['Enums']['people_stage_enum'];
           stage_updated?: string | null;
           updated_at?: string | null;
         };
@@ -730,7 +840,6 @@ export type Database = {
           email_reply?: string | null;
           email_reply_date?: string | null;
           email_sent?: string | null;
-          email_sent_date?: string | null;
           employee_location?: string | null;
           favourite?: boolean | null;
           id?: string;
@@ -751,12 +860,12 @@ export type Database = {
           meeting_booked?: string | null;
           meeting_date?: string | null;
           message_sent?: string | null;
-          message_sent_date?: string | null;
+          last_reply_at?: string | null;
           name?: string;
           owner_id?: string | null;
           response_date?: string | null;
           reply_type?: Database['public']['Enums']['reply_type'] | null;
-          stage?: Database['public']['Enums']['stage_enum'];
+          people_stage?: Database['public']['Enums']['people_stage_enum'];
           stage_updated?: string | null;
           updated_at?: string | null;
         };
@@ -948,17 +1057,15 @@ export type Database = {
         | 'disqualified'
         | 'note';
       reply_type: 'interested' | 'not_interested' | 'maybe';
-      stage_enum:
-        | 'new'
-        | 'connection_requested'
-        | 'connected'
-        | 'messaged'
+      people_stage_enum:
+        | 'new_lead'
+        | 'message_sent'
         | 'replied'
-        | 'meeting_booked'
-        | 'meeting_held'
-        | 'disqualified'
-        | 'in queue'
-        | 'lead_lost';
+        | 'interested'
+        | 'meeting_scheduled'
+        | 'meeting_completed'
+        | 'follow_up'
+        | 'not_interested';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1103,17 +1210,15 @@ export const Constants = {
         'disqualified',
         'note',
       ],
-      stage_enum: [
-        'new',
-        'connection_requested',
-        'connected',
-        'messaged',
+      people_stage_enum: [
+        'new_lead',
+        'message_sent',
         'replied',
-        'meeting_booked',
-        'meeting_held',
-        'disqualified',
-        'in queue',
-        'lead_lost',
+        'interested',
+        'meeting_scheduled',
+        'meeting_completed',
+        'follow_up',
+        'not_interested',
       ],
     },
   },

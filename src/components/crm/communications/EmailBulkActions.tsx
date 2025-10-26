@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Mail, Send, Users, X } from 'lucide-react';
+import React, { useState } from 'react';
 import { Tables } from '../../../integrations/supabase/types';
 import { EmailAutomationModal } from './EmailAutomationModal';
 
@@ -61,6 +61,7 @@ export const EmailBulkActions: React.FC<EmailBulkActionsProps> = ({
                 disabled={validEmails.length === 0}
                 size='sm'
                 variant='outline'
+                className='action-bar action-bar--button'
               >
                 <Mail className='mr-2 h-4 w-4' />
                 Send Email
@@ -70,12 +71,18 @@ export const EmailBulkActions: React.FC<EmailBulkActionsProps> = ({
                 onClick={handleAutomation}
                 disabled={validEmails.length === 0}
                 size='sm'
+                className='action-bar action-bar--button'
               >
                 <Send className='mr-2 h-4 w-4' />
                 Create Automation
               </Button>
 
-              <Button onClick={onActionComplete} variant='ghost' size='sm'>
+              <Button
+                onClick={onActionComplete}
+                variant='ghost'
+                size='sm'
+                className='action-bar action-bar--icon'
+              >
                 <X className='h-4 w-4' />
               </Button>
             </div>

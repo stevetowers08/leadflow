@@ -15,17 +15,17 @@ import {
   Bot,
   Briefcase,
   Building2,
+  HelpCircle,
   Home,
+  Megaphone,
   Menu,
   MessageSquare,
   Search,
   Settings,
   Star,
-  Target,
   User,
   Users,
   X,
-  Megaphone,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -46,82 +46,81 @@ interface MobileSidebarProps {
   onToggle?: () => void;
 }
 
+/**
+ * Sidebar items following user flow document structure:
+ * 1. Core Workflow - Primary user journey (Jobs → Companies → People → Conversations)
+ * 2. Advanced Features - Phase 2 features (Campaigns, Analytics)
+ * 3. Settings & Support - Configuration and help
+ */
 const sidebarItems: SidebarItem[] = [
-  // Main Navigation
+  // Core Workflow - Most common items displayed prominently
   {
     to: '/',
     label: 'Dashboard',
-    icon: <Home className='h-5 w-5' />,
+    icon: <Home className='h-4 w-4' />,
     isPrimary: true,
-    category: 'main',
-  },
-  {
-    to: '/people',
-    label: 'People',
-    icon: <Users className='h-5 w-5' />,
-    isPrimary: true,
-    permission: 'people',
-    category: 'main',
-  },
-  {
-    to: '/companies',
-    label: 'Companies',
-    icon: <Building2 className='h-5 w-5' />,
-    isPrimary: true,
-    permission: 'companies',
     category: 'main',
   },
   {
     to: '/jobs',
-    label: 'Jobs',
-    icon: <Briefcase className='h-5 w-5' />,
+    label: 'Jobs Feed',
+    icon: <Briefcase className='h-4 w-4' />,
     isPrimary: true,
     permission: 'jobs',
     category: 'main',
   },
   {
-    to: '/pipeline',
-    label: 'Pipeline',
-    icon: <Target className='h-5 w-5' />,
-    permission: 'leads',
+    to: '/companies',
+    label: 'Companies',
+    icon: <Building2 className='h-4 w-4' />,
+    isPrimary: true,
+    permission: 'companies',
     category: 'main',
   },
   {
-    to: '/campaigns',
-    label: 'Campaigns',
-    icon: <Megaphone className='h-5 w-5' />,
-    permission: 'campaigns',
+    to: '/people',
+    label: 'People',
+    icon: <Users className='h-4 w-4' />,
+    isPrimary: true,
+    permission: 'people',
+    category: 'main',
+  },
+  {
+    to: '/conversations',
+    label: 'Conversations',
+    icon: <MessageSquare className='h-4 w-4' />,
+    isPrimary: true,
     category: 'main',
   },
 
-  // Secondary Navigation
+  // Advanced Features - Phase 2 functionality
   {
-    to: '/conversations',
-    label: 'Messages',
-    icon: <MessageSquare className='h-5 w-5' />,
-    category: 'secondary',
-  },
-  {
-    to: '/automations',
-    label: 'Automations',
-    icon: <Bot className='h-5 w-5' />,
-    permission: 'workflows',
+    to: '/campaigns',
+    label: 'Campaigns',
+    icon: <Megaphone className='h-4 w-4' />,
+    permission: 'campaigns',
     category: 'secondary',
   },
   {
     to: '/reporting',
-    label: 'Reports',
-    icon: <BarChart3 className='h-5 w-5' />,
+    label: 'Analytics',
+    icon: <BarChart3 className='h-4 w-4' />,
     permission: 'reports',
     category: 'secondary',
   },
 
-  // Tools
+  // Settings & Support
   {
     to: '/settings',
     label: 'Settings',
-    icon: <Settings className='h-5 w-5' />,
+    icon: <Settings className='h-4 w-4' />,
     permission: 'settings',
+    category: 'tools',
+  },
+  {
+    to: '/about',
+    label: 'Help',
+    icon: <HelpCircle className='h-4 w-4' />,
     category: 'tools',
   },
 ];
@@ -291,11 +290,11 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
 
           {/* Navigation Content */}
           <div className='flex-1 overflow-y-auto mobile-smooth-scroll p-4'>
-            {/* Main Navigation */}
+            {/* Core Workflow */}
             {groupedItems.main && (
               <div className='mb-6'>
                 <h3 className='mobile-supporting-sm font-semibold uppercase tracking-wide mb-3'>
-                  Main
+                  Core Workflow
                 </h3>
                 <nav className='space-y-1'>
                   {groupedItems.main.map(item => (
@@ -334,11 +333,11 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
               </div>
             )}
 
-            {/* Secondary Navigation */}
+            {/* Advanced Features */}
             {groupedItems.secondary && (
               <div className='mb-6'>
                 <h3 className='mobile-supporting-sm font-semibold uppercase tracking-wide mb-3'>
-                  Tools
+                  Advanced Features
                 </h3>
                 <nav className='space-y-1'>
                   {groupedItems.secondary.map(item => (
@@ -377,11 +376,11 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
               </div>
             )}
 
-            {/* Tools Navigation */}
+            {/* Settings & Support */}
             {groupedItems.tools && (
               <div className='mb-6'>
                 <h3 className='mobile-supporting-sm font-semibold uppercase tracking-wide mb-3'>
-                  Settings
+                  Settings & Support
                 </h3>
                 <nav className='space-y-1'>
                   {groupedItems.tools.map(item => (

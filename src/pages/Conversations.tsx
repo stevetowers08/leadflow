@@ -1,3 +1,7 @@
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -25,10 +29,6 @@ import {
   Zap,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Separator } from '../components/ui/separator';
 
 // Types for email inbox
 interface EmailThread {
@@ -117,11 +117,9 @@ const ConversationsPage: React.FC = () => {
           last_reply_at,
           last_reply_channel,
           last_reply_message,
-          message_sent_date,
-          email_sent_date,
           linkedin_connected,
           email_sent,
-          stage,
+          people_stage,
           created_at,
           updated_at,
           companies(name, website)
@@ -146,16 +144,15 @@ const ConversationsPage: React.FC = () => {
         subject: person.last_reply_message
           ? 'Got reply from the lead'
           : 'Outreach sent',
-        last_message_at:
-          person.last_reply_at || person.message_sent_date || person.created_at,
+        last_message_at: person.last_reply_at || person.created_at,
         is_read: !!person.last_reply_message,
         message_count: 1,
         last_message_preview:
           person.last_reply_message || 'Outreach message sent',
         lead_status:
-          person.stage === 'replied'
+          person.people_stage === 'new_lead'
             ? 'interested'
-            : person.stage === 'connected'
+            : person.people_stage === 'new_lead'
               ? 'interested'
               : 'no_response',
         campaign_name: 'Client:AES_C1',

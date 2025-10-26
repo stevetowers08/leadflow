@@ -1,10 +1,46 @@
 # Database Best Practices & Query Guidelines
 
+**Last Updated:** January 27, 2025  
+**Version:** Post-LinkedIn Automation Removal & Simplified Status Workflow
+
 ## 🚨 Common Issues & Solutions
 
-### 1. **Complex Joins Fail (406 Errors)**
+### 1. **RLS (Row Level Security) Issues in Development**
 
-❌ **BAD**: `user_profiles!inner(id, full_name, email, role)`
+❌ **PROBLEM**: HTTP 500 errors and infinite retry loops when RLS policies conflict with unauthenticated users
+
+✅ **SOLUTION**: Temporarily disable RLS for development tables
+
+```sql
+-- For early development stages, disable RLS to allow unrestricted access
+ALTER TABLE job_filter_configs DISABLE ROW LEVEL SECURITY;
+
+-- IMPORTANT: Re-enable before production
+ALTER TABLE job_filter_configs ENABLE ROW LEVEL SECURITY;
+```
+
+**When to Use This Approach:**
+
+- ✅ Early development stages where you need unrestricted access
+- ✅ Testing and iteration phases
+- ✅ When RLS policies are causing query failures
+
+**When NOT to Use:**
+
+- ❌ Production environments
+- ❌ When handling sensitive user data
+- ❌ When you have proper authentication in place
+
+**Best Practices:**
+
+1. **Document which tables have RLS disabled** for development
+2. **Create a migration checklist** to re-enable RLS before production
+3. **Use service keys** for admin operations instead of disabling RLS
+4. **Test RLS policies** in staging environment before production
+
+### 2. **Complex Joins Fail (406 Errors)**
+
+❌ **BAD**: `user_profiles!inner(id, full_name, email, role)`  
 ✅ **GOOD**: Separate queries or use views
 
 ```typescript
@@ -26,7 +62,7 @@ if (assignment?.owner_id) {
 
 ### 2. **Field Mismatches**
 
-❌ **BAD**: Selecting fields that don't exist
+❌ **BAD**: Selecting fields that don't exist  
 ✅ **GOOD**: Always verify field names in database
 
 ```typescript
@@ -34,20 +70,35 @@ if (assignment?.owner_id) {
 // Use explicit field selection instead of select('*')
 const { data } = await supabase
   .from('people')
-  .select('id, name, company_id, email_address') // Explicit fields
+  .select('id, name, company_id, email_address, stage') // Explicit fields
   .eq('id', leadId);
 ```
 
 ### 3. **Inconsistent Query Patterns**
 
-❌ **BAD**: Different components use different patterns
+❌ **BAD**: Different components use different patterns  
 ✅ **GOOD**: Use centralized query utilities
+
+### 4. **Using Old Status Values**
+
+❌ **BAD**: Using old LinkedIn automation statuses  
+✅ **GOOD**: Use new simplified status workflow
+
+```typescript
+// OLD (removed): 'connection_requested', 'connected', 'messaged', etc.
+// NEW (simplified): 'new', 'qualified', 'proceed', 'skip'
+
+const { data } = await supabase
+  .from('people')
+  .select('id, name, stage')
+  .in('stage', ['new', 'qualified', 'proceed', 'skip']); // Use new values
+```
 
 ## 📋 Database Schema Reference
 
 ### Tables & Key Fields
 
-#### `people` (Leads)
+#### `people` (Leads) - Simplified Structure
 
 ```sql
 - id (uuid, primary key)
@@ -56,13 +107,20 @@ const { data } = await supabase
 - email_address (text)
 - employee_location (text)
 - company_role (text)
-- stage (text)
+- stage (stage_enum: 'new', 'qualified', 'proceed', 'skip')
 - lead_score (text)
-- linkedin_url (text)
-- linkedin_request_message (text)
-- linkedin_connected_message (text)
-- linkedin_follow_up_message (text)
-- automation_started_at (timestamp)
+- linkedin_url (text) -- Restored after cleanup
+- confidence_level (text: 'low', 'medium', 'high')
+- email_draft (text)
+- last_reply_at (timestamp)
+- last_reply_channel (text)
+- last_reply_message (text)
+- last_interaction_at (timestamp)
+- reply_type (reply_type_enum: 'interested', 'not_interested', 'maybe')
+- is_favourite (boolean)
+- favourite (boolean)
+- jobs (text)
+- lead_source (text)
 - owner_id (uuid, foreign key to user_profiles)
 - created_at (timestamp)
 - updated_at (timestamp)
@@ -77,19 +135,21 @@ const { data } = await supabase
 - head_office (text)
 - company_size (text)
 - website (text)
+- linkedin_url (text)
 - lead_score (text)
 - automation_active (boolean)
-- confidence_level (text)
-- linkedin_url (text)
+- confidence_level (confidence_level_enum: 'low', 'medium', 'high')
 - score_reason (text)
-- created_at (timestamp)
-- lead_source (text)
+- priority (text)
+- is_favourite (boolean)
+- pipeline_stage (company_pipeline_stage_enum)
 - logo_url (text)
-- pipeline_stage (text)
 - owner_id (uuid, foreign key to user_profiles)
+- created_at (timestamp)
+- updated_at (timestamp)
 ```
 
-#### `jobs`
+#### `jobs` - With Qualification Workflow
 
 ```sql
 - id (uuid, primary key)
@@ -100,21 +160,108 @@ const { data } = await supabase
 - seniority_level (text)
 - salary (text)
 - company_id (uuid, foreign key to companies)
+- qualification_status (text: 'new', 'qualify', 'skip')
+- lead_score_job (integer)
+- priority (text)
+- automation_active (boolean)
+- owner_id (uuid, foreign key to user_profiles)
 - created_at (timestamp)
+- updated_at (timestamp)
 ```
 
-#### `user_profiles`
+#### `email_replies` - Gmail Integration
 
 ```sql
 - id (uuid, primary key)
-- full_name (text)
-- email (text)
-- role (text)
-- is_active (boolean)
+- person_id (uuid, foreign key to people)
+- company_id (uuid, foreign key to companies)
+- interaction_id (uuid, foreign key to interactions)
+- gmail_message_id (text)
+- gmail_thread_id (text)
+- from_email (text)
+- reply_subject (text)
+- reply_body_plain (text)
+- reply_body_html (text)
+- received_at (timestamp)
+- sentiment (text: 'positive', 'negative', 'neutral', 'out_of_office')
+- sentiment_confidence (numeric)
+- sentiment_reasoning (text)
+- triggered_stage_change (boolean)
+- previous_stage (text)
+- new_stage (text)
+- created_at (timestamp)
+- updated_at (timestamp)
+```
+
+#### `interactions` - Activity Tracking
+
+```sql
+- id (uuid, primary key)
+- person_id (uuid, foreign key to people)
+- interaction_type (interaction_type_enum)
+- occurred_at (timestamp)
+- subject (text)
+- content (text)
+- template_id (uuid)
+- metadata (jsonb)
+- owner_id (uuid, foreign key to user_profiles)
 - created_at (timestamp)
 ```
 
-## 🛠️ Query Utilities
+## 🔄 Status Workflow Guidelines
+
+### People Status Workflow (Simplified)
+
+**Status Enum:** `new | qualified | proceed | skip`
+
+```typescript
+// ✅ CORRECT: Use new simplified status values
+const { data } = await supabase
+  .from('people')
+  .select('id, name, stage')
+  .in('stage', ['new', 'qualified', 'proceed', 'skip']);
+
+// ❌ WRONG: Don't use old LinkedIn automation statuses
+// These have been removed: 'connection_requested', 'connected', 'messaged', etc.
+```
+
+**Status Meanings:**
+
+- `new`: Newly discovered leads awaiting review
+- `qualified`: Leads that meet criteria and should be pursued
+- `proceed`: Ready for CRM integration or email outreach
+- `skip`: Not pursuing at this time
+
+### Job Qualification Workflow
+
+**Status Enum:** `new | qualify | skip`
+
+```typescript
+// ✅ CORRECT: Use qualification status
+const { data } = await supabase
+  .from('jobs')
+  .select('id, title, qualification_status')
+  .eq('qualification_status', 'qualify');
+```
+
+**Status Meanings:**
+
+- `new`: Newly discovered jobs awaiting review
+- `qualify`: Jobs that meet criteria and should be pursued
+- `skip`: Jobs to skip for now
+
+### Email Reply Sentiment Analysis
+
+**Sentiment Values:** `positive | negative | neutral | out_of_office`
+
+```typescript
+// ✅ CORRECT: Query by sentiment
+const { data } = await supabase
+  .from('email_replies')
+  .select('id, from_email, sentiment, sentiment_confidence')
+  .eq('sentiment', 'positive')
+  .gte('sentiment_confidence', 0.8);
+```
 
 ### Centralized Query Functions
 
@@ -156,13 +303,18 @@ try {
 
 When adding new database queries:
 
-1. ✅ **Verify field names** exist in database schema
+1. ✅ **Verify field names** exist in current database schema
 2. ✅ **Use explicit field selection** instead of `select('*')`
 3. ✅ **Avoid complex joins** - use separate queries or views
 4. ✅ **Add proper error handling** with meaningful messages
 5. ✅ **Test queries** in Supabase dashboard first
 6. ✅ **Use centralized utilities** when available
 7. ✅ **Add TypeScript types** for query results
+8. ✅ **Use new status values** (new/qualified/proceed/skip for people)
+9. ✅ **Check for removed fields** (LinkedIn automation fields are gone)
+10. ✅ **Verify enum values** match current database enums
+11. ✅ **Check RLS policies** - disable for development if needed
+12. ✅ **Document RLS changes** for production deployment
 
 ## 🚀 Performance Tips
 
@@ -176,6 +328,7 @@ When adding new database queries:
 
 ### Common Error Codes
 
+- **500**: Server error (often RLS policy conflicts in development)
 - **406**: Invalid query syntax (usually joins)
 - **404**: Table or field doesn't exist
 - **401**: Permission denied
@@ -188,6 +341,9 @@ When adding new database queries:
 3. Verify field names match database schema
 4. Check RLS policies if getting permission errors
 5. Use browser dev tools to inspect the exact error
+6. **For 500 errors**: Check if RLS policies conflict with auth state
+7. **For infinite retry loops**: Disable RLS temporarily for development
+8. **Check Supabase logs** for detailed error messages
 
 ## 📚 Resources
 

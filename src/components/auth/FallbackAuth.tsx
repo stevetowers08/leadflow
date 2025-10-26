@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -8,8 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import React, { useState } from 'react';
+import { RecruitEdgeLogo } from '../RecruitEdgeLogo';
 
 export const FallbackAuth: React.FC = () => {
   const [loading, setLoading] = useState<string | null>(null);
@@ -56,25 +56,11 @@ export const FallbackAuth: React.FC = () => {
     <div className='flex flex-col h-screen'>
       <div className='h-20 border-b border-gray-200 flex items-center justify-center'>
         <div className='flex items-center gap-3'>
-          <div className='inline-flex items-center justify-center w-8 h-8 bg-sidebar-primary rounded-lg'>
-            <svg
-              className='w-5 h-5 text-primary-foreground'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'
-            >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M13 10V3L4 14h7v7l9-11h-7z'
-              />
-            </svg>
-          </div>
+          <RecruitEdgeLogo size={32} />
           <div>
             <h1 className='text-xl font-semibold tracking-tight'>Sign In</h1>
             <p className='text-sm text-muted-foreground mt-1'>
-              Sign in to your Empowr CRM account
+              Sign in to your RECRUITEDGE account
             </p>
           </div>
         </div>

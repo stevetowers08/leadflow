@@ -137,22 +137,22 @@ export const SearchIconButton = ({
   size = 'md',
 }: SearchIconButtonProps) => {
   const sizeClasses = {
-    sm: 'h-7 w-7',
-    md: 'h-8 w-8', // Standard height for all action elements
-    lg: 'h-9 w-9',
+    sm: 'h-6 w-6',
+    md: 'h-7 w-7', // Standard height for all action elements
+    lg: 'h-8 w-8',
   };
 
   return (
     <button
       onClick={onClick}
       className={cn(
-        'rounded-md border border-gray-300 bg-background hover:bg-muted/50 transition-colors flex items-center justify-center action-bar-icon',
+        'action-bar action-bar--icon',
         sizeClasses[size],
         className
       )}
       title='Search'
     >
-      <Search className='h-4 w-4 text-muted-foreground' />
+      <Search className='h-5 w-5 text-gray-600' />
     </button>
   );
 };

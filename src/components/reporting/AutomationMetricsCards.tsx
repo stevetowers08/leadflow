@@ -1,14 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Bot,
-  Calendar,
-  Clock,
-  Mail,
-  MessageSquare,
-  TrendingUp,
-  UserPlus,
-  Users,
-} from 'lucide-react';
+import { MessageSquare, TrendingUp, UserPlus } from 'lucide-react';
 import React from 'react';
 
 interface AutomationMetricsCardsProps {
@@ -48,7 +39,7 @@ const AutomationMetricsCards: React.FC<AutomationMetricsCardsProps> = ({
     {
       title: 'Messages Sent',
       value: messagesSent,
-      subtitle: 'LinkedIn messages sent to prospects',
+      subtitle: 'Messages sent to prospects',
       icon: MessageSquare,
       color: 'blue',
       bgColor: 'from-blue-50 to-blue-100',

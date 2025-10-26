@@ -69,7 +69,7 @@ const WorkflowBuilderPage: React.FC = () => {
               onClick={handleSaveAndActivate}
               className='px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md'
             >
-              Save & Activate
+              Save &amp; Activate
             </button>
           </div>
         </div>

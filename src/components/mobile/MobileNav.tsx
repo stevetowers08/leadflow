@@ -43,7 +43,7 @@ const allNavItems: NavItem[] = [
   },
   {
     to: '/people',
-    label: 'People',
+    label: 'Qualified Leads',
     icon: <Users className='h-5 w-5' />,
     isPrimary: true,
     permission: 'people',
@@ -57,7 +57,7 @@ const allNavItems: NavItem[] = [
   },
   {
     to: '/jobs',
-    label: 'Jobs',
+    label: 'Job Intelligence',
     icon: <Briefcase className='h-5 w-5' />,
     isPrimary: true,
     permission: 'jobs',

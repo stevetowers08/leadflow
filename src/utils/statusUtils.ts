@@ -1,110 +1,208 @@
 /**
  * Utility functions for handling status values consistently across the application
- * Uses ONLY the Stage text field from the People table (ignores enum completely)
+ * Uses the new conversation-based people stages and business pipeline company stages
  */
 
 /**
- * Normalizes a status value to a consistent format
- * Uses ONLY the Stage field, ignores stage_enum completely
+ * Normalizes a people stage value to a consistent format
+ * Maps to the conversation-based workflow: new_lead | message_sent | replied | interested | meeting_scheduled | meeting_completed | follow_up | not_interested
  */
-export function normalizeStatus(stage: string | null): string {
-  // Use ONLY the Stage field, ignore stage_enum
+export function normalizePeopleStage(stage: string | null): string {
   if (!stage) {
-    return 'NEW LEAD'; // Default fallback
+    return 'new_lead'; // Default fallback
   }
 
-  // Return the Stage field value as-is
-  return stage;
+  // Map old statuses to new conversation-based workflow
+  const statusMapping: Record<string, string> = {
+    // New conversation-based stages
+    new_lead: 'new_lead',
+    message_sent: 'message_sent',
+    replied: 'replied',
+    interested: 'interested',
+    meeting_scheduled: 'meeting_scheduled',
+    meeting_completed: 'meeting_completed',
+    follow_up: 'follow_up',
+    not_interested: 'not_interested',
+
+    // Map old statuses to new workflow
+    new: 'new_lead',
+    NEW: 'new_lead',
+    'NEW LEAD': 'new_lead',
+    'new lead': 'new_lead',
+    qualified: 'interested',
+    QUALIFIED: 'interested',
+    proceed: 'meeting_scheduled',
+    PROCEED: 'meeting_scheduled',
+    skip: 'not_interested',
+    SKIP: 'not_interested',
+    'IN QUEUE': 'message_sent',
+    'in queue': 'message_sent',
+    in_queue: 'message_sent',
+    'CONNECT SENT': 'message_sent',
+    connection_requested: 'message_sent',
+    connect_sent: 'message_sent',
+    'connect sent': 'message_sent',
+    'MSG SENT': 'message_sent',
+    messaged: 'message_sent',
+    'message sent': 'message_sent',
+    CONNECTED: 'replied',
+    connected: 'replied',
+    REPLIED: 'replied',
+    meeting_booked: 'meeting_scheduled',
+    'meeting booked': 'meeting_scheduled',
+    meeting_held: 'meeting_completed',
+    'meeting held': 'meeting_completed',
+    'LEAD LOST': 'not_interested',
+    lead_lost: 'not_interested',
+    'lead lost': 'not_interested',
+    disqualified: 'not_interested',
+    contacted: 'message_sent',
+  };
+
+  return statusMapping[stage] || 'new_lead';
+}
+
+/**
+ * Normalizes a company pipeline stage value to a consistent format
+ * Maps to the business pipeline workflow: new_lead | message_sent | replied | meeting_scheduled | proposal_sent | negotiation | closed_won | closed_lost | on_hold
+ */
+export function normalizeCompanyStage(stage: string | null): string {
+  if (!stage) {
+    return 'new_lead'; // Default fallback
+  }
+
+  // Map old statuses to new business pipeline workflow
+  const statusMapping: Record<string, string> = {
+    // New business pipeline stages
+    new_lead: 'new_lead',
+    message_sent: 'message_sent',
+    replied: 'replied',
+    meeting_scheduled: 'meeting_scheduled',
+    proposal_sent: 'proposal_sent',
+    negotiation: 'negotiation',
+    closed_won: 'closed_won',
+    closed_lost: 'closed_lost',
+    on_hold: 'on_hold',
+
+    // Map old statuses to new workflow
+    new: 'new_lead',
+    NEW: 'new_lead',
+    'NEW LEAD': 'new_lead',
+    'new lead': 'new_lead',
+    qualified: 'replied',
+    QUALIFIED: 'replied',
+    proceed: 'meeting_scheduled',
+    PROCEED: 'meeting_scheduled',
+    skip: 'closed_lost',
+    SKIP: 'closed_lost',
+    'IN QUEUE': 'message_sent',
+    'in queue': 'message_sent',
+    in_queue: 'message_sent',
+    'CONNECT SENT': 'message_sent',
+    connection_requested: 'message_sent',
+    connect_sent: 'message_sent',
+    'connect sent': 'message_sent',
+    'MSG SENT': 'message_sent',
+    messaged: 'message_sent',
+    'message sent': 'message_sent',
+    CONNECTED: 'replied',
+    connected: 'replied',
+    REPLIED: 'replied',
+    meeting_booked: 'meeting_scheduled',
+    'meeting booked': 'meeting_scheduled',
+    meeting_held: 'proposal_sent',
+    'meeting held': 'proposal_sent',
+    'LEAD LOST': 'closed_lost',
+    lead_lost: 'closed_lost',
+    'lead lost': 'closed_lost',
+    disqualified: 'closed_lost',
+    contacted: 'message_sent',
+  };
+
+  return statusMapping[stage] || 'new_lead';
+}
+
+/**
+ * Normalizes a status value to a consistent format (legacy function for backward compatibility)
+ * Maps to the simplified workflow: new | qualified | proceed | skip
+ */
+export function normalizeStatus(stage: string | null): string {
+  if (!stage) {
+    return 'new'; // Default fallback
+  }
+
+  // Map old statuses to new simplified workflow
+  const statusMapping: Record<string, string> = {
+    // New statuses (no change needed)
+    new: 'new',
+    qualified: 'qualified',
+    proceed: 'proceed',
+    skip: 'skip',
+
+    // Map old statuses to new workflow
+    'NEW LEAD': 'new',
+    'new lead': 'new',
+    NEW: 'new',
+    'IN QUEUE': 'qualified',
+    'in queue': 'qualified',
+    in_queue: 'qualified',
+    'CONNECT SENT': 'qualified',
+    connection_requested: 'qualified',
+    connect_sent: 'qualified',
+    'connect sent': 'qualified',
+    'MSG SENT': 'qualified',
+    messaged: 'qualified',
+    message_sent: 'qualified',
+    'message sent': 'qualified',
+    CONNECTED: 'qualified',
+    connected: 'qualified',
+    REPLIED: 'proceed',
+    replied: 'proceed',
+    meeting_booked: 'proceed',
+    'meeting booked': 'proceed',
+    meeting_held: 'proceed',
+    'meeting held': 'meeting held',
+    'LEAD LOST': 'skip',
+    lead_lost: 'skip',
+    'lead lost': 'skip',
+    disqualified: 'skip',
+    contacted: 'qualified',
+  };
+
+  return statusMapping[stage] || 'new';
 }
 
 /**
  * Gets the display text for a status value
- * Converts all variations to proper title case formatting
+ * Uses the simplified workflow display names
  */
 export function getStatusDisplayText(status: string): string {
   if (!status) return '';
 
-  // Convert to proper case (first letter capitalized only)
+  // Simplified workflow display mapping
   const displayMapping: Record<string, string> = {
-    // Lead stages - all variations
-    'NEW LEAD': 'New Lead',
-    new: 'New Lead',
-    'new lead': 'New Lead',
-    NEW: 'New Lead',
-    'IN QUEUE': 'In Queue',
-    'in queue': 'In Queue',
-    in_queue: 'In Queue',
-    'CONNECT SENT': 'Connect Sent',
-    connection_requested: 'Connect Sent',
-    connect_sent: 'Connect Sent',
-    'connect sent': 'Connect Sent',
-    'MSG SENT': 'Message Sent',
-    messaged: 'Messaged',
-    message_sent: 'Message Sent',
-    'message sent': 'Message Sent',
-    CONNECTED: 'Connected',
-    connected: 'Connected',
-    REPLIED: 'Replied',
-    replied: 'Replied',
-    'LEAD LOST': 'Lead Lost',
-    lead_lost: 'Lead Lost',
-    'lead lost': 'Lead Lost',
-    contacted: 'Contacted',
-    meeting_booked: 'Meeting Booked',
-    'meeting booked': 'Meeting Booked',
-    meeting_held: 'Meeting Held',
-    'meeting held': 'Meeting Held',
-    disqualified: 'Disqualified',
-
-    // Job priorities - all variations
-    HIGH: 'High',
-    high: 'High',
-    MEDIUM: 'Medium',
-    medium: 'Medium',
-    LOW: 'Low',
-    low: 'Low',
-    'VERY HIGH': 'Very High',
-    'very-high': 'Very High',
-    'very high': 'Very High',
-    very_high: 'Very High',
-    VERY_HIGH: 'Very High',
-
-    // Company status mappings - all variations
-    active: 'Active',
-    ACTIVE: 'Active',
-    qualified: 'Qualified',
-    QUALIFIED: 'Qualified',
-    prospect: 'Prospect',
-    PROSPECT: 'Prospect',
-
-    // Job status mappings - all variations
-    'new job': 'New Job',
-    new_job: 'New Job',
-    'NEW JOB': 'New Job',
-    NEW_JOB: 'New Job',
-    automated: 'Automated',
-    AUTOMATED: 'Automated',
-    paused: 'Paused',
-    PAUSED: 'Paused',
-    completed: 'Completed',
-    COMPLETED: 'Completed',
-    failed: 'Failed',
-    FAILED: 'Failed',
-
-    // User roles and statuses - all variations
-    owner: 'Owner',
-    OWNER: 'Owner',
-    admin: 'Admin',
-    ADMIN: 'Admin',
-    recruiter: 'Recruiter',
-    RECRUITER: 'Recruiter',
-    inactive: 'Inactive',
-    INACTIVE: 'Inactive',
-
-    // Company pipeline stages - all variations (from DB enum)
+    // People stages - conversation-based workflow
     new_lead: 'New Lead',
-    NEW_LEAD: 'New Lead',
+    message_sent: 'Message Sent',
+    replied: 'Replied',
+    interested: 'Interested',
     meeting_scheduled: 'Meeting Scheduled',
+    meeting_completed: 'Meeting Completed',
+    follow_up: 'Follow-up',
+    not_interested: 'Not Interested',
+
+    // Legacy people stages - simplified workflow
+    new: 'New',
+    qualified: 'Qualified',
+    proceed: 'Proceed',
+    skip: 'Skip',
+
+    // Job qualification status
+    qualify: 'Qualify',
+    QUALIFY: 'Qualify',
+
+    // Company pipeline stages - business pipeline workflow
+    NEW_LEAD: 'New Lead',
     'meeting scheduled': 'Meeting Scheduled',
     MEETING_SCHEDULED: 'Meeting Scheduled',
     proposal_sent: 'Proposal Sent',
@@ -121,25 +219,23 @@ export function getStatusDisplayText(status: string): string {
     on_hold: 'On Hold',
     'on hold': 'On Hold',
     ON_HOLD: 'On Hold',
+    automated: 'Automated',
+    AUTOMATED: 'Automated',
+    paused: 'Paused',
+    PAUSED: 'Paused',
+    completed: 'Completed',
+    COMPLETED: 'Completed',
+    failed: 'Failed',
+    FAILED: 'Failed',
 
-    // Reply types - all variations (from DB enum)
-    interested: 'Interested',
+    // Reply types
     INTERESTED: 'Interested',
-    not_interested: 'Not Interested',
     'not interested': 'Not Interested',
     NOT_INTERESTED: 'Not Interested',
     maybe: 'Maybe',
     MAYBE: 'Maybe',
 
-    // Interaction types - all variations (from DB enum)
-    linkedin_connection_request_sent: 'LinkedIn Connection Request Sent',
-    LINKEDIN_CONNECTION_REQUEST_SENT: 'LinkedIn Connection Request Sent',
-    linkedin_connected: 'LinkedIn Connected',
-    LINKEDIN_CONNECTED: 'LinkedIn Connected',
-    linkedin_message_sent: 'LinkedIn Message Sent',
-    LINKEDIN_MESSAGE_SENT: 'LinkedIn Message Sent',
-    linkedin_message_reply: 'LinkedIn Message Reply',
-    LINKEDIN_MESSAGE_REPLY: 'LinkedIn Message Reply',
+    // Interaction types
     email_sent: 'Email Sent',
     EMAIL_SENT: 'Email Sent',
     email_reply: 'Email Reply',
@@ -147,21 +243,39 @@ export function getStatusDisplayText(status: string): string {
     note: 'Note',
     NOTE: 'Note',
 
-    // Campaign status - all variations
-    draft: 'Draft',
-    DRAFT: 'Draft',
+    // User roles
+    owner: 'Owner',
+    OWNER: 'Owner',
+    admin: 'Admin',
+    ADMIN: 'Admin',
+    recruiter: 'Recruiter',
+    RECRUITER: 'Recruiter',
+    inactive: 'Inactive',
+    INACTIVE: 'Inactive',
 
-    // Additional status mappings - all variations
+    // Job priorities
+    HIGH: 'High',
+    high: 'High',
+    MEDIUM: 'Medium',
+    medium: 'Medium',
+    LOW: 'Low',
+    low: 'Low',
+    'VERY HIGH': 'Very High',
+    'very-high': 'Very High',
+    'very high': 'Very High',
+    very_high: 'Very High',
+    VERY_HIGH: 'Very High',
+
+    // Company status
+    active: 'Active',
+    ACTIVE: 'Active',
+    company_qualified: 'Qualified',
+    prospect: 'Prospect',
+    PROSPECT: 'Prospect',
+
+    // Additional status mappings
     assigned: 'Assigned',
     ASSIGNED: 'Assigned',
-    'has logo': 'Has Logo',
-    has_logo: 'Has Logo',
-    'HAS LOGO': 'Has Logo',
-    HAS_LOGO: 'Has Logo',
-    'no logo': 'No Logo',
-    no_logo: 'No Logo',
-    'NO LOGO': 'No Logo',
-    NO_LOGO: 'No Logo',
     sent: 'Sent',
     SENT: 'Sent',
     delivered: 'Delivered',
@@ -176,10 +290,8 @@ export function getStatusDisplayText(status: string): string {
     UNKNOWN: 'Unknown',
     expired: 'Expired',
     EXPIRED: 'Expired',
-    not_automated: 'Not Automated',
-    NOT_AUTOMATED: 'Not Automated',
-    'not automated': 'Not Automated',
-    'NOT AUTOMATED': 'Not Automated',
+    draft: 'Draft',
+    DRAFT: 'Draft',
   };
 
   // Return mapped value or convert to title case if not found
@@ -210,4 +322,54 @@ export function getStatusColorClass(status: string): string {
  */
 export function isValidStatus(status: string | null): boolean {
   return status !== null && status.trim() !== '';
+}
+
+/**
+ * Gets unified status class for consistent styling
+ */
+function getUnifiedStatusClass(status: string): string {
+  const statusLower = status.toLowerCase();
+
+  // Success/Positive states
+  if (
+    [
+      'interested',
+      'qualified',
+      'proceed',
+      'meeting_scheduled',
+      'meeting_completed',
+      'closed_won',
+      'completed',
+    ].includes(statusLower)
+  ) {
+    return 'bg-green-100 text-green-800 border-green-200';
+  }
+
+  // Warning/Neutral states
+  if (
+    ['maybe', 'follow_up', 'negotiation', 'on_hold', 'paused'].includes(
+      statusLower
+    )
+  ) {
+    return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+  }
+
+  // Error/Negative states
+  if (
+    ['not_interested', 'skip', 'closed_lost', 'failed'].includes(statusLower)
+  ) {
+    return 'bg-red-100 text-red-800 border-red-200';
+  }
+
+  // Info/Default states
+  if (
+    ['new_lead', 'message_sent', 'replied', 'new', 'automated'].includes(
+      statusLower
+    )
+  ) {
+    return 'bg-blue-100 text-blue-800 border-blue-200';
+  }
+
+  // Default fallback
+  return 'bg-gray-100 text-gray-800 border-gray-200';
 }

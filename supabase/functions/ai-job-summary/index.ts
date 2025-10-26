@@ -146,32 +146,29 @@ async function callGeminiAPI(
   error?: string;
 }> {
   try {
-    const prompt = `
-      Create a comprehensive job summary for this position:
+    const prompt = `You are an expert recruitment analyst. Analyze this job posting and provide a concise summary.
 
-      Title: ${jobData.title}
-      Company: ${jobData.company}
-      Description: ${jobData.description}
-      Location: ${jobData.location || 'Not specified'}
-      Salary: ${jobData.salary || 'Not specified'}
-      Employment Type: ${jobData.employment_type || 'Not specified'}
-      Seniority Level: ${jobData.seniority_level || 'Not specified'}
+JOB DETAILS:
+- Title: ${jobData.title}
+- Location: ${jobData.location || 'Not specified'}
+- Salary: ${jobData.salary || 'Not specified'}
+- Employment Type: ${jobData.employment_type || 'Not specified'}
+- Seniority Level: ${jobData.seniority_level || 'Not specified'}
 
-      Provide detailed analysis in JSON format:
-      {
-        "summary": "2-3 sentence comprehensive summary of the role and company",
-        "key_requirements": ["requirement1", "requirement2", "requirement3", "requirement4", "requirement5"],
-        "ideal_candidate": "Detailed description of the ideal candidate profile",
-        "urgency_level": "low|medium|high",
-        "market_demand": "low|medium|high",
-        "skills_extracted": ["skill1", "skill2", "skill3", "skill4", "skill5"],
-        "salary_range": "estimated salary range if mentioned",
-        "remote_flexibility": true/false
-      }
-    `;
+JOB DESCRIPTION:
+${jobData.description}
+
+INSTRUCTIONS:
+Provide a clear, concise 2-3 sentence summary that captures:
+1. What the role is about
+2. Key responsibilities or focus areas
+3. What makes this opportunity attractive
+
+RESPONSE FORMAT (plain text only, no JSON):
+Write a natural, readable summary that a recruiter would use to quickly understand the job.`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
@@ -188,10 +185,12 @@ async function callGeminiAPI(
             },
           ],
           generationConfig: {
-            temperature: 0.3,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 1024,
+            temperature: 0.1, // Lower temperature for more consistent structured output
+            topK: 20, // Reduced for more focused responses
+            topP: 0.8, // Reduced for better consistency
+            maxOutputTokens: 2048, // Increased for more detailed responses
+            candidateCount: 1,
+            stopSequences: [],
           },
           safetySettings: [
             {
@@ -235,12 +234,21 @@ async function callGeminiAPI(
     const content = data.candidates[0].content.parts[0].text;
     const tokensUsed = data.usageMetadata?.totalTokenCount || 0;
 
-    // Parse the JSON response
-    const parsedData = JSON.parse(content);
+    console.log('Gemini response content:', content);
 
+    // Return simple text summary
     return {
       success: true,
-      data: parsedData,
+      data: {
+        summary: content.trim(),
+        key_requirements: [],
+        ideal_candidate: '',
+        urgency_level: 'medium' as const,
+        market_demand: 'medium' as const,
+        skills_extracted: [],
+        salary_range: undefined,
+        remote_flexibility: undefined,
+      },
       tokens_used: tokensUsed,
     };
   } catch (error) {
@@ -248,6 +256,74 @@ async function callGeminiAPI(
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown API error',
+    };
+  }
+}
+
+/**
+ * Parse and validate API response
+ */
+function parseAndValidateResponse(responseData: string): GeminiResponse {
+  try {
+    // Remove markdown formatting if present
+    let cleanedData = responseData.trim();
+    if (cleanedData.startsWith('```json')) {
+      cleanedData = cleanedData
+        .replace(/^```json\s*/, '')
+        .replace(/\s*```$/, '');
+    } else if (cleanedData.startsWith('```')) {
+      cleanedData = cleanedData.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+
+    const parsed = JSON.parse(cleanedData);
+
+    // Validate required fields
+    const requiredFields = [
+      'summary',
+      'key_requirements',
+      'ideal_candidate',
+      'urgency_level',
+      'market_demand',
+      'skills_extracted',
+    ];
+    const missingFields = requiredFields.filter(field => !parsed[field]);
+
+    if (missingFields.length > 0) {
+      console.warn(`Missing required fields: ${missingFields.join(', ')}`);
+    }
+
+    // Ensure arrays are arrays
+    if (!Array.isArray(parsed.key_requirements)) {
+      parsed.key_requirements = [];
+    }
+    if (!Array.isArray(parsed.skills_extracted)) {
+      parsed.skills_extracted = [];
+    }
+
+    // Validate enum values
+    const validUrgencyLevels = ['low', 'medium', 'high'];
+    const validMarketDemand = ['low', 'medium', 'high'];
+
+    if (!validUrgencyLevels.includes(parsed.urgency_level)) {
+      parsed.urgency_level = 'medium';
+    }
+    if (!validMarketDemand.includes(parsed.market_demand)) {
+      parsed.market_demand = 'medium';
+    }
+
+    return parsed as GeminiResponse;
+  } catch (error) {
+    console.error('Failed to parse API response:', error);
+    // Return fallback data
+    return {
+      summary: 'Unable to parse AI response',
+      key_requirements: [],
+      ideal_candidate: 'Unable to determine ideal candidate profile',
+      urgency_level: 'medium',
+      market_demand: 'medium',
+      skills_extracted: [],
+      salary_range: undefined,
+      remote_flexibility: undefined,
     };
   }
 }

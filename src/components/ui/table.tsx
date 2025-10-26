@@ -9,7 +9,10 @@ const Table = React.forwardRef<
   <div className='relative w-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100'>
     <table
       ref={ref}
-      className={cn('w-full caption-bottom text-sm', className)}
+      className={cn(
+        'w-full caption-bottom text-sm border-separate border-spacing-0',
+        className
+      )}
       {...props}
     />
   </div>
@@ -23,8 +26,8 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={cn(
-      '[&_tr]:border-b',
-      'sticky top-0 z-10 bg-white shadow-sm',
+      '[&_tr]:border-b-2 [&_tr]:border-gray-300',
+      'bg-gray-50',
       className
     )}
     {...props}
@@ -66,7 +69,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'border-b transition-colors data-[state=selected]:bg-muted hover:bg-muted/50',
+      'transition-colors data-[state=selected]:bg-gray-50 hover:bg-gray-50',
       className
     )}
     {...props}
@@ -76,13 +79,18 @@ TableRow.displayName = 'TableRow';
 
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+  React.ThHTMLAttributes<HTMLTableCellElement> & {
+    isFirst?: boolean;
+    isLast?: boolean;
+  }
+>(({ className, isFirst = false, isLast = false, ...props }, ref) => (
   <th
     ref={ref}
     className={cn(
-      'h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0',
-      'text-sm font-semibold tracking-wide bg-gray-50/80',
+      'h-10 px-4 text-left align-middle font-medium text-gray-700 [&:has([role=checkbox])]:pr-0',
+      'text-sm font-semibold tracking-wide border-r border-gray-200 last:border-r-0',
+      isFirst && 'rounded-tl-lg',
+      isLast && 'rounded-tr-lg',
       className
     )}
     {...props}
@@ -97,8 +105,8 @@ const TableCell = React.forwardRef<
   <td
     ref={ref}
     className={cn(
-      'p-4 align-middle [&:has([role=checkbox])]:pr-0',
-      'text-sm font-normal leading-relaxed',
+      'px-4 py-2 align-middle [&:has([role=checkbox])]:pr-0 border-r border-gray-200 border-b border-gray-200 last:border-r-0',
+      'text-sm font-medium leading-relaxed',
       className
     )}
     {...props}

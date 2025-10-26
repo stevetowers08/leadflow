@@ -159,7 +159,7 @@ class PerformanceMonitor {
 
     const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
-      entries.forEach((entry: any) => {
+      entries.forEach((entry: Record<string, unknown>) => {
         this.metrics.fid = entry.processingStart - entry.startTime;
         logger.debug(`FID: ${this.metrics.fid}ms`);
       });
@@ -187,7 +187,7 @@ class PerformanceMonitor {
     let clsValue = 0;
     const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
-      entries.forEach((entry: any) => {
+      entries.forEach((entry: Record<string, unknown>) => {
         if (!entry.hadRecentInput) {
           clsValue += entry.value;
         }
@@ -228,7 +228,7 @@ class PerformanceMonitor {
 
     const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
-      entries.forEach((entry: any) => {
+      entries.forEach((entry: Record<string, unknown>) => {
         if (entry.entryType === 'navigation') {
           this.metrics.ttfb = entry.responseStart - entry.requestStart;
           logger.debug(`TTFB: ${this.metrics.ttfb}ms`);
@@ -246,7 +246,7 @@ class PerformanceMonitor {
       const resources = performance.getEntriesByType('resource');
       let totalSize = 0;
 
-      resources.forEach((resource: any) => {
+      resources.forEach((resource: Record<string, unknown>) => {
         if (resource.transferSize) {
           totalSize += resource.transferSize;
         }
@@ -260,7 +260,7 @@ class PerformanceMonitor {
   // Observe memory usage
   private observeMemoryUsage(): void {
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
+      const memory = (performance as unknown as Record<string, unknown>).memory;
       this.metrics.memoryUsage = memory.usedJSHeapSize;
       logger.debug(
         `Memory usage: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB`
@@ -418,7 +418,7 @@ export function usePerformanceMonitor() {
   React.useEffect(() => {
     monitor.init();
     return () => monitor.stop();
-  }, []);
+  }, [monitor]);
 
   return {
     recordMetric: monitor.recordMetric.bind(monitor),
@@ -437,10 +437,16 @@ export function withPerformanceMonitoring<P extends object>(
 ) {
   return React.memo((props: P) => {
     const { recordComponentRender } = usePerformanceMonitor();
-    const startTime = React.useRef(performance.now());
+    const startTimeRef = React.useRef<number | null>(null);
 
     React.useEffect(() => {
-      const renderTime = performance.now() - startTime.current;
+      startTimeRef.current = performance.now();
+    }, []);
+
+    React.useEffect(() => {
+      if (!startTimeRef.current) return;
+
+      const renderTime = performance.now() - startTimeRef.current;
       recordComponentRender(
         componentName || Component.displayName || 'Unknown',
         renderTime
@@ -469,7 +475,7 @@ export const PerformanceProvider: React.FC<{ children: React.ReactNode }> = ({
       clearInterval(interval);
       monitor.stop();
     };
-  }, []);
+  }, [monitor]);
 
   return React.createElement(React.Fragment, null, children);
 };

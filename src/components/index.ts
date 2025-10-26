@@ -14,4 +14,3 @@ export * from './crm/leads';
 // Shared Components
 export { InfoCard } from './shared/InfoCard';
 export { ListItem } from './shared/ListItem';
-export { PopupModal } from './shared/PopupModal';

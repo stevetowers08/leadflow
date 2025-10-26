@@ -222,17 +222,19 @@ export class DashboardServiceOptimized {
   }
 
   private static calculatePipelineBreakdown(
-    people: any[]
+    people: Record<string, unknown>[]
   ): Record<string, number> {
     const breakdown: Record<string, number> = {};
     people.forEach(person => {
-      const stage = person.stage || 'Unassigned';
+      const stage = person.people_stage || 'Unassigned';
       breakdown[stage] = (breakdown[stage] || 0) + 1;
     });
     return breakdown;
   }
 
-  private static calculateOwnerStats(people: any[]): Record<string, number> {
+  private static calculateOwnerStats(
+    people: Record<string, unknown>[]
+  ): Record<string, number> {
     const stats: Record<string, number> = {};
     people.forEach(person => {
       if (person.owner_id) {
@@ -242,14 +244,16 @@ export class DashboardServiceOptimized {
     return stats;
   }
 
-  private static processRecentPeople(data: any[]): RecentPerson[] {
+  private static processRecentPeople(
+    data: Record<string, unknown>[]
+  ): RecentPerson[] {
     return data.map(person => ({
       id: person.id,
       name: person.name,
       email_address: person.email_address,
       company_role: person.company_role,
       employee_location: person.employee_location,
-      stage: person.stage,
+      stage: person.people_stage,
       created_at: person.created_at,
       assigned_to: person.owner_id,
       company_name: person.companies?.name || null,
@@ -258,7 +262,9 @@ export class DashboardServiceOptimized {
     }));
   }
 
-  private static processRecentCompanies(data: any[]): RecentCompany[] {
+  private static processRecentCompanies(
+    data: Record<string, unknown>[]
+  ): RecentCompany[] {
     return data.map(company => ({
       id: company.id,
       name: company.name,
@@ -274,7 +280,9 @@ export class DashboardServiceOptimized {
     }));
   }
 
-  private static processRecentJobs(data: any[]): RecentJob[] {
+  private static processRecentJobs(
+    data: Record<string, unknown>[]
+  ): RecentJob[] {
     return data.map(job => ({
       id: job.id,
       name: job.title, // Use title as name for compatibility
@@ -294,7 +302,7 @@ export class DashboardServiceOptimized {
   }
 
   private static generateCompaniesOverTime(
-    companies: any[]
+    companies: Record<string, unknown>[]
   ): Array<{ date: string; newCompanies: number; automatedCompanies: number }> {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
@@ -311,7 +319,9 @@ export class DashboardServiceOptimized {
     }));
   }
 
-  private static generatePeopleAutomationOverTime(people: any[]): Array<{
+  private static generatePeopleAutomationOverTime(
+    people: Record<string, unknown>[]
+  ): Array<{
     date: string;
     peopleWithAutomation: number;
     automationActivity: number;

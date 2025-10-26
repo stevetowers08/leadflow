@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
+import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
 import { designTokens } from '@/design-system/tokens';
 import { cn } from '@/lib/utils';
 import type { RecentJob } from '@/services/dashboardService';
@@ -26,8 +26,9 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
   loading,
 }) => {
   const { user } = useAuth();
-  const { openPopup } = usePopupNavigation();
   const [activeTab, setActiveTab] = useState('unassigned');
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
 
   // Get company logo using Clearbit
   const getCompanyLogo = (job: RecentJob) => {
@@ -92,7 +93,10 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
         designTokens.borders.card,
         designTokens.borders.cardHover
       )}
-      onClick={() => openPopup('job', job.id, job.title)}
+      onClick={() => {
+        setSelectedJobId(job.id);
+        setIsSlideOutOpen(true);
+      }}
     >
       <div className='flex items-center gap-3'>
         {/* Company Logo Only */}
@@ -120,7 +124,7 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
           </div>
         </div>
 
-        {/* People Count, Priority and Notes */}
+        {/* People Count, Priority, Notes and Qualification Buttons */}
         <div className='flex items-center gap-2 flex-shrink-0'>
           {job.people_count && job.people_count > 0 && (
             <div className='flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full'>
@@ -179,82 +183,101 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
   };
 
   return (
-    <Card
-      className={cn(
-        'bg-white',
-        designTokens.shadows.cardStatic,
-        designTokens.shadows.cardHover,
-        designTokens.borders.card
-      )}
-    >
-      <CardHeader className='pb-4'>
-        <CardTitle className='flex items-center gap-2 text-base font-medium text-gray-900'>
-          <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-secondary/5 border border-secondary/10'>
-            <Briefcase className='h-4 w-4 text-secondary' />
-          </div>
-          Recent Jobs
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-          <TabsList className='grid w-full grid-cols-3'>
-            <TabsTrigger value='unassigned' className='flex items-center gap-1'>
-              <UserX className='h-3 w-3' />
-              Unassigned
-              {filteredJobs.unassigned.length > 0 && (
-                <Badge variant='secondary' className='ml-1 text-xs'>
-                  {filteredJobs.unassigned.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value='assignedToMe'
-              className='flex items-center gap-1'
-            >
-              <User className='h-3 w-3' />
-              Mine
-              {filteredJobs.assignedToMe.length > 0 && (
-                <Badge variant='secondary' className='ml-1 text-xs'>
-                  {filteredJobs.assignedToMe.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value='recentlyAssigned'
-              className='flex items-center gap-1'
-            >
-              <UserCheck className='h-3 w-3' />
-              Assigned
-              {filteredJobs.recentlyAssigned.length > 0 && (
-                <Badge variant='secondary' className='ml-1 text-xs'>
-                  {filteredJobs.recentlyAssigned.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+    <>
+      <Card
+        className={cn(
+          'bg-white',
+          designTokens.shadows.cardStatic,
+          designTokens.shadows.cardHover,
+          designTokens.borders.card
+        )}
+      >
+        <CardHeader className='pb-4'>
+          <CardTitle className='flex items-center gap-2 text-base font-medium text-gray-900'>
+            <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-secondary/5 border border-secondary/10'>
+              <Briefcase className='h-4 w-4 text-secondary' />
+            </div>
+            Recent Jobs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className='w-full'
+          >
+            <TabsList className='grid w-full grid-cols-3'>
+              <TabsTrigger
+                value='unassigned'
+                className='flex items-center gap-1'
+              >
+                <UserX className='h-3 w-3' />
+                Unassigned
+                {filteredJobs.unassigned.length > 0 && (
+                  <Badge variant='secondary' className='ml-1 text-xs'>
+                    {filteredJobs.unassigned.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value='assignedToMe'
+                className='flex items-center gap-1'
+              >
+                <User className='h-3 w-3' />
+                Mine
+                {filteredJobs.assignedToMe.length > 0 && (
+                  <Badge variant='secondary' className='ml-1 text-xs'>
+                    {filteredJobs.assignedToMe.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value='recentlyAssigned'
+                className='flex items-center gap-1'
+              >
+                <UserCheck className='h-3 w-3' />
+                Assigned
+                {filteredJobs.recentlyAssigned.length > 0 && (
+                  <Badge variant='secondary' className='ml-1 text-xs'>
+                    {filteredJobs.recentlyAssigned.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value='unassigned' className='mt-4'>
-            {renderJobsList(
-              filteredJobs.unassigned,
-              'No unassigned jobs found'
-            )}
-          </TabsContent>
+            <TabsContent value='unassigned' className='mt-4'>
+              {renderJobsList(
+                filteredJobs.unassigned,
+                'No unassigned jobs found'
+              )}
+            </TabsContent>
 
-          <TabsContent value='assignedToMe' className='mt-4'>
-            {renderJobsList(
-              filteredJobs.assignedToMe,
-              'No jobs assigned to you'
-            )}
-          </TabsContent>
+            <TabsContent value='assignedToMe' className='mt-4'>
+              {renderJobsList(
+                filteredJobs.assignedToMe,
+                'No jobs assigned to you'
+              )}
+            </TabsContent>
 
-          <TabsContent value='recentlyAssigned' className='mt-4'>
-            {renderJobsList(
-              filteredJobs.recentlyAssigned,
-              'No recently assigned jobs'
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+            <TabsContent value='recentlyAssigned' className='mt-4'>
+              {renderJobsList(
+                filteredJobs.recentlyAssigned,
+                'No recently assigned jobs'
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Job Details Slide-Out */}
+      <JobDetailsSlideOut
+        jobId={selectedJobId}
+        isOpen={isSlideOutOpen}
+        onClose={() => {
+          setIsSlideOutOpen(false);
+          setSelectedJobId(null);
+        }}
+      />
+    </>
   );
 };

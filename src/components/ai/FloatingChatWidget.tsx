@@ -305,7 +305,12 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
           isLoading: false,
           dataContext: response.dataContext,
           error: response.error,
-          errorType: response.errorType as any,
+          errorType: response.errorType as
+            | 'config'
+            | 'network'
+            | 'quota'
+            | 'api'
+            | 'unknown',
         };
 
         setMessages(prev =>
@@ -482,7 +487,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                   <div>
                     <CardTitle className='text-base sm:text-lg font-semibold text-gray-900 tracking-tight'>
                       AI Assistant
-                      <span className='ml-2 text-xs font-normal text-gray-500'>
+                      <span className='ml-2 text-xs font-medium text-gray-500'>
                         ({chatMode === 'internal' ? 'Data-Aware' : 'MCP'})
                       </span>
                     </CardTitle>

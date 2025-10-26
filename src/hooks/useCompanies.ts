@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface CompaniesFilters {
   search?: string;
@@ -58,6 +58,7 @@ export function useCompanies(
   return useQuery<CompaniesResponse>({
     queryKey: ['companies', pagination, sort, filters],
     queryFn: async () => {
+      // Query all companies (shared canonical data)
       let query = supabase.from('companies').select(
         `
           id,

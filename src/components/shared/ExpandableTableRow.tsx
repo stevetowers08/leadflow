@@ -1,4 +1,3 @@
-import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
 import { cn } from '@/lib/utils';
 import { Person } from '@/types/database';
 import {
@@ -10,6 +9,7 @@ import {
   User,
 } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface ExpandableTableRowProps<T = unknown> {
   parentRow: T;
@@ -46,22 +46,22 @@ const PersonSubRow: React.FC<{
   const getStageColor = (stage: string | null) => {
     switch (stage) {
       case 'connected':
-        return 'text-green-600 bg-green-50 border-green-200';
+        return 'text-success bg-success/10 border-success/20';
       case 'replied':
-        return 'text-blue-600 bg-blue-50 border-blue-200';
+        return 'text-primary bg-primary/10 border-primary/20';
       case 'meeting_booked':
-        return 'text-purple-600 bg-purple-50 border-purple-200';
+        return 'text-info bg-info/10 border-info/20';
       case 'disqualified':
-        return 'text-red-600 bg-red-50 border-red-200';
+        return 'text-destructive bg-destructive/10 border-destructive/20';
       default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+        return 'text-muted-foreground bg-muted border-border';
     }
   };
 
   return (
-    <tr className='bg-gray-50/30 hover:bg-gray-100/50 transition-colors border-b border-gray-200 last:border-b-0'>
+    <tr className='bg-gray-50 hover:bg-gray-100 transition-colors border-b border-gray-200 last:border-b-0'>
       {/* Expand/Collapse Cell - Empty for sub-rows */}
-      <td className='px-4 py-3 border-r border-gray-200'>
+      <td className='px-4 py-2 border-r border-gray-200 border-b border-gray-200'>
         <div className='w-6 h-6 flex items-center justify-center'>
           {/* Empty space to align with parent row */}
         </div>
@@ -70,12 +70,12 @@ const PersonSubRow: React.FC<{
       {/* Person Info Cell - Spans multiple columns */}
       <td
         colSpan={columns.length - 1}
-        className='px-4 py-3 border-r border-gray-200'
+        className='px-4 py-2 border-r border-gray-200 border-b border-gray-200'
       >
         <div className='flex items-center gap-4 pl-6'>
           {/* Avatar */}
-          <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0'>
-            <User className='w-4 h-4 text-gray-500' />
+          <div className='w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0'>
+            <User className='w-4 h-4 text-muted-foreground' />
           </div>
 
           {/* Person Details */}
@@ -83,29 +83,29 @@ const PersonSubRow: React.FC<{
             <div className='flex items-center gap-3 mb-1'>
               <button
                 onClick={() => onPersonClick(person)}
-                className='font-medium text-gray-900 hover:text-blue-600 transition-colors text-left'
+                className='font-medium text-foreground hover:text-primary transition-colors text-left'
               >
                 {person.name}
               </button>
-              {person.stage && (
+              {person.people_stage && (
                 <span
                   className={cn(
                     'px-2 py-0.5 text-xs font-medium rounded-full border',
-                    getStageColor(person.stage)
+                    getStageColor(person.people_stage)
                   )}
                 >
-                  {person.stage.replace('_', ' ')}
+                  {person.people_stage.replace('_', ' ')}
                 </span>
               )}
               {person.lead_score && (
-                <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-600'>
+                <div className='w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground'>
                   {person.lead_score}
                 </div>
               )}
             </div>
 
             {/* Additional Details */}
-            <div className='flex items-center gap-4 text-sm text-gray-500'>
+            <div className='flex items-center gap-4 text-sm text-muted-foreground'>
               {person.company_role && (
                 <span className='font-medium'>{person.company_role}</span>
               )}
@@ -143,7 +143,7 @@ export const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
   index,
   className,
 }) => {
-  const { openPopup } = usePopupNavigation();
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleExpandToggle = useCallback((e: React.MouseEvent) => {
@@ -159,9 +159,9 @@ export const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
 
   const handlePersonClick = useCallback(
     (person: Person) => {
-      openPopup('person', person.id, person.name);
+      navigate(`/people/${person.id}`);
     },
-    [openPopup]
+    [navigate]
   );
 
   const childrenCount = children.length;
@@ -172,7 +172,7 @@ export const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
       {/* Parent Row */}
       <tr
         className={cn(
-          'data-[state=selected]:bg-muted border-b border-gray-200 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-300 transition-colors duration-200 group cursor-pointer relative min-h-[48px]',
+          'data-[state=selected]:bg-gray-50 border-b border-gray-200 hover:bg-gray-50 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group cursor-pointer relative min-h-[48px]',
           className
         )}
         role='row'
@@ -188,7 +188,7 @@ export const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
             <td
               key={column.key}
               className={cn(
-                'align-middle px-4 border-r border-gray-200 last:border-r-0 group-hover:border-r-gray-300 group-hover:last:border-r-0 min-h-[44px]',
+                'align-middle px-4 border-r border-gray-200 border-b border-gray-200 last:border-r-0 group-hover:border-r-gray-200 group-hover:last:border-r-0 min-h-[44px]',
                 column.align === 'center' && 'text-center',
                 column.align === 'right' && 'text-right'
               )}
@@ -205,24 +205,24 @@ export const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
                       onClick={handleExpandToggle}
                       disabled={!hasChildren}
                       className={cn(
-                        'w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-200 transition-colors group',
+                        'w-6 h-6 flex items-center justify-center rounded-md hover:bg-muted transition-colors group',
                         !hasChildren && 'opacity-30 cursor-not-allowed',
-                        hasChildren && 'hover:bg-blue-50'
+                        hasChildren && 'hover:bg-primary/10'
                       )}
                       aria-label={isExpanded ? 'Collapse' : 'Expand'}
                     >
                       {hasChildren ? (
                         isExpanded ? (
-                          <ChevronDown className='w-4 h-4 text-gray-600 group-hover:text-blue-600 transition-colors' />
+                          <ChevronDown className='w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors' />
                         ) : (
-                          <ChevronRight className='w-4 h-4 text-gray-600 group-hover:text-blue-600 transition-colors' />
+                          <ChevronRight className='w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors' />
                         )
                       ) : (
-                        <div className='w-2 h-2 rounded-full bg-gray-300' />
+                        <div className='w-2 h-2 rounded-full bg-muted' />
                       )}
                     </button>
                     {hasChildren && (
-                      <span className='text-xs text-gray-500 font-medium'>
+                      <span className='text-xs text-muted-foreground font-medium'>
                         {childrenCount}
                       </span>
                     )}

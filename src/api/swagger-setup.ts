@@ -1,18 +1,18 @@
 import express from 'express';
+import path from 'path';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import path from 'path';
 
 // Swagger configuration
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Empowr CRM API',
+      title: 'RECRUITEDGE API',
       version: '1.0.0',
       description: 'AI-powered recruitment platform API documentation',
       contact: {
-        name: 'Empowr CRM Support',
+        name: 'RECRUITEDGE Support',
         email: 'support@4twenty.com.au',
       },
       license: {
@@ -24,7 +24,7 @@ const swaggerOptions = {
       {
         url:
           process.env.NODE_ENV === 'production'
-            ? 'https://empowr-crm.vercel.app/api'
+            ? 'https://recruitedge.vercel.app/api'
             : 'http://localhost:3000/api',
         description:
           process.env.NODE_ENV === 'production'
@@ -64,7 +64,7 @@ export const setupSwagger = (app: express.Application) => {
     swaggerUi.setup(specs, {
       explorer: true,
       customCss: '.swagger-ui .topbar { display: none }',
-      customSiteTitle: 'Empowr CRM API Documentation',
+      customSiteTitle: 'RECRUITEDGE API Documentation',
     })
   );
 

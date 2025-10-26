@@ -258,7 +258,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                     className={cn(
                       'cursor-pointer transition-colors',
                       page === currentPage
-                        ? 'bg-primary-500 text-white hover:bg-primary-600'
+                        ? 'bg-primary text-white hover:bg-primary/90'
                         : 'hover:bg-gray-100'
                     )}
                     aria-label={`Go to page ${page}`}

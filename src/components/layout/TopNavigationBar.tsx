@@ -41,110 +41,162 @@ export const TopNavigationBar = ({
   return (
     <header
       className={cn(
-        'sticky top-0 z-30 w-full',
-        'bg-white border-b border-gray-200',
-        'shadow-sm shadow-gray-200/10',
-        isMobile ? 'px-4 py-3' : 'px-6 py-3',
+        'fixed top-0 z-30 w-full',
+        'bg-[#2d3e50] border-b border-gray-600',
+        'shadow-sm',
+        isMobile ? 'px-4 py-2' : 'px-6 py-2',
+        // Desktop: Add left margin to account for fixed sidebar (224px)
+        !isMobile && 'ml-56',
         className
       )}
     >
-      <div className='flex items-center justify-between'>
-        {/* Mobile Menu Button */}
-        {isMobile && (
-          <Button
-            variant='ghost'
-            size='icon'
-            onClick={onMenuClick}
-            className='h-9 w-9 text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 rounded-lg mr-2'
-          >
-            <Menu className='h-4 w-4' />
-          </Button>
-        )}
-
-        {/* Page Title */}
-        <div className='flex items-center'>
-          <h1
-            className={cn(
-              'font-semibold text-gray-900 tracking-tight',
-              isMobile ? 'text-base' : 'text-lg'
-            )}
-          >
-            {pageTitle}
-          </h1>
-        </div>
-
-        {/* Search Bar - Hidden on mobile if too cramped */}
-        {!isMobile && (
-          <div className='flex-1 max-w-md mx-8'>
-            <GlobalSearchDropdown />
-          </div>
-        )}
-
-        {/* Right Actions */}
-        <div className='flex items-center gap-1'>
-          {/* Mobile Search Button */}
-          {isMobile && (
+      {isMobile ? (
+        // Mobile Layout - Simple flex with justify-between
+        <div className='flex items-center justify-between w-full'>
+          {/* Left Section - Mobile Menu + Page Title */}
+          <div className='flex items-center'>
             <Button
               variant='ghost'
               size='icon'
-              className='h-9 w-9 text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 rounded-lg'
+              onClick={onMenuClick}
+              className='h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md mr-2'
+            >
+              <Menu className='h-4 w-4' />
+            </Button>
+            <h1 className='font-semibold text-white tracking-tight text-sm'>
+              {pageTitle}
+            </h1>
+          </div>
+
+          {/* Right Section - Actions */}
+          <div className='flex items-center gap-1'>
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
             >
               <Search className='h-4 w-4' />
             </Button>
-          )}
-
-          {/* Notifications */}
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-9 w-9 text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 rounded-lg'
-          >
-            <Bell className='h-4 w-4' />
-          </Button>
-
-          {/* User Profile / Sign In */}
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant='ghost'
-                  className='h-9 w-9 p-0 text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 rounded-lg'
-                >
-                  <Avatar className='h-7 w-7'>
-                    <AvatarImage
-                      src={user.user_metadata?.avatar_url || ''}
-                      alt={user.user_metadata?.full_name || 'User'}
-                    />
-                    <AvatarFallback className='bg-gray-100 text-gray-600 text-xs'>
-                      {user.user_metadata?.full_name?.charAt(0).toUpperCase() ||
-                        'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className='w-56 bg-white text-gray-900 border border-gray-200 shadow-lg shadow-gray-300/10 rounded-xl p-1'>
-                <DropdownMenuItem
-                  onClick={() => signOut()}
-                  className='flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50/80 hover:text-red-700 rounded-lg cursor-pointer'
-                >
-                  <LogOut className='h-4 w-4 mr-2' />
-                  Log Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
             <Button
-              onClick={() => signInWithGoogle()}
               variant='ghost'
-              size='sm'
-              className='h-9 px-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 rounded-lg'
+              size='icon'
+              className='h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
             >
-              <LogIn className='h-4 w-4 mr-2' />
-              Sign In
+              <Bell className='h-4 w-4' />
             </Button>
-          )}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant='ghost'
+                    className='h-8 w-8 p-0 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+                  >
+                    <Avatar className='h-7 w-7'>
+                      <AvatarImage
+                        src={user.user_metadata?.avatar_url || ''}
+                        alt={user.user_metadata?.full_name || 'User'}
+                      />
+                      <AvatarFallback className='bg-gray-100 text-gray-600 text-xs'>
+                        {user.user_metadata?.full_name
+                          ?.charAt(0)
+                          .toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className='w-56 bg-white text-gray-900 border border-gray-200 shadow-lg shadow-gray-300/10 rounded-xl p-1'>
+                  <DropdownMenuItem
+                    onClick={() => signOut()}
+                    className='flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50/80 hover:text-red-700 rounded-lg cursor-pointer'
+                  >
+                    <LogOut className='h-4 w-4 mr-2' />
+                    Log Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                onClick={() => signInWithGoogle()}
+                variant='ghost'
+                size='sm'
+                className='h-8 px-3 text-sm text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+              >
+                <LogIn className='h-4 w-4 mr-2' />
+                Sign In
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        // Desktop Layout - Grid with proper centering
+        <div className='grid grid-cols-[1fr_auto_1fr] items-center w-full gap-4'>
+          {/* Left Section - Page Title */}
+          <div className='flex items-center justify-start'>
+            <h1 className='font-semibold text-white tracking-tight text-base'>
+              {pageTitle}
+            </h1>
+          </div>
+
+          {/* Center Section - Search Bar */}
+          <div className='flex justify-center'>
+            <div className='w-80'>
+              <GlobalSearchDropdown />
+            </div>
+          </div>
+
+          {/* Right Section - Actions */}
+          <div className='flex items-center gap-1 justify-end'>
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+            >
+              <Bell className='h-4 w-4' />
+            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant='ghost'
+                    className='h-8 w-8 p-0 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+                  >
+                    <Avatar className='h-7 w-7'>
+                      <AvatarImage
+                        src={user.user_metadata?.avatar_url || ''}
+                        alt={user.user_metadata?.full_name || 'User'}
+                      />
+                      <AvatarFallback className='bg-gray-100 text-gray-600 text-xs'>
+                        {user.user_metadata?.full_name
+                          ?.charAt(0)
+                          .toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className='w-56 bg-white text-gray-900 border border-gray-200 shadow-lg shadow-gray-300/10 rounded-xl p-1'>
+                  <DropdownMenuItem
+                    onClick={() => signOut()}
+                    className='flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50/80 hover:text-red-700 rounded-lg cursor-pointer'
+                  >
+                    <LogOut className='h-4 w-4 mr-2' />
+                    Log Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                onClick={() => signInWithGoogle()}
+                variant='ghost'
+                size='sm'
+                className='h-8 px-3 text-sm text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+              >
+                <LogIn className='h-4 w-4 mr-2' />
+                Sign In
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 };

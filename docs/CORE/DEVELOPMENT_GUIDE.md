@@ -1,4 +1,4 @@
-# Empowr CRM - Development Guide
+# RECRUITEDGE - Development Guide
 
 ## Table of Contents
 
@@ -10,6 +10,107 @@
 - [Database Management](#database-management)
 - [Deployment Process](#deployment-process)
 - [Best Practices](#best-practices)
+
+## Modern CSS Architecture (December 2024)
+
+### Action Bar Implementation
+
+**✅ Best Practice**: Use design tokens with Tailwind utilities
+
+```tsx
+// ✅ CORRECT: Modern action bar implementation
+export const FilterControls = ({ ... }) => {
+  const tokens = designTokens.filterControls;
+
+  return (
+    <div className={tokens.container}>
+      <div className={tokens.leftGroup}>
+        <DropdownSelect className={cn(tokens.dropdown, tokens.dropdownSmall)} />
+        <button className={cn(tokens.button, tokens.buttonDefault)}>
+          <Star className={tokens.icon} />
+        </button>
+      </div>
+    </div>
+  );
+};
+```
+
+**❌ Avoid**: Custom CSS files with overrides
+
+```css
+/* ❌ WRONG: Don't create custom CSS files */
+.action-bar-icon-button {
+  height: 32px !important;
+  /* ... more overrides */
+}
+```
+
+### Page Layout Standards
+
+**✅ Consistent Structure**: All table pages use `space-y-4` layout
+
+```tsx
+// ✅ CORRECT: Clean page layout
+<Page stats={stats} title='Companies' hideHeader>
+  <div className='space-y-4'>
+    <FilterControls {...props} />
+    <UnifiedTable {...props} />
+    <PaginationControls {...props} />
+  </div>
+</Page>
+```
+
+**❌ Avoid**: Complex flex layouts with wrapper divs
+
+```tsx
+// ❌ WRONG: Don't use complex flex layouts
+<div className='flex flex-col h-full min-h-0'>
+  <div className='flex-shrink-0'>
+    <FilterControls />
+  </div>
+  <div className='flex-1 min-h-0'>
+    <UnifiedTable />
+  </div>
+</div>
+```
+
+### Height Standards
+
+**All action bar elements must be `h-7` (28px)**:
+
+- Filter dropdowns: `h-7`
+- Action buttons: `h-7 w-7`
+- Search inputs: `h-7`
+- Icons: `h-4 w-4` (16px)
+
+### Inline Search Pattern
+
+**✅ Modern UX**: Search expands inline next to favorite button
+
+```tsx
+// ✅ CORRECT: Inline search implementation
+{
+  isSearchActive ? (
+    <input
+      type='text'
+      value={searchTerm}
+      onChange={e => onSearchChange(e.target.value)}
+      placeholder='Search...'
+      className='h-7 px-3 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 min-w-48'
+      autoFocus
+    />
+  ) : (
+    <button
+      onClick={onSearchToggle}
+      className={cn(tokens.button, tokens.buttonDefault)}
+    >
+      <Search className={tokens.icon} />
+    </button>
+  );
+}
+```
+
+---
 
 ## Quick Start
 
@@ -43,6 +144,7 @@ npm run dev
 - **Local**: http://localhost:8082 (or next available port)
 - **Network**: Accessible on local network for mobile testing
 - **Hot Reload**: Automatic refresh on file changes
+- **Onboarding Dashboard**: Access `/onboarding` for guided setup flow
 - **Status**: ✅ Stable - All critical issues resolved
 
 ## Environment Setup
@@ -68,10 +170,6 @@ VITE_ENVIRONMENT=development
 #### Optional Integrations
 
 ```env
-# LinkedIn API (if using direct integration)
-VITE_LINKEDIN_CLIENT_ID=your_linkedin_client_id
-VITE_LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
-
 # Error Tracking
 VITE_SENTRY_DSN=your_sentry_dsn
 
@@ -118,8 +216,7 @@ CREATE TABLE people (
   connected_at TIMESTAMP WITH TIME ZONE,
   last_reply_at TIMESTAMP WITH TIME ZONE,
   reply_type TEXT,
-  linkedin_connected BOOLEAN DEFAULT false,
-  linkedin_responded BOOLEAN DEFAULT false,
+  linkedin_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -159,7 +256,32 @@ CREATE TABLE user_profiles (
 );
 ```
 
-#### 3. Row Level Security (RLS)
+#### 3. Row Level Security (RLS) - Development vs Production
+
+**🚨 IMPORTANT**: RLS policies can cause infinite retry loops and HTTP 500 errors during development when users aren't authenticated.
+
+**For Early Development Stages:**
+
+```sql
+-- Temporarily disable RLS for development tables
+-- This allows unrestricted access during development
+ALTER TABLE job_filter_configs DISABLE ROW LEVEL SECURITY;
+ALTER TABLE companies DISABLE ROW LEVEL SECURITY;
+ALTER TABLE people DISABLE ROW LEVEL SECURITY;
+ALTER TABLE jobs DISABLE ROW LEVEL SECURITY;
+ALTER TABLE interactions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE user_profiles DISABLE ROW LEVEL SECURITY;
+
+-- IMPORTANT: Re-enable before production deployment
+ALTER TABLE job_filter_configs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE people ENABLE ROW LEVEL SECURITY;
+ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE interactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+```
+
+**For Production (when authentication is ready):**
 
 ```sql
 -- Enable RLS on all tables
@@ -176,6 +298,20 @@ CREATE POLICY "Users can access jobs" ON jobs FOR ALL USING (auth.role() = 'auth
 CREATE POLICY "Users can access interactions" ON interactions FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Users can access user_profiles" ON user_profiles FOR ALL USING (auth.role() = 'authenticated');
 ```
+
+**When to Disable RLS:**
+
+- ✅ Early development stages where you need unrestricted access
+- ✅ Testing and iteration phases
+- ✅ When RLS policies are causing query failures
+- ✅ When building features that don't require user authentication
+
+**When NOT to Disable RLS:**
+
+- ❌ Production environments
+- ❌ When handling sensitive user data
+- ❌ When you have proper authentication in place
+- ❌ When multiple users will access the system
 
 #### 4. Authentication Setup
 
@@ -211,7 +347,7 @@ Types:
 - chore: Maintenance tasks
 
 Examples:
-feat(reporting): add LinkedIn analytics tab
+feat(reporting): add analytics dashboard
 fix(pipeline): resolve drag and drop issue
 docs(setup): update environment variables guide
 ```
@@ -414,6 +550,66 @@ import { designTokens } from '@/design-system/tokens';
 </div>;
 ```
 
+### Detail Pages Pattern (Jobs, People, Companies)
+
+All detail pages follow a unified structure for consistency and maintainability:
+
+```tsx
+// Standard detail page template
+export default function EntityDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Single useEntityData call for all related data
+  const {
+    entityData,
+    companyData,
+    leadsData,
+    jobsData,
+    isLoading,
+    entityError: error,
+  } = useEntityData({
+    entityType: 'entity-type', // 'job', 'lead', or 'company'
+    entityId: id!,
+    isOpen: true,
+    refreshTrigger,
+  });
+
+  // Consistent error and loading states
+  if (isLoading) return <LoadingState />;
+  if (error || !entityData) return <ErrorState />;
+
+  return (
+    <>
+      <div className='fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10' />
+      <div className='relative min-h-screen -mx-4 -my-4 lg:-mx-6 lg:-my-6'>
+        {/* Header - Same width as content */}
+        <div className='flex items-center justify-between py-6 max-w-6xl mx-auto px-6'>
+          {/* Header content with back button, title, status badge */}
+        </div>
+
+        {/* Main Content */}
+        <div className='space-y-6 max-w-6xl mx-auto px-6 pb-8'>
+          {/* Entity-specific info card */}
+          {/* Company info card (if applicable) */}
+          {/* Related items lists */}
+        </div>
+      </div>
+    </>
+  );
+}
+```
+
+**Key Principles**:
+
+- **Unified Layout**: All detail pages use the same gradient background and layout structure
+- **Consistent Data Fetching**: Single `useEntityData` call handles all related data
+- **Proper Component Usage**: Use appropriate info cards (`JobInfoCard`, `LeadInfoCard`, `CompanyInfoCard`)
+- **Clean Structure**: No notes/activity clutter, focus on essential information
+- **Performance**: Optimized imports and minimal state management
+
 ### File Organization
 
 ```
@@ -422,10 +618,11 @@ src/
 │   ├── ui/              # Base UI components
 │   ├── forms/           # Form components
 │   ├── charts/          # Chart components
+│   ├── popup/           # Info cards (JobInfoCard, LeadInfoCard, CompanyInfoCard)
 │   └── layout/          # Layout components
-├── pages/               # Page components
+├── pages/               # Page components (unified detail page pattern)
 ├── services/            # API services
-├── hooks/               # Custom hooks
+├── hooks/               # Custom hooks (useEntityData for detail pages)
 ├── utils/               # Utility functions
 ├── types/               # TypeScript types
 └── design-system/       # Design system

@@ -1,10 +1,10 @@
-# Empowr CRM Documentation
+# RECRUITEDGE Documentation
 
 Welcome to the comprehensive documentation for Empowr CRM - a modern recruitment-focused customer relationship management system.
 
 ## 🚀 Quick Start
 
-**📋 [Master Documentation Index](./MASTER_INDEX.md)** - Complete navigation to all 23 essential documentation files
+**📋 [Master Documentation Index](./MASTER_INDEX.md)** - Complete navigation to all 18 essential documentation files
 
 ## 📚 Documentation Overview
 
@@ -124,7 +124,7 @@ npm run dev
 
 ## 📁 Documentation Structure
 
-**📋 [Master Documentation Index](./MASTER_INDEX.md)** - Complete navigation to all 23 essential files
+**📋 [Master Documentation Index](./MASTER_INDEX.md)** - Complete navigation to all 18 essential files
 
 ### Organized Documentation Structure
 
@@ -141,13 +141,10 @@ docs/
 │   └── AI_BEST_PRACTICES.md
 ├── COMPONENTS/                 # Component architecture
 │   ├── LAYOUT_COMPONENTS.md
-│   ├── POPUP_SYSTEM_DOCUMENTATION.md
 │   ├── BADGE_SYSTEM_ARCHITECTURE.md
-│   ├── SCORING_SYSTEM_DOCS.md
 │   └── COMPANY_LOGO_SYSTEM.md
 ├── STYLING/                    # Design system and styling
 │   ├── DESIGN_SYSTEM.md
-│   ├── CARD_STYLING_GUIDE.md
 │   └── UNIFIED_DESIGN_SYSTEM.md
 ├── DATABASE/                   # Database documentation
 │   ├── DATABASE_SCHEMA.md

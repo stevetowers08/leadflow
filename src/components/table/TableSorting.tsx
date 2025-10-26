@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 
 interface SortConfig {
   key: string;
@@ -46,9 +46,9 @@ export const TableSorting: React.FC<TableSortingProps> = ({
           <th
             key={column.key}
             className={cn(
-              'h-12 px-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider',
+              'h-10 px-6 text-sm font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200 last:border-r-0',
               column.sortable &&
-                'cursor-pointer hover:bg-muted/50 transition-colors',
+                'cursor-pointer hover:bg-gray-100 transition-colors',
               headerAlignClass
             )}
             scope='col'
@@ -82,7 +82,7 @@ export const TableSorting: React.FC<TableSortingProps> = ({
   );
 };
 
-export const useTableSorting = (data: any[]) => {
+export const useTableSorting = (data: Record<string, unknown>[]) => {
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
 
   const sortedData = useMemo(() => {
@@ -102,9 +102,7 @@ export const useTableSorting = (data: any[]) => {
         'meeting_date',
         'connection_request_date',
         'connection_accepted_date',
-        'message_sent_date',
         'response_date',
-        'email_sent_date',
         'email_reply_date',
         'stage_updated',
       ];

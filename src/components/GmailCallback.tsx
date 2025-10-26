@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { gmailService } from '../services/gmailService';
+import { secureGmailService } from '../services/secureGmailService';
 
 export const GmailCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -10,42 +10,49 @@ export const GmailCallback: React.FC = () => {
   );
   const [error, setError] = useState<string | null>(null);
 
+  const handleGmailCallback = useCallback(
+    async (code: string) => {
+      try {
+        setStatus('loading');
+        await secureGmailService.handleGmailCallback(code);
+        setStatus('success');
+
+        // Redirect to communications page
+        navigate('/crm/communications');
+      } catch (error) {
+        setStatus('error');
+        setError(
+          error instanceof Error ? error.message : 'Authentication failed'
+        );
+      }
+    },
+    [navigate]
+  );
+
   useEffect(() => {
-    const code = searchParams.get('code');
-    const error = searchParams.get('error');
+    const processCallback = async () => {
+      const code = searchParams.get('code');
+      const error = searchParams.get('error');
 
-    if (error) {
-      setStatus('error');
-      setError('Authentication was cancelled or failed');
-      return;
-    }
+      if (error) {
+        setStatus('error');
+        setError('Authentication was cancelled or failed');
+        return;
+      }
 
-    if (code) {
-      handleGmailCallback(code);
-    } else {
-      setStatus('error');
-      setError('No authorization code received');
-    }
-  }, [searchParams]);
+      if (code) {
+        await handleGmailCallback(code);
+      } else {
+        setStatus('error');
+        setError('No authorization code received');
+      }
+    };
 
-  const handleGmailCallback = async (code: string) => {
-    try {
-      setStatus('loading');
-      await gmailService.handleGmailCallback(code);
-      setStatus('success');
-
-      // Instant redirect for seamless experience
-      navigate('/email');
-    } catch (error) {
-      setStatus('error');
-      setError(
-        error instanceof Error ? error.message : 'Authentication failed'
-      );
-    }
-  };
+    processCallback();
+  }, [searchParams, handleGmailCallback]);
 
   const handleRetry = () => {
-    navigate('/email');
+    navigate('/crm/communications');
   };
 
   // Minimal loading state

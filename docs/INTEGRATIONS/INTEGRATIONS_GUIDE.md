@@ -2,16 +2,37 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
+- [Webhooks & Edge Functions](#webhooks--edge-functions)
 - [Supabase Integration](#supabase-integration)
 - [Google OAuth Setup](#google-oauth-setup)
 - [LinkedIn Integration](#linkedin-integration)
-- [Expandi Integration](#expandi-integration)
-- [Prosp Integration](#prosp-integration)
 - [Gmail Integration](#gmail-integration)
 - [N8N Automation](#n8n-automation)
 - [Error Tracking](#error-tracking)
 - [Analytics Integration](#analytics-integration)
+
+## Webhooks & Edge Functions
+
+For detailed information about all available webhooks and Edge Functions, see:
+
+**[📋 WEBHOOKS_AND_EDGE_FUNCTIONS.md](./WEBHOOKS_AND_EDGE_FUNCTIONS.md)**
+
+This document contains:
+
+- **Duplicate Company Prevention** webhook for n8n integration
+- **Gmail Reply Detection** webhook for email automation
+- **Authentication** and security details
+- **Testing** and troubleshooting guides
+- **n8n workflow** examples and configurations
+
+### Quick Reference
+
+| Function                  | Purpose                     | Status    | URL                                     |
+| ------------------------- | --------------------------- | --------- | --------------------------------------- |
+| `check-company-duplicate` | Prevent duplicate companies | ✅ Active | `/functions/v1/check-company-duplicate` |
+| `gmail-webhook`           | Process Gmail replies       | ✅ Active | `/functions/v1/gmail-webhook`           |
+
+---
 
 ## Overview
 
@@ -22,7 +43,6 @@ Empowr CRM integrates with multiple external services to provide comprehensive f
 - **Supabase**: Database, authentication, and real-time features
 - **Google OAuth**: User authentication and Gmail access
 - **LinkedIn**: Profile data and connection management
-- **Expandi/Prosp**: LinkedIn automation tools
 - **Gmail**: Email communication tracking
 
 ### Optional Integrations
@@ -493,225 +513,6 @@ class LinkedInService {
 }
 ```
 
-## Expandi Integration
-
-### 1. Expandi API Setup
-
-#### Get API Credentials
-
-1. Log in to your Expandi account
-2. Go to Settings > API
-3. Generate API key
-4. Note your workspace ID
-
-#### Environment Variables
-
-```env
-VITE_EXPANDI_API_KEY=your-expandi-api-key
-VITE_EXPANDI_WORKSPACE_ID=your-workspace-id
-```
-
-### 2. Expandi API Integration
-
-```typescript
-// Expandi API service
-class ExpandiService {
-  private apiKey: string;
-  private workspaceId: string;
-  private baseUrl = 'https://api.expandi.io/v1';
-
-  constructor() {
-    this.apiKey = import.meta.env.VITE_EXPANDI_API_KEY;
-    this.workspaceId = import.meta.env.VITE_EXPANDI_WORKSPACE_ID;
-  }
-
-  private async request(endpoint: string, options: RequestInit = {}) {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Expandi API error: ${response.statusText}`);
-    }
-
-    return response.json();
-  }
-
-  // Start automation campaign
-  async startCampaign(campaignData: {
-    name: string;
-    linkedinProfiles: string[];
-    messageSequence: string[];
-  }) {
-    return this.request('/campaigns', {
-      method: 'POST',
-      body: JSON.stringify({
-        workspace_id: this.workspaceId,
-        ...campaignData,
-      }),
-    });
-  }
-
-  // Get campaign statistics
-  async getCampaignStats(campaignId: string) {
-    return this.request(`/campaigns/${campaignId}/stats`);
-  }
-
-  // Get campaign activities
-  async getCampaignActivities(campaignId: string) {
-    return this.request(`/campaigns/${campaignId}/activities`);
-  }
-
-  // Pause/resume campaign
-  async updateCampaignStatus(campaignId: string, status: 'active' | 'paused') {
-    return this.request(`/campaigns/${campaignId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    });
-  }
-}
-```
-
-### 3. Webhook Integration
-
-```typescript
-// Webhook handler for Expandi events
-export async function handleExpandiWebhook(request: Request) {
-  const signature = request.headers.get('x-expandi-signature');
-  const body = await request.text();
-
-  // Verify webhook signature
-  if (!verifyExpandiSignature(body, signature)) {
-    return new Response('Invalid signature', { status: 401 });
-  }
-
-  const event = JSON.parse(body);
-
-  switch (event.type) {
-    case 'connection_request_sent':
-      await handleConnectionRequestSent(event.data);
-      break;
-
-    case 'connection_accepted':
-      await handleConnectionAccepted(event.data);
-      break;
-
-    case 'message_sent':
-      await handleMessageSent(event.data);
-      break;
-
-    case 'reply_received':
-      await handleReplyReceived(event.data);
-      break;
-  }
-
-  return new Response('OK', { status: 200 });
-}
-
-// Update person status based on Expandi events
-async function handleConnectionRequestSent(data: any) {
-  await supabase
-    .from('people')
-    .update({
-      stage: 'connection_requested',
-      automation_started_at: new Date().toISOString(),
-    })
-    .eq('linkedin_url', data.profile_url);
-
-  // Log interaction
-  await supabase.from('interactions').insert({
-    person_id: data.person_id,
-    type: 'connection_request',
-    content: data.message,
-  });
-}
-```
-
-## Prosp Integration
-
-### 1. Prosp API Setup
-
-```env
-VITE_PROSP_API_KEY=your-prosp-api-key
-VITE_PROSP_ACCOUNT_ID=your-account-id
-```
-
-### 2. Prosp API Service
-
-```typescript
-class ProspService {
-  private apiKey: string;
-  private accountId: string;
-  private baseUrl = 'https://api.prosp.io/v1';
-
-  constructor() {
-    this.apiKey = import.meta.env.VITE_PROSP_API_KEY;
-    this.accountId = import.meta.env.VITE_PROSP_ACCOUNT_ID;
-  }
-
-  private async request(endpoint: string, options: RequestInit = {}) {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers: {
-        'X-API-Key': this.apiKey,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Prosp API error: ${response.statusText}`);
-    }
-
-    return response.json();
-  }
-
-  // Create automation sequence
-  async createSequence(sequenceData: {
-    name: string;
-    steps: Array<{
-      type: 'connection_request' | 'message' | 'follow_up';
-      delay_days: number;
-      content: string;
-    }>;
-  }) {
-    return this.request('/sequences', {
-      method: 'POST',
-      body: JSON.stringify({
-        account_id: this.accountId,
-        ...sequenceData,
-      }),
-    });
-  }
-
-  // Add prospects to sequence
-  async addProspectsToSequence(
-    sequenceId: string,
-    prospects: Array<{
-      linkedin_url: string;
-      first_name: string;
-      last_name: string;
-      company: string;
-    }>
-  ) {
-    return this.request(`/sequences/${sequenceId}/prospects`, {
-      method: 'POST',
-      body: JSON.stringify({ prospects }),
-    });
-  }
-
-  // Get sequence performance
-  async getSequencePerformance(sequenceId: string) {
-    return this.request(`/sequences/${sequenceId}/performance`);
-  }
-}
-```
-
 ## Gmail Integration
 
 ### 1. Gmail API Setup
@@ -819,58 +620,129 @@ const trackEmailInteraction = async (emailData: {
 };
 ```
 
-## N8N Automation
+## Decision Maker Enrichment Webhook
 
-### 1. N8N Setup
+### 1. Webhook Setup
 
 ```env
-VITE_N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/empowr-crm
-VITE_N8N_API_KEY=your-n8n-api-key
+# Decision Maker Enrichment Webhook
+VITE_DECISION_MAKER_WEBHOOK_URL=https://your-webhook-service.com/decision-makers
+VITE_DECISION_MAKER_WEBHOOK_SECRET=your-webhook-secret
+DECISION_MAKER_WEBHOOK_SECRET=your-webhook-secret
 ```
 
-### 2. Workflow Automation
+### 2. Webhook Service Implementation
 
 ```typescript
-// N8N webhook service
-class N8NService {
+// src/services/decisionMakerService.ts
+export class DecisionMakerService {
   private webhookUrl: string;
-  private apiKey: string;
 
   constructor() {
-    this.webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
-    this.apiKey = import.meta.env.VITE_N8N_API_KEY;
+    this.webhookUrl = import.meta.env.VITE_DECISION_MAKER_WEBHOOK_URL;
   }
 
-  async triggerWorkflow(workflowName: string, data: any) {
-    const response = await fetch(`${this.webhookUrl}/${workflowName}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(data),
+  async triggerDecisionMakerEnrichment(
+    jobId: string,
+    companyId: string
+  ): Promise<void> {
+    try {
+      // Get company data for the webhook
+      const { data: company, error: companyError } = await supabase
+        .from('companies')
+        .select('name, website, linkedin_url')
+        .eq('id', companyId)
+        .single();
+
+      if (companyError) throw companyError;
+
+      // Trigger external webhook
+      const response = await fetch(this.webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-webhook-signature': await this.generateSignature({
+            job_id: jobId,
+            company_id: companyId,
+            company_name: company.name,
+            company_website: company.website,
+            company_linkedin: company.linkedin_url,
+          }),
+        },
+        body: JSON.stringify({
+          job_id: jobId,
+          company_id: companyId,
+          company_name: company.name,
+          company_website: company.website,
+          company_linkedin: company.linkedin_url,
+          trigger_type: 'job_qualified',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook trigger failed: ${response.statusText}`);
+      }
+
+      console.log('Decision maker enrichment webhook triggered successfully');
+    } catch (error) {
+      console.error('Failed to trigger decision maker enrichment:', error);
+      throw error;
+    }
+  }
+}
+```
+
+### 3. Webhook Endpoint
+
+The webhook endpoint receives decision maker data and updates Supabase:
+
+```typescript
+// Using n8n Supabase module for direct database integration
+interface DecisionMakerWebhookPayload {
+  job_id: string;
+  company_id: string;
+  decision_makers: Array<{
+    name: string;
+    email?: string;
+    linkedin_url?: string;
+    title: string;
+    seniority_level?: string;
+    confidence_score?: number;
+    source: string;
+  }>;
+  company_data?: {
+    industry?: string;
+    company_size?: string;
+    website?: string;
+    linkedin_url?: string;
+    description?: string;
+  };
+}
+```
+
+### 4. Workflow Integration
+
+When a job is qualified, the system automatically triggers the webhook:
+
+```typescript
+// In JobQualificationActionBar.tsx
+if (value === 'qualify' && companyId) {
+  try {
+    const decisionMakerService = new DecisionMakerService();
+    await decisionMakerService.triggerDecisionMakerEnrichment(jobId, companyId);
+
+    toast({
+      title: 'Success',
+      description: 'Job qualified and decision maker enrichment started',
     });
-
-    return response.json();
-  }
-
-  // Trigger lead scoring workflow
-  async scoreLead(personData: {
-    id: string;
-    company: string;
-    position: string;
-    linkedinProfile: string;
-  }) {
-    return this.triggerWorkflow('score-lead', personData);
-  }
-
-  // Trigger automation sequence
-  async startAutomation(automationData: {
-    personId: string;
-    sequenceType: 'cold_outreach' | 'follow_up' | 'nurture';
-    customMessage?: string;
-  }) {
-    return this.triggerWorkflow('start-automation', automationData);
+  } catch (webhookError) {
+    console.error('Decision maker webhook failed:', webhookError);
+    toast({
+      title: 'Partial Success',
+      description:
+        'Job qualified but decision maker enrichment failed. Will retry automatically.',
+      variant: 'destructive',
+    });
   }
 }
 ```

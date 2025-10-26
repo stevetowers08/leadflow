@@ -1,6 +1,8 @@
 import { SearchResults } from '@/components/search/SearchResults';
 import { SearchInput } from '@/components/ui/consistent-controls';
-import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
+import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
+import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
+import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { useSearch } from '@/contexts/SearchContext';
 import { cn } from '@/lib/utils';
 import { SearchResult } from '@/services/globalSearchService';
@@ -26,9 +28,13 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
     suggestions,
   } = useSearch();
 
-  const { openPopup } = usePopupNavigation();
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
+  const [selectedEntityType, setSelectedEntityType] = useState<
+    'job' | 'company' | 'person' | null
+  >(null);
+  const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -94,23 +100,21 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
   };
 
   const handleResultClick = (result: SearchResult) => {
-    // Navigate to the appropriate popup based on result type
-    switch (result.type) {
-      case 'person':
-        openPopup('person', result.id, result.title);
-        break;
-      case 'company':
-        openPopup('company', result.id, result.title);
-        break;
-      case 'job':
-        openPopup('job', result.id, result.title);
-        break;
-    }
+    // Open the appropriate slide-out based on result type
+    setSelectedEntityId(result.id);
+    setSelectedEntityType(result.type as 'job' | 'company' | 'person');
+    setIsSlideOutOpen(true);
 
     // Close search dropdown
     setIsSearchOpen(false);
     setShowSuggestions(false);
     inputRef.current?.blur();
+  };
+
+  const handleCloseSlideOut = () => {
+    setIsSlideOutOpen(false);
+    setSelectedEntityId(null);
+    setSelectedEntityType(null);
   };
 
   const handleClearSearch = () => {
@@ -212,6 +216,29 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* Slide-Outs for Search Results */}
+      {selectedEntityType === 'job' && (
+        <JobDetailsSlideOut
+          jobId={selectedEntityId}
+          isOpen={isSlideOutOpen}
+          onClose={handleCloseSlideOut}
+        />
+      )}
+      {selectedEntityType === 'company' && (
+        <CompanyDetailsSlideOut
+          companyId={selectedEntityId}
+          isOpen={isSlideOutOpen}
+          onClose={handleCloseSlideOut}
+        />
+      )}
+      {selectedEntityType === 'person' && (
+        <PersonDetailsSlideOut
+          personId={selectedEntityId}
+          isOpen={isSlideOutOpen}
+          onClose={handleCloseSlideOut}
+        />
       )}
     </div>
   );

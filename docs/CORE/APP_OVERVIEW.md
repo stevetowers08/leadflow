@@ -1,4 +1,4 @@
-# Empowr CRM - Complete Application Overview
+# RECRUITEDGE - Complete Application Overview
 
 ## Table of Contents
 
@@ -13,7 +13,7 @@
 
 ## Business Model
 
-Empowr CRM is a recruitment-focused customer relationship management system designed to streamline the process of finding, contacting, and converting companies into clients for recruitment services.
+RECRUITEDGE is a recruitment-focused customer relationship management system designed to streamline the process of finding, contacting, and converting companies into clients for recruitment services.
 
 ### Business Flow
 
@@ -24,7 +24,7 @@ Jobs → Companies → People → Automation → Responses → Deals
 1. **Jobs** help us identify **Companies** that are hiring
 2. **Companies** are added to our sales pipeline
 3. **People** at those companies are identified as contacts
-4. **Automation** tools (Expandi/Prosp) handle LinkedIn outreach
+4. **Automation** tools handle outreach
 5. **Responses** from people indicate interest level
 6. **Deals** are closed with interested companies
 
@@ -34,22 +34,24 @@ Jobs → Companies → People → Automation → Responses → Deals
 
 - **Definition**: Job postings that help us identify companies that are hiring
 - **Purpose**: These are the signals that indicate a company has open positions and may need recruitment services
-- **Data Source**: Job boards, company websites, LinkedIn job postings
+- **Data Source**: Job boards, company websites, job postings
 - **Key Fields**: `title`, `company_id`, `priority`, `function`, `location`, `employment_type`, `seniority`
 
 ### 2. **Companies**
 
 - **Definition**: Organizations that we're trying to sign as clients
 - **Purpose**: These are our target prospects - companies that have job openings and may need recruitment services
-- **Data Source**: Company databases, LinkedIn company pages, job postings
-- **Key Fields**: `name`, `industry`, `stage`, `automation_active`, `logo_url`
+- **Data Source**: Company databases, company pages, job postings
+- **Key Fields**: `name`, `industry`, `pipeline_stage`, `automation_active`, `logo_url`
+- **Pipeline Stages**: `new_lead` → `message_sent` → `replied` → `meeting_scheduled` → `proposal_sent` → `negotiation` → `closed_won`/`closed_lost` → `on_hold`
 
 ### 3. **People**
 
 - **Definition**: Individual contacts at companies who we interact with to close deals
 - **Purpose**: These are the decision-makers and influencers we message to secure company contracts
-- **Data Source**: LinkedIn profiles, company directories, referrals
-- **Key Fields**: `name`, `company_id`, `stage`, `lead_score`, `automation_started_at`, `reply_type`
+- **Data Source**: Professional profiles, company directories, referrals
+- **Key Fields**: `name`, `company_id`, `people_stage`, `lead_score`, `automation_started_at`, `reply_type`
+- **Conversation Stages**: `new_lead` → `message_sent` → `replied` → `interested` → `meeting_scheduled` → `meeting_completed` → `follow_up` → `not_interested`
 
 ## Application Architecture
 
@@ -81,58 +83,78 @@ Jobs → Companies → People → Automation → Responses → Deals
 
 ## Key Features
 
-### 1. **Lead Management**
+### 1. **Onboarding Dashboard**
 
-- Track people through pipeline stages
+- **Step-by-Step Setup Flow**: Guided 5-step onboarding process
+- **Integration Management**: Connect Gmail, CRM, and automation tools
+- **Progress Tracking**: Visual progress bar and completion status
+- **Learning Guides**: Comprehensive guides with difficulty levels and time estimates
+- **Quick Actions**: Direct access to main platform features
+- **Help & Support**: Documentation and support access
+
+### 2. **Lead Management**
+
+- Track people through conversation stages
 - AI-powered lead scoring
-- Automated LinkedIn outreach via Expandi/Prosp
+- Automated outreach via Expandi/Prosp
 - Response tracking and categorization
+- Reply analytics and intent detection
 
-### 2. **Company Management**
+### 3. **Company Management**
 
 - Company pipeline with drag-and-drop stages
 - Industry/function-based analytics
 - Automation status tracking
 - Logo management system
+- Business pipeline progression tracking
 
-### 3. **Job Management**
+### 4. **Job Intelligence**
 
 - Job posting tracking and analysis
 - Priority-based organization
 - Function and location analytics
 - Company-job relationship mapping
+- Automated job qualification workflow
 
-### 4. **Pipeline Management**
+### 5. **Pipeline Management**
 
 - Visual drag-and-drop pipeline
 - Stage-based workflow management
 - Velocity tracking and analytics
 - User performance metrics
+- Conversation stage progression
 
-### 5. **AI Integration**
+### 6. **Campaign Management**
+
+- Email sequence builder with drag-and-drop steps
+- Variable personalization system ({{first_name}}, {{company}})
+- Campaign execution and tracking
+- A/B testing and optimization
+- Automated follow-up sequences
+
+### 7. **AI Integration**
 
 - Lead scoring algorithm
 - Automated response categorization
 - Smart recommendations
 - Conversation analysis
+- Intent detection and classification
 
-### 6. **Reporting & Analytics**
+### 8. **Analytics & Reporting**
 
-- Comprehensive dashboard with 5 tabs:
-  - **Overview**: Key metrics and daily trends
-  - **Automation**: LinkedIn automation performance
-  - **LinkedIn**: Detailed LinkedIn analytics
-  - **Jobs**: Job tracking and analytics
-  - **Companies**: Company pipeline metrics
+- Comprehensive dashboard with multiple tabs
+- Reply analytics and intent tracking
+- Performance metrics and KPIs
+- Stage-wise analytics
+- Trend analysis and reporting
 - Real-time data visualization
-- Exportable reports and insights
 
-### 7. **Automation Integration**
+### 9. **Integration Management**
 
-- **Expandi**: LinkedIn automation for connection requests and messaging
-- **Prosp**: LinkedIn automation for prospecting and outreach
-- Response tracking and analysis
-- Performance metrics and optimization
+- **Gmail Integration**: Email automation and reply tracking
+- **n8n Workflows**: Backend automation and data processing
+- **CRM Configuration**: Settings and user permissions
+- **Automation Tools**: Expandi/Prosp integration
 
 ## Technology Stack
 
@@ -176,14 +198,13 @@ Jobs → Companies → People → Automation → Responses → Deals
 - id: uuid (primary key)
 - name: text
 - company_id: uuid (foreign key to companies)
-- stage: text (pipeline stage)
+- people_stage: text (conversation stage: new_lead, message_sent, replied, interested, meeting_scheduled, meeting_completed, follow_up, not_interested)
 - lead_score: integer (AI-generated score)
 - automation_started_at: timestamp
 - connected_at: timestamp
 - last_reply_at: timestamp
 - reply_type: text (interested, not_interested, maybe)
-- linkedin_connected: boolean
-- linkedin_responded: boolean
+- linkedin_url: text
 - created_at: timestamp
 - updated_at: timestamp
 ```
@@ -194,9 +215,10 @@ Jobs → Companies → People → Automation → Responses → Deals
 - id: uuid (primary key)
 - name: text
 - industry: text (represents function/department)
-- stage: text (sales pipeline stage)
+- pipeline_stage: text (business pipeline stage: new_lead, message_sent, replied, meeting_scheduled, proposal_sent, negotiation, closed_won, closed_lost, on_hold)
 - automation_active: boolean
 - logo_url: text
+- linkedin_url: text
 - created_at: timestamp
 - updated_at: timestamp
 ```
@@ -212,11 +234,12 @@ Jobs → Companies → People → Automation → Responses → Deals
 - location: text
 - employment_type: text (full-time, part-time, contract)
 - seniority: text (junior, mid, senior, executive)
+- linkedin_url: text
 - created_at: timestamp
 - updated_at: timestamp
 ```
 
-#### `interactions` (LinkedIn Activities)
+#### `interactions` (Activities)
 
 ```sql
 - id: uuid (primary key)
@@ -262,42 +285,33 @@ Jobs → Companies → People → Automation → Responses → Deals
 
 ## Automation Workflow
 
-### LinkedIn Automation Process
-
-1. **Lead Identification**: People are identified and added to the system
-2. **Automation Trigger**: Automation is started via Expandi or Prosp
-3. **Connection Request**: Automated LinkedIn connection request sent
-4. **Connection Acceptance**: Track if connection is accepted
-5. **Message Sequence**: Automated message sequence begins
-6. **Response Tracking**: Monitor and categorize responses
-7. **Lead Qualification**: Qualify leads based on responses
-8. **Handoff to Sales**: Qualified leads are handed off for direct sales contact
-
 ### Pipeline Stages
 
-#### People Pipeline
+#### People Pipeline (Conversation-Based)
 
-- **New**: Person identified as contact
-- **Connection Requested**: LinkedIn connection request sent
-- **Connected**: LinkedIn connection accepted
-- **Messaged**: Initial message sent
-- **Replied**: Person responded to message
-- **Lead Lost**: Person not interested
-- **In Queue**: Waiting for next action
+- **New Lead**: Person identified as contact
+- **Message Sent**: Initial outreach made
+- **Replied**: Person responded to outreach
+- **Interested**: Person shows interest in services
+- **Meeting Scheduled**: Meeting booked with person
+- **Meeting Completed**: Meeting held successfully
+- **Follow-up**: Post-meeting follow-up phase
+- **Not Interested**: Person declined or not pursuing
 
-#### Company Pipeline
+#### Company Pipeline (Business Pipeline)
 
-- **New**: Company identified as potential client
-- **Contacted**: Initial outreach made
-- **Qualified**: Company shows interest
-- **Proposal**: Proposal sent
-- **Negotiation**: Terms being discussed
-- **Closed Won**: Contract signed
+- **New Lead**: Company identified as potential client
+- **Message Sent**: Initial outreach made to company contacts
+- **Replied**: Company responded to outreach
+- **Meeting Scheduled**: Meeting booked with company
+- **Proposal Sent**: Formal proposal delivered
+- **Negotiation**: Active discussions on terms
+- **Closed Won**: Successfully secured as client
 - **Closed Lost**: Opportunity lost
+- **On Hold**: Temporarily paused or delayed
 
 ### Metrics & KPIs
 
-- **Connection Rate**: Percentage of connection requests accepted
 - **Response Rate**: Percentage of messages that received replies
 - **Positive Response Rate**: Percentage of responses that were interested
 - **Conversion Rate**: Percentage of leads that became clients
@@ -309,7 +323,24 @@ Jobs → Companies → People → Automation → Responses → Deals
 ```
 src/
 ├── components/          # Reusable UI components
+│   ├── analytics/       # Reply analytics components
+│   ├── campaigns/       # Campaign management components
+│   ├── crm/            # CRM-specific components
+│   ├── jobs/           # Job management components
+│   ├── layout/         # Layout and navigation components
+│   ├── mobile/         # Mobile-specific components
+│   ├── popup/          # Popup/modal components
+│   ├── shared/         # Reusable shared components
+│   └── ui/             # Base UI components
 ├── pages/              # Main application pages
+│   ├── OnboardingDashboard.tsx  # Getting started page
+│   ├── Dashboard.tsx           # Main dashboard
+│   ├── People.tsx              # Lead management
+│   ├── Companies.tsx           # Company management
+│   ├── Jobs.tsx                # Job intelligence
+│   ├── Pipeline.tsx            # Pipeline management
+│   ├── Campaigns.tsx           # Campaign management
+│   └── Reporting.tsx           # Analytics & reporting
 ├── services/           # API and business logic
 ├── hooks/              # Custom React hooks
 ├── utils/              # Utility functions
@@ -318,20 +349,29 @@ src/
 └── assets/             # Static assets
 
 docs/
-├── APP_OVERVIEW.md     # This file
-├── DEVELOPMENT_GUIDE.md # Development setup and practices
-├── TROUBLESHOOTING_GUIDE.md # Debugging and solutions
-├── DESIGN_SYSTEM.md    # UI/UX guidelines
-└── INTEGRATIONS_GUIDE.md # External integrations
+├── CORE/               # Core application documentation
+├── INTEGRATIONS/       # Integration guides
+├── DATABASE/           # Database documentation
+├── PDR/                # Product Requirements Documents
+└── SETUP/              # Setup and deployment guides
 ```
 
 ## Application Status
 
 **Current Status**: ✅ **STABLE** - All critical issues resolved  
-**Last Updated**: January 2025  
+**Last Updated**: December 2024  
 **Version**: 1.0.0
 
-### Recent Resolutions (January 2025)
+### Recent Implementations (December 2024)
+
+- ✅ **Onboarding Dashboard**: Complete step-by-step setup flow with integration management
+- ✅ **Reply Analytics System**: Comprehensive analytics for reply tracking and intent detection
+- ✅ **Stage Workflow Updates**: New conversation-based people stages and business pipeline stages
+- ✅ **Navigation Integration**: Onboarding dashboard integrated into all navigation components
+- ✅ **Progress Tracking**: Visual progress indicators and completion status
+- ✅ **Learning Guides**: Comprehensive guides with difficulty levels and time estimates
+
+### Previous Resolutions (January 2025)
 
 - ✅ **Application Stability**: All app crashes resolved
 - ✅ **Navigation System**: TopNavigation component working properly
@@ -347,7 +387,8 @@ docs/
 3. **Environment**: Set up environment variables
 4. **Database**: Configure Supabase database and RLS policies
 5. **Development**: Run development server (`npm run dev` - runs on port 8082)
-6. **Deployment**: Deploy to Vercel or similar platform
+6. **Onboarding**: Access the Getting Started dashboard at `/onboarding` for guided setup
+7. **Deployment**: Deploy to Vercel or similar platform
 
 For detailed setup instructions, see [DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md).
 

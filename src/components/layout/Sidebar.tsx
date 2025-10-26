@@ -13,50 +13,45 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import {
   BarChart3,
-  Bot,
   Briefcase,
   Building2,
+  HelpCircle,
   Home,
   Megaphone,
   MessageSquare,
-  Mic,
   Settings,
-  Target,
   Users,
   X,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { FourTwentyLogo } from '../FourTwentyLogo';
+import { RecruitEdgeLogo } from '../RecruitEdgeLogo';
 
-// Navigation grouped by sections with dividers
+// Navigation following user flow documentation
+// Primary workflow: Jobs → Companies → People → Conversations
 const navigationSections = [
   {
-    items: [{ name: 'Dashboard', href: '/', icon: Home }],
-  },
-  {
+    // Core Workflow (most common items displayed prominently)
     items: [
-      { name: 'Jobs', href: '/jobs', icon: Briefcase },
-      { name: 'People', href: '/people', icon: Users },
+      { name: 'Dashboard', href: '/', icon: Home },
+      { name: 'Jobs Feed', href: '/jobs', icon: Briefcase },
       { name: 'Companies', href: '/companies', icon: Building2 },
-    ],
-  },
-  {
-    items: [
-      { name: 'Pipeline', href: '/pipeline', icon: Target },
-      { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
-      { name: 'Voice AI', href: '/voice-ai', icon: Mic },
+      { name: 'People', href: '/people', icon: Users },
       { name: 'Conversations', href: '/conversations', icon: MessageSquare },
     ],
   },
   {
+    // Advanced Features (Phase 2)
     items: [
-      { name: 'Automations', href: '/automations', icon: Bot },
-      { name: 'Workflows', href: '/workflows', icon: Bot },
-      { name: 'Reporting', href: '/reporting', icon: BarChart3 },
+      { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
+      { name: 'Analytics', href: '/reporting', icon: BarChart3 },
     ],
   },
   {
-    items: [{ name: 'Settings', href: '/settings', icon: Settings }],
+    // Settings & Support
+    items: [
+      { name: 'Settings', href: '/settings', icon: Settings },
+      { name: 'Help', href: '/about', icon: HelpCircle },
+    ],
   },
 ];
 
@@ -69,24 +64,16 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <aside
-      className={cn(
-        'flex flex-col h-full w-full',
-        'bg-sidebar text-sidebar-foreground',
-        'transition-all duration-300 ease-out'
-      )}
-    >
+    <div className='flex flex-col h-full w-full'>
       {/* Clean Header */}
-      <div className='px-4 py-4'>
+      <div className='px-4 py-4 flex-shrink-0'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-3'>
             <div className='relative'>
-              <FourTwentyLogo size={20} />
-              <div className='absolute -top-1 -right-1 w-3 h-3 bg-primary-500 rounded-full animate-pulse' />
+              <RecruitEdgeLogo size={20} />
+              <div className='absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse' />
             </div>
-            <h1 className='text-base font-bold text-sidebar-foreground'>
-              Empowr CRM
-            </h1>
+            <h1 className='text-base font-bold text-gray-200'>RECRUITEDGE</h1>
           </div>
           <div className='flex items-center gap-2'>
             {onClose && (
@@ -94,7 +81,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                 variant='ghost'
                 size='icon'
                 onClick={onClose}
-                className='lg:hidden h-9 w-9 p-0 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-white/10 hover:backdrop-blur-sm rounded-lg'
+                className='lg:hidden h-9 w-9 p-0 text-gray-200 hover:text-gray-100 hover:bg-white/10 rounded-lg'
               >
                 <X className='h-5 w-5' />
               </Button>
@@ -104,7 +91,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
       </div>
 
       {/* Navigation with Section Dividers */}
-      <nav className='flex-1 px-3 py-5 overflow-y-auto custom-scrollbar'>
+      <nav className='flex-1 px-3 py-5 overflow-y-auto custom-scrollbar pb-4'>
         <div className='space-y-0.5'>
           {navigationSections.map((section, sectionIndex) => (
             <div key={sectionIndex}>
@@ -122,17 +109,17 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                           'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
                           'transition-all duration-200 ease-in-out',
                           isActive
-                            ? 'bg-sidebar-primary/20 text-sidebar-foreground/65'
-                            : 'text-sidebar-foreground/65 hover:bg-gray-200/80 hover:text-sidebar-foreground/65',
+                            ? 'bg-blue-500 text-white'
+                            : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                           'group'
                         )}
                       >
                         <Icon
                           className={cn(
-                            'h-5 w-5 transition-all duration-200',
+                            'h-4 w-4 transition-all duration-200',
                             isActive
-                              ? 'text-sidebar-foreground/55'
-                              : 'text-sidebar-foreground/55 group-hover:text-sidebar-foreground/55'
+                              ? 'text-white'
+                              : 'text-gray-400 group-hover:text-white'
                           )}
                         />
                         <span>{item.name}</span>
@@ -150,6 +137,6 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
           ))}
         </div>
       </nav>
-    </aside>
+    </div>
   );
 };

@@ -1,27 +1,185 @@
-import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
+import { JobQualificationTableDropdown } from '@/components/jobs/JobQualificationTableDropdown';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { TabNavigation } from '@/components/ui/tab-navigation';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
 import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
+import { useClientId } from '@/hooks/useClientId';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { getClearbitLogo } from '@/services/logoService';
 import { Job, UserProfile } from '@/types/database';
 import { convertNumericScoreToStatus } from '@/utils/colorScheme';
-import { getJobStatusFromPipeline } from '@/utils/jobStatus';
-import { getStatusDisplayText } from '@/utils/statusUtils';
+import { useNavigate } from 'react-router-dom';
+// Removed deprecated jobStatus import - using statusUtils instead
+import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
 import { format } from 'date-fns';
 import { Building2 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+// Job filtering function (comprehensive version)
+function applyJobFilters(
+  job: Record<string, unknown>,
+  config: Record<string, unknown>
+): boolean {
+  // Location filtering
+  if (
+    config.primary_location &&
+    !checkLocationMatch(
+      job.location,
+      config.primary_location,
+      config.search_radius || 25
+    )
+  ) {
+    return false;
+  }
+
+  // Job title filtering (included)
+  if (config.target_job_titles && config.target_job_titles.length > 0) {
+    const titleMatch = config.target_job_titles.some((title: string) =>
+      job.title.toLowerCase().includes(title.toLowerCase())
+    );
+    if (!titleMatch) return false;
+  }
+
+  // Job title filtering (excluded)
+  if (config.excluded_job_titles && config.excluded_job_titles.length > 0) {
+    const excludedMatch = config.excluded_job_titles.some((title: string) =>
+      job.title.toLowerCase().includes(title.toLowerCase())
+    );
+    if (excludedMatch) return false;
+  }
+
+  // Seniority level filtering (supports both seniority_levels and experience_levels)
+  if (
+    (config.seniority_levels && config.seniority_levels.length > 0) ||
+    (config.experience_levels && config.experience_levels.length > 0)
+  ) {
+    const levels = config.seniority_levels || config.experience_levels;
+    if (!job.seniority_level || !levels.includes(job.seniority_level)) {
+      return false;
+    }
+  }
+
+  // Work arrangement filtering
+  if (config.work_arrangements && config.work_arrangements.length > 0) {
+    if (
+      !job.employment_type ||
+      !config.work_arrangements.includes(job.employment_type)
+    ) {
+      return false;
+    }
+  }
+
+  // Job function filtering
+  if (config.job_functions && config.job_functions.length > 0) {
+    if (!job.function || !config.job_functions.includes(job.function)) {
+      return false;
+    }
+  }
+
+  // Company size filtering
+  if (
+    config.company_size_preferences &&
+    config.company_size_preferences.length > 0
+  ) {
+    if (
+      !job.companies?.company_size ||
+      !config.company_size_preferences.includes(job.companies.company_size)
+    ) {
+      return false;
+    }
+  }
+
+  // Industry filtering (included)
+  if (config.included_industries && config.included_industries.length > 0) {
+    if (
+      !job.companies?.industry ||
+      !config.included_industries.includes(job.companies.industry)
+    ) {
+      return false;
+    }
+  }
+
+  // Industry filtering (excluded)
+  if (config.excluded_industries && config.excluded_industries.length > 0) {
+    if (
+      job.companies?.industry &&
+      config.excluded_industries.includes(job.companies.industry)
+    ) {
+      return false;
+    }
+  }
+
+  // Company filtering (included)
+  if (config.included_companies && config.included_companies.length > 0) {
+    if (
+      !job.companies?.name ||
+      !config.included_companies.includes(job.companies.name)
+    ) {
+      return false;
+    }
+  }
+
+  // Company filtering (excluded)
+  if (config.excluded_companies && config.excluded_companies.length > 0) {
+    if (
+      job.companies?.name &&
+      config.excluded_companies.includes(job.companies.name)
+    ) {
+      return false;
+    }
+  }
+
+  // Keyword filtering (required)
+  if (config.required_keywords && config.required_keywords.length > 0) {
+    const keywordMatch = config.required_keywords.every((keyword: string) =>
+      job.description?.toLowerCase().includes(keyword.toLowerCase())
+    );
+    if (!keywordMatch) return false;
+  }
+
+  // Keyword filtering (excluded)
+  if (config.excluded_keywords && config.excluded_keywords.length > 0) {
+    const excludedKeywordMatch = config.excluded_keywords.some(
+      (keyword: string) =>
+        job.description?.toLowerCase().includes(keyword.toLowerCase())
+    );
+    if (excludedKeywordMatch) return false;
+  }
+
+  // Time filtering (max days old)
+  if (config.max_days_old) {
+    const jobDate = new Date(job.created_at);
+    const cutoffDate = new Date(
+      Date.now() - config.max_days_old * 24 * 60 * 60 * 1000
+    );
+    if (jobDate < cutoffDate) return false;
+  }
+
+  return true;
+}
+
+function checkLocationMatch(
+  jobLocation: string | null,
+  targetLocation: string,
+  radius: number
+): boolean {
+  if (!jobLocation) return false;
+
+  const jobCity = jobLocation.toLowerCase().split(',')[0].trim();
+  const targetCity = targetLocation.toLowerCase().split(',')[0].trim();
+
+  return jobCity.includes(targetCity) || targetCity.includes(jobCity);
+}
+
 const Jobs: React.FC = () => {
   const { user } = useAuth();
-  const { openPopup } = usePopupNavigation();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: clientId, isLoading: clientIdLoading } = useClientId();
 
   // State management
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -30,13 +188,19 @@ const Jobs: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Filter and search state
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>('new'); // Default to 'new' jobs
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<string>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const [sortBy, setSortBy] = useState<string>('created_at');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // Slide-out state
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,18 +209,13 @@ const Jobs: React.FC = () => {
   // Debounced search term for better performance
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Calculate job status based on company's pipeline stage - memoized
-  const getJobStatusFromCompany = useCallback((job: Job): string => {
-    return getJobStatusFromPipeline(job.companies?.pipeline_stage);
-  }, []);
-
-  // Tab options - memoized to prevent re-renders
+  // Tab options - focused on qualification status
   const tabOptions = useMemo(
     () => [
-      { id: 'all', label: 'All Jobs', count: 0, icon: null },
-      { id: 'active', label: 'Active', count: 0, icon: null },
-      { id: 'pending', label: 'Pending', count: 0, icon: null },
-      { id: 'expired', label: 'Expired', count: 0, icon: null },
+      { id: 'new', label: 'New', count: 0, icon: null },
+      { id: 'qualify', label: 'Qualified', count: 0, icon: null },
+      { id: 'skip', label: 'Skip', count: 0, icon: null },
+      { id: 'all', label: 'All', count: 0, icon: null },
     ],
     []
   );
@@ -65,9 +224,9 @@ const Jobs: React.FC = () => {
   const statusOptions = useMemo(
     () => [
       { label: 'All Statuses', value: 'all' },
-      { label: 'Active', value: 'active' },
-      { label: 'Pending', value: 'pending' },
-      { label: 'Expired', value: 'expired' },
+      { label: 'New', value: 'new' },
+      { label: 'Qualified', value: 'qualify' },
+      { label: 'Skip', value: 'skip' },
     ],
     []
   );
@@ -87,38 +246,65 @@ const Jobs: React.FC = () => {
   // Fetch data with parallel requests for better performance
   useEffect(() => {
     const fetchData = async () => {
+      // Don't fetch if client ID is still loading or not available
+      if (clientIdLoading || !clientId) {
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
 
-        // Parallel data fetching for better performance
-        const [jobsResult, usersResult] = await Promise.all([
-          supabase
-            .from('jobs')
-            .select(
-              `
+        // Get ALL jobs and filter them based on client's job filter configs
+        const [jobsResult, usersResult, filterConfigResult] = await Promise.all(
+          [
+            supabase
+              .from('jobs')
+              .select(
+                `
               *,
-              companies!left (
+              companies!jobs_company_id_fkey (
                 id,
-              name,
+                name,
                 website,
-              industry,
-              lead_score,
+                industry,
+                lead_score,
                 pipeline_stage
+              ),
+              client_jobs!client_jobs_job_id_fkey (
+                status,
+                priority_level,
+                qualified_at,
+                qualified_by
               )
             `
-            )
-            .order('created_at', { ascending: false }),
-          supabase
-            .from('user_profiles')
-            .select('id, full_name')
-            .order('full_name'),
-        ]);
+              )
+              .order('created_at', { ascending: false }),
+            supabase
+              .from('user_profiles')
+              .select('id, full_name')
+              .order('full_name'),
+            supabase
+              .from('job_filter_configs')
+              .select('*')
+              .eq('client_id', clientId)
+              .eq('is_active', true)
+              .single(),
+          ]
+        );
 
         if (jobsResult.error) throw jobsResult.error;
         if (usersResult.error) throw usersResult.error;
 
-        setJobs((jobsResult.data as Job[]) || []);
+        let allJobs = (jobsResult.data as Job[]) || [];
+
+        // Apply client's job filter config if available
+        if (filterConfigResult.data && !filterConfigResult.error) {
+          const filterConfig = filterConfigResult.data;
+          allJobs = allJobs.filter(job => applyJobFilters(job, filterConfig));
+        }
+
+        setJobs(allJobs);
         setUsers((usersResult.data as unknown as UserProfile[]) || []);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -134,17 +320,25 @@ const Jobs: React.FC = () => {
     };
 
     fetchData();
-  }, [toast]);
+  }, [toast, refreshTrigger, clientId, clientIdLoading]);
 
   // Filter and sort jobs
   const filteredJobs = useMemo(() => {
     let filtered = jobs;
 
+    // Qualification status filter (from tabs)
+    if (activeTab !== 'all') {
+      filtered = filtered.filter(job => {
+        const qualStatus = job.qualification_status || 'new';
+        return qualStatus === activeTab;
+      });
+    }
+
     // Status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(job => {
-        const status = getJobStatusFromCompany(job);
-        return status === statusFilter;
+        const qualStatus = job.qualification_status || 'new';
+        return qualStatus === statusFilter;
       });
     }
 
@@ -201,6 +395,7 @@ const Jobs: React.FC = () => {
     return filtered;
   }, [
     jobs,
+    activeTab,
     statusFilter,
     selectedUser,
     showFavoritesOnly,
@@ -218,12 +413,12 @@ const Jobs: React.FC = () => {
   const tabCounts = useMemo(() => {
     const counts = {
       all: jobs.length,
-      active: jobs.filter(job => getJobStatusFromCompany(job) === 'active')
+      new: jobs.filter(
+        job => !job.qualification_status || job.qualification_status === 'new'
+      ).length,
+      qualify: jobs.filter(job => job.qualification_status === 'qualify')
         .length,
-      pending: jobs.filter(job => getJobStatusFromCompany(job) === 'pending')
-        .length,
-      expired: jobs.filter(job => getJobStatusFromCompany(job) === 'expired')
-        .length,
+      skip: jobs.filter(job => job.qualification_status === 'skip').length,
     };
 
     return tabOptions.map(tab => ({
@@ -236,15 +431,21 @@ const Jobs: React.FC = () => {
   const columns: ColumnConfig<Job>[] = [
     {
       key: 'status',
-      label: 'Status',
-      width: '120px',
+      label: 'STATUS',
+      width: '140px',
       cellType: 'status',
       align: 'center',
-      getStatusValue: job => getJobStatusFromCompany(job),
+      getStatusValue: job => job.qualification_status || 'new',
       render: (_, job) => {
-        const status = getJobStatusFromCompany(job);
-        const displayText = getStatusDisplayText(status);
-        return <span className='text-xs font-medium'>{displayText}</span>;
+        return (
+          <JobQualificationTableDropdown
+            job={job}
+            onStatusChange={() => {
+              // Use optimized single job refresh
+              handleJobStatusUpdate(job.id);
+            }}
+          />
+        );
       },
     },
     {
@@ -253,9 +454,9 @@ const Jobs: React.FC = () => {
       width: '300px',
       cellType: 'regular',
       render: (_, job) => (
-        <div className='min-w-0 cursor-pointer hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors duration-150'>
+        <div className='min-w-0 cursor-pointer hover:bg-muted rounded-md p-1 -m-1 transition-colors duration-150'>
           <div className='flex items-center gap-2'>
-            <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+            <div className='w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0'>
               {job.companies?.website ? (
                 <img
                   src={getClearbitLogo(
@@ -275,56 +476,13 @@ const Jobs: React.FC = () => {
                   }}
                 />
               ) : null}
-              <Building2 className='h-3 w-3 text-gray-400' />
+              <Building2 className='h-3 w-3 text-muted-foreground' />
             </div>
-            <div className='text-sm font-medium text-gray-900'>
+            <div className='text-sm font-medium text-foreground'>
               {job.companies?.name || '-'}
             </div>
           </div>
         </div>
-      ),
-    },
-    {
-      key: 'assigned_icon',
-      label: '', // No header
-      width: '60px',
-      cellType: 'regular',
-      align: 'center',
-      render: (_, job) => (
-        <IconOnlyAssignmentCell
-          ownerId={job.assigned_to}
-          entityId={job.id}
-          entityType='jobs'
-          onAssignmentChange={() => {
-            // Refresh the jobs data
-            const fetchData = async () => {
-              try {
-                const { data, error } = await supabase
-                  .from('jobs')
-                  .select(
-                    `
-                    *,
-                    companies!left (
-                      id,
-                    name,
-                      website,
-                    industry,
-                    lead_score,
-                      pipeline_stage
-                    )
-                  `
-                  )
-                  .order('created_at', { ascending: false });
-
-                if (error) throw error;
-                setJobs((data as Job[]) || []);
-              } catch (err) {
-                console.error('Error refreshing jobs:', err);
-              }
-            };
-            fetchData();
-          }}
-        />
       ),
     },
     {
@@ -387,14 +545,6 @@ const Jobs: React.FC = () => {
       },
     },
     {
-      key: 'leads',
-      label: 'Leads',
-      width: '100px',
-      cellType: 'lead-score',
-      align: 'center',
-      render: value => <span>{(value as number) || 0}</span>,
-    },
-    {
       key: 'posted',
       label: 'Posted',
       width: '120px',
@@ -422,13 +572,11 @@ const Jobs: React.FC = () => {
     },
   ];
 
-  // Handle row click - memoized for performance
-  const handleRowClick = useCallback(
-    (job: Job) => {
-      openPopup('job', job.id, job.title);
-    },
-    [openPopup]
-  );
+  // Handle row click - open slide-out panel
+  const handleRowClick = useCallback((job: Job) => {
+    setSelectedJobId(job.id);
+    setIsSlideOutOpen(true);
+  }, []);
 
   // Handle search - memoized for performance
   const handleSearch = useCallback((value: string) => {
@@ -448,15 +596,82 @@ const Jobs: React.FC = () => {
     setShowFavoritesOnly(prev => !prev);
   }, []);
 
+  // Handle search toggle - memoized for performance
+  const handleSearchToggle = useCallback(() => {
+    setIsSearchActive(prev => !prev);
+  }, []);
+
+  // Handle search change - memoized for performance
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page
+  }, []);
+
   // Handle search modal toggle - memoized for performance
   const handleSearchModalToggle = useCallback(() => {
     setIsSearchModalOpen(prev => !prev);
   }, []);
 
+  // Handle qualification completion
+  const handleQualificationComplete = useCallback(() => {
+    // Trigger refresh by incrementing refreshTrigger
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
+
+  // Optimized refresh for single job update
+  const handleJobStatusUpdate = useCallback(async (jobId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select(
+          `
+          *,
+          companies!left (
+            id,
+            name,
+            website,
+            industry,
+            lead_score,
+            pipeline_stage
+          )
+        `
+        )
+        .eq('id', jobId)
+        .single();
+
+      if (error) throw error;
+
+      // Update only the specific job in the state
+      setJobs(prevJobs =>
+        prevJobs.map(job => (job.id === jobId ? { ...job, ...data } : job))
+      );
+    } catch (err) {
+      console.error('Error refreshing single job:', err);
+      // Fallback to full refresh if single job update fails
+      setRefreshTrigger(prev => prev + 1);
+    }
+  }, []);
+
+  // Show loading state
+  if (loading || clientIdLoading) {
+    return (
+      <Page title='Job Intelligence' hideHeader>
+        <div className='flex items-center justify-center h-64'>
+          <div className='text-center'>
+            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4'></div>
+            <p className='text-muted-foreground'>
+              {clientIdLoading ? 'Loading client data...' : 'Loading jobs...'}
+            </p>
+          </div>
+        </div>
+      </Page>
+    );
+  }
+
   if (error) {
     return (
-      <Page title='Jobs' hideHeader>
-        <div className='flex items-center justify-center h-32 text-red-500'>
+      <Page title='Job Intelligence' hideHeader>
+        <div className='flex items-center justify-center h-32 text-destructive'>
           Error: {error}
         </div>
       </Page>
@@ -464,8 +679,8 @@ const Jobs: React.FC = () => {
   }
 
   return (
-    <Page title='Jobs' hideHeader>
-      <div className='flex flex-col h-full'>
+    <Page title='Job Intelligence' hideHeader>
+      <div className='space-y-4'>
         {/* Modern Tab Navigation */}
         <TabNavigation
           tabs={tabCounts}
@@ -491,25 +706,27 @@ const Jobs: React.FC = () => {
           selectedUser={selectedUser}
           sortBy={sortBy}
           showFavoritesOnly={showFavoritesOnly}
+          searchTerm={searchTerm}
+          isSearchActive={isSearchActive}
           onStatusChange={setStatusFilter}
           onUserChange={setSelectedUser}
           onSortChange={setSortBy}
           onFavoritesToggle={handleFavoritesToggle}
-          onSearchClick={handleSearchModalToggle}
+          onSearchChange={handleSearchChange}
+          onSearchToggle={handleSearchToggle}
         />
 
         {/* Unified Table */}
-        <div className='flex-1'>
-          <UnifiedTable
-            data={paginatedJobs}
-            columns={columns}
-            pagination={false} // We handle pagination externally
-            stickyHeaders={true}
-            onRowClick={handleRowClick}
-            loading={loading}
-            emptyMessage='No jobs found'
-          />
-        </div>
+        <UnifiedTable
+          data={paginatedJobs}
+          columns={columns}
+          pagination={false} // We handle pagination externally
+          stickyHeaders={true}
+          scrollable={true}
+          onRowClick={handleRowClick}
+          loading={loading}
+          emptyMessage='No jobs found'
+        />
 
         {/* Pagination */}
         <PaginationControls
@@ -531,6 +748,17 @@ const Jobs: React.FC = () => {
           value={searchTerm}
           onChange={setSearchTerm}
           onSearch={handleSearch}
+        />
+
+        {/* Job Details Slide-Out */}
+        <JobDetailsSlideOut
+          jobId={selectedJobId}
+          isOpen={isSlideOutOpen}
+          onClose={() => {
+            setIsSlideOutOpen(false);
+            setSelectedJobId(null);
+          }}
+          onUpdate={handleQualificationComplete}
         />
       </div>
     </Page>

@@ -26,16 +26,30 @@ const retryDelay = 1000; // 1 second
 // Check database performance with EXPLAIN ANALYZE
 ```
 
-### 2. Popup System Issues
+### 2. Slide-Out Panel Issues
 
-**Error**: `usePopup must be used within a PopupProvider`
-**Cause**: Using old popup context after switching to new system
+**Error**: `SlideOutPanel not rendering` or `Cannot read properties of undefined`
+**Cause**: Missing data or incorrect props passed to slide-out components
 
 **Solutions**:
 
-- Always use `usePopupNavigation` from `PopupNavigationContext`
-- Never use `usePopup` from `OptimizedPopupContext` (deprecated)
-- Check all pages: `Index.tsx`, `Leads.tsx`, `Companies.tsx`, `Jobs.tsx`, `Pipeline.tsx`
+- Always check data exists before rendering slide-out panels
+- Use proper TypeScript types for slide-out props
+- Check all pages: `Jobs.tsx`, `People.tsx`, `Companies.tsx`, `Dashboard.tsx`, `GlobalSearchDropdown.tsx`
+
+```typescript
+// Always add null checks
+if (!entityData || !entityData.id) {
+  return <div>Loading...</div>;
+}
+
+// Use proper props
+<JobDetailsSlideOut
+  isOpen={isSlideOutOpen}
+  onClose={() => setIsSlideOutOpen(false)}
+  jobId={selectedJobId}
+/>
+```
 
 ### 3. Component Styling Inconsistencies
 
@@ -120,11 +134,11 @@ SELECT * FROM pg_indexes WHERE tablename = 'people';
 - [ ] Error states are properly handled
 - [ ] Query timeouts are appropriate
 
-### ✅ Popup System
+### ✅ Slide-Out Panel System
 
-- [ ] All pages use `usePopupNavigation`
-- [ ] No references to deprecated `usePopup`
-- [ ] Popup components render correctly
+- [ ] All pages use slide-out panels consistently
+- [ ] No references to deprecated popup systems
+- [ ] Slide-out components render correctly
 - [ ] Header action buttons are consistent
 
 ## 🚨 Emergency Fixes
@@ -140,12 +154,15 @@ SELECT * FROM pg_indexes WHERE tablename = 'people';
    }, 30000);
    ```
 
-2. **Popup Context Error**:
+2. **Slide-Out Panel Error**:
 
    ```typescript
-   // Replace in all pages
-   import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
-   const { openPopup } = usePopupNavigation();
+   // Check slide-out panel implementation
+   import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
+
+   // Ensure proper state management
+   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
+   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
    ```
 
 3. **Styling Inconsistency**:

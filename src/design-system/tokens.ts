@@ -1,5 +1,5 @@
 /**
- * Design Tokens for Empowr CRM
+ * Design Tokens for RECRUITEDGE
  * Centralized design decisions for consistency
  */
 
@@ -108,31 +108,39 @@ export const designTokens = {
       'bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-xs font-semibold',
   },
 
-  // Colors - Professional LinkedIn-inspired semantic color tokens
+  // Colors - Simplified 6-color palette + neutrals
   colors: {
     text: {
-      primary: 'text-gray-900',
-      secondary: 'text-gray-600',
-      accent: 'text-sidebar-primary',
+      primary: 'text-foreground',
+      secondary: 'text-muted-foreground',
+      accent: 'text-primary',
       success: 'text-success',
       warning: 'text-warning',
       error: 'text-destructive',
+      info: 'text-info',
     },
     background: {
-      primary: 'bg-white',
-      secondary: 'bg-gray-50',
-      accent: 'bg-sidebar-primary/10',
+      primary: 'bg-background',
+      secondary: 'bg-muted',
+      accent: 'bg-primary/10',
       success: 'bg-success/10',
       warning: 'bg-warning/10',
       error: 'bg-destructive/10',
+      info: 'bg-info/10',
     },
-    // Professional color combinations for common patterns
+    // Simplified color combinations for common patterns
     combinations: {
       success: 'text-success bg-success/10',
       warning: 'text-warning bg-warning/10',
       error: 'text-destructive bg-destructive/10',
-      info: 'text-sidebar-primary bg-sidebar-primary/10',
-      primary: 'text-sidebar-primary bg-sidebar-primary/10',
+      info: 'text-info bg-info/10',
+      primary: 'text-primary bg-primary/10',
+      muted: 'text-muted-foreground bg-muted',
+      // Status combinations
+      qualified: 'text-success bg-success/10',
+      proceed: 'text-primary bg-primary/10',
+      skip: 'text-muted-foreground bg-muted',
+      new: 'text-warning bg-warning/10',
     },
   },
 
@@ -151,24 +159,25 @@ export const designTokens = {
     button: 'shadow-sm hover:shadow-md',
   },
 
-  // Borders - Unified border system (ALL USE border-gray-300)
+  // Borders - Unified border system using CSS variables
   borders: {
-    default: 'border border-gray-300',
-    subtle: 'border border-gray-300/60',
-    strong: 'border-2 border-gray-300',
-    accent: 'border border-sidebar-primary/20',
+    default: 'border border-border',
+    subtle: 'border border-border/60',
+    strong: 'border-2 border-border',
+    accent: 'border border-primary/20',
     success: 'border border-success/20',
     warning: 'border border-warning/20',
     error: 'border border-destructive/20',
+    info: 'border border-info/20',
     // Card-specific borders
-    card: 'border border-gray-300',
-    cardHover: 'hover:border-gray-400',
-    cardFocus: 'focus:border-sidebar-primary',
+    card: 'border border-border',
+    cardHover: 'hover:border-border',
+    cardFocus: 'focus:border-primary',
     // Table-specific borders
-    table: 'border border-gray-300',
-    tableHeader: 'border-b border-gray-300',
-    tableCell: 'border-r border-gray-300 last:border-r-0',
-    tableRow: 'border-b border-gray-300 last:border-b-0',
+    table: 'border border-border',
+    tableHeader: 'border-b border-border',
+    tableCell: 'border-r border-border last:border-r-0',
+    tableRow: 'border-b border-border last:border-b-0',
   },
 
   // Transitions - Professional timing system
@@ -197,27 +206,28 @@ export const designTokens = {
 
   // Filter Controls - Unified styling for all table pages
   filterControls: {
-    // Container styling
+    // Container styling - cleaner spacing
     container:
-      'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 w-full flex-shrink-0',
+      'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-3 w-full flex-shrink-0',
 
-    // Group styling
+    // Group styling - tighter gaps
     leftGroup: 'flex flex-col sm:flex-row items-stretch sm:items-center gap-2',
     rightGroup: 'flex items-center gap-2',
 
-    // Dropdown styling - CHANGE THIS TO AFFECT ALL DROPDOWNS
+    // Dropdown styling - cleaner borders
     dropdown:
-      'bg-white h-8 !py-1 text-sm border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50',
+      'bg-white h-7 px-3 text-sm border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors',
     dropdownSmall: 'min-w-28 sm:min-w-32',
     dropdownMedium: 'min-w-32 sm:min-w-40',
     dropdownLarge: 'min-w-32',
 
-    // Button styling - CHANGE THIS TO AFFECT ALL FILTER BUTTONS
+    // Button styling - cleaner borders
     button:
-      'h-8 w-8 rounded-md border flex items-center justify-center transition-colors action-bar-icon',
-    buttonDefault: 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50',
+      'h-7 w-7 rounded-md border flex items-center justify-center transition-colors',
+    buttonDefault:
+      'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50',
     buttonActive:
-      'bg-yellow-500 text-white border-yellow-500 hover:bg-yellow-600',
+      'bg-primary-50 text-primary-700 border-primary-200 hover:bg-primary-100',
 
     // Icon styling
     icon: 'h-4 w-4',

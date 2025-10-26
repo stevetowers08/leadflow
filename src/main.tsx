@@ -3,11 +3,14 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import SupabaseErrorBoundary from './components/diagnostics/SupabaseErrorBoundary.tsx';
 import './index.css';
+import './styles/hover-overflow-fixes.css';
+import './styles/mobile.css';
+import './styles/select-overrides.css';
 import { logger } from './utils/logger';
 
 // Defer non-critical imports to improve initial load
 const initializeApp = async () => {
-  logger.info('🚀 Empowr CRM starting...');
+  logger.info('🚀 RECRUITEDGE starting...');
 
   // Only show environment debug info in development
   if (import.meta.env.DEV) {

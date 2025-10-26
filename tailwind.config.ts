@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import tailwindcssAnimate from 'tailwindcss-animate';
 
 export default {
   darkMode: ['class'],
@@ -28,6 +29,7 @@ export default {
           'Roboto',
           'sans-serif',
         ],
+        inter: ['Inter', 'sans-serif'],
       },
       boxShadow: {
         sm: 'var(--shadow-sm)',
@@ -49,10 +51,6 @@ export default {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
         },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
         success: {
           DEFAULT: 'hsl(var(--success))',
           foreground: 'hsl(var(--success-foreground))',
@@ -60,6 +58,14 @@ export default {
         warning: {
           DEFAULT: 'hsl(var(--warning))',
           foreground: 'hsl(var(--warning-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
@@ -87,32 +93,20 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
-        // LinkedIn-inspired professional colors
-        linkedin: {
-          blue: '#0077B5',
-          'blue-light': '#00A0DC',
-          'blue-dark': '#004182',
-        },
-        // Professional semantic colors
-        professional: {
-          gray: {
-            50: '#f8f9fa',
-            100: '#f1f3f4',
-            200: '#e8eaed',
-            300: '#dadce0',
-            400: '#bdc1c6',
-            500: '#9aa0a6',
-            600: '#80868b',
-            700: '#5f6368',
-            800: '#3c4043',
-            900: '#202124',
-          },
-        },
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      fontWeight: {
+        body: 'var(--font-weight-body)',
+        small: 'var(--font-weight-small)',
+        heading: 'var(--font-weight-heading)',
+        button: 'var(--font-weight-button)',
+        label: 'var(--font-weight-label)',
+        data: 'var(--font-weight-data)',
+        status: 'var(--font-weight-status)',
       },
       keyframes: {
         'accordion-down': {
@@ -138,5 +132,5 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;

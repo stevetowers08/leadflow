@@ -122,6 +122,9 @@ async function processWebhookEvent(event: ResendWebhookEvent) {
     switch (type) {
       case 'email.sent':
         updateData = { status: 'sent', sent_at: event.created_at };
+
+        // Auto-progress company to message_sent stage
+        await autoProgressCompanyOnEmailSent(supabase, emailSend);
         break;
 
       case 'email.delivered':
@@ -252,5 +255,90 @@ async function handleSpecificEvent(
     default:
       // No specific handling needed
       break;
+  }
+}
+
+async function autoProgressCompanyOnEmailSent(
+  supabase: Record<string, unknown>,
+  emailSend: Record<string, unknown>
+) {
+  try {
+    // Find the person by email address
+    const { data: person } = await supabase
+      .from('people')
+      .select('id, company_id, name')
+      .eq('email_address', emailSend.to_email)
+      .single();
+
+    if (!person || !person.company_id) return;
+
+    // Get current company stage
+    const { data: company } = await supabase
+      .from('companies')
+      .select('pipeline_stage')
+      .eq('id', person.company_id)
+      .single();
+
+    if (!company) return;
+
+    // Only auto-progress if currently in new_lead stage
+    if (company.pipeline_stage === 'new_lead') {
+      await supabase
+        .from('companies')
+        .update({
+          pipeline_stage: 'message_sent',
+          last_email_sent_at: new Date().toISOString(),
+        })
+        .eq('id', person.company_id);
+
+      // Log activity
+      await logActivity(
+        supabase,
+        'company',
+        person.company_id,
+        'email_sent',
+        `Email sent to ${person.name} - moved to message_sent stage`,
+        'system',
+        'new_lead',
+        'message_sent',
+        {
+          personName: person.name,
+          emailAddress: emailSend.to_email,
+        }
+      );
+
+      console.log(
+        `Auto-progressed company ${person.company_id} to message_sent (email sent to ${person.name})`
+      );
+    }
+  } catch (error) {
+    console.error('Error auto-progressing company on email sent:', error);
+  }
+}
+
+async function logActivity(
+  supabase: Record<string, unknown>,
+  entityType: 'company' | 'person' | 'job',
+  entityId: string,
+  activityType: string,
+  description: string,
+  triggeredBy: 'system' | 'user' = 'system',
+  oldValue?: string,
+  newValue?: string,
+  metadata?: Record<string, unknown>
+) {
+  try {
+    await supabase.from('activity_feed').insert({
+      entity_type: entityType,
+      entity_id: entityId,
+      activity_type: activityType,
+      description,
+      triggered_by: triggeredBy,
+      old_value: oldValue,
+      new_value: newValue,
+      metadata,
+    });
+  } catch (error) {
+    console.error('Error logging activity:', error);
   }
 }

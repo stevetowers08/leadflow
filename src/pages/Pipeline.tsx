@@ -25,7 +25,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Brain,
   Building2,
@@ -55,6 +55,7 @@ type Company = Tables<'companies'> & {
 
 const Pipeline = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [hoveredCompanyId, setHoveredCompanyId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -80,14 +81,7 @@ const Pipeline = () => {
       ] = await Promise.all([
         supabase
           .from('companies')
-          .select(
-            `
-            id, name, industry, website, head_office, lead_score, pipeline_stage, 
-            automation_active, automation_started_at, confidence_level, priority,
-            is_favourite, owner_id, created_at, updated_at,
-            linkedin_url, company_size
-          `
-          )
+          .select('*')
           .order('created_at', { ascending: false }),
         supabase
           .from('people')
@@ -165,6 +159,58 @@ const Pipeline = () => {
 
   const loading = companiesLoading || usersLoading;
 
+  // Define company pipeline stages in order (matching database enum values)
+  const pipelineStages = useMemo(
+    () => [
+      {
+        key: 'new_lead',
+        label: 'New Lead',
+        color: 'bg-gray-100 text-gray-700 border-gray-200',
+      },
+      {
+        key: 'automated',
+        label: 'Automated',
+        color: 'bg-green-600 text-white border-green-700',
+      },
+      {
+        key: 'replied',
+        label: 'Replied',
+        color: 'bg-amber-600 text-white border-amber-700',
+      },
+      {
+        key: 'meeting_scheduled',
+        label: 'Meeting Scheduled',
+        color: 'bg-orange-600 text-white border-orange-700',
+      },
+      {
+        key: 'proposal_sent',
+        label: 'Proposal Sent',
+        color: 'bg-purple-600 text-white border-purple-700',
+      },
+      {
+        key: 'negotiation',
+        label: 'Negotiation',
+        color: 'bg-amber-600 text-white border-amber-700',
+      },
+      {
+        key: 'closed_won',
+        label: 'Closed Won',
+        color: 'bg-emerald-600 text-white border-emerald-700',
+      },
+      {
+        key: 'closed_lost',
+        label: 'Closed Lost',
+        color: 'bg-red-600 text-white border-red-700',
+      },
+      {
+        key: 'on_hold',
+        label: 'On Hold',
+        color: 'bg-gray-600 text-white border-gray-700',
+      },
+    ],
+    []
+  );
+
   // Calculate pipeline width for scrollbar
   useEffect(() => {
     const calculateWidth = () => {
@@ -178,7 +224,7 @@ const Pipeline = () => {
     calculateWidth();
     window.addEventListener('resize', calculateWidth);
     return () => window.removeEventListener('resize', calculateWidth);
-  }, [companies]);
+  }, [pipelineStages.length]);
 
   // Optimized drag and drop sensors for maximum performance
   const sensors = useSensors(
@@ -196,55 +242,6 @@ const Pipeline = () => {
     useSensor(KeyboardSensor)
   );
 
-  // Define company pipeline stages in order (matching database enum values)
-  const pipelineStages = [
-    {
-      key: 'new_lead',
-      label: 'New Lead',
-      color: 'bg-gray-100 text-gray-700 border-gray-200',
-    },
-    {
-      key: 'automated',
-      label: 'Automated',
-      color: 'bg-green-600 text-white border-green-700',
-    },
-    {
-      key: 'replied',
-      label: 'Replied',
-      color: 'bg-amber-600 text-white border-amber-700',
-    },
-    {
-      key: 'meeting_scheduled',
-      label: 'Meeting Scheduled',
-      color: 'bg-orange-600 text-white border-orange-700',
-    },
-    {
-      key: 'proposal_sent',
-      label: 'Proposal Sent',
-      color: 'bg-purple-600 text-white border-purple-700',
-    },
-    {
-      key: 'negotiation',
-      label: 'Negotiation',
-      color: 'bg-amber-600 text-white border-amber-700',
-    },
-    {
-      key: 'closed_won',
-      label: 'Closed Won',
-      color: 'bg-emerald-600 text-white border-emerald-700',
-    },
-    {
-      key: 'closed_lost',
-      label: 'Closed Lost',
-      color: 'bg-red-600 text-white border-red-700',
-    },
-    {
-      key: 'on_hold',
-      label: 'On Hold',
-      color: 'bg-gray-600 text-white border-gray-700',
-    },
-  ];
-
   // Calculate pipeline width responsively
   useEffect(() => {
     const calculateWidth = () => {
@@ -260,36 +257,39 @@ const Pipeline = () => {
     calculateWidth();
     window.addEventListener('resize', calculateWidth);
     return () => window.removeEventListener('resize', calculateWidth);
-  }, [companies]);
+  }, [pipelineStages.length]);
 
   // Valid stage transitions - moved to constant for better performance
-  const VALID_TRANSITIONS: Record<string, string[]> = {
-    automated: ['replied'],
-    replied: [
-      'meeting_scheduled',
-      'proposal_sent',
-      'negotiation',
-      'closed_won',
-      'closed_lost',
-      'on_hold',
-    ],
-    meeting_scheduled: [
-      'proposal_sent',
-      'negotiation',
-      'closed_won',
-      'closed_lost',
-      'on_hold',
-    ],
-    proposal_sent: ['negotiation', 'closed_won', 'closed_lost', 'on_hold'],
-    negotiation: ['closed_won', 'closed_lost', 'on_hold'],
-    on_hold: [
-      'meeting_scheduled',
-      'proposal_sent',
-      'negotiation',
-      'closed_won',
-      'closed_lost',
-    ],
-  };
+  const VALID_TRANSITIONS = useMemo(
+    () => ({
+      automated: ['replied'],
+      replied: [
+        'meeting_scheduled',
+        'proposal_sent',
+        'negotiation',
+        'closed_won',
+        'closed_lost',
+        'on_hold',
+      ],
+      meeting_scheduled: [
+        'proposal_sent',
+        'negotiation',
+        'closed_won',
+        'closed_lost',
+        'on_hold',
+      ],
+      proposal_sent: ['negotiation', 'closed_won', 'closed_lost', 'on_hold'],
+      negotiation: ['closed_won', 'closed_lost', 'on_hold'],
+      on_hold: [
+        'meeting_scheduled',
+        'proposal_sent',
+        'negotiation',
+        'closed_won',
+        'closed_lost',
+      ],
+    }),
+    []
+  );
 
   // Enhanced company stage update with optimistic updates and error handling
   const updateCompanyStage = useCallback(
@@ -307,11 +307,11 @@ const Pipeline = () => {
           return oldData.map(company =>
             company.id === companyId
               ? {
-                  ...c,
-                  pipeline_stage: newStage as CompanyPipelineStage,
+                  ...company,
+                  pipeline_stage: newStage as Company['pipeline_stage'],
                   updated_at: new Date().toISOString(),
                 }
-              : c
+              : company
           );
         }
       );
@@ -320,7 +320,7 @@ const Pipeline = () => {
         const { error } = await supabase
           .from('companies')
           .update({
-            pipeline_stage: newStage,
+            pipeline_stage: newStage as Company['pipeline_stage'],
             updated_at: new Date().toISOString(),
           })
           .eq('id', companyId);
@@ -346,7 +346,7 @@ const Pipeline = () => {
         setIsUpdating(null);
       }
     },
-    [companies, toast, pipelineStages, refetchCompanies]
+    [companies, toast, pipelineStages, refetchCompanies, queryClient]
   );
 
   // Enhanced drag and drop event handlers with better validation and feedback
@@ -406,7 +406,7 @@ const Pipeline = () => {
 
       updateCompanyStage(companyId, targetStage);
     },
-    [companies, updateCompanyStage, toast, pipelineStages]
+    [companies, updateCompanyStage, toast, pipelineStages, VALID_TRANSITIONS]
   );
 
   // Memoized companies grouping for better performance
@@ -439,7 +439,13 @@ const Pipeline = () => {
     });
 
     return result;
-  }, [companies, showFavoritesOnly, selectedUserId, showAllAssignedUsers]);
+  }, [
+    companies,
+    showFavoritesOnly,
+    selectedUserId,
+    showAllAssignedUsers,
+    pipelineStages,
+  ]);
 
   const totalCompanies = Object.values(companiesByStage).flat().length;
   const favoriteCount = companies.filter(
@@ -447,7 +453,8 @@ const Pipeline = () => {
   ).length;
 
   const handleCompanyClick = (company: Company) => {
-    openPopup('company', company.id, company.name);
+    // TODO: Implement company details view (slide-out panel or navigation)
+    console.log('Company clicked:', company.name);
   };
 
   // Enhanced Draggable Company Card Component with better accessibility and visual feedback
@@ -615,7 +622,8 @@ const Pipeline = () => {
               <button
                 onClick={e => {
                   e.stopPropagation();
-                  openPopup('company', company.id, company.name);
+                  // TODO: Implement company details view (slide-out panel or navigation)
+                  console.log('View notes for:', company.name);
                 }}
                 className='p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-200'
                 title='View notes'
@@ -663,7 +671,7 @@ const Pipeline = () => {
       stage,
       companies: stageCompanies,
     }: {
-      stage: PipelineStage;
+      stage: { key: string; label: string; color: string };
       companies: Company[];
     }) => {
       const { isOver, setNodeRef } = useDroppable({
@@ -679,11 +687,9 @@ const Pipeline = () => {
         [stage.key]
       );
 
-      const activeCompany = useMemo(
-        () =>
-          activeId ? companies.find(company => company.id === activeId) : null,
-        [activeId, companies]
-      );
+      const activeCompany = activeId
+        ? companies.find(company => company.id === activeId)
+        : null;
 
       const canAcceptDrop = useMemo(
         () =>
@@ -810,7 +816,7 @@ const Pipeline = () => {
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             className={cn(
-              'h-8 w-8 rounded-md border flex items-center justify-center transition-colors action-bar-icon',
+              'h-7 w-7 rounded-md border flex items-center justify-center transition-colors',
               showFavoritesOnly
                 ? 'bg-primary-50 text-primary-700 border-primary-200'
                 : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
@@ -852,7 +858,7 @@ const Pipeline = () => {
                 }
               }}
               placeholder='Filter by user...'
-              className='w-48 h-8'
+              className='w-48 h-7'
             />
             {(selectedUserId || showAllAssignedUsers) && (
               <Button
@@ -862,7 +868,7 @@ const Pipeline = () => {
                   setSelectedUserId(null);
                   setShowAllAssignedUsers(false);
                 }}
-                className='text-gray-500 hover:text-gray-700 h-8 px-2'
+                className='text-gray-500 hover:text-gray-700 h-7 px-2'
               >
                 Clear
               </Button>
@@ -958,7 +964,7 @@ const Pipeline = () => {
           </DragOverlay>
         </DndContext>
 
-        {/* Company Detail Modal - Now handled by UnifiedPopup */}
+        {/* Company Detail Modal - TODO: Implement slide-out panel */}
       </Page>
     </div>
   );

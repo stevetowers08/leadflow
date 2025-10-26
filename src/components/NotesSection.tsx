@@ -1,23 +1,19 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/StatusBadge';
-import { useToast } from '@/hooks/use-toast';
-import {
-  MessageSquare,
-  Save,
-  Edit3,
-  Plus,
-  Calendar,
-  User,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react';
-import { formatDistanceToNow, parseISO, format } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { format, formatDistanceToNow, parseISO } from 'date-fns';
+import {
+  ChevronUp,
+  Edit3,
+  MessageSquare,
+  Plus,
+  Save,
+  Trash2,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface NotesSectionProps {
   entityId: string;
@@ -345,7 +341,7 @@ export const NotesSection = ({
               >
                 <ChevronUp className='h-4 w-4 text-muted-foreground' />
                 <MessageSquare className='h-4 w-4 text-muted-foreground' />
-                <span>Notes & Comments</span>
+                <span>Notes &amp; Comments</span>
                 {noteCount !== null && noteCount > 0 && (
                   <StatusBadge status={`${noteCount}`} size='sm' />
                 )}

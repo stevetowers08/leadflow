@@ -4,6 +4,8 @@ This guide shows you how to use AI-powered features in your Empowr CRM applicati
 
 ## 🚀 Quick Setup
 
+> **📚 For complete setup instructions, see [Google AI Studio Setup Guide](./GOOGLE_AI_STUDIO_SETUP.md)**
+
 ### 1. Get Your Free Gemini API Key
 
 1. Visit [Google AI Studio](https://aistudio.google.com/apikey)
@@ -18,15 +20,6 @@ Add to your `.env` file:
 ```bash
 # Google Gemini AI API (FREE - 60 requests per minute)
 VITE_GEMINI_API_KEY=your-gemini-api-key-here
-```
-
-### 3. Server-Side Configuration (Recommended)
-
-For production use, configure server-side processing:
-
-```bash
-# Set Gemini API key securely on server
-supabase secrets set GEMINI_API_KEY=your-gemini-api-key-here
 ```
 
 ### 3. Server-Side Configuration (Recommended)

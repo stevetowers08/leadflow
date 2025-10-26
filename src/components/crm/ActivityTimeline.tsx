@@ -1,26 +1,21 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import {
-  MessageSquare,
-  Mail,
-  Bot,
-  User,
-  Calendar,
-  Clock,
-  Search,
   ChevronDown,
   ChevronUp,
-  Linkedin,
   Mail as EmailIcon,
-  Zap,
   FileText,
+  Linkedin,
+  Search,
+  User,
+  Zap,
 } from 'lucide-react';
-import { formatDistanceToNow, parseISO, format } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCallback, useEffect, useState } from 'react';
 
 interface ActivityTimelineProps {
   entityId: string;
@@ -43,9 +38,9 @@ interface ActivityItem {
   authorId?: string;
   leadName?: string;
   leadId?: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export const ActivityTimeline = ({
@@ -61,9 +56,9 @@ export const ActivityTimeline = ({
 
   useEffect(() => {
     fetchActivities();
-  }, [entityId, entityType]);
+  }, [fetchActivities]);
 
-  const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
     setIsLoading(true);
     try {
       const allActivities: ActivityItem[] = [];
@@ -198,14 +193,14 @@ export const ActivityTimeline = ({
         }
 
         // Message sent
-        if (personData.message_sent_date) {
+        if (personData.last_reply_at) {
           allActivities.push({
             id: `automation_message_${entityId}`,
             type: 'automation_step',
             title: 'LinkedIn Message Sent',
             description:
               personData.linkedin_follow_up_message || 'Follow-up message sent',
-            timestamp: personData.message_sent_date,
+            timestamp: personData.last_reply_at,
             leadName: personData.name,
             leadId: entityId,
             icon: Zap,
@@ -214,21 +209,8 @@ export const ActivityTimeline = ({
           });
         }
 
-        // Email sent
-        if (personData.email_sent_date) {
-          allActivities.push({
-            id: `automation_email_${entityId}`,
-            type: 'automation_step',
-            title: 'Email Sent',
-            description: personData.email_draft || 'Email sent',
-            timestamp: personData.email_sent_date,
-            leadName: personData.name,
-            leadId: entityId,
-            icon: Zap,
-            color: 'bg-purple-100 text-purple-600',
-            metadata: { step: 'email_sent' },
-          });
-        }
+        // Email sent - removed since email_sent_date column doesn't exist
+        // TODO: Implement email tracking when email_sends table is properly integrated
 
         // Stage changes
         if (personData.stage_updated) {
@@ -292,7 +274,7 @@ export const ActivityTimeline = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [entityId, entityType, user]);
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);

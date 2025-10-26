@@ -41,15 +41,7 @@ export const DATABASE_SCHEMA = {
       employee_location: 'text',
       company_role: 'text',
       lead_score: 'text',
-      stage: 'stage_enum',
-      automation_started_at: 'timestamptz',
-      linkedin_request_message: 'text',
-      linkedin_follow_up_message: 'text',
-      linkedin_connected_message: 'text',
-      connected_at: 'timestamptz',
-      last_reply_at: 'timestamptz',
-      last_reply_channel: 'text',
-      last_reply_message: 'text',
+      stage: 'people_stage_enum',
       last_interaction_at: 'timestamptz',
       owner_id: 'uuid',
       created_at: 'timestamptz',
@@ -61,6 +53,7 @@ export const DATABASE_SCHEMA = {
       source_details: 'text',
       source_date: 'timestamptz',
       reply_type: 'reply_type_enum',
+      decision_maker_notes: 'text',
     },
     companies: {
       id: 'uuid',
@@ -74,8 +67,6 @@ export const DATABASE_SCHEMA = {
       confidence_level: 'confidence_level_enum',
       lead_score: 'text',
       score_reason: 'text',
-      automation_active: 'boolean',
-      automation_started_at: 'timestamptz',
       is_favourite: 'boolean',
       ai_info: 'jsonb',
       key_info_raw: 'jsonb',
@@ -89,7 +80,7 @@ export const DATABASE_SCHEMA = {
       lead_source: 'text',
       source_details: 'text',
       source_date: 'timestamptz',
-      pipeline_stage: 'company_pipeline_stage',
+      pipeline_stage: 'company_pipeline_stage_enum',
     },
     jobs: {
       id: 'uuid',
@@ -129,22 +120,20 @@ export const DATABASE_SCHEMA = {
 
   // Enum values
   ENUMS: {
-    stage_enum: [
-      'new',
-      'connection_requested',
-      'connected',
-      'messaged',
+    people_stage_enum: [
+      'new_lead',
+      'message_sent',
       'replied',
-      'meeting_booked',
-      'meeting_held',
-      'disqualified',
-      'in queue',
-      'lead_lost',
+      'interested',
+      'meeting_scheduled',
+      'meeting_completed',
+      'follow_up',
+      'not_interested',
     ],
     confidence_level_enum: ['low', 'medium', 'high'],
-    company_pipeline_stage: [
+    company_pipeline_stage_enum: [
       'new_lead',
-      'automated',
+      'message_sent',
       'replied',
       'meeting_scheduled',
       'proposal_sent',
@@ -205,7 +194,7 @@ export const isValidField = <T extends TableName>(
 // Common field selections for queries
 export const COMMON_SELECTIONS = {
   people:
-    'id, name, company_id, email_address, linkedin_url, employee_location, company_role, lead_score, stage, automation_started_at, linkedin_request_message, linkedin_follow_up_message, linkedin_connected_message, connected_at, last_reply_at, last_reply_channel, last_reply_message, last_interaction_at, owner_id, created_at, updated_at, confidence_level, email_draft, is_favourite, lead_source, source_details, source_date, reply_type',
+    'id, name, company_id, email_address, linkedin_url, employee_location, company_role, lead_score, people_stage, automation_started_at, linkedin_request_message, linkedin_follow_up_message, linkedin_connected_message, connected_at, last_reply_at, last_reply_channel, last_reply_message, last_interaction_at, owner_id, created_at, updated_at, confidence_level, email_draft, is_favourite, lead_source, source_details, source_date, reply_type',
 
   companies:
     'id, name, website, linkedin_url, head_office, industry_id, industry, company_size, confidence_level, lead_score, score_reason, automation_active, automation_started_at, is_favourite, ai_info, key_info_raw, loxo_company_id, created_at, updated_at, priority, logo_url, logo_cached_at, owner_id, lead_source, source_details, source_date, pipeline_stage',

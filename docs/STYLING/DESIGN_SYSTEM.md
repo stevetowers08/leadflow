@@ -14,6 +14,69 @@
 - [Responsive Design](#responsive-design)
 - [Accessibility](#accessibility)
 
+## Modern CSS Architecture (December 2024)
+
+### Best Practices
+
+**✅ DO: Use Tailwind Utility Classes**
+
+```tsx
+// Modern approach with design tokens
+const tokens = designTokens.filterControls;
+<button className={cn(tokens.button, tokens.buttonDefault)}>
+  <Star className={tokens.icon} />
+</button>;
+```
+
+**❌ DON'T: Custom CSS Files**
+
+```css
+/* Avoid custom CSS files */
+.action-bar-icon-button {
+  height: 32px !important;
+  /* ... more overrides */
+}
+```
+
+### Action Bar Standards
+
+**Height Consistency**: All action bar elements use `h-7` (28px)
+
+- Filter dropdowns: `h-7`
+- Action buttons: `h-7 w-7`
+- Search inputs: `h-7`
+- Icons: `h-4 w-4` (16px)
+
+**Implementation Pattern**:
+
+```tsx
+// ✅ Consistent action bar implementation
+export const FilterControls = ({ ... }) => {
+  const tokens = designTokens.filterControls;
+
+  return (
+    <div className={tokens.container}>
+      <div className={tokens.leftGroup}>
+        <DropdownSelect className={cn(tokens.dropdown, tokens.dropdownSmall)} />
+        <button className={cn(tokens.button, tokens.buttonDefault)}>
+          <Star className={tokens.icon} />
+        </button>
+      </div>
+    </div>
+  );
+};
+```
+
+### CSS Architecture Principles
+
+1. **Single Source of Truth**: Design tokens in `src/design-system/tokens.ts`
+2. **No Custom CSS**: Use Tailwind utilities exclusively
+3. **No `!important`**: Clean CSS hierarchy
+4. **Consistent Heights**: All action elements are `h-7`
+5. **Inline Search**: Expand inline instead of popup modals
+
+---
+
 ## Design Philosophy
 
 ### Core Principles
@@ -258,13 +321,75 @@ All pages use a consistent gradient background for visual depth:
 </div>
 ```
 
+### Detail Pages Layout (Jobs, People, Companies)
+
+Detail pages follow a unified pattern with consistent header and content alignment:
+
+```tsx
+// Detail page structure
+<>
+  <div className='fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10' />
+  <div className='relative min-h-screen -mx-4 -my-4 lg:-mx-6 lg:-my-6'>
+    {/* Header - Same width as content */}
+    <div className='flex items-center justify-between py-6 max-w-6xl mx-auto px-6'>
+      <div className='flex items-center space-x-4'>
+        <Button variant='ghost' size='sm'>
+          <ArrowLeft className='w-4 h-4 mr-2' />
+          Back
+        </Button>
+        <div>
+          <h1 className='text-2xl font-bold text-foreground'>{title}</h1>
+          <div className='flex items-center space-x-2 mt-1'>
+            <StatusBadge status={status} />
+            {isFavorite && (
+              <Star className='w-4 h-4 text-warning fill-current' />
+            )}
+          </div>
+        </div>
+      </div>
+      <div className='flex items-center space-x-2'>
+        {/* Action buttons using action-bar classes */}
+      </div>
+    </div>
+
+    {/* Main Content */}
+    <div className='space-y-6 max-w-6xl mx-auto px-6 pb-8'>
+      {/* Entity-specific info card */}
+      {/* Company info card (if applicable) */}
+      {/* Related items lists */}
+    </div>
+  </div>
+</>
+```
+
 ### Layout Consistency
 
 - **Full-screen background**: Fixed gradient covering entire viewport
+- **Header alignment**: Header width matches content width (`max-w-6xl`)
 - **Content container**: Negative margins to break out of Layout padding
-- **Responsive spacing**: `px-4 py-6` on mobile, `px-6` on desktop
-- **Max width**: `max-w-7xl` for optimal reading width
+- **Responsive spacing**: `px-6` for consistent horizontal padding
+- **Max width**: `max-w-6xl` for detail pages (narrower than list pages)
 - **Vertical spacing**: `space-y-6` between major sections
+- **Bottom padding**: `pb-8` for proper page bottom margin
+
+### Detail Pages Components
+
+**Entity Info Cards**:
+
+- **Jobs**: `JobInfoCard` - Job-specific information
+- **People**: `LeadInfoCard` - Person-specific information
+- **Companies**: `CompanyInfoCard` - Company-specific information
+
+**Company Information**:
+
+- **Jobs/People pages**: Use `CompanyInfoCard` for related company
+- **Company pages**: Use `CompanyInfoCard` for the main entity
+
+**Related Items**:
+
+- **Jobs**: Show related employees and company info
+- **People**: Show related jobs and colleagues
+- **Companies**: Show related people and jobs
 
 ### Card Integration
 
@@ -275,6 +400,7 @@ All cards within pages should:
 - Support hover states with smooth transitions
 - Be clickable where appropriate (opening popups)
 - Include company logos when available
+- Follow the unified spacing pattern (`space-y-6`)
 
 ## Layout & Spacing
 
@@ -515,7 +641,7 @@ Use for short, scannable lists (e.g., recent jobs/companies):
   - Optional right `badge`: status chip (e.g., New)
 - **Spacing**: `space-y-2.5` between items
 - **Badge tokens**: `px-2 py-0.5 rounded-md text-xs font-medium border`
-- **Clickability**: All cards open popups via `usePopupNavigation`
+- **Clickability**: All cards open slide-out panels
 - **Examples**:
 
 ```tsx

@@ -63,14 +63,14 @@
   .mobile-supporting {
     font-size: 0.875rem; /* 14px */
     line-height: 1.5;
-    font-weight: 400;
+    font-weight: 500;
     color: hsl(var(--muted-foreground));
   }
 
   .mobile-supporting-sm {
     font-size: 0.75rem; /* 12px */
     line-height: 1.4;
-    font-weight: 400;
+    font-weight: 500;
     color: hsl(var(--muted-foreground));
   }
 
@@ -78,7 +78,7 @@
   .mobile-fine-print {
     font-size: 0.75rem; /* 12px */
     line-height: 1.4;
-    font-weight: 400;
+    font-weight: 500;
     color: hsl(var(--muted-foreground));
   }
 
@@ -124,7 +124,7 @@
   .mobile-form-help {
     font-size: 0.75rem; /* 12px */
     line-height: 1.4;
-    font-weight: 400;
+    font-weight: 500;
     color: hsl(var(--muted-foreground));
   }
 
@@ -156,7 +156,7 @@
   .mobile-card-subtitle {
     font-size: 0.875rem; /* 14px */
     line-height: 1.4;
-    font-weight: 400;
+    font-weight: 500;
     color: hsl(var(--muted-foreground));
   }
 
@@ -181,7 +181,7 @@
   .mobile-table-data {
     font-size: 0.875rem; /* 14px */
     line-height: 1.4;
-    font-weight: 400;
+    font-weight: 500;
     color: hsl(var(--foreground));
   }
 
@@ -196,7 +196,7 @@
   .mobile-modal-subtitle {
     font-size: 0.875rem; /* 14px */
     line-height: 1.4;
-    font-weight: 400;
+    font-weight: 500;
     color: hsl(var(--muted-foreground));
   }
 

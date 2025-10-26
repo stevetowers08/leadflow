@@ -1,29 +1,19 @@
-import { useState, useEffect } from 'react';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/StatusBadge';
-import { getStatusDisplayText } from '@/utils/statusUtils';
 import { useToast } from '@/hooks/use-toast';
-import {
-  getClearbitLogo,
-  testLogoUrl,
-  getCompanyLogoUrl,
-  updateCompanyLogo,
-  batchUpdateLogos,
-  setCompanyLogoManually,
-} from '@/utils/logoService';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  Upload,
-  RefreshCw,
-  Check,
-  X,
-  ExternalLink,
-  Image as ImageIcon,
-} from 'lucide-react';
+  getClearbitLogo,
+  setCompanyLogoManually,
+  testLogoUrl,
+  updateCompanyLogo,
+} from '@/utils/logoService';
+import { getStatusDisplayText } from '@/utils/statusUtils';
+import { Image as ImageIcon, RefreshCw, Upload } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface Company {
   id: string;
@@ -43,7 +33,7 @@ export const LogoManager = () => {
   } | null>(null);
   const { toast } = useToast();
 
-  const fetchCompanies = async () => {
+  const fetchCompanies = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -62,12 +52,12 @@ export const LogoManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   // Auto-fetch companies on component mount
   useEffect(() => {
     fetchCompanies();
-  }, []);
+  }, [fetchCompanies]);
 
   const handleAutoUpdate = async () => {
     if (companies.length === 0) {

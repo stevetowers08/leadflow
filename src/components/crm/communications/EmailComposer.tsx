@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -11,9 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Send, Paperclip } from 'lucide-react';
-import { gmailService, SendEmailRequest } from '../../../services/gmailService';
+import { Textarea } from '@/components/ui/textarea';
+import { EmailTemplate } from '@/services/secureGmailService';
+import { Paperclip, Send } from 'lucide-react';
+import React, { useState } from 'react';
 import { Tables } from '../../../integrations/supabase/types';
+import { SendEmailRequest, gmailService } from '../../../services/gmailService';
 
 interface EmailComposerProps {
   selectedPerson?: Tables<'people'>;
@@ -32,7 +33,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
     body: '',
   });
   const [isSending, setIsSending] = useState(false);
-  const [templates, setTemplates] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
 
   React.useEffect(() => {
     loadTemplates();

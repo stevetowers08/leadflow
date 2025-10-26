@@ -1,10 +1,11 @@
+import { useClientId } from '@/hooks/useClientId';
+import { supabase } from '@/integrations/supabase/client';
 import {
-  useQuery,
   useInfiniteQuery,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
 // Types for pagination and filtering
 export interface PaginationParams {
@@ -21,7 +22,7 @@ export interface FilterParams {
   search?: string;
   status?: string;
   priority?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface QueryOptions {
@@ -77,7 +78,7 @@ export const useLeads = (
       }
 
       if (status && status !== 'all') {
-        query = query.eq('stage', status);
+        query = query.eq('people_stage', status);
       }
 
       // Apply other filters
@@ -121,13 +122,27 @@ export const useJobs = (
   filters: FilterParams,
   options: QueryOptions = {}
 ) => {
+  const { data: clientId, isLoading: clientIdLoading } = useClientId();
+
   return useQuery({
-    queryKey: ['jobs', pagination, sort, filters],
+    queryKey: ['jobs', pagination, sort, filters, clientId],
     queryFn: async () => {
+      // Don't fetch if client ID is still loading
+      if (clientIdLoading || !clientId) {
+        return {
+          data: [],
+          totalCount: 0,
+          hasMore: false,
+          page: pagination.page,
+          pageSize: pagination.pageSize,
+        };
+      }
+
       const { page, pageSize } = pagination;
       const { column, ascending } = sort;
       const { search, priority, ...otherFilters } = filters;
 
+      // CLIENT-SPECIFIC JOBS ONLY (jobs assigned to this client)
       let query = supabase.from('jobs').select(
         `
           id,
@@ -139,15 +154,25 @@ export const useJobs = (
           automation_active,
           company_id,
           created_at,
+          qualification_status,
           companies!inner(
             id,
             name,
             website,
             industry
+          ),
+          client_jobs!client_jobs_job_id_fkey (
+            status,
+            priority_level,
+            qualified_at,
+            qualified_by
           )
         `,
         { count: 'exact' }
       );
+
+      // Only show jobs assigned to this client
+      query = query.eq('client_jobs.client_id', clientId);
 
       // Apply filters
       if (search) {
@@ -185,7 +210,7 @@ export const useJobs = (
         pageSize,
       };
     },
-    enabled: options.enabled !== false,
+    enabled: !clientIdLoading && !!clientId && options.enabled !== false,
     staleTime: options.staleTime || 2 * 60 * 1000,
     cacheTime: options.cacheTime || 5 * 60 * 1000,
     refetchOnWindowFocus: options.refetchOnWindowFocus || false,
@@ -384,7 +409,7 @@ export const useInfiniteLeads = (
       }
 
       if (status && status !== 'all') {
-        query = query.eq('stage', status);
+        query = query.eq('people_stage', status);
       }
 
       // Apply other filters

@@ -3,12 +3,12 @@ import { supabase } from '../integrations/supabase/client';
 export interface Conversation {
   id: string;
   person_id: string;
-  linkedin_message_id?: string;
+  message_id?: string;
   subject?: string;
   participants: string[];
   last_message_at: string;
   is_read: boolean;
-  conversation_type: 'linkedin' | 'email';
+  conversation_type: 'email';
   status: 'active' | 'closed' | 'archived';
   created_at: string;
   updated_at: string;
@@ -26,7 +26,7 @@ export interface ConversationMessage {
   id: string;
   conversation_id: string;
   person_id: string;
-  linkedin_message_id?: string;
+  message_id?: string;
   sender_type: 'us' | 'them' | 'system';
   sender_name?: string;
   sender_email?: string;
@@ -35,21 +35,8 @@ export interface ConversationMessage {
   is_read: boolean;
   sent_at?: string;
   received_at: string;
-  expandi_status?: 'pending' | 'sent' | 'delivered' | 'failed';
-  expandi_message_id?: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface ExpandiWebhookData {
-  messageId: string;
-  conversationId: string;
-  senderType: 'us' | 'them';
-  content: string;
-  timestamp: string;
-  status: 'sent' | 'delivered' | 'failed';
-  personEmail?: string;
-  personName?: string;
 }
 
 export class ConversationService {
@@ -89,8 +76,6 @@ export class ConversationService {
         last_reply_at,
         last_reply_channel,
         last_reply_message,
-        message_sent_date,
-        email_sent_date,
         linkedin_connected,
         email_sent,
         created_at,
@@ -118,18 +103,17 @@ export class ConversationService {
     return (data || []).map(person => ({
       id: person.id,
       person_id: person.id,
-      linkedin_message_id: undefined,
+      message_id: undefined,
       subject: undefined,
       participants: [person.email_address || person.name].filter(Boolean),
-      last_message_at:
-        person.last_reply_at || person.message_sent_date || person.created_at,
+      last_message_at: person.last_reply_at || person.created_at,
       is_read: !!person.last_reply_at,
       conversation_type:
         person.last_reply_channel === 'email' ? 'email' : 'linkedin',
       status:
-        person.stage === 'replied'
+        person.people_stage === 'new_lead'
           ? 'active'
-          : person.stage === 'connected'
+          : person.people_stage === 'new_lead'
             ? 'active'
             : 'active',
       created_at: person.created_at,
@@ -158,10 +142,10 @@ export class ConversationService {
 
   async createConversation(conversationData: {
     person_id: string;
-    linkedin_message_id?: string;
+    message_id?: string;
     subject?: string;
     participants: string[];
-    conversation_type?: 'linkedin' | 'email';
+    conversation_type?: 'email';
   }): Promise<Conversation> {
     const { data, error } = await supabase
       .from('conversations')
@@ -176,7 +160,7 @@ export class ConversationService {
   async addMessage(messageData: {
     conversation_id: string;
     person_id: string;
-    linkedin_message_id?: string;
+    message_id?: string;
     sender_type: 'us' | 'them' | 'system';
     sender_name?: string;
     sender_email?: string;
@@ -244,64 +228,6 @@ export class ConversationService {
     if (error) throw error;
   }
 
-  async handleExpandiWebhook(webhookData: ExpandiWebhookData): Promise<void> {
-    try {
-      // Find or create conversation
-      let conversation = await this.findConversationByLinkedInId(
-        webhookData.conversationId
-      );
-
-      if (!conversation) {
-        // Try to find person by email or name
-        const person = await this.findPersonByEmailOrName(
-          webhookData.personEmail,
-          webhookData.personName
-        );
-
-        if (!person) {
-          console.warn('Could not find person for webhook data:', webhookData);
-          return;
-        }
-
-        // Create new conversation
-        conversation = await this.createConversation({
-          person_id: person.id,
-          linkedin_message_id: webhookData.conversationId,
-          participants: [
-            webhookData.personEmail || webhookData.personName || 'Unknown',
-          ],
-          conversation_type: 'linkedin',
-        });
-      }
-
-      // Add message to conversation
-      await this.addMessage({
-        conversation_id: conversation.id,
-        person_id: conversation.person_id,
-        linkedin_message_id: webhookData.messageId,
-        sender_type: webhookData.senderType,
-        sender_name: webhookData.personName,
-        sender_email: webhookData.personEmail,
-        content: webhookData.content,
-        sent_at: webhookData.timestamp,
-        expandi_status: webhookData.status,
-        expandi_message_id: webhookData.messageId,
-      });
-
-      // Log successful webhook processing
-      await this.logSyncOperation('webhook_received', 'success', 1);
-    } catch (error) {
-      console.error('Failed to process Expandi webhook:', error);
-      await this.logSyncOperation(
-        'webhook_received',
-        'error',
-        0,
-        error instanceof Error ? error.message : 'Unknown error'
-      );
-      throw error;
-    }
-  }
-
   private async findConversationByLinkedInId(
     linkedinMessageId: string
   ): Promise<Conversation | null> {
@@ -318,7 +244,7 @@ export class ConversationService {
   private async findPersonByEmailOrName(
     email?: string,
     name?: string
-  ): Promise<any> {
+  ): Promise<Record<string, unknown> | null> {
     let query = supabase.from('people').select('*');
 
     if (email) {
@@ -387,7 +313,7 @@ export class ConversationService {
         supabase
           .from('people')
           .select('*', { count: 'exact', head: true })
-          .eq('stage', 'messaged')
+          .eq('people_stage', 'new_lead')
           .is('last_reply_at', null),
 
         // Active conversations - people who have replied (true conversations)
@@ -401,13 +327,13 @@ export class ConversationService {
         supabase
           .from('people')
           .select('*', { count: 'exact', head: true })
-          .gte('message_sent_date', today),
+          .gte('last_reply_at', today),
 
         // Messages this week - people with message sent this week
         supabase
           .from('people')
           .select('*', { count: 'exact', head: true })
-          .gte('message_sent_date', weekAgo),
+          .gte('last_reply_at', weekAgo),
 
         // LinkedIn conversations - people with LinkedIn replies
         supabase

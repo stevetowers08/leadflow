@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { User } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface OwnerDisplayProps {
   ownerId: string | null;
@@ -54,7 +54,7 @@ export const OwnerDisplay = ({
           .from('user_profiles')
           .select('id, full_name, role')
           .eq('id', ownerId)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
 

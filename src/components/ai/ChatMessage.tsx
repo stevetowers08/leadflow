@@ -1,8 +1,8 @@
-import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Bot, User } from 'lucide-react';
+import React from 'react';
 
 export interface ChatMessage {
   id: string;
@@ -10,7 +10,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   timestamp: Date;
   isLoading?: boolean;
-  dataContext?: any;
+  dataContext?: Record<string, unknown>;
   error?: string;
   errorType?: 'config' | 'network' | 'quota' | 'api' | 'unknown';
 }

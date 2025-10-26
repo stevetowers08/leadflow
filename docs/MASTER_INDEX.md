@@ -1,7 +1,7 @@
-# 📚 Empowr CRM Documentation Master Index
+# 📚 RECRUITEDGE Documentation Master Index
 
 **Last Updated**: January 2025  
-**Total Files**: 25 essential documentation files  
+**Total Files**: 18 essential documentation files  
 **Status**: ✅ Stable - All critical issues resolved
 
 ## 🎯 Quick Navigation
@@ -12,6 +12,7 @@
 - [**DEVELOPMENT_GUIDE.md**](./CORE/DEVELOPMENT_GUIDE.md) - Setup, standards, and development workflows
 - [**TERMINOLOGY.md**](./CORE/TERMINOLOGY.md) - Business terms and definitions
 - [**ENVIRONMENT_VARIABLES.md**](./SETUP/ENVIRONMENT_VARIABLES.md) - Environment configuration guide
+- [**Onboarding Dashboard**](../src/pages/OnboardingDashboard.tsx) - Complete setup flow with integration management ✅ **NEW**
 
 ### **🏗️ Architecture & Design**
 
@@ -28,6 +29,7 @@
 ### **🔌 Integrations**
 
 - [**INTEGRATIONS_GUIDE.md**](./INTEGRATIONS/INTEGRATIONS_GUIDE.md) - Complete integrations overview
+- [**WEBHOOKS_AND_EDGE_FUNCTIONS.md**](./INTEGRATIONS/WEBHOOKS_AND_EDGE_FUNCTIONS.md) - External webhooks and API endpoints
 
 ### **🤖 AI Integration**
 
@@ -36,15 +38,27 @@
 
 ### **🧩 Components & Systems**
 
-- [**POPUP_SYSTEM_DOCUMENTATION.md**](./COMPONENTS/POPUP_SYSTEM_DOCUMENTATION.md) - Popup system architecture
-- [**SCORING_SYSTEM_DOCS.md**](./COMPONENTS/SCORING_SYSTEM_DOCS.md) - AI scoring system
 - [**BADGE_SYSTEM_ARCHITECTURE.md**](./COMPONENTS/BADGE_SYSTEM_ARCHITECTURE.md) - Badge system design
 - [**COMPANY_LOGO_SYSTEM.md**](./COMPONENTS/COMPANY_LOGO_SYSTEM.md) - Logo management system
-- [**TABLE_PAGINATION_GUIDE.md**](./COMPONENTS/TABLE_PAGINATION_GUIDE.md) - Table pagination and scrolling best practices
+- [**LAYOUT_COMPONENTS.md**](./COMPONENTS/LAYOUT_COMPONENTS.md) - Layout system and navigation components
 
 ### **🎨 UI/UX & Styling**
 
-- [**CARD_STYLING_GUIDE.md**](./STYLING/CARD_STYLING_GUIDE.md) - Card component styling standards
+- [**DESIGN_SYSTEM.md**](./STYLING/DESIGN_SYSTEM.md) - Complete UI/UX guidelines and component standards
+- [**UNIFIED_DESIGN_SYSTEM.md**](./STYLING/UNIFIED_DESIGN_SYSTEM.md) - Design tokens and styling standards
+
+### **📋 Product Requirements Documents (PDRs)**
+
+- [**master-pdr**](./PDR/master-pdr) - Master PDR with complete system architecture
+- [**08-onboarding-dashboard-implementation.md**](./PDR/08-onboarding-dashboard-implementation.md) - Onboarding dashboard implementation ✅ **COMPLETED**
+- [**campaign-sequence**](./PDR/campaign-sequence) - Campaign sequence builder implementation guide
+- [**01-gmail-reply-detection.md**](./PDR/01-gmail-reply-detection.md) - Gmail integration and reply detection
+- [**02-cost-tracking-analytics.md**](./PDR/02-cost-tracking-analytics.md) - Cost tracking and analytics system
+- [**03-shared-intelligence.md**](./PDR/03-shared-intelligence.md) - Shared intelligence architecture
+- [**04-pipeline-automation.md**](./PDR/04-pipeline-automation.md) - Pipeline automation and progression
+- [**05-campaign-execution.md**](./PDR/05-campaign-execution.md) - Campaign execution system
+- [**06-n8n-integration.md**](./PDR/06-n8n-integration.md) - n8n workflow integration
+- [**07-job-filtering-settings-page.md**](./PDR/07-job-filtering-settings-page.md) - Job filtering configuration
 
 ### **📊 Database & Performance**
 
@@ -62,16 +76,17 @@
 
 ## 📊 Documentation Statistics
 
-- **Total Files**: 25 (down from 89!)
+- **Total Files**: 19 (up from 18!)
 - **Core Documentation**: 3 files
 - **AI Documentation**: 2 files
-- **Components & Systems**: 6 files
-- **Styling & Design**: 3 files
-- **Database & Performance**: 3 files
+- **Components & Systems**: 3 files
+- **Styling & Design**: 2 files
+- **Database & Performance**: 2 files
 - **Testing**: 1 file
 - **Troubleshooting**: 2 files
 - **Setup & Configuration**: 3 files
-- **Integrations**: 1 file
+- **Integrations**: 2 files
+- **PDRs**: 10 files (including new onboarding dashboard PDR)
 - **Business**: 1 file
 
 ## 🎯 Documentation Quality
@@ -88,24 +103,25 @@
 
 1. **New Developer**: Start with [APP_OVERVIEW.md](./CORE/APP_OVERVIEW.md) and [DEVELOPMENT_GUIDE.md](./CORE/DEVELOPMENT_GUIDE.md)
 2. **Setup**: Follow [ENVIRONMENT_SETUP.md](./SETUP/ENVIRONMENT_SETUP.md)
-3. **Architecture**: Review [DATABASE_SCHEMA.md](./DATABASE/DATABASE_SCHEMA.md)
-4. **Integrations**: Check [INTEGRATIONS_GUIDE.md](./INTEGRATIONS/INTEGRATIONS_GUIDE.md)
-5. **AI Features**: Explore [AI_INTEGRATION_GUIDE.md](./AI/AI_INTEGRATION_GUIDE.md)
-6. **Components**: Learn about [LAYOUT_COMPONENTS.md](./COMPONENTS/LAYOUT_COMPONENTS.md)
+3. **Onboarding**: Access the [Onboarding Dashboard](../src/pages/OnboardingDashboard.tsx) at `/onboarding` for guided setup
+4. **Architecture**: Review [DATABASE_SCHEMA.md](./DATABASE/DATABASE_SCHEMA.md)
+5. **Integrations**: Check [INTEGRATIONS_GUIDE.md](./INTEGRATIONS/INTEGRATIONS_GUIDE.md)
+6. **AI Features**: Explore [AI_INTEGRATION_GUIDE.md](./AI/AI_INTEGRATION_GUIDE.md)
+7. **Components**: Learn about [LAYOUT_COMPONENTS.md](./COMPONENTS/LAYOUT_COMPONENTS.md)
 
 ## 🧹 Cleanup Summary
 
-**Removed 66 outdated/duplicate files:**
+**Removed 7 outdated/duplicate files:**
 
-- ❌ Duplicate AI integration guides
-- ❌ Outdated implementation reports
-- ❌ Completed assessment reports
-- ❌ Redundant setup files
-- ❌ Old troubleshooting guides
-- ❌ Outdated system reviews
-- ❌ Completed fix reports
+- ❌ Mobile UX review and implementation summaries
+- ❌ Error handling migration guide
+- ❌ Authentication bypass guide
+- ❌ Layout height fixes guide
+- ❌ Unified system summary
+- ❌ Scoring system documentation
+- ❌ Blue badge styling reference
 
-**Kept 25 essential files:**
+**Kept 18 essential files:**
 
 - ✅ Core application documentation
 - ✅ Current architecture guides

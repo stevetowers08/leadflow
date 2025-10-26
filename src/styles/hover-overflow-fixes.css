@@ -11,16 +11,16 @@
  * - CSS containment for performance
  */
 
-/* Global hover container fixes */
+/* Global hover container fixes - Remove hardware acceleration that causes text blur */
 .hover-safe-container {
   /* Ensure hover elements can extend beyond container bounds */
   overflow: visible !important;
   /* Create proper stacking context */
   position: relative;
   z-index: 1;
-  /* Enable hardware acceleration for smooth animations */
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  /* Remove hardware acceleration that causes text blur */
+  /* transform: translateZ(0); */
+  /* backface-visibility: hidden; */
 }
 
 /* Enhanced z-index stacking for hover elements */
@@ -49,8 +49,8 @@
   z-index: 70 !important;
   /* Ensure visibility */
   position: relative;
-  /* Hardware acceleration */
-  transform: translateZ(0);
+  /* Remove hardware acceleration that causes text blur */
+  /* transform: translateZ(0); */
   will-change: transform, opacity;
 }
 
@@ -68,8 +68,8 @@
   z-index: 70 !important;
   /* Ensure proper rendering */
   position: relative;
-  /* Smooth animations */
-  transform: translateZ(0);
+  /* Remove hardware acceleration that causes text blur */
+  /* transform: translateZ(0); */
   will-change: transform, opacity;
 }
 
@@ -77,7 +77,7 @@
 .page-container {
   /* Allow hover elements to extend beyond page bounds */
   overflow-x: visible !important;
-  /* Maintain vertical scrolling */
+  /* Maintain vertical scrolling for accessibility */
   overflow-y: auto;
   /* Proper stacking context */
   position: relative;
@@ -92,7 +92,8 @@
   position: relative;
   z-index: 1;
   /* Hardware acceleration for smooth hover */
-  transform: translateZ(0);
+  /* Remove hardware acceleration that causes text blur */
+  /* transform: translateZ(0); */
   will-change: transform;
 }
 
@@ -118,11 +119,11 @@
   }
 }
 
-/* Performance optimizations */
+/* Performance optimizations - Remove hardware acceleration that causes text blur */
 .hover-optimized {
-  /* Enable hardware acceleration */
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  /* Remove hardware acceleration that causes text blur */
+  /* transform: translateZ(0); */
+  /* backface-visibility: hidden; */
   /* Optimize for hover animations */
   will-change: transform, opacity;
   /* Prevent layout thrashing */
@@ -146,7 +147,7 @@
     filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
     /* Ensure proper contrast */
     background-color: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(8px);
+    /* backdrop-filter: blur(8px); */
   }
 }
 

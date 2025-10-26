@@ -16,7 +16,6 @@ import {
   Heart,
   HelpCircle,
   Lightbulb,
-  Linkedin,
   Mail,
   MessageSquare,
   RefreshCw,
@@ -126,17 +125,6 @@ const AboutPage = () => {
 
   const automationFeatures = [
     {
-      icon: Linkedin,
-      title: 'LinkedIn Automation',
-      description: 'Automated connection requests, messaging, and follow-ups',
-      features: [
-        'Smart connection targeting',
-        'Personalized message sequences',
-        'Response tracking',
-        'Compliance monitoring',
-      ],
-    },
-    {
       icon: Mail,
       title: 'Email Campaigns',
       description: 'Automated email sequences with template management',
@@ -242,19 +230,19 @@ const AboutPage = () => {
   ];
 
   return (
-    <Page title='Empowr CRM Features'>
+    <Page title='RECRUITEDGE Features'>
       <div className='space-y-8 w-full'>
         {/* Hero Section */}
         <Card className={designTokens.shadows.card}>
           <CardHeader>
             <CardTitle className='flex items-center gap-2 text-2xl'>
               <Rocket className='h-6 w-6 text-primary' />
-              Why Choose Empowr CRM?
+              Why Choose RECRUITEDGE?
             </CardTitle>
           </CardHeader>
           <CardContent className='space-y-4'>
             <p className='text-lg text-muted-foreground'>
-              Empowr CRM is designed to revolutionize how you manage leads,
+              RECRUITEDGE is designed to revolutionize how you manage leads,
               companies, and recruitment processes. Our AI-powered platform
               helps you work smarter, not harder, by automating repetitive tasks
               and providing intelligent insights that drive better results.
@@ -283,7 +271,7 @@ const AboutPage = () => {
           <CardHeader>
             <CardTitle className='flex items-center gap-2'>
               <Lightbulb className='h-5 w-5 text-primary' />
-              Key Features & Benefits
+              Key Features &amp; Benefits
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -325,7 +313,7 @@ const AboutPage = () => {
           <CardHeader>
             <CardTitle className='flex items-center gap-2'>
               <Bot className='h-5 w-5 text-primary' />
-              Automation & Integration
+              Automation &amp; Integration
             </CardTitle>
           </CardHeader>
           <CardContent>

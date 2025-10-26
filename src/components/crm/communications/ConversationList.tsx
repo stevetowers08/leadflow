@@ -61,12 +61,10 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           company_id,
           linkedin_url,
           company_role,
-          stage,
+          people_stage,
           last_reply_at,
           last_reply_channel,
           last_reply_message,
-          message_sent_date,
-          email_sent_date,
           linkedin_connected,
           email_sent,
           created_at,
@@ -99,15 +97,14 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         linkedin_message_id: undefined,
         subject: undefined,
         participants: [person.email_address || person.name].filter(Boolean),
-        last_message_at:
-          person.last_reply_at || person.message_sent_date || person.created_at,
+        last_message_at: person.last_reply_at || person.created_at,
         is_read: !!person.last_reply_message,
         conversation_type:
           person.last_reply_channel === 'email' ? 'email' : 'linkedin',
         status:
-          person.stage === 'replied'
+          person.people_stage === 'new_lead'
             ? 'active'
-            : person.stage === 'connected'
+            : person.people_stage === 'new_lead'
               ? 'active'
               : 'active',
         created_at: person.created_at,
@@ -214,7 +211,11 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           <div className='flex items-center gap-2'>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant='outline' size='sm' className='shadow-sm'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='h-8 bg-white border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                >
                   <Filter className='h-4 w-4 mr-2' />
                   {filter === 'all'
                     ? 'All'

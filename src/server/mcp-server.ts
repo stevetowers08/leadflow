@@ -5,13 +5,13 @@
  * It provides tools and resources for AI models to interact with your CRM data.
  */
 
-import express from 'express';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import express from 'express';
 
 const app = express();
 app.use(express.json());
@@ -23,7 +23,7 @@ class CRMMCPServer {
   constructor() {
     this.server = new Server(
       {
-        name: 'empowr-crm-mcp',
+        name: 'recruitedge-mcp',
         version: '1.0.0',
       },
       {

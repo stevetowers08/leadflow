@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   useAnalytics,
-  usePageTracking,
   useClickTracking,
   useFormTracking,
+  usePageTracking,
   usePopupTracking,
 } from '@/hooks/useAnalytics';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useEffect } from 'react';
 
 // Analytics Dashboard Component
 export const AnalyticsDashboard: React.FC = () => {
@@ -90,7 +90,7 @@ export const AnalyticsButton: React.FC<{
   children: React.ReactNode;
   onClick?: () => void;
   analyticsName: string;
-  analyticsProperties?: Record<string, any>;
+  analyticsProperties?: Record<string, unknown>;
   className?: string;
 }> = ({ children, onClick, analyticsName, analyticsProperties, className }) => {
   const trackClick = useClickTracking(analyticsName);
@@ -137,7 +137,7 @@ export const AnalyticsPopup: React.FC<{
   isOpen: boolean;
   onClose?: () => void;
   analyticsName: string;
-  analyticsProperties?: Record<string, any>;
+  analyticsProperties?: Record<string, unknown>;
 }> = ({ children, isOpen, onClose, analyticsName, analyticsProperties }) => {
   const { trackPopupOpen, trackPopupClose } = usePopupTracking(analyticsName);
 

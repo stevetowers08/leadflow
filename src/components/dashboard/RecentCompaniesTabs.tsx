@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
+import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
 import { designTokens } from '@/design-system/tokens';
 import { cn } from '@/lib/utils';
 import type { RecentCompany } from '@/services/dashboardService';
@@ -26,8 +26,11 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
   loading,
 }) => {
   const { user } = useAuth();
-  const { openPopup } = usePopupNavigation();
   const [activeTab, setActiveTab] = useState('unassigned');
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
+    null
+  );
+  const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
 
   // Get company logo using Clearbit
   const getCompanyLogo = (company: RecentCompany) => {
@@ -95,7 +98,10 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
         designTokens.borders.card,
         designTokens.borders.cardHover
       )}
-      onClick={() => openPopup('company', company.id, company.name)}
+      onClick={() => {
+        setSelectedCompanyId(company.id);
+        setIsSlideOutOpen(true);
+      }}
     >
       <div className='flex items-center gap-3'>
         {/* Company Logo Only */}
@@ -189,82 +195,101 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
   };
 
   return (
-    <Card
-      className={cn(
-        'bg-white',
-        designTokens.shadows.cardStatic,
-        designTokens.shadows.cardHover,
-        designTokens.borders.card
-      )}
-    >
-      <CardHeader className='pb-4'>
-        <CardTitle className='flex items-center gap-2 text-base font-medium text-gray-900'>
-          <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-success/5 border border-success/10'>
-            <Building2 className='h-4 w-4 text-success' />
-          </div>
-          Recent Companies
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-          <TabsList className='grid w-full grid-cols-3'>
-            <TabsTrigger value='unassigned' className='flex items-center gap-1'>
-              <UserX className='h-3 w-3' />
-              Unassigned
-              {filteredCompanies.unassigned.length > 0 && (
-                <Badge variant='secondary' className='ml-1 text-xs'>
-                  {filteredCompanies.unassigned.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value='assignedToMe'
-              className='flex items-center gap-1'
-            >
-              <User className='h-3 w-3' />
-              Mine
-              {filteredCompanies.assignedToMe.length > 0 && (
-                <Badge variant='secondary' className='ml-1 text-xs'>
-                  {filteredCompanies.assignedToMe.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value='recentlyAssigned'
-              className='flex items-center gap-1'
-            >
-              <UserCheck className='h-3 w-3' />
-              Assigned
-              {filteredCompanies.recentlyAssigned.length > 0 && (
-                <Badge variant='secondary' className='ml-1 text-xs'>
-                  {filteredCompanies.recentlyAssigned.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+    <>
+      <Card
+        className={cn(
+          'bg-white',
+          designTokens.shadows.cardStatic,
+          designTokens.shadows.cardHover,
+          designTokens.borders.card
+        )}
+      >
+        <CardHeader className='pb-4'>
+          <CardTitle className='flex items-center gap-2 text-base font-medium text-gray-900'>
+            <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-success/5 border border-success/10'>
+              <Building2 className='h-4 w-4 text-success' />
+            </div>
+            Recent Companies
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className='w-full'
+          >
+            <TabsList className='grid w-full grid-cols-3'>
+              <TabsTrigger
+                value='unassigned'
+                className='flex items-center gap-1'
+              >
+                <UserX className='h-3 w-3' />
+                Unassigned
+                {filteredCompanies.unassigned.length > 0 && (
+                  <Badge variant='secondary' className='ml-1 text-xs'>
+                    {filteredCompanies.unassigned.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value='assignedToMe'
+                className='flex items-center gap-1'
+              >
+                <User className='h-3 w-3' />
+                Mine
+                {filteredCompanies.assignedToMe.length > 0 && (
+                  <Badge variant='secondary' className='ml-1 text-xs'>
+                    {filteredCompanies.assignedToMe.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value='recentlyAssigned'
+                className='flex items-center gap-1'
+              >
+                <UserCheck className='h-3 w-3' />
+                Assigned
+                {filteredCompanies.recentlyAssigned.length > 0 && (
+                  <Badge variant='secondary' className='ml-1 text-xs'>
+                    {filteredCompanies.recentlyAssigned.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value='unassigned' className='mt-4'>
-            {renderCompaniesList(
-              filteredCompanies.unassigned,
-              'No unassigned companies found'
-            )}
-          </TabsContent>
+            <TabsContent value='unassigned' className='mt-4'>
+              {renderCompaniesList(
+                filteredCompanies.unassigned,
+                'No unassigned companies found'
+              )}
+            </TabsContent>
 
-          <TabsContent value='assignedToMe' className='mt-4'>
-            {renderCompaniesList(
-              filteredCompanies.assignedToMe,
-              'No companies assigned to you'
-            )}
-          </TabsContent>
+            <TabsContent value='assignedToMe' className='mt-4'>
+              {renderCompaniesList(
+                filteredCompanies.assignedToMe,
+                'No companies assigned to you'
+              )}
+            </TabsContent>
 
-          <TabsContent value='recentlyAssigned' className='mt-4'>
-            {renderCompaniesList(
-              filteredCompanies.recentlyAssigned,
-              'No recently assigned companies'
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+            <TabsContent value='recentlyAssigned' className='mt-4'>
+              {renderCompaniesList(
+                filteredCompanies.recentlyAssigned,
+                'No recently assigned companies'
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Company Details Slide-Out */}
+      <CompanyDetailsSlideOut
+        companyId={selectedCompanyId}
+        isOpen={isSlideOutOpen}
+        onClose={() => {
+          setIsSlideOutOpen(false);
+          setSelectedCompanyId(null);
+        }}
+      />
+    </>
   );
 };

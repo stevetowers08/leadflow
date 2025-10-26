@@ -210,6 +210,16 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
       text: 'text-gray-700',
       border: 'border-gray-200',
     },
+    qualify: {
+      background: 'bg-green-600',
+      text: 'text-white',
+      border: 'border-green-700',
+    },
+    skip: {
+      background: 'bg-red-600',
+      text: 'text-white',
+      border: 'border-red-700',
+    },
     'job-active': {
       background: 'bg-green-600',
       text: 'text-white',

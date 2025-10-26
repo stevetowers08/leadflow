@@ -15,12 +15,13 @@ import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 import { cn } from '@/lib/utils';
 import { ReactNode, Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { TopNavigationBar } from './TopNavigationBar';
 
 // Lazy load heavy components for better performance
-const FloatingChatWidget = lazy(() => import('../ai/FloatingChatWidget'));
+// const FloatingChatWidget = lazy(() => import('../ai/FloatingChatWidget'));
 const MobileTestPanel = lazy(() => import('../mobile/MobileTestPanel'));
 const MobileNav = lazy(() => import('../mobile/MobileNav'));
 
@@ -48,12 +49,9 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       '/people': 'People',
       '/companies': 'Companies',
       '/pipeline': 'Pipeline',
-      '/campaigns': 'Campaigns',
       '/conversations': 'Conversations',
-      '/automations': 'Automations',
       '/reporting': 'Reporting',
       '/settings': 'Settings',
-      '/crm-info': 'CRM Info',
       '/tab-designs': 'Tab Designs',
     };
 
@@ -147,16 +145,11 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   }, [darkMode]);
 
   return (
-    <div
-      className={cn(
-        'min-h-screen w-full h-full relative',
-        'bg-white text-foreground'
-      )}
-    >
+    <>
       {/* Mobile sidebar overlay with glassmorphism */}
       {isMobile && sidebarOpen && (
         <div
-          className='fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden'
+          className='fixed inset-0 z-40 bg-black/50 lg:hidden'
           onClick={() => setSidebarOpen(false)}
           onKeyDown={e => {
             if (e.key === 'Escape') {
@@ -169,40 +162,32 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         />
       )}
 
-      {/* Modern Sidebar */}
-      <aside
-        className={cn(
-          'sidebar',
-          // Mobile: Fixed overlay with glassmorphism
-          isMobile && [
-            'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw]',
-            'transform transition-transform duration-300 ease-out',
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-            'bg-sidebar text-sidebar-foreground',
-          ],
-          // Desktop: Fixed sidebar with glassmorphism
-          !isMobile && [
-            'fixed left-0 top-0 h-screen w-56 z-30',
-            'bg-sidebar text-sidebar-foreground',
-          ]
-        )}
-        role='navigation'
-        aria-label='Main navigation'
-      >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
-      </aside>
+      {/* Sidebar rendered via portal to avoid CSS conflicts */}
+      {createPortal(
+        <aside
+          style={{
+            position: 'fixed',
+            top: '0px',
+            left: '0px',
+            height: '100vh',
+            width: '224px',
+            zIndex: 9999,
+            overflow: 'hidden',
+            backgroundColor: 'hsl(var(--sidebar-background))',
+            color: 'hsl(var(--sidebar-foreground))',
+            transform: 'none',
+            willChange: 'auto',
+          }}
+          role='navigation'
+          aria-label='Main navigation'
+        >
+          <Sidebar onClose={() => setSidebarOpen(false)} />
+        </aside>,
+        document.body
+      )}
 
-      {/* Main content with glassmorphism container */}
-      <main
-        ref={mainContentRef}
-        className={cn(
-          'relative z-10 transition-all duration-300 w-full',
-          // Desktop: Add left padding for fixed sidebar
-          !isMobile && 'pl-56'
-        )}
-        role='main'
-      >
-        {/* Top Navigation Bar */}
+      {/* Top Navigation Bar rendered via portal */}
+      {createPortal(
         <TopNavigationBar
           pageTitle={getPageTitle()}
           onSearch={onSearch}
@@ -212,36 +197,58 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
               setSidebarOpen(true);
             }
           }}
-        />
-
-        {/* Content Container */}
-        <div
-          className={cn(
-            'w-full flex flex-col',
-            // Use standardized responsive padding
-            designTokens.spacing.pagePadding.responsive
-          )}
-        >
-          <div className='flex-1 w-full'>{children}</div>
-        </div>
-      </main>
-
-      {/* Floating Chat Widget */}
-      <Suspense fallback={null}>
-        <FloatingChatWidget />
-      </Suspense>
-
-      {/* Enhanced Mobile Navigation */}
-      {isMobile && (
-        <Suspense fallback={null}>
-          <MobileNav />
-        </Suspense>
+        />,
+        document.body
       )}
 
-      {/* Mobile Test Panel (Development Only) */}
-      <Suspense fallback={null}>
-        <MobileTestPanel />
-      </Suspense>
-    </div>
+      {/* Main content container - Fixed viewport height */}
+      <div
+        className={cn(
+          'h-screen w-full', // Fixed viewport height
+          'bg-background text-foreground' // No overflow hidden here - let content handle it
+        )}
+      >
+        {/* Main content with glassmorphism container */}
+        <main
+          ref={mainContentRef}
+          className={cn(
+            'relative z-10 transition-all duration-300 w-full h-full bg-background flex flex-col', // Full height with flex layout
+            // Desktop: Add left padding for fixed sidebar (14rem = 224px)
+            !isMobile && 'pl-56',
+            // Add top padding for fixed header (header height is ~48px)
+            'pt-12'
+          )}
+          role='main'
+        >
+          {/* Content Container - This is where scrolling happens */}
+          <div
+            className={cn(
+              'flex-1 w-full overflow-y-auto', // Takes remaining space and allows scrolling
+              // Use standardized responsive padding
+              designTokens.spacing.pagePadding.responsive
+            )}
+          >
+            <div className='flex-1 w-full'>{children}</div>
+          </div>
+        </main>
+
+        {/* Floating Chat Widget - Temporarily disabled */}
+        {/* <Suspense fallback={null}>
+        <FloatingChatWidget />
+      </Suspense> */}
+
+        {/* Enhanced Mobile Navigation */}
+        {isMobile && (
+          <Suspense fallback={null}>
+            <MobileNav />
+          </Suspense>
+        )}
+
+        {/* Mobile Test Panel (Development Only) */}
+        <Suspense fallback={null}>
+          <MobileTestPanel />
+        </Suspense>
+      </div>
+    </>
   );
 };

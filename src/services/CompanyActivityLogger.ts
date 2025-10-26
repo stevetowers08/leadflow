@@ -5,13 +5,12 @@ export interface AutomationEventData {
   activityType:
     | 'automation'
     | 'email_sent'
-    | 'linkedin_message'
     | 'lead_reply'
     | 'meeting_scheduled'
     | 'call_made';
   title: string;
   description?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   leadId?: string;
   jobId?: string;
 }
@@ -50,50 +49,6 @@ export class CompanyActivityLogger {
   }
 
   /**
-   * Log when LinkedIn automation starts for a company
-   */
-  static async logLinkedInAutomationStarted(
-    companyId: string,
-    leadsCount: number,
-    campaignType: string = 'linkedin'
-  ): Promise<string | null> {
-    return this.logAutomationEvent({
-      companyId,
-      activityType: 'automation',
-      title: 'LinkedIn Automation Started',
-      description: `Automated LinkedIn outreach campaign initiated for ${leadsCount} leads`,
-      metadata: {
-        campaign_type: campaignType,
-        leads_count: leadsCount,
-        automation_platform: 'linkedin',
-      },
-    });
-  }
-
-  /**
-   * Log when a LinkedIn message is sent
-   */
-  static async logLinkedInMessageSent(
-    companyId: string,
-    leadId: string,
-    leadName: string,
-    messageType: string = 'connection'
-  ): Promise<string | null> {
-    return this.logAutomationEvent({
-      companyId,
-      leadId,
-      activityType: 'linkedin_message',
-      title: 'LinkedIn Message Sent',
-      description: `${messageType} message sent to ${leadName}`,
-      metadata: {
-        message_type: messageType,
-        lead_name: leadName,
-        platform: 'linkedin',
-      },
-    });
-  }
-
-  /**
    * Log when a lead replies to outreach
    */
   static async logLeadReply(
@@ -111,7 +66,6 @@ export class CompanyActivityLogger {
       metadata: {
         lead_name: leadName,
         response_type: responseType,
-        response_platform: 'linkedin',
       },
     });
   }
@@ -228,10 +182,6 @@ export class CompanyActivityLogger {
 }
 
 // Export convenience functions for easy use
-export const logLinkedInAutomationStarted =
-  CompanyActivityLogger.logLinkedInAutomationStarted;
-export const logLinkedInMessageSent =
-  CompanyActivityLogger.logLinkedInMessageSent;
 export const logLeadReply = CompanyActivityLogger.logLeadReply;
 export const logEmailSent = CompanyActivityLogger.logEmailSent;
 export const logMeetingScheduled = CompanyActivityLogger.logMeetingScheduled;

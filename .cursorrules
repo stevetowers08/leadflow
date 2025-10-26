@@ -1,0 +1,216 @@
+# Cursor AI Rules for Empowr CRM
+
+## 🎯 Project Overview
+Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, and Supabase. The focus is on simplicity and clear workflows for managing jobs and people.
+
+## 🔄 Current Workflows (Updated Oct 2025)
+
+### Job Qualification Workflow
+**Status Enum:** `new | qualify | skip`
+- **New** - Newly discovered jobs awaiting review
+- **Qualify** - Jobs that meet criteria and should be pursued
+- **Skip** - Jobs to skip for now
+
+**Database Field:** `jobs.qualification_status`
+
+### People Status Workflow
+**Status Enum:** `new | qualified | proceed | skip`
+- **New** - New leads to review
+- **Qualified** - Leads that meet your criteria
+- **Proceed** - Ready for CRM integration or email outreach
+- **Skip** - Not pursuing at this time
+
+**Database Field:** `people.stage`
+
+## ⚠️ Important: LinkedIn Automation Removed
+
+As of October 2025, LinkedIn automation features have been **completely removed**:
+- ❌ No LinkedInAutomationModal component
+- ❌ No automation buttons in UI
+- ❌ No lead selection checkboxes for bulk automation
+- ❌ No automation status tracking
+
+**Orphaned Files (not imported/used):**
+- `src/components/crm/automation/LinkedInAutomationModal.tsx`
+- `src/components/LinkedInConfirmationModal.tsx`
+- `src/components/crm/automation/AutomationModalManager.tsx`
+
+These can be deleted in future cleanup.
+
+## 🏗️ Architecture Guidelines
+
+### Component Structure
+- Use functional components with TypeScript
+- Prefer composition over prop drilling
+- Use custom hooks for shared logic
+- Keep components focused and single-responsibility
+
+### State Management
+- Use React Query for server state
+- Use React context for global UI state
+- Local state with useState for component-specific state
+- No LinkedIn automation state needed
+
+### Database Access
+- **Always** use type-safe queries from `src/utils/databaseQueries.ts`
+- Reference schema in `src/types/database.ts` and `src/types/databaseSchema.ts`
+- Use RLS (Row Level Security) policies - never bypass security
+- Query only needed fields, avoid `SELECT *`
+
+### Status Utilities
+- Use `src/utils/statusUtils.ts` for consistent status display
+- Use `getStatusDisplayText()` for UI display
+- Use `normalizeStatus()` for backend normalization
+
+## 📋 Coding Standards
+
+### TypeScript
+- Strict mode enabled
+- Define interfaces for all props
+- Avoid `any` type - use proper types
+- Export types from component files when shared
+
+### React Best Practices
+- Use meaningful component names
+- Extract reusable logic to custom hooks
+- Memoize expensive computations with useMemo
+- Memoize callbacks with useCallback when passed to children
+- Lazy load heavy components for better performance
+
+### File Organization
+```
+src/
+├── components/     # React components
+│   ├── crm/       # CRM-specific components
+│   ├── jobs/      # Job management components
+│   ├── popup/     # Popup/modal components
+│   └── shared/    # Reusable shared components
+├── pages/         # Page-level components
+├── hooks/         # Custom React hooks
+├── utils/         # Utility functions
+├── types/         # TypeScript type definitions
+└── services/      # API services
+```
+
+## 🚫 Don't Do This
+
+1. **Don't add LinkedIn automation** - It has been intentionally removed
+2. **Don't use old status values** - Use the new simplified enums
+3. **Don't bypass RLS** - Always use authenticated queries
+4. **Don't use `any` type** - Define proper types
+5. **Don't mutate props** - React props are immutable
+6. **Don't fetch in render** - Use useEffect or React Query
+7. **Don't hardcode status strings** - Use status utilities
+
+## ✅ Do This
+
+1. **Use the new status workflows** - Follow the simplified 3/4-step workflows
+2. **Reference types** - Import from `src/types/database.ts`
+3. **Use status utilities** - Import from `src/utils/statusUtils.ts`
+4. **Follow TypeScript strict mode** - No implicit any, proper null checks
+5. **Use React Query** - For all server state management
+6. **Test your changes** - Run `npx tsc --noEmit` before committing
+7. **Update documentation** - Keep docs in sync with code changes
+
+## 🗄️ Database Quick Reference
+
+### Key Tables
+- **jobs** - Job postings (qualification_status: new | qualify | skip)
+- **people** - Leads/contacts (stage: new | qualified | proceed | skip)
+- **companies** - Company profiles
+- **interactions** - Activity tracking
+- **user_profiles** - User accounts
+
+### Database Commands
+```bash
+npm run db:schema              # Show all tables
+npm run db:schema people       # Show people table fields
+npm run db:schema companies name  # Show specific field
+```
+
+## 📚 Key Documentation
+
+1. **Recent Changes:** [LINKEDIN_AUTOMATION_REMOVAL_PROGRESS.md](LINKEDIN_AUTOMATION_REMOVAL_PROGRESS.md)
+2. **Database Guide:** [docs/DATABASE/DATABASE_BEST_PRACTICES.md](docs/DATABASE/DATABASE_BEST_PRACTICES.md)
+3. **Development Guide:** [docs/CORE/DEVELOPMENT_GUIDE.md](docs/CORE/DEVELOPMENT_GUIDE.md)
+4. **Schema Reference:** [src/types/databaseSchema.ts](src/types/databaseSchema.ts)
+
+## 🔧 Common Tasks
+
+### Adding a New Status
+1. Update enum in `src/types/database.ts`
+2. Add mapping in `src/utils/statusUtils.ts`
+3. Update UI components that display status
+4. Update database constraints (migration required)
+5. Test thoroughly
+
+### Modifying a Component
+1. Read existing component first
+2. Check for TypeScript types
+3. Ensure no LinkedIn automation logic remains
+4. Update related components if needed
+5. Run TypeScript check: `npx tsc --noEmit`
+
+### Creating a New Component
+1. Use TypeScript functional component
+2. Define Props interface
+3. Use proper imports from design system
+4. Follow naming conventions (PascalCase)
+5. Export from index if shared component
+
+## 🎨 UI/UX Guidelines
+
+- Use Radix UI components for consistency
+- Follow Tailwind CSS utility classes
+- Maintain responsive design (mobile-first)
+- Use design system tokens from `src/design-system/`
+- Ensure accessibility (ARIA labels, keyboard navigation)
+
+## 🔍 Debugging Tips
+
+1. Check browser console for errors
+2. Use React DevTools for component inspection
+3. Check Network tab for API calls
+4. Verify Supabase RLS policies
+5. Review TypeScript errors in IDE
+6. Reference [docs/DEBUGGING/DEBUGGING_GUIDE.md](docs/DEBUGGING/DEBUGGING_GUIDE.md)
+
+## 🚀 Deployment
+
+- **Platform:** Vercel
+- **Branch:** Deploy from `main` branch
+- **Environment:** Check `.env.example` for required variables
+- **Build Command:** `npm run build`
+- **Output:** `dist/`
+
+## 📝 Commit Guidelines
+
+Use conventional commits:
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `refactor:` - Code refactoring
+- `docs:` - Documentation changes
+- `style:` - Formatting changes
+- `test:` - Test additions/changes
+- `chore:` - Build/tooling changes
+
+## 🔐 Security
+
+- Never commit `.env` files
+- Never expose API keys in code
+- Always use RLS policies
+- Validate user input
+- Sanitize data before display
+- Follow [SECURITY.md](SECURITY.md) guidelines
+
+## 📞 Need Help?
+
+1. Check documentation in `docs/` directory
+2. Review recent progress reports (*.md files in root)
+3. Check the Database Best Practices guide
+4. Review existing similar components for patterns
+
+---
+
+**Last Updated:** October 22, 2025
+**Version:** Post-LinkedIn Automation Removal

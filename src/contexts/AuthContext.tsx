@@ -5,6 +5,7 @@
  * Fixes memory leaks and consolidates duplicate logic
  */
 
+import { getAuthConfig, getMockUser, getMockUserProfile } from '@/config/auth';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { supabase } from '@/integrations/supabase/client';
@@ -146,12 +147,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Initialize authentication with robust error handling
   useEffect(() => {
-    let authStateSubscription: any = null;
+    let authStateSubscription: { unsubscribe: () => void } | null = null;
 
     const initializeAuth = async () => {
       try {
         console.log('🔐 Initializing authentication...');
         authState.setError(null);
+
+        const authConfig = getAuthConfig();
+
+        // Handle bypass auth mode
+        if (authConfig.bypassAuth) {
+          console.log('🔓 Bypass auth enabled - using mock user');
+          const mockUser = getMockUser();
+          const mockUserProfile = getMockUserProfile();
+
+          if (isMountedRef.current) {
+            authState.setUser(mockUser);
+            authState.setSession({
+              user: mockUser,
+              access_token: 'mock-token',
+              refresh_token: 'mock-refresh-token',
+              expires_in: 3600,
+              expires_at: Date.now() + 3600000,
+              token_type: 'bearer',
+            });
+            userProfile.setUserProfile(mockUserProfile);
+            authState.setLoading(false);
+          }
+          return;
+        }
 
         // Set a timeout to force loading to complete after 5 seconds
         setSafeTimeout(() => {
@@ -349,7 +374,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Initialize auth and set up listener
     initializeAuth();
-    setupAuthListener();
+
+    // Only set up auth listener if not in bypass mode
+    const authConfig = getAuthConfig();
+    if (!authConfig.bypassAuth) {
+      setupAuthListener();
+    }
 
     return () => {
       isMountedRef.current = false;

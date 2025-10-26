@@ -85,7 +85,7 @@ export class UserAssignmentQueries {
     }
 
     if (filters.stage) {
-      query = query.eq('stage', filters.stage);
+      query = query.eq('people_stage', filters.stage);
     }
 
     if (filters.search) {
@@ -261,7 +261,7 @@ export class UserAssignmentQueries {
         };
         return acc;
       },
-      {} as Record<string, any>
+      {} as Record<string, unknown>
     );
   }
 
@@ -279,7 +279,7 @@ export class UserAssignmentQueries {
  * Optimized hooks for user assignment queries
  * Provides React Query integration with proper caching
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useUserAssignmentStats = () => {
   return useQuery({

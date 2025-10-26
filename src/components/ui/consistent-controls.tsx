@@ -92,7 +92,7 @@ TabsList.displayName = 'TabsList';
 
 // Modern Filter Dropdown Component
 const filterVariants = cva(
-  'inline-flex items-center justify-between whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 bg-white border border-gray-300 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-between whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 bg-white border border-gray-300 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:border-gray-400 hover:bg-gray-50',
   {
     variants: {
       variant: {
@@ -143,7 +143,7 @@ FilterButton.displayName = 'FilterButton';
 
 // Modern Search Input Component
 const searchVariants = cva(
-  'flex w-full items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
+  'flex w-full items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50',
   {
     variants: {
       variant: {
@@ -175,7 +175,7 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   ({ className, variant, size, onClear, ...props }, ref) => {
     return (
       <div className='relative'>
-        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500' />
         <input
           className={cn(
             searchVariants({ variant, size }),
@@ -188,7 +188,7 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         {onClear && (
           <button
             onClick={onClear}
-            className='absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground'
+            className='absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 hover:text-gray-700'
           >
             ×
           </button>

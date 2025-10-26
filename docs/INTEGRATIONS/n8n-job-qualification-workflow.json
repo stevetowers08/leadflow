@@ -1,0 +1,248 @@
+{
+  "name": "Job Qualification to Company Enrichment",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "job-qualified",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Job Qualification Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "job-qualified-webhook"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "company_name",
+              "value": "={{ $json.company_name }}"
+            },
+            {
+              "name": "company_website",
+              "value": "={{ $json.company_website }}"
+            },
+            {
+              "name": "company_linkedin",
+              "value": "={{ $json.company_linkedin_url }}"
+            },
+            {
+              "name": "job_title",
+              "value": "={{ $json.job_title }}"
+            },
+            {
+              "name": "job_location",
+              "value": "={{ $json.job_location }}"
+            },
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "company_id",
+              "value": "={{ $json.company_id }}"
+            },
+            {
+              "name": "qualified_by",
+              "value": "={{ $json.qualified_by }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-company-data",
+      "name": "Extract Company Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.apollo.io/v1/mixed_people/search",
+        "authentication": "none",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Cache-Control",
+              "value": "no-cache"
+            },
+            {
+              "name": "X-Api-Key",
+              "value": "={{ $vars.APOLLO_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "q_organization_domains",
+              "value": "={{ $json.company_website }}"
+            },
+            {
+              "name": "person_titles",
+              "value": "[\"CTO\", \"VP Engineering\", \"Head of Engineering\", \"Engineering Manager\", \"Senior Software Engineer\"]"
+            },
+            {
+              "name": "page",
+              "value": "1"
+            },
+            {
+              "name": "per_page",
+              "value": "10"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "apollo-enrichment",
+      "name": "Apollo Decision Maker Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process Apollo API response and format leads\nconst apolloResponse = $input.first().json;\nconst companyData = $('Extract Company Data').first().json;\n\n// Extract people from Apollo response\nconst people = apolloResponse.people || [];\n\n// Format each person as a lead\nconst formattedLeads = people.map(person => {\n  return {\n    name: person.name || 'Unknown',\n    email_address: person.email || null,\n    company_id: companyData.company_id,\n    company_role: person.title || person.job_title,\n    employee_location: person.city || companyData.job_location,\n    lead_score: person.lead_score || 'medium',\n    confidence_level: person.confidence_level || 'medium',\n    linkedin_url: person.linkedin_url || null,\n    stage: 'new',\n    lead_source: 'apollo_enrichment',\n    source_details: `Enriched via Apollo for job: ${companyData.job_title}`,\n    source_date: new Date().toISOString(),\n    owner_id: companyData.qualified_by || null,\n    created_at: new Date().toISOString(),\n    updated_at: new Date().toISOString()\n  };\n});\n\n// Return formatted leads\nreturn formattedLeads.map(lead => ({ json: lead }));"
+      },
+      "id": "format-leads",
+      "name": "Format Leads Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "people",
+        "columns": "name,email_address,company_id,company_role,employee_location,lead_score,confidence_level,linkedin_url,stage,lead_source,source_details,source_date,owner_id",
+        "additionalFields": {},
+        "options": {}
+      },
+      "id": "supabase-insert",
+      "name": "Insert Leads to Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1120, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-credentials",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log successful enrichment\nconst companyData = $('Extract Company Data').first().json;\nconst leadsCount = $input.all().length;\n\nreturn {\n  json: {\n    event_type: 'enrichment_completed',\n    job_id: companyData.job_id,\n    company_name: companyData.company_name,\n    leads_found: leadsCount,\n    enrichment_source: 'apollo',\n    timestamp: new Date().toISOString(),\n    status: 'success'\n  }\n};"
+      },
+      "id": "log-success",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Handle enrichment errors\nconst error = $input.first().json;\nconst companyData = $('Extract Company Data').first().json;\n\nreturn {\n  json: {\n    event_type: 'enrichment_failed',\n    job_id: companyData.job_id,\n    company_name: companyData.company_name,\n    error_message: error.message || 'Unknown error',\n    enrichment_source: 'apollo',\n    timestamp: new Date().toISOString(),\n    status: 'error'\n  }\n};"
+      },
+      "id": "log-error",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 500]
+    }
+  ],
+  "connections": {
+    "Job Qualification Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Company Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Company Data": {
+      "main": [
+        [
+          {
+            "node": "Apollo Decision Maker Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apollo Decision Maker Search": {
+      "main": [
+        [
+          {
+            "node": "Format Leads Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Leads Data": {
+      "main": [
+        [
+          {
+            "node": "Insert Leads to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Leads to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-01-27T10:00:00.000Z",
+      "updatedAt": "2025-01-27T10:00:00.000Z",
+      "id": "supabase-integration",
+      "name": "Supabase Integration"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-27T10:00:00.000Z",
+  "versionId": "1"
+}

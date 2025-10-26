@@ -72,18 +72,18 @@ export const usePageMeta = (meta: PageMeta) => {
 
     // Cleanup function to restore default meta tags when component unmounts
     return () => {
-      document.title = 'Empowr CRM';
+      document.title = 'RECRUITEDGE';
       updateMetaTag(
         'description',
         'Modern CRM platform for recruitment and lead management'
       );
-      updateMetaTag('og:title', 'Empowr CRM', true);
+      updateMetaTag('og:title', 'RECRUITEDGE', true);
       updateMetaTag(
         'og:description',
         'Modern CRM platform for recruitment and lead management',
         true
       );
-      updateMetaTag('twitter:title', 'Empowr CRM');
+      updateMetaTag('twitter:title', 'RECRUITEDGE');
       updateMetaTag(
         'twitter:description',
         'Modern CRM platform for recruitment and lead management'

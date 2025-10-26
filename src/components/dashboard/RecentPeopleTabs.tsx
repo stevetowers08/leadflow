@@ -1,23 +1,28 @@
-import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PersonReplyAnalytics } from '@/components/analytics/PersonReplyAnalytics';
+import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
+import type { RecentPerson } from '@/services/dashboardService';
+import { getStatusDisplayText } from '@/utils/statusUtils';
+import { formatDistanceToNow } from 'date-fns';
 import {
-  Users,
-  StickyNote,
+  Building2,
+  CheckCircle,
   ExternalLink,
+  HelpCircle,
   Mail,
   MapPin,
-  Building2,
+  StickyNote,
   User,
   UserCheck,
   UserX,
+  Users,
+  XCircle,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext';
-import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
-import type { RecentPerson } from '@/services/dashboardService';
+import React, { useMemo, useState } from 'react';
 
 interface RecentPeopleTabsProps {
   people: RecentPerson[];
@@ -28,8 +33,9 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
   people,
   loading,
 }) => {
+  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
   const { user } = useAuth();
-  const { openPopup } = usePopupNavigation();
   const [activeTab, setActiveTab] = useState('unassigned');
 
   // Filter people by assignment status
@@ -53,7 +59,10 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
     <div
       key={person.id}
       className='group p-6 bg-white rounded-lg border border-gray-200 hover:border-primary/20 hover:shadow-md transition-all duration-200 cursor-pointer'
-      onClick={() => openPopup('lead', person.id, person.name)}
+      onClick={() => {
+        setSelectedPersonId(person.id);
+        setIsSlideOutOpen(true);
+      }}
     >
       <div className='flex items-start justify-between'>
         <div className='flex-1 min-w-0'>
@@ -65,6 +74,29 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
               <div className='flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full'>
                 <StickyNote className='h-3 w-3' />
                 <span>{person.notes_count}</span>
+              </div>
+            )}
+            {/* Reply Type Badge */}
+            {person.reply_type && (
+              <div
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+                  person.reply_type === 'interested'
+                    ? 'text-green-600 bg-green-50'
+                    : person.reply_type === 'not_interested'
+                      ? 'text-red-600 bg-red-50'
+                      : 'text-yellow-600 bg-yellow-50'
+                }`}
+              >
+                {person.reply_type === 'interested' && (
+                  <CheckCircle className='h-3 w-3' />
+                )}
+                {person.reply_type === 'not_interested' && (
+                  <XCircle className='h-3 w-3' />
+                )}
+                {person.reply_type === 'maybe' && (
+                  <HelpCircle className='h-3 w-3' />
+                )}
+                <span>{getStatusDisplayText(person.reply_type)}</span>
               </div>
             )}
           </div>
@@ -98,9 +130,9 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
 
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
-              {person.stage && (
+              {person.people_stage && (
                 <Badge variant='outline' className='text-xs'>
-                  {person.stage}
+                  {getStatusDisplayText(person.people_stage)}
                 </Badge>
               )}
               <span className='text-xs text-gray-500'>
@@ -116,7 +148,8 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
               className='opacity-0 group-hover:opacity-100 transition-opacity'
               onClick={e => {
                 e.stopPropagation();
-                openPopup('lead', person.id, person.name);
+                setSelectedPersonId(person.id);
+                setIsSlideOutOpen(true);
               }}
             >
               <ExternalLink className='h-3 w-3' />
@@ -133,6 +166,14 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
             />
           </div>
         )}
+      </div>
+
+      {/* Reply Analytics Summary */}
+      <div className='mt-3 pt-3 border-t border-gray-100'>
+        <PersonReplyAnalytics
+          person={person as RecentPerson}
+          showDetails={false}
+        />
       </div>
     </div>
   );
@@ -172,75 +213,94 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
   };
 
   return (
-    <Card className='bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200'>
-      <CardHeader className='pb-4'>
-        <CardTitle className='flex items-center gap-2 text-base font-medium text-gray-900'>
-          <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-primary/5 border border-primary/10'>
-            <Users className='h-4 w-4 text-primary' />
-          </div>
-          Recent People
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-          <TabsList className='grid w-full grid-cols-3'>
-            <TabsTrigger value='unassigned' className='flex items-center gap-1'>
-              <UserX className='h-3 w-3' />
-              Unassigned
-              {filteredPeople.unassigned.length > 0 && (
-                <Badge variant='secondary' className='ml-1 text-xs'>
-                  {filteredPeople.unassigned.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value='assignedToMe'
-              className='flex items-center gap-1'
-            >
-              <User className='h-3 w-3' />
-              Mine
-              {filteredPeople.assignedToMe.length > 0 && (
-                <Badge variant='secondary' className='ml-1 text-xs'>
-                  {filteredPeople.assignedToMe.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value='recentlyAssigned'
-              className='flex items-center gap-1'
-            >
-              <UserCheck className='h-3 w-3' />
-              Assigned
-              {filteredPeople.recentlyAssigned.length > 0 && (
-                <Badge variant='secondary' className='ml-1 text-xs'>
-                  {filteredPeople.recentlyAssigned.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+    <>
+      <Card className='bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200'>
+        <CardHeader className='pb-4'>
+          <CardTitle className='flex items-center gap-2 text-base font-medium text-gray-900'>
+            <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-primary/5 border border-primary/10'>
+              <Users className='h-4 w-4 text-primary' />
+            </div>
+            Recent People
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className='w-full'
+          >
+            <TabsList className='grid w-full grid-cols-3'>
+              <TabsTrigger
+                value='unassigned'
+                className='flex items-center gap-1'
+              >
+                <UserX className='h-3 w-3' />
+                Unassigned
+                {filteredPeople.unassigned.length > 0 && (
+                  <Badge variant='secondary' className='ml-1 text-xs'>
+                    {filteredPeople.unassigned.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value='assignedToMe'
+                className='flex items-center gap-1'
+              >
+                <User className='h-3 w-3' />
+                Mine
+                {filteredPeople.assignedToMe.length > 0 && (
+                  <Badge variant='secondary' className='ml-1 text-xs'>
+                    {filteredPeople.assignedToMe.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value='recentlyAssigned'
+                className='flex items-center gap-1'
+              >
+                <UserCheck className='h-3 w-3' />
+                Assigned
+                {filteredPeople.recentlyAssigned.length > 0 && (
+                  <Badge variant='secondary' className='ml-1 text-xs'>
+                    {filteredPeople.recentlyAssigned.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value='unassigned' className='mt-4'>
-            {renderPeopleList(
-              filteredPeople.unassigned,
-              'No unassigned people found'
-            )}
-          </TabsContent>
+            <TabsContent value='unassigned' className='mt-4'>
+              {renderPeopleList(
+                filteredPeople.unassigned,
+                'No unassigned people found'
+              )}
+            </TabsContent>
 
-          <TabsContent value='assignedToMe' className='mt-4'>
-            {renderPeopleList(
-              filteredPeople.assignedToMe,
-              'No people assigned to you'
-            )}
-          </TabsContent>
+            <TabsContent value='assignedToMe' className='mt-4'>
+              {renderPeopleList(
+                filteredPeople.assignedToMe,
+                'No people assigned to you'
+              )}
+            </TabsContent>
 
-          <TabsContent value='recentlyAssigned' className='mt-4'>
-            {renderPeopleList(
-              filteredPeople.recentlyAssigned,
-              'No recently assigned people'
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+            <TabsContent value='recentlyAssigned' className='mt-4'>
+              {renderPeopleList(
+                filteredPeople.recentlyAssigned,
+                'No recently assigned people'
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Person Details Slide-Out */}
+      <PersonDetailsSlideOut
+        personId={selectedPersonId}
+        isOpen={isSlideOutOpen}
+        onClose={() => {
+          setIsSlideOutOpen(false);
+          setSelectedPersonId(null);
+        }}
+      />
+    </>
   );
 };

@@ -1,12 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 @import './styles/font-system.css';
 @import './styles/hover-overflow-fixes.css';
-
 @import './styles/mobile.css';
-
 @import './styles/mobile-improvements.css';
-
 @import './styles/mobile-typography.css';
+
+/* BEST PRACTICE: Use only system fonts for optimal rendering */
 
 @tailwind base;
 @tailwind components;
@@ -28,37 +26,37 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    /* Monday.com Brand Colors - Unified System */
+    /* SIMPLIFIED COLOR PALETTE - 6 Essential Colors + Neutrals */
+
+    /* Primary Brand Color - Monday.com Blue */
     --primary: 240 100% 70%; /* Monday.com Blue #6161FF */
     --primary-foreground: 0 0% 98%;
-    --primary-hover: 240 100% 65%; /* Slightly darker for hover */
-    --primary-light: 240 100% 95%; /* Very light for backgrounds */
-    --primary-medium: 240 100% 85%; /* Medium for borders */
+    --primary-hover: 240 100% 65%;
+    --primary-light: 240 100% 95%;
+    --primary-medium: 240 100% 85%;
 
-    /* Professional Secondary - Monday.com Blue Variants */
-    --secondary: 240 100% 60%; /* Monday.com Blue Darker #4A4AFF */
+    /* Secondary - Same as primary for consistency */
+    --secondary: 240 100% 60%; /* Slightly darker blue */
     --secondary-foreground: 0 0% 98%;
     --secondary-hover: 240 100% 55%;
     --secondary-light: 240 100% 90%;
     --secondary-medium: 240 100% 80%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-
-    /* Professional Accent - Monday.com Blue Variant */
+    /* Accent - Same as primary for consistency */
     --accent: 240 100% 70%;
     --accent-foreground: 0 0% 98%;
     --accent-hover: 240 100% 65%;
     --accent-light: 240 100% 95%;
     --accent-medium: 240 100% 85%;
 
-    /* Semantic Colors */
-    --destructive: 0 84.2% 60.2%; /* Red for destructive actions */
-    --destructive-foreground: 210 40% 98%;
-    --destructive-hover: 0 84.2% 55%;
-    --destructive-light: 0 84.2% 95%;
-    --destructive-medium: 0 84.2% 85%;
+    /* Muted - Professional grays */
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --muted-hover: 240 4.8% 90%;
+    --muted-light: 240 4.8% 98%;
+    --muted-medium: 240 4.8% 85%;
 
+    /* Semantic Colors - 4 Essential States */
     --success: 142 76% 36%; /* Green for success */
     --success-foreground: 0 0% 98%;
     --success-hover: 142 76% 31%;
@@ -71,6 +69,18 @@ All colors MUST be HSL.
     --warning-light: 38 92% 95%;
     --warning-medium: 38 92% 85%;
 
+    --destructive: 0 84.2% 60.2%; /* Red for errors */
+    --destructive-foreground: 210 40% 98%;
+    --destructive-hover: 0 84.2% 55%;
+    --destructive-light: 0 84.2% 95%;
+    --destructive-medium: 0 84.2% 85%;
+
+    --info: 240 100% 70%; /* Blue for info (same as primary) */
+    --info-foreground: 0 0% 98%;
+    --info-hover: 240 100% 65%;
+    --info-light: 240 100% 95%;
+    --info-medium: 240 100% 85%;
+
     /* Clean Neutrals */
     --border: 240 5.9% 90%; /* Lighter borders for cleaner look */
     --input: 240 5.9% 95%; /* Very light input backgrounds */
@@ -78,9 +88,22 @@ All colors MUST be HSL.
 
     --radius: 0.5rem; /* Slightly less rounded for professional look */
 
-    /* Professional Sidebar - Monday.com Inspired */
-    --sidebar-background: 240 28% 23%; /* Dark professional background */
-    --sidebar-foreground: 240 15% 15%; /* Darker text for better contrast */
+    /* Modern Table Design System (2025) - Best Practices */
+    --table-border-width: 0px; /* No outer borders - modern clean look */
+    --table-border-color: rgb(229, 231, 235); /* gray-200 - subtle */
+    --table-border-style: solid;
+    --table-header-bg: rgb(255, 255, 255); /* Pure white for clean look */
+    --table-cell-padding: 0.5rem 1rem; /* Reduced padding for 40px height */
+    --table-row-height: 40px; /* Exact 40px - HubSpot/Monday.com standard */
+    --table-inner-border-width: 1px; /* Subtle inner borders */
+    --table-row-hover: rgb(249, 250, 251); /* gray-50 - hover state */
+    --table-shadow:
+      0 1px 3px 0 rgb(0, 0, 0, 0.1), 0 1px 2px 0 rgb(0, 0, 0, 0.06); /* Modern shadow */
+    --table-radius: 0.75rem; /* Modern rounded corners */
+
+    /* Professional Sidebar - Custom Dark Blue */
+    --sidebar-background: 210 28% 24%; /* Dark professional background #2d3e50 */
+    --sidebar-foreground: 0 0% 100%; /* Pure white text */
     --sidebar-primary: 240 100% 70%; /* Monday.com Blue */
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-primary-hover: 240 100% 65%;
@@ -109,6 +132,15 @@ All colors MUST be HSL.
       0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl:
       0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+    /* 2025 Typography System - Font Weights */
+    --font-weight-body: 500; /* Medium for body text */
+    --font-weight-small: 500; /* Medium for small text */
+    --font-weight-heading: 600; /* Semibold for headings */
+    --font-weight-button: 500; /* Medium for buttons */
+    --font-weight-label: 500; /* Medium for labels */
+    --font-weight-data: 500; /* Medium for table data */
+    --font-weight-status: 500; /* Medium for status badges */
 
     /* Professional Subtle Backgrounds - Very Light Tints */
     --gradient-primary: linear-gradient(
@@ -163,26 +195,262 @@ All colors MUST be HSL.
   }
 
   html {
-    height: 100%;
+    height: 100vh !important; /* Fixed viewport height */
     width: 100%;
     /* Prevent layout shifts from scrollbars */
     scrollbar-gutter: stable;
+    overflow: hidden !important; /* Prevent page-level scrolling */
   }
 
   body {
     @apply bg-background text-foreground;
-    min-height: 100vh;
-    height: 100%;
+    height: 100vh !important; /* Fixed viewport height */
     width: 100%;
     margin: 0;
     padding: 0;
-    /* Enhanced font rendering for better clarity */
+    overflow: hidden !important; /* Prevent page-level scrolling */
+    /* BEST PRACTICE: Use only system fonts for crisp rendering */
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
+    background-color: hsl(var(--background)) !important;
+    /* Ensure crisp text rendering without breaking fixed positioning */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Prevent text blur from font smoothing issues */
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
+  }
+
+  /* Modern Table Design System (2025) - Best Practices */
+  table {
+    border-collapse: separate; /* Allow for rounded corners */
+    border-spacing: 0; /* Remove spacing between cells */
+    width: 100%;
+    border: var(--table-border-width) var(--table-border-style)
+      var(--table-border-color) !important;
+    border-radius: var(--table-radius) !important;
+    box-shadow: var(--table-shadow) !important;
+    background-color: white !important;
+    overflow: hidden; /* Ensure rounded corners work */
+  }
+
+  th,
+  td {
+    border-right: var(--table-inner-border-width) var(--table-border-style)
+      var(--table-border-color) !important;
+    border-bottom: var(--table-inner-border-width) var(--table-border-style)
+      var(--table-border-color) !important;
+    padding: var(--table-cell-padding) !important;
+    height: var(--table-row-height) !important;
+    text-align: left;
+    font-size: 0.875rem; /* text-sm - better readability */
+    line-height: 1.5; /* Better line height */
+  }
+
+  th {
+    background-color: var(--table-header-bg) !important;
+    font-weight: 600;
+    font-size: 0.75rem; /* text-xs */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgb(75, 85, 99); /* gray-600 - better contrast */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  /* Modern hover effects */
+  tbody tr:hover {
+    background-color: var(--table-row-hover) !important;
+    transition: background-color 0.15s ease-in-out;
+  }
+
+  /* Remove last column right border for clean appearance */
+  th:last-child,
+  td:last-child {
+    border-right: none !important;
+  }
+
+  /* Remove bottom border from last row */
+  tbody tr:last-child td {
+    border-bottom: none !important;
+  }
+
+  /* Enhanced text clarity for all text elements - BEST PRACTICES */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  div,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  label {
+    /* Ensure crisp text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Enable font features for better readability */
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
+    /* Prevent text blur from transforms */
+    transform: none;
+    backface-visibility: visible;
+    will-change: auto;
+  }
+
+  /* 2025 CRM Typography System - Improved Readability */
+
+  /* Global font weight improvements using CSS variables */
+  p,
+  span,
+  div {
+    font-weight: var(--font-weight-body);
+  }
+
+  /* Small text gets medium weight for better visibility */
+  .text-xs,
+  .text-sm {
+    font-weight: var(--font-weight-small) !important;
+  }
+
+  /* Form elements get medium weight */
+  input,
+  textarea,
+  select,
+  label {
+    font-weight: var(--font-weight-label);
+  }
+
+  /* Table data gets medium weight for data readability */
+  td {
+    font-weight: var(--font-weight-data) !important;
+  }
+
+  /* Table headers get semibold weight */
+  th {
+    font-weight: var(--font-weight-heading) !important;
+  }
+
+  /* Headers maintain their weights */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: var(--font-weight-heading);
+  }
+
+  /* Buttons get medium weight */
+  button {
+    font-weight: var(--font-weight-button);
+  }
+
+  /* Status badges and small UI elements */
+  .badge,
+  [data-cell-type='status'] span {
+    font-weight: var(--font-weight-status) !important;
+  }
+
+  /* Specific optimizations for interactive elements */
+  button,
+  input,
+  textarea,
+  select {
+    /* Prevent blur on focus/interaction */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Enhanced image rendering for crisp images */
+  img,
+  svg,
+  canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    /* Prevent blur from scaling */
+    transform: none;
+    backface-visibility: visible;
+  }
+
+  /* Utility class for extra crisp text when needed */
+  .text-crisp {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
       'liga' 1;
+    transform: none;
+    backface-visibility: visible;
+    will-change: auto;
+  }
+
+  /* BEST PRACTICE: Prevent hardware acceleration blur on text elements */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  div,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  label {
+    /* Prevent text blur from hardware acceleration */
+    -webkit-backface-visibility: visible;
+    backface-visibility: visible;
+    /* Prevent blur from transforms */
+    transform: none;
+    /* Optimize for text rendering, not animations */
+    will-change: auto;
+  }
+
+  /* BEST PRACTICE: Prevent text blur from common causes - targeted approach */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  div,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  label {
+    /* Remove any text shadows that might cause blur */
+    text-shadow: none;
+    /* Prevent blur from filters */
+    filter: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   /* Enhanced table font rendering */
@@ -207,12 +475,33 @@ All colors MUST be HSL.
 
   /* Enhanced font rendering for better clarity */
   .font-clear {
+    font-family:
+      'Inter',
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
       'liga' 1;
+    font-variant-ligatures: common-ligatures;
+  }
+
+  /* High-DPI display optimization */
+  .text-sharp {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
+    font-variant-ligatures: common-ligatures;
+    /* Removed hardware acceleration that causes text blur */
   }
 
   /* Specific improvements for table text */
@@ -306,21 +595,11 @@ All colors MUST be HSL.
     border-color: hsl(var(--sidebar-primary-medium));
   }
 
-  /* Glassmorphism sidebar utilities */
+  /* Glassmorphism sidebar utilities - Remove backdrop filter that blurs text */
   .bg-sidebar-glass {
     background: var(--sidebar-glass-bg) !important;
-    backdrop-filter: var(--sidebar-glass-blur) !important;
+    /* backdrop-filter: var(--sidebar-glass-blur) !important; */
     border: 1px solid var(--sidebar-glass-border) !important;
-  }
-
-  /* Override Tailwind sidebar background */
-  .bg-sidebar {
-    background: var(--sidebar-glass-bg) !important;
-    backdrop-filter: var(--sidebar-glass-blur) !important;
-    border: 1px solid var(--sidebar-glass-border) !important;
-    box-shadow:
-      0 1px 3px 0 rgb(0 0 0 / 0.1),
-      0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
   }
 
   /* Focus and Hover States */
@@ -479,6 +758,48 @@ All colors MUST be HSL.
     border: 0;
   }
 
+  /* 2025 Typography Utility Classes */
+  .font-body {
+    font-weight: var(--font-weight-body);
+  }
+
+  .font-small {
+    font-weight: var(--font-weight-small);
+  }
+
+  .font-heading {
+    font-weight: var(--font-weight-heading);
+  }
+
+  .font-button {
+    font-weight: var(--font-weight-button);
+  }
+
+  .font-label {
+    font-weight: var(--font-weight-label);
+  }
+
+  .font-data {
+    font-weight: var(--font-weight-data);
+  }
+
+  .font-status {
+    font-weight: var(--font-weight-status);
+  }
+
+  /* Override classes for when you need different weights */
+  .font-light-override {
+    font-weight: 300 !important;
+  }
+
+  .font-normal-override {
+    font-weight: 400 !important;
+  }
+
+  .font-bold-override {
+    font-weight: 700 !important;
+  }
+
   /* High contrast mode support */
   @media (prefers-contrast: high) {
     .high-contrast {
@@ -551,5 +872,78 @@ All colors MUST be HSL.
     .sidebar a:focus-visible {
       outline: none;
     }
+  }
+
+  /* CRITICAL: Ensure sidebar stays fixed - highest priority */
+  aside[role='navigation'] {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    width: 224px !important;
+    z-index: 9999 !important;
+    transform: none !important;
+    will-change: auto !important;
+    overflow: hidden !important;
+  }
+
+  /* Ensure sidebar stays fixed and doesn't scroll */
+  aside[role='navigation'] {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    width: 14rem !important;
+    z-index: 30 !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+
+  /* Clean Sidebar Positioning */
+  .sidebar-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    width: 14rem !important;
+    z-index: 30 !important;
+    background-color: hsl(var(--sidebar-background));
+    overflow: hidden !important;
+    transform: none !important;
+  }
+
+  /* Mobile sidebar transforms - only apply on mobile */
+  @media (max-width: 1023px) {
+    .sidebar-container {
+      transform: translateX(-100%);
+      transition: transform 300ms ease-out;
+    }
+
+    .sidebar-container.sidebar-open {
+      transform: translateX(0);
+    }
+  }
+
+  /* Custom scrollbar for sidebar */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--sidebar-border)) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--sidebar-border));
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--sidebar-accent));
   }
 }

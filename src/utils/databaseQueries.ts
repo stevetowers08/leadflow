@@ -7,12 +7,12 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { DATABASE_SCHEMA, COMMON_SELECTIONS } from '@/types/databaseSchema';
+import { COMMON_SELECTIONS } from '@/types/databaseSchema';
 
-export interface DatabaseError {
+export interface DatabaseErrorInfo {
   code: string;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 export class DatabaseQueries {
@@ -74,7 +74,7 @@ export class DatabaseQueries {
           .from('user_profiles')
           .select('full_name')
           .eq('id', ownerId)
-          .single();
+          .maybeSingle();
 
         if (!userError && userData) {
           ownerName = userData.full_name;
@@ -200,8 +200,8 @@ export class DatabaseQueries {
     companyId: string,
     excludeId?: string
   ): Promise<{
-    leads: any[];
-    jobs: any[];
+    leads: Record<string, unknown>[];
+    jobs: Record<string, unknown>[];
   }> {
     try {
       const [leadsResult, jobsResult] = await Promise.all([
@@ -212,8 +212,6 @@ export class DatabaseQueries {
             `
             id, name, company_id, email_address, employee_location,
             company_role, stage, lead_score, linkedin_url,
-            linkedin_request_message, linkedin_connected_message,
-            linkedin_follow_up_message, automation_started_at,
             owner_id, created_at, updated_at
           `
           )
@@ -285,7 +283,7 @@ export class DatabaseError extends Error {
   constructor(
     public code: string,
     message: string,
-    public details?: any
+    public details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'DatabaseError';

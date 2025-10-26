@@ -23,12 +23,14 @@ export interface AuthConfig {
  * Get authentication configuration based on environment
  */
 export const getAuthConfig = (): AuthConfig => {
-  const isDevelopment = import.meta.env.MODE === 'development' || import.meta.env.DEV;
+  const isDevelopment =
+    import.meta.env.MODE === 'development' || import.meta.env.DEV;
   const bypassAuth = import.meta.env.VITE_BYPASS_AUTH === 'true';
 
   // Force bypass in development for now, or when explicitly enabled in production
   // For demo purposes, always bypass in production
-  const shouldBypass = isDevelopment || bypassAuth || import.meta.env.MODE === 'production';
+  const shouldBypass =
+    isDevelopment || bypassAuth || import.meta.env.MODE === 'production';
 
   console.log('🔍 Auth Config Debug:', {
     isDevelopment,
@@ -45,7 +47,7 @@ export const getAuthConfig = (): AuthConfig => {
     mockUser: {
       id:
         import.meta.env.VITE_MOCK_USER_ID ||
-        'f100f6bc-22d8-456f-bcce-44c7881b68ef',
+        '8fecfbaf-34e3-4106-9dd8-2cadeadea100',
       email: import.meta.env.VITE_MOCK_USER_EMAIL || 'test@example.com',
       role: import.meta.env.VITE_MOCK_USER_ROLE || 'owner',
       full_name: import.meta.env.VITE_MOCK_USER_NAME || 'Test User',

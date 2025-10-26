@@ -1,18 +1,19 @@
-# Empowr CRM
+# RECRUITEDGE
 
 A comprehensive AI-powered recruitment platform built with React, TypeScript, and Supabase.
 
 ## 📍 Repository
 
-**GitHub**: [https://github.com/stevetowers08/empowr-crm](https://github.com/stevetowers08/empowr-crm)
+**GitHub**: [https://github.com/stevetowers08/recruitedge](https://github.com/stevetowers08/recruitedge)
 
-This is the main repository for the Empowr CRM project, containing the complete codebase, documentation, and deployment configurations.
+This is the main repository for the RECRUITEDGE project, containing the complete codebase, documentation, and deployment configurations.
 
 ## 🚀 Quick Start
 
 1. **Environment Setup**: See [docs/SETUP/ENVIRONMENT_SETUP.md](docs/SETUP/ENVIRONMENT_SETUP.md)
-2. **Deployment**: See [docs/DEPLOYMENT/VERCEL_DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT/VERCEL_DEPLOYMENT_GUIDE.md) ✅ **Successfully Deployed!**
-3. **Security**: See [docs/SETUP/SECURITY_SETUP_GUIDE.md](docs/SETUP/SECURITY_SETUP_GUIDE.md)
+2. **Onboarding Dashboard**: Access `/onboarding` for guided setup flow ✅ **New Feature**
+3. **Deployment**: See [docs/DEPLOYMENT/VERCEL_DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT/VERCEL_DEPLOYMENT_GUIDE.md) ✅ **Successfully Deployed!**
+4. **Security**: See [docs/SETUP/SECURITY_SETUP_GUIDE.md](docs/SETUP/SECURITY_SETUP_GUIDE.md)
 
 ## 📚 Documentation
 
@@ -39,7 +40,6 @@ npm run db:schema companies name  # Show field type
 
 ### 🔌 Integrations
 
-- [LinkedIn Integration](docs/INTEGRATIONS/LINKEDIN_AUTH_SETUP.md)
 - [Gmail Integration](docs/INTEGRATIONS/GMAIL_INTEGRATION_SETUP.md)
 - [Google OAuth](docs/INTEGRATIONS/GOOGLE_OAUTH_SETUP.md)
 - [N8N Workflows](docs/INTEGRATIONS/N8N_INTEGRATION_GUIDE.md)
@@ -62,7 +62,6 @@ npm run db:schema companies name  # Show field type
 
 ### 🔧 Troubleshooting
 
-- [LinkedIn Troubleshooting](docs/TROUBLESHOOTING/LINKEDIN_API_KEY_TROUBLESHOOTING.md)
 - [White Screen Issues](docs/TROUBLESHOOTING/WHITE_SCREEN_TROUBLESHOOTING.md)
 
 ## 📄 Project Files
@@ -84,10 +83,30 @@ npm run db:schema companies name  # Show field type
 
 - **Pipeline Management** - Lead tracking and status management
 - **Company Management** - Company profiles with logo integration
-- **Job Management** - Job posting and tracking
+- **Job Management** - Simplified qualification workflow (New → Qualify → Skip)
+- **People Management** - Streamlined status workflow (New → Qualified → Proceed → Skip)
 - **AI Integration** - AI-powered lead scoring and insights
 - **Real-time Updates** - Live data synchronization
 - **Mobile Responsive** - Touch accessibility support
+
+## 🔄 Workflows
+
+### Job Qualification Workflow
+
+Simple 3-step process for qualifying job postings:
+
+1. **New** - Newly discovered jobs
+2. **Qualify** - Jobs that meet your criteria
+3. **Skip** - Jobs to skip for now
+
+### People Status Workflow
+
+Streamlined 4-step process for managing leads:
+
+1. **New** - New leads to review
+2. **Qualified** - Leads that meet criteria
+3. **Proceed** - Ready for CRM or email outreach
+4. **Skip** - Not pursuing at this time
 
 ## 🚀 Getting Started
 

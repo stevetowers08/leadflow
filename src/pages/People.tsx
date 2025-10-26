@@ -13,16 +13,28 @@
  */
 
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
+import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { FloatingActionBar } from '@/components/people/FloatingActionBar';
+import { StatusDropdown } from '@/components/people/StatusDropdown';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePopupNavigation } from '@/contexts/PopupNavigationContext';
 import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { supabase } from '@/integrations/supabase/client';
 import { getClearbitLogo } from '@/services/logoService';
+import {
+  bulkDeletePeople,
+  bulkFavouritePeople,
+  bulkExportPeople,
+  bulkSyncToCRM,
+  bulkAddToCampaign,
+} from '@/services/bulk/bulkPeopleService';
 import { Person, UserProfile } from '@/types/database';
 import { convertNumericScoreToStatus } from '@/utils/colorScheme';
 import { getStatusDisplayText } from '@/utils/statusUtils';
@@ -31,7 +43,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 const People: React.FC = () => {
   const { user } = useAuth();
-  const { openPopup } = usePopupNavigation();
   const { toast } = useToast();
 
   // State management
@@ -45,8 +56,21 @@ const People: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<string>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const [sortBy, setSortBy] = useState<string>('created_at');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // Slide-out state
+  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
+
+  // Bulk selection
+  const bulkSelection = useBulkSelection();
+
+  // Campaigns for bulk operations
+  const [campaigns, setCampaigns] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,21 +84,9 @@ const People: React.FC = () => {
     () => [
       { label: 'All Stages', value: 'all' },
       { label: getStatusDisplayText('new'), value: 'new' },
-      {
-        label: getStatusDisplayText('connection_requested'),
-        value: 'connection_requested',
-      },
-      { label: getStatusDisplayText('connected'), value: 'connected' },
-      { label: getStatusDisplayText('messaged'), value: 'messaged' },
-      { label: getStatusDisplayText('replied'), value: 'replied' },
-      {
-        label: getStatusDisplayText('meeting_booked'),
-        value: 'meeting_booked',
-      },
-      { label: getStatusDisplayText('meeting_held'), value: 'meeting_held' },
-      { label: getStatusDisplayText('disqualified'), value: 'disqualified' },
-      { label: getStatusDisplayText('in queue'), value: 'in queue' },
-      { label: getStatusDisplayText('lead_lost'), value: 'lead_lost' },
+      { label: getStatusDisplayText('qualified'), value: 'qualified' },
+      { label: getStatusDisplayText('proceed'), value: 'proceed' },
+      { label: getStatusDisplayText('skip'), value: 'skip' },
     ],
     []
   );
@@ -133,6 +145,13 @@ const People: React.FC = () => {
 
         setPeople(normalizedPeople as Person[]);
         setUsers(usersResult.data || []);
+
+        // Fetch campaigns for bulk operations
+        const { data: campaignsData } = await supabase
+          .from('campaigns')
+          .select('id, name')
+          .order('name');
+        setCampaigns(campaignsData || []);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch data');
@@ -155,7 +174,9 @@ const People: React.FC = () => {
 
     // Status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(person => person.stage === statusFilter);
+      filtered = filtered.filter(
+        person => person.people_stage === statusFilter
+      );
     }
 
     // User filter
@@ -257,13 +278,180 @@ const People: React.FC = () => {
     [users, user]
   );
 
-  // Handle row click - memoized for performance
+  // Handle row click - open slide-out panel (only if not clicking checkbox)
   const handleRowClick = useCallback(
-    (person: Person) => {
-      openPopup('lead', person.id, person.name || 'Unknown');
+    (person: Person, event?: React.MouseEvent) => {
+      // Don't open slide-out if clicking checkbox or status dropdown
+      if (
+        event?.target &&
+        (event.target as HTMLElement).closest(
+          '[data-bulk-checkbox], [data-radix-popper-content-wrapper]'
+        )
+      ) {
+        return;
+      }
+      setSelectedPersonId(person.id);
+      setIsSlideOutOpen(true);
     },
-    [openPopup]
+    []
   );
+
+  // Bulk operation handlers
+  const handleBulkDelete = useCallback(async () => {
+    const idsToDelete = bulkSelection.getSelectedIds(
+      filteredPeople.map(p => p.id)
+    );
+    const result = await bulkDeletePeople(idsToDelete);
+
+    toast({
+      title: result.success ? 'Success' : 'Partial Success',
+      description: result.message,
+      variant: result.success ? 'default' : 'destructive',
+    });
+
+    // Refresh data and clear selection
+    if (result.successCount > 0) {
+      bulkSelection.deselectAll();
+      // Trigger refresh
+      const { data, error } = await supabase
+        .from('people')
+        .select(`*, companies!left(name, website)`)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        const normalizedPeople = data.map(
+          (person: Record<string, unknown>) => ({
+            ...person,
+            company_name:
+              (person.companies as Record<string, unknown>)?.name || null,
+            company_website:
+              (person.companies as Record<string, unknown>)?.website || null,
+          })
+        );
+        setPeople(normalizedPeople as Person[]);
+      }
+    }
+  }, [bulkSelection, filteredPeople, toast]);
+
+  const handleBulkFavourite = useCallback(async () => {
+    const idsToUpdate = bulkSelection.getSelectedIds(
+      filteredPeople.map(p => p.id)
+    );
+    const result = await bulkFavouritePeople(idsToUpdate, true);
+
+    toast({
+      title: result.success ? 'Success' : 'Partial Success',
+      description: result.message,
+    });
+
+    if (result.successCount > 0) {
+      bulkSelection.deselectAll();
+      // Refresh data
+      const { data } = await supabase
+        .from('people')
+        .select(`*, companies!left(name, website)`)
+        .order('created_at', { ascending: false });
+
+      if (data) {
+        const normalizedPeople = data.map(
+          (person: Record<string, unknown>) => ({
+            ...person,
+            company_name:
+              (person.companies as Record<string, unknown>)?.name || null,
+            company_website:
+              (person.companies as Record<string, unknown>)?.website || null,
+          })
+        );
+        setPeople(normalizedPeople as Person[]);
+      }
+    }
+  }, [bulkSelection, filteredPeople, toast]);
+
+  const handleBulkExport = useCallback(async () => {
+    const idsToExport = bulkSelection.getSelectedIds(
+      filteredPeople.map(p => p.id)
+    );
+    const result = await bulkExportPeople(idsToExport);
+
+    toast({
+      title: result.success ? 'Success' : 'Error',
+      description: result.message,
+      variant: result.success ? 'default' : 'destructive',
+    });
+  }, [bulkSelection, filteredPeople, toast]);
+
+  const handleBulkSyncCRM = useCallback(async () => {
+    const idsToSync = bulkSelection.getSelectedIds(
+      filteredPeople.map(p => p.id)
+    );
+    const result = await bulkSyncToCRM(idsToSync);
+
+    toast({
+      title: result.success ? 'Success' : 'Error',
+      description: result.message,
+      variant: result.success ? 'default' : 'destructive',
+    });
+  }, [bulkSelection, filteredPeople, toast]);
+
+  const handleBulkAddToCampaign = useCallback(
+    async (campaignId: string) => {
+      const idsToAdd = bulkSelection.getSelectedIds(
+        filteredPeople.map(p => p.id)
+      );
+      const result = await bulkAddToCampaign(idsToAdd, campaignId);
+
+      toast({
+        title: result.success ? 'Success' : 'Partial Success',
+        description: result.message,
+      });
+
+      if (result.successCount > 0) {
+        bulkSelection.deselectAll();
+      }
+    },
+    [bulkSelection, filteredPeople, toast]
+  );
+
+  // Handle person stage update
+  const handlePersonUpdate = useCallback(() => {
+    // Refresh the people data
+    const fetchData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('people')
+          .select(
+            `
+            *,
+            companies!left(name, website)
+          `
+          )
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Normalize the data to match our Person interface
+        const normalizedPeople = (data || []).map(
+          (person: Record<string, unknown>) => ({
+            ...person,
+            company_name:
+              (person.companies as Record<string, unknown>)?.name || null,
+            company_website:
+              (person.companies as Record<string, unknown>)?.website || null,
+          })
+        );
+
+        setPeople(normalizedPeople as Person[]);
+      } catch (err) {
+        console.error('Error refreshing people:', err);
+        toast({
+          title: 'Error',
+          description: 'Failed to refresh people data',
+          variant: 'destructive',
+        });
+      }
+    };
+    fetchData();
+  }, [toast]);
 
   // Handle search - memoized for performance
   const handleSearch = useCallback((value: string) => {
@@ -276,26 +464,114 @@ const People: React.FC = () => {
     setShowFavoritesOnly(prev => !prev);
   }, []);
 
+  // Handle search toggle - memoized for performance
+  const handleSearchToggle = useCallback(() => {
+    setIsSearchActive(prev => !prev);
+  }, []);
+
+  // Handle search change - memoized for performance
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page
+  }, []);
+
   // Handle search modal toggle - memoized for performance
   const handleSearchModalToggle = useCallback(() => {
     setIsSearchModalOpen(prev => !prev);
   }, []);
 
+  // Keyboard shortcuts (Cmd/Ctrl+A for select all)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl+A to select all
+      if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+        e.preventDefault();
+        const allIds = paginatedPeople.map(p => p.id);
+        if (bulkSelection.selectedCount === allIds.length) {
+          bulkSelection.deselectAll();
+        } else {
+          bulkSelection.selectAll(allIds);
+        }
+      }
+      // Escape to clear selection
+      if (e.key === 'Escape' && bulkSelection.selectedCount > 0) {
+        bulkSelection.deselectAll();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [bulkSelection, paginatedPeople]);
+
+  // Calculate actual selected count
+  const actualSelectedCount = bulkSelection.getSelectedIds(
+    paginatedPeople.map(p => p.id)
+  ).length;
+
   // Table columns configuration
   const columns: ColumnConfig<Person>[] = useMemo(
     () => [
       {
+        key: 'checkbox',
+        label: (
+          <div className='flex items-center justify-center' data-bulk-checkbox>
+            <Checkbox
+              checked={
+                paginatedPeople.length > 0 &&
+                paginatedPeople.every(p => bulkSelection.isSelected(p.id))
+              }
+              onCheckedChange={checked => {
+                if (checked) {
+                  bulkSelection.selectAll(paginatedPeople.map(p => p.id));
+                } else {
+                  bulkSelection.deselectAll();
+                }
+              }}
+              aria-label='Select all people'
+            />
+          </div>
+        ),
+        width: '50px',
+        cellType: 'regular',
+        align: 'center',
+        render: (_, person) => (
+          <div
+            className='flex items-center justify-center'
+            data-bulk-checkbox
+            onClick={e => e.stopPropagation()}
+          >
+            <Checkbox
+              checked={bulkSelection.isSelected(person.id)}
+              onCheckedChange={() => bulkSelection.toggleItem(person.id)}
+              aria-label={`Select ${person.name}`}
+            />
+          </div>
+        ),
+      },
+      {
         key: 'stage',
         label: 'Status',
-        width: '120px',
-        cellType: 'status',
+        width: '150px',
+        cellType: 'regular',
         align: 'center',
-        getStatusValue: person => person.stage || 'new',
-        render: (_, person) => {
-          const status = person.stage || 'new';
-          const displayText = getStatusDisplayText(status);
-          return <span className='text-xs font-medium'>{displayText}</span>;
-        },
+        render: (_, person) => (
+          <StatusDropdown
+            entityId={person.id}
+            entityType='people'
+            currentStatus={person.people_stage || 'new_lead'}
+            availableStatuses={[
+              'new_lead',
+              'message_sent',
+              'replied',
+              'interested',
+              'meeting_scheduled',
+              'meeting_completed',
+              'follow_up',
+              'not_interested',
+            ]}
+            onStatusChange={handlePersonUpdate}
+          />
+        ),
       },
       {
         key: 'company_name',
@@ -331,8 +607,8 @@ const People: React.FC = () => {
                 <Building2 className='h-3 w-3' />
               </div>
             </div>
-            <div className='min-w-0 cursor-pointer hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors duration-150'>
-              <div className='text-sm font-medium text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis'>
+            <div className='min-w-0 cursor-pointer hover:bg-muted rounded-md p-1 -m-1 transition-colors duration-150'>
+              <div className='text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
                 {person.company_name || '-'}
               </div>
             </div>
@@ -454,7 +730,7 @@ const People: React.FC = () => {
         ),
       },
     ],
-    [users]
+    [paginatedPeople, bulkSelection, handlePersonUpdate]
   );
 
   // Stats for People page
@@ -488,7 +764,7 @@ const People: React.FC = () => {
 
   if (loading) {
     return (
-      <Page stats={stats} title='People' hideHeader>
+      <Page stats={stats} title='Qualified Leads' hideHeader>
         <div className='flex items-center justify-center h-64'>
           <div className='text-muted-foreground'>Loading people...</div>
         </div>
@@ -498,7 +774,7 @@ const People: React.FC = () => {
 
   if (error) {
     return (
-      <Page stats={stats} title='People' hideHeader>
+      <Page stats={stats} title='Qualified Leads' hideHeader>
         <div className='flex items-center justify-center h-64'>
           <div className='text-destructive'>Error: {error}</div>
         </div>
@@ -507,42 +783,48 @@ const People: React.FC = () => {
   }
 
   return (
-    <Page stats={stats} title='People' hideHeader>
-      {/* Filter Controls */}
-      <FilterControls
-        statusOptions={statusOptions}
-        userOptions={userOptions}
-        sortOptions={sortOptions}
-        statusFilter={statusFilter}
-        selectedUser={selectedUser}
-        sortBy={sortBy}
-        showFavoritesOnly={showFavoritesOnly}
-        onStatusChange={setStatusFilter}
-        onUserChange={setSelectedUser}
-        onSortChange={setSortBy}
-        onFavoritesToggle={handleFavoritesToggle}
-        onSearchClick={handleSearchModalToggle}
-      />
+    <Page stats={stats} title='Qualified Leads' hideHeader>
+      <div className='space-y-4'>
+        {/* Filter Controls */}
+        <FilterControls
+          statusOptions={statusOptions}
+          userOptions={userOptions}
+          sortOptions={sortOptions}
+          statusFilter={statusFilter}
+          selectedUser={selectedUser}
+          sortBy={sortBy}
+          showFavoritesOnly={showFavoritesOnly}
+          searchTerm={searchTerm}
+          isSearchActive={isSearchActive}
+          onStatusChange={setStatusFilter}
+          onUserChange={setSelectedUser}
+          onSortChange={setSortBy}
+          onFavoritesToggle={handleFavoritesToggle}
+          onSearchChange={handleSearchChange}
+          onSearchToggle={handleSearchToggle}
+        />
 
-      {/* Unified Table */}
-      <UnifiedTable
-        data={paginatedPeople}
-        columns={columns}
-        onRowClick={handleRowClick}
-        loading={loading}
-        emptyMessage='No people found'
-      />
+        {/* Unified Table */}
+        <UnifiedTable
+          data={paginatedPeople}
+          columns={columns}
+          scrollable={true}
+          onRowClick={handleRowClick}
+          loading={loading}
+          emptyMessage='No people found'
+        />
 
-      {/* Pagination Controls */}
-      <PaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        pageSize={pageSize}
-        totalItems={filteredPeople.length}
-        onPageChange={setCurrentPage}
-        onPageSizeChange={setPageSize}
-        pageSizeOptions={[10, 25, 50, 100]}
-      />
+        {/* Pagination Controls */}
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={filteredPeople.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[10, 25, 50, 100]}
+        />
+      </div>
 
       {/* Search Modal */}
       <SearchModal
@@ -551,6 +833,30 @@ const People: React.FC = () => {
         value={searchTerm}
         onChange={setSearchTerm}
         onSearch={handleSearch}
+      />
+
+      {/* Person Details Slide-Out */}
+      <PersonDetailsSlideOut
+        personId={selectedPersonId}
+        isOpen={isSlideOutOpen}
+        onClose={() => {
+          setIsSlideOutOpen(false);
+          setSelectedPersonId(null);
+        }}
+        onUpdate={handlePersonUpdate}
+      />
+
+      {/* Floating Action Bar for Bulk Operations */}
+      <FloatingActionBar
+        selectedCount={actualSelectedCount}
+        isAllSelected={bulkSelection.isAllSelected}
+        onDelete={handleBulkDelete}
+        onFavourite={handleBulkFavourite}
+        onExport={handleBulkExport}
+        onSyncCRM={handleBulkSyncCRM}
+        onAddToCampaign={handleBulkAddToCampaign}
+        onClear={bulkSelection.deselectAll}
+        campaigns={campaigns}
       />
     </Page>
   );

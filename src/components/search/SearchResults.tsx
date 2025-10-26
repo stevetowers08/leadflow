@@ -84,7 +84,6 @@ const SearchResultItem: React.FC<{
   result: SearchResult;
   onClick?: (result: SearchResult) => void;
 }> = ({ result, onClick }) => {
-  const Icon = getTypeIcon(result.type);
   const typeColor = getTypeColor(result.type);
   const typeLabel = getTypeLabel(result.type);
 
@@ -109,7 +108,9 @@ const SearchResultItem: React.FC<{
               typeColor
             )}
           >
-            <Icon className='w-5 h-5' />
+            {React.createElement(getTypeIcon(result.type), {
+              className: 'w-5 h-5',
+            })}
           </div>
 
           {/* Content */}

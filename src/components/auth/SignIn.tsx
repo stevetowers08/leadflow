@@ -1,27 +1,10 @@
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Loader2,
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  ArrowRight,
-  Shield,
-  Users,
-} from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/contexts/AuthContext';
+import React, { useState } from 'react';
 
 export const SignIn: React.FC = () => {
   const [loading, setLoading] = useState<string | null>(null);
@@ -98,12 +81,7 @@ export const SignIn: React.FC = () => {
     <div className='min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4'>
       {/* Company Logo - Top Left */}
       <div className='absolute top-6 left-6'>
-        <div className='flex items-center space-x-2'>
-          <div className='w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center'>
-            <Shield className='w-5 h-5 text-white' />
-          </div>
-          <span className='text-xl font-bold text-gray-800'>EMPOWR</span>
-        </div>
+        <RecruitEdgeLogoHorizontal size={32} />
       </div>
 
       {/* Main Login Card */}

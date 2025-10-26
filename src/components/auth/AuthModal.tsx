@@ -499,7 +499,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       className='w-full h-10 px-3 border border-gray-200 rounded-md focus:border-sidebar-primary focus:ring-sidebar-primary'
                       disabled={loading !== null}
                     >
-                      <option value='both'>Both Mentor & Mentee</option>
+                      <option value='both'>Both Mentor &amp; Mentee</option>
                       <option value='mentor'>Mentor</option>
                       <option value='mentee'>Mentee</option>
                     </select>

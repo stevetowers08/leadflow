@@ -11,16 +11,17 @@ import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { cn } from '@/lib/utils';
 import {
   BarChart3,
+  BookOpen,
   Bot,
   Briefcase,
   Building2,
   Home,
+  Megaphone,
   MessageSquare,
   MoreHorizontal,
   Settings,
   Target,
   Users,
-  Megaphone,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -43,8 +44,14 @@ const allNavItems: NavItem[] = [
     isPrimary: true,
   },
   {
+    to: '/onboarding',
+    label: 'Getting Started',
+    icon: <BookOpen className='h-5 w-5' />,
+    isPrimary: true,
+  },
+  {
     to: '/people',
-    label: 'People',
+    label: 'Qualified Leads',
     icon: <Users className='h-5 w-5' />,
     isPrimary: true,
     permission: 'people',
@@ -58,7 +65,7 @@ const allNavItems: NavItem[] = [
   },
   {
     to: '/jobs',
-    label: 'Jobs',
+    label: 'Job Intelligence',
     icon: <Briefcase className='h-5 w-5' />,
     isPrimary: true,
     permission: 'jobs',

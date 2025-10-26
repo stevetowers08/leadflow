@@ -1,3 +1,4 @@
+import { useClientId } from '@/hooks/useClientId';
 import { supabase } from '@/integrations/supabase/client';
 import {
   CACHE_PATTERNS,
@@ -72,7 +73,7 @@ export function useEnhancedDataService() {
 export function useEnhancedLeadsService(
   pagination: { page: number; pageSize: number },
   sort: { column: string; ascending: boolean },
-  filters: Record<string, any>
+  filters: Record<string, unknown>
 ) {
   const { invalidateCache } = useAdvancedCaching(
     ['leads', pagination, sort, filters],
@@ -111,7 +112,7 @@ export function useEnhancedLeadsService(
       }
 
       if (status && status !== 'all') {
-        query = query.eq('stage', status);
+        query = query.eq('people_stage', status);
       }
 
       // Apply other filters
@@ -164,7 +165,7 @@ export function useEnhancedLeadsService(
 export function useEnhancedCompaniesService(
   pagination: { page: number; pageSize: number },
   sort: { column: string; ascending: boolean },
-  filters: Record<string, any>
+  filters: Record<string, unknown>
 ) {
   const { invalidateCache } = useAdvancedCaching(
     ['companies', pagination, sort, filters],
@@ -247,15 +248,29 @@ export function useEnhancedCompaniesService(
 export function useEnhancedJobsService(
   pagination: { page: number; pageSize: number },
   sort: { column: string; ascending: boolean },
-  filters: Record<string, any>
+  filters: Record<string, unknown>
 ) {
+  const { data: clientId, isLoading: clientIdLoading } = useClientId();
+
   const { invalidateCache } = useAdvancedCaching(
-    ['jobs', pagination, sort, filters],
+    ['jobs', pagination, sort, filters, clientId],
     async () => {
+      // Don't fetch if client ID is still loading
+      if (clientIdLoading || !clientId) {
+        return {
+          data: [],
+          totalCount: 0,
+          hasMore: false,
+          page: pagination.page,
+          pageSize: pagination.pageSize,
+        };
+      }
+
       const { page, pageSize } = pagination;
       const { column, ascending } = sort;
       const { search, priority, ...otherFilters } = filters;
 
+      // CLIENT-SPECIFIC JOBS ONLY (jobs assigned to this client)
       let query = supabase.from('jobs').select(
         `
           id,
@@ -267,15 +282,25 @@ export function useEnhancedJobsService(
           automation_active,
           company_id,
           created_at,
+          qualification_status,
           companies!inner(
             id,
             name,
             website,
             industry
+          ),
+          client_jobs!client_jobs_job_id_fkey (
+            status,
+            priority_level,
+            qualified_at,
+            qualified_by
           )
         `,
         { count: 'exact' }
       );
+
+      // Only show jobs assigned to this client
+      query = query.eq('client_jobs.client_id', clientId);
 
       // Apply filters
       if (search) {

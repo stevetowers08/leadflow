@@ -1,7 +1,6 @@
 import { cn } from '@/lib/utils';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
 import React from 'react';
-import '../../styles/table-system.css';
 
 // TypeScript Interfaces for Column Configuration
 export interface ColumnConfig<T = unknown> {
@@ -27,6 +26,7 @@ export interface UnifiedTableProps<T = unknown> {
   onRowClick?: (row: T, index: number) => void;
   loading?: boolean;
   emptyMessage?: string;
+  scrollable?: boolean;
 }
 
 // Compound Component Pattern - Table Sub-components
@@ -34,14 +34,7 @@ export const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead
-    ref={ref}
-    className={cn(
-      'transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50',
-      className
-    )}
-    {...props}
-  />
+  <thead ref={ref} className={cn('bg-gray-50', className)} {...props} />
 ));
 
 export const TableBody = React.forwardRef<
@@ -61,7 +54,7 @@ export const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'data-[state=selected]:bg-muted border-b border-gray-200 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-300 transition-colors duration-200 group cursor-pointer relative min-h-[48px]',
+      'hover:bg-gray-50 transition-colors duration-150 cursor-pointer',
       onClick && 'cursor-pointer',
       className
     )}
@@ -81,8 +74,6 @@ export const TableCell = React.forwardRef<
     statusValue?: string; // For status cells to get unified colors
   }
 >(({ className, cellType, align = 'left', statusValue, ...props }, ref) => {
-  const dataAttributes = cellType ? { 'data-cell-type': cellType } : {};
-
   // Memoize status classes to prevent recalculation on every render
   const statusClasses = React.useMemo(() => {
     if (cellType === 'status' && statusValue) {
@@ -98,16 +89,13 @@ export const TableCell = React.forwardRef<
     <td
       ref={ref}
       className={cn(
-        'align-middle [&:has([role=checkbox])]:pr-0 px-4 border-r border-gray-200 last:border-r-0 group-hover:border-r-gray-300 group-hover:last:border-r-0 min-h-[44px]',
+        'px-4 py-2 text-sm',
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
-        // Apply table-system CSS classes for cell types
-        cellType && 'table-system-cell',
         // Apply unified status colors for full-cell backgrounds
         statusClasses,
         className
       )}
-      {...dataAttributes}
       {...props}
     />
   );
@@ -117,19 +105,28 @@ export const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement> & {
     align?: ColumnConfig['align'];
+    isFirst?: boolean;
+    isLast?: boolean;
   }
->(({ className, align = 'left', ...props }, ref) => (
-  <th
-    ref={ref}
-    className={cn(
-      'align-middle [&:has([role=checkbox])]:pr-0 text-sm font-semibold tracking-wide bg-gray-50/80 backdrop-blur-sm',
-      align === 'center' && 'text-center',
-      align === 'right' && 'text-right',
-      className
-    )}
-    {...props}
-  />
-));
+>(
+  (
+    { className, align = 'left', isFirst = false, isLast = false, ...props },
+    ref
+  ) => (
+    <th
+      ref={ref}
+      className={cn(
+        'px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide',
+        isFirst && 'rounded-tl-lg',
+        isLast && 'rounded-tr-lg',
+        align === 'center' && 'text-center',
+        align === 'right' && 'text-right',
+        className
+      )}
+      {...props}
+    />
+  )
+);
 
 // Main UnifiedTable Component
 export const UnifiedTable = React.memo(
@@ -143,12 +140,34 @@ export const UnifiedTable = React.memo(
     onRowClick,
     loading = false,
     emptyMessage = 'No data available',
+    scrollable = false,
   }: UnifiedTableProps<T>) => {
+    // State for scroll-based shadow
+    const [isScrolled, setIsScrolled] = React.useState(false);
+    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+    // Handle scroll events to show/hide shadow
+    const handleScroll = React.useCallback(() => {
+      if (scrollContainerRef.current) {
+        const scrollTop = scrollContainerRef.current.scrollTop;
+        setIsScrolled(scrollTop > 0);
+      }
+    }, []);
+
+    // Add scroll listener when scrollable
+    React.useEffect(() => {
+      const container = scrollContainerRef.current;
+      if (scrollable && container) {
+        container.addEventListener('scroll', handleScroll);
+        return () => container.removeEventListener('scroll', handleScroll);
+      }
+    }, [scrollable, handleScroll]);
+
     // Memoize the table structure to prevent unnecessary re-renders
     const tableStructure = React.useMemo(() => {
       if (loading) {
         return (
-          <div className='bg-white rounded-lg border border-gray-200 w-full overflow-hidden'>
+          <div className='bg-card rounded-lg border shadow-sm w-full overflow-hidden'>
             <div className='flex items-center justify-center h-32'>
               <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
             </div>
@@ -158,7 +177,7 @@ export const UnifiedTable = React.memo(
 
       if (!data || data.length === 0) {
         return (
-          <div className='bg-white rounded-lg border border-gray-200 w-full overflow-hidden'>
+          <div className='bg-card rounded-lg border shadow-sm w-full overflow-hidden'>
             <div className='flex items-center justify-center h-32 text-gray-500'>
               {emptyMessage}
             </div>
@@ -169,86 +188,102 @@ export const UnifiedTable = React.memo(
       return (
         <div
           className={cn(
-            'bg-white rounded-lg border border-gray-200 w-full overflow-x-auto',
-            className
+            'bg-card rounded-lg border shadow-sm w-full overflow-hidden',
+            scrollable ? 'flex-1 flex flex-col min-h-0' : 'overflow-x-auto'
           )}
         >
-          <table className='table-system w-full'>
-            <TableHeader>
-              <tr>
-                {columns.map(column => (
-                  <TableHead
-                    key={column.key}
-                    scope='col'
-                    align={column.align}
-                    className={
-                      column.label === '' ? 'border-none bg-transparent' : ''
-                    }
-                    style={{
-                      width: column.width,
-                      minWidth: column.minWidth || column.width,
-                    }}
-                  >
-                    <div
-                      className={cn(
-                        'flex items-center gap-2',
-                        column.align === 'center' && 'justify-center',
-                        column.align === 'right' && 'justify-end'
-                      )}
+          <div
+            ref={scrollContainerRef}
+            className={cn(
+              scrollable ? 'flex-1 overflow-auto min-h-0' : 'w-full'
+            )}
+            style={
+              scrollable ? { maxHeight: 'calc(100vh - 200px)' } : undefined
+            }
+          >
+            <table className='w-full'>
+              <TableHeader
+                className={
+                  scrollable
+                    ? `sticky top-0 z-20 ${isScrolled ? 'shadow-sm' : ''}`
+                    : ''
+                }
+              >
+                <tr>
+                  {columns.map((column, index) => (
+                    <TableHead
+                      key={column.key}
+                      scope='col'
+                      align={column.align}
+                      isFirst={index === 0}
+                      isLast={index === columns.length - 1}
+                      style={{
+                        width: column.width,
+                        minWidth: column.minWidth || column.width,
+                      }}
                     >
-                      <span>{column.label}</span>
-                    </div>
-                  </TableHead>
-                ))}
-              </tr>
-            </TableHeader>
+                      {column.label}
+                    </TableHead>
+                  ))}
+                </tr>
+              </TableHeader>
 
-            <TableBody>
-              {data.map((row, index) => (
-                <TableRow
-                  key={index}
-                  index={index}
-                  onClick={() => onRowClick?.(row, index)}
-                >
-                  {columns.map(column => {
-                    const value = (row as Record<string, unknown>)[column.key];
+              <TableBody>
+                {data.map((row, index) => (
+                  <TableRow
+                    key={index}
+                    index={index}
+                    onClick={() => onRowClick?.(row, index)}
+                  >
+                    {columns.map(column => {
+                      const value = (row as Record<string, unknown>)[
+                        column.key
+                      ];
 
-                    // Get status value for status and ai-score cells
-                    const statusValue =
-                      (column.cellType === 'status' ||
-                        column.cellType === 'ai-score') &&
-                      column.getStatusValue
-                        ? column.getStatusValue(row)
-                        : undefined;
+                      // Get status value for status and ai-score cells
+                      const statusValue =
+                        (column.cellType === 'status' ||
+                          column.cellType === 'ai-score') &&
+                        column.getStatusValue
+                          ? column.getStatusValue(row)
+                          : undefined;
 
-                    return (
-                      <TableCell
-                        key={column.key}
-                        cellType={column.cellType}
-                        align={column.align}
-                        statusValue={statusValue}
-                        style={{
-                          width: column.width,
-                          minWidth: column.minWidth || column.width,
-                        }}
-                      >
-                        <div>
+                      return (
+                        <TableCell
+                          key={column.key}
+                          cellType={column.cellType}
+                          align={column.align}
+                          statusValue={statusValue}
+                          style={{
+                            width: column.width,
+                            minWidth: column.minWidth || column.width,
+                          }}
+                        >
                           {column.render ? (
                             column.render(value, row, index)
                           ) : (
                             <span>{value || '-'}</span>
                           )}
-                        </div>
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableBody>
-          </table>
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </table>
+          </div>
         </div>
       );
-    }, [data, columns, loading, emptyMessage, className, onRowClick]);
+    }, [
+      data,
+      columns,
+      loading,
+      emptyMessage,
+      className,
+      onRowClick,
+      scrollable,
+      isScrolled,
+    ]);
 
     return tableStructure;
   }

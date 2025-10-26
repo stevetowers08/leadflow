@@ -1,15 +1,16 @@
-import React, {
+import {
+  ConfirmationConfig,
+  ConfirmationDialog,
+  ConfirmationType,
+  confirmationConfigs,
+} from '@/components/ui/confirmation-dialog';
+import {
+  ReactNode,
   createContext,
+  useCallback,
   useContext,
   useState,
-  useCallback,
-  ReactNode,
 } from 'react';
-import {
-  ConfirmationDialog,
-  ConfirmationConfig,
-  ConfirmationType,
-} from '@/components/ui/confirmation-dialog';
 
 interface ConfirmationState {
   isOpen: boolean;
@@ -102,9 +103,6 @@ export function ConfirmationProvider({ children }: ConfirmationProviderProps) {
         customContent?: ReactNode;
       }
     ) => {
-      const {
-        confirmationConfigs,
-      } = require('@/components/ui/confirmation-dialog');
       const baseConfig = confirmationConfigs[type];
 
       const config: ConfirmationConfig = {
@@ -137,13 +135,13 @@ export function ConfirmationProvider({ children }: ConfirmationProviderProps) {
         setState(prev => ({ ...prev, isLoading: false }));
       }
     }
-  }, [state.onConfirm]);
+  }, [state.onConfirm, state]);
 
   const handleCancel = useCallback(() => {
     if (state.onCancel) {
       state.onCancel();
     }
-  }, [state.onCancel]);
+  }, [state.onCancel, state]);
 
   const contextValue: ConfirmationContextType = {
     showConfirmation,

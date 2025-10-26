@@ -33,7 +33,7 @@ export class SupabaseWithTimezone {
     select: string = '*',
     timezoneColumns: string[] = []
   ) {
-    let query = supabase.from(table).select(select);
+    const query = supabase.from(table).select(select);
 
     // If we have timezone columns, we need to use raw SQL
     if (timezoneColumns.length > 0) {
@@ -57,7 +57,7 @@ export class SupabaseWithTimezone {
   /**
    * Insert with automatic UTC conversion
    */
-  async insertWithTimezone(table: string, data: any) {
+  async insertWithTimezone(table: string, data: Record<string, unknown>) {
     // Convert any date fields to UTC
     const processedData = this.convertDatesToUTC(data);
 
@@ -67,7 +67,11 @@ export class SupabaseWithTimezone {
   /**
    * Update with automatic UTC conversion
    */
-  async updateWithTimezone(table: string, data: any, filter: any) {
+  async updateWithTimezone(
+    table: string,
+    data: Record<string, unknown>,
+    filter: Record<string, unknown>
+  ) {
     // Convert any date fields to UTC
     const processedData = this.convertDatesToUTC(data);
 
@@ -77,7 +81,9 @@ export class SupabaseWithTimezone {
   /**
    * Convert date fields to UTC
    */
-  private convertDatesToUTC(data: any): any {
+  private convertDatesToUTC(
+    data: Record<string, unknown>
+  ): Record<string, unknown> {
     const processed = { ...data };
 
     // List of common date field names
@@ -92,10 +98,8 @@ export class SupabaseWithTimezone {
       'last_reply_at',
       'connection_request_date',
       'connection_accepted_date',
-      'message_sent_date',
       'response_date',
       'meeting_date',
-      'email_sent_date',
       'email_reply_date',
       'stage_updated',
     ];

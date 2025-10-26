@@ -3,25 +3,20 @@
  * Implements CRM mobile best practices for lead scoring visualization
  */
 
-import React, { useState, useMemo } from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import {
   Brain,
-  TrendingUp,
-  TrendingDown,
-  Target,
-  Star,
-  Zap,
-  Users,
-  Building2,
-  ChevronDown,
-  ChevronUp,
   Info,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 
 interface LeadScoreData {
   id: string;
@@ -43,7 +38,17 @@ interface MobileLeadScoringProps {
   loading?: boolean;
 }
 
-const scoreRanges = [
+interface ScoreRange {
+  min: number;
+  max: number;
+  label: string;
+  color: string;
+  textColor: string;
+  bgColor: string;
+  borderColor: string;
+}
+
+const scoreRanges: ScoreRange[] = [
   {
     min: 80,
     max: 100,
@@ -248,12 +253,12 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
         {/* Controls */}
         <div className='flex items-center justify-between gap-2'>
           <div className='flex gap-1'>
-            {['score', 'priority', 'activity'].map(sort => (
+            {(['score', 'priority', 'activity'] as const).map(sort => (
               <Button
                 key={sort}
                 variant={sortBy === sort ? 'default' : 'outline'}
                 size='sm'
-                onClick={() => setSortBy(sort as any)}
+                onClick={() => setSortBy(sort)}
                 className='text-xs px-2 py-1 h-7'
               >
                 {sort === 'score'
@@ -404,7 +409,7 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
 
 interface MobileLeadCardProps {
   lead: LeadScoreData & {
-    scoreRange: any;
+    scoreRange: ScoreRange;
     numericScore: number;
     priorityValue: number;
   };
@@ -421,13 +426,11 @@ const MobileLeadCard: React.FC<MobileLeadCardProps> = ({
     onLeadClick(lead);
   };
 
-  const getScoreTrend = () => {
+  const [trend] = useState(() => {
     // Mock trend calculation - in real app, this would compare with historical data
-    const trends = ['up', 'down', 'stable'];
+    const trends = ['up', 'down', 'stable'] as const;
     return trends[Math.floor(Math.random() * trends.length)];
-  };
-
-  const trend = getScoreTrend();
+  });
 
   return (
     <Card

@@ -4,9 +4,8 @@
  */
 
 import { DropdownSelect } from '@/components/ui/dropdown-select';
-import { SearchIconButton } from '@/components/ui/search-modal';
 import { cn } from '@/lib/utils';
-import { Star } from 'lucide-react';
+import { Search, Star } from 'lucide-react';
 import React from 'react';
 import { designTokens } from './tokens';
 
@@ -122,15 +121,13 @@ export const Page: React.FC<PageProps> = ({
   return (
     <>
       {/* Full-screen background */}
-      <div className='fixed inset-0 bg-white -z-10' />
+      <div className='fixed inset-0 bg-background -z-10' />
 
-      {/* Full-width content with proper overflow handling for hover elements */}
-      <div className='relative h-screen w-full'>
-        <div
-          className={cn('space-y-6 w-full h-full flex flex-col px-4 lg:px-6')}
-        >
+      {/* Full-width content with proper flex layout - allow scrolling */}
+      <div className='relative h-screen w-full flex flex-col overflow-auto'>
+        <div className='w-full flex-1 flex flex-col px-6 py-4 min-h-0'>
           {!hideHeader && (
-            <div className='mb-4 w-full flex-shrink-0'>
+            <div className='flex-shrink-0 mb-4'>
               <div className='flex items-center justify-between w-full'>
                 <div>
                   <h1 className='text-2xl font-bold tracking-tight text-foreground'>
@@ -157,7 +154,7 @@ export const Page: React.FC<PageProps> = ({
               </div>
             </div>
           )}
-          <div className='flex-1 flex flex-col pb-8'>{children}</div>
+          <div className='flex-1 flex flex-col min-h-0'>{children}</div>
         </div>
       </div>
     </>
@@ -178,11 +175,14 @@ export interface FilterControlsProps {
   selectedUser: string;
   sortBy: string;
   showFavoritesOnly: boolean;
+  searchTerm: string;
+  isSearchActive: boolean;
   onStatusChange: (value: string) => void;
   onUserChange: (value: string) => void;
   onSortChange: (value: string) => void;
   onFavoritesToggle: () => void;
-  onSearchClick: () => void;
+  onSearchChange: (value: string) => void;
+  onSearchToggle: () => void;
   className?: string;
 }
 
@@ -195,11 +195,14 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
     selectedUser,
     sortBy,
     showFavoritesOnly,
+    searchTerm,
+    isSearchActive,
     onStatusChange,
     onUserChange,
     onSortChange,
     onFavoritesToggle,
-    onSearchClick,
+    onSearchChange,
+    onSearchToggle,
     className,
   }) => {
     const tokens = designTokens.filterControls;
@@ -243,6 +246,28 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
               )}
             />
           </button>
+
+          {/* Inline Search */}
+          <div className='flex items-center'>
+            {isSearchActive ? (
+              <input
+                type='text'
+                value={searchTerm}
+                onChange={e => onSearchChange(e.target.value)}
+                placeholder='Search...'
+                className='h-7 px-3 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 min-w-48'
+                autoFocus
+              />
+            ) : (
+              <button
+                onClick={onSearchToggle}
+                className={cn(tokens.button, tokens.buttonDefault)}
+                aria-label='Search'
+              >
+                <Search className={tokens.icon} />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className={tokens.rightGroup}>
@@ -254,9 +279,6 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
             placeholder='Sort by'
             className={cn(tokens.dropdown, tokens.dropdownLarge)}
           />
-
-          {/* Search Button */}
-          <SearchIconButton onClick={onSearchClick} className='h-8 w-8' />
         </div>
       </div>
     );

@@ -1,109 +1,151 @@
+/**
+ * Test Setup Configuration
+ *
+ * This file configures the testing environment for Vitest
+ * and provides utilities for testing React components
+ */
+
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
-// Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-};
+// Mock environment variables
+vi.mock('import.meta.env', () => ({
+  VITE_SUPABASE_URL: 'https://test.supabase.co',
+  VITE_SUPABASE_ANON_KEY: 'test-anon-key',
+  VITE_BYPASS_AUTH: 'true',
+  NODE_ENV: 'test',
+}));
 
-// Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-};
+// Mock Supabase client
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn(() => Promise.resolve({ data: null, error: null })),
+          limit: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        })),
+        limit: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        order: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        gte: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        lte: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        not: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        single: vi.fn(() => Promise.resolve({ data: null, error: null })),
+      })),
+      insert: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: null, error: null })),
+      })),
+      update: vi.fn(() => ({
+        eq: vi.fn(() => Promise.resolve({ data: null, error: null })),
+      })),
+      delete: vi.fn(() => ({
+        eq: vi.fn(() => Promise.resolve({ data: null, error: null })),
+      })),
+    })),
+    auth: {
+      getUser: vi.fn(() =>
+        Promise.resolve({ data: { user: null }, error: null })
+      ),
+      signInWithOAuth: vi.fn(() =>
+        Promise.resolve({ data: null, error: null })
+      ),
+      signOut: vi.fn(() => Promise.resolve({ error: null })),
+    },
+    channel: vi.fn(() => ({
+      on: vi.fn(() => ({
+        subscribe: vi.fn(() => ({ unsubscribe: vi.fn() })),
+      })),
+    })),
+    rpc: vi.fn(() => Promise.resolve({ data: null, error: null })),
+  },
+}));
 
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
+// Mock React Router
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => vi.fn(),
+  useLocation: () => ({ pathname: '/test' }),
+  BrowserRouter: ({ children }: { children: React.ReactNode }) => children,
+  Routes: ({ children }: { children: React.ReactNode }) => children,
+  Route: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock React Query
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: vi.fn(() => ({
+    data: null,
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
   })),
+  useQueryClient: vi.fn(() => ({
+    invalidateQueries: vi.fn(),
+    setQueryData: vi.fn(),
+    getQueryData: vi.fn(),
+  })),
+  QueryClient: vi.fn(),
+  QueryClientProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+// Mock console methods to reduce noise in tests
+const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
+
+beforeEach(() => {
+  // Suppress console.error and console.warn during tests unless explicitly needed
+  console.error = vi.fn();
+  console.warn = vi.fn();
 });
 
-// Mock scrollTo
-Object.defineProperty(window, 'scrollTo', {
-  value: vi.fn(),
-  writable: true,
+afterEach(() => {
+  // Restore original console methods
+  console.error = originalConsoleError;
+  console.warn = originalConsoleWarn;
 });
 
-// Console inspection utilities for testing
-export const consoleUtils = {
-  // Capture console logs during tests
-  captureConsole: () => {
-    const logs: Array<{ type: string; message: string; timestamp: number }> =
-      [];
+// Global test utilities
+export const testUtils = {
+  // Mock data generators
+  createMockUser: () => ({
+    id: 'test-user-id',
+    email: 'test@example.com',
+    full_name: 'Test User',
+    role: 'recruiter',
+  }),
 
-    const originalConsole = {
-      log: console.log,
-      error: console.error,
-      warn: console.warn,
-      info: console.info,
-    };
+  createMockPerson: () => ({
+    id: 'test-person-id',
+    name: 'John Doe',
+    email_address: 'john@example.com',
+    company_id: 'test-company-id',
+    stage: 'new',
+    created_at: new Date().toISOString(),
+  }),
 
-    // Override console methods
-    console.log = (...args) => {
-      logs.push({
-        type: 'log',
-        message: args.join(' '),
-        timestamp: Date.now(),
-      });
-      originalConsole.log(...args);
-    };
+  createMockCompany: () => ({
+    id: 'test-company-id',
+    name: 'Test Company',
+    website: 'https://test.com',
+    industry: 'Technology',
+    created_at: new Date().toISOString(),
+  }),
 
-    console.error = (...args) => {
-      logs.push({
-        type: 'error',
-        message: args.join(' '),
-        timestamp: Date.now(),
-      });
-      originalConsole.error(...args);
-    };
+  createMockJob: () => ({
+    id: 'test-job-id',
+    title: 'Software Engineer',
+    company_id: 'test-company-id',
+    location: 'Remote',
+    qualification_status: 'new',
+    created_at: new Date().toISOString(),
+  }),
 
-    console.warn = (...args) => {
-      logs.push({
-        type: 'warn',
-        message: args.join(' '),
-        timestamp: Date.now(),
-      });
-      originalConsole.warn(...args);
-    };
+  // Wait for async operations
+  waitFor: (ms: number) => new Promise(resolve => setTimeout(resolve, ms)),
 
-    console.info = (...args) => {
-      logs.push({
-        type: 'info',
-        message: args.join(' '),
-        timestamp: Date.now(),
-      });
-      originalConsole.info(...args);
-    };
-
-    return {
-      logs,
-      restore: () => {
-        console.log = originalConsole.log;
-        console.error = originalConsole.error;
-        console.warn = originalConsole.warn;
-        console.info = originalConsole.info;
-      },
-      getErrors: () => logs.filter(log => log.type === 'error'),
-      getWarnings: () => logs.filter(log => log.type === 'warn'),
-      getAll: () => logs,
-    };
-  },
-
-  // Debug helper for tests
-  debugTest: (testName: string, data: any) => {
-    console.log(`[TEST DEBUG] ${testName}:`, data);
-  },
+  // Mock API responses
+  mockApiResponse: (data: Record<string, unknown>, error: unknown = null) => ({
+    data,
+    error,
+    count: Array.isArray(data) ? data.length : null,
+  }),
 };

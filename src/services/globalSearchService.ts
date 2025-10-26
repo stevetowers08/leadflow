@@ -6,7 +6,7 @@ export interface SearchResult {
   title: string;
   subtitle?: string;
   description?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   score?: number;
 }
 
@@ -114,7 +114,7 @@ export class GlobalSearchService {
       description: `${person.companies?.name || 'Unknown Company'} • ${person.employee_location || 'No location'}`,
       metadata: {
         email: person.email_address,
-        stage: person.stage,
+        stage: person.people_stage,
         leadScore: person.lead_score,
         companyId: person.companies?.id,
         companyName: person.companies?.name,

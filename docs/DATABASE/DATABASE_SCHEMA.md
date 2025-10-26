@@ -4,6 +4,9 @@
 
 The Empowr CRM uses Supabase (PostgreSQL) as its backend database. This document provides comprehensive information about the database structure, relationships, and how to properly query data.
 
+**Last Updated:** January 27, 2025  
+**Database Version:** Simplified Job & Company Architecture (Industry Standard)
+
 ## Database Connection
 
 ### Environment Variables
@@ -113,6 +116,10 @@ CREATE TABLE companies (
   automation_active BOOLEAN,
   automation_started_at TIMESTAMP WITH TIME ZONE,
   loxo_company_id TEXT,
+  airtable_id TEXT,
+  added_by_client_id UUID REFERENCES clients(id),
+  added_manually BOOLEAN DEFAULT false,
+  source_job_id UUID REFERENCES jobs(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
@@ -132,10 +139,14 @@ CREATE TABLE companies (
 - `priority`: Priority level for outreach
 - `is_favourite`: User-favorited companies
 - `automation_active`: Whether automation is running
+- `airtable_id`: Airtable integration ID
+- `added_by_client_id`: Which client added this company
+- `added_manually`: Whether company was added manually vs from job qualification
+- `source_job_id`: Job that led to this company being added
 
 ### 2. **People** (`people`)
 
-Individual contacts and leads.
+Individual contacts and leads with simplified status workflow.
 
 ```sql
 CREATE TABLE people (
@@ -144,42 +155,23 @@ CREATE TABLE people (
   email_address TEXT,
   company_id UUID REFERENCES companies(id),
   company_role TEXT,
+  employee_location TEXT,
   linkedin_url TEXT,
-  linkedin_profile_id TEXT,
-  linkedin_connected TEXT,
-  linkedin_connected_message TEXT,
-  linkedin_request_message TEXT,
-  linkedin_follow_up_message TEXT,
-  linkedin_responded TEXT,
-  connection_request_date TIMESTAMP WITH TIME ZONE,
-  connection_accepted_date TIMESTAMP WITH TIME ZONE,
-  connection_request_sent TEXT,
-  message_sent TEXT,
-  message_sent_date TIMESTAMP WITH TIME ZONE,
-  email_sent TEXT,
-  email_sent_date TIMESTAMP WITH TIME ZONE,
-  email_reply TEXT,
-  email_reply_date TIMESTAMP WITH TIME ZONE,
+  lead_score TEXT,
+  confidence_level TEXT CHECK (confidence_level IN ('low', 'medium', 'high')),
+  stage stage_enum DEFAULT 'new',
+  stage_updated TIMESTAMP WITH TIME ZONE,
   email_draft TEXT,
-  meeting_booked BOOLEAN DEFAULT FALSE,
-  meeting_date TIMESTAMP WITH TIME ZONE,
-  connected_at TIMESTAMP WITH TIME ZONE,
-  response_date TIMESTAMP WITH TIME ZONE,
-  last_interaction_at TIMESTAMP WITH TIME ZONE,
   last_reply_at TIMESTAMP WITH TIME ZONE,
   last_reply_channel TEXT,
   last_reply_message TEXT,
-  lead_score TEXT,
-  confidence_level TEXT CHECK (confidence_level IN ('low', 'medium', 'high')),
-  stage stage_enum,
-  stage_updated TIMESTAMP WITH TIME ZONE,
-  campaign_finished TEXT,
-  automation_started_at TIMESTAMP WITH TIME ZONE,
+  last_interaction_at TIMESTAMP WITH TIME ZONE,
+  reply_type reply_type_enum,
+  is_favourite BOOLEAN DEFAULT FALSE,
   favourite BOOLEAN DEFAULT FALSE,
-  is_favourite TEXT,
   jobs TEXT,
-  employee_location TEXT,
-  owner_id UUID,
+  lead_source TEXT,
+  owner_id UUID REFERENCES user_profiles(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
@@ -192,40 +184,45 @@ CREATE TABLE people (
 - `email_address`: Primary email address
 - `company_id`: Foreign key to companies table
 - `company_role`: Job title/role at company
-- `linkedin_url`: LinkedIn profile URL
-- `linkedin_profile_id`: LinkedIn internal ID
-- `stage`: Current lead stage (enum)
+- `linkedin_url`: LinkedIn profile URL (restored after cleanup)
+- `stage`: Current lead stage (simplified enum: new, qualified, proceed, skip)
 - `lead_score`: Calculated lead score
 - `confidence_level`: Confidence in lead quality
-- `meeting_booked`: Whether meeting is scheduled
-- `automation_started_at`: When automation began
+- `email_draft`: Draft email content for outreach
+- `last_reply_at`: Timestamp of most recent reply
+- `last_reply_channel`: Channel of last reply (email, linkedin, etc.)
+- `last_reply_message`: Content of last reply
+- `reply_type`: Type of reply (interested, not_interested, maybe)
 - `owner_id`: Assigned user/owner
 
 ### 3. **Jobs** (`jobs`)
 
-Job postings and opportunities.
+Job postings and opportunities with qualification workflow.
 
 ```sql
 CREATE TABLE jobs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   company_id UUID REFERENCES companies(id),
+  job_url TEXT,
+  posted_date DATE,
+  valid_through DATE,
+  location TEXT,
   description TEXT,
   summary TEXT,
-  location TEXT,
-  salary TEXT,
   employment_type TEXT,
-  function TEXT,
   seniority_level TEXT,
-  job_url TEXT,
   linkedin_job_id TEXT,
-  logo_url TEXT,
-  posted_date TIMESTAMP WITH TIME ZONE,
-  valid_through TIMESTAMP WITH TIME ZONE,
-  lead_score_job INTEGER,
-  priority TEXT CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
-  automation_active BOOLEAN,
+  automation_active BOOLEAN DEFAULT FALSE,
   automation_started_at TIMESTAMP WITH TIME ZONE,
+  priority TEXT,
+  lead_score_job INTEGER,
+  salary TEXT,
+  function TEXT,
+  logo_url TEXT,
+  owner_id UUID REFERENCES user_profiles(id),
+  airtable_id TEXT,
+  qualification_status TEXT DEFAULT 'new',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
@@ -245,25 +242,184 @@ CREATE TABLE jobs (
 - `seniority_level`: Entry, mid, senior, executive
 - `job_url`: Original job posting URL
 - `linkedin_job_id`: LinkedIn job ID
+- `qualification_status`: Job qualification status (new, qualify, skip)
 - `lead_score_job`: Calculated job lead score
 - `priority`: Priority level for outreach
 - `automation_active`: Whether automation is running
+- `owner_id`: Assigned user/owner
 
-### 4. **Conversations** (`conversations`)
+### 4. **Client Jobs** (`client_jobs`)
 
-Chat and communication history.
+Industry-standard client-specific job management table for multi-tenant architecture.
 
 ```sql
-CREATE TABLE conversations (
+CREATE TABLE client_jobs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+  job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'qualify', 'skip')),
+  priority_level TEXT DEFAULT 'medium' CHECK (priority_level IN ('low', 'medium', 'high', 'urgent')),
+  notes TEXT,
+  qualified_at TIMESTAMPTZ,
+  qualified_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(client_id, job_id)
+);
+```
+
+**Key Fields:**
+
+- `id`: Unique identifier
+- `client_id`: Foreign key to clients table (multi-tenant)
+- `job_id`: Foreign key to jobs table (shared canonical data)
+- `status`: Job qualification status (new, qualify, skip)
+- `priority_level`: Client-specific priority (low, medium, high, urgent)
+- `notes`: Optional qualification notes
+- `qualified_at`: When job was qualified (timestamp)
+- `qualified_by`: User who qualified the job
+- `created_at`: When qualification was created
+- `updated_at`: When qualification was last updated
+
+**Industry Standard Architecture:**
+
+- **Global Jobs**: All jobs stored in `jobs` table (shared across clients)
+- **Client Filtering**: Jobs filtered into `client_jobs` based on client criteria
+- **Qualified Companies**: When jobs are qualified, companies added to `companies` table
+- **RLS Policies**: Row-level security ensures client data isolation
+- **Unique Constraint**: Prevents duplicate qualifications per client-job pair
+
+### 5. **Clients** (`clients`)
+
+Multi-tenant client organizations using the platform.
+
+```sql
+CREATE TABLE clients (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR NOT NULL,
+  email VARCHAR,
+  company VARCHAR,
+  accounts JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+```
+
+**Key Fields:**
+
+- `id`: Unique identifier
+- `name`: Client organization name
+- `email`: Primary contact email
+- `company`: Company name
+- `accounts`: JSON configuration for integrations
+- `created_at`: When client was created
+- `updated_at`: When client was last updated
+
+### 6. **Client Users** (`client_users`)
+
+User-client mapping with roles for multi-tenant access control.
+
+```sql
+CREATE TABLE client_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT CHECK (role IN ('owner', 'admin', 'recruiter', 'viewer')) DEFAULT 'recruiter',
+  is_primary_contact BOOLEAN DEFAULT false,
+  joined_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(client_id, user_id)
+);
+```
+
+**Key Fields:**
+
+- `id`: Unique identifier
+- `client_id`: Foreign key to clients table
+- `user_id`: Foreign key to auth.users table
+- `role`: User role within client (owner, admin, recruiter, viewer)
+- `is_primary_contact`: Whether user is primary contact for client
+- `joined_at`: When user joined the client
+
+### 7. **Email Replies** (`email_replies`)
+
+Gmail reply detection and AI sentiment analysis.
+
+```sql
+CREATE TABLE email_replies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  interaction_id UUID REFERENCES interactions(id),
   person_id UUID REFERENCES people(id),
-  type TEXT DEFAULT 'chat',
+  company_id UUID REFERENCES companies(id),
+  gmail_message_id TEXT NOT NULL,
+  gmail_thread_id TEXT NOT NULL,
+  from_email TEXT NOT NULL,
+  reply_subject TEXT,
+  reply_body_plain TEXT,
+  reply_body_html TEXT,
+  received_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  sentiment TEXT,
+  sentiment_confidence NUMERIC,
+  sentiment_reasoning TEXT,
+  analyzed_at TIMESTAMP WITH TIME ZONE,
+  triggered_stage_change BOOLEAN DEFAULT FALSE,
+  previous_stage TEXT,
+  new_stage TEXT,
+  detected_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  processed_at TIMESTAMP WITH TIME ZONE,
+  processing_error TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+```
+
+**Key Fields:**
+
+- `id`: Unique identifier
+- `person_id`: Foreign key to people table
+- `company_id`: Foreign key to companies table
+- `gmail_message_id`: Gmail message identifier
+- `gmail_thread_id`: Gmail thread identifier
+- `from_email`: Sender email address
+- `reply_subject`: Email subject line
+- `reply_body_plain`: Plain text content
+- `reply_body_html`: HTML content
+- `received_at`: When reply was received
+- `sentiment`: AI-analyzed sentiment (positive, negative, neutral, out_of_office)
+- `sentiment_confidence`: Confidence score (0-1)
+- `sentiment_reasoning`: AI reasoning for sentiment
+- `triggered_stage_change`: Whether reply triggered stage progression
+- `previous_stage`: Stage before auto-progression
+- `new_stage`: Stage after auto-progression
+
+### 5. **Interactions** (`interactions`)
+
+Activity tracking and communication history.
+
+```sql
+CREATE TABLE interactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  person_id UUID NOT NULL REFERENCES people(id),
+  interaction_type interaction_type_enum NOT NULL,
+  occurred_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   subject TEXT,
   content TEXT,
-  direction TEXT, -- 'inbound' or 'outbound'
+  template_id UUID,
+  metadata JSONB,
+  owner_id UUID REFERENCES user_profiles(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 ```
+
+**Key Fields:**
+
+- `id`: Unique identifier
+- `person_id`: Foreign key to people table
+- `interaction_type`: Type of interaction (email_sent, email_reply, meeting_booked, etc.)
+- `occurred_at`: When interaction occurred
+- `subject`: Interaction subject
+- `content`: Interaction content
+- `metadata`: Additional data (JSONB)
+- `owner_id`: User who created the interaction
 
 ## Supporting Tables
 
@@ -406,6 +562,23 @@ Logs for email synchronization processes.
 
 The database uses several enums to ensure data consistency:
 
+### **Stage** (`stage_enum`) - Simplified People Workflow
+
+Lead progression stages (simplified from complex LinkedIn automation):
+
+- `new`: Newly added lead awaiting review
+- `qualified`: Lead meets criteria and should be pursued
+- `proceed`: Ready for CRM integration or email outreach
+- `skip`: Not pursuing at this time
+
+### **Reply Type** (`reply_type`)
+
+Email reply sentiment classification:
+
+- `interested`: Positive response indicating interest
+- `not_interested`: Negative response indicating disinterest
+- `maybe`: Neutral response requiring follow-up
+
 ### **Campaign Status** (`campaign_status_enum`)
 
 - `draft`: Campaign is being prepared
@@ -418,34 +591,34 @@ The database uses several enums to ensure data consistency:
 - `medium`: Medium confidence in lead quality
 - `high`: High confidence in lead quality
 
-### **Stage** (`stage_enum`)
+### **Company Pipeline Stage** (`company_pipeline_stage`)
 
-Lead progression stages:
+Company progression stages:
 
-- `new`: Newly added lead
-- `connection_requested`: LinkedIn connection request sent
-- `connected`: LinkedIn connection accepted
-- `messaged`: Initial message sent
-- `replied`: Lead has replied
-- `meeting_booked`: Meeting scheduled
-- `meeting_held`: Meeting completed
-- `disqualified`: Lead disqualified
-- `note`: Additional notes added
+- `new_lead`: Newly discovered company
+- `automated`: Automation process started
+- `replied`: Company has responded
+- `meeting_scheduled`: Meeting scheduled with company
+- `proposal_sent`: Proposal sent to company
+- `negotiation`: In negotiation phase
+- `closed_won`: Successfully closed deal
+- `closed_lost`: Deal lost
+- `on_hold`: Deal temporarily on hold
 
 ### **Interaction Type** (`interaction_type_enum`)
 
 Types of interactions tracked:
 
-- `linkedin_connection_request_sent`
-- `linkedin_connected`
-- `linkedin_message_sent`
-- `linkedin_message_reply`
-- `email_sent`
-- `email_reply`
-- `meeting_booked`
-- `meeting_held`
-- `disqualified`
-- `note`
+- `linkedin_connection_request_sent`: LinkedIn connection request sent
+- `linkedin_connected`: LinkedIn connection accepted
+- `linkedin_message_sent`: LinkedIn message sent
+- `linkedin_message_reply`: LinkedIn message reply received
+- `email_sent`: Email sent
+- `email_reply`: Email reply received
+- `meeting_booked`: Meeting scheduled
+- `meeting_held`: Meeting completed
+- `disqualified`: Lead disqualified
+- `note`: Additional notes added
 
 ## Relationships
 
@@ -454,17 +627,49 @@ Types of interactions tracked:
 ```
 Companies (1) ←→ (Many) People
 Companies (1) ←→ (Many) Jobs
-People (1) ←→ (Many) Conversations
+People (1) ←→ (Many) Interactions
+People (1) ←→ (Many) Email Replies
+Interactions (1) ←→ (Many) Email Replies
 Campaigns (1) ←→ (Many) Campaign Participants ←→ (Many) People
+User Profiles (1) ←→ (Many) People (owner)
+User Profiles (1) ←→ (Many) Companies (owner)
+User Profiles (1) ←→ (Many) Jobs (owner)
 ```
 
 ### Foreign Key Constraints
 
+**Core Entity Relationships:**
+
 - `people.company_id` → `companies.id`
 - `jobs.company_id` → `companies.id`
-- `conversations.person_id` → `people.id`
+- `people.owner_id` → `user_profiles.id`
+- `companies.owner_id` → `user_profiles.id`
+- `jobs.owner_id` → `user_profiles.id`
+
+**Activity Tracking:**
+
+- `interactions.person_id` → `people.id`
+- `interactions.owner_id` → `user_profiles.id`
+- `email_replies.person_id` → `people.id`
+- `email_replies.company_id` → `companies.id`
+- `email_replies.interaction_id` → `interactions.id`
+
+**Campaign Management:**
+
 - `campaign_participants.campaign_id` → `campaigns.id`
 - `campaign_participants.person_id` → `people.id`
+- `campaign_analytics.campaign_id` → `campaigns.id`
+- `campaign_messages.campaign_id` → `campaigns.id`
+
+**Client Management:**
+
+- `client_users.client_id` → `clients.id`
+- `client_job_opportunities.client_id` → `clients.id`
+- `client_job_opportunities.company_id` → `companies.id`
+- `client_job_opportunities.job_id` → `jobs.id`
+- `client_decision_maker_outreach.client_id` → `clients.id`
+- `client_decision_maker_outreach.decision_maker_id` → `people.id`
+- `client_decision_maker_outreach.job_id` → `jobs.id`
 
 ## Row Level Security (RLS)
 
@@ -499,34 +704,72 @@ const { data: companies, error } = await supabase
   .order('created_at', { ascending: false });
 ```
 
-#### Get People with Company Info
+#### Get People with Company Info and Recent Activity
 
 ```typescript
-const { data: people, error } = await supabase.from('people').select(`
-    *,
+const { data: people, error } = await supabase
+  .from('people')
+  .select(
+    `
+    id,
+    name,
+    email_address,
+    stage,
+    last_reply_at,
+    last_reply_channel,
     companies (
       id,
       name,
-      website
+      website,
+      industry
     )
-  `);
+  `
+  )
+  .order('last_reply_at', { ascending: false });
 ```
 
-#### Get Jobs by Company
+#### Get Email Replies with Sentiment Analysis
+
+```typescript
+const { data: replies, error } = await supabase
+  .from('email_replies')
+  .select(
+    `
+    id,
+    from_email,
+    reply_subject,
+    sentiment,
+    sentiment_confidence,
+    received_at,
+    people (
+      name,
+      stage
+    )
+  `
+  )
+  .eq('sentiment', 'positive')
+  .order('received_at', { ascending: false });
+```
+
+#### Get Jobs by Qualification Status
 
 ```typescript
 const { data: jobs, error } = await supabase
   .from('jobs')
   .select(
     `
-    *,
+    id,
+    title,
+    location,
+    qualification_status,
     companies (
       name,
-      website
+      industry
     )
   `
   )
-  .eq('company_id', companyId);
+  .eq('qualification_status', 'qualify')
+  .order('created_at', { ascending: false });
 ```
 
 ### Advanced Queries
@@ -538,14 +781,46 @@ const { data, error } = await supabase
   .from('people')
   .select(
     `
-    *,
+    id,
+    name,
+    email_address,
+    stage,
+    last_reply_at,
     companies (name, industry)
   `
   )
-  .ilike('first_name', `%${searchTerm}%`)
-  .eq('status', 'new')
-  .order('created_at', { ascending: false })
+  .ilike('name', `%${searchTerm}%`)
+  .eq('stage', 'qualified')
+  .order('last_reply_at', { ascending: false })
   .limit(20);
+```
+
+#### Get Full Email Conversation Thread
+
+```typescript
+// Get sent emails from interactions
+const { data: sentEmails } = await supabase
+  .from('interactions')
+  .select('id, subject, content, occurred_at')
+  .eq('person_id', personId)
+  .eq('interaction_type', 'email_sent')
+  .order('occurred_at', { ascending: true });
+
+// Get replies from email_replies
+const { data: replies } = await supabase
+  .from('email_replies')
+  .select(
+    'id, from_email, reply_subject, reply_body_plain, received_at, sentiment'
+  )
+  .eq('person_id', personId)
+  .order('received_at', { ascending: true });
+
+// Combine and sort chronologically
+const conversation = [...sentEmails, ...replies].sort(
+  (a, b) =>
+    new Date(a.received_at || a.occurred_at).getTime() -
+    new Date(b.received_at || b.occurred_at).getTime()
+);
 ```
 
 #### Real-time Subscriptions
@@ -583,12 +858,32 @@ const subscription = supabase
 ### Indexes
 
 ```sql
--- Common indexes for performance
+-- Core entity indexes
 CREATE INDEX idx_people_company_id ON people(company_id);
+CREATE INDEX idx_people_stage ON people(stage);
+CREATE INDEX idx_people_owner_id ON people(owner_id);
+CREATE INDEX idx_people_last_reply_at ON people(last_reply_at);
+
 CREATE INDEX idx_jobs_company_id ON jobs(company_id);
-CREATE INDEX idx_conversations_person_id ON conversations(person_id);
-CREATE INDEX idx_people_status ON people(status);
-CREATE INDEX idx_jobs_status ON jobs(status);
+CREATE INDEX idx_jobs_qualification_status ON jobs(qualification_status);
+CREATE INDEX idx_jobs_owner_id ON jobs(owner_id);
+
+CREATE INDEX idx_companies_owner_id ON companies(owner_id);
+CREATE INDEX idx_companies_pipeline_stage ON companies(pipeline_stage);
+
+-- Activity tracking indexes
+CREATE INDEX idx_interactions_person_id ON interactions(person_id);
+CREATE INDEX idx_interactions_type ON interactions(interaction_type);
+CREATE INDEX idx_interactions_occurred_at ON interactions(occurred_at);
+
+CREATE INDEX idx_email_replies_person_id ON email_replies(person_id);
+CREATE INDEX idx_email_replies_company_id ON email_replies(company_id);
+CREATE INDEX idx_email_replies_received_at ON email_replies(received_at);
+CREATE INDEX idx_email_replies_sentiment ON email_replies(sentiment);
+
+-- Gmail integration indexes
+CREATE INDEX idx_email_replies_gmail_message_id ON email_replies(gmail_message_id);
+CREATE INDEX idx_email_replies_gmail_thread_id ON email_replies(gmail_thread_id);
 ```
 
 ### Views

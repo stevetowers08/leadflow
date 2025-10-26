@@ -8,7 +8,14 @@
  * - Bundle optimization
  */
 
-import React, { Suspense, lazy, memo, useCallback, useMemo } from 'react';
+import React, {
+  Suspense,
+  lazy,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 
 // Memoization utilities
 export const createMemoizedComponent = <P extends object>(
@@ -27,12 +34,18 @@ export const createLazyComponent = <P extends object>(
 
 // Performance monitoring hook
 export const usePerformanceMonitor = (componentName: string) => {
-  const startTime = useMemo(() => performance.now(), []);
+  const startTimeRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    startTimeRef.current = performance.now();
+  }, []);
 
   const logPerformance = useCallback(
     (action: string) => {
+      if (!startTimeRef.current) return;
+
       const endTime = performance.now();
-      const duration = endTime - startTime;
+      const duration = endTime - startTimeRef.current;
 
       if (duration > 16) {
         // Log if slower than 60fps
@@ -41,7 +54,7 @@ export const usePerformanceMonitor = (componentName: string) => {
         );
       }
     },
-    [componentName, startTime]
+    [componentName]
   );
 
   return { logPerformance };
@@ -75,7 +88,7 @@ export const useOptimizedData = <T,>(
     } finally {
       setIsLoading(false);
     }
-  }, deps);
+  }, [...deps, fetchFn, options.enabled]);
 
   React.useEffect(() => {
     fetchData();
@@ -118,7 +131,7 @@ export const useMemoryOptimizedState = <T,>(
         return newHistory;
       });
     },
-    [maxHistory]
+    [maxHistorySize]
   );
 
   const undo = useCallback(() => {
@@ -226,7 +239,9 @@ export const collectPerformanceMetrics = () => {
 
   // Collect memory usage
   if ('memory' in performance) {
-    metrics.memoryUsage = (performance as any).memory.usedJSHeapSize;
+    metrics.memoryUsage = (
+      performance as unknown as Record<string, unknown>
+    ).memory.usedJSHeapSize;
   }
 
   return metrics;

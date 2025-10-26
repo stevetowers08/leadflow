@@ -1,6 +1,6 @@
 // Dynamic import to prevent initialization issues
 // import { supabase } from '@/integrations/supabase/client';
-import { subDays, subWeeks, subMonths } from 'date-fns';
+import { subWeeks } from 'date-fns';
 
 export interface DashboardMetrics {
   // Core Metrics (aligned with reporting)
@@ -223,12 +223,12 @@ export class DashboardService {
           .limit(10),
 
         // Pipeline breakdown
-        supabase.from('people').select('stage'),
+        supabase.from('people').select('people_stage'),
 
         // Automation metrics - check for automation_started_at
         supabase
           .from('people')
-          .select('automation_started_at, stage, company_id')
+          .select('automation_started_at, people_stage, company_id')
           .not('automation_started_at', 'is', null),
 
         // Favorites and unassigned
@@ -272,7 +272,7 @@ export class DashboardService {
       // Process pipeline breakdown
       const pipelineBreakdown: Record<string, number> = {};
       pipelineData.data?.forEach(person => {
-        const stage = person.stage || 'Unassigned';
+        const stage = person.people_stage || 'Unassigned';
         pipelineBreakdown[stage] = (pipelineBreakdown[stage] || 0) + 1;
       });
 
@@ -295,14 +295,16 @@ export class DashboardService {
           : 0;
 
       // Process recent items with notes count
-      const processRecentPeople = (data: any[]): RecentPerson[] => {
+      const processRecentPeople = (
+        data: Record<string, unknown>[]
+      ): RecentPerson[] => {
         return data.map(person => ({
           id: person.id,
           name: person.name,
           email_address: person.email_address,
           company_role: person.company_role,
           employee_location: person.employee_location,
-          stage: person.stage,
+          stage: person.people_stage,
           created_at: person.created_at,
           assigned_to: person.owner_id,
           company_name: person.companies?.name || null,
@@ -311,7 +313,9 @@ export class DashboardService {
         }));
       };
 
-      const processRecentCompanies = (data: any[]): RecentCompany[] => {
+      const processRecentCompanies = (
+        data: Record<string, unknown>[]
+      ): RecentCompany[] => {
         return data.map(company => ({
           id: company.id,
           name: company.name,
@@ -326,7 +330,9 @@ export class DashboardService {
         }));
       };
 
-      const processRecentJobs = (data: any[]): RecentJob[] => {
+      const processRecentJobs = (
+        data: Record<string, unknown>[]
+      ): RecentJob[] => {
         return data.map(job => ({
           id: job.id,
           name: job.title, // Jobs use title as name
@@ -344,7 +350,7 @@ export class DashboardService {
         }));
       };
 
-      const processRecentActivities = (data: any[]) => {
+      const processRecentActivities = (data: Record<string, unknown>[]) => {
         return data.map(activity => ({
           id: activity.id,
           interaction_type: activity.interaction_type,
@@ -431,8 +437,8 @@ export class DashboardService {
   }
 
   private static processRecentPeople(
-    people: any[],
-    notes: any[]
+    people: Record<string, unknown>[],
+    notes: Record<string, unknown>[]
   ): RecentPerson[] {
     const notesCount = new Map<string, number>();
     notes.forEach(note => {
@@ -447,7 +453,7 @@ export class DashboardService {
       role: person.company_role || 'Unknown Role',
       company: person.companies?.name || 'Unknown Company',
       companyLogo: person.companies?.logo_url || '',
-      stage: person.stage || 'New',
+      stage: person.people_stage || 'New',
       created_at: person.created_at,
       owner_id: person.owner_id,
       notes_count: notesCount.get(person.id) || 0,
@@ -455,8 +461,8 @@ export class DashboardService {
   }
 
   private static processRecentCompanies(
-    companies: any[],
-    notes: any[]
+    companies: Record<string, unknown>[],
+    notes: Record<string, unknown>[]
   ): RecentCompany[] {
     const notesCount = new Map<string, number>();
     notes.forEach(note => {
@@ -480,9 +486,9 @@ export class DashboardService {
   }
 
   private static processRecentJobs(
-    jobs: any[],
-    notes: any[],
-    peopleByCompany: any[]
+    jobs: Record<string, unknown>[],
+    notes: Record<string, unknown>[],
+    peopleByCompany: Record<string, unknown>[]
   ): RecentJob[] {
     const notesCount = new Map<string, number>();
     notes.forEach(note => {
@@ -517,7 +523,9 @@ export class DashboardService {
     }));
   }
 
-  private static processRecentActivities(activities: any[]): any[] {
+  private static processRecentActivities(
+    activities: Record<string, unknown>[]
+  ): Record<string, unknown>[] {
     return activities.map(activity => ({
       id: activity.id,
       type: activity.interaction_type || 'Unknown',
@@ -530,8 +538,8 @@ export class DashboardService {
   }
 
   private static generateCompaniesAndAutomationOverTime(
-    companies: any[],
-    automationData: any[]
+    companies: Record<string, unknown>[],
+    automationData: Record<string, unknown>[]
   ): Array<{ date: string; newCompanies: number; automatedCompanies: number }> {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
@@ -565,7 +573,7 @@ export class DashboardService {
     );
 
     let cumulativeNewCompanies = 0;
-    let cumulativeAutomatedCompanies = new Set<string>();
+    const cumulativeAutomatedCompanies = new Set<string>();
 
     return last7Days.map(date => {
       cumulativeNewCompanies += companiesByDate[date] || 0;
@@ -585,8 +593,8 @@ export class DashboardService {
   }
 
   private static generatePeopleAutomationOverTime(
-    automationData: any[],
-    interactions: any[]
+    automationData: Record<string, unknown>[],
+    interactions: Record<string, unknown>[]
   ): Array<{
     date: string;
     peopleWithAutomation: number;

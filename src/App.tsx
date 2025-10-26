@@ -14,7 +14,6 @@ import {
 
 import { ErrorBoundaryProvider } from './components/ErrorBoundary';
 import { GmailCallback } from './components/GmailCallback';
-import { UnifiedPopup } from './components/UnifiedPopup';
 import AuthCallback from './components/auth/AuthCallback';
 import { AuthPage } from './components/auth/AuthPage';
 import { Layout } from './components/layout/Layout';
@@ -28,7 +27,6 @@ import { AIProvider } from './contexts/AIContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ConfirmationProvider } from './contexts/ConfirmationContext';
 import { PermissionsProvider } from './contexts/PermissionsContext';
-import { PopupNavigationProvider } from './contexts/PopupNavigationContext';
 import { SearchProvider } from './contexts/SearchContext';
 import { SidebarProvider } from './contexts/SidebarContext';
 import { LoggingProvider } from './utils/enhancedLogger';
@@ -36,21 +34,25 @@ import { PerformanceProvider } from './utils/performanceMonitoring';
 
 // Lazy load pages for code splitting
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const OnboardingDashboard = lazy(() => import('./pages/OnboardingDashboard'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const Jobs = lazy(() => import('./pages/Jobs'));
 const People = lazy(() => import('./pages/People'));
 const Companies = lazy(() => import('./pages/Companies'));
 const Pipeline = lazy(() => import('./pages/Pipeline'));
 const ConversationsPage = lazy(() => import('./pages/Conversations'));
-const Automations = lazy(() => import('./pages/Automations'));
-const Workflows = lazy(() => import('./pages/Workflows'));
-const WorkflowBuilder = lazy(() => import('./pages/WorkflowBuilder'));
+const CommunicationsPage = lazy(() => import('./pages/CommunicationsPage'));
 const Reporting = lazy(() => import('./pages/Reporting'));
 const Settings = lazy(() => import('./pages/Settings'));
-const Campaigns = lazy(() => import('./pages/Campaigns'));
-// const VoiceAI = lazy(() => import('./pages/VoiceAI'));
 const TabDesignsPage = lazy(() => import('./pages/TabDesignsPage'));
 const SidebarColorOptions = lazy(() => import('./pages/SidebarColorOptions'));
+const JobFilteringSettingsPage = lazy(
+  () => import('./pages/JobFilteringSettingsPage')
+);
+const Campaigns = lazy(() => import('./pages/Campaigns'));
+const CampaignSequenceBuilderPage = lazy(
+  () => import('./pages/CampaignSequenceBuilderPage')
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -87,7 +89,7 @@ const AppRoutes = () => {
       <div className='min-h-screen flex items-center justify-center'>
         <div className='text-center'>
           <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-sidebar-primary mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading...</p>
+          <p className='text-muted-foreground'>Loading...</p>
         </div>
       </div>
     );
@@ -109,7 +111,7 @@ const AppRoutes = () => {
     return (
       <div className='min-h-screen flex items-center justify-center'>
         <div className='text-center'>
-          <p className='text-red-600'>Authentication configuration error</p>
+          <p className='text-destructive'>Authentication configuration error</p>
         </div>
       </div>
     );
@@ -125,62 +127,60 @@ const AppRoutes = () => {
         <ConfirmationProvider>
           <SidebarProvider>
             <SearchProvider>
-              <PopupNavigationProvider>
-                <Layout>
-                  <Suspense
-                    fallback={
-                      <div className='min-h-screen flex items-center justify-center'>
-                        <div className='text-center'>
-                          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-sidebar-primary mx-auto mb-4'></div>
-                          <p className='text-gray-600'>Loading page...</p>
-                        </div>
+              <Layout>
+                <Suspense
+                  fallback={
+                    <div className='min-h-screen flex items-center justify-center'>
+                      <div className='text-center'>
+                        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-sidebar-primary mx-auto mb-4'></div>
+                        <p className='text-muted-foreground'>Loading page...</p>
                       </div>
-                    }
-                  >
-                    <Routes>
-                      <Route path='/' element={<Dashboard />} />
-                      <Route path='/about' element={<AboutPage />} />
-                      <Route path='/auth/callback' element={<AuthCallback />} />
-                      <Route
-                        path='/auth/gmail-callback'
-                        element={<GmailCallback />}
-                      />
-                      <Route path='/jobs' element={<Jobs />} />
-                      <Route path='/people' element={<People />} />
-                      <Route path='/companies' element={<Companies />} />
-                      <Route path='/pipeline' element={<Pipeline />} />
-                      <Route path='/campaigns' element={<Campaigns />} />
-                      {/* <Route path='/voice-ai' element={<VoiceAI />} /> */}
-                      <Route
-                        path='/conversations'
-                        element={<ConversationsPage />}
-                      />
-                      <Route path='/automations' element={<Automations />} />
-                      <Route path='/workflows' element={<Workflows />} />
-                      <Route
-                        path='/workflows/new'
-                        element={<WorkflowBuilder />}
-                      />
-                      <Route
-                        path='/workflows/:id'
-                        element={<WorkflowBuilder />}
-                      />
-                      <Route path='/reporting' element={<Reporting />} />
-                      <Route path='/settings' element={<Settings />} />
-                      <Route path='/tab-designs' element={<TabDesignsPage />} />
-                      <Route
-                        path='/sidebar-colors'
-                        element={<SidebarColorOptions />}
-                      />
-                    </Routes>
-                  </Suspense>
-                </Layout>
-
-                {/* Unified Popup System */}
-                <Suspense fallback={null}>
-                  <UnifiedPopup />
+                    </div>
+                  }
+                >
+                  <Routes>
+                    <Route path='/' element={<Dashboard />} />
+                    <Route
+                      path='/onboarding'
+                      element={<OnboardingDashboard />}
+                    />
+                    <Route path='/about' element={<AboutPage />} />
+                    <Route path='/auth/callback' element={<AuthCallback />} />
+                    <Route
+                      path='/auth/gmail-callback'
+                      element={<GmailCallback />}
+                    />
+                    <Route path='/jobs' element={<Jobs />} />
+                    <Route path='/people' element={<People />} />
+                    <Route path='/companies' element={<Companies />} />
+                    <Route path='/pipeline' element={<Pipeline />} />
+                    <Route
+                      path='/conversations'
+                      element={<ConversationsPage />}
+                    />
+                    <Route
+                      path='/crm/communications'
+                      element={<CommunicationsPage />}
+                    />
+                    <Route path='/reporting' element={<Reporting />} />
+                    <Route path='/settings' element={<Settings />} />
+                    <Route path='/tab-designs' element={<TabDesignsPage />} />
+                    <Route
+                      path='/sidebar-colors'
+                      element={<SidebarColorOptions />}
+                    />
+                    <Route
+                      path='/settings/job-filtering'
+                      element={<JobFilteringSettingsPage />}
+                    />
+                    <Route path='/campaigns' element={<Campaigns />} />
+                    <Route
+                      path='/campaigns/sequence/:id'
+                      element={<CampaignSequenceBuilderPage />}
+                    />
+                  </Routes>
                 </Suspense>
-              </PopupNavigationProvider>
+              </Layout>
             </SearchProvider>
           </SidebarProvider>
         </ConfirmationProvider>
