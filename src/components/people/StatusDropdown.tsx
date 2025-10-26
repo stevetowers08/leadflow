@@ -100,15 +100,15 @@ export const StatusDropdown: React.FC<StatusDropdownProps> = ({
         disabled={disabled || isUpdating}
         className={`
           inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium
-          transition-all duration-150 cursor-pointer
+          transition-all duration-150 cursor-pointer whitespace-nowrap
           ${statusClasses}
           ${disabled || isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}
           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
         `}
         onClick={e => e.stopPropagation()} // Prevent row click
       >
-        <span>{displayText}</span>
-        {!disabled && <ChevronDown className='h-3 w-3' />}
+        <span className='whitespace-nowrap'>{displayText}</span>
+        {!disabled && <ChevronDown className='h-3 w-3 flex-shrink-0' />}
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align='start'

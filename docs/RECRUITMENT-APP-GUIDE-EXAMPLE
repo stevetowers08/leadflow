@@ -1,0 +1,647 @@
+# Recruitment App - Complete Product Specification
+
+## Executive Summary
+This is a B2B sales-focused recruitment app that helps users identify companies hiring, qualify them as potential clients, and reach out to decision-makers. The app bridges the gap between job discovery and business development.
+
+---
+
+## Core Concept Clarification
+
+**Your Users Are**: Recruiters/agencies looking for clients (companies)  
+**The Clients Are**: Companies with open positions  
+**The Contacts Are**: Decision-makers (hiring managers, HR directors, CTOs) at those companies  
+
+This is a **two-level hierarchy system**: Companies → Decision Makers
+
+---
+
+## Pages & Navigation Structure
+
+### 1. **Job Feed** (Discovery Page)
+Primary entry point for finding new opportunities
+
+**Purpose**: Browse and filter LinkedIn-scraped jobs to identify potential client companies
+
+**Key Elements**:
+- **Search & Filters**
+  - Keywords
+  - Location
+  - Industry
+  - Company size
+  - Date posted
+  - Saved filters for quick access
+  
+- **Job Card Display** (List/Grid view toggle)
+  - Company logo and name
+  - Job title
+  - Location
+  - Posted date
+  - Key requirements snippet
+  - Quick action: "Add to Pipeline" button
+  - "View Details" link
+  
+- **Pagination** or infinite scroll
+- **Bulk Actions**: Select multiple jobs to add at once
+
+**User Flow**:
+```
+Browse → Filter → Click "Add to Pipeline" → Job saved to Companies
+```
+
+---
+
+### 2. **Companies** (Main Workspace)
+Central hub for managing potential client relationships
+
+**Purpose**: Manage all companies you're pursuing as clients
+
+**Key Elements**:
+
+- **View Options**
+  - List view (default)
+  - Kanban board view (by status)
+  - Table view with sorting
+  
+- **Filters & Search**
+  - Status filter (Researching, Qualified, Outreach Started, Engaged, Won, Lost)
+  - Date added
+  - Industry
+  - Number of contacts
+  - Last activity
+  - Search by company name
+  
+- **Company Card/Row** displays:
+  - Company name + logo
+  - Source job title
+  - Status badge (color-coded)
+  - Number of decision makers found
+  - Last activity timestamp
+  - Quick actions: View Detail, Archive, Add Note
+  
+- **Quick Stats Dashboard** (top of page)
+  - Total companies in pipeline
+  - By status breakdown
+  - Contacts messaged this week
+  - Response rate
+
+**Status Pipeline**:
+1. **New** - Just added, needs research
+2. **Researching** - Gathering info about company
+3. **Qualified** - Good fit, ready for outreach
+4. **Outreach Started** - Messages sent to decision makers
+5. **Engaged** - Decision makers responded
+6. **Won** - Became a client
+7. **Lost** - Not interested/no response
+
+---
+
+### 3. **Company Detail Page** (The Power Page)
+Where all the action happens for a specific company
+
+**Purpose**: Research, qualify, and execute outreach for one company
+
+**Layout**: Split-screen or tabbed interface
+
+#### **Section A: Company Overview** (Left/Top)
+- Company name, logo, website
+- Industry, size, location
+- **Source Job Details**:
+  - Job title
+  - Description
+  - Requirements
+  - Salary (if available)
+- **Company Research** (manual or AI-scraped):
+  - About the company
+  - Recent news
+  - Tech stack
+  - Company culture notes
+- **Qualification Section**:
+  - Why they're a good fit (editable notes)
+  - "Qualify Company" button → triggers decision maker scraping
+  - Qualification checklist (optional)
+
+#### **Section B: Decision Makers** (Right/Bottom)
+- **Contact Cards** (displayed after qualification):
+  - Photo (from LinkedIn)
+  - Name
+  - Title/Role
+  - LinkedIn profile link
+  - Department
+  - Status badge (Not Contacted, Messaged, Responded, Unresponsive)
+  - "Message" button
+  
+- **Bulk Actions**: Select multiple contacts to message at once
+
+#### **Section C: Outreach Center**
+- **Message Generation**:
+  - Select decision maker(s)
+  - AI generates personalized message based on:
+    - Their role
+    - Company needs (from job posting)
+    - Your services
+  - Preview message
+  - Edit message
+  - "Send via LinkedIn" or "Copy to Clipboard"
+  
+- **Outreach History**:
+  - Timeline of all messages sent
+  - Who was contacted
+  - When
+  - Response status
+  - Follow-up reminders
+
+#### **Section D: Activity Log**
+- All actions taken on this company
+- Notes added
+- Status changes
+- Messages sent
+- Responses received
+
+**User Flow**:
+```
+View Company → Review Job + Company Info → Click "Qualify" → 
+System scrapes decision makers → Review contacts → 
+Select contacts → Generate personalized messages → Send → 
+Track responses
+```
+
+---
+
+### 4. **All Contacts** (Secondary View)
+Global view of all decision makers across all companies
+
+**Purpose**: 
+- Avoid duplicate outreach
+- Manage follow-ups across companies
+- Find specific people
+
+**Key Elements**:
+
+- **Table View** with columns:
+  - Contact name + photo
+  - Title
+  - Company (clickable to Company Detail)
+  - Industry
+  - Outreach status
+  - Last contact date
+  - Next follow-up date
+  - Quick actions: Message, View Company, Add Note
+  
+- **Advanced Filters**:
+  - By outreach status
+  - By company
+  - By title/role (CTOs, HR Directors, etc.)
+  - By response status
+  - Date ranges
+  - Custom tags
+  
+- **Search**: By name, company, title
+
+- **Bulk Actions**:
+  - Send follow-up messages
+  - Update status
+  - Add tags
+  - Export to CSV
+
+**Key Use Cases**:
+- "Show me everyone I messaged last week who hasn't responded"
+- "Find all HR Directors I haven't contacted yet"
+- "List everyone at companies in 'Engaged' status"
+
+---
+
+### 5. **Analytics/Reports** (Optional but Recommended)
+Data-driven insights into your pipeline
+
+**Key Metrics**:
+- **Pipeline Health**:
+  - Companies by status
+  - Time spent in each stage
+  - Conversion rates between stages
+  
+- **Outreach Performance**:
+  - Messages sent per week/month
+  - Response rate
+  - Average time to response
+  - Best performing message templates
+  
+- **Source Analysis**:
+  - Which job types lead to best clients
+  - Which industries respond best
+  - LinkedIn vs other sources
+  
+- **Charts/Graphs**:
+  - Pipeline funnel visualization
+  - Response rate trends
+  - Activity timeline
+
+---
+
+## Key Features & Functionality
+
+### Core Features
+
+#### 1. **Job Scraping & Import**
+- Automated LinkedIn job scraping
+- Filter jobs before importing
+- Bulk import capabilities
+- Deduplication (avoid adding same company twice)
+
+#### 2. **Company Management**
+Contact management allows CRM systems to help companies organize and manage their business contacts, including contact details, communication records, special requests or preferences, and reminders to reach out periodically
+
+- Custom fields for company data
+- Status tracking through pipeline stages
+- Notes and tags
+- Activity history
+
+#### 3. **Decision Maker Scraping**
+- Automated LinkedIn scraping after qualification
+- Extract: name, title, photo, profile URL
+- Department/role identification
+- Senior/junior level detection
+
+#### 4. **AI Message Generation**
+- Personalized per decision maker role
+- Context-aware (uses job description + company info)
+- Editable templates
+- A/B testing capability (future)
+
+#### 5. **Outreach Tracking**
+Tools that provide tracking and reporting are essential for performance analysis, allowing users to evaluate outcomes effectively and track metrics such as conversion rates and response patterns
+
+- Message status tracking
+- Response detection (manual marking)
+- Follow-up reminders
+- Communication history
+
+#### 6. **Search & Filtering**
+Look for features that allow you to track customer interactions, segment leads, and automate follow-up processes, ensuring your sales team can focus on high-value opportunities
+
+- Global search across companies and contacts
+- Advanced filtering options
+- Saved searches/filters
+- Boolean search for contacts (optional)
+
+---
+
+## UI/UX Design Guidelines
+
+### Design Principles
+
+#### 1. **Minimal & Clean**
+Modern CRM UI design should include minimalist and clean layouts for reduced clutter, customizable dashboards tailored to user needs, and dark mode with accessibility-friendly features
+
+- Lots of white space
+- Avoid over-designing
+- Focus on clarity and speed
+- Functionality over flair
+
+#### 2. **Status-Driven Design**
+- Color-coded status badges:
+  - **Gray**: New/Researching
+  - **Blue**: Qualified
+  - **Yellow**: Outreach Started
+  - **Green**: Engaged/Won
+  - **Red**: Lost/Unresponsive
+- Visual pipeline with drag-and-drop
+
+#### 3. **Card-Based Layouts**
+- Use cards for:
+  - Job listings
+  - Company entries
+  - Decision maker profiles
+- Hover states with quick actions
+- Progressive disclosure (show more on expand)
+
+#### 4. **Quick Actions Philosophy**
+Every task should be minimal clicks:
+- Add job to pipeline: **1 click**
+- Qualify company: **1-2 clicks**
+- Generate + send message: **2-3 clicks**
+- View all contacts: **1 click**
+
+### Visual Style
+
+**Color Palette**:
+- Primary action color (one accent - e.g., blue/purple)
+- Neutral grays for backgrounds (#F9FAFB, #F3F4F6)
+- Status colors (as mentioned above)
+- Text: #111827 (dark), #6B7280 (medium), #9CA3AF (light)
+
+**Typography**:
+- Modern sans-serif (Inter, Roboto, System UI)
+- Clear hierarchy (32px → 24px → 18px → 16px → 14px)
+- Plenty of line-height for readability
+
+**Components**:
+- Rounded corners (4-8px)
+- Subtle shadows for cards
+- Clear focus states
+- Smooth transitions (200-300ms)
+
+**Responsive**:
+- Desktop-first (primary use case)
+- Mobile-friendly for on-the-go checking
+- Tablet-optimized for reviewing on iPad
+
+---
+
+## Data Structure
+
+### Database Schema
+
+#### Companies Table
+```
+- id (primary key)
+- name
+- logo_url
+- website
+- industry
+- size
+- location
+- source_job_id (foreign key)
+- status (enum)
+- qualification_notes
+- created_at
+- updated_at
+- last_activity_at
+- is_archived
+```
+
+#### Jobs Table
+```
+- id (primary key)
+- title
+- description
+- requirements
+- company_name (before company created)
+- location
+- posted_date
+- source_url (LinkedIn)
+- salary_range
+- is_added_to_pipeline
+- created_at
+```
+
+#### Contacts Table (Decision Makers)
+```
+- id (primary key)
+- company_id (foreign key)
+- name
+- title
+- department
+- linkedin_url
+- photo_url
+- email (if available)
+- phone (if available)
+- seniority_level
+- outreach_status (enum)
+- created_at
+- updated_at
+```
+
+#### Messages Table
+```
+- id (primary key)
+- contact_id (foreign key)
+- company_id (foreign key)
+- message_content
+- sent_date
+- response_received
+- response_date
+- response_content
+- channel (LinkedIn, Email, etc.)
+- created_at
+```
+
+#### Activities Table (Audit Log)
+```
+- id (primary key)
+- company_id (foreign key)
+- contact_id (nullable)
+- activity_type (note_added, status_changed, message_sent, etc.)
+- description
+- created_by (user_id)
+- created_at
+```
+
+---
+
+## User Workflows
+
+### Workflow 1: From Job Discovery to First Outreach
+```
+1. Land on Job Feed
+2. Apply filters (e.g., "Engineering roles in San Francisco")
+3. Browse job cards
+4. Click "Add to Pipeline" on 3-5 interesting jobs
+5. Go to Companies page
+6. Click first company to open Company Detail
+7. Review job description and company info
+8. Add qualification notes ("Great fit - they need React developers")
+9. Click "Qualify Company"
+10. System scrapes and displays 5 decision makers
+11. Review decision makers (CTO, Engineering Manager, HR Director)
+12. Select CTO and Engineering Manager
+13. Click "Generate Messages"
+14. AI creates personalized messages for each
+15. Review and edit messages
+16. Click "Send" or "Copy to Clipboard"
+17. Mark as sent
+18. Company status automatically updates to "Outreach Started"
+```
+
+### Workflow 2: Follow-Up Management
+```
+1. Go to All Contacts page
+2. Filter by "Messaged" + "No Response" + "Sent 7+ days ago"
+3. Select multiple contacts
+4. Click "Generate Follow-Up Messages"
+5. Review batch-generated follow-ups
+6. Send follow-ups
+7. Set reminder for next follow-up in 1 week
+```
+
+### Workflow 3: Response Handling
+```
+1. Receive LinkedIn response from a decision maker
+2. Go to All Contacts page
+3. Search for person's name
+4. Click their profile
+5. Goes to Company Detail page (contact highlighted)
+6. Click "Mark as Responded"
+7. Add response notes in activity log
+8. Company status updates to "Engaged"
+9. Schedule next follow-up action
+```
+
+---
+
+## Feature Prioritization (MVP vs Future)
+
+### MVP (Minimum Viable Product) - Launch First
+- ✅ Job Feed with basic filters
+- ✅ Add jobs to Companies pipeline
+- ✅ Company Detail page
+- ✅ Manual qualification
+- ✅ Decision maker scraping (triggered by qualification)
+- ✅ Basic AI message generation
+- ✅ All Contacts page
+- ✅ Status tracking
+- ✅ Basic search and filtering
+- ✅ Activity logging
+
+### Phase 2 (Post-Launch)
+- 📊 Analytics dashboard
+- 🔔 Email/push notifications for responses
+- 📧 Email integration (scrape emails, send via app)
+- 🤖 Automated follow-up sequences
+- 📝 Custom message templates
+- 🏷️ Tags and custom fields
+- 👥 Team collaboration features
+- 📱 Mobile app
+
+### Phase 3 (Future Enhancements)
+- 🎯 AI-powered lead scoring
+- 🔄 CRM integrations (Salesforce, HubSpot)
+- 📨 LinkedIn messaging API integration
+- 📈 Advanced reporting
+- 🔗 Zapier integration
+- 💼 Multi-user/team plans
+- 🎨 White-label options
+
+---
+
+## Technical Recommendations
+
+### Tech Stack Suggestions
+
+**Frontend**:
+- React + TypeScript
+- Tailwind CSS for styling
+- Shadcn/ui for components
+- React Query for data fetching
+- Zustand or Redux for state management
+
+**Backend**:
+- Node.js + Express or Next.js API routes
+- PostgreSQL for database
+- Prisma ORM
+- Redis for caching
+
+**Scraping**:
+- Puppeteer or Playwright for LinkedIn scraping
+- Bright Data or Apify for reliable scraping
+- Rate limiting and proxy rotation
+
+**AI Integration**:
+- OpenAI API or Anthropic Claude API for message generation
+- Prompt templates for consistency
+- User context injection
+
+**Hosting**:
+- Vercel or Railway for easy deployment
+- AWS S3 for file storage
+- Cloudflare for CDN
+
+---
+
+## Success Metrics
+
+### Key Performance Indicators (KPIs)
+
+**User Engagement**:
+- Daily/weekly active users
+- Average time spent in app
+- Jobs added per user per week
+- Companies qualified per user per week
+
+**Conversion Metrics**:
+- Jobs → Companies conversion rate
+- Companies → Qualified conversion rate
+- Qualified → Outreach conversion rate
+- Outreach → Response rate
+- Response → Client conversion rate
+
+**Efficiency Metrics**:
+- Time from job discovery to first outreach
+- Average messages sent per user per week
+- User retention rate (7-day, 30-day)
+
+---
+
+## Competitive Differentiation
+
+### What Makes This Unique
+
+1. **Job-to-Client Pipeline**: Most recruitment tools focus on candidate placement, not client acquisition
+2. **Decision Maker Focus**: Automatically finds the right people to contact, not just companies
+3. **AI Personalization**: Messages tailored to each decision maker's role and company needs
+4. **Lightweight**: Not a full ATS - focused specifically on business development
+5. **LinkedIn-First**: Built around how recruiters actually source new business
+
+### Compared to Traditional CRMs
+- ✅ Pre-populated with job/company data (no manual entry)
+- ✅ Automated decision maker discovery
+- ✅ Industry-specific (recruitment) workflows
+- ✅ AI message generation built-in
+
+### Compared to Recruitment ATSs
+- ✅ Focused on client acquisition, not candidate management
+- ✅ Lighter weight, faster to get value
+- ✅ Lower cost
+- ✅ Easier learning curve
+
+---
+
+## Implementation Roadmap
+
+### Week 1-2: Foundation
+- Database schema setup
+- User authentication
+- Basic UI framework
+
+### Week 3-4: Job Feed
+- LinkedIn scraping setup
+- Job listing page
+- Add to pipeline functionality
+
+### Week 5-6: Companies Page
+- Company list view
+- Status management
+- Basic filtering
+
+### Week 7-8: Company Detail
+- Detail page layout
+- Qualification workflow
+- Activity logging
+
+### Week 9-10: Decision Maker Scraping
+- LinkedIn profile scraping
+- Contact card display
+- Contact management
+
+### Week 11-12: AI Messaging
+- OpenAI/Claude integration
+- Message generation
+- Template system
+
+### Week 13-14: All Contacts Page
+- Contact list view
+- Advanced filtering
+- Search functionality
+
+### Week 15-16: Polish & Testing
+- Bug fixes
+- Performance optimization
+- User testing
+- Beta launch
+
+---
+
+## Conclusion
+
+This recruitment app fills a specific gap in the market: helping recruiters efficiently convert job postings into client relationships. By combining job discovery, company research, decision maker identification, and AI-powered outreach in one streamlined workflow, it dramatically reduces the time and effort required to build a client pipeline.
+
+The key to success is maintaining focus on the core workflow and not adding unnecessary complexity. Every feature should answer the question: "Does this help a recruiter find and contact potential clients faster?"

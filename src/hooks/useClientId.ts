@@ -15,10 +15,13 @@ export function useClientId() {
         .from('client_users')
         .select('client_id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        console.error('Error fetching client ID:', error);
+        // PGRST116 = no rows found, which is acceptable in some cases
+        if (error.code !== 'PGRST116') {
+          console.error('Error fetching client ID:', error);
+        }
         return null;
       }
 

@@ -19,6 +19,7 @@ import {
   Home,
   Megaphone,
   MessageSquare,
+  Rocket,
   Settings,
   Users,
   X,
@@ -33,9 +34,10 @@ const navigationSections = [
     // Core Workflow (most common items displayed prominently)
     items: [
       { name: 'Dashboard', href: '/', icon: Home },
+      { name: 'Getting Started', href: '/getting-started', icon: Rocket },
       { name: 'Jobs Feed', href: '/jobs', icon: Briefcase },
       { name: 'Companies', href: '/companies', icon: Building2 },
-      { name: 'People', href: '/people', icon: Users },
+      { name: 'Contacts', href: '/people', icon: Users },
       { name: 'Conversations', href: '/conversations', icon: MessageSquare },
     ],
   },

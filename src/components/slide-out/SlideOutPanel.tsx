@@ -8,6 +8,8 @@ interface SlideOutPanelProps {
   subtitle?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  width?: 'default' | 'wide';
+  customHeader?: React.ReactNode;
 }
 
 export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
@@ -17,7 +19,13 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
   subtitle,
   children,
   footer,
+  width = 'default',
+  customHeader,
 }) => {
+  const maxWidthClass =
+    width === 'wide'
+      ? 'sm:max-w-[75vw] md:max-w-[75vw]'
+      : 'sm:max-w-[800px] md:max-w-[800px]';
   // Handle ESC key
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -55,7 +63,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
 
       {/* Panel */}
       <div
-        className='fixed top-12 right-0 bottom-0 w-full max-w-[90vw] sm:max-w-[75vw] md:max-w-[75vw] bg-white z-[10001] flex flex-col transition-transform duration-300 ease-in-out'
+        className={`fixed top-12 right-0 bottom-0 w-full max-w-[90vw] ${maxWidthClass} bg-white z-[10001] flex flex-col transition-transform duration-300 ease-in-out`}
         style={{
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           boxShadow: '-2px 0 15px rgba(0, 0, 0, 0.1)',
@@ -64,13 +72,17 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
         {/* Header */}
         <div className='flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0'>
           <div className='flex-1 min-w-0'>
-            <h2 className='text-lg font-semibold text-gray-900 truncate'>
-              {title}
-            </h2>
-            {subtitle && (
-              <p className='text-sm text-gray-500 mt-0.5 truncate'>
-                {subtitle}
-              </p>
+            {customHeader || (
+              <>
+                <h2 className='text-lg font-semibold text-gray-900 truncate'>
+                  {title}
+                </h2>
+                {subtitle && (
+                  <p className='text-sm text-gray-500 mt-0.5 truncate'>
+                    {subtitle}
+                  </p>
+                )}
+              </>
             )}
           </div>
           <button

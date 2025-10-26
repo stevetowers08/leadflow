@@ -5,8 +5,12 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getClearbitLogo } from '@/services/logoService';
 import { Company, Job, Person } from '@/types/database';
+import {
+  summarizeJobFromSupabase,
+  updateJobSummaryInSupabase,
+} from '@/utils/jobSummarization';
 import { format } from 'date-fns';
-import { ExternalLink, User } from 'lucide-react';
+import { ExternalLink, Sparkles, User } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { GridItem, SlideOutGrid } from './SlideOutGrid';
 import { SlideOutPanel } from './SlideOutPanel';
@@ -29,6 +33,7 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
   const [company, setCompany] = useState<Company | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(false);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -117,6 +122,47 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
         description: 'Failed to update job status',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleGenerateSummary = async () => {
+    if (!job || !jobId) return;
+
+    setGeneratingSummary(true);
+    try {
+      // Generate AI summary
+      const result = await summarizeJobFromSupabase(jobId);
+
+      if (!result.success || !result.data) {
+        throw new Error(result.error || 'Failed to generate summary');
+      }
+
+      // Update the job with the new summary
+      const updateResult = await updateJobSummaryInSupabase(result.data);
+
+      if (!updateResult.success) {
+        throw new Error(updateResult.error || 'Failed to update job summary');
+      }
+
+      // Update local state
+      setJob({ ...job, summary: result.data.summary });
+
+      toast({
+        title: 'Success',
+        description: 'AI summary generated successfully',
+      });
+
+      onUpdate?.();
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      toast({
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : 'Failed to generate summary',
+        variant: 'destructive',
+      });
+    } finally {
+      setGeneratingSummary(false);
     }
   };
 
@@ -286,25 +332,34 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
             </SlideOutSection>
           )}
 
-          {/* Job Description Section */}
-          {(job.description || job.summary) && (
-            <SlideOutSection title='Description'>
-              {job.summary && (
-                <div className='mb-4 p-4 bg-gray-50 rounded-lg'>
-                  <h5 className='text-sm font-semibold text-gray-700 mb-2'>
-                    Summary
-                  </h5>
+          {/* Job Summary Section */}
+          {(job.summary || job.description) && (
+            <SlideOutSection title='Summary'>
+              {job.summary ? (
+                <div className='p-4 bg-gray-50 rounded-lg'>
                   <p className='text-sm text-gray-600 leading-relaxed'>
                     {job.summary}
                   </p>
                 </div>
-              )}
-
-              {job.description && (
-                <div className='text-sm text-gray-700 leading-relaxed whitespace-pre-wrap'>
-                  {job.description}
+              ) : job.description ? (
+                <div className='flex flex-col gap-3'>
+                  <div className='text-sm text-gray-400 italic'>
+                    No AI summary available. Generate one to get a concise
+                    overview of this job.
+                  </div>
+                  <Button
+                    onClick={handleGenerateSummary}
+                    disabled={generatingSummary}
+                    variant='outline'
+                    className='self-start'
+                  >
+                    <Sparkles className='h-4 w-4 mr-2' />
+                    {generatingSummary
+                      ? 'Generating...'
+                      : 'Generate AI Summary'}
+                  </Button>
                 </div>
-              )}
+              ) : null}
             </SlideOutSection>
           )}
 

@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { useStatusAutomation } from '@/services/statusAutomationService';
 import {
   AlertCircle,
   Archive,
@@ -74,6 +75,7 @@ interface EmailMessage {
 // Main Conversations Page Component
 const ConversationsPage: React.FC = () => {
   console.log('🚀 Smartlead-style Inbox loaded');
+  const statusAutomation = useStatusAutomation();
 
   const [activeView, setActiveView] = useState('inbox');
   const [threads, setThreads] = useState<EmailThread[]>([]);
@@ -117,7 +119,6 @@ const ConversationsPage: React.FC = () => {
           last_reply_at,
           last_reply_channel,
           last_reply_message,
-          linkedin_connected,
           email_sent,
           people_stage,
           created_at,
@@ -125,42 +126,54 @@ const ConversationsPage: React.FC = () => {
           companies(name, website)
         `
         )
-        .or(
-          'last_reply_message.not.is.null,linkedin_connected.eq.true,email_sent.eq.true'
-        )
+        .or('last_reply_message.not.is.null,email_sent.eq.true')
         .order('last_reply_at', { ascending: false, nullsFirst: false })
         .limit(50);
 
       if (error) throw error;
 
       // Transform to EmailThread format
-      const transformedThreads: EmailThread[] = (data || []).map(person => ({
-        id: person.id,
-        person_id: person.id,
-        person_name: person.name || 'Unknown',
-        person_email: person.email_address || '',
-        person_company: person.companies?.name,
-        person_job_title: person.company_role,
-        subject: person.last_reply_message
-          ? 'Got reply from the lead'
-          : 'Outreach sent',
-        last_message_at: person.last_reply_at || person.created_at,
-        is_read: !!person.last_reply_message,
-        message_count: 1,
-        last_message_preview:
-          person.last_reply_message || 'Outreach message sent',
-        lead_status:
-          person.people_stage === 'new_lead'
-            ? 'interested'
-            : person.people_stage === 'new_lead'
+      const transformedThreads: EmailThread[] = (data || []).map(person => {
+        // Automatically update status if response received
+        if (person.last_reply_message && person.companies?.id) {
+          statusAutomation
+            .onResponseReceived(
+              person.id,
+              person.companies.id,
+              person.last_reply_message,
+              { skipNotification: true }
+            )
+            .catch(err => console.error('Failed to auto-update status:', err));
+        }
+
+        return {
+          id: person.id,
+          person_id: person.id,
+          person_name: person.name || 'Unknown',
+          person_email: person.email_address || '',
+          person_company: person.companies?.name,
+          person_job_title: person.company_role,
+          subject: person.last_reply_message
+            ? 'Got reply from the lead'
+            : 'Outreach sent',
+          last_message_at: person.last_reply_at || person.created_at,
+          is_read: !!person.last_reply_message,
+          message_count: 1,
+          last_message_preview:
+            person.last_reply_message || 'Outreach message sent',
+          lead_status:
+            person.people_stage === 'new_lead'
               ? 'interested'
-              : 'no_response',
-        campaign_name: 'Client:AES_C1',
-        priority: 'medium',
-        tags: [],
-        is_starred: false,
-        is_snoozed: false,
-      }));
+              : person.people_stage === 'new_lead'
+                ? 'interested'
+                : 'no_response',
+          campaign_name: 'Client:AES_C1',
+          priority: 'medium',
+          tags: [],
+          is_starred: false,
+          is_snoozed: false,
+        };
+      });
 
       setThreads(transformedThreads);
     } catch (error) {

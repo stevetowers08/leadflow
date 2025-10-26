@@ -220,9 +220,9 @@ All colors MUST be HSL.
       Arial,
       sans-serif;
     background-color: hsl(var(--background)) !important;
-    /* Ensure crisp text rendering without breaking fixed positioning */
+    /* Ensure consistent text rendering across Chrome and Firefox */
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
     /* Prevent text blur from font smoothing issues */
     font-feature-settings:
@@ -268,10 +268,33 @@ All colors MUST be HSL.
     z-index: 10;
   }
 
-  /* Modern hover effects */
+  /* Modern hover effects with micro-interactions - 2025 Best Practices */
+  tbody tr {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer;
+  }
+
   tbody tr:hover {
     background-color: var(--table-row-hover) !important;
-    transition: background-color 0.15s ease-in-out;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px 0 rgb(0, 0, 0, 0.05);
+  }
+
+  /* Active state feedback */
+  tbody tr:active {
+    background-color: rgb(243, 244, 246) !important; /* gray-100 */
+    transform: translateY(0px);
+    box-shadow: 0 1px 2px 0 rgb(0, 0, 0, 0.05);
+  }
+
+  /* Selected row state */
+  tbody tr[data-selected='true'] {
+    background-color: rgb(239, 246, 255) !important; /* blue-50 */
+    border-left: 3px solid rgb(59, 130, 246); /* blue-500 */
+  }
+
+  tbody tr[data-selected='true']:hover {
+    background-color: rgb(219, 234, 254) !important; /* blue-100 */
   }
 
   /* Remove last column right border for clean appearance */
@@ -301,9 +324,9 @@ All colors MUST be HSL.
   textarea,
   select,
   label {
-    /* Ensure crisp text rendering */
+    /* Ensure crisp text rendering - Chrome-like thickness in Firefox */
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
     /* Enable font features for better readability */
     font-feature-settings:
@@ -374,9 +397,9 @@ All colors MUST be HSL.
   input,
   textarea,
   select {
-    /* Prevent blur on focus/interaction */
+    /* Prevent blur on focus/interaction - Chrome-like thickness in Firefox */
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
   }
 
@@ -394,7 +417,7 @@ All colors MUST be HSL.
   /* Utility class for extra crisp text when needed */
   .text-crisp {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
@@ -453,10 +476,10 @@ All colors MUST be HSL.
     -webkit-backdrop-filter: none;
   }
 
-  /* Enhanced table font rendering */
+  /* Enhanced table font rendering - Chrome-like thickness in Firefox */
   table {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
@@ -466,14 +489,14 @@ All colors MUST be HSL.
   th,
   td {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
       'liga' 1;
   }
 
-  /* Enhanced font rendering for better clarity */
+  /* Enhanced font rendering for better clarity - Chrome-like thickness */
   .font-clear {
     font-family:
       'Inter',
@@ -484,7 +507,7 @@ All colors MUST be HSL.
       Roboto,
       sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
@@ -492,10 +515,10 @@ All colors MUST be HSL.
     font-variant-ligatures: common-ligatures;
   }
 
-  /* High-DPI display optimization */
+  /* High-DPI display optimization - Chrome-like thickness in Firefox */
   .text-sharp {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
@@ -504,10 +527,10 @@ All colors MUST be HSL.
     /* Removed hardware acceleration that causes text blur */
   }
 
-  /* Specific improvements for table text */
+  /* Specific improvements for table text - Chrome-like thickness */
   .table-text-clear {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,

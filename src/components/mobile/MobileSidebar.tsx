@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 import {
   BarChart3,
   Bell,
-  Bot,
   Briefcase,
   Building2,
   HelpCircle,
@@ -79,7 +78,7 @@ const sidebarItems: SidebarItem[] = [
   },
   {
     to: '/people',
-    label: 'People',
+    label: 'Contacts',
     icon: <Users className='h-4 w-4' />,
     isPrimary: true,
     permission: 'people',

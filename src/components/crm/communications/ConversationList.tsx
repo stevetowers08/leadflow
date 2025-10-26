@@ -65,7 +65,6 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           last_reply_at,
           last_reply_channel,
           last_reply_message,
-          linkedin_connected,
           email_sent,
           created_at,
           updated_at,

@@ -954,6 +954,64 @@ import {
 
 ## Components
 
+### Tab Navigation Component
+
+The application uses a standardized `TabNavigation` component for all tabbed interfaces across pages (Jobs, People, Companies) and slide-out panels.
+
+#### Design Pattern
+
+```tsx
+import { TabNavigation, TabOption } from '@/components/ui/tab-navigation';
+
+const tabOptions: TabOption[] = [
+  { id: 'overview', label: 'Overview', count: 0, icon: FileText },
+  { id: 'people', label: 'People', count: people.length, icon: User },
+  { id: 'jobs', label: 'Jobs', count: jobs.length, icon: Calendar },
+];
+
+<TabNavigation
+  tabs={tabOptions}
+  activeTab={activeTab}
+  onTabChange={setActiveTab}
+/>;
+```
+
+#### Visual Style
+
+- **Active Tab**: Blue underline (`border-blue-600`) with blue text (`text-blue-600`)
+- **Inactive Tabs**: Gray text (`text-gray-500`) with transparent border
+- **Count Badges**:
+  - Active: Blue background (`bg-blue-100`) with blue text (`text-blue-600`)
+  - Inactive: Gray background (`bg-gray-100`) with gray text (`text-gray-500`)
+- **Icons**: Optional 16px icons with proper spacing
+- **Hover States**: Gray underline on hover for inactive tabs
+
+#### Implementation
+
+```tsx
+// Standard tab options with counts
+const tabOptions = useMemo<TabOption[]>(
+  () => [
+    { id: 'overview', label: 'Overview', count: 0, icon: FileText },
+    { id: 'people', label: 'People', count: people.length, icon: User },
+    { id: 'jobs', label: 'Jobs', count: jobs.length, icon: Calendar },
+    {
+      id: 'activity',
+      label: 'Activity',
+      count: interactions.length,
+      icon: Mail,
+    },
+  ],
+  [people.length, jobs.length, interactions.length]
+);
+```
+
+**Usage**: This component is used on:
+
+- Jobs page (New, Qualified, Skip, All)
+- Company Details slide-out (Overview, People, Jobs, Activity)
+- Any page requiring tab-based navigation
+
 ### Button Component
 
 ```tsx

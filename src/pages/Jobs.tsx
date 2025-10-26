@@ -246,8 +246,9 @@ const Jobs: React.FC = () => {
   // Fetch data with parallel requests for better performance
   useEffect(() => {
     const fetchData = async () => {
-      // Don't fetch if client ID is still loading or not available
-      if (clientIdLoading || !clientId) {
+      // Don't fetch if client ID is still loading
+      if (clientIdLoading) {
+        setLoading(true);
         return;
       }
 
@@ -255,7 +256,7 @@ const Jobs: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // Get ALL jobs and filter them based on client's job filter configs
+        // Get ALL jobs (with or without client ID)
         const [jobsResult, usersResult, filterConfigResult] = await Promise.all(
           [
             supabase
@@ -284,12 +285,14 @@ const Jobs: React.FC = () => {
               .from('user_profiles')
               .select('id, full_name')
               .order('full_name'),
-            supabase
-              .from('job_filter_configs')
-              .select('*')
-              .eq('client_id', clientId)
-              .eq('is_active', true)
-              .single(),
+            clientId
+              ? supabase
+                  .from('job_filter_configs')
+                  .select('*')
+                  .eq('client_id', clientId)
+                  .eq('is_active', true)
+                  .maybeSingle()
+              : Promise.resolve({ data: null, error: null }),
           ]
         );
 
@@ -652,21 +655,8 @@ const Jobs: React.FC = () => {
     }
   }, []);
 
-  // Show loading state
-  if (loading || clientIdLoading) {
-    return (
-      <Page title='Job Intelligence' hideHeader>
-        <div className='flex items-center justify-center h-64'>
-          <div className='text-center'>
-            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4'></div>
-            <p className='text-muted-foreground'>
-              {clientIdLoading ? 'Loading client data...' : 'Loading jobs...'}
-            </p>
-          </div>
-        </div>
-      </Page>
-    );
-  }
+  // Error state - show page with error message
+  const showLoadingState = loading || clientIdLoading;
 
   if (error) {
     return (
@@ -724,7 +714,7 @@ const Jobs: React.FC = () => {
           stickyHeaders={true}
           scrollable={true}
           onRowClick={handleRowClick}
-          loading={loading}
+          loading={showLoadingState}
           emptyMessage='No jobs found'
         />
 

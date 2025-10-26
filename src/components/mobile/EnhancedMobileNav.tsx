@@ -51,7 +51,7 @@ const allNavItems: NavItem[] = [
   },
   {
     to: '/people',
-    label: 'Qualified Leads',
+    label: 'Contacts',
     icon: <Users className='h-5 w-5' />,
     isPrimary: true,
     permission: 'people',

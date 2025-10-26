@@ -4,6 +4,7 @@ export interface CampaignSequence {
   name: string;
   description?: string;
   status: 'draft' | 'active' | 'paused' | 'completed';
+  pause_on_reply?: boolean; // Control whether to auto-pause on reply
   created_at: string;
   updated_at: string;
   created_by: string;

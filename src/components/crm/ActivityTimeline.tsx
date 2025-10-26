@@ -6,14 +6,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import {
-    ChevronDown,
-    ChevronUp,
-    Mail as EmailIcon,
-    FileText,
-    Linkedin,
-    Search,
-    User,
-    Zap,
+  ChevronDown,
+  ChevronUp,
+  Mail as EmailIcon,
+  FileText,
+  Linkedin,
+  Search,
+  User,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -158,60 +157,6 @@ export const ActivityTimeline = ({
         .single();
 
       if (personData) {
-        // Connection request
-        if (personData.connection_request_date) {
-          allActivities.push({
-            id: `automation_connection_${entityId}`,
-            type: 'automation_step',
-            title: 'LinkedIn Connection Request Sent',
-            description:
-              personData.linkedin_request_message || 'Connection request sent',
-            timestamp: personData.connection_request_date,
-            leadName: personData.name,
-            leadId: entityId,
-            icon: Zap,
-            color: 'bg-purple-100 text-purple-600',
-            metadata: { step: 'connection_request' },
-          });
-        }
-
-        // Connection accepted
-        if (personData.connection_accepted_date) {
-          allActivities.push({
-            id: `automation_connected_${entityId}`,
-            type: 'automation_step',
-            title: 'LinkedIn Connection Accepted',
-            description:
-              personData.linkedin_connected_message || 'Connection accepted',
-            timestamp: personData.connection_accepted_date,
-            leadName: personData.name,
-            leadId: entityId,
-            icon: Zap,
-            color: 'bg-purple-100 text-purple-600',
-            metadata: { step: 'connection_accepted' },
-          });
-        }
-
-        // Message sent
-        if (personData.last_reply_at) {
-          allActivities.push({
-            id: `automation_message_${entityId}`,
-            type: 'automation_step',
-            title: 'LinkedIn Message Sent',
-            description:
-              personData.linkedin_follow_up_message || 'Follow-up message sent',
-            timestamp: personData.last_reply_at,
-            leadName: personData.name,
-            leadId: entityId,
-            icon: Zap,
-            color: 'bg-purple-100 text-purple-600',
-            metadata: { step: 'message_sent' },
-          });
-        }
-
-        // Email sent - removed since email_sent_date column doesn't exist
-        // TODO: Implement email tracking when email_sends table is properly integrated
-
         // Stage changes
         if (personData.stage_updated) {
           allActivities.push({
@@ -274,7 +219,7 @@ export const ActivityTimeline = ({
     } finally {
       setIsLoading(false);
     }
-  }, [entityId, entityType, user, entityName]);
+  }, [entityId, entityType, entityName]);
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);

@@ -3,7 +3,7 @@
 **Feature ID**: F007  
 **Priority**: P1 (High)  
 **Estimated Effort**: 12-16 hours  
-**Status**: ⚪ Not Started  
+**Status**: 🟡 PARTIALLY COMPLETE (UI/Database done, n8n integration missing)  
 **Dependencies**: n8n Integration (F006), Job Qualification Workflow (F001)  
 **Owner**: TBD  
 **Sprint**: TBD

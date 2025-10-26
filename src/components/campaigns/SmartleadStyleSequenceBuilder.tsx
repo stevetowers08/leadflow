@@ -14,9 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useCampaignSteps } from '@/hooks/useCampaignSequences';
+import {
+  useCampaignSteps,
+  useCampaignSequences,
+} from '@/hooks/useCampaignSequences';
 import {
   ArrowLeft,
   ChevronDown,
@@ -48,12 +52,33 @@ export default function SmartleadStyleSequenceBuilder({
 }: Props) {
   const { steps, loading, addStep, updateStep, deleteStep, reorderSteps } =
     useCampaignSteps(sequence.id);
+  const { updateSequence } = useCampaignSequences();
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showStepModal, setShowStepModal] = useState(false);
+  const [pauseOnReply, setPauseOnReply] = useState(
+    sequence.pause_on_reply ?? true
+  );
   const { toast } = useToast();
 
   const selectedStep = steps.find(s => s.id === selectedStepId);
+
+  const handlePauseOnReplyToggle = async (checked: boolean) => {
+    setPauseOnReply(checked);
+    try {
+      await updateSequence.mutateAsync({
+        id: sequence.id,
+        pause_on_reply: checked,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update pause on reply setting',
+        variant: 'destructive',
+      });
+      setPauseOnReply(!checked); // Revert on error
+    }
+  };
 
   if (loading) {
     return (
@@ -235,6 +260,37 @@ export default function SmartleadStyleSequenceBuilder({
                 </>
               )}
             </Button>
+          </div>
+        </div>
+
+        {/* Settings Row */}
+        <div className='px-6 py-2 bg-gray-50 border-b border-gray-200'>
+          <div className='flex items-center justify-between max-w-7xl mx-auto'>
+            <div className='flex items-center gap-8'>
+              <Label className='text-sm font-medium text-gray-700'>
+                Campaign Settings
+              </Label>
+              <div className='flex items-center gap-3'>
+                <div className='flex items-center gap-2'>
+                  <Switch
+                    id='pause-on-reply'
+                    checked={pauseOnReply}
+                    onCheckedChange={handlePauseOnReplyToggle}
+                  />
+                  <Label
+                    htmlFor='pause-on-reply'
+                    className='text-sm text-gray-600 cursor-pointer'
+                  >
+                    Auto-pause on reply
+                  </Label>
+                </div>
+                <div className='text-xs text-gray-500'>
+                  {pauseOnReply
+                    ? 'Sequence will pause when someone replies'
+                    : 'Sequence will continue even after replies'}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

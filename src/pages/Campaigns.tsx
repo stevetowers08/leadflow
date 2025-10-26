@@ -11,6 +11,7 @@ import {
 import { Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
 import { useCampaignSequences } from '@/hooks/useCampaignSequences';
+import { supabase } from '@/integrations/supabase/client';
 import { CampaignSequence } from '@/types/campaign.types';
 import { format } from 'date-fns';
 import {
@@ -25,9 +26,8 @@ import {
   Reply,
   Search,
   Target,
-  X,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const STATUS_COLORS = {
@@ -38,19 +38,91 @@ const STATUS_COLORS = {
   cancelled: 'bg-red-100 text-red-800',
 };
 
+interface CampaignAnalytics {
+  total_sent: number;
+  total_opened: number;
+  total_replied: number;
+  total_bounced: number;
+  total_positive_replies: number;
+  total_sender_bounced: number;
+}
+
 export default function Campaigns() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [campaignAnalytics, setCampaignAnalytics] = useState<
+    Record<string, CampaignAnalytics>
+  >({});
 
   const { toast } = useToast();
   const { sequences, isLoading, createSequence, deleteSequence } =
     useCampaignSequences();
 
+  // Load analytics for all campaigns
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      if (!sequences || sequences.length === 0) return;
+
+      const analyticsMap: Record<string, CampaignAnalytics> = {};
+
+      for (const sequence of sequences) {
+        // Get email sends for this campaign sequence from metadata
+        const { data: emailSends } = await supabase
+          .from('email_sends')
+          .select('status, metadata')
+          .eq('metadata->>campaign_sequence_id', sequence.id);
+
+        const analytics: CampaignAnalytics = {
+          total_sent: emailSends?.length || 0,
+          total_opened: 0, // Gmail API doesn't track opens
+          total_replied: 0,
+          total_bounced:
+            emailSends?.filter(es => es.status === 'bounced').length || 0,
+          total_positive_replies: 0,
+          total_sender_bounced: 0,
+        };
+
+        // Get replies for people in this sequence
+        const { data: sequenceLeads } = await supabase
+          .from('campaign_sequence_leads')
+          .select('lead_id')
+          .eq('sequence_id', sequence.id);
+
+        if (sequenceLeads && sequenceLeads.length > 0) {
+          const leadIds = sequenceLeads.map(l => l.lead_id);
+
+          // Get email replies for these leads
+          const { data: replies } = await supabase
+            .from('email_replies')
+            .select('id, sentiment')
+            .in('person_id', leadIds);
+
+          if (replies) {
+            analytics.total_replied = replies.length;
+            analytics.total_positive_replies = replies.filter(
+              r => r.sentiment === 'positive'
+            ).length;
+          }
+        }
+
+        analyticsMap[sequence.id] = analytics;
+      }
+
+      console.log('📊 Analytics loaded:', analyticsMap);
+      setCampaignAnalytics(analyticsMap);
+    };
+
+    if (!isLoading && sequences) {
+      loadAnalytics();
+    }
+  }, [sequences, isLoading]);
+
   // Debug logging
   console.log('🔍 Campaigns page - sequences:', sequences);
   console.log('🔍 Campaigns page - isLoading:', isLoading);
   console.log('🔍 Campaigns page - sequences length:', sequences?.length);
+  console.log('📊 Campaign analytics state:', campaignAnalytics);
 
   // Memoized filtered sequences for better performance
   const filteredSequences = useMemo(() => {
@@ -265,7 +337,7 @@ export default function Campaigns() {
                       <div className='flex items-center space-x-6'>
                         <div className='flex flex-col items-center justify-center min-w-[80px]'>
                           <div className='text-2xl font-bold text-purple-600'>
-                            0
+                            {campaignAnalytics[sequence.id]?.total_sent || 0}
                           </div>
                           <div className='flex items-center gap-1 mt-1'>
                             <Mail className='h-4 w-4 text-gray-500' />
@@ -274,7 +346,7 @@ export default function Campaigns() {
                         </div>
                         <div className='flex flex-col items-center justify-center min-w-[80px]'>
                           <div className='text-2xl font-bold text-purple-600'>
-                            0
+                            {campaignAnalytics[sequence.id]?.total_opened || 0}
                           </div>
                           <div className='flex items-center gap-1 mt-1'>
                             <MailOpen className='h-4 w-4 text-gray-500' />
@@ -285,45 +357,35 @@ export default function Campaigns() {
                         </div>
                         <div className='flex flex-col items-center justify-center min-w-[80px]'>
                           <div className='text-2xl font-bold text-blue-500'>
-                            0
+                            {campaignAnalytics[sequence.id]?.total_replied || 0}
                           </div>
                           <div className='flex items-center gap-1 mt-1'>
                             <Reply className='h-4 w-4 text-gray-500' />
                             <span className='text-xs text-gray-600'>
-                              Replied w/OOO
+                              Replied
                             </span>
                           </div>
                         </div>
                         <div className='flex flex-col items-center justify-center min-w-[80px]'>
                           <div className='text-2xl font-bold text-green-600'>
-                            0
+                            {campaignAnalytics[sequence.id]
+                              ?.total_positive_replies || 0}
                           </div>
                           <div className='flex items-center gap-1 mt-1'>
                             <DollarSign className='h-4 w-4 text-gray-500' />
                             <span className='text-xs text-gray-600'>
-                              Positive Reply
+                              Positive
                             </span>
                           </div>
                         </div>
                         <div className='flex flex-col items-center justify-center min-w-[80px]'>
                           <div className='text-2xl font-bold text-red-600'>
-                            0
+                            {campaignAnalytics[sequence.id]?.total_bounced || 0}
                           </div>
                           <div className='flex items-center gap-1 mt-1'>
                             <AlertTriangle className='h-4 w-4 text-gray-500' />
                             <span className='text-xs text-gray-600'>
                               Bounced
-                            </span>
-                          </div>
-                        </div>
-                        <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-red-600'>
-                            0
-                          </div>
-                          <div className='flex items-center gap-1 mt-1'>
-                            <X className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>
-                              Sender Bounced
                             </span>
                           </div>
                         </div>

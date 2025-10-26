@@ -1,3 +1,4 @@
+import { CelebrationModal } from '@/components/onboarding/CelebrationModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -5,10 +6,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Job } from '@/types/database';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface JobQualificationTableDropdownProps {
   job: Job;
@@ -20,7 +23,10 @@ export const JobQualificationTableDropdown: React.FC<
 > = ({ job, onStatusChange }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { state, incrementJobsQualified, markStepComplete } = useOnboarding();
   const [loading, setLoading] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const handleQualificationChange = async (value: string) => {
     if (!user?.id) return;
@@ -55,6 +61,17 @@ export const JobQualificationTableDropdown: React.FC<
       if (error) throw error;
 
       setCurrentStatus(value);
+
+      // Track onboarding progress
+      if (value === 'qualify') {
+        incrementJobsQualified();
+
+        // Check if they've qualified 3 jobs - show celebration
+        if (state.jobsQualifiedCount + 1 === 3) {
+          markStepComplete('qualify_3_jobs');
+          setShowCelebration(true);
+        }
+      }
 
       toast({
         title: 'Success',
@@ -164,6 +181,24 @@ export const JobQualificationTableDropdown: React.FC<
           </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
+
+      {/* Celebration Modal */}
+      <CelebrationModal
+        isOpen={showCelebration}
+        onClose={() => setShowCelebration(false)}
+        onContinue={() => {
+          setShowCelebration(false);
+          navigate('/companies');
+        }}
+        title='🎉 Congratulations!'
+        description="You've qualified 3 potential clients and added them to your pipeline."
+        nextSteps={[
+          'Explore your companies',
+          'Find decision makers',
+          'Start sending outreach messages',
+        ]}
+        continueLabel='View Companies'
+      />
     </DropdownMenu>
   );
 };

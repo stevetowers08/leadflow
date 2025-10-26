@@ -1,9 +1,12 @@
+import { CelebrationModal } from '@/components/onboarding/CelebrationModal';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface JobQualificationCardButtonsProps {
   jobId: string;
@@ -17,7 +20,10 @@ export const JobQualificationCardButtons: React.FC<
 > = ({ jobId, companyId, onStatusChange, size = 'sm' }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { state, incrementJobsQualified, markStepComplete } = useOnboarding();
   const [loading, setLoading] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const handleQualification = async (status: 'qualify' | 'skip') => {
     if (!user?.id) {
@@ -66,6 +72,17 @@ export const JobQualificationCardButtons: React.FC<
       );
 
       if (error) throw error;
+
+      // Track onboarding progress
+      if (status === 'qualify') {
+        incrementJobsQualified();
+
+        // Check if they've qualified 3 jobs - show celebration
+        if (state.jobsQualifiedCount + 1 === 3) {
+          markStepComplete('qualify_3_jobs');
+          setShowCelebration(true);
+        }
+      }
 
       toast({
         title: 'Success',
@@ -127,6 +144,24 @@ export const JobQualificationCardButtons: React.FC<
         )}
         <span className='ml-1'>Skip</span>
       </Button>
+
+      {/* Celebration Modal */}
+      <CelebrationModal
+        isOpen={showCelebration}
+        onClose={() => setShowCelebration(false)}
+        onContinue={() => {
+          setShowCelebration(false);
+          navigate('/companies');
+        }}
+        title='🎉 Congratulations!'
+        description="You've qualified 3 potential clients and added them to your pipeline."
+        nextSteps={[
+          'Explore your companies',
+          'Find decision makers',
+          'Start sending outreach messages',
+        ]}
+        continueLabel='View Companies'
+      />
     </div>
   );
 };

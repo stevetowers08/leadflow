@@ -308,32 +308,6 @@ const Automations = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className='space-y-6'>
-        <div className='border-b pb-3'>
-          <div className='flex items-center gap-3'>
-            <Bot className='h-6 w-6 text-purple-600' />
-            <div>
-              <h1 className='text-xl font-semibold tracking-tight'>
-                Automations
-              </h1>
-              <p className='text-sm text-muted-foreground mt-1'>
-                Recent automation activities and performance metrics
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className='p-8 text-center'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary mx-auto mb-4'></div>
-          <p className='text-sm text-muted-foreground'>
-            Loading automations...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <Page title='Automations' hideHeader>
       <div className='space-y-6'>
@@ -476,6 +450,23 @@ const Automations = () => {
                 </div>
               )
             )}
+          </div>
+        )}
+
+        {/* Loading Skeleton */}
+        {loading && filteredActivities.length === 0 && (
+          <div className='space-y-4'>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className='border rounded-lg p-4 animate-pulse'>
+                <div className='flex items-center gap-4'>
+                  <div className='h-10 w-10 bg-gray-200 rounded-full' />
+                  <div className='flex-1 space-y-2'>
+                    <div className='h-4 bg-gray-200 rounded w-3/4' />
+                    <div className='h-3 bg-gray-100 rounded w-1/2' />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

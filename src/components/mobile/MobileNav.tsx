@@ -17,6 +17,7 @@ import {
   Home,
   MessageSquare,
   MoreHorizontal,
+  Rocket,
   Settings,
   Target,
   Users,
@@ -42,8 +43,14 @@ const allNavItems: NavItem[] = [
     isPrimary: true,
   },
   {
+    to: '/getting-started',
+    label: 'Getting Started',
+    icon: <Rocket className='h-5 w-5' />,
+    isPrimary: true,
+  },
+  {
     to: '/people',
-    label: 'Qualified Leads',
+    label: 'Contacts',
     icon: <Users className='h-5 w-5' />,
     isPrimary: true,
     permission: 'people',

@@ -787,17 +787,6 @@ const Pipeline = () => {
   // Add display name for better debugging
   DroppableStage.displayName = 'DroppableStage';
 
-  if (loading) {
-    return (
-      <div className='flex items-center justify-center h-64'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-primary mx-auto mb-4'></div>
-          <p className='text-gray-600 font-medium'>Loading pipeline...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className='min-h-screen'>
       <Page title='Company Pipeline' hideHeader>
@@ -912,16 +901,29 @@ const Pipeline = () => {
                   transform: 'translateZ(0)',
                 }}
               >
-                {pipelineStages.map(stage => {
-                  const stageCompanies = companiesByStage[stage.key] || [];
-                  return (
-                    <DroppableStage
-                      key={stage.key}
-                      stage={stage}
-                      companies={stageCompanies}
-                    />
-                  );
-                })}
+                {loading
+                  ? // Loading skeleton
+                    pipelineStages.map(stage => (
+                      <div key={stage.key} className='w-80 space-y-3'>
+                        <div className='h-8 bg-gray-200 animate-pulse rounded' />
+                        {[...Array(3)].map((_, i) => (
+                          <div
+                            key={i}
+                            className='h-24 bg-gray-100 animate-pulse rounded-md'
+                          />
+                        ))}
+                      </div>
+                    ))
+                  : pipelineStages.map(stage => {
+                      const stageCompanies = companiesByStage[stage.key] || [];
+                      return (
+                        <DroppableStage
+                          key={stage.key}
+                          stage={stage}
+                          companies={stageCompanies}
+                        />
+                      );
+                    })}
               </div>
             </div>
           </div>

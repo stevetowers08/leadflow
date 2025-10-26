@@ -1,4 +1,25 @@
 import { supabase } from '../integrations/supabase/client';
+import { statusAutomation } from './statusAutomationService';
+
+// Check if this is first message for user
+async function checkAndCelebrateFirstMessage(personId: string) {
+  try {
+    // Count total messages sent by this user
+    const { count } = await supabase
+      .from('interactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('person_id', personId)
+      .eq('interaction_type', 'email_sent');
+
+    // If this is the first email, show celebration
+    if (count === 0) {
+      // Store in localStorage to trigger celebration
+      localStorage.setItem('celebrate_first_message', 'true');
+    }
+  } catch (error) {
+    console.error('Failed to check first message:', error);
+  }
+}
 
 export interface GmailMessage {
   id: string;
@@ -48,7 +69,7 @@ export interface EmailMessage {
   subject: string;
   body_text: string;
   body_html: string;
-  attachments: any[];
+  attachments: unknown[];
   is_read: boolean;
   is_sent: boolean;
   sent_at?: string;
@@ -106,7 +127,7 @@ export class GmailService {
   private async makeGmailRequest(
     endpoint: string,
     options: RequestInit = {}
-  ): Promise<any> {
+  ): Promise<Response> {
     const token = await this.getValidAccessToken();
 
     const response = await fetch(
@@ -263,7 +284,7 @@ export class GmailService {
     return emails.filter(email => email.includes('@'));
   }
 
-  private extractEmailBody(payload: any): string {
+  private extractEmailBody(payload: Record<string, unknown>): string {
     if (payload.body?.data) {
       return atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
     }
@@ -283,7 +304,7 @@ export class GmailService {
     return '';
   }
 
-  private extractEmailBodyHtml(payload: any): string {
+  private extractEmailBodyHtml(payload: Record<string, unknown>): string {
     if (payload.parts) {
       for (const part of payload.parts) {
         if (part.mimeType === 'text/html' && part.body?.data) {
@@ -329,6 +350,41 @@ export class GmailService {
       const result = await response.json();
       await this.storeSentEmail(request, result.id);
       await this.logSyncSuccess('send_email', 1);
+
+      // Automatically update statuses after successful email send
+      if (request.personId) {
+        try {
+          // Get company_id from person
+          const { data: person } = await supabase
+            .from('people')
+            .select('company_id, id')
+            .eq('id', request.personId)
+            .single();
+
+          if (person?.id) {
+            // Check if this is first message - celebrate
+            await checkAndCelebrateFirstMessage(person.id);
+
+            // Update person status to 'proceed'
+            await statusAutomation.onMessageSent(person.id, {
+              skipNotification: true, // Gmail service handles its own success toast
+            });
+
+            // Update company status to 'outreach_started'
+            if (person.company_id) {
+              await statusAutomation.onOutreachStarted(person.company_id, {
+                skipNotification: true,
+              });
+            }
+          }
+        } catch (statusError) {
+          console.error(
+            'Failed to update status after email send:',
+            statusError
+          );
+          // Don't throw - email was sent successfully, status update is secondary
+        }
+      }
     } catch (error) {
       console.error('Failed to send email:', error);
       await this.logSyncError('send_email', error);
@@ -472,14 +528,17 @@ export class GmailService {
     });
   }
 
-  private async logSyncError(operationType: string, error: any): Promise<void> {
+  private async logSyncError(
+    operationType: string,
+    error: unknown
+  ): Promise<void> {
     const { data: user } = await supabase.auth.getUser();
 
     await supabase.from('email_sync_logs').insert({
       user_id: user.user?.id,
       operation_type: operationType,
       status: 'error',
-      error_message: error.message || 'Unknown error',
+      error_message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 

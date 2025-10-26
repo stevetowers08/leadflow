@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getClearbitLogo } from '@/services/logoService';
+import { useStatusAutomation } from '@/services/statusAutomationService';
 import { Company, Person } from '@/types/database';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -28,6 +29,7 @@ export const PersonDetailsSlideOut: React.FC<PersonDetailsSlideOutProps> = memo(
     const [otherPeople, setOtherPeople] = useState<Person[]>([]);
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
+    const statusAutomation = useStatusAutomation();
 
     const fetchPersonDetails = useCallback(async () => {
       if (!personId) return;
@@ -107,6 +109,21 @@ export const PersonDetailsSlideOut: React.FC<PersonDetailsSlideOutProps> = memo(
           .eq('id', person.id);
 
         if (error) throw error;
+
+        // Automatically update statuses if meeting scheduled
+        if (newStage === 'meeting_scheduled' && person.company_id) {
+          try {
+            const meetingDate = new Date().toISOString();
+            await statusAutomation.onMeetingScheduled(
+              person.company_id,
+              meetingDate,
+              { skipNotification: true } // We show our own toast below
+            );
+          } catch (statusError) {
+            console.error('Failed to update company status:', statusError);
+            // Don't block - person stage already updated
+          }
+        }
 
         toast({
           title: 'Success',

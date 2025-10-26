@@ -26,6 +26,7 @@ import {
 import { AIProvider } from './contexts/AIContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ConfirmationProvider } from './contexts/ConfirmationContext';
+import { OnboardingProvider } from './contexts/OnboardingContext';
 import { PermissionsProvider } from './contexts/PermissionsContext';
 import { SearchProvider } from './contexts/SearchContext';
 import { SidebarProvider } from './contexts/SidebarContext';
@@ -35,6 +36,7 @@ import { PerformanceProvider } from './utils/performanceMonitoring';
 // Lazy load pages for code splitting
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const OnboardingDashboard = lazy(() => import('./pages/OnboardingDashboard'));
+const GettingStarted = lazy(() => import('./pages/GettingStarted'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const Jobs = lazy(() => import('./pages/Jobs'));
 const People = lazy(() => import('./pages/People'));
@@ -144,6 +146,10 @@ const AppRoutes = () => {
                       path='/onboarding'
                       element={<OnboardingDashboard />}
                     />
+                    <Route
+                      path='/getting-started'
+                      element={<GettingStarted />}
+                    />
                     <Route path='/about' element={<AboutPage />} />
                     <Route path='/auth/callback' element={<AuthCallback />} />
                     <Route
@@ -216,8 +222,10 @@ const App = () => {
           <QueryClientProvider client={queryClient}>
             <BrowserRouter>
               <AuthProvider>
-                <AppRoutes />
-                <Toaster />
+                <OnboardingProvider>
+                  <AppRoutes />
+                  <Toaster />
+                </OnboardingProvider>
               </AuthProvider>
             </BrowserRouter>
           </QueryClientProvider>

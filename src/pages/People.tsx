@@ -12,29 +12,28 @@
  * - AI Score cells with status-like styling
  */
 
+import { FloatingActionBar } from '@/components/people/FloatingActionBar';
+import { StatusDropdown } from '@/components/people/StatusDropdown';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
+import { Checkbox } from '@/components/ui/checkbox';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { FloatingActionBar } from '@/components/people/FloatingActionBar';
-import { StatusDropdown } from '@/components/people/StatusDropdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
-import { useDebounce } from '@/hooks/useDebounce';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
+import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
-import { getClearbitLogo } from '@/services/logoService';
 import {
-  bulkDeletePeople,
-  bulkFavouritePeople,
-  bulkExportPeople,
-  bulkSyncToCRM,
   bulkAddToCampaign,
+  bulkDeletePeople,
+  bulkExportPeople,
+  bulkFavouritePeople,
+  bulkSyncToCRM,
 } from '@/services/bulk/bulkPeopleService';
+import { getClearbitLogo } from '@/services/logoService';
 import { Person, UserProfile } from '@/types/database';
 import { convertNumericScoreToStatus } from '@/utils/colorScheme';
 import { getStatusDisplayText } from '@/utils/statusUtils';
@@ -574,6 +573,28 @@ const People: React.FC = () => {
         ),
       },
       {
+        key: 'name',
+        label: 'Name',
+        width: '200px',
+        cellType: 'regular',
+        render: (_, person) => (
+          <div className='text-sm font-semibold text-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
+            {person.name || '-'}
+          </div>
+        ),
+      },
+      {
+        key: 'company_role',
+        label: 'Position',
+        width: '250px',
+        cellType: 'regular',
+        render: (_, person) => (
+          <div className='text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
+            {person.company_role || '-'}
+          </div>
+        ),
+      },
+      {
         key: 'company_name',
         label: 'Company',
         width: '250px',
@@ -666,24 +687,13 @@ const People: React.FC = () => {
         ),
       },
       {
-        key: 'name',
-        label: 'Person',
-        width: '300px',
+        key: 'email_address',
+        label: 'Email Address',
+        width: '250px',
         cellType: 'regular',
         render: (_, person) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {person.name || '-'}
-          </div>
-        ),
-      },
-      {
-        key: 'company_role',
-        label: 'Role',
-        width: '200px',
-        cellType: 'regular',
-        render: role => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {role || '-'}
+          <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm'>
+            {person.email_address || '-'}
           </div>
         ),
       },
@@ -693,14 +703,14 @@ const People: React.FC = () => {
         width: '150px',
         cellType: 'regular',
         render: location => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
+          <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm'>
             {location || '-'}
           </div>
         ),
       },
       {
         key: 'lead_score',
-        label: 'AI Score',
+        label: 'Match Score',
         width: '100px',
         cellType: 'ai-score',
         align: 'center',
@@ -716,7 +726,7 @@ const People: React.FC = () => {
           // For numeric scores, convert to status-like value
           return convertNumericScoreToStatus(score);
         },
-        render: score => <span>{score ?? '-'}</span>,
+        render: score => <span className='font-medium'>{score ?? '-'}</span>,
       },
       {
         key: 'created_at',
@@ -762,19 +772,10 @@ const People: React.FC = () => {
     [people]
   );
 
-  if (loading) {
-    return (
-      <Page stats={stats} title='Qualified Leads' hideHeader>
-        <div className='flex items-center justify-center h-64'>
-          <div className='text-muted-foreground'>Loading people...</div>
-        </div>
-      </Page>
-    );
-  }
-
+  // Error state
   if (error) {
     return (
-      <Page stats={stats} title='Qualified Leads' hideHeader>
+      <Page stats={stats} title='Contacts' hideHeader>
         <div className='flex items-center justify-center h-64'>
           <div className='text-destructive'>Error: {error}</div>
         </div>
@@ -808,6 +809,8 @@ const People: React.FC = () => {
         <UnifiedTable
           data={paginatedPeople}
           columns={columns}
+          pagination={false} // We handle pagination externally
+          stickyHeaders={true}
           scrollable={true}
           onRowClick={handleRowClick}
           loading={loading}

@@ -13,6 +13,7 @@
 - [**TERMINOLOGY.md**](./CORE/TERMINOLOGY.md) - Business terms and definitions
 - [**ENVIRONMENT_VARIABLES.md**](./SETUP/ENVIRONMENT_VARIABLES.md) - Environment configuration guide
 - [**Onboarding Dashboard**](../src/pages/OnboardingDashboard.tsx) - Complete setup flow with integration management ✅ **NEW**
+- [**USER_FLOW_ALIGNMENT_ANALYSIS.md**](./USER_FLOW_ALIGNMENT_ANALYSIS.md) - Deep analysis comparing app to user flow requirements ✅ **NEW**
 
 ### **🏗️ Architecture & Design**
 
@@ -51,6 +52,8 @@
 
 - [**master-pdr**](./PDR/master-pdr) - Master PDR with complete system architecture
 - [**08-onboarding-dashboard-implementation.md**](./PDR/08-onboarding-dashboard-implementation.md) - Onboarding dashboard implementation ✅ **COMPLETED**
+- [**09-company-detail-enhancement.md**](./PDR/09-company-detail-enhancement.md) - Company detail slide-out with tabs ✅ **COMPLETED**
+- [**10-automatic-status-updates.md**](./PDR/10-automatic-status-updates.md) - Automatic status updates & workflow transitions ✅ **NEW**
 - [**campaign-sequence**](./PDR/campaign-sequence) - Campaign sequence builder implementation guide
 - [**01-gmail-reply-detection.md**](./PDR/01-gmail-reply-detection.md) - Gmail integration and reply detection
 - [**02-cost-tracking-analytics.md**](./PDR/02-cost-tracking-analytics.md) - Cost tracking and analytics system
@@ -86,7 +89,8 @@
 - **Troubleshooting**: 2 files
 - **Setup & Configuration**: 3 files
 - **Integrations**: 2 files
-- **PDRs**: 10 files (including new onboarding dashboard PDR)
+- **PDRs**: 11 files (including new automatic status updates PDR)
+- **Analysis**: 1 file (user flow alignment analysis)
 - **Business**: 1 file
 
 ## 🎯 Documentation Quality

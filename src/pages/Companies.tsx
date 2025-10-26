@@ -11,18 +11,23 @@
  * - Centralized design tokens
  */
 
+import { StatusDropdown } from '@/components/people/StatusDropdown';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
+import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
-import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
+import { ColumnConfig } from '@/components/ui/unified-table';
 import { useAuth } from '@/contexts/AuthContext';
 import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { Company, Person, UserProfile } from '@/types/database';
-import { convertNumericScoreToStatus } from '@/utils/colorScheme';
+import {
+  convertNumericScoreToStatus,
+  getUnifiedStatusClass,
+} from '@/utils/colorScheme';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { Building2, CheckCircle, Target, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -52,6 +57,15 @@ const Companies: React.FC = () => {
     null
   );
   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
+
+  // Expanded companies to show people
+  const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(
+    new Set()
+  );
+
+  // Selected person for slider
+  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const [isPersonSlideOutOpen, setIsPersonSlideOutOpen] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -256,6 +270,12 @@ const Companies: React.FC = () => {
     setIsSlideOutOpen(true);
   }, []);
 
+  // Handle person click - open person slider
+  const handlePersonClick = useCallback((personId: string) => {
+    setSelectedPersonId(personId);
+    setIsPersonSlideOutOpen(true);
+  }, []);
+
   // Handle company update
   const handleCompanyUpdate = useCallback(() => {
     // Refresh the companies data
@@ -314,14 +334,42 @@ const Companies: React.FC = () => {
       {
         key: 'status',
         label: 'Status',
-        width: '120px',
+        width: '180px',
         cellType: 'status',
         align: 'center',
         getStatusValue: company => company.pipeline_stage || 'new_lead',
         render: (_, company) => {
-          const status = company.pipeline_stage || 'new_lead';
-          const displayText = getStatusDisplayText(status);
-          return <span className='text-xs font-medium'>{displayText}</span>;
+          const availableStatuses = [
+            'new_lead',
+            'automated',
+            'replied',
+            'meeting_scheduled',
+            'proposal_sent',
+            'negotiation',
+            'closed_won',
+            'closed_lost',
+            'on_hold',
+          ];
+
+          return (
+            <StatusDropdown
+              entityId={company.id}
+              entityType='companies'
+              currentStatus={company.pipeline_stage || 'new_lead'}
+              availableStatuses={availableStatuses}
+              onStatusChange={() => {
+                // Refresh companies data
+                const fetchData = async () => {
+                  const { data } = await supabase
+                    .from('companies')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                  if (data) setCompanies(data as Company[]);
+                };
+                fetchData();
+              }}
+            />
+          );
         },
       },
       {
@@ -329,44 +377,71 @@ const Companies: React.FC = () => {
         label: 'Company',
         width: '300px',
         cellType: 'regular',
-        render: (_, company) => (
-          <div className='flex items-center gap-3'>
-            <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
-              {company.website ? (
-                <img
-                  src={`https://logo.clearbit.com/${
-                    company.website
-                      .replace(/^https?:\/\//, '')
-                      .replace(/^www\./, '')
-                      .split('/')[0]
-                  }`}
-                  alt={company.name}
-                  className='w-7 h-7 rounded-lg object-cover'
-                  onError={e => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      'none';
-                    const nextElement = e.currentTarget
-                      .nextElementSibling as HTMLElement;
-                    if (nextElement) {
-                      nextElement.style.display = 'flex';
-                    }
+        render: (_, company) => {
+          const companyPeople = people.filter(p => p.company_id === company.id);
+          const isExpanded = expandedCompanies.has(company.id);
+          const hasPeople = companyPeople.length > 0;
+
+          return (
+            <div className='flex items-center gap-2'>
+              {hasPeople && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    setExpandedCompanies(prev => {
+                      const next = new Set(prev);
+                      if (next.has(company.id)) {
+                        next.delete(company.id);
+                      } else {
+                        next.add(company.id);
+                      }
+                      return next;
+                    });
                   }}
-                />
-              ) : null}
-              <div
-                className='w-7 h-7 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center'
-                style={{ display: company.website ? 'none' : 'flex' }}
-              >
-                <Building2 className='h-3 w-3' />
+                  className='text-gray-400 hover:text-gray-600 text-xs w-4 h-4 flex items-center justify-center'
+                >
+                  {isExpanded ? '▼' : '▶'}
+                </button>
+              )}
+              <div className='flex items-center gap-3 flex-1 min-w-0'>
+                <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+                  {company.website ? (
+                    <img
+                      src={`https://logo.clearbit.com/${
+                        company.website
+                          .replace(/^https?:\/\//, '')
+                          .replace(/^www\./, '')
+                          .split('/')[0]
+                      }`}
+                      alt={company.name}
+                      className='w-7 h-7 rounded-lg object-cover'
+                      onError={e => {
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          'none';
+                        const nextElement = e.currentTarget
+                          .nextElementSibling as HTMLElement;
+                        if (nextElement) {
+                          nextElement.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className='w-7 h-7 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center'
+                    style={{ display: company.website ? 'none' : 'flex' }}
+                  >
+                    <Building2 className='h-3 w-3' />
+                  </div>
+                </div>
+                <div className='flex flex-col min-w-0 flex-1'>
+                  <div className='text-sm font-medium text-gray-900 truncate'>
+                    {company.name || '-'}
+                  </div>
+                </div>
               </div>
             </div>
-            <div className='flex flex-col min-w-0 flex-1'>
-              <div className='text-sm font-medium text-gray-900'>
-                {company.name || '-'}
-              </div>
-            </div>
-          </div>
-        ),
+          );
+        },
       },
       {
         key: 'assigned_icon',
@@ -450,7 +525,9 @@ const Companies: React.FC = () => {
         align: 'center',
         render: (_, company) => {
           const count = people.filter(p => p.company_id === company.id).length;
-          return <span className='text-sm font-medium'>{count}</span>;
+          return (
+            <span className='text-sm font-medium text-gray-900'>{count}</span>
+          );
         },
       },
       {
@@ -508,16 +585,7 @@ const Companies: React.FC = () => {
     [companies]
   );
 
-  if (loading) {
-    return (
-      <Page stats={stats} title='Companies' hideHeader>
-        <div className='flex items-center justify-center h-64'>
-          <div className='text-muted-foreground'>Loading companies...</div>
-        </div>
-      </Page>
-    );
-  }
-
+  // Error state
   if (error) {
     return (
       <Page stats={stats} title='Companies' hideHeader>
@@ -550,15 +618,176 @@ const Companies: React.FC = () => {
           onSearchToggle={handleSearchToggle}
         />
 
-        {/* Unified Table */}
-        <UnifiedTable
-          data={paginatedCompanies}
-          columns={columns}
-          scrollable={true}
-          onRowClick={handleRowClick}
-          loading={loading}
-          emptyMessage='No companies found'
-        />
+        {/* Simplified Table with nested rows */}
+        <div className='rounded-md border overflow-hidden'>
+          <div className='overflow-x-auto'>
+            <table className='w-full'>
+              <thead className='bg-gray-50'>
+                <tr>
+                  {columns.map(column => (
+                    <th
+                      key={column.key}
+                      className='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
+                      style={{ width: column.width }}
+                    >
+                      {column.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className='bg-white divide-y'>
+                {paginatedCompanies.map((company, index) => {
+                  const companyPeople = people.filter(
+                    p => p.company_id === company.id
+                  );
+                  const isExpanded = expandedCompanies.has(company.id);
+
+                  return (
+                    <React.Fragment key={company.id}>
+                      {/* Company Row */}
+                      <tr
+                        className='hover:bg-gray-50 transition-colors cursor-pointer'
+                        onClick={() => handleRowClick(company)}
+                      >
+                        {columns.map(column => {
+                          const value = (company as Record<string, unknown>)[
+                            column.key
+                          ];
+
+                          // Get status value for status and ai-score cells
+                          const statusValue =
+                            (column.cellType === 'status' ||
+                              column.cellType === 'ai-score') &&
+                            column.getStatusValue
+                              ? column.getStatusValue(company)
+                              : undefined;
+
+                          // Get status classes for colored background (but not for status cell which has its own dropdown)
+                          const statusClasses =
+                            column.cellType === 'ai-score' && statusValue
+                              ? getUnifiedStatusClass(statusValue)
+                              : '';
+
+                          return (
+                            <td
+                              key={column.key}
+                              className={`px-4 py-2 text-sm ${column.align === 'center' ? 'text-center' : ''} ${statusClasses}`}
+                              style={{ width: column.width }}
+                            >
+                              {column.render
+                                ? column.render(value, company, index)
+                                : String(value || '-')}
+                            </td>
+                          );
+                        })}
+                      </tr>
+
+                      {/* People Rows - Nested within same table */}
+                      {isExpanded && companyPeople.length > 0 && (
+                        <>
+                          {companyPeople.map(person => (
+                            <tr
+                              key={person.id}
+                              className='bg-blue-50 hover:bg-blue-100 cursor-pointer'
+                              onClick={e => {
+                                e.stopPropagation();
+                                handlePersonClick(person.id);
+                              }}
+                            >
+                              <td
+                                className='px-4 py-2'
+                                style={{ width: '120px' }}
+                              >
+                                {/* Empty status cell */}
+                              </td>
+
+                              <td
+                                className='px-4 py-2'
+                                style={{ width: '300px' }}
+                              >
+                                <div className='pl-6 flex items-center gap-2'>
+                                  <span className='text-sm font-medium text-gray-900'>
+                                    {person.name || '-'}
+                                  </span>
+                                  {person.is_decision_maker && (
+                                    <span
+                                      className='text-amber-600'
+                                      title='Decision Maker'
+                                    >
+                                      👑
+                                      {person.decision_maker_level && (
+                                        <span className='text-xs ml-1'>
+                                          {person.decision_maker_level}
+                                        </span>
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td
+                                className='px-4 py-2'
+                                style={{ width: '60px' }}
+                              >
+                                {/* Empty assignee cell */}
+                              </td>
+
+                              <td
+                                className='px-4 py-2 text-sm text-gray-600'
+                                style={{ width: '200px' }}
+                              >
+                                {person.company_role || '-'}
+                              </td>
+
+                              <td
+                                className='px-4 py-2 text-sm text-gray-600'
+                                style={{ width: '150px' }}
+                              >
+                                {person.employee_location || '-'}
+                              </td>
+
+                              <td
+                                className='px-4 py-2 text-sm text-gray-600'
+                                style={{ width: '120px' }}
+                              >
+                                {person.email_address || '-'}
+                              </td>
+
+                              <td
+                                className='px-4 py-2 text-sm text-gray-900 text-center'
+                                style={{ width: '100px' }}
+                              >
+                                {person.lead_score || '-'}
+                              </td>
+
+                              <td
+                                className='px-4 py-2 text-sm text-gray-600'
+                                style={{ width: '100px' }}
+                              >
+                                {person.people_stage || 'new'}
+                              </td>
+
+                              <td
+                                className='px-4 py-2 text-sm text-gray-600'
+                                style={{ width: '120px' }}
+                              >
+                                {person.created_at
+                                  ? new Date(
+                                      person.created_at
+                                    ).toLocaleDateString()
+                                  : '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         {/* Pagination Controls */}
         <PaginationControls
@@ -590,6 +819,29 @@ const Companies: React.FC = () => {
           setSelectedCompanyId(null);
         }}
         onUpdate={handleCompanyUpdate}
+      />
+
+      {/* Person Details Slide-Out */}
+      <PersonDetailsSlideOut
+        personId={selectedPersonId}
+        isOpen={isPersonSlideOutOpen}
+        onClose={() => {
+          setIsPersonSlideOutOpen(false);
+          setSelectedPersonId(null);
+        }}
+        onUpdate={() => {
+          // Refresh people data
+          const fetchPeople = async () => {
+            const { data } = await supabase
+              .from('people')
+              .select('*')
+              .order('created_at', { ascending: false });
+            if (data) {
+              setPeople(data as Person[]);
+            }
+          };
+          fetchPeople();
+        }}
       />
     </Page>
   );

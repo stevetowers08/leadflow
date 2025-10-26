@@ -1,14 +1,15 @@
 import IntegrationsPage from '@/components/IntegrationsPage';
 import AdminSettingsTab from '@/components/crm/settings/AdminSettingsTab';
 import BusinessProfileSettings from '@/components/crm/settings/BusinessProfileSettings';
-// import VoiceAISettings from '@/components/crm/settings/VoiceAISettings';
-import { Button } from '@/components/ui/button';
+import NotificationSettings from '@/components/crm/settings/NotificationSettings';
+import ProfileSettings from '@/components/crm/settings/ProfileSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { cn } from '@/lib/utils';
-import { Building2, Mic, Plug, User, Users } from 'lucide-react';
+import { Bell, Building2, Filter, Plug, User, Users } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface SettingsSection {
   id: string;
@@ -16,6 +17,7 @@ interface SettingsSection {
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   description: string;
   available: boolean;
+  isExternal?: boolean;
 }
 
 const Settings = () => {
@@ -27,18 +29,6 @@ const Settings = () => {
     title: 'Settings',
     description: 'Manage your account settings and preferences',
   });
-
-  // Show loading only when auth is actually loading, not when user is null in bypass mode
-  if (loading) {
-    return (
-      <div className='flex items-center justify-center h-64'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4'></div>
-          <p className='text-muted-foreground'>Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   const settingsSections: SettingsSection[] = [
     {
@@ -56,11 +46,19 @@ const Settings = () => {
       available: true,
     },
     {
-      id: 'voice-ai',
-      label: 'Voice AI',
-      icon: Mic,
-      description: 'Configure voice AI integration with Retell AI',
+      id: 'notifications',
+      label: 'Notifications',
+      icon: Bell,
+      description: 'Configure email and in-app notification preferences',
       available: true,
+    },
+    {
+      id: 'job-filtering',
+      label: 'Job Filtering',
+      icon: Filter,
+      description: 'Configure automated job discovery and filtering',
+      available: true,
+      isExternal: true,
     },
     {
       id: 'integrations',
@@ -85,63 +83,13 @@ const Settings = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'profile':
-        return (
-          <div className='space-y-6'>
-            <div>
-              <h2 className='text-xl font-semibold text-gray-900 mb-2'>
-                Your Profile
-              </h2>
-              <p className='text-sm text-gray-600'>
-                Manage your personal information and account details
-              </p>
-            </div>
-            <div className='bg-white border border-gray-200 rounded-lg p-6'>
-              <div className='space-y-4'>
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>
-                    Full Name
-                  </label>
-                  <input
-                    type='text'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
-                    placeholder='Enter your full name'
-                  />
-                </div>
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>
-                    Email Address
-                  </label>
-                  <input
-                    type='email'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
-                    placeholder='Enter your email'
-                  />
-                </div>
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>
-                    Job Title
-                  </label>
-                  <input
-                    type='text'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
-                    placeholder='Enter your job title'
-                  />
-                </div>
-                <Button>Save Changes</Button>
-              </div>
-            </div>
-          </div>
-        );
+        return <ProfileSettings />;
 
       case 'business-profile':
         return <BusinessProfileSettings />;
 
-      case 'voice-ai':
-        return (
-          <div className='p-6 text-center text-muted-foreground'>
-            Voice AI settings temporarily disabled
-          </div>
-        );
+      case 'notifications':
+        return <NotificationSettings />;
 
       case 'integrations':
         return <IntegrationsPage />;
@@ -165,6 +113,23 @@ const Settings = () => {
               {availableSections.map(section => {
                 const Icon = section.icon;
                 const isActive = activeSection === section.id;
+
+                if (section.isExternal) {
+                  return (
+                    <Link
+                      key={section.id}
+                      to={`/settings/${section.id}`}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors',
+                        'hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+                        'text-gray-700 hover:text-gray-900'
+                      )}
+                    >
+                      <Icon className='h-4 w-4 flex-shrink-0' />
+                      <span className='font-medium'>{section.label}</span>
+                    </Link>
+                  );
+                }
 
                 return (
                   <button
