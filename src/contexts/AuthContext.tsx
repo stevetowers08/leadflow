@@ -12,11 +12,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { AuthError, Session, User } from '@supabase/supabase-js';
 import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
 } from 'react';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
@@ -90,7 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Retry authentication mechanism
-  const retryAuth = async () => {
+  const retryAuth = useCallback(async () => {
     if (retryCountRef.current >= MAX_RETRY_ATTEMPTS) {
       console.error('❌ Max retry attempts reached');
       authState.setError(
@@ -143,7 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       authState.setLoading(false);
     }
-  };
+  }, [authState, userProfile]);
 
   // Initialize authentication with robust error handling
   useEffect(() => {
@@ -391,7 +392,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []); // Empty dependency array to prevent infinite loops
 
   // Refresh profile function - also refreshes auth state
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     try {
       console.log('🔄 Refreshing auth state and profile...');
 
@@ -427,7 +428,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('❌ Error in refreshProfile:', error);
     }
-  };
+  }, [authState, userProfile]);
 
   const value = useMemo(
     () => ({

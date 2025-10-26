@@ -6,14 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import {
-  ChevronDown,
-  ChevronUp,
-  Mail as EmailIcon,
-  FileText,
-  Linkedin,
-  Search,
-  User,
-  Zap,
+    ChevronDown,
+    ChevronUp,
+    Mail as EmailIcon,
+    FileText,
+    Linkedin,
+    Search,
+    User,
+    Zap,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -274,7 +274,7 @@ export const ActivityTimeline = ({
     } finally {
       setIsLoading(false);
     }
-  }, [entityId, entityType, user]);
+  }, [entityId, entityType, user, entityName]);
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);

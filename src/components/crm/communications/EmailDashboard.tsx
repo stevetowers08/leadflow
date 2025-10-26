@@ -4,24 +4,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select';
 import {
-  Calendar,
-  CheckCircle,
-  Clock,
-  Mail,
-  Search,
-  Send,
-  TrendingUp,
-  Users,
-  XCircle,
+    Calendar,
+    CheckCircle,
+    Clock,
+    Mail,
+    Search,
+    Send,
+    TrendingUp,
+    Users,
+    XCircle,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../../integrations/supabase/client';
 
 interface EmailSend {
@@ -62,11 +62,7 @@ export const EmailDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('7d');
 
-  useEffect(() => {
-    loadEmailData();
-  }, [dateRange]);
-
-  const loadEmailData = async () => {
+  const loadEmailData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -110,7 +106,11 @@ export const EmailDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange]);
+
+  useEffect(() => {
+    loadEmailData();
+  }, [dateRange, loadEmailData]);
 
   const calculateStats = (data: EmailSend[]) => {
     const totalSent = data.length;

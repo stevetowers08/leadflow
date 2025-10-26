@@ -2,30 +2,30 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { AlertCircle, Eye, Loader2, Mail, Send, User } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Tables } from '../../../integrations/supabase/types';
 import {
-  EmailTemplate,
-  SendEmailRequest,
-  secureGmailService,
+    EmailTemplate,
+    SendEmailRequest,
+    secureGmailService,
 } from '../../../services/secureGmailService';
 
 interface EmailSenderProps {
@@ -68,17 +68,7 @@ export const EmailSender: React.FC<EmailSenderProps> = ({
     bodyHtml: string;
   } | null>(null);
 
-  useEffect(() => {
-    initializeEmailSender();
-  }, []);
-
-  useEffect(() => {
-    if (selectedPerson) {
-      setSelectedPersonId(selectedPerson.id);
-    }
-  }, [selectedPerson]);
-
-  const initializeEmailSender = async () => {
+  const initializeEmailSender = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -99,7 +89,17 @@ export const EmailSender: React.FC<EmailSenderProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    initializeEmailSender();
+  }, [initializeEmailSender]);
+
+  useEffect(() => {
+    if (selectedPerson) {
+      setSelectedPersonId(selectedPerson.id);
+    }
+  }, [selectedPerson]);
 
   const loadPeople = async () => {
     try {

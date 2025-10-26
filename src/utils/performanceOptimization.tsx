@@ -9,12 +9,12 @@
  */
 
 import React, {
-  Suspense,
-  lazy,
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
+    Suspense,
+    lazy,
+    memo,
+    useCallback,
+    useEffect,
+    useRef,
 } from 'react';
 
 // Memoization utilities
@@ -88,7 +88,7 @@ export const useOptimizedData = <T,>(
     } finally {
       setIsLoading(false);
     }
-  }, [...deps, fetchFn, options.enabled]);
+  }, [fetchFn, options.enabled]);
 
   React.useEffect(() => {
     fetchData();

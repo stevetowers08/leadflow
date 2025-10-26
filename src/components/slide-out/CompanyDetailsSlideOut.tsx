@@ -16,6 +16,19 @@ interface CompanyDetailsSlideOutProps {
   onUpdate?: () => void;
 }
 
+interface Interaction {
+  id: string;
+  interaction_type: string;
+  occurred_at: string;
+  subject: string | null;
+  content: string | null;
+  person_id: string;
+  people: {
+    name: string;
+    company_role: string | null;
+  };
+}
+
 export const CompanyDetailsSlideOut: React.FC<CompanyDetailsSlideOutProps> = ({
   companyId,
   isOpen,
@@ -25,6 +38,7 @@ export const CompanyDetailsSlideOut: React.FC<CompanyDetailsSlideOutProps> = ({
   const [company, setCompany] = useState<Company | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -43,27 +57,57 @@ export const CompanyDetailsSlideOut: React.FC<CompanyDetailsSlideOutProps> = ({
 
         if (companyError) throw companyError;
 
-        // Fetch people at this company (limit to 5)
+        // Fetch people at this company (no limit)
         const { data: peopleData, error: peopleError } = await supabase
           .from('people')
           .select('id, name, company_role, people_stage')
           .eq('company_id', companyId)
-          .limit(5);
+          .order('created_at', { ascending: false });
 
         if (peopleError) throw peopleError;
 
-        // Fetch jobs at this company (limit to 5)
+        // Fetch jobs at this company (no limit)
         const { data: jobsData, error: jobsError } = await supabase
           .from('jobs')
           .select('id, title, location, qualification_status')
           .eq('company_id', companyId)
-          .limit(5);
+          .order('created_at', { ascending: false });
 
         if (jobsError) throw jobsError;
+
+        // Fetch interactions for people at this company
+        // First get people IDs for this company
+        const { data: companyPeopleData } = await supabase
+          .from('people')
+          .select('id')
+          .eq('company_id', companyId);
+
+        const personIds = companyPeopleData?.map(p => p.id) || [];
+
+        // Then fetch interactions for these people
+        const { data: interactionsData, error: interactionsError } = personIds.length > 0
+          ? await supabase
+              .from('interactions')
+              .select(`
+                id,
+                interaction_type,
+                occurred_at,
+                subject,
+                content,
+                person_id,
+                people!inner(id, name, company_role)
+              `)
+              .in('person_id', personIds)
+              .order('occurred_at', { ascending: false })
+              .limit(20)
+          : { data: [], error: null };
+
+        if (interactionsError) throw interactionsError;
 
         setCompany(companyData as Company);
         setPeople((peopleData as Person[]) || []);
         setJobs((jobsData as Job[]) || []);
+        setInteractions((interactionsData as Interaction[]) || []);
       } catch (error) {
         console.error('Error fetching company details:', error);
       } finally {
@@ -312,6 +356,83 @@ export const CompanyDetailsSlideOut: React.FC<CompanyDetailsSlideOutProps> = ({
           </div>
         </SlideOutSection>
       )}
+
+      {/* Outreach Timeline */}
+      {interactions.length > 0 && (
+        <SlideOutSection title={`Outreach Timeline (${interactions.length})`}>
+          <div className='space-y-3'>
+            {interactions.map(interaction => (
+              <div
+                key={interaction.id}
+                className='flex gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+              >
+                <div className='flex-shrink-0 w-1 bg-blue-500 rounded-full' />
+                <div className='flex-1 min-w-0'>
+                  <div className='flex items-center gap-2 mb-1'>
+                    <span className='text-xs font-medium text-blue-600'>
+                      {getInteractionTypeDisplay(interaction.interaction_type)}
+                    </span>
+                    <span className='text-xs text-gray-500'>
+                      {formatDate(interaction.occurred_at)}
+                    </span>
+                  </div>
+                  <div className='text-sm font-medium text-gray-900'>
+                    {interaction.people?.name || 'Unknown Person'}
+                  </div>
+                  {interaction.subject && (
+                    <div className='text-xs text-gray-600 mt-1 truncate'>
+                      {interaction.subject}
+                    </div>
+                  )}
+                  {interaction.content && (
+                    <div className='text-xs text-gray-500 mt-1 line-clamp-2'>
+                      {interaction.content}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SlideOutSection>
+      )}
     </SlideOutPanel>
   );
+};
+
+// Helper functions
+const getInteractionTypeDisplay = (type: string): string => {
+  const displayMap: Record<string, string> = {
+    email_sent: 'Email Sent',
+    email_reply: 'Email Reply',
+    meeting_booked: 'Meeting Booked',
+    meeting_held: 'Meeting Held',
+    linkedin_connection_request_sent: 'LinkedIn Request',
+    linkedin_connected: 'LinkedIn Connected',
+    linkedin_message_sent: 'LinkedIn Message',
+    linkedin_message_reply: 'LinkedIn Reply',
+    disqualified: 'Disqualified',
+    note: 'Note',
+  };
+  return displayMap[type] || type;
+};
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return 'Today';
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else if (diffDays < 7) {
+    return `${diffDays} days ago`;
+  } else {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }
 };

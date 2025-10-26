@@ -7,39 +7,39 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { UnifiedActionService } from '@/services/unifiedActionService';
 import {
-  CampaignSequence,
-  CrmIntegration,
-  CrmProvider,
-  CrmSyncResult,
-  EntityAction,
+    CampaignSequence,
+    CrmIntegration,
+    CrmProvider,
+    CrmSyncResult,
+    EntityAction,
 } from '@/types/actions';
 import {
-  Building2,
-  ExternalLink,
-  Loader2,
-  Mail,
-  Upload,
-  Users,
+    Building2,
+    ExternalLink,
+    Loader2,
+    Mail,
+    Upload,
+    Users,
 } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface UnifiedActionProps {
   entityType: 'company' | 'person';
@@ -65,7 +65,7 @@ export const UnifiedActionComponent: React.FC<UnifiedActionProps> = ({
   const [crmIntegrations, setCrmIntegrations] = useState<CrmIntegration[]>([]);
 
   const { toast } = useToast();
-  const actionService = new UnifiedActionService();
+  const actionService = useMemo(() => new UnifiedActionService(), []);
 
   const loadData = useCallback(async () => {
     try {
