@@ -42,8 +42,7 @@ export const TopNavigationBar = ({
     <header
       className={cn(
         'fixed top-0 z-30',
-        'bg-[#2d3e50] border-b border-gray-600',
-        'shadow-sm',
+        'bg-[#2d3e50]',
         isMobile ? 'w-full px-4 py-2 left-0' : 'left-56 right-0 px-6 py-2',
         className
       )}
