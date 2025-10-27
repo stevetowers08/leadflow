@@ -127,28 +127,25 @@ export default function GettingStarted() {
           <h1 className='text-2xl font-bold tracking-tight text-foreground'>
             Getting Started
           </h1>
-          <p className='text-sm text-muted-foreground mt-1'>
-            Complete setup to start finding clients through job intelligence
-          </p>
         </div>
 
-        {/* What This Platform Does */}
+        {/* What This Does */}
         <div className='p-6 bg-white border border-gray-200 rounded-lg'>
           <h2 className='text-lg font-semibold text-foreground mb-3'>
-            What This Platform Does
+            What This Does
           </h2>
           <p className='text-sm text-gray-700 mb-3 leading-relaxed'>
-            This platform is a B2B sales-focused recruitment tool that helps
-            recruiters and agencies find companies with open positions, qualify
-            them as potential clients, and reach out to decision makers. It
-            bridges the gap between job discovery and business development.
+            A B2B sales-focused recruitment tool that helps recruiters and
+            agencies identify companies with open positions, qualify them as
+            potential clients, and reach out to decision-makers. It bridges the
+            gap between job discovery and business development.
           </p>
           <p className='text-sm text-gray-700 leading-relaxed'>
-            Rather than building a full ATS (Applicant Tracking System), this
-            platform focuses on business development. You browse job postings to
-            identify companies who are hiring. The platform automates finding
-            the right decision makers at those companies and creates AI messages
-            ready to use, turning job postings into new clients.
+            Rather than a full ATS (Applicant Tracking System), this focuses on
+            business development. You browse job postings to identify companies
+            who are hiring. We automate finding the right decision makers at
+            those companies and create AI messages ready to use, turning job
+            postings into new clients.
           </p>
         </div>
 
@@ -203,17 +200,6 @@ export default function GettingStarted() {
                   follow-up.
                 </p>
               </div>
-            </div>
-          </div>
-
-          <div className='p-4 rounded-lg bg-gray-50 border border-gray-200'>
-            <div className='flex items-start gap-3'>
-              <Brain className='h-5 w-5 text-gray-600' />
-              <p className='text-sm text-gray-700'>
-                The platform helps you identify which companies are hiring, who
-                the right contacts are to pitch your services, and automates
-                outreach to turn job postings into new clients.
-              </p>
             </div>
           </div>
         </div>
