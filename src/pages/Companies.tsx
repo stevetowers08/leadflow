@@ -17,17 +17,14 @@ import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSli
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
-import { ColumnConfig } from '@/components/ui/unified-table';
+import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
 import { useAuth } from '@/contexts/AuthContext';
 import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { Company, Person, UserProfile } from '@/types/database';
-import {
-  convertNumericScoreToStatus,
-  getUnifiedStatusClass,
-} from '@/utils/colorScheme';
+import { convertNumericScoreToStatus } from '@/utils/colorScheme';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { Building2, CheckCircle, Target, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -57,11 +54,6 @@ const Companies: React.FC = () => {
     null
   );
   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
-
-  // Expanded companies to show people
-  const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(
-    new Set()
-  );
 
   // Selected person for slider
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -334,7 +326,7 @@ const Companies: React.FC = () => {
       {
         key: 'status',
         label: 'Status',
-        width: '180px',
+        width: '150px',
         cellType: 'status',
         align: 'center',
         getStatusValue: company => company.pipeline_stage || 'new_lead',
@@ -377,71 +369,37 @@ const Companies: React.FC = () => {
         label: 'Company',
         width: '300px',
         cellType: 'regular',
-        render: (_, company) => {
-          const companyPeople = people.filter(p => p.company_id === company.id);
-          const isExpanded = expandedCompanies.has(company.id);
-          const hasPeople = companyPeople.length > 0;
-
-          return (
-            <div className='flex items-center gap-2'>
-              {hasPeople && (
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    setExpandedCompanies(prev => {
-                      const next = new Set(prev);
-                      if (next.has(company.id)) {
-                        next.delete(company.id);
-                      } else {
-                        next.add(company.id);
-                      }
-                      return next;
-                    });
+        render: (_, company) => (
+          <div className='flex items-center gap-2 min-w-0'>
+            <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+              {company.website ? (
+                <img
+                  src={`https://logo.clearbit.com/${
+                    company.website
+                      .replace(/^https?:\/\//, '')
+                      .replace(/^www\./, '')
+                      .split('/')[0]
+                  }`}
+                  alt={company.name}
+                  className='w-7 h-7 rounded-lg object-cover'
+                  onError={e => {
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      'none';
+                    const nextElement = e.currentTarget
+                      .nextElementSibling as HTMLElement;
+                    if (nextElement) {
+                      nextElement.style.display = 'flex';
+                    }
                   }}
-                  className='text-gray-400 hover:text-gray-600 text-xs w-4 h-4 flex items-center justify-center'
-                >
-                  {isExpanded ? '▼' : '▶'}
-                </button>
-              )}
-              <div className='flex items-center gap-3 flex-1 min-w-0'>
-                <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
-                  {company.website ? (
-                    <img
-                      src={`https://logo.clearbit.com/${
-                        company.website
-                          .replace(/^https?:\/\//, '')
-                          .replace(/^www\./, '')
-                          .split('/')[0]
-                      }`}
-                      alt={company.name}
-                      className='w-7 h-7 rounded-lg object-cover'
-                      onError={e => {
-                        (e.currentTarget as HTMLImageElement).style.display =
-                          'none';
-                        const nextElement = e.currentTarget
-                          .nextElementSibling as HTMLElement;
-                        if (nextElement) {
-                          nextElement.style.display = 'flex';
-                        }
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className='w-7 h-7 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center'
-                    style={{ display: company.website ? 'none' : 'flex' }}
-                  >
-                    <Building2 className='h-3 w-3' />
-                  </div>
-                </div>
-                <div className='flex flex-col min-w-0 flex-1'>
-                  <div className='text-sm font-medium text-gray-900 truncate'>
-                    {company.name || '-'}
-                  </div>
-                </div>
-              </div>
+                />
+              ) : null}
+              <Building2 className='h-3 w-3 text-gray-400' />
             </div>
-          );
-        },
+            <div className='text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
+              {company.name || '-'}
+            </div>
+          </div>
+        ),
       },
       {
         key: 'assigned_icon',
@@ -479,9 +437,9 @@ const Companies: React.FC = () => {
         label: 'Head Office',
         width: '200px',
         cellType: 'regular',
-        render: value => (
+        render: (_, company) => (
           <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {(value as string) || '-'}
+            {company.head_office || '-'}
           </div>
         ),
       },
@@ -490,9 +448,9 @@ const Companies: React.FC = () => {
         label: 'Industry',
         width: '150px',
         cellType: 'regular',
-        render: value => (
+        render: (_, company) => (
           <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {(value as string) || '-'}
+            {company.industry || '-'}
           </div>
         ),
       },
@@ -501,9 +459,9 @@ const Companies: React.FC = () => {
         label: 'Size',
         width: '120px',
         cellType: 'regular',
-        render: value => (
+        render: (_, company) => (
           <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {(value as string) || '-'}
+            {company.company_size || '-'}
           </div>
         ),
       },
@@ -515,7 +473,7 @@ const Companies: React.FC = () => {
         align: 'center',
         getStatusValue: company =>
           convertNumericScoreToStatus(company.lead_score),
-        render: score => <span>{(score as string) ?? '-'}</span>,
+        render: (_, company) => <span>{company.lead_score ?? '-'}</span>,
       },
       {
         key: 'people_count',
@@ -547,9 +505,11 @@ const Companies: React.FC = () => {
         label: 'Created',
         width: '120px',
         cellType: 'regular',
-        render: date => (
+        render: (_, company) => (
           <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {date ? new Date(date as string).toLocaleDateString() : '-'}
+            {company.created_at
+              ? new Date(company.created_at).toLocaleDateString()
+              : '-'}
           </div>
         ),
       },
@@ -598,7 +558,7 @@ const Companies: React.FC = () => {
 
   return (
     <Page stats={stats} title='Companies' hideHeader>
-      <div className='space-y-4'>
+      <div className='flex-1 flex flex-col min-h-0 space-y-3'>
         {/* Filter Controls */}
         <FilterControls
           statusOptions={statusOptions}
@@ -618,175 +578,18 @@ const Companies: React.FC = () => {
           onSearchToggle={handleSearchToggle}
         />
 
-        {/* Simplified Table with nested rows */}
-        <div className='rounded-md border overflow-hidden'>
-          <div className='overflow-x-auto'>
-            <table className='w-full'>
-              <thead className='bg-gray-50'>
-                <tr>
-                  {columns.map(column => (
-                    <th
-                      key={column.key}
-                      className='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
-                      style={{ width: column.width }}
-                    >
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className='bg-white divide-y'>
-                {paginatedCompanies.map((company, index) => {
-                  const companyPeople = people.filter(
-                    p => p.company_id === company.id
-                  );
-                  const isExpanded = expandedCompanies.has(company.id);
-
-                  return (
-                    <React.Fragment key={company.id}>
-                      {/* Company Row */}
-                      <tr
-                        className='hover:bg-gray-50 transition-colors cursor-pointer'
-                        onClick={() => handleRowClick(company)}
-                      >
-                        {columns.map(column => {
-                          const value = (company as Record<string, unknown>)[
-                            column.key
-                          ];
-
-                          // Get status value for status and ai-score cells
-                          const statusValue =
-                            (column.cellType === 'status' ||
-                              column.cellType === 'ai-score') &&
-                            column.getStatusValue
-                              ? column.getStatusValue(company)
-                              : undefined;
-
-                          // Get status classes for colored background (but not for status cell which has its own dropdown)
-                          const statusClasses =
-                            column.cellType === 'ai-score' && statusValue
-                              ? getUnifiedStatusClass(statusValue)
-                              : '';
-
-                          return (
-                            <td
-                              key={column.key}
-                              className={`px-4 py-2 text-sm ${column.align === 'center' ? 'text-center' : ''} ${statusClasses}`}
-                              style={{ width: column.width }}
-                            >
-                              {column.render
-                                ? column.render(value, company, index)
-                                : String(value || '-')}
-                            </td>
-                          );
-                        })}
-                      </tr>
-
-                      {/* People Rows - Nested within same table */}
-                      {isExpanded && companyPeople.length > 0 && (
-                        <>
-                          {companyPeople.map(person => (
-                            <tr
-                              key={person.id}
-                              className='bg-blue-50 hover:bg-blue-100 cursor-pointer'
-                              onClick={e => {
-                                e.stopPropagation();
-                                handlePersonClick(person.id);
-                              }}
-                            >
-                              <td
-                                className='px-4 py-2'
-                                style={{ width: '120px' }}
-                              >
-                                {/* Empty status cell */}
-                              </td>
-
-                              <td
-                                className='px-4 py-2'
-                                style={{ width: '300px' }}
-                              >
-                                <div className='pl-6 flex items-center gap-2'>
-                                  <span className='text-sm font-medium text-gray-900'>
-                                    {person.name || '-'}
-                                  </span>
-                                  {person.is_decision_maker && (
-                                    <span
-                                      className='text-amber-600'
-                                      title='Decision Maker'
-                                    >
-                                      👑
-                                      {person.decision_maker_level && (
-                                        <span className='text-xs ml-1'>
-                                          {person.decision_maker_level}
-                                        </span>
-                                      )}
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
-
-                              <td
-                                className='px-4 py-2'
-                                style={{ width: '60px' }}
-                              >
-                                {/* Empty assignee cell */}
-                              </td>
-
-                              <td
-                                className='px-4 py-2 text-sm text-gray-600'
-                                style={{ width: '200px' }}
-                              >
-                                {person.company_role || '-'}
-                              </td>
-
-                              <td
-                                className='px-4 py-2 text-sm text-gray-600'
-                                style={{ width: '150px' }}
-                              >
-                                {person.employee_location || '-'}
-                              </td>
-
-                              <td
-                                className='px-4 py-2 text-sm text-gray-600'
-                                style={{ width: '120px' }}
-                              >
-                                {person.email_address || '-'}
-                              </td>
-
-                              <td
-                                className='px-4 py-2 text-sm text-gray-900 text-center'
-                                style={{ width: '100px' }}
-                              >
-                                {person.lead_score || '-'}
-                              </td>
-
-                              <td
-                                className='px-4 py-2 text-sm text-gray-600'
-                                style={{ width: '100px' }}
-                              >
-                                {person.people_stage || 'new'}
-                              </td>
-
-                              <td
-                                className='px-4 py-2 text-sm text-gray-600'
-                                style={{ width: '120px' }}
-                              >
-                                {person.created_at
-                                  ? new Date(
-                                      person.created_at
-                                    ).toLocaleDateString()
-                                  : '-'}
-                              </td>
-                            </tr>
-                          ))}
-                        </>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        {/* Unified Table - Scrollable area */}
+        <div className='flex-1 min-h-0'>
+          <UnifiedTable
+            data={paginatedCompanies}
+            columns={columns}
+            pagination={false} // We handle pagination externally
+            stickyHeaders={true}
+            scrollable={true}
+            onRowClick={handleRowClick}
+            loading={loading}
+            emptyMessage='No companies found'
+          />
         </div>
 
         {/* Pagination Controls */}

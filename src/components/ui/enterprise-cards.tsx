@@ -32,7 +32,7 @@ const metricCardVariants = cva(
         lg: 'p-8 rounded-lg',
       },
       interactive: {
-        true: 'cursor-pointer hover:scale-[1.01] active:scale-[0.99]',
+        true: 'cursor-pointer',
         false: '',
       },
     },
@@ -427,7 +427,6 @@ const QuickActionsCard = forwardRef<HTMLDivElement, QuickActionsCardProps>(
               onClick={action.onClick}
               className={cn(
                 'w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200',
-                'hover:scale-[1.02] active:scale-[0.98]',
                 action.variant === 'primary' &&
                   'bg-primary text-primary-foreground hover:bg-primary/90',
                 action.variant === 'secondary' &&

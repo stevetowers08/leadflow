@@ -507,7 +507,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                       <Button
                         variant='ghost'
                         size='sm'
-                        className='h-9 w-9 p-0 hover:bg-white/60 rounded-xl transition-all duration-200 hover:scale-105'
+                        className='h-9 w-9 p-0 hover:bg-white/60 rounded-xl transition-all duration-200'
                       >
                         <Settings className='h-4 w-4 text-gray-600' />
                       </Button>
@@ -669,7 +669,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                   <Button
                     variant='ghost'
                     size='sm'
-                    className='h-9 w-9 p-0 hover:bg-white/60 rounded-xl transition-all duration-200 hover:scale-105'
+                    className='h-9 w-9 p-0 hover:bg-white/60 rounded-xl transition-all duration-200'
                     onClick={() => setIsMinimized(true)}
                   >
                     <Minimize2 className='h-4 w-4 text-gray-600' />
@@ -678,7 +678,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                   <Button
                     variant='ghost'
                     size='sm'
-                    className='h-9 w-9 p-0 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all duration-200 hover:scale-105'
+                    className='h-9 w-9 p-0 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all duration-200'
                     onClick={() => setIsOpen(false)}
                   >
                     <X className='h-4 w-4' />
@@ -755,7 +755,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
               <Button
                 variant='ghost'
                 size='sm'
-                className='h-8 w-8 p-0 hover:bg-white/60 rounded-xl transition-all duration-200 hover:scale-105'
+                className='h-8 w-8 p-0 hover:bg-white/60 rounded-xl transition-all duration-200'
                 onClick={() => setIsMinimized(false)}
               >
                 <Maximize2 className='h-4 w-4 text-gray-600' />
@@ -769,7 +769,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className='h-16 w-16 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 bg-gradient-to-br from-sidebar-primary via-sidebar-primary to-sidebar-primary/90 hover:from-sidebar-primary/95 hover:to-sidebar-primary/80 border-0 ring-2 ring-sidebar-primary/20 hover:ring-sidebar-primary/30 hover:scale-105 sm:h-16 sm:w-16 xs:h-14 xs:w-14'
+          className='h-16 w-16 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-200 bg-gradient-to-br from-sidebar-primary via-sidebar-primary to-sidebar-primary/90 hover:from-sidebar-primary/95 hover:to-sidebar-primary/80 border-0 ring-2 ring-sidebar-primary/20 hover:ring-sidebar-primary/30 sm:h-16 sm:w-16 xs:h-14 xs:w-14'
           size='sm'
         >
           <MessageSquare className='h-7 w-7 text-white sm:h-7 sm:w-7 xs:h-6 xs:w-6' />

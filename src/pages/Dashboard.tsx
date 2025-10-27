@@ -306,13 +306,13 @@ export default function Dashboard() {
 
   return (
     <Page title='Dashboard' hideHeader>
-      <div className='space-y-6 pt-4'>
+      <div className='space-y-6'>
         {/* Welcome Header */}
-        <div className='mb-8'>
-          <h1 className='text-2xl font-bold tracking-tight text-foreground mb-2'>
+        <div className='mb-4'>
+          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
             {greeting}, Welcome Back!
           </h1>
-          <p className='text-gray-600'>
+          <p className='text-sm text-muted-foreground mt-1'>
             Here's what's happening with your leads today
           </p>
           {error && (

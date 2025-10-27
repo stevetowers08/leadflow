@@ -92,6 +92,7 @@ interface PageProps {
   loading?: boolean;
   loadingMessage?: string;
   hideHeader?: boolean;
+  allowScroll?: boolean; // Allow page to scroll (for informational pages like Getting Started)
 }
 
 export const Page: React.FC<PageProps> = ({
@@ -101,6 +102,7 @@ export const Page: React.FC<PageProps> = ({
   loading = false,
   loadingMessage,
   hideHeader = false,
+  allowScroll = false,
 }) => {
   if (loading) {
     return (
@@ -109,7 +111,7 @@ export const Page: React.FC<PageProps> = ({
         <div className='fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10' />
 
         {/* Full-width content with proper overflow handling for hover elements */}
-        <div className='relative h-screen w-full'>
+        <div className='relative h-full w-full'>
           <div className='space-y-6 w-full px-4 py-6 lg:px-6 h-full flex flex-col pb-8'>
             <LoadingState title={title} message={loadingMessage} />
           </div>
@@ -123,11 +125,16 @@ export const Page: React.FC<PageProps> = ({
       {/* Full-screen background */}
       <div className='fixed inset-0 bg-background -z-10' />
 
-      {/* Full-width content with proper flex layout - allow scrolling */}
-      <div className='relative h-screen w-full flex flex-col overflow-auto'>
-        <div className='w-full flex-1 flex flex-col px-6 py-4 min-h-0'>
+      {/* Full-width content with proper flex layout */}
+      <div
+        className={cn(
+          'relative h-full w-full flex flex-col',
+          allowScroll ? 'overflow-auto' : 'overflow-hidden'
+        )}
+      >
+        <div className='w-full flex-1 flex flex-col px-6 py-2 min-h-0'>
           {!hideHeader && (
-            <div className='flex-shrink-0 mb-4'>
+            <div className='flex-shrink-0 mb-2'>
               <div className='flex items-center justify-between w-full'>
                 <div>
                   <h1 className='text-2xl font-bold tracking-tight text-foreground'>

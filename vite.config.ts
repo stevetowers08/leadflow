@@ -6,9 +6,9 @@ import { defineConfig } from 'vite';
 export default defineConfig(({ mode }) => ({
   base: '/', // Ensure correct base path for Vercel
   server: {
-    host: true, // Allow external connections (best practice 2025)
+    host: '192.168.0.240', // Bind to specific IP (hardcoded for stable dev server)
     port: 8086,
-    strictPort: false, // Allow fallback to other ports if 8086 is busy
+    strictPort: true, // Force exact port, fail if busy
     open: false, // Controlled via npm script
     watch: {
       usePolling: true, // Required for network drives/mapped drives (Windows)

@@ -22,10 +22,8 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
   className,
 }) => {
   return (
-    <div
-      className={cn('border-b border-gray-200 mb-3 flex-shrink-0', className)}
-    >
-      <nav className='flex space-x-6'>
+    <div className={cn('border-b border-gray-200 flex-shrink-0', className)}>
+      <nav className='flex space-x-8'>
         {tabs.map(tab => {
           const Icon = tab.icon;
           return (
@@ -33,7 +31,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                'relative flex items-center gap-2 py-2.5 px-1 text-sm font-medium transition-colors duration-150',
+                'relative flex items-center gap-2 py-3 text-sm font-medium transition-colors duration-150',
                 'border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300',
                 activeTab === tab.id
                   ? 'text-blue-600 border-blue-600'

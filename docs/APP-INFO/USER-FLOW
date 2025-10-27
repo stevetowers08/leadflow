@@ -17,30 +17,32 @@ Focus on getting users to experience value as soon as possible - deliver quick w
 **Goal**: Get to first qualified company + first message sent within 15 minutes
 
 #### Step 1: Welcome + Quick Setup (2 minutes)
+
 ```
 1. Welcome screen with value proposition
    "Find clients through job postings in 3 steps"
-   
+
 2. Quick profile setup:
    - What type of roles do you recruit for? (dropdown)
    - What industries? (multi-select)
    - Where are you located? (for job filtering)
-   
+
 3. Connect integrations (optional, can skip):
    - Gmail (for sending)
    - LinkedIn (for outreach tracking)
-   
+
    [Skip for now] [Connect Gmail] buttons
 ```
 
 **Why this works**: Customization ensures relevance, making users feel seen and understood. This approach streamlines their learning experience
 
 #### Step 2: Import First Jobs (3 minutes)
+
 ```
 Automatically land on Jobs Feed page
 
-Overlay tooltip: 
-"These are jobs scraped from LinkedIn that match your criteria. 
+Overlay tooltip:
+"These are jobs scraped from LinkedIn that match your criteria.
 Let's qualify your first company!"
 
 Show 10-20 pre-filtered jobs based on their profile
@@ -59,6 +61,7 @@ Interactive walkthrough:
 **Design principle**: Break down complex processes into smaller, manageable steps with checklists to keep users from feeling overwhelmed
 
 #### Step 3: First Company Research (5 minutes)
+
 ```
 Land on Companies page with their 3 newly qualified companies
 
@@ -72,6 +75,7 @@ Guided tour:
 ```
 
 #### Step 4: First Outreach (5 minutes)
+
 ```
 In Company slide-out, decision makers section:
 
@@ -102,6 +106,7 @@ Here's what happens next:
 ### Morning Routine (10-15 minutes)
 
 #### Check Dashboard (2 minutes)
+
 ```
 1. Land on Dashboard
 2. Quick scan of metrics:
@@ -109,7 +114,7 @@ Here's what happens next:
    - Messages sent this week
    - Response rate
    - Companies in pipeline by stage
-   
+
 3. Action items:
    - "5 new qualified jobs ready to review"
    - "3 people haven't responded in 7 days (follow-up?)"
@@ -117,6 +122,7 @@ Here's what happens next:
 ```
 
 #### Review New Jobs (5 minutes)
+
 ```
 1. Click "5 new qualified jobs" → Go to Jobs Feed (Qualified tab)
 2. Quick review each job card:
@@ -124,11 +130,12 @@ Here's what happens next:
    - Check if company already in pipeline (avoid duplicates)
    - If new and good: System already created company (auto-qualified)
    - If not good: Click "Skip"
-   
+
 3. Result: 2-3 new companies added to pipeline
 ```
 
 #### Triage Responses (3 minutes)
+
 ```
 1. Go to Conversations page
 2. Scan inbox for new responses
@@ -139,6 +146,7 @@ Here's what happens next:
 ```
 
 #### Queue Follow-ups (5 minutes)
+
 ```
 1. Go to People page
 2. Filter: "Messaged 7+ days ago" + "No response"
@@ -157,19 +165,21 @@ Here's what happens next:
 ### Pipeline Review & Outreach Batch
 
 #### Monday: Source New Opportunities (30 minutes)
+
 ```
 1. Jobs Feed → New tab
 2. Apply filters for this week's focus:
    - Industry: Technology
    - Location: Remote
    - Posted: Last 7 days
-   
+
 3. Scan through 20-30 jobs
 4. Qualify 10-15 jobs → Creates companies
 5. Skip irrelevant ones
 ```
 
 #### Tuesday-Thursday: Research & Outreach (1 hour per day)
+
 ```
 For each day, work through 5-10 companies:
 
@@ -181,7 +191,7 @@ For each day, work through 5-10 companies:
    - Review company website (open in new tab)
    - Check LinkedIn company page
    - Add notes: "Why they're a good fit"
-   
+
 5. Click "Find Decision Makers"
 6. Review 3-7 decision makers
 7. Select 2-3 key people (typically: HR + Hiring Manager)
@@ -194,6 +204,7 @@ Repeat for 5-10 companies per session
 ```
 
 #### Friday: Analytics & Planning (30 minutes)
+
 ```
 1. Go to Dashboard (or Analytics page)
 2. Review week's performance:
@@ -201,12 +212,12 @@ Repeat for 5-10 companies per session
    - Companies added: ?
    - Messages sent: ?
    - Response rate: ?
-   
+
 3. Identify patterns:
    - Which industries respond best?
    - Which job titles are most relevant?
    - Adjust filters for next week
-   
+
 4. Clean up pipeline:
    - Archive "Closed Lost" companies
    - Update statuses for active conversations
@@ -225,7 +236,7 @@ Repeat for 5-10 companies per session
 1. Jobs Feed (New tab) → See the job
 2. Click job card → Slide-out opens with full details
 3. Decide: Qualify or Skip?
-   
+
    IF QUALIFY:
    4a. Click "Qualify" button
    5a. Job moves to Qualified tab
@@ -233,7 +244,7 @@ Repeat for 5-10 companies per session
    7a. Toast notification: "Company added to pipeline"
    8a. [Optional] Click "View Company" in toast
    9a. Goes to Companies page, filtered to that company
-   
+
    IF SKIP:
    4b. Click "Skip" button
    5b. Job moves to Skip tab
@@ -254,32 +265,32 @@ Repeat for 5-10 companies per session
 2. Click company card → Slide-out opens (75% width)
 
 Slide-out shows:
-- Header with company logo, name, website
-- Tabs: Overview | People | Jobs | Activity
-  
-  OVERVIEW TAB:
-  - Company details (industry, size, location, pipeline stage)
-  - Source job details (if available)
-  - AI analysis and scoring
+- Left column (30%):
+  - Company logo, name, website
+  - Industry, size, location
+  - Pipeline stage
   - Owner/assigned to
-  
+
+- Right column (70%):
+  - Tabs: Overview | People | Jobs | Activity
+
   OVERVIEW TAB:
   - Source job details (full description)
   - Company research/notes (editable)
   - "Find Decision Makers" button (if not done)
   - Recent activity timeline
-  
+
   PEOPLE TAB:
   - All decision makers (no 5-item limit)
   - Filter by: Role, Status, Date added
   - Quick actions: Message, View LinkedIn
   - Bulk select for group messaging
-  
+
   JOBS TAB:
   - All jobs from this company (no limit)
   - Shows which job led to company
   - Can add more jobs manually
-  
+
   ACTIVITY TAB:
   - Full timeline of:
     - Status changes
@@ -317,7 +328,7 @@ For each decision maker:
 5. Review the list:
    - Look for: Hiring Manager, HR Director, Recruiter, Department Head
    - Check LinkedIn profiles (opens in new tab)
-   
+
 6. Select 2-3 key contacts (checkboxes)
 7. Click "Generate Messages" button
 8. AI generates personalized messages for each selected person:
@@ -325,21 +336,21 @@ For each decision maker:
    - Mentions the specific job
    - Highlights relevant experience
    - Clear call-to-action
-   
+
 9. Review each message:
    - Edit for authenticity
    - Add personal touch
    - Ensure accuracy
-   
+
 10. Send options:
     - [Copy to LinkedIn] → Opens LinkedIn, pastes message
     - [Send via Gmail] → Sends email directly (if email found)
-    
+
 11. Mark as sent
 12. Status updates automatically:
     - Contact: "Not Contacted" → "Messaged"
     - Company: "New Lead" → "Outreach Started"
-    
+
 13. Follow-up reminder auto-set for 7 days
 ```
 
@@ -358,18 +369,18 @@ For each decision maker:
    - Messaged 7+ days ago
    - Status: "Messaged"
    - No response yet
-   
+
 4. Review list, select who to follow up with:
    - Checkbox select 5-8 people
    - Or "Select All"
-   
+
 5. Click "Generate Follow-ups" (bulk action)
 6. AI generates follow-up messages:
    - References original message
    - Adds value (new insight, article, etc.)
    - Shorter and more casual
    - Still has CTA
-   
+
 7. Review each message
 8. Send via LinkedIn or Gmail
 9. Follow-up sent → Next follow-up reminder set for 5 days
@@ -431,32 +442,32 @@ BOTH SCENARIOS:
    STEP 1: Name & Goal
    - Campaign name: "Tech Recruiter Outreach"
    - Goal: Book discovery calls
-   
+
    STEP 2: Target Audience
    - Select companies or people
    - Filter by: Industry, stage, role
    - Preview: "127 contacts match"
-   
+
    STEP 3: Build Sequence
    - Drag-and-drop sequence builder
-   
+
    Example sequence:
    Day 0: Initial message (email/LinkedIn)
    Day 4: First follow-up (if no response)
    Day 10: Second follow-up (if no response)
    Day 15: Final follow-up (if no response)
-   
+
    For each step:
    - Choose channel (Email / LinkedIn)
    - Write message template
    - Add personalization tokens: {name}, {company}, {job_title}
    - Set wait time before next step
-   
+
    STEP 4: Auto-Pause Rules
    - Stop if: Contact responds
    - Stop if: Contact clicks link
    - Stop if: Contact marks as spam
-   
+
 4. Preview sequence
 5. Click "Start Campaign"
 6. System enrolls contacts
@@ -508,6 +519,7 @@ Left Sidebar:
 ### Page-Level Navigation
 
 #### Jobs Feed Page
+
 ```
 Tabs (horizontal):
 [New] [Qualified] [Skip] [All]
@@ -529,6 +541,7 @@ View toggle:
 ```
 
 #### Companies Page
+
 ```
 View modes (top):
 [List View] [Kanban Board] [Table View]
@@ -549,6 +562,7 @@ Sort:
 ```
 
 #### People Page
+
 ```
 Filters:
 - Outreach status
@@ -567,6 +581,7 @@ Sort:
 ```
 
 #### Conversations Page
+
 ```
 Layout: Inbox-style (Gmail-like)
 
@@ -593,15 +608,18 @@ Right panel (70%):
 ## 6. Critical User Flows: Success Metrics
 
 ### Primary Success Metric: Time to First Message
+
 **Target**: <15 minutes from signup
 
 **Measurement points**:
+
 1. Account created → timestamp
 2. First job qualified → timestamp
 3. First company created → timestamp
 4. First message sent → timestamp
 
 **Funnel**:
+
 ```
 100% → Sign up
  90% → Qualify first job (10% drop-off)
@@ -616,18 +634,21 @@ Right panel (70%):
 ### Secondary Metrics
 
 **Engagement (Daily Active Users)**:
+
 - Dashboard visit
 - Jobs viewed
 - Companies researched
 - Messages sent
 
 **Target behaviors**:
+
 - 3-5 jobs qualified per day
 - 2-3 companies researched per day
 - 5-10 messages sent per week
 - 1-2 responses per week
 
 **Retention triggers**:
+
 - Response received (highest retention driver)
 - Meeting scheduled (conversion event)
 - Client won (ultimate success)
@@ -637,6 +658,7 @@ Right panel (70%):
 ## 7. Edge Cases & Error States
 
 ### Error Flow A: No Decision Makers Found
+
 ```
 User clicks "Find Decision Makers"
 → System searches LinkedIn
@@ -655,6 +677,7 @@ You can:
 ---
 
 ### Error Flow B: Duplicate Company
+
 ```
 User tries to qualify job
 → System detects company already in pipeline
@@ -670,6 +693,7 @@ Last activity: 3 days ago
 ---
 
 ### Error Flow C: Email Sending Fails
+
 ```
 User sends message via Gmail
 → Gmail API error (rate limit, auth expired)
@@ -695,6 +719,7 @@ What to do:
 ### Mobile Priority Flows
 
 **Check notifications** (30 seconds):
+
 ```
 1. Open app
 2. Dashboard shows:
@@ -705,6 +730,7 @@ What to do:
 ```
 
 **Quick job qualification** (1-2 minutes):
+
 ```
 1. Jobs tab → New
 2. Swipe through jobs (Tinder-style)
@@ -714,6 +740,7 @@ What to do:
 ```
 
 **Review company** (read-only):
+
 ```
 1. Companies tab
 2. Tap company → Full screen view
@@ -732,6 +759,7 @@ What to do:
 ## 9. User Flow Best Practices Summary
 
 ### Do's:
+
 ✅ Start the onboarding process immediately after someone engages with your brand - send welcome email right after signup to bring people into the fold early
 
 ✅ Help users do the thing fast - identify their "aha moment" and streamline your flow to help them achieve it as quickly as possible
@@ -749,6 +777,7 @@ What to do:
 ✅ Escape hatches: Always allow "Skip" or "Do Later"
 
 ### Don'ts:
+
 ❌ Don't force linear onboarding (let users explore)
 
 ❌ Don't hide key features behind menus
@@ -766,6 +795,7 @@ What to do:
 ## 10. Recommended Implementation Priority
 
 ### Week 1: Core Happy Path
+
 - [ ] Job qualification workflow
 - [ ] Company creation flow
 - [ ] Decision maker display
@@ -773,6 +803,7 @@ What to do:
 - [ ] Send/copy message
 
 ### Week 2: Enhanced Navigation
+
 - [ ] Dashboard with action items
 - [ ] Global search
 - [ ] Filter persistence
@@ -780,6 +811,7 @@ What to do:
 - [ ] Quick actions on hover
 
 ### Week 3: Onboarding Polish
+
 - [ ] First-time user tooltips
 - [ ] Interactive tour
 - [ ] Empty states with guidance
@@ -787,6 +819,7 @@ What to do:
 - [ ] Help documentation
 
 ### Week 4: Power User Features
+
 - [ ] Bulk actions
 - [ ] Keyboard shortcuts
 - [ ] Saved filters
@@ -800,7 +833,7 @@ What to do:
 Your **primary user flow should be**:
 
 ```
-Jobs Feed (discover) 
+Jobs Feed (discover)
   ↓
 Qualify interesting jobs
   ↓
@@ -818,6 +851,7 @@ Conversations (track responses)
 ```
 
 **This should take**:
+
 - First time: 15 minutes
 - Daily routine: 15-20 minutes
 - Weekly deep work: 1-2 hours

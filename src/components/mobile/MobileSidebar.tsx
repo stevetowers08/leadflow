@@ -305,7 +305,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                         cn(
                           'flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                           'mobile-touch-target mobile-text-enhanced',
-                          'hover:bg-accent/50 active:bg-accent active:scale-98',
+                          'hover:bg-accent/50 active:bg-accent',
                           'focus:outline-none focus:ring-2 focus:ring-primary/20',
                           'border border-transparent hover:border-accent/20',
                           isActive
@@ -348,7 +348,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                         cn(
                           'flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                           'mobile-touch-target mobile-text-enhanced',
-                          'hover:bg-accent/50 active:bg-accent active:scale-98',
+                          'hover:bg-accent/50 active:bg-accent',
                           'focus:outline-none focus:ring-2 focus:ring-primary/20',
                           'border border-transparent hover:border-accent/20',
                           isActive
@@ -391,7 +391,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                         cn(
                           'flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                           'mobile-touch-target mobile-text-enhanced',
-                          'hover:bg-accent/50 active:bg-accent active:scale-98',
+                          'hover:bg-accent/50 active:bg-accent',
                           'focus:outline-none focus:ring-2 focus:ring-primary/20',
                           'border border-transparent hover:border-accent/20',
                           isActive

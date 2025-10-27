@@ -9,10 +9,7 @@ const Table = React.forwardRef<
   <div className='relative w-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100'>
     <table
       ref={ref}
-      className={cn(
-        'w-full caption-bottom text-sm border-separate border-spacing-0',
-        className
-      )}
+      className={cn('w-full caption-bottom text-sm border-collapse', className)}
       {...props}
     />
   </div>
@@ -69,7 +66,10 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'transition-colors data-[state=selected]:bg-gray-50 hover:bg-gray-50',
+      'relative transition-all duration-150 ease-out data-[state=selected]:bg-blue-50',
+      'hover:bg-gray-100 group cursor-pointer',
+      'border-l-2 border-transparent hover:border-l-2 hover:border-primary-400',
+      'shadow-sm hover:shadow-sm',
       className
     )}
     {...props}
@@ -88,7 +88,8 @@ const TableHead = React.forwardRef<
     ref={ref}
     className={cn(
       'h-10 px-4 text-left align-middle font-medium text-gray-700 [&:has([role=checkbox])]:pr-0',
-      'text-sm font-semibold tracking-wide border-r border-gray-200 last:border-r-0',
+      'text-sm font-semibold tracking-wide border-r border-b-2 border-gray-200 last:border-r-0 whitespace-nowrap',
+      'transition-colors duration-150',
       isFirst && 'rounded-tl-lg',
       isLast && 'rounded-tr-lg',
       className
@@ -106,7 +107,8 @@ const TableCell = React.forwardRef<
     ref={ref}
     className={cn(
       'px-4 py-2 align-middle [&:has([role=checkbox])]:pr-0 border-r border-gray-200 border-b border-gray-200 last:border-r-0',
-      'text-sm font-medium leading-relaxed',
+      'text-sm font-medium leading-relaxed transition-colors duration-150',
+      'group-hover:text-gray-900',
       className
     )}
     {...props}

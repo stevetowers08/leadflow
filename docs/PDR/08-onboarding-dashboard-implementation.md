@@ -270,7 +270,7 @@ const OnboardingDashboard = lazy(() => import('./pages/OnboardingDashboard'));
 /* Progress Bar */
 .progress-bar {
   height: 8px;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(90deg, #6161ff, #4d4dff);
   border-radius: 4px;
 }
 

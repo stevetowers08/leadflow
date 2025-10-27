@@ -31,7 +31,12 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div className={cn('flex items-center justify-between mt-4 flex-shrink-0', className)}>
+    <div
+      className={cn(
+        'flex items-center justify-between mt-2 flex-shrink-0',
+        className
+      )}
+    >
       <div className='flex items-center gap-4'>
         {showItemCount && (
           <div className='text-sm text-gray-500'>

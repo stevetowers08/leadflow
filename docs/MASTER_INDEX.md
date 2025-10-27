@@ -1,8 +1,9 @@
 # 📚 RECRUITEDGE Documentation Master Index
 
 **Last Updated**: January 2025  
-**Total Files**: 18 essential documentation files  
-**Status**: ✅ Stable - All critical issues resolved
+**Total Files**: 35 essential documentation files  
+**Status**: ✅ Stable - All critical issues resolved  
+**Recent Updates**: Fixed viewport layout system and table header improvements (January 2025)
 
 ## 🎯 Quick Navigation
 
@@ -79,19 +80,19 @@
 
 ## 📊 Documentation Statistics
 
-- **Total Files**: 19 (up from 18!)
-- **Core Documentation**: 3 files
-- **AI Documentation**: 2 files
-- **Components & Systems**: 3 files
-- **Styling & Design**: 2 files
-- **Database & Performance**: 2 files
+- **Total Essential Files**: 35 files
+- **Core Documentation**: 2 files
+- **AI Documentation**: 3 files
+- **Database Documentation**: 2 files
+- **Styling & Design**: 1 file
+- **Debugging & Troubleshooting**: 2 files
+- **Setup & Configuration**: 4 files
+- **Integrations**: 5 files
+- **PDRs**: 8 files
+- **Analysis**: 3 files
+- **Security**: 1 file
 - **Testing**: 1 file
-- **Troubleshooting**: 2 files
-- **Setup & Configuration**: 3 files
-- **Integrations**: 2 files
-- **PDRs**: 11 files (including new automatic status updates PDR)
-- **Analysis**: 1 file (user flow alignment analysis)
-- **Business**: 1 file
+- **Archived**: 5 implementation history files
 
 ## 🎯 Documentation Quality
 
@@ -113,25 +114,25 @@
 6. **AI Features**: Explore [AI_INTEGRATION_GUIDE.md](./AI/AI_INTEGRATION_GUIDE.md)
 7. **Components**: Learn about [LAYOUT_COMPONENTS.md](./COMPONENTS/LAYOUT_COMPONENTS.md)
 
-## 🧹 Cleanup Summary
+## 🧹 Recent Cleanup Summary
 
-**Removed 7 outdated/duplicate files:**
+**Removed 11 redundant/duplicate files:**
 
-- ❌ Mobile UX review and implementation summaries
-- ❌ Error handling migration guide
-- ❌ Authentication bypass guide
-- ❌ Layout height fixes guide
-- ❌ Unified system summary
-- ❌ Scoring system documentation
-- ❌ Blue badge styling reference
+- ❌ 8 obsolete root-level status files (CURRENT_STATUS.md, IMPLEMENTATION_STATUS.md, etc.)
+- ❌ Example files (USER-FLOW-EXAMPLE, RECRUITMENT-APP-GUIDE-EXAMPLE)
+- ❌ Obsolete helper files (START-DEV-SERVER.txt)
 
-**Kept 18 essential files:**
+**Archived 5 implementation history files:**
 
-- ✅ Core application documentation
-- ✅ Current architecture guides
-- ✅ Active development guides
-- ✅ Essential setup instructions
-- ✅ Current best practices
+- 📦 Moved to `docs/archive/IMPLEMENTATION/` for historical reference
+- Kept for historical context but removed from main navigation
+
+**Current Structure:**
+
+- ✅ 35 essential documentation files
+- ✅ Clean, organized folder structure
+- ✅ No duplicate or conflicting information
+- ✅ Easy to find relevant documentation
 
 ---
 

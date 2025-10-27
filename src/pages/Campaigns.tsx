@@ -19,7 +19,6 @@ import {
   DollarSign,
   Edit,
   ExternalLink,
-  Filter,
   Mail,
   MailOpen,
   Plus,
@@ -198,15 +197,6 @@ export default function Campaigns() {
               </SelectContent>
             </Select>
 
-            {/* Filter Icon */}
-            <Button
-              variant='outline'
-              size='sm'
-              className='h-8 w-8 p-0 border-gray-300'
-            >
-              <Filter className='h-4 w-4' />
-            </Button>
-
             {/* Search */}
             <div className='relative'>
               <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
@@ -219,28 +209,14 @@ export default function Campaigns() {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className='flex gap-2'>
-            <Button
-              onClick={handleCreateNewSequence}
-              className='h-8 bg-purple-600 hover:bg-purple-700 text-white'
-            >
-              <Plus className='h-4 w-4 mr-2' />
-              Create Campaign
-            </Button>
-          </div>
-        </div>
-
-        {/* Campaign Tabs */}
-        <div className='border-b border-gray-200'>
-          <nav className='-mb-px flex space-x-8'>
-            <button className='border-b-2 border-purple-500 py-2 px-1 text-sm font-medium text-purple-600'>
-              All Campaigns ({sequences.length})
-            </button>
-            <button className='border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300'>
-              Folders
-            </button>
-          </nav>
+          {/* Create Campaign Button */}
+          <Button
+            onClick={handleCreateNewSequence}
+            className='h-8 bg-purple-600 hover:bg-purple-700 text-white'
+          >
+            <Plus className='h-4 w-4 mr-2' />
+            Create Campaign
+          </Button>
         </div>
 
         {/* Campaign Details and Report */}

@@ -35,7 +35,6 @@ import { PerformanceProvider } from './utils/performanceMonitoring';
 
 // Lazy load pages for code splitting
 const Dashboard = lazy(() => import('./pages/Dashboard'));
-const OnboardingDashboard = lazy(() => import('./pages/OnboardingDashboard'));
 const GettingStarted = lazy(() => import('./pages/GettingStarted'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const Jobs = lazy(() => import('./pages/Jobs'));
@@ -142,10 +141,6 @@ const AppRoutes = () => {
                 >
                   <Routes>
                     <Route path='/' element={<Dashboard />} />
-                    <Route
-                      path='/onboarding'
-                      element={<OnboardingDashboard />}
-                    />
                     <Route
                       path='/getting-started'
                       element={<GettingStarted />}

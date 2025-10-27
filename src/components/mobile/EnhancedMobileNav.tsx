@@ -177,7 +177,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
                   'flex flex-col items-center justify-center gap-1.5 py-3 px-3',
                   'text-xs transition-all duration-200 select-none touch-manipulation',
                   'min-h-[56px] min-w-[56px] rounded-xl relative',
-                  'hover:bg-accent/50 active:bg-accent active:scale-95',
+                  'hover:bg-accent/50 active:bg-accent',
                   'focus:outline-none focus:ring-2 focus:ring-primary/20',
                   'border border-transparent hover:border-accent/20',
                   'group relative overflow-hidden',
@@ -221,7 +221,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
                 'flex flex-col items-center justify-center gap-1.5 py-3 px-3',
                 'text-xs transition-all duration-200 select-none touch-manipulation',
                 'min-h-[56px] min-w-[56px] rounded-xl',
-                'hover:bg-accent/50 active:bg-accent active:scale-95',
+                'hover:bg-accent/50 active:bg-accent',
                 'focus:outline-none focus:ring-2 focus:ring-primary/20',
                 'border border-transparent hover:border-accent/20',
                 showMoreMenu
@@ -262,7 +262,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
                         className={({ isActive }) =>
                           cn(
                             'flex items-center gap-3 px-4 py-3 text-sm transition-all duration-200',
-                            'hover:bg-accent active:bg-accent/80 active:scale-98',
+                            'hover:bg-accent active:bg-accent/80',
                             'touch-manipulation min-h-[48px] rounded-xl mx-2',
                             'focus:outline-none focus:ring-2 focus:ring-primary/20',
                             'border border-transparent hover:border-accent/20',

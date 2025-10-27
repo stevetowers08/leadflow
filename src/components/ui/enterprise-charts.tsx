@@ -298,10 +298,15 @@ const DonutChart = ({
     completed: '#10b981', // emerald
   };
 
-  let cumulativePercentage = 0;
-
+  // Calculate cumulative percentages without mutation
   const segments = data.map((item, index) => {
     const percentage = (item.value / total) * 100;
+
+    // Calculate cumulative percentage by summing previous items
+    const cumulativePercentage = data
+      .slice(0, index)
+      .reduce((sum, prevItem) => sum + (prevItem.value / total) * 100, 0);
+
     const startAngle = (cumulativePercentage / 100) * 360;
     const endAngle = ((cumulativePercentage + percentage) / 100) * 360;
 
@@ -319,8 +324,6 @@ const DonutChart = ({
       `M ${x1} ${y1}`,
       `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
     ].join(' ');
-
-    cumulativePercentage += percentage;
 
     // Use predefined color or fallback to generated color
     const color =
@@ -474,7 +477,7 @@ const KPICard = ({
     return (
       <div
         className={cn(
-          'p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10',
+          'p-6 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10',
           className
         )}
       >
@@ -490,7 +493,7 @@ const KPICard = ({
   return (
     <div
       className={cn(
-        'p-6 rounded-xl transition-all duration-300 hover:scale-[1.02]',
+        'p-6 rounded-lg transition-all duration-300',
         'bg-white/5 backdrop-blur-sm border border-white/10',
         'hover:bg-white/10 hover:border-white/20',
         className

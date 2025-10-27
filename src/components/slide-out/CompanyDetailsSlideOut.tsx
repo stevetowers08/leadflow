@@ -370,6 +370,7 @@ export const CompanyDetailsSlideOut: React.FC<CompanyDetailsSlideOutProps> = ({
         tabs={tabOptions}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        className='mb-6'
       />
 
       {/* Tab Content */}

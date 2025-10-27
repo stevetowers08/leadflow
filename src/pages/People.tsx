@@ -551,8 +551,9 @@ const People: React.FC = () => {
         key: 'stage',
         label: 'Status',
         width: '150px',
-        cellType: 'regular',
+        cellType: 'status',
         align: 'center',
+        getStatusValue: person => person.people_stage || 'new_lead',
         render: (_, person) => (
           <StatusDropdown
             entityId={person.id}
@@ -600,7 +601,7 @@ const People: React.FC = () => {
         width: '250px',
         cellType: 'regular',
         render: (_, person) => (
-          <div className='flex items-center gap-3'>
+          <div className='flex items-center gap-2 min-w-0'>
             <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
               {person.company_website ? (
                 <img
@@ -628,10 +629,8 @@ const People: React.FC = () => {
                 <Building2 className='h-3 w-3' />
               </div>
             </div>
-            <div className='min-w-0 cursor-pointer hover:bg-muted rounded-md p-1 -m-1 transition-colors duration-150'>
-              <div className='text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
-                {person.company_name || '-'}
-              </div>
+            <div className='text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
+              {person.company_name || '-'}
             </div>
           </div>
         ),
@@ -702,9 +701,9 @@ const People: React.FC = () => {
         label: 'Location',
         width: '150px',
         cellType: 'regular',
-        render: location => (
+        render: (_, person) => (
           <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm'>
-            {location || '-'}
+            {person.employee_location || '-'}
           </div>
         ),
       },
@@ -726,16 +725,20 @@ const People: React.FC = () => {
           // For numeric scores, convert to status-like value
           return convertNumericScoreToStatus(score);
         },
-        render: score => <span className='font-medium'>{score ?? '-'}</span>,
+        render: (_, person) => (
+          <span className='font-medium'>{person.lead_score ?? '-'}</span>
+        ),
       },
       {
         key: 'created_at',
         label: 'Created',
         width: '120px',
         cellType: 'regular',
-        render: date => (
+        render: (_, person) => (
           <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {date ? new Date(date).toLocaleDateString() : '-'}
+            {person.created_at
+              ? new Date(person.created_at).toLocaleDateString()
+              : '-'}
           </div>
         ),
       },
@@ -754,18 +757,21 @@ const People: React.FC = () => {
       {
         icon: Zap,
         value: people.filter(p =>
-          ['connected', 'messaged', 'replied'].includes(p.stage || '')
+          ['message_sent', 'replied', 'interested'].includes(
+            p.people_stage || ''
+          )
         ).length,
         label: 'contacted',
       },
       {
         icon: Target,
-        value: people.filter(p => p.stage === 'new').length,
+        value: people.filter(p => p.people_stage === 'new_lead').length,
         label: getStatusDisplayText('new') + ' leads',
       },
       {
         icon: CheckCircle,
-        value: people.filter(p => p.stage === 'meeting_booked').length,
+        value: people.filter(p => p.people_stage === 'meeting_scheduled')
+          .length,
         label: 'meetings scheduled',
       },
     ],
@@ -785,7 +791,7 @@ const People: React.FC = () => {
 
   return (
     <Page stats={stats} title='Qualified Leads' hideHeader>
-      <div className='space-y-4'>
+      <div className='flex-1 flex flex-col min-h-0 space-y-3'>
         {/* Filter Controls */}
         <FilterControls
           statusOptions={statusOptions}
@@ -805,17 +811,19 @@ const People: React.FC = () => {
           onSearchToggle={handleSearchToggle}
         />
 
-        {/* Unified Table */}
-        <UnifiedTable
-          data={paginatedPeople}
-          columns={columns}
-          pagination={false} // We handle pagination externally
-          stickyHeaders={true}
-          scrollable={true}
-          onRowClick={handleRowClick}
-          loading={loading}
-          emptyMessage='No people found'
-        />
+        {/* Unified Table - Scrollable area */}
+        <div className='flex-1 min-h-0'>
+          <UnifiedTable
+            data={paginatedPeople}
+            columns={columns}
+            pagination={false} // We handle pagination externally
+            stickyHeaders={true}
+            scrollable={true}
+            onRowClick={handleRowClick}
+            loading={loading}
+            emptyMessage='No people found'
+          />
+        </div>
 
         {/* Pagination Controls */}
         <PaginationControls

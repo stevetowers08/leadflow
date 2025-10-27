@@ -7,19 +7,26 @@ const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
     variant?: 'default' | 'elevated' | 'outlined' | 'glass' | 'minimal';
+    interactive?: boolean; // Only apply scale effects when explicitly interactive
   }
->(({ className, variant = 'minimal', ...props }, ref) => {
+>(({ className, variant = 'minimal', interactive, ...props }, ref) => {
+  // Check if card has click handler or is explicitly marked as interactive
+  const hasClickHandler = props.onClick !== undefined;
+  const isInteractive =
+    interactive !== undefined ? interactive : hasClickHandler;
+
+  const baseStyles =
+    'rounded-lg border border-gray-200 transition-all duration-200 ease-out';
+  const interactiveStyles = isInteractive
+    ? 'cursor-pointer hover:shadow-md'
+    : 'hover:shadow-md';
+
   const variants = {
-    default:
-      'bg-white border border-gray-300 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]',
-    elevated:
-      'bg-white border border-gray-300 shadow-lg shadow-gray-300/20 rounded-2xl transition-all duration-200 ease-out hover:shadow-xl hover:scale-[1.01]',
-    outlined:
-      'bg-white border border-gray-300 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]',
-    glass:
-      'bg-white border border-gray-300 shadow-xl shadow-gray-400/10 rounded-2xl transition-all duration-200 ease-out hover:shadow-2xl hover:scale-[1.01]',
-    minimal:
-      'bg-white border border-gray-300 shadow-sm rounded-2xl transition-all duration-200 ease-out hover:shadow-md hover:scale-[1.01]',
+    default: `${baseStyles} bg-white shadow-sm ${interactiveStyles}`,
+    elevated: `${baseStyles} bg-white shadow-lg shadow-gray-300/20 hover:shadow-xl ${interactiveStyles}`,
+    outlined: `${baseStyles} bg-white shadow-sm ${interactiveStyles}`,
+    glass: `${baseStyles} bg-white shadow-xl shadow-gray-400/10 hover:shadow-2xl ${interactiveStyles}`,
+    minimal: `${baseStyles} bg-white shadow-sm ${interactiveStyles}`,
   };
 
   return (

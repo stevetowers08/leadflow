@@ -14,6 +14,18 @@
 All colors MUST be HSL.
 */
 
+/* Global Accessibility: Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @layer base {
   :root {
     /* Modern Light Theme - Clean and Minimal */
@@ -222,7 +234,7 @@ All colors MUST be HSL.
     background-color: hsl(var(--background)) !important;
     /* Ensure consistent text rendering across Chrome and Firefox */
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: auto;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     /* Prevent text blur from font smoothing issues */
     font-feature-settings:
@@ -231,82 +243,98 @@ All colors MUST be HSL.
   }
 
   /* Modern Table Design System (2025) - Best Practices */
-  table {
-    border-collapse: separate; /* Allow for rounded corners */
-    border-spacing: 0; /* Remove spacing between cells */
+  /* Note: Removed !important to allow component-level overrides for UnifiedTable */
+  /* table {
+    border-collapse: separate;
+    border-spacing: 0;
     width: 100%;
     border: var(--table-border-width) var(--table-border-style)
-      var(--table-border-color) !important;
-    border-radius: var(--table-radius) !important;
-    box-shadow: var(--table-shadow) !important;
-    background-color: white !important;
-    overflow: hidden; /* Ensure rounded corners work */
-  }
+      var(--table-border-color);
+    border-radius: var(--table-radius);
+    box-shadow: var(--table-shadow);
+    background-color: white;
+    overflow: hidden;
+  } */
 
-  th,
+  /* Removed global th, td styles to prevent column alignment issues with UnifiedTable */
+  /* th,
   td {
     border-right: var(--table-inner-border-width) var(--table-border-style)
-      var(--table-border-color) !important;
+      var(--table-border-color);
     border-bottom: var(--table-inner-border-width) var(--table-border-style)
-      var(--table-border-color) !important;
-    padding: var(--table-cell-padding) !important;
-    height: var(--table-row-height) !important;
+      var(--table-border-color);
+    padding: var(--table-cell-padding);
+    height: var(--table-row-height);
     text-align: left;
-    font-size: 0.875rem; /* text-sm - better readability */
-    line-height: 1.5; /* Better line height */
-  }
+    font-size: 0.875rem;
+    line-height: 1.5;
+  } */
 
-  th {
-    background-color: var(--table-header-bg) !important;
+  /* Removed global th styles to prevent column alignment issues with UnifiedTable */
+  /* th {
+    background-color: var(--table-header-bg);
     font-weight: 600;
-    font-size: 0.75rem; /* text-xs */
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgb(75, 85, 99); /* gray-600 - better contrast */
+    color: rgb(75, 85, 99);
     position: sticky;
     top: 0;
     z-index: 10;
-  }
+  } */
 
-  /* Modern hover effects with micro-interactions - 2025 Best Practices */
-  tbody tr {
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  /* Removed global tbody tr and border styles to prevent column alignment issues with UnifiedTable */
+  /* tbody tr {
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
   }
 
+  tbody tr::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: transparent;
+    transition: background-color 0.2s ease;
+  }
+
   tbody tr:hover {
-    background-color: var(--table-row-hover) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px 0 rgb(0, 0, 0, 0.05);
+    background-color: rgb(249, 250, 251);
+    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.1);
   }
 
-  /* Active state feedback */
+  tbody tr:hover::before {
+    background-color: rgb(59, 130, 246);
+  }
+
   tbody tr:active {
-    background-color: rgb(243, 244, 246) !important; /* gray-100 */
-    transform: translateY(0px);
-    box-shadow: 0 1px 2px 0 rgb(0, 0, 0, 0.05);
+    background-color: rgb(243, 244, 246);
   }
 
-  /* Selected row state */
   tbody tr[data-selected='true'] {
-    background-color: rgb(239, 246, 255) !important; /* blue-50 */
-    border-left: 3px solid rgb(59, 130, 246); /* blue-500 */
+    background-color: rgb(239, 246, 255);
+    border-left: 3px solid rgb(59, 130, 246);
   }
 
   tbody tr[data-selected='true']:hover {
-    background-color: rgb(219, 234, 254) !important; /* blue-100 */
+    background-color: rgb(219, 234, 254);
   }
 
-  /* Remove last column right border for clean appearance */
+  tbody tr[data-selected='true']::before {
+    background-color: rgb(37, 99, 235);
+  }
+
   th:last-child,
   td:last-child {
-    border-right: none !important;
+    border-right: none;
   }
 
-  /* Remove bottom border from last row */
   tbody tr:last-child td {
-    border-bottom: none !important;
-  }
+    border-bottom: none;
+  } */
 
   /* Enhanced text clarity for all text elements - BEST PRACTICES */
   h1,
@@ -326,7 +354,7 @@ All colors MUST be HSL.
   label {
     /* Ensure crisp text rendering - Chrome-like thickness in Firefox */
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: auto;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     /* Enable font features for better readability */
     font-feature-settings:
@@ -399,7 +427,7 @@ All colors MUST be HSL.
   select {
     /* Prevent blur on focus/interaction - Chrome-like thickness in Firefox */
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: auto;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
@@ -417,7 +445,7 @@ All colors MUST be HSL.
   /* Utility class for extra crisp text when needed */
   .text-crisp {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: auto;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
@@ -479,7 +507,7 @@ All colors MUST be HSL.
   /* Enhanced table font rendering - Chrome-like thickness in Firefox */
   table {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: auto;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
@@ -489,7 +517,7 @@ All colors MUST be HSL.
   th,
   td {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: auto;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
@@ -507,7 +535,7 @@ All colors MUST be HSL.
       Roboto,
       sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: auto;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
@@ -518,7 +546,7 @@ All colors MUST be HSL.
   /* High-DPI display optimization - Chrome-like thickness in Firefox */
   .text-sharp {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: auto;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
@@ -530,7 +558,7 @@ All colors MUST be HSL.
   /* Specific improvements for table text - Chrome-like thickness */
   .table-text-clear {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: auto;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-feature-settings:
       'kern' 1,
@@ -828,6 +856,92 @@ All colors MUST be HSL.
     .high-contrast {
       border: 2px solid currentColor;
     }
+  }
+
+  /* Semantic color utilities for status badges and indicators */
+  /* Success states - Green */
+  .bg-success-solid {
+    background-color: hsl(142 76% 36%);
+  }
+  .text-success-solid {
+    color: hsl(142 76% 36%);
+  }
+  .border-success-solid {
+    border-color: hsl(142 76% 85%);
+  }
+  .bg-success-light {
+    background-color: hsl(142 76% 95%);
+  }
+  .text-success-dark {
+    color: hsl(142 76% 31%);
+  }
+
+  /* Warning states - Orange */
+  .bg-warning-solid {
+    background-color: hsl(38 92% 50%);
+  }
+  .text-warning-solid {
+    color: hsl(38 92% 50%);
+  }
+  .border-warning-solid {
+    border-color: hsl(38 92% 85%);
+  }
+  .bg-warning-light {
+    background-color: hsl(38 92% 95%);
+  }
+  .text-warning-dark {
+    color: hsl(38 92% 45%);
+  }
+
+  /* Error/Destructive states - Red */
+  .bg-error-solid {
+    background-color: hsl(0 84% 60%);
+  }
+  .text-error-solid {
+    color: hsl(0 84% 60%);
+  }
+  .border-error-solid {
+    border-color: hsl(0 84% 85%);
+  }
+  .bg-error-light {
+    background-color: hsl(0 84% 95%);
+  }
+  .text-error-dark {
+    color: hsl(0 84% 55%);
+  }
+
+  /* Info states - Blue */
+  .bg-info-solid {
+    background-color: hsl(240 100% 70%);
+  }
+  .text-info-solid {
+    color: hsl(240 100% 70%);
+  }
+  .border-info-solid {
+    border-color: hsl(240 100% 85%);
+  }
+  .bg-info-light {
+    background-color: hsl(240 100% 95%);
+  }
+  .text-info-dark {
+    color: hsl(240 100% 65%);
+  }
+
+  /* Neutral states - Gray */
+  .bg-neutral-solid {
+    background-color: hsl(240 3.8% 46.1%);
+  }
+  .text-neutral-solid {
+    color: hsl(240 3.8% 46.1%);
+  }
+  .border-neutral-solid {
+    border-color: hsl(240 5.9% 90%);
+  }
+  .bg-neutral-light {
+    background-color: hsl(240 4.8% 95.9%);
+  }
+  .text-neutral-dark {
+    color: hsl(240 10% 3.9%);
   }
 
   /* Mobile-specific improvements */

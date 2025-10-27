@@ -1,6 +1,7 @@
 # Recruitment App - Complete Product Specification
 
 ## Executive Summary
+
 This is a B2B sales-focused recruitment app that helps users identify companies hiring, qualify them as potential clients, and reach out to decision-makers. The app bridges the gap between job discovery and business development.
 
 ---
@@ -9,7 +10,7 @@ This is a B2B sales-focused recruitment app that helps users identify companies 
 
 **Your Users Are**: Recruiters/agencies looking for clients (companies)  
 **The Clients Are**: Companies with open positions  
-**The Contacts Are**: Decision-makers (hiring managers, HR directors, CTOs) at those companies  
+**The Contacts Are**: Decision-makers (hiring managers, HR directors, CTOs) at those companies
 
 This is a **two-level hierarchy system**: Companies → Decision Makers
 
@@ -18,11 +19,13 @@ This is a **two-level hierarchy system**: Companies → Decision Makers
 ## Pages & Navigation Structure
 
 ### 1. **Job Feed** (Discovery Page)
+
 Primary entry point for finding new opportunities
 
 **Purpose**: Browse and filter LinkedIn-scraped jobs to identify potential client companies
 
 **Key Elements**:
+
 - **Search & Filters**
   - Keywords
   - Location
@@ -30,7 +33,6 @@ Primary entry point for finding new opportunities
   - Company size
   - Date posted
   - Saved filters for quick access
-  
 - **Job Card Display** (List/Grid view toggle)
   - Company logo and name
   - Job title
@@ -39,11 +41,11 @@ Primary entry point for finding new opportunities
   - Key requirements snippet
   - Quick action: "Add to Pipeline" button
   - "View Details" link
-  
 - **Pagination** or infinite scroll
 - **Bulk Actions**: Select multiple jobs to add at once
 
 **User Flow**:
+
 ```
 Browse → Filter → Click "Add to Pipeline" → Job saved to Companies
 ```
@@ -51,6 +53,7 @@ Browse → Filter → Click "Add to Pipeline" → Job saved to Companies
 ---
 
 ### 2. **Companies** (Main Workspace)
+
 Central hub for managing potential client relationships
 
 **Purpose**: Manage all companies you're pursuing as clients
@@ -61,7 +64,6 @@ Central hub for managing potential client relationships
   - List view (default)
   - Kanban board view (by status)
   - Table view with sorting
-  
 - **Filters & Search**
   - Status filter (Researching, Qualified, Outreach Started, Engaged, Won, Lost)
   - Date added
@@ -69,7 +71,6 @@ Central hub for managing potential client relationships
   - Number of contacts
   - Last activity
   - Search by company name
-  
 - **Company Card/Row** displays:
   - Company name + logo
   - Source job title
@@ -77,7 +78,6 @@ Central hub for managing potential client relationships
   - Number of decision makers found
   - Last activity timestamp
   - Quick actions: View Detail, Archive, Add Note
-  
 - **Quick Stats Dashboard** (top of page)
   - Total companies in pipeline
   - By status breakdown
@@ -85,6 +85,7 @@ Central hub for managing potential client relationships
   - Response rate
 
 **Status Pipeline**:
+
 1. **New** - Just added, needs research
 2. **Researching** - Gathering info about company
 3. **Qualified** - Good fit, ready for outreach
@@ -96,6 +97,7 @@ Central hub for managing potential client relationships
 ---
 
 ### 3. **Company Detail Page** (The Power Page)
+
 Where all the action happens for a specific company
 
 **Purpose**: Research, qualify, and execute outreach for one company
@@ -103,6 +105,7 @@ Where all the action happens for a specific company
 **Layout**: Split-screen or tabbed interface
 
 #### **Section A: Company Overview** (Left/Top)
+
 - Company name, logo, website
 - Industry, size, location
 - **Source Job Details**:
@@ -121,6 +124,7 @@ Where all the action happens for a specific company
   - Qualification checklist (optional)
 
 #### **Section B: Decision Makers** (Right/Bottom)
+
 - **Contact Cards** (displayed after qualification):
   - Photo (from LinkedIn)
   - Name
@@ -129,10 +133,10 @@ Where all the action happens for a specific company
   - Department
   - Status badge (Not Contacted, Messaged, Responded, Unresponsive)
   - "Message" button
-  
 - **Bulk Actions**: Select multiple contacts to message at once
 
 #### **Section C: Outreach Center**
+
 - **Message Generation**:
   - Select decision maker(s)
   - AI generates personalized message based on:
@@ -142,7 +146,6 @@ Where all the action happens for a specific company
   - Preview message
   - Edit message
   - "Send via LinkedIn" or "Copy to Clipboard"
-  
 - **Outreach History**:
   - Timeline of all messages sent
   - Who was contacted
@@ -151,6 +154,7 @@ Where all the action happens for a specific company
   - Follow-up reminders
 
 #### **Section D: Activity Log**
+
 - All actions taken on this company
 - Notes added
 - Status changes
@@ -158,19 +162,22 @@ Where all the action happens for a specific company
 - Responses received
 
 **User Flow**:
+
 ```
-View Company → Review Job + Company Info → Click "Qualify" → 
-System scrapes decision makers → Review contacts → 
-Select contacts → Generate personalized messages → Send → 
+View Company → Review Job + Company Info → Click "Qualify" →
+System scrapes decision makers → Review contacts →
+Select contacts → Generate personalized messages → Send →
 Track responses
 ```
 
 ---
 
 ### 4. **All Contacts** (Secondary View)
+
 Global view of all decision makers across all companies
 
-**Purpose**: 
+**Purpose**:
+
 - Avoid duplicate outreach
 - Manage follow-ups across companies
 - Find specific people
@@ -186,7 +193,6 @@ Global view of all decision makers across all companies
   - Last contact date
   - Next follow-up date
   - Quick actions: Message, View Company, Add Note
-  
 - **Advanced Filters**:
   - By outreach status
   - By company
@@ -194,7 +200,6 @@ Global view of all decision makers across all companies
   - By response status
   - Date ranges
   - Custom tags
-  
 - **Search**: By name, company, title
 
 - **Bulk Actions**:
@@ -204,6 +209,7 @@ Global view of all decision makers across all companies
   - Export to CSV
 
 **Key Use Cases**:
+
 - "Show me everyone I messaged last week who hasn't responded"
 - "Find all HR Directors I haven't contacted yet"
 - "List everyone at companies in 'Engaged' status"
@@ -211,25 +217,24 @@ Global view of all decision makers across all companies
 ---
 
 ### 5. **Analytics/Reports** (Optional but Recommended)
+
 Data-driven insights into your pipeline
 
 **Key Metrics**:
+
 - **Pipeline Health**:
   - Companies by status
   - Time spent in each stage
   - Conversion rates between stages
-  
 - **Outreach Performance**:
   - Messages sent per week/month
   - Response rate
   - Average time to response
   - Best performing message templates
-  
 - **Source Analysis**:
   - Which job types lead to best clients
   - Which industries respond best
   - LinkedIn vs other sources
-  
 - **Charts/Graphs**:
   - Pipeline funnel visualization
   - Response rate trends
@@ -242,12 +247,14 @@ Data-driven insights into your pipeline
 ### Core Features
 
 #### 1. **Job Scraping & Import**
+
 - Automated LinkedIn job scraping
 - Filter jobs before importing
 - Bulk import capabilities
 - Deduplication (avoid adding same company twice)
 
 #### 2. **Company Management**
+
 Contact management allows CRM systems to help companies organize and manage their business contacts, including contact details, communication records, special requests or preferences, and reminders to reach out periodically
 
 - Custom fields for company data
@@ -256,18 +263,21 @@ Contact management allows CRM systems to help companies organize and manage thei
 - Activity history
 
 #### 3. **Decision Maker Scraping**
+
 - Automated LinkedIn scraping after qualification
 - Extract: name, title, photo, profile URL
 - Department/role identification
 - Senior/junior level detection
 
 #### 4. **AI Message Generation**
+
 - Personalized per decision maker role
 - Context-aware (uses job description + company info)
 - Editable templates
 - A/B testing capability (future)
 
 #### 5. **Outreach Tracking**
+
 Tools that provide tracking and reporting are essential for performance analysis, allowing users to evaluate outcomes effectively and track metrics such as conversion rates and response patterns
 
 - Message status tracking
@@ -276,6 +286,7 @@ Tools that provide tracking and reporting are essential for performance analysis
 - Communication history
 
 #### 6. **Search & Filtering**
+
 Look for features that allow you to track customer interactions, segment leads, and automate follow-up processes, ensuring your sales team can focus on high-value opportunities
 
 - Global search across companies and contacts
@@ -290,6 +301,7 @@ Look for features that allow you to track customer interactions, segment leads, 
 ### Design Principles
 
 #### 1. **Minimal & Clean**
+
 Modern CRM UI design should include minimalist and clean layouts for reduced clutter, customizable dashboards tailored to user needs, and dark mode with accessibility-friendly features
 
 - Lots of white space
@@ -298,6 +310,7 @@ Modern CRM UI design should include minimalist and clean layouts for reduced clu
 - Functionality over flair
 
 #### 2. **Status-Driven Design**
+
 - Color-coded status badges:
   - **Gray**: New/Researching
   - **Blue**: Qualified
@@ -307,6 +320,7 @@ Modern CRM UI design should include minimalist and clean layouts for reduced clu
 - Visual pipeline with drag-and-drop
 
 #### 3. **Card-Based Layouts**
+
 - Use cards for:
   - Job listings
   - Company entries
@@ -315,7 +329,9 @@ Modern CRM UI design should include minimalist and clean layouts for reduced clu
 - Progressive disclosure (show more on expand)
 
 #### 4. **Quick Actions Philosophy**
+
 Every task should be minimal clicks:
+
 - Add job to pipeline: **1 click**
 - Qualify company: **1-2 clicks**
 - Generate + send message: **2-3 clicks**
@@ -324,23 +340,27 @@ Every task should be minimal clicks:
 ### Visual Style
 
 **Color Palette**:
+
 - Primary action color (one accent - e.g., blue/purple)
 - Neutral grays for backgrounds (#F9FAFB, #F3F4F6)
 - Status colors (as mentioned above)
 - Text: #111827 (dark), #6B7280 (medium), #9CA3AF (light)
 
 **Typography**:
+
 - Modern sans-serif (Inter, Roboto, System UI)
 - Clear hierarchy (32px → 24px → 18px → 16px → 14px)
 - Plenty of line-height for readability
 
 **Components**:
+
 - Rounded corners (4-8px)
 - Subtle shadows for cards
 - Clear focus states
 - Smooth transitions (200-300ms)
 
 **Responsive**:
+
 - Desktop-first (primary use case)
 - Mobile-friendly for on-the-go checking
 - Tablet-optimized for reviewing on iPad
@@ -352,6 +372,7 @@ Every task should be minimal clicks:
 ### Database Schema
 
 #### Companies Table
+
 ```
 - id (primary key)
 - name
@@ -370,6 +391,7 @@ Every task should be minimal clicks:
 ```
 
 #### Jobs Table
+
 ```
 - id (primary key)
 - title
@@ -385,6 +407,7 @@ Every task should be minimal clicks:
 ```
 
 #### Contacts Table (Decision Makers)
+
 ```
 - id (primary key)
 - company_id (foreign key)
@@ -402,6 +425,7 @@ Every task should be minimal clicks:
 ```
 
 #### Messages Table
+
 ```
 - id (primary key)
 - contact_id (foreign key)
@@ -416,6 +440,7 @@ Every task should be minimal clicks:
 ```
 
 #### Activities Table (Audit Log)
+
 ```
 - id (primary key)
 - company_id (foreign key)
@@ -431,6 +456,7 @@ Every task should be minimal clicks:
 ## User Workflows
 
 ### Workflow 1: From Job Discovery to First Outreach
+
 ```
 1. Land on Job Feed
 2. Apply filters (e.g., "Engineering roles in San Francisco")
@@ -453,6 +479,7 @@ Every task should be minimal clicks:
 ```
 
 ### Workflow 2: Follow-Up Management
+
 ```
 1. Go to All Contacts page
 2. Filter by "Messaged" + "No Response" + "Sent 7+ days ago"
@@ -464,6 +491,7 @@ Every task should be minimal clicks:
 ```
 
 ### Workflow 3: Response Handling
+
 ```
 1. Receive LinkedIn response from a decision maker
 2. Go to All Contacts page
@@ -481,6 +509,7 @@ Every task should be minimal clicks:
 ## Feature Prioritization (MVP vs Future)
 
 ### MVP (Minimum Viable Product) - Launch First
+
 - ✅ Job Feed with basic filters
 - ✅ Add jobs to Companies pipeline
 - ✅ Company Detail page
@@ -493,6 +522,7 @@ Every task should be minimal clicks:
 - ✅ Activity logging
 
 ### Phase 2 (Post-Launch)
+
 - 📊 Analytics dashboard
 - 🔔 Email/push notifications for responses
 - 📧 Email integration (scrape emails, send via app)
@@ -503,6 +533,7 @@ Every task should be minimal clicks:
 - 📱 Mobile app
 
 ### Phase 3 (Future Enhancements)
+
 - 🎯 AI-powered lead scoring
 - 🔄 CRM integrations (Salesforce, HubSpot)
 - 📨 LinkedIn messaging API integration
@@ -518,6 +549,7 @@ Every task should be minimal clicks:
 ### Tech Stack Suggestions
 
 **Frontend**:
+
 - React + TypeScript
 - Tailwind CSS for styling
 - Shadcn/ui for components
@@ -525,22 +557,26 @@ Every task should be minimal clicks:
 - Zustand or Redux for state management
 
 **Backend**:
+
 - Node.js + Express or Next.js API routes
 - PostgreSQL for database
 - Prisma ORM
 - Redis for caching
 
 **Scraping**:
+
 - Puppeteer or Playwright for LinkedIn scraping
 - Bright Data or Apify for reliable scraping
 - Rate limiting and proxy rotation
 
 **AI Integration**:
+
 - OpenAI API or Anthropic Claude API for message generation
 - Prompt templates for consistency
 - User context injection
 
 **Hosting**:
+
 - Vercel or Railway for easy deployment
 - AWS S3 for file storage
 - Cloudflare for CDN
@@ -552,12 +588,14 @@ Every task should be minimal clicks:
 ### Key Performance Indicators (KPIs)
 
 **User Engagement**:
+
 - Daily/weekly active users
 - Average time spent in app
 - Jobs added per user per week
 - Companies qualified per user per week
 
 **Conversion Metrics**:
+
 - Jobs → Companies conversion rate
 - Companies → Qualified conversion rate
 - Qualified → Outreach conversion rate
@@ -565,6 +603,7 @@ Every task should be minimal clicks:
 - Response → Client conversion rate
 
 **Efficiency Metrics**:
+
 - Time from job discovery to first outreach
 - Average messages sent per user per week
 - User retention rate (7-day, 30-day)
@@ -582,12 +621,14 @@ Every task should be minimal clicks:
 5. **LinkedIn-First**: Built around how recruiters actually source new business
 
 ### Compared to Traditional CRMs
+
 - ✅ Pre-populated with job/company data (no manual entry)
 - ✅ Automated decision maker discovery
 - ✅ Industry-specific (recruitment) workflows
 - ✅ AI message generation built-in
 
 ### Compared to Recruitment ATSs
+
 - ✅ Focused on client acquisition, not candidate management
 - ✅ Lighter weight, faster to get value
 - ✅ Lower cost
@@ -598,41 +639,49 @@ Every task should be minimal clicks:
 ## Implementation Roadmap
 
 ### Week 1-2: Foundation
+
 - Database schema setup
 - User authentication
 - Basic UI framework
 
 ### Week 3-4: Job Feed
+
 - LinkedIn scraping setup
 - Job listing page
 - Add to pipeline functionality
 
 ### Week 5-6: Companies Page
+
 - Company list view
 - Status management
 - Basic filtering
 
 ### Week 7-8: Company Detail
+
 - Detail page layout
 - Qualification workflow
 - Activity logging
 
 ### Week 9-10: Decision Maker Scraping
+
 - LinkedIn profile scraping
 - Contact card display
 - Contact management
 
 ### Week 11-12: AI Messaging
+
 - OpenAI/Claude integration
 - Message generation
 - Template system
 
 ### Week 13-14: All Contacts Page
+
 - Contact list view
 - Advanced filtering
 - Search functionality
 
 ### Week 15-16: Polish & Testing
+
 - Bug fixes
 - Performance optimization
 - User testing

@@ -186,7 +186,14 @@ export const designTokens = {
     normal: 'transition-colors duration-200',
     slow: 'transition-all duration-300',
     transform: 'transition-transform duration-200',
-    hover: 'transition-all duration-300 hover:scale-[1.02] active:scale-98',
+    // Hover effects - Color and shadow transitions only (NO scale effects)
+    // Following HubSpot design patterns - subtle color changes and shadow elevation
+    hoverInteractive:
+      'cursor-pointer transition-all duration-200 hover:shadow-md',
+    // Card hover effects - ONLY for clickable cards
+    cardInteractive:
+      'cursor-pointer transition-all duration-200 hover:shadow-md',
+    cardStatic: 'transition-shadow duration-200 hover:shadow-md',
   },
 
   // Loading States
@@ -208,7 +215,7 @@ export const designTokens = {
   filterControls: {
     // Container styling - cleaner spacing
     container:
-      'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-3 w-full flex-shrink-0',
+      'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full flex-shrink-0',
 
     // Group styling - tighter gaps
     leftGroup: 'flex flex-col sm:flex-row items-stretch sm:items-center gap-2',

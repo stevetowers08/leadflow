@@ -10,22 +10,21 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm hover:shadow-md',
         destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md',
         outline:
-          'border border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'border border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground shadow-sm hover:shadow-md',
         secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
-        ghost:
-          'text-primary hover:bg-primary-light hover:scale-[1.02] active:scale-98',
+          'bg-secondary text-secondary-foreground hover:bg-secondary-hover shadow-sm hover:shadow-md',
+        ghost: 'text-primary hover:bg-primary-light',
         link: 'text-primary underline-offset-4 hover:underline',
         danger:
-          'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98', // Alias for destructive
+          'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md', // Alias for destructive
         success:
-          'bg-success text-success-foreground hover:bg-success-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'bg-success text-success-foreground hover:bg-success-hover shadow-sm hover:shadow-md',
         warning:
-          'bg-warning text-warning-foreground hover:bg-warning-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-98',
+          'bg-warning text-warning-foreground hover:bg-warning-hover shadow-sm hover:shadow-md',
       },
       size: {
         default: 'h-10 px-4 py-2', // Standard button height

@@ -220,15 +220,15 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
           )}
           role='main'
         >
-          {/* Content Container - This is where scrolling happens */}
+          {/* Content Container - Each page handles its own overflow */}
           <div
             className={cn(
-              'flex-1 w-full overflow-y-auto', // Takes remaining space and allows scrolling
+              'flex-1 w-full overflow-hidden', // Let pages handle their own overflow
               // Use standardized responsive padding
               designTokens.spacing.pagePadding.responsive
             )}
           >
-            <div className='flex-1 w-full'>{children}</div>
+            <div className='h-full w-full'>{children}</div>
           </div>
         </main>
 

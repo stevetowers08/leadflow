@@ -87,7 +87,7 @@ export default function StepCreationModal({
               key={step.id}
               className={`
                 relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
-                hover:shadow-md hover:scale-[1.02] group
+                hover:shadow-md group
                 ${step.bgColor} border-transparent hover:border-gray-200
               `}
               onClick={() => handleStepSelect(step.id)}

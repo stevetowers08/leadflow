@@ -20,17 +20,17 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   hover = true,
   onClick,
 }) => {
-  const baseClasses = 'rounded-2xl transition-all duration-300 ease-out';
+  const baseClasses = 'rounded-lg transition-all duration-300 ease-out';
 
   const variantClasses = {
-    default: 'bg-white border border-gray-300 shadow-sm',
-    elevated: 'bg-white border border-gray-300 shadow-lg shadow-gray-300/20',
-    glass: 'bg-white border border-gray-300 shadow-xl shadow-gray-400/10',
-    minimal: 'bg-white border border-gray-300 shadow-sm hover:shadow-md',
+    default: 'bg-white border border-gray-200 shadow-sm',
+    elevated: 'bg-white border border-gray-200 shadow-lg shadow-gray-300/20',
+    glass: 'bg-white border border-gray-200 shadow-xl shadow-gray-400/10',
+    minimal: 'bg-white border border-gray-200 shadow-sm hover:shadow-md',
   };
 
   const hoverClasses = hover
-    ? 'hover:shadow-md hover:scale-[1.01] transition-all duration-200'
+    ? 'hover:shadow-md transition-all duration-200'
     : '';
 
   return (
@@ -79,7 +79,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-3'>
           {/* Ultra-minimal Icon Container */}
-          <div className='p-2 rounded-xl bg-gray-50/80 border border-gray-100/60'>
+          <div className='p-2 rounded-lg bg-gray-50/80 border border-gray-200'>
             <Icon className='h-4 w-4 text-gray-600' />
           </div>
           <div>
@@ -95,7 +95,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         {trend && trendValue && (
           <div
             className={cn(
-              'px-2 py-1 rounded-lg text-xs font-medium',
+              'px-2 py-1 rounded-md text-xs font-medium',
               trendColors[trend]
             )}
           >
@@ -132,7 +132,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({
     >
       <div className='flex items-start gap-3'>
         {/* Minimal Icon with subtle background */}
-        <div className='p-2.5 rounded-xl bg-gray-50 border border-gray-100 group-hover:bg-gray-100 transition-all duration-200'>
+        <div className='p-2.5 rounded-lg bg-gray-50 border border-gray-200 group-hover:bg-gray-100 transition-all duration-200'>
           <Icon className='h-4 w-4 text-gray-600' />
         </div>
 
@@ -221,7 +221,7 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
     >
       <div className='flex items-center gap-3'>
         {/* Minimal Logo Container */}
-        <div className='flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-gray-50/80 border border-gray-100/60 flex items-center justify-center'>
+        <div className='flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-50/80 border border-gray-200 flex items-center justify-center'>
           {company.logo ? (
             <img
               src={company.logo}
@@ -321,7 +321,7 @@ export const ListCard: React.FC<ListCardProps> = ({
       <div className='flex items-center gap-3'>
         {/* Logo or Icon */}
         {logo ? (
-          <div className='flex-shrink-0 w-8 h-8 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center'>
+          <div className='flex-shrink-0 w-8 h-8 rounded-lg overflow-hidden bg-gray-50 border border-gray-200 flex items-center justify-center'>
             <img
               src={logo}
               alt={title}
@@ -338,7 +338,7 @@ export const ListCard: React.FC<ListCardProps> = ({
             </div>
           </div>
         ) : Icon ? (
-          <div className='p-1.5 rounded-lg bg-gray-50 border border-gray-100'>
+          <div className='p-1.5 rounded-lg bg-gray-50 border border-gray-200'>
             <Icon className='h-3.5 w-3.5 text-gray-500' />
           </div>
         ) : null}

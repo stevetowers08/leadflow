@@ -45,33 +45,172 @@ export const FilterControls = ({ ... }) => {
 }
 ```
 
-### Page Layout Standards
+### Page Layout Standards (Updated January 2025)
 
-**✅ Consistent Structure**: All table pages use `space-y-4` layout
+**✅ Fixed Viewport Layout**: All table pages use flex constraints with no page scrolling
 
 ```tsx
-// ✅ CORRECT: Clean page layout
+// ✅ CORRECT: Fixed viewport with internal scrolling
 <Page stats={stats} title='Companies' hideHeader>
-  <div className='space-y-4'>
+  <div className='flex-1 flex flex-col min-h-0 space-y-4'>
+    {/* Fixed filters at top */}
     <FilterControls {...props} />
-    <UnifiedTable {...props} />
+
+    {/* Scrollable table area */}
+    <div className='flex-1 min-h-0'>
+      <UnifiedTable
+        scrollable={true}
+        onRowClick={handleRowClick}
+        loading={loading}
+      />
+    </div>
+
+    {/* Fixed pagination at bottom */}
     <PaginationControls {...props} />
   </div>
 </Page>
 ```
 
-**❌ Avoid**: Complex flex layouts with wrapper divs
+### Table Header Standards (Updated January 2025)
+
+**✅ All tables feature consistent headers**: Borders, single-line text, and sticky scrolling
 
 ```tsx
-// ❌ WRONG: Don't use complex flex layouts
-<div className='flex flex-col h-full min-h-0'>
-  <div className='flex-shrink-0'>
-    <FilterControls />
+// ✅ CORRECT: Table with proper header styling
+<th className="px-4 py-2 text-xs font-semibold uppercase tracking-wide border-r border-b-2 border-gray-200 last:border-r-0 whitespace-nowrap">
+  {column.label}
+</th>
+
+// Table with border-collapse for clean borders
+<table className='w-full border-collapse'>
+  {/* table content */}
+</table>
+```
+
+**Key Requirements**:
+
+- Use `border-b-2 border-gray-200` for header bottom border
+- Use `whitespace-nowrap` to prevent text wrapping
+- Use `sticky top-0 z-20` for sticky headers when scrolling
+- Use `border-collapse` instead of `border-separate` for cleaner borders
+- Headers automatically stick on tables with `scrollable={true}`
+
+**Benefits**:
+
+- Headers always visible while scrolling through data
+- Clean, professional appearance with proper borders
+- Consistent across all pages (People, Jobs, Companies)
+
+### Standard Column Widths (Updated January 2025)
+
+**✅ Status columns use consistent width across all tables**
+
+**Key Requirements**:
+
+- All status columns: `150px` width - **CONSISTENT**
+  - Jobs page status: `150px`
+  - People page status: `150px`
+  - Companies page status: `150px`
+
+**Implementation**:
+
+```tsx
+// Status column configuration
+{
+  key: 'status',
+  label: 'Status',
+  width: '150px',  // Standardized width
+  cellType: 'status',
+  align: 'center',
+  // ...
+}
+```
+
+**Benefits**:
+
+- Consistent visual appearance across all tables
+- Predictable column sizing
+- Better UX with uniform layouts
+
+### Unified Status Dropdown (Updated January 2025)
+
+**✅ Single unified component for all status dropdowns**
+
+**Implementation**:
+
+```tsx
+import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
+
+// Status column configuration
+{
+  key: 'status',
+  label: 'Status',
+  width: '150px',
+  cellType: 'status',
+  align: 'center',
+  render: (_, item) => (
+    <UnifiedStatusDropdown
+      entityId={item.id}
+      entityType='people'
+      currentStatus={item.people_stage}
+      availableStatuses={[
+        'new_lead',
+        'message_sent',
+        'replied',
+        'interested',
+        'meeting_scheduled',
+        'meeting_completed',
+        'follow_up',
+        'not_interested',
+      ]}
+      onStatusChange={() => handleRefresh()}
+    />
+  ),
+}
+```
+
+**Key Features**:
+
+- ✅ Whole cell clickable (entire area activates dropdown)
+- ✅ Status dots in dropdown items for quick visual recognition
+- ✅ Checkmark indicates selected item
+- ✅ Single source of truth - no duplicate code
+- ✅ Optimistic updates with error handling
+- ✅ Consistent `180px` dropdown width
+
+**Benefits**:
+
+- Clean, maintainable codebase
+- Modern, professional UI
+- Consistent UX across all tables
+- Better accessibility
+
+**Key Pattern**:
+
+- Use `flex-1 min-h-0` for flexible areas that need scrolling
+- Wrap scrollable content in `flex-1 min-h-0` containers
+- Let `overflow-auto` handle internal scrolling
+
+**Layout Hierarchy**:
+
+1. **Layout**: `h-screen overflow-hidden` - Prevents page scroll
+2. **Content Wrapper**: `overflow-hidden` - Delegates overflow to pages
+3. **Page**: `h-full overflow-hidden` - Fits container without scroll
+4. **Page Content**: `flex-1 flex flex-col min-h-0` - Flex constraints
+5. **Table Container**: `flex-1 min-h-0` - Takes available space
+6. **Table**: `overflow-auto` - Scrolls internally
+
+**❌ Avoid**: Pages that scroll independently
+
+```tsx
+// ❌ WRONG: Page-level scrolling (causes issues)
+<Page title='Companies'>
+  <div className='h-screen overflow-auto'>
+    {' '}
+    {/* NO! */}
+    <Table />
   </div>
-  <div className='flex-1 min-h-0'>
-    <UnifiedTable />
-  </div>
-</div>
+</Page>
 ```
 
 ### Height Standards

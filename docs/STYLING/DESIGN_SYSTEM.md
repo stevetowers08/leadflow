@@ -103,14 +103,14 @@ Design tokens are centralized in `src/design-system/tokens.ts`:
 ```typescript
 export const designTokens = {
   colors: {
-    primary: '#3b82f6', // Blue
-    secondary: '#6366f1', // Indigo
-    success: '#10b981', // Green
-    warning: '#f59e0b', // Amber
-    error: '#ef4444', // Red
-    muted: '#6b7280', // Gray
-    background: '#ffffff', // White
-    surface: '#f9fafb', // Light gray
+    primary: 'hsl(var(--primary))', // Monday.com Blue #6161FF
+    secondary: 'hsl(var(--secondary))', // Blue
+    success: 'hsl(var(--success))', // Green
+    warning: 'hsl(var(--warning))', // Amber
+    error: 'hsl(var(--destructive))', // Red
+    muted: 'hsl(var(--muted))', // Gray
+    background: 'hsl(var(--background))', // White
+    surface: 'hsl(var(--card))', // Light gray
   },
   typography: {
     fontFamily: 'Inter, system-ui, sans-serif',
@@ -223,19 +223,21 @@ export const designTokens = {
 ### Primary Palette
 
 ```css
-/* Primary Blue - Main brand color */
---primary-50: #eff6ff;
---primary-100: #dbeafe;
---primary-500: #3b82f6; /* Main primary */
---primary-600: #2563eb;
---primary-900: #1e3a8a;
+/* Primary Blue - Main brand color (Monday.com Blue) */
+--primary: 240 100% 70%; /* Main primary #6161FF */
+--primary-foreground: 0 0% 98%;
+--primary-hover: 240 100% 65%;
+--primary-light: 240 100% 95%;
+--primary-medium: 240 100% 85%;
 
-/* Secondary Indigo - Accent color */
---secondary-50: #eef2ff;
---secondary-100: #e0e7ff;
---secondary-500: #6366f1; /* Main secondary */
---secondary-600: #5b21b6;
---secondary-900: #312e81;
+/* Secondary - Accent color */
+--secondary: 240 100% 60%;
+--secondary-foreground: 0 0% 98%;
+--secondary-hover: 240 100% 55%;
+--secondary-light: 240 100% 90%;
+--secondary-medium: 240 100% 80%;
+
+/* Note: Using HSL format for better flexibility */
 ```
 
 ### Semantic Colors
@@ -282,13 +284,13 @@ export const designTokens = {
 ### Usage Guidelines
 
 ```tsx
-// Status indicators
-<Badge className="bg-success-100 text-success-800">Active</Badge>
-<Badge className="bg-warning-100 text-warning-800">Pending</Badge>
-<Badge className="bg-error-100 text-error-800">Failed</Badge>
+// Status indicators - using semantic classes
+<Badge className="bg-success-light text-success-solid">Active</Badge>
+<Badge className="bg-warning-light text-warning-solid">Pending</Badge>
+<Badge className="bg-error-light text-error-solid">Failed</Badge>
 
-// Interactive elements
-<Button className="bg-primary-500 hover:bg-primary-600 text-white">
+// Interactive elements - using CSS variables
+<Button className="bg-primary text-primary-foreground hover:bg-primary-hover">
   Primary Action
 </Button>
 
@@ -404,6 +406,60 @@ All cards within pages should:
 
 ## Layout & Spacing
 
+### Page Layout Architecture (Fixed Viewport)
+
+All pages use a unified fixed-viewport layout with internal scrolling:
+
+```tsx
+// Layout Container (h-screen overflow-hidden)
+//   └─ Main Content (h-full flex flex-col)
+//       └─ Content Wrapper (flex-1 overflow-hidden)
+//           └─ Page Component (h-full overflow-hidden)
+//               └─ Page Content (flex-1 flex flex-col min-h-0)
+//                   ├─ Filters (flex-shrink-0)
+//                   ├─ Table Wrapper (flex-1 min-h-0)
+//                   └─ Pagination (flex-shrink-0)
+```
+
+**Key Classes**:
+
+- Layout: `h-screen overflow-hidden` - Prevents page scrolling
+- Content: `flex-1 overflow-hidden` - Let pages handle overflow
+- Page: `h-full overflow-hidden` - Page fills container without scrolling
+- Table Container: `flex-1 min-h-0` - Takes available space
+- Table: `overflow-auto` - Table scrolls internally
+
+**Table Pages Structure**:
+
+```tsx
+<Page title='Jobs' hideHeader>
+  <div className='flex-1 flex flex-col min-h-0 space-y-4'>
+    {/* Filters - fixed at top */}
+    <FilterControls {...props} />
+
+    {/* Table - scrollable area */}
+    <div className='flex-1 min-h-0'>
+      <UnifiedTable
+        scrollable={true}
+        onRowClick={handleRowClick}
+        loading={loading}
+      />
+    </div>
+
+    {/* Pagination - fixed at bottom */}
+    <PaginationControls {...props} />
+  </div>
+</Page>
+```
+
+**Benefits**:
+
+- ✅ Pages always fit within viewport
+- ✅ Tables scroll independently (horizontal & vertical)
+- ✅ No page-level scrolling
+- ✅ Consistent layout across all pages
+- ✅ Proper flex constraints with `min-h-0`
+
 ### Grid System
 
 ```css
@@ -511,6 +567,58 @@ All cards within pages should:
 
 ## Action Bars & Tables
 
+### Table Hover States (January 2025)
+
+Modern CRM tables now feature sophisticated hover interactions following 2025 best practices:
+
+#### Key Features
+
+1. **Subtle Row Highlighting**: `hover:bg-gray-100` - Slightly darker background on hover
+2. **Left Border Indicator**: `border-l-2 border-primary-400` - Blue accent line appears on hover
+3. **Smooth Transitions**: `transition-all duration-150 ease-out` - 150ms smooth animations
+4. **Shadow Elevation**: `shadow-sm hover:shadow-sm` - Subtle depth indication
+5. **Text Darkening**: `group-hover:text-gray-900` - Cell text becomes darker on row hover
+6. **Focus States**: `focus:ring-2 focus:ring-primary-200` - Keyboard accessibility
+
+#### Implementation
+
+```tsx
+// Table Row Hover States
+<tr
+  className={cn(
+    'transition-all duration-150 ease-out cursor-pointer group',
+    'hover:bg-gray-100 border-l-2 border-transparent hover:border-l-2 hover:border-primary-400',
+    'shadow-sm hover:shadow-sm',
+    'focus:outline-none focus:ring-2 focus:ring-primary-200 focus:ring-inset',
+    onClick && 'cursor-pointer'
+  )}
+>
+
+// Table Cell Text Response
+<td className={cn(
+  'px-4 py-2 text-sm transition-colors duration-150',
+  'group-hover:text-gray-900',
+  // ... other classes
+)}>
+
+// Sortable Headers
+<th
+  className={cn(
+    'transition-all duration-150 ease-out',
+    'cursor-pointer hover:bg-gray-100/60 hover:shadow-sm',
+    // ... other classes
+  )}
+>
+```
+
+#### Design Principles
+
+- **Subtle & Professional**: Smooth color transitions without jarring effects
+- **Clear Visual Feedback**: Border + background change for instant recognition
+- **Accessibility First**: Keyboard focus states with visual rings
+- **No Zoom Effects**: Avoids scale transforms that break table layouts
+- **Consistent Timing**: All transitions use 150ms duration for uniformity
+
 ### Action Element Heights - **FINAL STANDARD**
 
 - **All Action Elements**: `h-8` (32px height) - **MANDATORY**
@@ -572,6 +680,99 @@ className =
 - **Avatars in Rows**: `w-8 h-8` (32px × 32px)
 - **Icons in Rows**: `h-4 w-4` (16px × 16px)
 
+### Table Column Widths - **STANDARDIZED**
+
+- **Status Columns**: `150px` width - **CONSISTENT ACROSS ALL TABLES**
+  - Jobs page: `150px`
+  - People page: `150px`
+  - Companies page: `150px`
+
+### Status Dropdown Standards (January 2025)
+
+All status dropdowns use a unified modern design:
+
+#### Key Features
+
+1. **Unified Component**: Single `UnifiedStatusDropdown` for all entity types
+2. **Whole Cell Clickable**: Entire status cell is clickable (not just button)
+3. **Dot Indicators**: Colored status dots in dropdown items for quick recognition
+4. **Checkmark Feedback**: Visual checkmark on selected item
+5. **Consistent Width**: `180px` dropdown width
+6. **Efficient**: Single source of truth, no code duplication
+
+#### Implementation
+
+```tsx
+import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
+
+// Usage
+<UnifiedStatusDropdown
+  entityId={entity.id}
+  entityType='people' // or 'companies' or 'jobs'
+  currentStatus={entity.status}
+  availableStatuses={['new_lead', 'message_sent', 'replied']}
+  onStatusChange={handleChange}
+/>;
+```
+
+#### Visual Design
+
+- **Trigger**: Badge-style button with status color and chevron
+- **Dropdown Items**: Status dot + text + checkmark (if selected)
+- **Selected State**: Muted background with checkmark
+- **Disabled State**: Grayed out during update
+- **Focus State**: Blue ring for accessibility
+
+#### Component Locations
+
+- **Main Component**: `src/components/shared/UnifiedStatusDropdown.tsx`
+- **Backward Compatibility**: `src/components/people/StatusDropdown.tsx` (re-exports)
+- **Jobs Special Handler**: `src/components/jobs/JobQualificationTableDropdown.tsx` (adds onboarding logic)
+
+### Table Header Standards (January 2025)
+
+All tables now feature consistent header styling:
+
+#### Header Requirements
+
+1. **Borders**: All headers have `border-b-2 border-gray-200` for clear separation
+2. **No Text Wrapping**: Headers use `whitespace-nowrap` to keep text on single line
+3. **Sticky on Scroll**: Headers stick to top when scrolling with `sticky top-0 z-20`
+4. **Border Collapse**: Tables use `border-collapse` for cleaner borders
+
+#### Implementation
+
+```tsx
+// Table head styling
+<th className='px-4 py-2 text-xs font-semibold uppercase tracking-wide border-r border-b-2 border-gray-200 last:border-r-0 whitespace-nowrap'>
+  {column.label}
+</th>
+```
+
+#### Key Classes
+
+- `border-b-2 border-gray-200` - Bottom border for header row
+- `border-r border-gray-200` - Right borders between columns
+- `last:border-r-0` - Remove border from last column
+- `whitespace-nowrap` - Prevent text wrapping in headers
+- `sticky top-0 z-20` - Sticky positioning when scrolling
+- `bg-gray-50` - Light gray background for sticky headers
+
+#### Table Border Mode
+
+Use `border-collapse` instead of `border-separate` for cleaner borders:
+
+```tsx
+<table className='w-full border-collapse'>{/* table content */}</table>
+```
+
+This ensures:
+
+- Borders merge into single lines
+- Sticky headers work properly
+- No double borders
+- Cleaner visual appearance
+
 ### Table Implementation Pattern
 
 ```tsx
@@ -584,11 +785,18 @@ import { UnifiedTable, ColumnConfig } from '@/components/ui/unified-table';
     data={data}
     columns={columns}
     stickyHeaders={true}
-    maxHeight='600px'
+    scrollable={true}
     onRowClick={handleRowClick}
   />
 </div>;
 ```
+
+**Benefits of New Implementation**:
+
+- ✅ Headers always visible while scrolling
+- ✅ Single-line header text (no wrapping)
+- ✅ Clear border separation
+- ✅ Consistent across all tables (People, Jobs, Companies)
 
 ### Button Specifications
 
@@ -1017,11 +1225,12 @@ const tabOptions = useMemo<TabOption[]>(
 ```tsx
 // Button variants
 const buttonVariants = {
-  primary: 'bg-primary-500 hover:bg-primary-600 text-white',
+  primary: 'bg-primary text-primary-foreground hover:bg-primary-hover',
   secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-700',
   outline: 'border border-gray-300 hover:bg-gray-50 text-gray-700',
   ghost: 'hover:bg-gray-100 text-gray-700',
-  destructive: 'bg-error-500 hover:bg-error-600 text-white',
+  destructive:
+    'bg-destructive text-destructive-foreground hover:bg-destructive-hover',
 };
 
 // Button sizes - ALL ACTION ELEMENTS USE h-8 (32px) HEIGHT
@@ -1044,7 +1253,7 @@ const buttonSizes = {
 <input
   className={cn(
     "w-full px-3 py-2 border border-gray-300 rounded-md",
-    "focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
+    "focus:ring-2 focus:ring-primary focus:border-primary",
     "placeholder:text-gray-400",
     "disabled:bg-gray-50 disabled:text-gray-500"
   )}
@@ -1089,7 +1298,7 @@ const StatusBadge = ({ status, children }) => {
 // Progress indicator
 <div className='w-full bg-gray-200 rounded-full h-2'>
   <div
-    className='bg-primary-500 h-2 rounded-full transition-all duration-300'
+    className='bg-primary h-2 rounded-full transition-all duration-300'
     style={{ width: `${progress}%` }}
   />
 </div>;
@@ -1268,12 +1477,12 @@ const CompanyLogo = ({ company, size = 'md' }) => {
 .focus\:ring-2:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
-  box-shadow: 0 0 0 2px var(--primary-500);
+  box-shadow: 0 0 0 2px hsl(var(--primary));
 }
 
 /* Focus visible for keyboard navigation */
 .focus-visible\:ring-2:focus-visible {
-  box-shadow: 0 0 0 2px var(--primary-500);
+  box-shadow: 0 0 0 2px hsl(var(--primary));
 }
 ```
 

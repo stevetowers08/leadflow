@@ -25,8 +25,8 @@ const glassCardVariants = cva(
       },
       size: {
         sm: 'p-4 rounded-lg',
-        md: 'p-6 rounded-xl',
-        lg: 'p-8 rounded-2xl',
+        md: 'p-6 rounded-lg',
+        lg: 'p-8 rounded-lg',
       },
       shadow: {
         none: '',
@@ -60,7 +60,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
         ref={ref}
         className={cn(
           glassCardVariants({ variant, size, shadow }),
-          hover && 'hover:scale-[1.02] hover:shadow-xl',
+          hover && 'hover:shadow-xl',
           glow &&
             'before:absolute before:inset-0 before:rounded-inherit before:bg-gradient-to-r before:from-primary/20 before:to-secondary/20 before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100',
           className
@@ -84,11 +84,11 @@ const neumorphismCardVariants = cva(
       },
       size: {
         sm: 'p-4 rounded-lg',
-        md: 'p-6 rounded-xl',
-        lg: 'p-8 rounded-2xl',
+        md: 'p-6 rounded-lg',
+        lg: 'p-8 rounded-lg',
       },
       interactive: {
-        true: 'hover:shadow-lg active:shadow-neumorphism-pressed active:scale-[0.98]',
+        true: 'hover:shadow-lg active:shadow-neumorphism-pressed',
         false: '',
       },
     },
@@ -130,7 +130,7 @@ const buttonVariants = cva(
           'bg-primary text-primary-foreground hover:bg-primary-hover shadow-lg hover:shadow-xl',
         glass: 'glass-light text-white hover:bg-white/20 hover:border-white/30',
         neumorphism:
-          'neumorphism-light text-gray-700 hover:shadow-lg active:shadow-neumorphism-pressed active:scale-[0.98]',
+          'neumorphism-light text-gray-700 hover:shadow-lg active:shadow-neumorphism-pressed',
         ghost: 'text-primary hover:bg-primary-light',
         outline:
           'border border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground',
@@ -217,7 +217,7 @@ Input.displayName = 'Input';
 
 // Modern Card Components
 const cardVariants = cva(
-  'rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300',
+  'rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300',
   {
     variants: {
       variant: {

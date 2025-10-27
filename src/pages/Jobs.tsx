@@ -435,7 +435,7 @@ const Jobs: React.FC = () => {
     {
       key: 'status',
       label: 'STATUS',
-      width: '140px',
+      width: '150px',
       cellType: 'status',
       align: 'center',
       getStatusValue: job => job.qualification_status || 'new',
@@ -493,9 +493,9 @@ const Jobs: React.FC = () => {
       label: 'Job Title',
       width: '450px',
       cellType: 'regular',
-      render: value => (
+      render: (_, job) => (
         <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-          {(value as string) || '-'}
+          {job.title || '-'}
         </div>
       ),
     },
@@ -515,9 +515,9 @@ const Jobs: React.FC = () => {
       label: 'Location',
       width: '150px',
       cellType: 'regular',
-      render: value => (
+      render: (_, job) => (
         <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-          {(value as string) || '-'}
+          {job.location || '-'}
         </div>
       ),
     },
@@ -526,9 +526,9 @@ const Jobs: React.FC = () => {
       label: 'Function',
       width: '180px',
       cellType: 'regular',
-      render: value => (
+      render: (_, job) => (
         <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-          {(value as string) || '-'}
+          {job.function || '-'}
         </div>
       ),
     },
@@ -670,7 +670,7 @@ const Jobs: React.FC = () => {
 
   return (
     <Page title='Job Intelligence' hideHeader>
-      <div className='space-y-4'>
+      <div className='flex-1 flex flex-col min-h-0 space-y-3'>
         {/* Modern Tab Navigation */}
         <TabNavigation
           tabs={tabCounts}
@@ -706,17 +706,19 @@ const Jobs: React.FC = () => {
           onSearchToggle={handleSearchToggle}
         />
 
-        {/* Unified Table */}
-        <UnifiedTable
-          data={paginatedJobs}
-          columns={columns}
-          pagination={false} // We handle pagination externally
-          stickyHeaders={true}
-          scrollable={true}
-          onRowClick={handleRowClick}
-          loading={showLoadingState}
-          emptyMessage='No jobs found'
-        />
+        {/* Unified Table - Scrollable area */}
+        <div className='flex-1 min-h-0'>
+          <UnifiedTable
+            data={paginatedJobs}
+            columns={columns}
+            pagination={false} // We handle pagination externally
+            stickyHeaders={true}
+            scrollable={true}
+            onRowClick={handleRowClick}
+            loading={showLoadingState}
+            emptyMessage='No jobs found'
+          />
+        </div>
 
         {/* Pagination */}
         <PaginationControls

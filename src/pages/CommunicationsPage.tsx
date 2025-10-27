@@ -47,8 +47,10 @@ export default function CommunicationsPage() {
         {/* Header */}
         <div className='flex items-center justify-between'>
           <div>
-            <h1 className='text-2xl font-bold text-gray-900'>Communications</h1>
-            <p className='text-gray-600'>
+            <h1 className='text-2xl font-bold tracking-tight text-foreground'>
+              Communications
+            </h1>
+            <p className='text-sm text-muted-foreground mt-1'>
               Manage email campaigns and communication history
             </p>
           </div>
