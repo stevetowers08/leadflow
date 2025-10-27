@@ -41,12 +41,10 @@ export const TopNavigationBar = ({
   return (
     <header
       className={cn(
-        'fixed top-0 z-30 w-full',
+        'fixed top-0 z-30',
         'bg-[#2d3e50] border-b border-gray-600',
         'shadow-sm',
-        isMobile ? 'px-4 py-2' : 'px-6 py-2',
-        // Desktop: Add left margin to account for fixed sidebar (224px)
-        !isMobile && 'ml-56',
+        isMobile ? 'w-full px-4 py-2 left-0' : 'left-56 right-0 px-6 py-2',
         className
       )}
     >
@@ -158,7 +156,7 @@ export const TopNavigationBar = ({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant='ghost'
-                    className='h-8 w-8 p-0 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+                    className='h-7 w-7 p-0 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
                   >
                     <Avatar className='h-7 w-7'>
                       <AvatarImage
