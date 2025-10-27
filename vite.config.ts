@@ -6,10 +6,14 @@ import { defineConfig } from 'vite';
 export default defineConfig(({ mode }) => ({
   base: '/', // Ensure correct base path for Vercel
   server: {
-    host: '192.168.0.240', // Bind to specific IP (hardcoded for stable dev server)
+    host: true, // Listen on all interfaces to allow Cloudflare tunnel access
     port: 8086,
     strictPort: true, // Force exact port, fail if busy
     open: false, // Controlled via npm script
+    hmr: {
+      clientPort: 8086, // Cloudflare tunnel will forward to this
+      protocol: 'ws', // WebSocket protocol for HMR
+    },
     watch: {
       usePolling: true, // Required for network drives/mapped drives (Windows)
       interval: 1000, // Polling interval in milliseconds

@@ -37,7 +37,6 @@ interface TodaysData {
 interface Job {
   id: string;
   title: string;
-  automation_active: boolean;
   created_at: string;
   logo_url?: string;
   companies?: {
@@ -114,33 +113,8 @@ export default function Dashboard() {
         const today = new Date().toISOString().split('T')[0];
         const todayEnd = `${today}T23:59:59.999Z`;
 
-        // Single optimized query using RPC function for better performance
-        const { data: dashboardData, error: dashboardError } =
-          await supabase.rpc('get_dashboard_data', {
-            start_date: today,
-            end_date: todayEnd,
-          });
-
-        if (dashboardError) {
-          console.error('Dashboard RPC error:', dashboardError);
-          // Fallback to individual queries if RPC fails
-          await fetchIndividualQueries(today, todayEnd);
-        } else if (dashboardData && dashboardData[0]) {
-          // Process the combined data
-          const processedData = dashboardData[0];
-          setTodaysData({
-            newJobsToday: processedData.new_jobs_today || 0,
-            newLeadsToday: processedData.new_leads_today || 0,
-            newCompaniesToday: processedData.new_companies_today || 0,
-            automatedJobs: processedData.automated_jobs || 0,
-            pendingFollowUps: processedData.pending_follow_ups || 0,
-          });
-          setTodaysJobs(processedData.todays_jobs || []);
-          setTodaysCompanies(processedData.todays_companies || []);
-        } else {
-          // If no data for today, fetch recent data instead
-          await fetchRecentData();
-        }
+        // Skip RPC call (function doesn't exist) and use individual queries
+        await fetchIndividualQueries(today, todayEnd);
       } catch (error) {
         console.error("Error fetching today's data:", error);
         setError('Failed to load dashboard data');
@@ -159,7 +133,6 @@ export default function Dashboard() {
               `
             id, 
             title,
-            automation_active, 
             created_at,
             logo_url,
             companies!jobs_company_id_fkey(
@@ -175,7 +148,7 @@ export default function Dashboard() {
 
           supabase
             .from('people')
-            .select('id, automation_started_at, created_at')
+            .select('id, created_at')
             .gte('created_at', today)
             .lt('created_at', todayEnd),
 
@@ -213,8 +186,7 @@ export default function Dashboard() {
         newJobsToday: jobsResult.data?.length || 0,
         newLeadsToday: peopleResult.data?.length || 0,
         newCompaniesToday: companiesResult.data?.length || 0,
-        automatedJobs:
-          jobsResult.data?.filter(job => job.automation_active).length || 0,
+        automatedJobs: 0, // LinkedIn automation removed
         pendingFollowUps:
           interactionsResult.data?.filter(
             i => i.interaction_type === 'linkedin_connection_request_sent'
@@ -235,7 +207,6 @@ export default function Dashboard() {
             `
             id, 
             title,
-            automation_active, 
             created_at,
             logo_url,
             companies!jobs_company_id_fkey(
@@ -265,15 +236,8 @@ export default function Dashboard() {
             new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
           );
 
-        // Get automated jobs count
-        const { data: automatedJobs } = await supabase
-          .from('jobs')
-          .select('id')
-          .eq('automation_active', true)
-          .gte(
-            'created_at',
-            new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-          );
+        // LinkedIn automation removed - set to 0
+        const automatedJobs = { data: [] };
 
         // Get pending follow-ups
         const { data: followUps } = await supabase

@@ -128,7 +128,6 @@ export class DashboardServiceOptimized {
                 `
               id, name, email_address, company_role, employee_location, stage, 
               lead_score, owner_id, created_at, is_favourite, last_interaction_at,
-              connected_at, last_reply_at, automation_started_at,
               companies!left(name, logo_url, website)
             `
               )
@@ -141,7 +140,7 @@ export class DashboardServiceOptimized {
               .select(
                 `
               id, name, industry, website, head_office, logo_url, company_size, 
-              pipeline_stage, created_at, owner_id, automation_started_at
+              pipeline_stage, created_at, owner_id, automation_active, automation_started_at
             `
               )
               .order('created_at', { ascending: false })
@@ -181,12 +180,12 @@ export class DashboardServiceOptimized {
             ).length,
             jobsThisWeek: jobs.filter(j => new Date(j.created_at) >= oneWeekAgo)
               .length,
-            activeAutomations: people.filter(p => p.automation_started_at)
+            activeAutomations: companies.filter(c => c.automation_active)
               .length,
             automationSuccessRate:
               companies.length > 0
                 ? Math.round(
-                    (people.filter(p => p.automation_started_at).length /
+                    (companies.filter(c => c.automation_active).length /
                       companies.length) *
                       100
                   )
@@ -334,9 +333,7 @@ export class DashboardServiceOptimized {
 
     return last7Days.map(date => ({
       date,
-      peopleWithAutomation: people.filter(
-        p => p.automation_started_at && p.automation_started_at.startsWith(date)
-      ).length,
+      peopleWithAutomation: 0,
       automationActivity: people.filter(
         p => p.last_interaction_at && p.last_interaction_at.startsWith(date)
       ).length,
