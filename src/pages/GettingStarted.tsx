@@ -143,19 +143,16 @@ export default function GettingStarted() {
               development.
             </p>
             <p>
-              Your goal:{' '}
-              <strong className='font-bold'>
-                Turn a job posting into an outreach message to a decision maker.
-              </strong>{' '}
-              The platform automates finding hiring managers, CTOs, and HR
-              directors who can hire your recruitment services.
+              <strong className='font-bold'>How it works:</strong> You browse
+              job postings to identify companies who are hiring. The platform
+              automates finding the right decision makers at those companies and
+              creates AI messages ready to use.
             </p>
             <p>
-              Rather than building a full ATS (Applicant Tracking System), this
-              platform focuses specifically on business development, helping you
-              identify which companies are hiring and who the right contacts are
-              to pitch your services. It's lightweight, faster to get value, and
-              designed around how recruiters actually find new business.
+              Rather than building a full ATS, this platform focuses on business
+              development. It helps you identify which companies are hiring, who
+              the right contacts are to pitch your services, and automates
+              outreach to turn job postings into new clients.
             </p>
           </div>
 
@@ -179,7 +176,7 @@ export default function GettingStarted() {
                       Set up smart filters to automatically monitor LinkedIn and
                       job boards for relevant postings based on industry,
                       location, and role type. Jobs are continuously scraped and
-                      organized for you.
+                      organised for you.
                     </p>
                   </div>
                 </div>
@@ -214,9 +211,8 @@ export default function GettingStarted() {
                     <p className='text-sm text-muted-foreground leading-relaxed'>
                       For each qualified company, AI automatically scrapes
                       LinkedIn to find hiring managers, CTOs, HR directors, and
-                      department heads—the people who can actually hire your
-                      services. Get their profiles, photos, and LinkedIn URLs
-                      ready for outreach.
+                      department heads, the people who can actually hire your
+                      services. AI messages are created and ready to use.
                     </p>
                   </div>
                 </div>
@@ -231,10 +227,10 @@ export default function GettingStarted() {
                       Launch Outreach or Export to CRM
                     </h3>
                     <p className='text-sm text-muted-foreground leading-relaxed'>
-                      Add decision-makers to automated email campaigns, generate
-                      personalized AI messages for outreach, or sync your
-                      contacts to your existing CRM system (Salesforce, HubSpot,
-                      etc.) for manual follow-up.
+                      Create a campaign to add decision makers to automated
+                      email campaigns, generate personalised AI messages for
+                      outreach, or sync your contacts to your existing CRM
+                      system (Salesforce, HubSpot, etc.) for manual follow-up.
                     </p>
                   </div>
                 </div>
@@ -250,10 +246,9 @@ export default function GettingStarted() {
                     </h3>
                     <p className='text-sm text-muted-foreground leading-relaxed'>
                       Track your outreach progress as contact and company
-                      statuses automatically update based on
-                      interactions—messages sent, responses received, meetings
-                      scheduled. Keep your pipeline current without manual
-                      updates.
+                      statuses automatically update based on interactions:
+                      messages sent, responses received, meetings scheduled.
+                      Keep your pipeline current without manual updates.
                     </p>
                   </div>
                 </div>
