@@ -129,23 +129,28 @@ export default function GettingStarted() {
           </h1>
         </div>
 
-        {/* What This Does */}
+        {/* Overview */}
         <div className='p-6 bg-white border border-gray-200 rounded-lg'>
           <h2 className='text-lg font-semibold text-foreground mb-3'>
-            What This Does
+            Overview
           </h2>
           <p className='text-sm text-gray-700 mb-3 leading-relaxed'>
-            A B2B sales-focused recruitment tool that helps recruiters and
-            agencies identify companies with open positions, qualify them as
-            potential clients, and reach out to decision-makers. It bridges the
-            gap between job discovery and business development.
+            An <strong className='font-semibold'>AI-powered</strong> B2B
+            sales-focused recruitment tool that helps recruiters and agencies
+            identify companies with open positions, qualify them as potential
+            clients, and reach out to decision-makers. It bridges the gap
+            between job discovery and business development.
           </p>
           <p className='text-sm text-gray-700 leading-relaxed'>
             Rather than a full ATS (Applicant Tracking System), this focuses on
             business development. You browse job postings to identify companies
-            who are hiring. We automate finding the right decision makers at
-            those companies and create AI messages ready to use, turning job
-            postings into new clients.
+            who are hiring.{' '}
+            <strong className='font-semibold'>AI automatically finds</strong>{' '}
+            the right decision makers at those companies and{' '}
+            <strong className='font-semibold'>
+              generates personalised messages
+            </strong>{' '}
+            ready to use, turning job postings into new clients.
           </p>
         </div>
 
@@ -180,7 +185,7 @@ export default function GettingStarted() {
                   AI Finds Decision Makers
                 </h3>
                 <p className='text-xs text-gray-600'>
-                  Automatically scrape LinkedIn to identify hiring managers,
+                  AI automatically scrapes LinkedIn to identify hiring managers,
                   CTOs, HR directors, and department heads at each company.
                 </p>
               </div>
