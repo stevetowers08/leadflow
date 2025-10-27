@@ -4,19 +4,21 @@
  * Uses OnboardingDashboard design style with real database checks
  */
 
-import { ModernCard } from '@/components/ui/modern-cards';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
 import { Page } from '@/design-system/components';
 import { supabase } from '@/integrations/supabase/client';
 import {
   ArrowRight,
+  Brain,
   CheckCircle,
   Circle,
   Database,
   Mail,
   Rocket,
   SlidersHorizontal,
+  Target,
+  Users,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -120,210 +122,149 @@ export default function GettingStarted() {
   return (
     <Page title='Getting Started' hideHeader allowScroll>
       <div className='space-y-6'>
-        {/* Welcome Header */}
+        {/* Header */}
         <div className='mb-4'>
           <h1 className='text-2xl font-bold tracking-tight text-foreground'>
             Getting Started
           </h1>
+          <p className='text-sm text-muted-foreground mt-1'>
+            Complete setup to start finding clients through job intelligence
+          </p>
         </div>
 
-        {/* Getting Started Guide */}
-        <ModernCard variant='minimal' className='p-8'>
-          <h2 className='text-2xl font-bold text-foreground mb-6'>
+        {/* What This Platform Does */}
+        <div className='p-6 bg-white border border-gray-200 rounded-lg'>
+          <h2 className='text-lg font-semibold text-foreground mb-3'>
+            What This Platform Does
+          </h2>
+          <p className='text-sm text-gray-700 mb-3 leading-relaxed'>
+            This platform is a B2B sales-focused recruitment tool that helps
+            recruiters and agencies find companies with open positions, qualify
+            them as potential clients, and reach out to decision makers. It
+            bridges the gap between job discovery and business development.
+          </p>
+          <p className='text-sm text-gray-700 leading-relaxed'>
+            Rather than building a full ATS (Applicant Tracking System), this
+            platform focuses on business development. You browse job postings to
+            identify companies who are hiring. The platform automates finding
+            the right decision makers at those companies and creates AI messages
+            ready to use, turning job postings into new clients.
+          </p>
+        </div>
+
+        {/* How It Works */}
+        <div className='p-6 bg-white border border-gray-200 rounded-lg'>
+          <h2 className='text-lg font-semibold text-foreground mb-4'>
             How It Works
           </h2>
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
+            <div className='flex items-start gap-3'>
+              <div className='p-2 rounded-lg bg-blue-50 border border-blue-200'>
+                <Target className='h-5 w-5 text-blue-600' />
+              </div>
+              <div>
+                <h3 className='font-semibold text-sm text-gray-900 mb-1'>
+                  Find Companies Hiring
+                </h3>
+                <p className='text-xs text-gray-600'>
+                  Monitor job boards and LinkedIn for companies actively
+                  recruiting. This is your strongest signal for potential
+                  clients.
+                </p>
+              </div>
+            </div>
 
-          {/* Introduction Text */}
-          <div className='space-y-5 text-base text-gray-700 mb-8'>
-            <p>
-              This platform is a B2B sales focused recruitment tool that helps
-              recruiters and agencies find companies with open positions,
-              qualify them as potential clients, and reach out to decision
-              makers. It bridges the gap between job discovery and business
-              development.
-            </p>
-            <p>
-              <strong className='font-semibold'>How it works:</strong> You
-              browse job postings to identify companies who are hiring. The
-              platform automates finding the right decision makers at those
-              companies and creates AI messages ready to use.
-            </p>
-            <p>
-              Rather than building a full ATS, this platform focuses on business
-              development. It helps you identify which companies are hiring, who
-              the right contacts are to pitch your services, and automates
-              outreach to turn job postings into new clients.
-            </p>
-          </div>
+            <div className='flex items-start gap-3'>
+              <div className='p-2 rounded-lg bg-purple-50 border border-purple-200'>
+                <Users className='h-5 w-5 text-purple-600' />
+              </div>
+              <div>
+                <h3 className='font-semibold text-sm text-gray-900 mb-1'>
+                  AI Finds Decision Makers
+                </h3>
+                <p className='text-xs text-gray-600'>
+                  Automatically scrape LinkedIn to identify hiring managers,
+                  CTOs, HR directors, and department heads at each company.
+                </p>
+              </div>
+            </div>
 
-          {/* Workflow Section */}
-          <div className='border-t pt-8'>
-            <h3 className='text-xl font-bold text-foreground mb-6'>
-              Target Signals Intelligence Workflow
-            </h3>
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-              {/* Step 1 */}
-              <ModernCard variant='minimal' className='p-5'>
-                <div className='flex items-start gap-4'>
-                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 flex items-center justify-center'>
-                    <span className='text-blue-700 text-sm font-bold'>1</span>
-                  </div>
-                  <div className='flex-1'>
-                    <h3 className='font-semibold text-base text-foreground mb-1.5'>
-                      Configure Automated Job Discovery
-                    </h3>
-                    <p className='text-sm text-muted-foreground leading-relaxed'>
-                      Set up smart filters to automatically monitor LinkedIn and
-                      job boards for relevant postings based on industry,
-                      location, and role type. Jobs are continuously scraped and
-                      organised for you.
-                    </p>
-                  </div>
-                </div>
-              </ModernCard>
-
-              {/* Step 2 */}
-              <ModernCard variant='minimal' className='p-5'>
-                <div className='flex items-start gap-4'>
-                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 flex items-center justify-center'>
-                    <span className='text-purple-700 text-sm font-bold'>2</span>
-                  </div>
-                  <div className='flex-1'>
-                    <h3 className='font-semibold text-base text-foreground mb-1.5'>
-                      Review & Qualify Companies
-                    </h3>
-                    <p className='text-sm text-muted-foreground leading-relaxed'>
-                      Browse your filtered job feed and research companies to
-                      determine if they're a good fit. Add companies that match
-                      your ideal client profile to your pipeline as qualified
-                      leads.
-                    </p>
-                  </div>
-                </div>
-              </ModernCard>
-
-              {/* Step 3 */}
-              <ModernCard variant='minimal' className='p-5'>
-                <div className='flex items-start gap-4'>
-                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200 flex items-center justify-center'>
-                    <span className='text-green-700 text-sm font-bold'>3</span>
-                  </div>
-                  <div className='flex-1'>
-                    <h3 className='font-semibold text-base text-foreground mb-1.5'>
-                      AI Discovers Decision Makers
-                    </h3>
-                    <p className='text-sm text-muted-foreground leading-relaxed'>
-                      For each qualified company, AI automatically scrapes
-                      LinkedIn to find hiring managers, CTOs, HR directors, and
-                      department heads, the people who can actually hire your
-                      services. AI messages are created and ready to use.
-                    </p>
-                  </div>
-                </div>
-              </ModernCard>
-
-              {/* Step 4 */}
-              <ModernCard variant='minimal' className='p-5'>
-                <div className='flex items-start gap-4'>
-                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 flex items-center justify-center'>
-                    <span className='text-orange-700 text-sm font-bold'>4</span>
-                  </div>
-                  <div className='flex-1'>
-                    <h3 className='font-semibold text-base text-foreground mb-1.5'>
-                      Launch Outreach or Export to CRM
-                    </h3>
-                    <p className='text-sm text-muted-foreground leading-relaxed'>
-                      Create a campaign to add decision makers to automated
-                      email campaigns, generate personalised AI messages for
-                      outreach, or sync your contacts to your existing CRM
-                      system (Salesforce, HubSpot, etc.) for manual follow-up.
-                    </p>
-                  </div>
-                </div>
-              </ModernCard>
-
-              {/* Step 5 */}
-              <ModernCard variant='minimal' className='p-5'>
-                <div className='flex items-start gap-4'>
-                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 flex items-center justify-center'>
-                    <span className='text-teal-700 text-sm font-bold'>5</span>
-                  </div>
-                  <div className='flex-1'>
-                    <h3 className='font-semibold text-base text-foreground mb-1.5'>
-                      Track Status & Pipeline Updates
-                    </h3>
-                    <p className='text-sm text-muted-foreground leading-relaxed'>
-                      Track your outreach progress as contact and company
-                      statuses automatically update based on interactions:
-                      messages sent, responses received, meetings scheduled.
-                      Keep your pipeline current without manual updates.
-                    </p>
-                  </div>
-                </div>
-              </ModernCard>
+            <div className='flex items-start gap-3'>
+              <div className='p-2 rounded-lg bg-green-50 border border-green-200'>
+                <Mail className='h-5 w-5 text-green-600' />
+              </div>
+              <div>
+                <h3 className='font-semibold text-sm text-gray-900 mb-1'>
+                  AI-Generated Outreach
+                </h3>
+                <p className='text-xs text-gray-600'>
+                  Get personalised messages ready to send via Gmail, or sync
+                  contacts to your CRM (Salesforce, HubSpot, etc.) for manual
+                  follow-up.
+                </p>
+              </div>
             </div>
           </div>
-        </ModernCard>
 
-        <div className='border-t pt-6'>
-          <h2 className='text-lg font-semibold text-foreground mb-4'>
-            Complete Setup to Get Started
-          </h2>
+          <div className='p-4 rounded-lg bg-gray-50 border border-gray-200'>
+            <div className='flex items-start gap-3'>
+              <Brain className='h-5 w-5 text-gray-600' />
+              <p className='text-sm text-gray-700'>
+                The platform helps you identify which companies are hiring, who
+                the right contacts are to pitch your services, and automates
+                outreach to turn job postings into new clients.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Progress Overview */}
-        <ModernCard
-          variant='minimal'
-          className='p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/10'
-        >
+        {/* Setup Progress */}
+        <div className='p-6 bg-white border border-gray-200 rounded-lg'>
           <div className='flex items-center justify-between mb-4'>
             <h2 className='text-lg font-semibold text-foreground'>
               Setup Progress
             </h2>
-            <span className='text-sm font-medium text-muted-foreground'>
+            <span className='text-sm text-muted-foreground'>
               {loading
                 ? 'Loading...'
                 : `${completedCount} of ${steps.length} completed`}
             </span>
           </div>
-          <Progress value={progressPercentage} className='mb-4 h-2' />
-          <div className='flex items-center gap-2 text-sm font-medium text-gray-700'>
+          <Progress value={progressPercentage} className='mb-3 h-2' />
+          <div className='flex items-center gap-2 text-sm text-gray-700'>
             <CheckCircle className='h-4 w-4 text-green-600' />
             <span>{Math.round(progressPercentage)}% complete</span>
           </div>
-        </ModernCard>
+        </div>
 
         {/* Setup Steps */}
-        <div className='space-y-4'>
-          <div className='grid gap-4'>
-            {steps.map(step => {
-              const Icon = step.icon;
-              return (
-                <ModernCard
-                  key={step.id}
-                  variant='minimal'
-                  className='p-5 cursor-pointer hover:shadow-md transition-all duration-200 group'
-                  onClick={() => navigate(step.href)}
-                >
-                  <div className='flex items-center gap-4'>
-                    <div className='flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-all'>
-                      <Icon className='h-6 w-6 text-primary' />
-                    </div>
-                    {getStatusIcon(step.completed)}
-                    <div className='flex-1'>
-                      <h3 className='font-semibold text-gray-700 text-base'>
-                        {step.title}
-                      </h3>
-                      <p className='text-sm text-gray-600 mt-0.5'>
-                        {step.description}
-                      </p>
-                    </div>
-                    <ArrowRight className='h-5 w-5 text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all' />
+        <div className='space-y-3'>
+          {steps.map(step => {
+            const Icon = step.icon;
+            return (
+              <div
+                key={step.id}
+                className='p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-primary hover:shadow-sm transition-all duration-200 group'
+                onClick={() => navigate(step.href)}
+              >
+                <div className='flex items-center gap-3'>
+                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center group-hover:bg-primary/10 group-hover:border-primary/20 transition-all'>
+                    <Icon className='h-5 w-5 text-gray-600 group-hover:text-primary' />
                   </div>
-                </ModernCard>
-              );
-            })}
-          </div>
+                  {getStatusIcon(step.completed)}
+                  <div className='flex-1'>
+                    <h3 className='font-semibold text-sm text-gray-900'>
+                      {step.title}
+                    </h3>
+                    <p className='text-xs text-gray-600 mt-0.5'>
+                      {step.description}
+                    </p>
+                  </div>
+                  <ArrowRight className='h-4 w-4 text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0' />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </Page>
