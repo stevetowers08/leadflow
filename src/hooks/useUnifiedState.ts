@@ -52,7 +52,7 @@ export const useUnifiedState = (): UnifiedState & UnifiedActions => {
     setIsLoading(loading);
   }, []);
 
-  const setError = useCallback((error: string | null) => {
+  const setErrorMessage = useCallback((error: string | null) => {
     setError(error);
   }, []);
 
@@ -105,7 +105,7 @@ export const useUnifiedState = (): UnifiedState & UnifiedActions => {
   const actions = useMemo(
     () => ({
       setLoading,
-      setError,
+      setError: setErrorMessage,
       setAssignmentLoading,
       setAssignmentError,
       triggerRefresh,
@@ -114,7 +114,7 @@ export const useUnifiedState = (): UnifiedState & UnifiedActions => {
     }),
     [
       setLoading,
-      setError,
+      setErrorMessage,
       setAssignmentLoading,
       setAssignmentError,
       triggerRefresh,

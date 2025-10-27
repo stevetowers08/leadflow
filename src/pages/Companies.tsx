@@ -188,11 +188,13 @@ const Companies: React.FC = () => {
               companies!inner(*)
             `
               )
-              .eq('client_id', currentClientId),
+              .eq('client_id', currentClientId)
+              .limit(1000), // Limit to prevent loading all records
             supabase
               .from('people')
               .select('*')
-              .order('created_at', { ascending: false }),
+              .order('created_at', { ascending: false })
+              .limit(500), // Limit people for context
             supabase
               .from('user_profiles')
               .select('id, full_name')

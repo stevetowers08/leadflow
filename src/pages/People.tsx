@@ -111,7 +111,7 @@ const People: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // Parallel data fetching for better performance
+        // Parallel data fetching for better performance with limit
         const [peopleResult, usersResult] = await Promise.all([
           supabase
             .from('people')
@@ -121,7 +121,8 @@ const People: React.FC = () => {
               companies!left(name, website)
             `
             )
-            .order('created_at', { ascending: false }),
+            .order('created_at', { ascending: false })
+            .limit(1000), // Limit to prevent loading all records
           supabase
             .from('user_profiles')
             .select('id, full_name')

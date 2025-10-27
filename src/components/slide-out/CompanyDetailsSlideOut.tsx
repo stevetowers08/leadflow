@@ -30,7 +30,7 @@ import {
   Trash2,
   User,
 } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { GridItem, SlideOutGrid } from './SlideOutGrid';
 import { SlideOutPanel } from './SlideOutPanel';
 import { SlideOutSection } from './SlideOutSection';
@@ -56,13 +56,9 @@ interface Interaction {
   };
 }
 
-export const CompanyDetailsSlideOut: React.FC<CompanyDetailsSlideOutProps> = ({
-  companyId,
-  isOpen,
-  onClose,
-  onUpdate,
-  onPersonClick,
-}) => {
+const CompanyDetailsSlideOutComponent: React.FC<
+  CompanyDetailsSlideOutProps
+> = ({ companyId, isOpen, onClose, onUpdate, onPersonClick }) => {
   const [company, setCompany] = useState<Company | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -913,6 +909,9 @@ export const CompanyDetailsSlideOut: React.FC<CompanyDetailsSlideOutProps> = ({
     </SlideOutPanel>
   );
 };
+
+// Memoized export for performance
+export const CompanyDetailsSlideOut = memo(CompanyDetailsSlideOutComponent);
 
 // Helper functions
 const getInteractionTypeDisplay = (type: string): string => {
