@@ -490,13 +490,13 @@ const Pipeline = () => {
         style={style}
         {...attributes}
         {...listeners}
-        className={`relative bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden !p-0 ${
+        className={`relative bg-white rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group overflow-hidden !p-0 ${
           isDraggable
-            ? 'hover:shadow-lg cursor-grab active:cursor-grabbing'
+            ? 'hover:shadow-xl cursor-grab active:cursor-grabbing'
             : 'cursor-pointer'
-        } ${isDragging ? 'shadow-xl scale-[1.02] z-50 border-primary-medium' : ''} ${
+        } ${isDragging ? 'shadow-xl scale-[1.02] z-50 border-primary border-primary-medium' : ''} ${
           isCurrentlyUpdating ? 'opacity-60 pointer-events-none' : ''
-        } ${designTokens.borders.card} ${designTokens.borders.cardHover}`}
+        }`}
         onClick={e => {
           e.stopPropagation();
           if (!isDragging) handleCompanyClick(company);
@@ -520,7 +520,7 @@ const Pipeline = () => {
           {/* Company Logo and Name */}
           <div className='flex items-start gap-3'>
             {/* Company Logo */}
-            <div className='flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center ring-1 ring-gray-200/50'>
+            <div className='flex-shrink-0 w-12 h-12 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden'>
               {company.website ? (
                 <img
                   src={`https://logo.clearbit.com/${
@@ -530,7 +530,7 @@ const Pipeline = () => {
                       .split('/')[0]
                   }`}
                   alt={company.name}
-                  className='w-10 h-10 rounded-xl object-cover'
+                  className='w-12 h-12 rounded-lg object-cover'
                   loading='lazy'
                   onError={e => {
                     // Silently handle error and show fallback
@@ -552,10 +552,10 @@ const Pipeline = () => {
                 />
               ) : null}
               <div
-                className='w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-hover text-primary-foreground flex items-center justify-center'
+                className='w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-hover text-primary-foreground flex items-center justify-center'
                 style={{ display: company.website ? 'none' : 'flex' }}
               >
-                <Building2 className='h-5 w-5' />
+                <Building2 className='h-6 w-6' />
               </div>
             </div>
 
@@ -705,10 +705,13 @@ const Pipeline = () => {
           {/* Stage Header */}
           <div className='mb-4'>
             <div className='flex items-center justify-between mb-3'>
-              <h3 className='font-medium text-foreground text-sm'>
+              <h3 className='font-semibold text-foreground text-base'>
                 {stage.label}
               </h3>
-              <Badge variant='outline' className='text-xs'>
+              <Badge
+                variant='secondary'
+                className='bg-gray-100 text-gray-700 border-none'
+              >
                 {stageCompanies.length}
               </Badge>
             </div>
@@ -716,7 +719,7 @@ const Pipeline = () => {
             {/* User Filter Indicator */}
             {(selectedUserId || showAllAssignedUsers) && (
               <div className='mb-3'>
-                <div className='flex items-center gap-2 text-xs text-primary bg-primary-light px-2 py-1 rounded'>
+                <div className='flex items-center gap-2 text-xs text-primary bg-primary/10 px-2 py-1 rounded-md'>
                   <User className='h-3 w-3' />
                   <span>
                     {showAllAssignedUsers
@@ -733,11 +736,11 @@ const Pipeline = () => {
           {/* Companies Column */}
           <div
             ref={setNodeRef}
-            className={`space-y-4 min-h-[200px] transition-all duration-200 ${
+            className={`space-y-3 min-h-[200px] p-2 rounded-lg transition-all duration-200 border-2 border-transparent ${
               isActiveDropTarget
                 ? canAcceptDrop
-                  ? 'border-green-400 bg-green-50'
-                  : 'border-red-400 bg-red-50'
+                  ? 'border-green-400 bg-green-50/50'
+                  : 'border-red-400 bg-red-50/50'
                 : ''
             }`}
             style={{
@@ -788,8 +791,19 @@ const Pipeline = () => {
   DroppableStage.displayName = 'DroppableStage';
 
   return (
-    <div className='min-h-screen'>
-      <Page title='Company Pipeline' hideHeader>
+    <Page title='Company Pipeline' hideHeader allowScroll>
+      <div className='space-y-6 h-full flex flex-col'>
+        {/* Page Header */}
+        <div className='mb-4'>
+          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
+            Company Pipeline
+          </h1>
+          <p className='text-sm text-muted-foreground'>
+            Drag and drop companies between stages to manage your sales pipeline
+          </p>
+        </div>
+
+        {/* Controls Bar */}
         <div className='flex gap-3 mb-6 w-full'>
           <Button
             variant='outline'
@@ -967,8 +981,8 @@ const Pipeline = () => {
         </DndContext>
 
         {/* Company Detail Modal - TODO: Implement slide-out panel */}
-      </Page>
-    </div>
+      </div>
+    </Page>
   );
 };
 

@@ -197,7 +197,7 @@ export default function Reporting() {
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
 
   return (
-    <Page title='Reporting' hideHeader>
+    <Page title='Reporting' hideHeader allowScroll>
       <div className='space-y-6'>
         {/* Header */}
         <div className='flex items-center justify-between'>
