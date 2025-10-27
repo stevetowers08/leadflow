@@ -107,6 +107,8 @@ export interface Company {
   added_by_client_id: string | null;
   added_manually: boolean | null;
   source_job_id: string | null;
+  source: string | null;
+  normalized_company_size: string | null;
 }
 
 export interface Job {
@@ -117,6 +119,9 @@ export interface Job {
   posted_date: string | null;
   valid_through: string | null;
   location: string | null;
+  country: string | null;
+  city: string | null;
+  region: string | null;
   description: string | null;
   summary: string | null;
   employment_type: string | null;
@@ -125,7 +130,6 @@ export interface Job {
   created_at: string | null;
   updated_at: string | null;
   priority: string | null;
-  lead_score_job: number | null;
   salary: string | null;
   function: string | null;
   logo_url: string | null;
@@ -142,6 +146,8 @@ export interface Job {
   assigned_to?: string | null;
   is_favorite?: boolean | null;
   total_leads?: number | null;
+  // Client-specific job data (from client_jobs table)
+  client_jobs?: ClientJob[];
 }
 
 /**
@@ -200,6 +206,8 @@ export interface Company {
   airtable_id: string | null;
   created_at: string | null;
   updated_at: string | null;
+  source: string | null;
+  normalized_company_size: string | null;
 }
 
 export interface Job {

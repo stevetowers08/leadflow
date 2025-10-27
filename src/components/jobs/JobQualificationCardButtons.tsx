@@ -52,26 +52,81 @@ export const JobQualificationCardButtons: React.FC<
         .from('client_users')
         .select('client_id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (clientUserError) throw clientUserError;
 
-      // Create or update client_job
-      const { error } = await supabase.from('client_jobs').upsert(
-        {
-          client_id: clientUser.client_id,
-          job_id: jobId,
-          status: status,
-          priority_level: 'medium',
-          qualified_by: user.id,
-          qualified_at: status === 'qualify' ? new Date().toISOString() : null,
-        },
-        {
-          onConflict: 'client_id,job_id',
-        }
-      );
+      if (!clientUser?.client_id) {
+        throw new Error('No client_id found for user');
+      }
 
-      if (error) throw error;
+      // Create or update client_job
+      const { error: clientJobError } = await supabase
+        .from('client_jobs')
+        .upsert(
+          {
+            client_id: clientUser.client_id,
+            job_id: jobId,
+            status: status,
+            priority_level: 'medium',
+            qualified_by: user.id,
+            qualified_at:
+              status === 'qualify' ? new Date().toISOString() : null,
+          },
+          {
+            onConflict: 'client_id,job_id',
+          }
+        );
+
+      if (clientJobError) throw clientJobError;
+
+      // If qualifying, also link company to client
+      if (status === 'qualify' && companyId) {
+        const { error: clientCompanyError } = await supabase
+          .from('client_companies')
+          .upsert(
+            {
+              client_id: clientUser.client_id,
+              company_id: companyId,
+              qualification_status: 'qualify',
+              qualified_at: new Date().toISOString(),
+              qualified_by: user.id,
+            },
+            {
+              onConflict: 'client_id,company_id',
+            }
+          );
+
+        if (clientCompanyError) {
+          console.error('Error creating client company:', clientCompanyError);
+          // Don't throw - job qualification succeeded
+        }
+      }
+
+      // Send webhook for AI enrichment (if qualifying)
+      if (status === 'qualify' && companyId) {
+        try {
+          const { error: webhookError } = await supabase.functions.invoke(
+            'job-qualification-webhook',
+            {
+              body: {
+                job_id: jobId,
+                company_id: companyId,
+                client_id: clientUser.client_id,
+                user_id: user.id,
+              },
+            }
+          );
+
+          if (webhookError) {
+            console.error('Webhook error:', webhookError);
+            // Don't throw - qualification succeeded
+          }
+        } catch (webhookErr) {
+          console.error('Failed to send webhook:', webhookErr);
+          // Don't throw - qualification succeeded
+        }
+      }
 
       // Track onboarding progress
       if (status === 'qualify') {

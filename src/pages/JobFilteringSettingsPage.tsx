@@ -1,6 +1,5 @@
 // src/pages/JobFilteringSettingsPage.tsx
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -227,7 +226,7 @@ function JobFilteringSettingsPage() {
   ];
 
   return (
-    <Page title='Job Discovery Configuration' hideHeader>
+    <Page title='Job Discovery Configuration' hideHeader allowScroll>
       <div className='space-y-6'>
         {/* Simple Header */}
         <div>
@@ -463,49 +462,6 @@ function JobFilteringSettingsPage() {
                   {size.charAt(0).toUpperCase() + size.slice(1)}
                 </Button>
               ))}
-            </div>
-          </div>
-
-          {/* Advanced Options */}
-          <div className='space-y-4'>
-            <h2 className='text-lg font-semibold'>Advanced Options</h2>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div className='space-y-2'>
-                <Label htmlFor='search_radius'>Search Radius (miles)</Label>
-                <Input
-                  id='search_radius'
-                  type='number'
-                  value={formData.search_radius || 25}
-                  onChange={e =>
-                    setFormData(prev => ({
-                      ...prev,
-                      search_radius: parseInt(e.target.value),
-                    }))
-                  }
-                />
-              </div>
-              <div className='space-y-2'>
-                <Label htmlFor='max_days_old'>Jobs posted within</Label>
-                <Select
-                  value={formData.max_days_old?.toString() || '7'}
-                  onValueChange={value =>
-                    setFormData(prev => ({
-                      ...prev,
-                      max_days_old: parseInt(value),
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='1'>Past 24 hours</SelectItem>
-                    <SelectItem value='7'>Past week</SelectItem>
-                    <SelectItem value='30'>Past month</SelectItem>
-                    <SelectItem value='90'>Past 3 months</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           </div>
 

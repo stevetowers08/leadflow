@@ -15,6 +15,7 @@ import { StatusDropdown } from '@/components/people/StatusDropdown';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
+import { Button } from '@/components/ui/button';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
@@ -28,10 +29,13 @@ import { convertNumericScoreToStatus } from '@/utils/colorScheme';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { Building2, CheckCircle, Target, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Companies: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const [currentClientId, setCurrentClientId] = useState<string | null>(null);
 
   // State management
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -70,7 +74,7 @@ const Companies: React.FC = () => {
   const statusOptions = useMemo(
     () => [
       { label: 'All Stages', value: 'all' },
-      { label: getStatusDisplayText('new_lead'), value: 'new_lead' },
+      { label: getStatusDisplayText('qualified'), value: 'qualified' },
       { label: getStatusDisplayText('automated'), value: 'automated' },
       { label: getStatusDisplayText('replied'), value: 'replied' },
       {
@@ -100,34 +104,121 @@ const Companies: React.FC = () => {
     []
   );
 
+  // Fetch current client ID
+  useEffect(() => {
+    const fetchClientId = async () => {
+      console.log('🔍 fetchClientId called with user.id:', user?.id);
+      if (!user?.id) {
+        console.log('❌ No user.id, returning early');
+        return;
+      }
+
+      try {
+        console.log('📡 Fetching client_users for user:', user.id);
+        const { data: clientUser, error } = await supabase
+          .from('client_users')
+          .select('client_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        console.log('📦 client_users response:', { clientUser, error });
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('❌ Error fetching client ID:', error);
+          return;
+        }
+
+        console.log('✅ Setting currentClientId to:', clientUser?.client_id);
+        setCurrentClientId(clientUser?.client_id || null);
+      } catch (err) {
+        console.error('❌ Error fetching client ID:', err);
+      }
+    };
+
+    fetchClientId();
+  }, [user?.id]);
+
   // Fetch data with parallel requests for better performance
   useEffect(() => {
     const fetchData = async () => {
+      console.log('🔍 fetchData called with clientId:', currentClientId);
+      // If we don't have a client ID from RLS (due to bypass auth),
+      // we can't query client_companies either due to RLS
+      // For development: use the known test client_id
+      if (!currentClientId) {
+        console.log('⚠️ No currentClientId from RLS (bypass auth mode)');
+
+        // DEVELOPMENT ONLY: In production, this should never be needed
+        // In dev, we know the test user's client_id
+        if (import.meta.env.MODE === 'development') {
+          const devClientId = '720ab0e4-0c24-4b71-b906-f1928e44712f';
+          console.log(
+            '🔧 Development mode: using known client_id:',
+            devClientId
+          );
+          setCurrentClientId(devClientId);
+          // Return early - useEffect will re-run with the new client_id
+          return;
+        }
+
+        console.log('❌ No currentClientId, returning early');
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
+        console.log('📡 Fetching companies for client:', currentClientId);
 
-        // Parallel data fetching for better performance
-        const [companiesResult, peopleResult, usersResult] = await Promise.all([
-          supabase
-            .from('companies')
-            .select('*')
-            .order('created_at', { ascending: false }),
-          supabase
-            .from('people')
-            .select('*')
-            .order('created_at', { ascending: false }),
-          supabase
-            .from('user_profiles')
-            .select('id, full_name')
-            .order('full_name'),
-        ]);
+        // Fetch only companies this client has qualified
+        // IMPORTANT: Due to RLS, we need to query client_companies first, then get company details
+        const [clientCompaniesResult, peopleResult, usersResult] =
+          await Promise.all([
+            supabase
+              .from('client_companies')
+              .select(
+                `
+              *,
+              companies!inner(*)
+            `
+              )
+              .eq('client_id', currentClientId),
+            supabase
+              .from('people')
+              .select('*')
+              .order('created_at', { ascending: false }),
+            supabase
+              .from('user_profiles')
+              .select('id, full_name')
+              .order('full_name'),
+          ]);
 
-        if (companiesResult.error) throw companiesResult.error;
+        if (clientCompaniesResult.error) throw clientCompaniesResult.error;
         if (peopleResult.error) throw peopleResult.error;
         if (usersResult.error) throw usersResult.error;
 
-        setCompanies((companiesResult.data as unknown as Company[]) || []);
+        // Transform the data: client_companies has nested companies object
+        const transformedCompanies =
+          clientCompaniesResult.data?.map(item => {
+            return {
+              ...item.companies, // The nested company data
+              qualification_status: item.qualification_status,
+              qualified_at: item.qualified_at,
+              qualified_by: item.qualified_by,
+              client_priority: item.priority,
+              // Override pipeline_stage to show qualification status
+              pipeline_stage: 'qualified', // Companies on this page are all qualified
+            };
+          }) || [];
+
+        console.log('🔍 Companies Debug:', {
+          rawData: clientCompaniesResult.data,
+          transformedCount: transformedCompanies.length,
+          transformedCompanies,
+          currentClientId,
+        });
+
+        setCompanies(transformedCompanies as Company[]);
         setPeople((peopleResult.data as unknown as Person[]) || []);
         setUsers((usersResult.data as unknown as UserProfile[]) || []);
       } catch (err) {
@@ -144,7 +235,7 @@ const Companies: React.FC = () => {
     };
 
     fetchData();
-  }, [toast]);
+  }, [toast, currentClientId]);
 
   // Filter and sort companies
   const filteredCompanies = useMemo(() => {
@@ -326,13 +417,14 @@ const Companies: React.FC = () => {
       {
         key: 'status',
         label: 'Status',
-        width: '150px',
+        width: '120px',
+        minWidth: '120px',
         cellType: 'status',
         align: 'center',
-        getStatusValue: company => company.pipeline_stage || 'new_lead',
+        getStatusValue: company => company.pipeline_stage || 'qualified',
         render: (_, company) => {
           const availableStatuses = [
-            'new_lead',
+            'qualified',
             'automated',
             'replied',
             'meeting_scheduled',
@@ -347,7 +439,7 @@ const Companies: React.FC = () => {
             <StatusDropdown
               entityId={company.id}
               entityType='companies'
-              currentStatus={company.pipeline_stage || 'new_lead'}
+              currentStatus={company.pipeline_stage || 'qualified'}
               availableStatuses={availableStatuses}
               onStatusChange={() => {
                 // Refresh companies data
@@ -532,8 +624,8 @@ const Companies: React.FC = () => {
       },
       {
         icon: Target,
-        value: companies.filter(c => c.pipeline_stage === 'new_lead').length,
-        label: 'new prospects',
+        value: companies.filter(c => c.pipeline_stage === 'qualified').length,
+        label: 'qualified',
       },
       {
         icon: CheckCircle,
@@ -580,16 +672,41 @@ const Companies: React.FC = () => {
 
         {/* Unified Table - Scrollable area */}
         <div className='flex-1 min-h-0'>
-          <UnifiedTable
-            data={paginatedCompanies}
-            columns={columns}
-            pagination={false} // We handle pagination externally
-            stickyHeaders={true}
-            scrollable={true}
-            onRowClick={handleRowClick}
-            loading={loading}
-            emptyMessage='No companies found'
-          />
+          {!loading && filteredCompanies.length === 0 ? (
+            <div className='bg-white rounded-lg border border-gray-300 overflow-hidden'>
+              <div className='flex flex-col items-center justify-center py-16 px-4'>
+                <Building2 className='h-16 w-16 text-muted-foreground mb-4' />
+                <h3 className='text-xl font-semibold mb-2 text-gray-900'>
+                  No companies found
+                </h3>
+                <p className='text-muted-foreground text-center max-w-md mb-6'>
+                  {searchTerm
+                    ? 'No companies match your search criteria.'
+                    : 'Start qualifying jobs to add companies to your list. When you qualify a job, the company automatically appears here.'}
+                </p>
+                {!searchTerm && (
+                  <Button
+                    onClick={() => navigate('/jobs')}
+                    className='inline-flex items-center gap-2'
+                  >
+                    <Target className='h-4 w-4' />
+                    Go to Jobs Feed
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <UnifiedTable
+              data={paginatedCompanies}
+              columns={columns}
+              pagination={false} // We handle pagination externally
+              stickyHeaders={true}
+              scrollable={true}
+              onRowClick={handleRowClick}
+              loading={loading}
+              emptyMessage='No companies found'
+            />
+          )}
         </div>
 
         {/* Pagination Controls */}

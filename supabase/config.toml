@@ -1,1 +1,4 @@
 project_id = "jedfundfhzytpnbjkspn"
+
+[edge_runtime]
+  N8N_WEBHOOK_URL = "https://n8n.srv814433.hstgr.cloud/webhook/recruitment-job-qulified"

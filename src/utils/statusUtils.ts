@@ -198,8 +198,8 @@ export function getStatusDisplayText(status: string): string {
     skip: 'Skip',
 
     // Job qualification status
-    qualify: 'Qualify',
-    QUALIFY: 'Qualify',
+    qualify: 'Qualified',
+    QUALIFY: 'Qualified',
 
     // Company pipeline stages - business pipeline workflow
     NEW_LEAD: 'New Lead',

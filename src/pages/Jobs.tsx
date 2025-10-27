@@ -10,11 +10,12 @@ import { useClientId } from '@/hooks/useClientId';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { getClearbitLogo } from '@/services/logoService';
-import { Job, UserProfile } from '@/types/database';
+import { Job } from '@/types/database';
 import { convertNumericScoreToStatus } from '@/utils/colorScheme';
 import { useNavigate } from 'react-router-dom';
 // Removed deprecated jobStatus import - using statusUtils instead
 import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
+import { formatLocation } from '@/utils/locationDisplay';
 import { format } from 'date-fns';
 import { Building2 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -80,14 +81,17 @@ function applyJobFilters(
     }
   }
 
-  // Company size filtering
+  // Company size filtering (use normalized_company_size)
   if (
     config.company_size_preferences &&
     config.company_size_preferences.length > 0
   ) {
+    // Check normalized_company_size first, fall back to company_size if not available
+    const companySize =
+      job.companies?.normalized_company_size || job.companies?.company_size;
     if (
-      !job.companies?.company_size ||
-      !config.company_size_preferences.includes(job.companies.company_size)
+      !companySize ||
+      !config.company_size_preferences.includes(companySize)
     ) {
       return false;
     }
@@ -183,14 +187,14 @@ const Jobs: React.FC = () => {
 
   // State management
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [sources, setSources] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Filter and search state
   const [activeTab, setActiveTab] = useState<string>('new'); // Default to 'new' jobs
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedUser, setSelectedUser] = useState<string>('all');
+  const [selectedSource, setSelectedSource] = useState<string>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -256,13 +260,12 @@ const Jobs: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // Get ALL jobs (with or without client ID)
-        const [jobsResult, usersResult, filterConfigResult] = await Promise.all(
-          [
-            supabase
-              .from('jobs')
-              .select(
-                `
+        // Get ALL jobs (with or without client ID) - use limit for initial load
+        const [jobsResult, filterConfigResult] = await Promise.all([
+          supabase
+            .from('jobs')
+            .select(
+              `
               *,
               companies!jobs_company_id_fkey (
                 id,
@@ -270,36 +273,45 @@ const Jobs: React.FC = () => {
                 website,
                 industry,
                 lead_score,
-                pipeline_stage
+                pipeline_stage,
+                normalized_company_size,
+                source
               ),
-              client_jobs!client_jobs_job_id_fkey (
+              client_jobs!left (
                 status,
                 priority_level,
                 qualified_at,
-                qualified_by
+                qualified_by,
+                client_id
               )
             `
-              )
-              .order('created_at', { ascending: false }),
-            supabase
-              .from('user_profiles')
-              .select('id, full_name')
-              .order('full_name'),
-            clientId
-              ? supabase
-                  .from('job_filter_configs')
-                  .select('*')
-                  .eq('client_id', clientId)
-                  .eq('is_active', true)
-                  .maybeSingle()
-              : Promise.resolve({ data: null, error: null }),
-          ]
-        );
+            )
+            .order('created_at', { ascending: false })
+            .limit(500),
+          clientId
+            ? supabase
+                .schema('public')
+                .from('job_filter_configs')
+                .select('*')
+                .eq('client_id', clientId)
+                .eq('is_active', true)
+                .maybeSingle()
+            : Promise.resolve({ data: null, error: null }),
+        ]);
 
         if (jobsResult.error) throw jobsResult.error;
-        if (usersResult.error) throw usersResult.error;
 
-        let allJobs = (jobsResult.data as Job[]) || [];
+        let allJobs: Job[] = (jobsResult.data as unknown as Job[]) || [];
+
+        // Filter client_jobs to only show entries for the current client
+        if (clientId) {
+          allJobs = allJobs.map(job => ({
+            ...job,
+            client_jobs: Array.isArray(job.client_jobs)
+              ? job.client_jobs.filter(cj => cj.client_id === clientId)
+              : [],
+          }));
+        }
 
         // Apply client's job filter config if available
         if (filterConfigResult.data && !filterConfigResult.error) {
@@ -307,8 +319,17 @@ const Jobs: React.FC = () => {
           allJobs = allJobs.filter(job => applyJobFilters(job, filterConfig));
         }
 
+        // Extract unique sources from jobs
+        const uniqueSources = Array.from(
+          new Set(
+            allJobs
+              .map(job => job.companies?.source)
+              .filter((source): source is string => !!source)
+          )
+        ).sort();
+
         setJobs(allJobs);
-        setUsers((usersResult.data as unknown as UserProfile[]) || []);
+        setSources(uniqueSources);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch data');
@@ -329,25 +350,27 @@ const Jobs: React.FC = () => {
   const filteredJobs = useMemo(() => {
     let filtered = jobs;
 
-    // Qualification status filter (from tabs)
+    // Qualification status filter (from tabs) - Use client-specific status
     if (activeTab !== 'all') {
       filtered = filtered.filter(job => {
-        const qualStatus = job.qualification_status || 'new';
+        const qualStatus = job.client_jobs?.[0]?.status || 'new';
         return qualStatus === activeTab;
       });
     }
 
-    // Status filter
+    // Status filter - Use client-specific status
     if (statusFilter !== 'all') {
       filtered = filtered.filter(job => {
-        const qualStatus = job.qualification_status || 'new';
+        const qualStatus = job.client_jobs?.[0]?.status || 'new';
         return qualStatus === statusFilter;
       });
     }
 
-    // User filter
-    if (selectedUser !== 'all') {
-      filtered = filtered.filter(job => job.assigned_to === selectedUser);
+    // Source filter
+    if (selectedSource !== 'all') {
+      filtered = filtered.filter(
+        job => job.companies?.source === selectedSource
+      );
     }
 
     // Favorites filter
@@ -400,7 +423,7 @@ const Jobs: React.FC = () => {
     jobs,
     activeTab,
     statusFilter,
-    selectedUser,
+    selectedSource,
     showFavoritesOnly,
     debouncedSearchTerm,
     sortBy,
@@ -412,16 +435,17 @@ const Jobs: React.FC = () => {
   const endIndex = startIndex + pageSize;
   const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
 
-  // Update tab counts - memoized to prevent re-renders
+  // Update tab counts - memoized to prevent re-renders (use client-specific status)
   const tabCounts = useMemo(() => {
     const counts = {
       all: jobs.length,
       new: jobs.filter(
-        job => !job.qualification_status || job.qualification_status === 'new'
+        job =>
+          !job.client_jobs?.[0]?.status || job.client_jobs[0].status === 'new'
       ).length,
-      qualify: jobs.filter(job => job.qualification_status === 'qualify')
+      qualify: jobs.filter(job => job.client_jobs?.[0]?.status === 'qualify')
         .length,
-      skip: jobs.filter(job => job.qualification_status === 'skip').length,
+      skip: jobs.filter(job => job.client_jobs?.[0]?.status === 'skip').length,
     };
 
     return tabOptions.map(tab => ({
@@ -435,10 +459,11 @@ const Jobs: React.FC = () => {
     {
       key: 'status',
       label: 'STATUS',
-      width: '150px',
+      width: '120px',
+      minWidth: '120px',
       cellType: 'status',
       align: 'center',
-      getStatusValue: job => job.qualification_status || 'new',
+      getStatusValue: job => job.client_jobs?.[0]?.status || 'new',
       render: (_, job) => {
         return (
           <JobQualificationTableDropdown
@@ -515,11 +540,19 @@ const Jobs: React.FC = () => {
       label: 'Location',
       width: '150px',
       cellType: 'regular',
-      render: (_, job) => (
-        <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-          {job.location || '-'}
-        </div>
-      ),
+      render: (_, job) => {
+        const location = formatLocation({
+          country: job.country,
+          city: job.city,
+          region: job.region,
+          location: job.location,
+        });
+        return (
+          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
+            {location}
+          </div>
+        );
+      },
     },
     {
       key: 'function',
@@ -539,11 +572,11 @@ const Jobs: React.FC = () => {
       cellType: 'ai-score',
       align: 'center',
       getStatusValue: job => {
-        const score = job.lead_score_job || job.companies?.lead_score;
+        const score = job.companies?.lead_score;
         return convertNumericScoreToStatus(score);
       },
       render: (_, job) => {
-        const score = job.lead_score_job || job.companies?.lead_score;
+        const score = job.companies?.lead_score;
         return <span>{score ?? '-'}</span>;
       },
     },
@@ -622,12 +655,19 @@ const Jobs: React.FC = () => {
   }, []);
 
   // Optimized refresh for single job update
-  const handleJobStatusUpdate = useCallback(async (jobId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('jobs')
-        .select(
-          `
+  const handleJobStatusUpdate = useCallback(
+    async (jobId: string) => {
+      try {
+        // Get the client ID first
+        if (!clientId) {
+          setRefreshTrigger(prev => prev + 1);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('jobs')
+          .select(
+            `
           *,
           companies!left (
             id,
@@ -635,25 +675,48 @@ const Jobs: React.FC = () => {
             website,
             industry,
             lead_score,
-            pipeline_stage
+            pipeline_stage,
+            normalized_company_size,
+            source
+          ),
+          client_jobs!left (
+            status,
+            priority_level,
+            qualified_at,
+            qualified_by,
+            client_id
           )
         `
-        )
-        .eq('id', jobId)
-        .single();
+          )
+          .eq('id', jobId)
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Update only the specific job in the state
-      setJobs(prevJobs =>
-        prevJobs.map(job => (job.id === jobId ? { ...job, ...data } : job))
-      );
-    } catch (err) {
-      console.error('Error refreshing single job:', err);
-      // Fallback to full refresh if single job update fails
-      setRefreshTrigger(prev => prev + 1);
-    }
-  }, []);
+        // Filter client_jobs to only show current client's data
+        const updatedJob = data as unknown as Job;
+        if (Array.isArray(updatedJob.client_jobs)) {
+          updatedJob.client_jobs = updatedJob.client_jobs.filter(
+            cj => cj.client_id === clientId
+          );
+        }
+
+        // Update only the specific job in the state
+        setJobs(prevJobs =>
+          prevJobs.map(job =>
+            job.id === jobId
+              ? { ...job, ...updatedJob, client_jobs: updatedJob.client_jobs }
+              : job
+          )
+        );
+      } catch (err) {
+        console.error('Error refreshing single job:', err);
+        // Fallback to full refresh if single job update fails
+        setRefreshTrigger(prev => prev + 1);
+      }
+    },
+    [clientId]
+  );
 
   // Error state - show page with error message
   const showLoadingState = loading || clientIdLoading;
@@ -671,6 +734,16 @@ const Jobs: React.FC = () => {
   return (
     <Page title='Job Intelligence' hideHeader>
       <div className='flex-1 flex flex-col min-h-0 space-y-3'>
+        {/* Page Header */}
+        <div className='mb-2'>
+          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
+            Job Intelligence
+          </h1>
+          <p className='text-sm text-muted-foreground mt-1'>
+            Qualify jobs to get more company info and decision makers using AI
+          </p>
+        </div>
+
         {/* Modern Tab Navigation */}
         <TabNavigation
           tabs={tabCounts}
@@ -682,24 +755,21 @@ const Jobs: React.FC = () => {
         <FilterControls
           statusOptions={statusOptions}
           userOptions={[
-            { label: 'All Users', value: 'all' },
-            ...users.map(userItem => ({
-              label:
-                userItem.id === user?.id
-                  ? `${userItem.full_name} (me)`
-                  : userItem.full_name,
-              value: userItem.id,
+            { label: 'All Sources', value: 'all' },
+            ...sources.map(source => ({
+              label: source.charAt(0).toUpperCase() + source.slice(1),
+              value: source,
             })),
           ]}
           sortOptions={sortOptions}
           statusFilter={statusFilter}
-          selectedUser={selectedUser}
+          selectedUser={selectedSource}
           sortBy={sortBy}
           showFavoritesOnly={showFavoritesOnly}
           searchTerm={searchTerm}
           isSearchActive={isSearchActive}
           onStatusChange={setStatusFilter}
-          onUserChange={setSelectedUser}
+          onUserChange={setSelectedSource}
           onSortChange={setSortBy}
           onFavoritesToggle={handleFavoritesToggle}
           onSearchChange={handleSearchChange}

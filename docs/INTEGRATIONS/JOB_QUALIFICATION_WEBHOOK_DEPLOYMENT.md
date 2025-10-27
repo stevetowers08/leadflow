@@ -1,6 +1,18 @@
 # Job Qualification Webhook Deployment Guide
 
-This guide walks you through deploying the job qualification webhook system for n8n integration.
+This guide documents the job qualification webhook system for n8n integration.
+
+**✅ Status: DEPLOYED AND WORKING (October 2025)**
+
+## Overview
+
+When a job is qualified in the app:
+
+1. The status updates to "qualified" in the database
+2. A webhook fires asynchronously (non-blocking)
+3. The Edge Function fetches job and company data
+4. Data is sent to your n8n workflow
+5. The event is logged for monitoring
 
 ## Prerequisites
 
@@ -20,29 +32,33 @@ cd supabase/functions/job-qualification-webhook
 supabase functions deploy job-qualification-webhook
 ```
 
-### 1.2 Set Environment Variables
+### 1.2 Configure Webhook URL in Database
 
-In your Supabase dashboard, go to **Settings** → **Edge Functions** and add:
+The webhook URL is stored in the `system_settings` table, not as an environment variable:
 
-```bash
-N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/job-qualified
-N8N_WEBHOOK_SECRET=your-secure-webhook-secret
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```sql
+INSERT INTO system_settings (key, value, description)
+VALUES (
+  'n8n_webhook_url',
+  'https://your-n8n-instance.com/webhook/job-qualified',
+  'n8n webhook URL for job qualification webhook'
+);
 ```
 
-### 1.3 Apply Database Migration
+**Current Configuration:**
+
+- Webhook URL: `https://n8n.srv814433.hstgr.cloud/webhook/recruitment-job-qulified`
+- Stored in: `system_settings` table
+- Edge Function reads from database on each invocation
+
+### 1.3 Apply Database Migrations
 
 ```bash
 # Apply the webhook migration
 supabase db push
 ```
 
-This creates:
-
-- `webhook_logs` table for monitoring
-- Database trigger for qualification events
-- RLS policies for security
+This creates the `webhook_logs` table for monitoring webhook events.
 
 ## Step 2: Configure n8n Workflow
 
@@ -132,20 +148,62 @@ ORDER BY created_at DESC
 LIMIT 10;
 ```
 
-## Step 4: Configure Frontend Integration
+## Step 4: Frontend Integration (Already Implemented)
 
-### 4.1 Update Job Qualification Modal
+### 4.1 How It Works
 
-The `JobQualificationModal.tsx` has been updated to automatically trigger the webhook when a job is qualified. No additional configuration needed.
+The webhook is automatically triggered from the `UnifiedStatusDropdown` component when a job status changes to "qualify":
 
-### 4.2 Test Frontend Integration
+1. User clicks "Qualify" in the status dropdown
+2. Status updates in `client_jobs` table
+3. Webhook fires asynchronously (fire-and-forget pattern)
+4. Edge Function processes and sends to n8n
+5. Event is logged to `webhook_logs` table
 
-1. Open your application
-2. Navigate to a job with `qualification_status = 'new'`
-3. Click "Qualify Job"
-4. Select "Qualify" status
-5. Add notes and save
-6. Check n8n logs for the webhook trigger
+**Files:**
+
+- `src/components/shared/UnifiedStatusDropdown.tsx` - Triggers webhook
+- `src/components/jobs/JobQualificationTableDropdown.tsx` - Wraps dropdown for jobs
+- `supabase/functions/job-qualification-webhook/index.ts` - Edge Function handler
+
+### 4.2 Payload Structure
+
+The Edge Function sends this data to n8n:
+
+```json
+{
+  "job_id": "uuid",
+  "company_id": "uuid",
+  "company_name": "Company Name",
+  "company_website": "https://company.com",
+  "company_linkedin_url": "https://linkedin.com/company/...",
+  "job_title": "Job Title",
+  "job_location": "Location",
+  "job_description": "Full job description...",
+  "qualification_status": "qualify",
+  "qualified_at": "2025-10-27T06:10:30.845Z",
+  "qualified_by": "user-uuid",
+  "qualification_notes": null,
+  "event_type": "job_qualified",
+  "timestamp": "2025-10-27T06:10:30.845Z"
+}
+```
+
+### 4.3 Monitoring
+
+Check browser console when qualifying a job:
+
+- `[Webhook] Invoking webhook with payload:`
+- `[Webhook] Successfully triggered job qualification webhook`
+
+Check database logs:
+
+```sql
+SELECT * FROM webhook_logs
+WHERE event_type = 'job_qualification'
+ORDER BY created_at DESC
+LIMIT 10;
+```
 
 ## Step 5: Production Deployment
 

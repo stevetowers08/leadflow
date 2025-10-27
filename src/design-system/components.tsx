@@ -132,7 +132,12 @@ export const Page: React.FC<PageProps> = ({
           allowScroll ? 'overflow-auto' : 'overflow-hidden'
         )}
       >
-        <div className='w-full flex-1 flex flex-col px-6 py-2 min-h-0'>
+        <div
+          className={cn(
+            'w-full flex flex-col px-6 py-2',
+            allowScroll ? '' : 'flex-1 min-h-0'
+          )}
+        >
           {!hideHeader && (
             <div className='flex-shrink-0 mb-2'>
               <div className='flex items-center justify-between w-full'>
@@ -161,7 +166,9 @@ export const Page: React.FC<PageProps> = ({
               </div>
             </div>
           )}
-          <div className='flex-1 flex flex-col min-h-0'>{children}</div>
+          <div className={allowScroll ? '' : 'flex-1 flex flex-col min-h-0'}>
+            {children}
+          </div>
         </div>
       </div>
     </>
@@ -231,7 +238,7 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
             options={userOptions}
             value={selectedUser}
             onValueChange={onUserChange}
-            placeholder='Filter by user'
+            placeholder={userOptions.length > 0 ? userOptions[0].label : 'All'}
             className={cn(tokens.dropdown, tokens.dropdownMedium)}
           />
 

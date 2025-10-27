@@ -5,7 +5,7 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Job } from '@/types/database';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface JobQualificationTableDropdownProps {
@@ -21,9 +21,18 @@ export const JobQualificationTableDropdown: React.FC<
   const navigate = useNavigate();
   const { state, incrementJobsQualified, markStepComplete } = useOnboarding();
   const [showCelebration, setShowCelebration] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<string>('new');
 
-  // Load current status on mount
+  // Initialize status from job data with useMemo to avoid setState in effect
+  const initialStatus = useMemo(() => {
+    if (job.client_jobs && job.client_jobs.length > 0) {
+      return job.client_jobs[0].status || 'new';
+    }
+    return 'new';
+  }, [job.client_jobs]);
+
+  const [currentStatus, setCurrentStatus] = useState<string>(initialStatus);
+
+  // Load current status from database when needed
   useEffect(() => {
     const loadStatus = async () => {
       if (!user?.id) return;
@@ -33,7 +42,7 @@ export const JobQualificationTableDropdown: React.FC<
           .from('client_users')
           .select('client_id')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (!clientUser?.client_id) return;
 
@@ -51,7 +60,7 @@ export const JobQualificationTableDropdown: React.FC<
     };
 
     loadStatus();
-  }, [job.id, user?.id]);
+  }, [job.id, job.client_jobs, user?.id]);
 
   const handleStatusChange = async () => {
     // Track onboarding progress when qualifying
@@ -59,7 +68,7 @@ export const JobQualificationTableDropdown: React.FC<
       .from('client_users')
       .select('client_id')
       .eq('user_id', user?.id)
-      .single();
+      .maybeSingle();
 
     if (clientUser?.client_id) {
       const { data } = await supabase
@@ -83,15 +92,13 @@ export const JobQualificationTableDropdown: React.FC<
 
   return (
     <>
-      <div className='flex items-center justify-center h-full'>
-        <UnifiedStatusDropdown
-          entityId={job.id}
-          entityType='jobs'
-          currentStatus={currentStatus}
-          availableStatuses={['new', 'qualify', 'skip']}
-          onStatusChange={handleStatusChange}
-        />
-      </div>
+      <UnifiedStatusDropdown
+        entityId={job.id}
+        entityType='jobs'
+        currentStatus={currentStatus}
+        availableStatuses={['new', 'qualify', 'skip']}
+        onStatusChange={handleStatusChange}
+      />
 
       <CelebrationModal
         isOpen={showCelebration}

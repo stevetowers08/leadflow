@@ -100,7 +100,9 @@ export const TableCell = React.forwardRef<
     <td
       ref={ref}
       className={cn(
-        'px-4 py-2 text-sm border-r border-gray-200 border-b border-gray-200 last:border-r-0',
+        // Conditional padding: remove padding for status cells to allow full-cell dropdowns
+        cellType === 'status' ? 'p-0 relative' : 'px-4 py-2',
+        'text-sm border-r border-gray-200 border-b border-gray-200 last:border-r-0',
         'transition-colors duration-150',
         'group-hover:text-gray-900',
         align === 'center' && 'text-center',
@@ -300,7 +302,6 @@ export const UnifiedTable = React.memo(
       columns,
       loading,
       emptyMessage,
-      className,
       onRowClick,
       scrollable,
       isScrolled,

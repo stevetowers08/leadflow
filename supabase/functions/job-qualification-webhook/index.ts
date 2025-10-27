@@ -18,8 +18,7 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// n8n webhook configuration
-const N8N_WEBHOOK_URL = Deno.env.get('N8N_WEBHOOK_URL');
+// n8n webhook configuration - will be fetched from database
 const N8N_WEBHOOK_SECRET = Deno.env.get('N8N_WEBHOOK_SECRET');
 
 interface JobQualificationPayload {
@@ -54,13 +53,65 @@ serve(async req => {
       });
     }
 
-    // Parse the request body
-    const { job_id, qualification_status } = await req.json();
+    console.log('[Webhook] Received POST request');
 
-    if (!job_id || qualification_status !== 'qualify') {
+    // Parse the request body
+    const bodyText = await req.text();
+    console.log('[Webhook] Raw body:', bodyText);
+
+    let body;
+    try {
+      body = JSON.parse(bodyText);
+    } catch (parseError) {
+      console.error('[Webhook] JSON parse error:', parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON', details: parseError.message }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const { job_id, company_id, client_id, user_id } = body;
+    console.log('[Webhook] Parsed body:', {
+      job_id,
+      company_id,
+      client_id,
+      user_id,
+    });
+
+    // Idempotency check - prevent duplicate processing within same day
+    const eventId = `${job_id}_${client_id}_${new Date().toISOString().split('T')[0]}`;
+    const { data: existingLog } = await supabase
+      .from('webhook_logs')
+      .select('id')
+      .eq('event_id', eventId)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingLog) {
+      console.log(
+        '[Idempotency] Duplicate webhook event detected, ignoring:',
+        eventId
+      );
       return new Response(
         JSON.stringify({
-          error: 'Invalid request: job_id required and status must be qualify',
+          success: true,
+          message: 'Duplicate event ignored',
+          event_id: eventId,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    if (!job_id || !company_id) {
+      return new Response(
+        JSON.stringify({
+          error: 'Invalid request: job_id and company_id required',
         }),
         {
           status: 400,
@@ -69,7 +120,8 @@ serve(async req => {
       );
     }
 
-    // Fetch job and company data
+    // Fetch job data
+    console.log('[Webhook] Fetching job data for job_id:', job_id);
     const { data: jobData, error: jobError } = await supabase
       .from('jobs')
       .select(
@@ -79,55 +131,86 @@ serve(async req => {
         company_id,
         location,
         description,
-        qualification_status,
-        qualified_at,
-        qualified_by,
-        qualification_notes,
-        companies (
-          id,
-          name,
-          website,
-          linkedin_url,
-          industry,
-          company_size,
-          head_office
-        )
+        qualification_status
       `
       )
       .eq('id', job_id)
       .single();
 
+    console.log('[Webhook] Job query result:', { jobData, jobError });
+
     if (jobError || !jobData) {
       console.error('Error fetching job data:', jobError);
-      return new Response(JSON.stringify({ error: 'Job not found' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: 'Job not found', details: jobError?.message }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
+
+    // Fetch client_jobs data to get qualified_by and qualified_at
+    const { data: clientJobData } = await supabase
+      .from('client_jobs')
+      .select('qualified_by, qualified_at, notes')
+      .eq('job_id', job_id)
+      .eq('client_id', client_id)
+      .maybeSingle();
+
+    console.log('[Webhook] Client job data:', clientJobData);
+
+    // Fetch company data separately
+    const { data: companyData } = await supabase
+      .from('companies')
+      .select(
+        'id, name, website, linkedin_url, industry, company_size, head_office'
+      )
+      .eq('id', jobData.company_id)
+      .single();
+
+    console.log('[Webhook] Company data:', companyData);
 
     // Prepare payload for n8n
     const payload: JobQualificationPayload = {
       job_id: jobData.id,
       company_id: jobData.company_id || '',
-      company_name: jobData.companies?.name || '',
-      company_website: jobData.companies?.website || null,
-      company_linkedin_url: jobData.companies?.linkedin_url || null,
+      company_name: companyData?.name || '',
+      company_website: companyData?.website || null,
+      company_linkedin_url: companyData?.linkedin_url || null,
       job_title: jobData.title,
       job_location: jobData.location,
       job_description: jobData.description,
-      qualification_status: jobData.qualification_status,
-      qualified_at: jobData.qualified_at || new Date().toISOString(),
-      qualified_by: jobData.qualified_by || '',
-      qualification_notes: jobData.qualification_notes,
+      qualification_status: 'qualify',
+      qualified_at: clientJobData?.qualified_at || new Date().toISOString(),
+      qualified_by: clientJobData?.qualified_by || user_id || '',
+      qualification_notes: clientJobData?.notes || null,
       event_type: 'job_qualified',
       timestamp: new Date().toISOString(),
     };
 
+    // Get webhook URL from database settings
+    const { data: settingsData } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'n8n_webhook_url')
+      .single();
+
+    const N8N_WEBHOOK_URL = settingsData?.value as string | undefined;
+
+    console.log(
+      '[Webhook] Fetched webhook URL from database:',
+      N8N_WEBHOOK_URL
+    );
+    console.log('[Webhook] Payload:', JSON.stringify(payload, null, 2));
+
     // Send webhook to n8n
     if (!N8N_WEBHOOK_URL) {
-      console.error('N8N_WEBHOOK_URL not configured');
+      console.error('N8N_WEBHOOK_URL not configured in system_settings');
       return new Response(
-        JSON.stringify({ error: 'n8n webhook URL not configured' }),
+        JSON.stringify({
+          error: 'n8n webhook URL not configured in system_settings',
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -174,8 +257,8 @@ serve(async req => {
       );
     }
 
-    // Log the webhook event
-    await logWebhookEvent(job_id, payload, webhookResponse.status);
+    // Log the webhook event (with event_id for idempotency)
+    await logWebhookEvent(job_id, payload, webhookResponse.status, eventId);
 
     return new Response(
       JSON.stringify({
@@ -233,24 +316,35 @@ async function generateWebhookSignature(
 
 /**
  * Log webhook events for debugging and monitoring
+ * Best practice: Log with event_id for idempotency tracking
  */
 async function logWebhookEvent(
   jobId: string,
   payload: JobQualificationPayload,
-  responseStatus: number
+  responseStatus: number,
+  eventId?: string
 ) {
   try {
-    const { error } = await supabase.from('webhook_logs').insert({
+    const logData: Record<string, unknown> = {
       event_type: 'job_qualification',
       entity_id: jobId,
       entity_type: 'job',
       payload: payload,
       response_status: responseStatus,
       created_at: new Date().toISOString(),
-    });
+    };
+
+    // Add event_id for idempotency tracking if provided
+    if (eventId) {
+      logData.event_id = eventId;
+    }
+
+    const { error } = await supabase.from('webhook_logs').insert(logData);
 
     if (error) {
       console.error('Failed to log webhook event:', error);
+    } else {
+      console.log(`[Webhook] Event logged successfully: ${eventId || jobId}`);
     }
   } catch (error) {
     console.error('Error logging webhook event:', error);

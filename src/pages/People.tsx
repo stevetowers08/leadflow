@@ -550,7 +550,8 @@ const People: React.FC = () => {
       {
         key: 'stage',
         label: 'Status',
-        width: '150px',
+        width: '120px',
+        minWidth: '120px',
         cellType: 'status',
         align: 'center',
         getStatusValue: person => person.people_stage || 'new_lead',
