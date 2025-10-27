@@ -40,7 +40,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 
 type Company = Tables<'companies'> & {
   people_count?: number;
@@ -63,7 +63,6 @@ const Pipeline = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showAllAssignedUsers, setShowAllAssignedUsers] = useState(false);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
-  const [pipelineWidth, setPipelineWidth] = useState(0);
 
   // Use React Query for data fetching with caching
   const {
@@ -211,21 +210,6 @@ const Pipeline = () => {
     []
   );
 
-  // Calculate pipeline width for scrollbar
-  useEffect(() => {
-    const calculateWidth = () => {
-      const stageCount = pipelineStages.length;
-      const stageWidth = 320; // Approximate width per stage
-      const gapWidth = 24; // Gap between stages
-      const totalWidth = stageCount * stageWidth + (stageCount - 1) * gapWidth;
-      setPipelineWidth(totalWidth);
-    };
-
-    calculateWidth();
-    window.addEventListener('resize', calculateWidth);
-    return () => window.removeEventListener('resize', calculateWidth);
-  }, [pipelineStages.length]);
-
   // Optimized drag and drop sensors for maximum performance
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -241,23 +225,6 @@ const Pipeline = () => {
     }),
     useSensor(KeyboardSensor)
   );
-
-  // Calculate pipeline width responsively
-  useEffect(() => {
-    const calculateWidth = () => {
-      const stageCount = pipelineStages.length;
-      // Responsive stage width based on viewport
-      const stageWidth =
-        window.innerWidth > 1536 ? 360 : window.innerWidth > 1024 ? 320 : 280;
-      const gapWidth = 24; // Gap between stages
-      const totalWidth = stageCount * stageWidth + (stageCount - 1) * gapWidth;
-      setPipelineWidth(totalWidth);
-    };
-
-    calculateWidth();
-    window.addEventListener('resize', calculateWidth);
-    return () => window.removeEventListener('resize', calculateWidth);
-  }, [pipelineStages.length]);
 
   // Valid stage transitions - moved to constant for better performance
   const VALID_TRANSITIONS = useMemo(
@@ -490,7 +457,7 @@ const Pipeline = () => {
         style={style}
         {...attributes}
         {...listeners}
-        className={`relative bg-white rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group overflow-hidden !p-0 ${
+        className={`relative bg-white rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group ${
           isDraggable
             ? 'hover:shadow-xl cursor-grab active:cursor-grabbing'
             : 'cursor-pointer'
@@ -532,6 +499,7 @@ const Pipeline = () => {
                   alt={company.name}
                   className='w-12 h-12 rounded-lg object-cover'
                   loading='lazy'
+                  decoding='async'
                   onError={e => {
                     // Silently handle error and show fallback
                     const img = e.currentTarget;
@@ -576,7 +544,7 @@ const Pipeline = () => {
         </div>
 
         {/* Card Content */}
-        <div className='px-4 pb-4'>
+        <div className='px-4 pt-2 pb-4'>
           {/* Industry - On its own line */}
           {company.industry && (
             <div className='mb-4'>
@@ -792,9 +760,9 @@ const Pipeline = () => {
 
   return (
     <Page title='Company Pipeline' hideHeader allowScroll>
-      <div className='space-y-6 h-full flex flex-col'>
+      <div className='space-y-3 h-full flex flex-col'>
         {/* Page Header */}
-        <div className='mb-4'>
+        <div className='mb-2'>
           <h1 className='text-2xl font-bold tracking-tight text-foreground'>
             Company Pipeline
           </h1>
@@ -804,7 +772,7 @@ const Pipeline = () => {
         </div>
 
         {/* Controls Bar */}
-        <div className='flex gap-3 mb-6 w-full'>
+        <div className='flex gap-3 mb-3 w-full'>
           <Button
             variant='outline'
             size='xs'
