@@ -1,21 +1,3 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
-import { designTokens } from '@/design-system/tokens';
-import {
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  Trash2,
-  User,
-  Building2,
-  Briefcase,
-  MessageSquare,
-  Settings,
-  LogOut,
-  Save,
-  X,
-} from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +8,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
+import {
+  Info,
+  LogOut,
+  MessageSquare,
+  Save,
+  Settings,
+  Trash2,
+  User,
+} from 'lucide-react';
+import * as React from 'react';
 
 // Confirmation Types
 export type ConfirmationType =
@@ -41,7 +34,7 @@ export interface ConfirmationConfig {
   type: ConfirmationType;
   title: string;
   description: string;
-  icon?: React.ComponentType<any>;
+  icon?: React.ComponentType<{ className?: string }>;
   confirmText?: string;
   cancelText?: string;
   variant?: 'default' | 'destructive' | 'warning';

@@ -3,12 +3,11 @@
  * Provides responsive table layouts for mobile devices
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ChevronRight, MoreHorizontal } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { ChevronRight } from 'lucide-react';
+import React from 'react';
 
 interface MobileTableColumn<T> {
   key: string;
@@ -27,7 +26,9 @@ interface MobileTableProps<T> {
   className?: string;
 }
 
-export function MobileTable<T extends Record<string, any> & { id: string }>({
+export function MobileTable<
+  T extends Record<string, unknown> & { id: string },
+>({
   data,
   columns,
   onRowClick,
@@ -115,7 +116,9 @@ interface MobileCardListProps<T> {
   className?: string;
 }
 
-export function MobileCardList<T extends Record<string, any> & { id: string }>({
+export function MobileCardList<
+  T extends Record<string, unknown> & { id: string },
+>({
   data,
   renderCard,
   loading = false,

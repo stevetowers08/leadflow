@@ -11,10 +11,10 @@ import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { cn } from '@/lib/utils';
 import {
   BarChart3,
-  Bot,
   Briefcase,
   Building2,
   Home,
+  Megaphone,
   MessageSquare,
   MoreHorizontal,
   Rocket,
@@ -81,10 +81,10 @@ const allNavItems: NavItem[] = [
     icon: <MessageSquare className='h-5 w-5' />,
   },
   {
-    to: '/automations',
-    label: 'Automations',
-    icon: <Bot className='h-5 w-5' />,
-    permission: 'workflows',
+    to: '/campaigns',
+    label: 'Campaigns',
+    icon: <Megaphone className='h-5 w-5' />,
+    permission: 'campaigns',
   },
   {
     to: '/reporting',

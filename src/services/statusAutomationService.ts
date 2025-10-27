@@ -5,6 +5,7 @@
  * Automatically updates statuses based on user actions without manual intervention
  */
 
+import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -271,6 +272,3 @@ export function useStatusAutomation() {
     ) => statusAutomation.batchUpdatePeople(personIds, stage, options),
   };
 }
-
-// Ensure React is imported
-import React from 'react';

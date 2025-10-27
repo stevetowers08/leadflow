@@ -1,5 +1,4 @@
-import React from 'react';
-import { BulkActions, BulkAction } from '../utils/BulkActions';
+import { BulkAction, BulkActions } from '../utils/BulkActions';
 
 interface TableBulkActionsProps<T> {
   selectedItems: T[];
@@ -14,7 +13,7 @@ interface TableBulkActionsProps<T> {
 }
 
 export function TableBulkActions<
-  T extends Record<string, any> & { id: string },
+  T extends Record<string, unknown> & { id: string },
 >({
   selectedItems,
   onSelectionChange,

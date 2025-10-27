@@ -1,5 +1,6 @@
 import { StatusBadge } from '@/components/StatusBadge';
 import { PersonReplyAnalytics } from '@/components/analytics/PersonReplyAnalytics';
+import { PersonMessagingPanel } from '@/components/people/PersonMessagingPanel';
 import { UnifiedActionComponent } from '@/components/shared/UnifiedActionComponent';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,9 @@ export const PersonDetailsSlideOut: React.FC<PersonDetailsSlideOutProps> = memo(
     const [person, setPerson] = useState<Person | null>(null);
     const [company, setCompany] = useState<Company | null>(null);
     const [otherPeople, setOtherPeople] = useState<Person[]>([]);
+    const [campaigns, setCampaigns] = useState<
+      Array<{ id: string; name: string }>
+    >([]);
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
     const statusAutomation = useStatusAutomation();
@@ -88,6 +92,26 @@ export const PersonDetailsSlideOut: React.FC<PersonDetailsSlideOutProps> = memo(
         fetchPersonDetails();
       }
     }, [personId, isOpen, fetchPersonDetails]);
+
+    // Fetch campaigns
+    useEffect(() => {
+      const fetchCampaigns = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('campaign_sequences')
+            .select('id, name')
+            .eq('status', 'active')
+            .order('name', { ascending: true });
+
+          if (error) throw error;
+          setCampaigns(data || []);
+        } catch (error) {
+          console.error('Error fetching campaigns:', error);
+        }
+      };
+
+      fetchCampaigns();
+    }, []);
 
     const handleStageChange = async (
       newStage:
@@ -335,13 +359,6 @@ export const PersonDetailsSlideOut: React.FC<PersonDetailsSlideOutProps> = memo(
               >
                 Interested
               </Button>
-              <Button
-                onClick={() => handleStageChange('meeting_scheduled')}
-                disabled={loading}
-                className='bg-blue-600 hover:bg-blue-700 text-white'
-              >
-                Schedule Meeting
-              </Button>
             </div>
           </div>
         }
@@ -466,6 +483,13 @@ export const PersonDetailsSlideOut: React.FC<PersonDetailsSlideOutProps> = memo(
                 </div>
               </SlideOutSection>
             )}
+
+            {/* Conversations & Messaging */}
+            <SlideOutSection title='Conversations'>
+              {person && (
+                <PersonMessagingPanel person={person} campaigns={campaigns} />
+              )}
+            </SlideOutSection>
           </>
         )}
       </SlideOutPanel>

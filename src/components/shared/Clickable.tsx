@@ -1,5 +1,5 @@
-import React, { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
+import React, { forwardRef } from 'react';
 
 /**
  * Enhanced clickable component following best practices:
@@ -49,7 +49,7 @@ const Clickable = forwardRef<HTMLDivElement, ClickableProps>(
       // Handle Enter and Space keys for accessibility
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        onClick?.(event as any);
+        onClick?.(event as unknown as React.MouseEvent<HTMLDivElement>);
       }
 
       onKeyDown?.(event);
