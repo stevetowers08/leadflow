@@ -214,7 +214,7 @@ export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
         {isCellVariant ? (
           // Cell variant: just text, no dot
           <>
-            <span>{displayText}</span>
+            <span className='text-xs'>{displayText}</span>
             {!disabled && !isUpdating && (
               <ChevronDown className='h-3 w-3 flex-shrink-0 ml-1' />
             )}

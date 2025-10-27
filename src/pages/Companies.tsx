@@ -17,12 +17,14 @@ import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCe
 import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
 import { useAuth } from '@/contexts/AuthContext';
 import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
+import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { Company, Person, UserProfile } from '@/types/database';
@@ -67,6 +69,9 @@ const Companies: React.FC = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
+
+  // Bulk selection
+  const bulkSelection = useBulkSelection();
 
   // Debounced search term for better performance
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -415,6 +420,43 @@ const Companies: React.FC = () => {
   const columns: ColumnConfig<Company>[] = useMemo(
     () => [
       {
+        key: 'checkbox',
+        label: (
+          <div className='flex items-center justify-center' data-bulk-checkbox>
+            <Checkbox
+              checked={
+                paginatedCompanies.length > 0 &&
+                paginatedCompanies.every(c => bulkSelection.isSelected(c.id))
+              }
+              onCheckedChange={checked => {
+                if (checked) {
+                  bulkSelection.selectAll(paginatedCompanies.map(c => c.id));
+                } else {
+                  bulkSelection.deselectAll();
+                }
+              }}
+              aria-label='Select all companies'
+            />
+          </div>
+        ),
+        width: '50px',
+        cellType: 'regular',
+        align: 'center',
+        render: (_, company) => (
+          <div
+            className='flex items-center justify-center'
+            data-bulk-checkbox
+            onClick={e => e.stopPropagation()}
+          >
+            <Checkbox
+              checked={bulkSelection.isSelected(company.id)}
+              onCheckedChange={() => bulkSelection.toggleItem(company.id)}
+              aria-label={`Select ${company.name}`}
+            />
+          </div>
+        ),
+      },
+      {
         key: 'status',
         label: 'Status',
         width: '120px',
@@ -425,6 +467,7 @@ const Companies: React.FC = () => {
         render: (_, company) => {
           const availableStatuses = [
             'new_lead',
+            'qualified',
             'message_sent',
             'replied',
             'meeting_scheduled',
@@ -503,28 +546,40 @@ const Companies: React.FC = () => {
         cellType: 'regular',
         align: 'center',
         render: (_, company) => (
-          <IconOnlyAssignmentCell
-            ownerId={company.owner_id}
-            entityId={company.id}
-            entityType='companies'
-            onAssignmentChange={() => {
-              // Refresh the companies data
-              const fetchData = async () => {
-                try {
-                  const { data, error } = await supabase
-                    .from('companies')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                  if (error) throw error;
-                  setCompanies((data as unknown as Company[]) || []);
-                } catch (err) {
-                  console.error('Error refreshing companies:', err);
-                }
-              };
-              fetchData();
+          <div
+            onClick={e => {
+              e.stopPropagation();
+              e.preventDefault();
             }}
-          />
+            onMouseDown={e => {
+              e.stopPropagation();
+              e.preventDefault();
+            }}
+            className='flex items-center justify-center'
+          >
+            <IconOnlyAssignmentCell
+              ownerId={company.owner_id}
+              entityId={company.id}
+              entityType='companies'
+              onAssignmentChange={() => {
+                // Refresh the companies data
+                const fetchData = async () => {
+                  try {
+                    const { data, error } = await supabase
+                      .from('companies')
+                      .select('*')
+                      .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+                    setCompanies((data as unknown as Company[]) || []);
+                  } catch (err) {
+                    console.error('Error refreshing companies:', err);
+                  }
+                };
+                fetchData();
+              }}
+            />
+          </div>
         ),
       },
       {
@@ -609,7 +664,7 @@ const Companies: React.FC = () => {
         ),
       },
     ],
-    [people]
+    [people, paginatedCompanies, bulkSelection]
   );
 
   // Stats for Companies page
@@ -653,28 +708,40 @@ const Companies: React.FC = () => {
 
   return (
     <Page stats={stats} title='Companies' hideHeader>
-      <div className='flex-1 flex flex-col min-h-0 space-y-3'>
-        {/* Filter Controls - Compact */}
-        <FilterControls
-          statusOptions={statusOptions}
-          userOptions={userOptions}
-          sortOptions={sortOptions}
-          statusFilter={statusFilter}
-          selectedUser={selectedUser}
-          sortBy={sortBy}
-          showFavoritesOnly={showFavoritesOnly}
-          searchTerm={searchTerm}
-          isSearchActive={isSearchActive}
-          onStatusChange={() => {}}
-          onMultiSelectStatusChange={setStatusFilter}
-          onUserChange={setSelectedUser}
-          onSortChange={setSortBy}
-          onFavoritesToggle={handleFavoritesToggle}
-          onSearchChange={handleSearchChange}
-          onSearchToggle={handleSearchToggle}
-          useMultiSelectStatus={true}
-          className='[&_select]:max-w-[160px] [&_button]:max-w-[160px] [&>div>select]:max-w-[160px] [&>div>button]:max-w-[160px]'
-        />
+      <div className='flex-1 flex flex-col min-h-0 space-y-1'>
+        {/* Page Header */}
+        <div className='mb-4'>
+          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
+            Qualified Companies
+          </h1>
+          <p className='text-sm text-muted-foreground'>
+            Manage your qualified companies and find decision makers
+          </p>
+        </div>
+
+        {/* Filter Controls - Left Aligned */}
+        <div className='flex items-center justify-start gap-4 py-2 mb-4'>
+          <FilterControls
+            statusOptions={statusOptions}
+            userOptions={userOptions}
+            sortOptions={sortOptions}
+            statusFilter={statusFilter}
+            selectedUser={selectedUser}
+            sortBy={sortBy}
+            showFavoritesOnly={showFavoritesOnly}
+            searchTerm={searchTerm}
+            isSearchActive={isSearchActive}
+            onStatusChange={() => {}}
+            onMultiSelectStatusChange={setStatusFilter}
+            onUserChange={setSelectedUser}
+            onSortChange={setSortBy}
+            onFavoritesToggle={handleFavoritesToggle}
+            onSearchChange={handleSearchChange}
+            onSearchToggle={handleSearchToggle}
+            useMultiSelectStatus={true}
+            className='[&_select]:max-w-[160px] [&_button]:max-w-[160px] [&>div>select]:max-w-[160px] [&>div>button]:max-w-[160px]'
+          />
+        </div>
 
         {/* Unified Table - Scrollable area */}
         <div className='flex-1 min-h-0'>
@@ -715,16 +782,19 @@ const Companies: React.FC = () => {
           )}
         </div>
 
-        {/* Pagination Controls */}
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalItems={filteredCompanies.length}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setPageSize}
-          pageSizeOptions={[10, 25, 50, 100]}
-        />
+        {/* Pagination - Compact */}
+        <div className='flex-shrink-0 pt-1'>
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={filteredCompanies.length}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[10, 25, 50, 100]}
+            className='mt-0'
+          />
+        </div>
       </div>
 
       {/* Search Modal */}

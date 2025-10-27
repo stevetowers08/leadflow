@@ -1,4 +1,5 @@
 import { NotesSection } from '@/components/NotesSection';
+import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -621,12 +622,21 @@ export const CompanyDetailsSlideOut: React.FC<CompanyDetailsSlideOutProps> = ({
                 className={`h-4 w-4 ${company.is_favourite ? 'fill-current' : ''}`}
               />
             </Button>
+            <IconOnlyAssignmentCell
+              ownerId={company.owner_id}
+              entityId={company.id}
+              entityType='companies'
+              onAssignmentChange={() => {
+                onUpdate?.();
+              }}
+            />
             <UnifiedStatusDropdown
               entityId={company.id}
               entityType='companies'
               currentStatus={company.pipeline_stage || 'new_lead'}
               availableStatuses={[
                 'new_lead',
+                'qualified',
                 'message_sent',
                 'replied',
                 'meeting_scheduled',

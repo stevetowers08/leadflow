@@ -94,6 +94,7 @@ export interface Company {
   source_date: string | null;
   pipeline_stage:
     | 'new_lead'
+    | 'qualified'
     | 'message_sent'
     | 'replied'
     | 'meeting_scheduled'
@@ -194,6 +195,7 @@ export interface Company {
   source_date: string | null;
   pipeline_stage:
     | 'new_lead'
+    | 'qualified'
     | 'message_sent'
     | 'replied'
     | 'meeting_scheduled'

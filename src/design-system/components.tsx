@@ -228,53 +228,71 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
     const statusFilterArray = Array.isArray(statusFilter) ? statusFilter : [];
 
     return (
-      <div className={cn('flex items-center gap-2', className)}>
-        {/* Status Multi-Select - if enabled */}
-        {useMultiSelectStatus && onMultiSelectStatusChange ? (
-          <MultiSelectDropdown
-            options={statusOptions.filter(o => o.value !== 'all')}
-            value={statusFilterArray}
-            onValueChange={onMultiSelectStatusChange}
-            placeholder='All Stages'
-            className={cn(tokens.dropdown, tokens.dropdownMedium)}
-          />
-        ) : (
-          <DropdownSelect
-            options={statusOptions}
-            value={Array.isArray(statusFilter) ? '' : statusFilter}
-            onValueChange={onStatusChange}
-            placeholder='All Stages'
-            className={cn(tokens.dropdown, tokens.dropdownMedium)}
-          />
+      <div
+        className={cn(
+          'flex items-center gap-2 justify-between w-full',
+          className
         )}
-
-        {/* Assignment Filter */}
-        <DropdownSelect
-          options={userOptions}
-          value={selectedUser}
-          onValueChange={onUserChange}
-          placeholder={userOptions.length > 0 ? userOptions[0].label : 'All'}
-          className={cn(tokens.dropdown, tokens.dropdownMedium)}
-        />
-
-        {/* Favorites Icon Button */}
-        <button
-          onClick={onFavoritesToggle}
-          className={cn(
-            tokens.button,
-            'flex-shrink-0',
-            showFavoritesOnly ? tokens.buttonActive : tokens.buttonDefault
+      >
+        <div className='flex items-center gap-2'>
+          {/* Status Multi-Select - if enabled */}
+          {useMultiSelectStatus && onMultiSelectStatusChange ? (
+            <MultiSelectDropdown
+              options={statusOptions.filter(o => o.value !== 'all')}
+              value={statusFilterArray}
+              onValueChange={onMultiSelectStatusChange}
+              placeholder='All Stages'
+              className={cn(tokens.dropdown, tokens.dropdownMedium)}
+            />
+          ) : (
+            <DropdownSelect
+              options={statusOptions}
+              value={Array.isArray(statusFilter) ? '' : statusFilter}
+              onValueChange={onStatusChange}
+              placeholder='All Stages'
+              className={cn(tokens.dropdown, tokens.dropdownMedium)}
+            />
           )}
-          aria-label={
-            showFavoritesOnly ? 'Show all items' : 'Show favorites only'
-          }
-        >
-          <Star
-            className={cn(tokens.icon, showFavoritesOnly && tokens.iconActive)}
-          />
-        </button>
 
-        {/* Inline Search */}
+          {/* Assignment Filter */}
+          <DropdownSelect
+            options={userOptions}
+            value={selectedUser}
+            onValueChange={onUserChange}
+            placeholder={userOptions.length > 0 ? userOptions[0].label : 'All'}
+            className={cn(tokens.dropdown, tokens.dropdownMedium)}
+          />
+
+          {/* Favorites Icon Button */}
+          <button
+            onClick={onFavoritesToggle}
+            className={cn(
+              tokens.button,
+              showFavoritesOnly ? tokens.buttonActive : tokens.buttonDefault
+            )}
+            aria-label={
+              showFavoritesOnly ? 'Show all items' : 'Show favorites only'
+            }
+          >
+            <Star
+              className={cn(
+                tokens.icon,
+                showFavoritesOnly && tokens.iconActive
+              )}
+            />
+          </button>
+
+          {/* Sort By Dropdown */}
+          <DropdownSelect
+            options={sortOptions}
+            value={sortBy}
+            onValueChange={onSortChange}
+            placeholder='Sort by'
+            className={cn(tokens.dropdown, tokens.dropdownLarge)}
+          />
+        </div>
+
+        {/* Inline Search - Completely Far Right */}
         <div className='flex items-center'>
           {isSearchActive ? (
             <input
@@ -282,32 +300,19 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
               value={searchTerm}
               onChange={e => onSearchChange(e.target.value)}
               placeholder='Search...'
-              className='h-7 px-3 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 min-w-48'
+              className='h-8 px-3 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 min-w-48'
               autoFocus
             />
           ) : (
             <button
               onClick={onSearchToggle}
-              className={cn(
-                tokens.button,
-                'flex-shrink-0',
-                tokens.buttonDefault
-              )}
+              className={cn(tokens.button, tokens.buttonDefault)}
               aria-label='Search'
             >
               <Search className={tokens.icon} />
             </button>
           )}
         </div>
-
-        {/* Sort By Dropdown */}
-        <DropdownSelect
-          options={sortOptions}
-          value={sortBy}
-          onValueChange={onSortChange}
-          placeholder='Sort by'
-          className={cn(tokens.dropdown, tokens.dropdownLarge)}
-        />
       </div>
     );
   }

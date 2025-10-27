@@ -40,6 +40,16 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   // Check if user can assign
   const canAssign = hasRole('admin') || hasRole('owner');
 
+  // Debug logging
+  console.log('IconOnlyAssignmentCell Debug:', {
+    entityId,
+    entityType,
+    ownerId,
+    canAssign,
+    hasAdminRole: hasRole('admin'),
+    hasOwnerRole: hasRole('owner'),
+  });
+
   // Fetch current owner details
   useEffect(() => {
     const fetchCurrentOwner = async () => {
@@ -80,9 +90,25 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
     fetchCurrentOwner();
   }, [ownerId]);
 
+  // Fetch team members on mount if user can assign
+  useEffect(() => {
+    if (canAssign && teamMembers.length === 0) {
+      console.log('✅ User can assign, fetching team members on mount...');
+      fetchTeamMembers().catch(err => {
+        console.error('❌ Failed to fetch team members:', err);
+      });
+    } else {
+      console.log('⏭️ Skipping team member fetch:', {
+        canAssign,
+        teamMembersCount: teamMembers.length,
+      });
+    }
+  }, [canAssign, teamMembers.length]);
+
   // Fetch team members for assignment
   const fetchTeamMembers = async () => {
     try {
+      console.log('Fetching team members for assignment...');
       const { data, error } = await supabase
         .from('user_profiles')
         .select('id, full_name, email, role')
@@ -94,6 +120,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
         throw error;
       }
 
+      console.log('Team members fetched:', data?.length || 0);
       setTeamMembers(data || []);
     } catch (error) {
       console.error('Error fetching team members:', error);
@@ -185,15 +212,24 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   };
 
   const handleClick = (e: React.MouseEvent) => {
+    // CRITICAL: Stop all event propagation
     e.preventDefault();
     e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
 
-    if (!canAssign) return;
+    console.log('🚫 Assignment button clicked, stopping propagation');
+
+    if (!canAssign) {
+      console.log('⛔ User cannot assign');
+      return;
+    }
 
     if (teamMembers.length === 0) {
+      console.log('👥 No team members cached, fetching...');
       fetchTeamMembers();
     }
 
+    console.log('🔄 Toggling user list dropdown');
     setShowUserList(!showUserList);
   };
 
@@ -227,12 +263,18 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   return (
     <div className={cn('relative flex items-center justify-center', className)}>
       {/* Assignment Display - Icon Only */}
-      <div
+      <button
+        type='button'
         className={cn(
-          'cursor-pointer transition-colors rounded-md p-1 hover:bg-gray-50',
+          'cursor-pointer transition-colors rounded-md p-1 hover:bg-gray-50 relative z-10',
           isUpdating && 'opacity-50 pointer-events-none'
         )}
         onClick={handleClick}
+        onMouseDown={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.nativeEvent.stopImmediatePropagation();
+        }}
         title={currentOwner ? currentOwner.full_name : 'Unassigned'}
       >
         {currentOwner ? (
@@ -250,7 +292,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
             <User className='w-3 h-3 text-gray-400' />
           </div>
         )}
-      </div>
+      </button>
 
       {/* User Selection Dropdown */}
       {showUserList && (

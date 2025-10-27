@@ -570,6 +570,7 @@ const People: React.FC = () => {
               'follow_up',
               'not_interested',
             ]}
+            variant='cell'
             onStatusChange={handlePersonUpdate}
           />
         ),
@@ -792,25 +793,37 @@ const People: React.FC = () => {
 
   return (
     <Page stats={stats} title='Qualified Leads' hideHeader>
-      <div className='flex-1 flex flex-col min-h-0 space-y-3'>
-        {/* Filter Controls */}
-        <FilterControls
-          statusOptions={statusOptions}
-          userOptions={userOptions}
-          sortOptions={sortOptions}
-          statusFilter={statusFilter}
-          selectedUser={selectedUser}
-          sortBy={sortBy}
-          showFavoritesOnly={showFavoritesOnly}
-          searchTerm={searchTerm}
-          isSearchActive={isSearchActive}
-          onStatusChange={setStatusFilter}
-          onUserChange={setSelectedUser}
-          onSortChange={setSortBy}
-          onFavoritesToggle={handleFavoritesToggle}
-          onSearchChange={handleSearchChange}
-          onSearchToggle={handleSearchToggle}
-        />
+      <div className='flex-1 flex flex-col min-h-0 space-y-1'>
+        {/* Page Header */}
+        <div className='mb-4'>
+          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
+            Qualified Leads
+          </h1>
+          <p className='text-sm text-muted-foreground'>
+            Manage your contacts and track your outreach to decision makers
+          </p>
+        </div>
+
+        {/* Filter Controls - Left Aligned */}
+        <div className='flex items-center justify-start gap-4 py-2 mb-4'>
+          <FilterControls
+            statusOptions={statusOptions}
+            userOptions={userOptions}
+            sortOptions={sortOptions}
+            statusFilter={statusFilter}
+            selectedUser={selectedUser}
+            sortBy={sortBy}
+            showFavoritesOnly={showFavoritesOnly}
+            searchTerm={searchTerm}
+            isSearchActive={isSearchActive}
+            onStatusChange={setStatusFilter}
+            onUserChange={setSelectedUser}
+            onSortChange={setSortBy}
+            onFavoritesToggle={handleFavoritesToggle}
+            onSearchChange={handleSearchChange}
+            onSearchToggle={handleSearchToggle}
+          />
+        </div>
 
         {/* Unified Table - Scrollable area */}
         <div className='flex-1 min-h-0'>
@@ -826,16 +839,19 @@ const People: React.FC = () => {
           />
         </div>
 
-        {/* Pagination Controls */}
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalItems={filteredPeople.length}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setPageSize}
-          pageSizeOptions={[10, 25, 50, 100]}
-        />
+        {/* Pagination - Compact */}
+        <div className='flex-shrink-0 pt-1'>
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={filteredPeople.length}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[10, 25, 50, 100]}
+            className='mt-0'
+          />
+        </div>
       </div>
 
       {/* Search Modal */}

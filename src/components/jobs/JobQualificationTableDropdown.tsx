@@ -97,6 +97,7 @@ export const JobQualificationTableDropdown: React.FC<
         entityType='jobs'
         currentStatus={currentStatus}
         availableStatuses={['new', 'qualify', 'skip']}
+        variant='cell'
         onStatusChange={handleStatusChange}
       />
 

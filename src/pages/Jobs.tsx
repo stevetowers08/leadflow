@@ -745,7 +745,7 @@ const Jobs: React.FC = () => {
         </div>
 
         {/* Tab Navigation and Filter Controls on Same Row */}
-        <div className='flex items-center justify-end gap-4 border-b border-gray-200 py-1 flex-nowrap overflow-hidden'>
+        <div className='flex items-center justify-end gap-4 py-1 mb-2 flex-nowrap overflow-hidden'>
           {/* Tab Navigation */}
           <div className='flex-shrink-0 mr-auto'>
             <TabNavigation

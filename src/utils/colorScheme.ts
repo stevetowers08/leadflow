@@ -330,6 +330,18 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
       border: 'border-gray-200',
     },
 
+    // Qualified - Modern Dark Green (system working)
+    qualified: {
+      background: 'bg-success-solid',
+      text: 'text-white',
+      border: 'border-success-solid',
+    },
+    QUALIFIED: {
+      background: 'bg-success-solid',
+      text: 'text-white',
+      border: 'border-success-solid',
+    },
+
     // Automated/Processed - Modern Dark Green (system working)
     automated: {
       background: 'bg-success-solid',

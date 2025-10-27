@@ -75,6 +75,7 @@ export function normalizeCompanyStage(stage: string | null): string {
   const statusMapping: Record<string, string> = {
     // New business pipeline stages
     new_lead: 'new_lead',
+    qualified: 'qualified',
     message_sent: 'message_sent',
     replied: 'replied',
     meeting_scheduled: 'meeting_scheduled',
@@ -89,8 +90,6 @@ export function normalizeCompanyStage(stage: string | null): string {
     NEW: 'new_lead',
     'NEW LEAD': 'new_lead',
     'new lead': 'new_lead',
-    qualified: 'replied',
-    QUALIFIED: 'replied',
     proceed: 'meeting_scheduled',
     PROCEED: 'meeting_scheduled',
     skip: 'closed_lost',
@@ -203,6 +202,7 @@ export function getStatusDisplayText(status: string): string {
 
     // Company pipeline stages - business pipeline workflow
     NEW_LEAD: 'New Lead',
+    qualified: 'Qualified',
     'meeting scheduled': 'Meeting Scheduled',
     MEETING_SCHEDULED: 'Meeting Scheduled',
     proposal_sent: 'Proposal Sent',
