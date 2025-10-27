@@ -5,6 +5,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
@@ -14,8 +15,9 @@ import {
   Bell,
   Briefcase,
   Building2,
-  HelpCircle,
+  Filter,
   Home,
+  LogOut,
   Megaphone,
   Menu,
   MessageSquare,
@@ -47,9 +49,9 @@ interface MobileSidebarProps {
 
 /**
  * Sidebar items following user flow document structure:
- * 1. Core Workflow - Primary user journey (Jobs → Companies → People → Conversations)
+ * 1. Core Workflow - Primary user journey (Jobs → Companies → Pipeline → People → Conversations)
  * 2. Advanced Features - Phase 2 features (Campaigns, Analytics)
- * 3. Settings & Support - Configuration and help
+ * 3. Settings - Configuration
  */
 const sidebarItems: SidebarItem[] = [
   // Core Workflow - Most common items displayed prominently
@@ -74,6 +76,13 @@ const sidebarItems: SidebarItem[] = [
     icon: <Building2 className='h-4 w-4' />,
     isPrimary: true,
     permission: 'companies',
+    category: 'main',
+  },
+  {
+    to: '/pipeline',
+    label: 'Pipeline',
+    icon: <Filter className='h-4 w-4' />,
+    isPrimary: true,
     category: 'main',
   },
   {
@@ -108,18 +117,12 @@ const sidebarItems: SidebarItem[] = [
     category: 'secondary',
   },
 
-  // Settings & Support
+  // Settings
   {
     to: '/settings',
     label: 'Settings',
     icon: <Settings className='h-4 w-4' />,
     permission: 'settings',
-    category: 'tools',
-  },
-  {
-    to: '/about',
-    label: 'Help',
-    icon: <HelpCircle className='h-4 w-4' />,
     category: 'tools',
   },
 ];
@@ -133,8 +136,31 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
   const location = useLocation();
   const { lightHaptic, mediumHaptic } = useHapticFeedback();
   const { canView } = usePermissions();
+  const { user, userProfile, signOut } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [showFavorites, setShowFavorites] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
 
   // Filter items based on permissions and search
   const filteredItems = sidebarItems.filter(item => {
@@ -375,11 +401,11 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
               </div>
             )}
 
-            {/* Settings & Support */}
+            {/* Settings */}
             {groupedItems.tools && (
               <div className='mb-6'>
                 <h3 className='mobile-supporting-sm font-semibold uppercase tracking-wide mb-3'>
-                  Settings & Support
+                  Settings
                 </h3>
                 <nav className='space-y-1'>
                   {groupedItems.tools.map(item => (
@@ -431,18 +457,39 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
           </div>
 
           {/* Sidebar Footer */}
-          <div className='p-4 border-t border-border/50'>
-            <div className='flex items-center gap-3'>
+          <div ref={menuRef} className='p-4 border-t border-border/50 relative'>
+            <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className='w-full flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-all'
+            >
               <div className='w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center'>
                 <User className='h-4 w-4 text-primary' />
               </div>
-              <div className='flex-1 min-w-0'>
+              <div className='flex-1 min-w-0 text-left'>
                 <p className='mobile-body-sm font-medium truncate'>
-                  User Account
+                  {userProfile?.full_name || user?.email || 'User'}
                 </p>
-                <p className='mobile-supporting-sm truncate'>CRM Access</p>
+                <p className='mobile-supporting-sm truncate'>
+                  {user?.email || 'Account'}
+                </p>
               </div>
-            </div>
+            </button>
+
+            {/* Dropdown Menu */}
+            {isUserMenuOpen && (
+              <div className='absolute bottom-full left-4 right-4 mb-2 bg-background rounded-lg shadow-lg border border-border overflow-hidden'>
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    setIsUserMenuOpen(false);
+                  }}
+                  className='w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors'
+                >
+                  <LogOut className='h-4 w-4' />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </aside>

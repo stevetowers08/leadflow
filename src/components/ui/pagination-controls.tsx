@@ -33,7 +33,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   return (
     <div
       className={cn(
-        'flex items-center justify-between mt-2 flex-shrink-0',
+        'flex items-center justify-between flex-shrink-0',
         className
       )}
     >

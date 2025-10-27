@@ -102,9 +102,9 @@ export const TableCell = React.forwardRef<
       className={cn(
         // Conditional padding: remove padding for status cells to allow full-cell dropdowns
         cellType === 'status' ? 'p-0 relative' : 'px-4 py-2',
-        'text-sm border-r border-gray-200 border-b border-gray-200 last:border-r-0',
+        'text-sm border-r border-gray-200 border-b border-gray-200 last:border-r-0 text-gray-700',
         'transition-colors duration-150',
-        'group-hover:text-gray-900',
+        'group-hover:text-gray-600',
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
         // Apply unified status colors for full-cell backgrounds

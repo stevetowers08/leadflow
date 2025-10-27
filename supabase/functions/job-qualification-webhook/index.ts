@@ -171,6 +171,9 @@ serve(async req => {
 
     console.log('[Webhook] Company data:', companyData);
 
+    // NOTE: Database trigger now handles client_companies insertion automatically
+    // This ensures immediate data consistency (trigger runs before webhook)
+
     // Prepare payload for n8n
     const payload: JobQualificationPayload = {
       job_id: jobData.id,
@@ -244,21 +247,16 @@ serve(async req => {
         webhookResponse.status,
         webhookResponse.statusText
       );
-      return new Response(
-        JSON.stringify({
-          error: 'Failed to send webhook to n8n',
-          status: webhookResponse.status,
-          statusText: webhookResponse.statusText,
-        }),
-        {
-          status: 502,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+      // Don't fail the entire request if n8n fails - companies are already added
     }
 
     // Log the webhook event (with event_id for idempotency)
-    await logWebhookEvent(job_id, payload, webhookResponse.status, eventId);
+    await logWebhookEvent(
+      job_id,
+      payload,
+      webhookResponse.ok ? webhookResponse.status : 502,
+      eventId
+    );
 
     return new Response(
       JSON.stringify({

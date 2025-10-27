@@ -6,6 +6,7 @@ export interface TabOption {
   label: string;
   count: number;
   icon?: React.ComponentType<{ className?: string }> | null;
+  showCount?: boolean;
 }
 
 export interface TabNavigationProps {
@@ -40,16 +41,18 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
             >
               {Icon && <Icon className='h-4 w-4' />}
               <span>{tab.label}</span>
-              <span
-                className={cn(
-                  'inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full',
-                  activeTab === tab.id
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-gray-100 text-gray-500'
-                )}
-              >
-                {tab.count}
-              </span>
+              {tab.showCount !== false && (
+                <span
+                  className={cn(
+                    'inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full',
+                    activeTab === tab.id
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'bg-gray-100 text-gray-500'
+                  )}
+                >
+                  {tab.count ?? 0}
+                </span>
+              )}
             </button>
           );
         })}

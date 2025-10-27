@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 import React, { useEffect } from 'react';
 
@@ -22,10 +23,8 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
   width = 'default',
   customHeader,
 }) => {
-  const maxWidthClass =
-    width === 'wide'
-      ? 'sm:max-w-[75vw] md:max-w-[75vw]'
-      : 'sm:max-w-[800px] md:max-w-[800px]';
+  // Calculate width classes based on width prop
+  const widthClasses = width === 'wide' ? 'w-[75vw]' : 'w-[50vw]';
   // Handle ESC key
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -63,7 +62,10 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
 
       {/* Panel */}
       <div
-        className={`fixed top-12 right-0 bottom-0 w-full max-w-[90vw] ${maxWidthClass} bg-white z-[10001] flex flex-col transition-transform duration-300 ease-in-out`}
+        className={cn(
+          'fixed top-12 right-0 bottom-0 bg-white z-[10001] flex flex-col transition-transform duration-300 ease-in-out',
+          widthClasses
+        )}
         style={{
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           boxShadow: '-2px 0 15px rgba(0, 0, 0, 0.1)',

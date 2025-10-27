@@ -432,20 +432,38 @@ const ConversationsPage: React.FC = () => {
                         <div className='text-xs text-gray-600 mb-1 truncate'>
                           {thread.person_email}
                         </div>
-                        <div className='text-xs text-gray-500 mb-2'>
-                          Got reply from the lead
+                        <div className='text-xs text-gray-500 mb-2 truncate'>
+                          {thread.last_message_preview}
                         </div>
                         <div className='flex items-center gap-2'>
-                          <Badge className='bg-pink-100 text-pink-700 text-xs px-2 py-1 h-5'>
-                            Out Of Office
-                          </Badge>
-                          <Badge
-                            variant='outline'
-                            className='text-xs px-2 py-1 h-5'
-                          >
-                            <Zap className='h-3 w-3 mr-1' />
-                            Client:AES_C1
-                          </Badge>
+                          {thread.lead_status && (
+                            <Badge
+                              className={
+                                thread.lead_status === 'interested'
+                                  ? 'bg-green-100 text-green-700 text-xs px-2 py-1 h-5'
+                                  : thread.lead_status === 'out_of_office'
+                                    ? 'bg-pink-100 text-pink-700 text-xs px-2 py-1 h-5'
+                                    : 'bg-gray-100 text-gray-700 text-xs px-2 py-1 h-5'
+                              }
+                            >
+                              {thread.lead_status === 'interested'
+                                ? 'Interested'
+                                : thread.lead_status === 'out_of_office'
+                                  ? 'Out Of Office'
+                                  : thread.lead_status === 'not_interested'
+                                    ? 'Not Interested'
+                                    : 'No Response'}
+                            </Badge>
+                          )}
+                          {thread.campaign_name && (
+                            <Badge
+                              variant='outline'
+                              className='text-xs px-2 py-1 h-5'
+                            >
+                              <Zap className='h-3 w-3 mr-1' />
+                              {thread.campaign_name}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -505,13 +523,31 @@ const ConversationsPage: React.FC = () => {
                 </div>
 
                 <div className='flex items-center gap-2'>
-                  <Badge className='bg-green-100 text-green-700 text-xs'>
-                    Interested
-                  </Badge>
-                  <Badge variant='outline' className='text-xs'>
-                    <Zap className='h-3 w-3 mr-1' />
-                    Client:AES_C1
-                  </Badge>
+                  {selectedThread.lead_status && (
+                    <Badge
+                      className={
+                        selectedThread.lead_status === 'interested'
+                          ? 'bg-green-100 text-green-700 text-xs'
+                          : selectedThread.lead_status === 'out_of_office'
+                            ? 'bg-pink-100 text-pink-700 text-xs'
+                            : 'bg-gray-100 text-gray-700 text-xs'
+                      }
+                    >
+                      {selectedThread.lead_status === 'interested'
+                        ? 'Interested'
+                        : selectedThread.lead_status === 'out_of_office'
+                          ? 'Out Of Office'
+                          : selectedThread.lead_status === 'not_interested'
+                            ? 'Not Interested'
+                            : 'No Response'}
+                    </Badge>
+                  )}
+                  {selectedThread.campaign_name && (
+                    <Badge variant='outline' className='text-xs'>
+                      <Zap className='h-3 w-3 mr-1' />
+                      {selectedThread.campaign_name}
+                    </Badge>
+                  )}
                 </div>
               </div>
 

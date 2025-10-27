@@ -134,7 +134,7 @@ export default function GettingStarted() {
           </h2>
 
           {/* Introduction Text */}
-          <div className='space-y-5 text-base font-semibold text-foreground mb-8'>
+          <div className='space-y-5 text-base text-gray-700 mb-8'>
             <p>
               This platform is a B2B sales focused recruitment tool that helps
               recruiters and agencies find companies with open positions,
@@ -143,10 +143,10 @@ export default function GettingStarted() {
               development.
             </p>
             <p>
-              <strong className='font-bold'>How it works:</strong> You browse
-              job postings to identify companies who are hiring. The platform
-              automates finding the right decision makers at those companies and
-              creates AI messages ready to use.
+              <strong className='font-semibold'>How it works:</strong> You
+              browse job postings to identify companies who are hiring. The
+              platform automates finding the right decision makers at those
+              companies and creates AI messages ready to use.
             </p>
             <p>
               Rather than building a full ATS, this platform focuses on business
@@ -161,15 +161,15 @@ export default function GettingStarted() {
             <h3 className='text-xl font-bold text-foreground mb-6'>
               Target Signals Intelligence Workflow
             </h3>
-            <div className='relative'>
-              <div className='grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6 relative'>
-                {/* Step 1 */}
-                <div className='flex items-start gap-5 relative z-10'>
-                  <div className='flex-1 pt-1'>
-                    <h3 className='font-bold text-base text-foreground mb-1.5 flex items-center gap-2'>
-                      <span className='inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold'>
-                        1
-                      </span>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+              {/* Step 1 */}
+              <ModernCard variant='minimal' className='p-5'>
+                <div className='flex items-start gap-4'>
+                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 flex items-center justify-center'>
+                    <span className='text-blue-700 text-sm font-bold'>1</span>
+                  </div>
+                  <div className='flex-1'>
+                    <h3 className='font-semibold text-base text-foreground mb-1.5'>
                       Configure Automated Job Discovery
                     </h3>
                     <p className='text-sm text-muted-foreground leading-relaxed'>
@@ -180,14 +180,16 @@ export default function GettingStarted() {
                     </p>
                   </div>
                 </div>
+              </ModernCard>
 
-                {/* Step 2 */}
-                <div className='flex items-start gap-5 relative z-10'>
-                  <div className='flex-1 pt-1'>
-                    <h3 className='font-bold text-base text-foreground mb-1.5 flex items-center gap-2'>
-                      <span className='inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold'>
-                        2
-                      </span>
+              {/* Step 2 */}
+              <ModernCard variant='minimal' className='p-5'>
+                <div className='flex items-start gap-4'>
+                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 flex items-center justify-center'>
+                    <span className='text-purple-700 text-sm font-bold'>2</span>
+                  </div>
+                  <div className='flex-1'>
+                    <h3 className='font-semibold text-base text-foreground mb-1.5'>
                       Review & Qualify Companies
                     </h3>
                     <p className='text-sm text-muted-foreground leading-relaxed'>
@@ -198,14 +200,16 @@ export default function GettingStarted() {
                     </p>
                   </div>
                 </div>
+              </ModernCard>
 
-                {/* Step 3 */}
-                <div className='flex items-start gap-5 relative z-10'>
-                  <div className='flex-1 pt-1'>
-                    <h3 className='font-bold text-base text-foreground mb-1.5 flex items-center gap-2'>
-                      <span className='inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-700 text-xs font-bold'>
-                        3
-                      </span>
+              {/* Step 3 */}
+              <ModernCard variant='minimal' className='p-5'>
+                <div className='flex items-start gap-4'>
+                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200 flex items-center justify-center'>
+                    <span className='text-green-700 text-sm font-bold'>3</span>
+                  </div>
+                  <div className='flex-1'>
+                    <h3 className='font-semibold text-base text-foreground mb-1.5'>
                       AI Discovers Decision Makers
                     </h3>
                     <p className='text-sm text-muted-foreground leading-relaxed'>
@@ -216,14 +220,16 @@ export default function GettingStarted() {
                     </p>
                   </div>
                 </div>
+              </ModernCard>
 
-                {/* Step 4 */}
-                <div className='flex items-start gap-5 relative z-10'>
-                  <div className='flex-1 pt-1'>
-                    <h3 className='font-bold text-base text-foreground mb-1.5 flex items-center gap-2'>
-                      <span className='inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-700 text-xs font-bold'>
-                        4
-                      </span>
+              {/* Step 4 */}
+              <ModernCard variant='minimal' className='p-5'>
+                <div className='flex items-start gap-4'>
+                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 flex items-center justify-center'>
+                    <span className='text-orange-700 text-sm font-bold'>4</span>
+                  </div>
+                  <div className='flex-1'>
+                    <h3 className='font-semibold text-base text-foreground mb-1.5'>
                       Launch Outreach or Export to CRM
                     </h3>
                     <p className='text-sm text-muted-foreground leading-relaxed'>
@@ -234,14 +240,16 @@ export default function GettingStarted() {
                     </p>
                   </div>
                 </div>
+              </ModernCard>
 
-                {/* Step 5 */}
-                <div className='flex items-start gap-5 relative z-10'>
-                  <div className='flex-1 pt-1'>
-                    <h3 className='font-bold text-base text-foreground mb-1.5 flex items-center gap-2'>
-                      <span className='inline-flex items-center justify-center w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-bold'>
-                        5
-                      </span>
+              {/* Step 5 */}
+              <ModernCard variant='minimal' className='p-5'>
+                <div className='flex items-start gap-4'>
+                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 flex items-center justify-center'>
+                    <span className='text-teal-700 text-sm font-bold'>5</span>
+                  </div>
+                  <div className='flex-1'>
+                    <h3 className='font-semibold text-base text-foreground mb-1.5'>
                       Track Status & Pipeline Updates
                     </h3>
                     <p className='text-sm text-muted-foreground leading-relaxed'>
@@ -252,7 +260,7 @@ export default function GettingStarted() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </ModernCard>
             </div>
           </div>
         </ModernCard>
@@ -303,7 +311,7 @@ export default function GettingStarted() {
                     </div>
                     {getStatusIcon(step.completed)}
                     <div className='flex-1'>
-                      <h3 className='font-semibold text-gray-900 text-base'>
+                      <h3 className='font-semibold text-gray-700 text-base'>
                         {step.title}
                       </h3>
                       <p className='text-sm text-gray-600 mt-0.5'>

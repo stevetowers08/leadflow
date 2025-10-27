@@ -12,6 +12,7 @@
  */
 
 import { StatusDropdown } from '@/components/people/StatusDropdown';
+import { CompanyHoverPreview } from '@/components/shared/CompanyHoverPreview';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
@@ -45,7 +46,7 @@ const Companies: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Filter and search state
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -74,8 +75,8 @@ const Companies: React.FC = () => {
   const statusOptions = useMemo(
     () => [
       { label: 'All Stages', value: 'all' },
-      { label: getStatusDisplayText('qualified'), value: 'qualified' },
-      { label: getStatusDisplayText('automated'), value: 'automated' },
+      { label: getStatusDisplayText('new_lead'), value: 'new_lead' },
+      { label: getStatusDisplayText('message_sent'), value: 'message_sent' },
       { label: getStatusDisplayText('replied'), value: 'replied' },
       {
         label: getStatusDisplayText('meeting_scheduled'),
@@ -206,8 +207,7 @@ const Companies: React.FC = () => {
               qualified_at: item.qualified_at,
               qualified_by: item.qualified_by,
               client_priority: item.priority,
-              // Override pipeline_stage to show qualification status
-              pipeline_stage: 'qualified', // Companies on this page are all qualified
+              // Keep the actual pipeline_stage from the company
             };
           }) || [];
 
@@ -241,10 +241,10 @@ const Companies: React.FC = () => {
   const filteredCompanies = useMemo(() => {
     let filtered = companies;
 
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(
-        company => company.pipeline_stage === statusFilter
+    // Status filter - multi-select
+    if (statusFilter.length > 0) {
+      filtered = filtered.filter(company =>
+        statusFilter.includes(company.pipeline_stage || 'qualified')
       );
     }
 
@@ -421,11 +421,11 @@ const Companies: React.FC = () => {
         minWidth: '120px',
         cellType: 'status',
         align: 'center',
-        getStatusValue: company => company.pipeline_stage || 'qualified',
+        getStatusValue: company => company.pipeline_stage || 'new_lead',
         render: (_, company) => {
           const availableStatuses = [
-            'qualified',
-            'automated',
+            'new_lead',
+            'message_sent',
             'replied',
             'meeting_scheduled',
             'proposal_sent',
@@ -439,8 +439,9 @@ const Companies: React.FC = () => {
             <StatusDropdown
               entityId={company.id}
               entityType='companies'
-              currentStatus={company.pipeline_stage || 'qualified'}
+              currentStatus={company.pipeline_stage || 'new_lead'}
               availableStatuses={availableStatuses}
+              variant='cell'
               onStatusChange={() => {
                 // Refresh companies data
                 const fetchData = async () => {
@@ -462,35 +463,37 @@ const Companies: React.FC = () => {
         width: '300px',
         cellType: 'regular',
         render: (_, company) => (
-          <div className='flex items-center gap-2 min-w-0'>
-            <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
-              {company.website ? (
-                <img
-                  src={`https://logo.clearbit.com/${
-                    company.website
-                      .replace(/^https?:\/\//, '')
-                      .replace(/^www\./, '')
-                      .split('/')[0]
-                  }`}
-                  alt={company.name}
-                  className='w-7 h-7 rounded-lg object-cover'
-                  onError={e => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      'none';
-                    const nextElement = e.currentTarget
-                      .nextElementSibling as HTMLElement;
-                    if (nextElement) {
-                      nextElement.style.display = 'flex';
-                    }
-                  }}
-                />
-              ) : null}
-              <Building2 className='h-3 w-3 text-gray-400' />
+          <CompanyHoverPreview company={company}>
+            <div className='flex items-center gap-2 min-w-0'>
+              <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+                {company.website ? (
+                  <img
+                    src={`https://logo.clearbit.com/${
+                      company.website
+                        .replace(/^https?:\/\//, '')
+                        .replace(/^www\./, '')
+                        .split('/')[0]
+                    }`}
+                    alt={company.name}
+                    className='w-7 h-7 rounded-lg object-cover'
+                    onError={e => {
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        'none';
+                      const nextElement = e.currentTarget
+                        .nextElementSibling as HTMLElement;
+                      if (nextElement) {
+                        nextElement.style.display = 'flex';
+                      }
+                    }}
+                  />
+                ) : null}
+                <Building2 className='h-3 w-3 text-gray-400' />
+              </div>
+              <div className='text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
+                {company.name || '-'}
+              </div>
             </div>
-            <div className='text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
-              {company.name || '-'}
-            </div>
-          </div>
+          </CompanyHoverPreview>
         ),
       },
       {
@@ -651,7 +654,7 @@ const Companies: React.FC = () => {
   return (
     <Page stats={stats} title='Companies' hideHeader>
       <div className='flex-1 flex flex-col min-h-0 space-y-3'>
-        {/* Filter Controls */}
+        {/* Filter Controls - Compact */}
         <FilterControls
           statusOptions={statusOptions}
           userOptions={userOptions}
@@ -662,12 +665,15 @@ const Companies: React.FC = () => {
           showFavoritesOnly={showFavoritesOnly}
           searchTerm={searchTerm}
           isSearchActive={isSearchActive}
-          onStatusChange={setStatusFilter}
+          onStatusChange={() => {}}
+          onMultiSelectStatusChange={setStatusFilter}
           onUserChange={setSelectedUser}
           onSortChange={setSortBy}
           onFavoritesToggle={handleFavoritesToggle}
           onSearchChange={handleSearchChange}
           onSearchToggle={handleSearchToggle}
+          useMultiSelectStatus={true}
+          className='[&_select]:max-w-[160px] [&_button]:max-w-[160px] [&>div>select]:max-w-[160px] [&>div>button]:max-w-[160px]'
         />
 
         {/* Unified Table - Scrollable area */}
@@ -739,6 +745,10 @@ const Companies: React.FC = () => {
           setSelectedCompanyId(null);
         }}
         onUpdate={handleCompanyUpdate}
+        onPersonClick={personId => {
+          setSelectedPersonId(personId);
+          setIsPersonSlideOutOpen(true);
+        }}
       />
 
       {/* Person Details Slide-Out */}

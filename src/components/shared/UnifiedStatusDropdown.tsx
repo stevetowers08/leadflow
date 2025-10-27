@@ -31,6 +31,7 @@ export interface UnifiedStatusDropdownProps {
   availableStatuses: string[];
   onStatusChange?: () => void;
   disabled?: boolean;
+  variant?: 'button' | 'cell';
 }
 
 export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
@@ -40,6 +41,7 @@ export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
   availableStatuses,
   onStatusChange,
   disabled = false,
+  variant = 'button',
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -174,37 +176,80 @@ export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
   const statusClasses = getUnifiedStatusClass(localStatus);
   const displayText = getStatusDisplayText(localStatus);
 
+  // Extract the background color class for the status indicator
+  const statusIndicatorClass =
+    getUnifiedStatusClass(localStatus).split(' ')[0] || 'bg-gray-100';
+
+  // Choose variant styling
+  const isCellVariant = variant === 'cell';
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         disabled={disabled || isUpdating}
         className={cn(
-          'absolute inset-0 w-full h-full flex items-center justify-center gap-1.5 text-xs font-medium',
-          'rounded-none border-none outline-none ring-0 shadow-none',
-          'transition-all duration-150 whitespace-nowrap',
-          statusClasses,
+          isCellVariant
+            ? // Cell variant - full cell color, no border, centered text
+              cn(
+                'absolute inset-0 w-full h-full flex items-center justify-center',
+                statusClasses,
+                'transition-all duration-150 whitespace-nowrap'
+              )
+            : // Button variant - button-like with border and dot
+              cn(
+                'flex items-center gap-2 px-3 py-1.5 text-sm',
+                'bg-white border border-gray-200 rounded-lg',
+                'hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'transition-all duration-200 ease-in-out',
+                'min-w-[140px]'
+              ),
           (disabled || isUpdating) && 'opacity-50 cursor-not-allowed',
-          !disabled && !isUpdating && 'hover:opacity-90 cursor-pointer'
+          !disabled &&
+            !isUpdating &&
+            (isCellVariant
+              ? 'hover:opacity-90 cursor-pointer'
+              : 'cursor-pointer')
         )}
       >
-        <span>{displayText}</span>
-        {!disabled && !isUpdating && (
-          <ChevronDown className='h-3 w-3 flex-shrink-0' />
+        {isCellVariant ? (
+          // Cell variant: just text, no dot
+          <>
+            <span>{displayText}</span>
+            {!disabled && !isUpdating && (
+              <ChevronDown className='h-3 w-3 flex-shrink-0 ml-1' />
+            )}
+          </>
+        ) : (
+          // Button variant: dot + text + chevron
+          <>
+            <div className='flex items-center gap-2 flex-1'>
+              <div
+                className={cn(
+                  'w-2 h-2 rounded-full flex-shrink-0',
+                  statusIndicatorClass
+                )}
+              />
+              <span className='text-gray-900 font-medium text-xs'>
+                {displayText}
+              </span>
+            </div>
+            {!disabled && !isUpdating && (
+              <ChevronDown className='h-4 w-4 text-gray-400 flex-shrink-0' />
+            )}
+          </>
         )}
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
         align='start'
         side='bottom'
-        sideOffset={2}
-        alignOffset={-2}
-        className='w-[150px] min-w-[150px] max-w-[150px] p-1'
+        sideOffset={4}
+        className='w-[180px] p-1'
         onClick={e => e.stopPropagation()}
       >
         {availableStatuses.map(status => {
           const isSelected = status === localStatus;
           const statusClassString = getUnifiedStatusClass(status);
-          // Extract just the background color class (first class in the string)
           const bgClass = statusClassString.split(' ')[0] || 'bg-gray-100';
 
           return (
@@ -213,11 +258,9 @@ export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
               onClick={() => updateStatus(status)}
               disabled={isSelected}
               className={cn(
-                'flex items-center justify-between gap-2 cursor-pointer px-2.5 py-1.5 rounded-md text-xs',
+                'flex items-center justify-between gap-2 cursor-pointer px-2.5 py-1.5 rounded-md text-sm',
                 'transition-colors text-gray-900',
-                isSelected
-                  ? 'bg-blue-50 font-medium'
-                  : 'hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 focus:bg-gray-50'
+                isSelected ? 'bg-blue-50 font-medium' : 'hover:bg-gray-50'
               )}
             >
               <div className='flex items-center gap-2 flex-1 min-w-0'>
@@ -227,7 +270,7 @@ export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
                 <span className='truncate'>{getStatusDisplayText(status)}</span>
               </div>
               {isSelected && (
-                <Check className='h-3.5 w-3.5 text-blue-600 flex-shrink-0' />
+                <Check className='h-4 w-4 text-blue-600 flex-shrink-0' />
               )}
             </DropdownMenuItem>
           );

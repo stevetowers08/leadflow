@@ -221,16 +221,16 @@ export const designTokens = {
     leftGroup: 'flex flex-col sm:flex-row items-stretch sm:items-center gap-2',
     rightGroup: 'flex items-center gap-2',
 
-    // Dropdown styling - cleaner borders
+    // Dropdown styling - cleaner borders and larger sizes
     dropdown:
-      'bg-white h-7 px-3 text-sm border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors',
-    dropdownSmall: 'min-w-28 sm:min-w-32',
-    dropdownMedium: 'min-w-32 sm:min-w-40',
-    dropdownLarge: 'min-w-32',
+      'bg-white h-8 px-3 text-sm border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors',
+    dropdownSmall: 'min-w-36',
+    dropdownMedium: 'min-w-44',
+    dropdownLarge: 'min-w-48',
 
-    // Button styling - cleaner borders
+    // Button styling - cleaner borders, larger size
     button:
-      'h-7 w-7 rounded-md border flex items-center justify-center transition-colors',
+      'h-8 w-8 rounded-md border flex items-center justify-center transition-colors',
     buttonDefault:
       'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50',
     buttonActive:

@@ -733,48 +733,56 @@ const Jobs: React.FC = () => {
 
   return (
     <Page title='Job Intelligence' hideHeader>
-      <div className='flex-1 flex flex-col min-h-0 space-y-3'>
+      <div className='flex-1 flex flex-col min-h-0 space-y-1'>
         {/* Page Header */}
-        <div className='mb-2'>
+        <div className='mb-1'>
           <h1 className='text-2xl font-bold tracking-tight text-foreground'>
             Job Intelligence
           </h1>
-          <p className='text-sm text-muted-foreground mt-1'>
+          <p className='text-sm text-muted-foreground'>
             Qualify jobs to get more company info and decision makers using AI
           </p>
         </div>
 
-        {/* Modern Tab Navigation */}
-        <TabNavigation
-          tabs={tabCounts}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-        />
+        {/* Tab Navigation and Filter Controls on Same Row */}
+        <div className='flex items-center justify-end gap-4 border-b border-gray-200 py-1 flex-nowrap overflow-hidden'>
+          {/* Tab Navigation */}
+          <div className='flex-shrink-0 mr-auto'>
+            <TabNavigation
+              tabs={tabCounts}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              className='border-b-0'
+            />
+          </div>
 
-        {/* Search, Filter and Sort Controls */}
-        <FilterControls
-          statusOptions={statusOptions}
-          userOptions={[
-            { label: 'All Sources', value: 'all' },
-            ...sources.map(source => ({
-              label: source.charAt(0).toUpperCase() + source.slice(1),
-              value: source,
-            })),
-          ]}
-          sortOptions={sortOptions}
-          statusFilter={statusFilter}
-          selectedUser={selectedSource}
-          sortBy={sortBy}
-          showFavoritesOnly={showFavoritesOnly}
-          searchTerm={searchTerm}
-          isSearchActive={isSearchActive}
-          onStatusChange={setStatusFilter}
-          onUserChange={setSelectedSource}
-          onSortChange={setSortBy}
-          onFavoritesToggle={handleFavoritesToggle}
-          onSearchChange={handleSearchChange}
-          onSearchToggle={handleSearchToggle}
-        />
+          {/* Search, Filter and Sort Controls - Right Aligned */}
+          <div className='flex items-center gap-2 flex-shrink-0'>
+            <FilterControls
+              statusOptions={statusOptions}
+              userOptions={[
+                { label: 'All Sources', value: 'all' },
+                ...sources.map(source => ({
+                  label: source.charAt(0).toUpperCase() + source.slice(1),
+                  value: source,
+                })),
+              ]}
+              sortOptions={sortOptions}
+              statusFilter={statusFilter}
+              selectedUser={selectedSource}
+              sortBy={sortBy}
+              showFavoritesOnly={showFavoritesOnly}
+              searchTerm={searchTerm}
+              isSearchActive={isSearchActive}
+              onStatusChange={setStatusFilter}
+              onUserChange={setSelectedSource}
+              onSortChange={setSortBy}
+              onFavoritesToggle={handleFavoritesToggle}
+              onSearchChange={handleSearchChange}
+              onSearchToggle={handleSearchToggle}
+            />
+          </div>
+        </div>
 
         {/* Unified Table - Scrollable area */}
         <div className='flex-1 min-h-0'>
@@ -790,18 +798,21 @@ const Jobs: React.FC = () => {
           />
         </div>
 
-        {/* Pagination */}
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalItems={filteredJobs.length}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={size => {
-            setPageSize(size);
-            setCurrentPage(1);
-          }}
-        />
+        {/* Pagination - Compact */}
+        <div className='flex-shrink-0 pt-1'>
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={filteredJobs.length}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={size => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
+            className='mt-0'
+          />
+        </div>
 
         {/* Search Modal */}
         <SearchModal

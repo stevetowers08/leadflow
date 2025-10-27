@@ -147,7 +147,20 @@ export const NotesSection = ({
   }, [entityId, entityType, isExpanded, hasLoaded, toast]);
 
   const addNote = async () => {
-    if (!newNoteContent.trim() || !user) return;
+    if (!newNoteContent.trim() || !user) {
+      console.error('Cannot add note:', {
+        hasContent: !!newNoteContent.trim(),
+        hasUser: !!user,
+      });
+      if (!user) {
+        toast({
+          title: 'Authentication Error',
+          description: 'You must be logged in to add notes',
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
 
     setIsSaving(true);
     try {
@@ -170,7 +183,10 @@ export const NotesSection = ({
         )
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error inserting note:', error);
+        throw error;
+      }
 
       // Get author name
       const { data: authorData } = await supabase
@@ -199,9 +215,11 @@ export const NotesSection = ({
       });
     } catch (error) {
       console.error('Error adding note:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to add note';
       toast({
         title: 'Error',
-        description: 'Failed to add note',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
