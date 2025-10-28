@@ -111,7 +111,7 @@ export const TableCell = React.forwardRef<
       ref={ref}
       className={cn(
         // Conditional padding: remove padding for status cells to allow full-cell dropdowns
-        cellType === 'status' ? 'p-0 relative' : 'px-4 py-2',
+        cellType === 'status' ? 'p-0 relative' : 'px-3 py-1.5',
         'text-sm border-r border-gray-200 border-b border-gray-200 last:border-r-0 text-gray-700',
         'transition-colors duration-150',
         'group-hover:text-gray-600',
@@ -219,13 +219,17 @@ export const UnifiedTable = React.memo(
         <div
           className={cn(
             'bg-card rounded-lg border shadow-sm w-full overflow-hidden',
-            scrollable ? 'flex flex-col h-full' : 'overflow-x-auto'
+            scrollable
+              ? 'flex flex-col h-full'
+              : 'overflow-x-auto scrollbar-modern'
           )}
         >
           <div
             ref={scrollContainerRef}
             className={cn(
-              scrollable ? 'flex-1 min-h-0 overflow-auto' : 'w-full'
+              scrollable
+                ? 'flex-1 min-h-0 overflow-auto table-scroll scrollbar-modern'
+                : 'w-full'
             )}
           >
             <table className='w-full border-collapse'>
