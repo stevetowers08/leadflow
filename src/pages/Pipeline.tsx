@@ -109,6 +109,8 @@ const Pipeline = () => {
   // Grouping state - start with all groups expanded
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set([
+      'Qualified',
+      'Message Sent',
       'Replied',
       'Interested',
       'Meeting Scheduled',

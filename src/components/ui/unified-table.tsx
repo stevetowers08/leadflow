@@ -287,14 +287,33 @@ export const UnifiedTable = React.memo(
 
               <TableBody>
                 {(() => {
+                  // If grouped mode but no groups, show empty message
+                  if (
+                    grouped &&
+                    groups &&
+                    Array.isArray(groups) &&
+                    groups.length === 0
+                  ) {
+                    return (
+                      <TableRow>
+                        <TableCell
+                          colSpan={columns.length}
+                          className='text-center py-8'
+                        >
+                          <div className='text-gray-500'>{emptyMessage}</div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+
                   return grouped &&
                     groups &&
                     Array.isArray(groups) &&
-                    groups.length > 0 &&
-                    expandedGroups
+                    groups.length > 0
                     ? // Render grouped data
                       groups.map((group, groupIndex) => {
-                        const isExpanded = expandedGroups.has(group.label);
+                        const isExpanded =
+                          expandedGroups?.has(group.label) ?? true;
                         const shouldRender = group.data.length > 0;
 
                         if (!shouldRender) return null;
