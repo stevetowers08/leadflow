@@ -14,6 +14,9 @@
 import { StatusDropdown } from '@/components/people/StatusDropdown';
 import { CompanyHoverPreview } from '@/components/shared/CompanyHoverPreview';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
+import { IndustryBadges } from '@/components/shared/IndustryBadge';
+import { PeopleAvatars } from '@/components/shared/PeopleAvatars';
+import { ScoreBadge } from '@/components/shared/ScoreBadge';
 import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { Button } from '@/components/ui/button';
@@ -28,9 +31,9 @@ import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { Company, Person, UserProfile } from '@/types/database';
-import { convertNumericScoreToStatus } from '@/utils/colorScheme';
+import { formatLastActivity } from '@/utils/relativeTime';
 import { getStatusDisplayText } from '@/utils/statusUtils';
-import { Building2, CheckCircle, Target, Zap } from 'lucide-react';
+import { Building2, CheckCircle, Sparkles, Target, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -488,13 +491,21 @@ const Companies: React.FC = () => {
               availableStatuses={availableStatuses}
               variant='cell'
               onStatusChange={() => {
-                // Refresh companies data
+                // Trigger refetch of companies data
                 const fetchData = async () => {
-                  const { data } = await supabase
-                    .from('companies')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                  if (data) setCompanies(data as Company[]);
+                  try {
+                    const { data, error } = await supabase
+                      .from('companies')
+                      .select(
+                        'id, name, website, linkedin_url, head_office, industry_id, confidence_level, lead_score, score_reason, automation_active, automation_started_at, is_favourite, ai_info, key_info_raw, pipeline_stage, source, logo_url, company_size, normalized_company_size, industry, priority, owner_id, created_at, updated_at, funding_raised, estimated_arr'
+                      )
+                      .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+                    setCompanies((data as unknown as Company[]) || []);
+                  } catch (err) {
+                    console.error('Error refreshing companies:', err);
+                  }
                 };
                 fetchData();
               }}
@@ -543,7 +554,7 @@ const Companies: React.FC = () => {
       },
       {
         key: 'assigned_icon',
-        label: '', // No header
+        label: 'Owner',
         width: '60px',
         cellType: 'regular',
         align: 'center',
@@ -598,13 +609,85 @@ const Companies: React.FC = () => {
       {
         key: 'industry',
         label: 'Industry',
-        width: '150px',
+        width: '280px',
         cellType: 'regular',
         render: (_, company) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {company.industry || '-'}
-          </div>
+          <IndustryBadges
+            industries={company.industry}
+            badgeVariant='compact'
+            maxVisible={3}
+            noWrap
+            showOverflowIndicator={false}
+          />
         ),
+      },
+      {
+        key: 'website',
+        label: 'Website',
+        width: '220px',
+        cellType: 'regular',
+        render: (_, company) => {
+          const raw = company.website || '';
+          const pretty = raw
+            ? raw.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')
+            : '';
+          const href = raw
+            ? /^https?:\/\//.test(raw)
+              ? raw
+              : `https://${raw}`
+            : '';
+          return (
+            <div className='truncate'>
+              {pretty ? (
+                <a
+                  href={href}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-primary hover:underline'
+                  onClick={e => e.stopPropagation()}
+                >
+                  {pretty}
+                </a>
+              ) : (
+                '-'
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        key: 'linkedin_url',
+        label: 'LinkedIn',
+        width: '220px',
+        cellType: 'regular',
+        render: (_, company) => {
+          const raw = company.linkedin_url || '';
+          const pretty = raw
+            ? raw.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')
+            : '';
+          const href = raw
+            ? /^https?:\/\//.test(raw)
+              ? raw
+              : `https://${raw}`
+            : '';
+          return (
+            <div className='truncate'>
+              {pretty ? (
+                <a
+                  href={href}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-primary hover:underline'
+                  onClick={e => e.stopPropagation()}
+                >
+                  {pretty}
+                </a>
+              ) : (
+                '-'
+              )}
+            </div>
+          );
+        },
       },
       {
         key: 'company_size',
@@ -619,24 +702,58 @@ const Companies: React.FC = () => {
       },
       {
         key: 'lead_score',
-        label: 'AI Score',
+        label: (
+          <span className='flex items-center gap-1'>
+            <Sparkles className='h-3 w-3' /> Score
+          </span>
+        ),
         width: '100px',
-        cellType: 'ai-score',
+        cellType: 'regular',
         align: 'center',
-        getStatusValue: company =>
-          convertNumericScoreToStatus(company.lead_score),
-        render: (_, company) => <span>{company.lead_score ?? '-'}</span>,
+        render: (_, company) => (
+          <ScoreBadge score={company.lead_score} variant='compact' />
+        ),
+      },
+      {
+        key: 'funding_raised',
+        label: 'Funding',
+        width: '140px',
+        cellType: 'regular',
+        render: (_, company) => (
+          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
+            {company.funding_raised != null
+              ? `$${Number(company.funding_raised).toLocaleString()}`
+              : '-'}
+          </div>
+        ),
+      },
+      {
+        key: 'estimated_arr',
+        label: 'ARR',
+        width: '140px',
+        cellType: 'regular',
+        render: (_, company) => (
+          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
+            {company.estimated_arr != null
+              ? `$${Number(company.estimated_arr).toLocaleString()}`
+              : '-'}
+          </div>
+        ),
       },
       {
         key: 'people_count',
         label: 'People',
-        width: '100px',
+        width: '120px',
         cellType: 'regular',
         align: 'center',
         render: (_, company) => {
-          const count = people.filter(p => p.company_id === company.id).length;
+          const companyPeople = people.filter(p => p.company_id === company.id);
           return (
-            <span className='text-sm font-medium text-gray-900'>{count}</span>
+            <PeopleAvatars
+              people={companyPeople}
+              onPersonClick={handlePersonClick}
+              maxVisible={3}
+            />
           );
         },
       },
@@ -650,6 +767,29 @@ const Companies: React.FC = () => {
           // Calculate jobs count from the jobs array we fetch separately
           const jobsCount = 0; // We'll need to fetch this separately or calculate it differently
           return <span>{jobsCount}</span>;
+        },
+      },
+      {
+        key: 'last_activity',
+        label: 'Last Activity',
+        width: '140px',
+        cellType: 'regular',
+        render: (_, company) => {
+          const activityText = company.last_activity
+            ? formatLastActivity(company.last_activity)
+            : 'No contact';
+          const isNoContact =
+            !company.last_activity || activityText === 'No contact';
+
+          return (
+            <div
+              className={`whitespace-nowrap overflow-hidden text-ellipsis text-sm ${
+                isNoContact ? 'text-gray-400' : 'text-foreground'
+              }`}
+            >
+              {activityText}
+            </div>
+          );
         },
       },
       {
