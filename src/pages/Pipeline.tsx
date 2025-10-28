@@ -1298,7 +1298,7 @@ const Pipeline = () => {
   DroppableStage.displayName = 'DroppableStage';
 
   return (
-    <Page title='Deals' hideHeader allowScroll>
+    <Page title='Deals' hideHeader>
       <div className='space-y-3 h-full flex flex-col'>
         {/* Page Header */}
         <div className='mb-1'>
