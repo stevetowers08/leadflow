@@ -488,7 +488,7 @@ const Jobs: React.FC = () => {
             website={job.companies?.website}
             size='sm'
           />
-          <div className='text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
+          <div className='font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
             {job.companies?.name || '-'}
           </div>
         </div>
