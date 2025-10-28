@@ -20,15 +20,7 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead
-    ref={ref}
-    className={cn(
-      '[&_tr]:border-b-2 [&_tr]:border-gray-300',
-      'bg-gray-50',
-      className
-    )}
-    {...props}
-  />
+  <thead ref={ref} className={cn('bg-gray-50', className)} {...props} />
 ));
 TableHeader.displayName = 'TableHeader';
 
@@ -38,7 +30,7 @@ const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={cn('[&_tr:last-child]:border-0', className)}
+    className={cn('[&_tr_td]:border-b [&_tr_td]:border-gray-200', className)}
     {...props}
   />
 ));
@@ -88,8 +80,9 @@ const TableHead = React.forwardRef<
     ref={ref}
     className={cn(
       'h-10 px-4 text-left align-middle font-medium text-gray-700 [&:has([role=checkbox])]:pr-0',
-      'text-sm font-semibold tracking-wide border-r border-b-2 border-gray-200 last:border-r-0 whitespace-nowrap',
-      'transition-colors duration-150',
+      'text-sm font-semibold tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
+      'transition-colors duration-150 overflow-hidden text-ellipsis',
+      'min-w-fit',
       isFirst && 'rounded-tl-lg',
       isLast && 'rounded-tr-lg',
       className
@@ -106,9 +99,10 @@ const TableCell = React.forwardRef<
   <td
     ref={ref}
     className={cn(
-      'px-4 py-2 align-middle [&:has([role=checkbox])]:pr-0 border-r border-gray-200 border-b border-gray-200 last:border-r-0',
+      'px-4 py-2 align-middle [&:has([role=checkbox])]:pr-0 border-r border-gray-200 last:border-r-0',
       'text-sm font-medium leading-relaxed transition-colors duration-150',
-      'group-hover:text-gray-900',
+      'group-hover:text-gray-900 overflow-hidden text-ellipsis',
+      'min-w-fit',
       className
     )}
     {...props}

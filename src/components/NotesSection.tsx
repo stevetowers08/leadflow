@@ -1,18 +1,9 @@
-import { StatusBadge } from '@/components/StatusBadge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
-import {
-  ChevronUp,
-  Edit3,
-  MessageSquare,
-  Plus,
-  Save,
-  Trash2,
-} from 'lucide-react';
+import { Edit3, Plus, Save, StickyNote, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface NotesSectionProps {
@@ -338,7 +329,7 @@ export const NotesSection = ({
           className='flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors'
           title={`${noteCount || 0} notes - Click to view`}
         >
-          <MessageSquare className='h-3 w-3' />
+          <StickyNote className='h-3 w-3' />
           <span className='font-medium'>
             {noteCount !== null ? noteCount : '...'}
           </span>
@@ -349,179 +340,200 @@ export const NotesSection = ({
 
   return (
     <div className={className}>
-      <Card>
-        <CardHeader className='pb-4'>
-          <CardTitle className='flex items-center justify-between text-sm font-medium'>
-            <div className='flex items-center gap-2'>
-              <button
-                onClick={() => setIsExpanded(false)}
-                className='flex items-center gap-2 hover:text-gray-600 transition-colors'
-              >
-                <ChevronUp className='h-4 w-4 text-muted-foreground' />
-                <MessageSquare className='h-4 w-4 text-muted-foreground' />
-                <span>Notes &amp; Comments</span>
-                {noteCount !== null && noteCount > 0 && (
-                  <StatusBadge status={`${noteCount}`} size='sm' />
-                )}
-              </button>
+      {/* Add Note Form - Floating at Top */}
+      {isAdding && (
+        <div className='mb-4 p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 shadow-sm'>
+          <div className='flex items-center gap-2 mb-3'>
+            <div className='p-1.5 rounded-lg bg-primary/20'>
+              <Plus className='h-4 w-4 text-primary' />
+            </div>
+            <div className='text-sm font-semibold text-foreground'>
+              Add New Note
+            </div>
+          </div>
+          <Textarea
+            placeholder={`Share your thoughts about ${entityName || `this ${entityType}`}...`}
+            value={newNoteContent}
+            onChange={e => setNewNoteContent(e.target.value)}
+            rows={4}
+            className='resize-none mb-3'
+            autoFocus
+          />
+          <div className='flex gap-2'>
+            <Button
+              onClick={addNote}
+              disabled={!newNoteContent.trim() || isSaving}
+              size='sm'
+              className='flex-1'
+            >
+              <Save className='h-3.5 w-3.5 mr-2' />
+              {isSaving ? 'Saving...' : 'Save Note'}
+            </Button>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => {
+                setIsAdding(false);
+                setNewNoteContent('');
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Notes List */}
+      <div className='space-y-4 max-h-[60vh] overflow-y-auto pr-2'>
+        {isLoading ? (
+          <div className='flex flex-col items-center justify-center py-12'>
+            <div className='animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent mb-4'></div>
+            <div className='text-sm font-medium text-foreground'>
+              Loading notes...
+            </div>
+            <div className='text-xs text-muted-foreground'>
+              Please wait a moment
+            </div>
+          </div>
+        ) : notes.length === 0 && !isAdding ? (
+          <div className='flex flex-col items-center justify-center py-12 px-4'>
+            <div className='p-3 rounded-full bg-muted mb-4'>
+              <StickyNote className='h-8 w-8 text-muted-foreground' />
+            </div>
+            <div className='text-base font-semibold text-foreground mb-1'>
+              No notes yet
+            </div>
+            <div className='text-sm text-muted-foreground text-center max-w-sm'>
+              Be the first to add a note about this item. Your notes help keep
+              everyone informed.
             </div>
             {!isAdding && (
-              <button
+              <Button
                 onClick={() => setIsAdding(true)}
-                className='inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md h-8 px-3'
+                variant='outline'
+                size='sm'
+                className='mt-4'
               >
-                <Plus className='h-3 w-3' />
-                Add Note
-              </button>
+                <Plus className='h-4 w-4 mr-2' />
+                Add First Note
+              </Button>
             )}
-          </CardTitle>
-        </CardHeader>
+          </div>
+        ) : (
+          <>
+            {notes.map(note => {
+              const isEditing = editingNoteId === note.id;
+              const dateInfo = formatNoteDate(note.created_at);
+              const canEdit = canEditNote(note);
 
-        <CardContent className='space-y-4'>
-          {/* Add new note form */}
-          {isAdding && (
-            <div className='space-y-3 p-3 bg-muted/20 rounded-lg border'>
-              <Textarea
-                placeholder={`Add a note about ${entityName || `this ${entityType}`}...`}
-                value={newNoteContent}
-                onChange={e => setNewNoteContent(e.target.value)}
-                rows={3}
-                className='resize-none'
-              />
-              <div className='flex gap-2'>
-                <button
-                  onClick={addNote}
-                  disabled={!newNoteContent.trim() || isSaving}
-                  className='inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 shadow-sm hover:shadow-md h-8 px-3'
+              return (
+                <div
+                  key={note.id}
+                  className='group relative p-4 bg-white border border-border rounded-xl hover:border-primary/30 hover:shadow-md transition-all duration-200'
                 >
-                  <Save className='h-3 w-3' />
-                  {isSaving ? 'Saving...' : 'Save Note'}
-                </button>
-                <button
-                  onClick={() => {
-                    setIsAdding(false);
-                    setNewNoteContent('');
-                  }}
-                  className='inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md h-8 px-3'
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Notes list */}
-          {isLoading ? (
-            <div className='text-center py-6 text-muted-foreground'>
-              <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-sidebar-primary mx-auto mb-2'></div>
-              <div className='text-sm'>Loading notes...</div>
-            </div>
-          ) : notes.length === 0 && !isAdding ? (
-            <div className='text-center py-6 text-muted-foreground'>
-              <MessageSquare className='w-8 h-8 mx-auto mb-2 opacity-50' />
-              <div className='text-sm'>No notes yet</div>
-              <div className='text-xs'>
-                Add notes to track important information
-              </div>
-            </div>
-          ) : (
-            <div className='space-y-3'>
-              {notes.map(note => {
-                const isEditing = editingNoteId === note.id;
-                const dateInfo = formatNoteDate(note.created_at);
-                const canEdit = canEditNote(note);
-
-                return (
-                  <div
-                    key={note.id}
-                    className='p-3 bg-white border border-border rounded-lg hover:shadow-sm transition-shadow group'
-                  >
-                    {isEditing ? (
-                      <div className='space-y-3'>
-                        <Textarea
-                          value={editingContent}
-                          onChange={e => setEditingContent(e.target.value)}
-                          rows={3}
-                          className='resize-none'
-                        />
-                        <div className='flex gap-2'>
-                          <Button
-                            onClick={() => updateNote(note.id)}
-                            disabled={!editingContent.trim() || isSaving}
-                            size='sm'
-                          >
-                            <Save className='h-3 w-3 mr-1' />
-                            {isSaving ? 'Saving...' : 'Update'}
-                          </Button>
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            onClick={cancelEditing}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
+                  {isEditing ? (
+                    <div className='space-y-3'>
+                      <Textarea
+                        value={editingContent}
+                        onChange={e => setEditingContent(e.target.value)}
+                        rows={4}
+                        className='resize-none'
+                        autoFocus
+                      />
+                      <div className='flex gap-2'>
+                        <Button
+                          onClick={() => updateNote(note.id)}
+                          disabled={!editingContent.trim() || isSaving}
+                          size='sm'
+                        >
+                          <Save className='h-3.5 w-3.5 mr-2' />
+                          {isSaving ? 'Saving...' : 'Update Note'}
+                        </Button>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={cancelEditing}
+                        >
+                          Cancel
+                        </Button>
                       </div>
-                    ) : (
-                      <>
-                        <div className='flex items-start justify-between mb-2'>
-                          <div className='flex items-center gap-2'>
-                            <div className='flex items-center justify-center w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium'>
-                              {note.author_name
-                                .split(' ')
-                                .map(namePart => namePart[0])
-                                .join('')
-                                .toUpperCase()}
+                    </div>
+                  ) : (
+                    <>
+                      {/* Author Info & Actions */}
+                      <div className='flex items-start justify-between mb-3'>
+                        <div className='flex items-center gap-3'>
+                          <div className='flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-bold shadow-sm'>
+                            {note.author_name
+                              .split(' ')
+                              .map(namePart => namePart[0])
+                              .join('')
+                              .toUpperCase()
+                              .slice(0, 2)}
+                          </div>
+                          <div>
+                            <div className='text-sm font-semibold text-foreground'>
+                              {note.author_name}
                             </div>
-                            <div>
-                              <div className='text-sm font-medium'>
-                                {note.author_name}
-                              </div>
-                              <div
-                                className='text-xs text-muted-foreground'
-                                title={dateInfo.absolute}
-                              >
-                                {dateInfo.relative}
-                                {note.updated_at && (
-                                  <span className='ml-1'>(edited)</span>
-                                )}
-                              </div>
+                            <div
+                              className='text-xs text-muted-foreground flex items-center gap-1'
+                              title={dateInfo.absolute}
+                            >
+                              {dateInfo.relative}
+                              {note.updated_at && (
+                                <span className='text-muted-foreground/70'>
+                                  · edited
+                                </span>
+                              )}
                             </div>
                           </div>
-                          {canEdit && (
-                            <div className='flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
-                              <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => startEditing(note)}
-                                className='h-6 w-6 p-0'
-                              >
-                                <Edit3 className='h-3 w-3' />
-                              </Button>
-                              <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => deleteNote(note.id)}
-                                className='h-6 w-6 p-0 text-destructive hover:text-destructive'
-                              >
-                                <Trash2 className='h-3 w-3' />
-                              </Button>
-                            </div>
-                          )}
                         </div>
+                        {canEdit && (
+                          <div className='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity'>
+                            <Button
+                              variant='ghost'
+                              size='icon'
+                              onClick={() => startEditing(note)}
+                              className='h-7 w-7 text-muted-foreground hover:text-foreground'
+                            >
+                              <Edit3 className='h-3.5 w-3.5' />
+                            </Button>
+                            <Button
+                              variant='ghost'
+                              size='icon'
+                              onClick={() => deleteNote(note.id)}
+                              className='h-7 w-7 text-muted-foreground hover:text-destructive'
+                            >
+                              <Trash2 className='h-3.5 w-3.5' />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
 
-                        <div className='text-sm text-foreground whitespace-pre-wrap'>
-                          {note.content}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                      {/* Note Content */}
+                      <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed break-words'>
+                        {note.content}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Add Note Button - When not adding and notes exist */}
+            {!isAdding && notes.length > 0 && (
+              <Button
+                onClick={() => setIsAdding(true)}
+                variant='outline'
+                className='w-full border-dashed hover:bg-muted/50'
+              >
+                <Plus className='h-4 w-4 mr-2' />
+                Add Another Note
+              </Button>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

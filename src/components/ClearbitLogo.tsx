@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
+import { getCompanyLogoUrlSync } from '@/services/logoService';
 
 interface ClearbitLogoProps {
   companyName: string;
@@ -31,24 +32,7 @@ export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Generate Clearbit URL from website domain
-  const getClearbitUrl = useCallback((website?: string): string | null => {
-    if (!website) return null;
-
-    try {
-      const domain = website
-        .replace(/^https?:\/\//, '')
-        .replace(/^www\./, '')
-        .split('/')[0]
-        .split('?')[0];
-
-      return `https://logo.clearbit.com/${domain}`;
-    } catch {
-      return null;
-    }
-  }, []);
-
-  const clearbitUrl = getClearbitUrl(website);
+  const logoUrl = getCompanyLogoUrlSync(companyName, website);
   const sizeClass = sizeMap[size];
   const textSizeClass = textSizeMap[size];
 
@@ -61,7 +45,7 @@ export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
   }, []);
 
   // If no website or image failed, show initials fallback
-  if (!clearbitUrl || imageError) {
+  if (!logoUrl || imageError) {
     return (
       <div
         className={cn(
@@ -79,7 +63,7 @@ export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
   return (
     <div className={cn('relative', sizeClass, className)}>
       <img
-        src={clearbitUrl}
+        src={logoUrl}
         alt={`${companyName} logo`}
         className={cn(
           'rounded-lg object-cover transition-opacity duration-200',
@@ -118,24 +102,7 @@ export const ClearbitLogoSync: React.FC<ClearbitLogoProps> = ({
   className = '',
 }) => {
   const [hasError, setHasError] = useState(false);
-
-  const getClearbitUrl = (website?: string): string | null => {
-    if (!website) return null;
-
-    try {
-      const domain = website
-        .replace(/^https?:\/\//, '')
-        .replace(/^www\./, '')
-        .split('/')[0]
-        .split('?')[0];
-
-      return `https://logo.clearbit.com/${domain}`;
-    } catch {
-      return null;
-    }
-  };
-
-  const clearbitUrl = getClearbitUrl(website);
+  const url = getCompanyLogoUrlSync(companyName, website);
   const sizeClass = sizeMap[size];
   const textSizeClass = textSizeMap[size];
 
@@ -143,7 +110,7 @@ export const ClearbitLogoSync: React.FC<ClearbitLogoProps> = ({
     setHasError(true);
   };
 
-  if (hasError || !clearbitUrl) {
+  if (hasError || !url) {
     return (
       <div
         className={cn(
@@ -160,7 +127,7 @@ export const ClearbitLogoSync: React.FC<ClearbitLogoProps> = ({
 
   return (
     <img
-      src={clearbitUrl}
+      src={url}
       alt={`${companyName} logo`}
       className={cn('rounded-lg object-cover', sizeClass, className)}
       onError={handleImageError}

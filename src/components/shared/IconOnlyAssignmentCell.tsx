@@ -40,16 +40,6 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   // Check if user can assign
   const canAssign = hasRole('admin') || hasRole('owner');
 
-  // Debug logging
-  console.log('IconOnlyAssignmentCell Debug:', {
-    entityId,
-    entityType,
-    ownerId,
-    canAssign,
-    hasAdminRole: hasRole('admin'),
-    hasOwnerRole: hasRole('owner'),
-  });
-
   // Fetch current owner details
   useEffect(() => {
     const fetchCurrentOwner = async () => {
@@ -63,7 +53,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
       const uuidRegex =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(ownerId)) {
-        console.warn('Invalid ownerId format:', ownerId);
+        // Silently handle invalid UUID (common in new records)
         setCurrentOwner(null);
         return;
       }
@@ -93,14 +83,8 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   // Fetch team members on mount if user can assign
   useEffect(() => {
     if (canAssign && teamMembers.length === 0) {
-      console.log('✅ User can assign, fetching team members on mount...');
       fetchTeamMembers().catch(err => {
-        console.error('❌ Failed to fetch team members:', err);
-      });
-    } else {
-      console.log('⏭️ Skipping team member fetch:', {
-        canAssign,
-        teamMembersCount: teamMembers.length,
+        console.error('Failed to fetch team members:', err);
       });
     }
   }, [canAssign, teamMembers.length]);
@@ -108,7 +92,6 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   // Fetch team members for assignment
   const fetchTeamMembers = async () => {
     try {
-      console.log('Fetching team members for assignment...');
       const { data, error } = await supabase
         .from('user_profiles')
         .select('id, full_name, email, role')
@@ -120,7 +103,6 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
         throw error;
       }
 
-      console.log('Team members fetched:', data?.length || 0);
       setTeamMembers(data || []);
     } catch (error) {
       console.error('Error fetching team members:', error);
@@ -217,19 +199,14 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
 
-    console.log('🚫 Assignment button clicked, stopping propagation');
-
     if (!canAssign) {
-      console.log('⛔ User cannot assign');
       return;
     }
 
     if (teamMembers.length === 0) {
-      console.log('👥 No team members cached, fetching...');
       fetchTeamMembers();
     }
 
-    console.log('🔄 Toggling user list dropdown');
     setShowUserList(!showUserList);
   };
 
@@ -237,8 +214,8 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   if (!canAssign) {
     if (!currentOwner) {
       return (
-        <div className={cn('flex items-center justify-center', className)}>
-          <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center'>
+        <div className={cn('flex items-center justify-center overflow-hidden', className)}>
+          <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0'>
             <User className='w-3 h-3 text-gray-400' />
           </div>
         </div>
@@ -246,8 +223,8 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
     }
 
     return (
-      <div className={cn('flex items-center justify-center', className)}>
-        <div className='w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center'>
+      <div className={cn('flex items-center justify-center overflow-hidden', className)}>
+        <div className='w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0'>
           <span className='text-xs font-medium text-orange-800'>
             {currentOwner.full_name
               .split(' ')

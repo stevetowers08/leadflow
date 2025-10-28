@@ -154,6 +154,10 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     }
   }, [darkMode]);
 
+  // Route-specific layout tweaks
+  const isConversationsRoute = location.pathname === '/conversations';
+  const isSettingsRoute = location.pathname === '/settings';
+
   return (
     <>
       {/* Mobile sidebar overlay with glassmorphism */}
@@ -176,9 +180,10 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       {!isMobile &&
         createPortal(
           <aside
-            className='desktop-sidebar fixed top-0 left-0 h-screen w-56 bg-sidebar z-50'
+            className='desktop-sidebar fixed top-0 left-0 h-screen w-56 bg-sidebar z-50 border-r'
             role='navigation'
             aria-label='Main navigation'
+            style={{ borderRight: '1px solid hsl(var(--border))' }}
           >
             <Sidebar />
           </aside>,
@@ -201,6 +206,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
               color: 'hsl(var(--sidebar-foreground))',
               transform: 'translateX(0)',
               transition: 'transform 0.3s ease-in-out',
+              borderRight: '1px solid hsl(var(--border))',
             }}
             role='navigation'
             aria-label='Main navigation'
@@ -249,12 +255,22 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
           {/* Content Container - Each page handles its own overflow */}
           <div
             className={cn(
-              'flex-1 w-full overflow-hidden', // Let pages handle their own overflow
-              // Use standardized responsive padding
-              designTokens.spacing.pagePadding.responsive
+              'flex-1 w-full overflow-hidden',
+              // Apply standard page padding everywhere except Conversations and Settings
+              !isConversationsRoute &&
+                !isSettingsRoute &&
+                designTokens.spacing.pagePadding.responsive
             )}
           >
-            <div className='h-full w-full overflow-y-auto'>{children}</div>
+            <div
+              className={cn(
+                'h-full w-full',
+                // Prevent outer scroll on Conversations and Settings; let page handle its own overflow
+                !isConversationsRoute && !isSettingsRoute && 'overflow-y-auto'
+              )}
+            >
+              {children}
+            </div>
           </div>
         </main>
 

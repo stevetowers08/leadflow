@@ -1,12 +1,104 @@
 # Cursor AI Rules for Empowr CRM
 
 ## 🎯 Project Overview
+
 Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, and Supabase. The focus is on simplicity and clear workflows for managing jobs and people.
+
+## 🛠️ Tech Stack
+
+### Core Framework
+
+- **React 18.2** - Functional components, hooks, strict mode
+- **TypeScript 5.9** - Strict mode, no implicit any, proper null checks
+- **Vite 7.1** - Build tool, HMR, optimized chunks
+- **React Router 7.9** - Client-side routing
+
+### State Management
+
+- **TanStack Query 5.90** - Server state, caching, refetching
+- **React Context API** - Global UI state (Auth, Search, Sidebar, etc.)
+- **Local State** - useState for component-specific state
+
+### UI Component Library
+
+- **Radix UI** - Accessible primitives (@radix-ui/react-\*)
+- **shadcn/ui** - Base component library
+- **Lucide Icons** - Icon library
+- **Tailwind CSS 3.4** - Utility-first styling
+- **Sonner** - Toast notifications
+
+### Backend & Database
+
+- **Supabase** - PostgreSQL database with RLS
+- **Supabase JS SDK 2.39** - Client library
+- **Row Level Security (RLS)** - Always enforce security policies
+
+### Key Dependencies
+
+- `@google/generative-ai` - Gemini AI for analysis
+- `@tanstack/react-table` - Data table management
+- `@dnd-kit` - Drag and drop
+- `chart.js` / `recharts` - Data visualization
+- `date-fns` - Date utilities
+- `clsx` / `tailwind-merge` - Class name utilities
+
+### Development Tools
+
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **Vitest** - Testing framework
+- **Husky** - Git hooks
+- **TypeScript** - Type checking
+
+## 📁 Project Structure
+
+```
+src/
+├── components/        # React components
+│   ├── crm/          # CRM features
+│   ├── jobs/         # Job management
+│   ├── companies/    # Company management
+│   ├── people/       # Lead management
+│   ├── shared/       # Reusable components
+│   ├── ui/           # Base UI components (Radix-based)
+│   └── slide-out/    # Slide-out panels
+├── pages/            # Page-level routes
+├── hooks/            # Custom React hooks
+│   ├── useBulkSelection.ts
+│   ├── useDebounce.ts
+│   └── useSupabaseData.ts
+├── services/         # API service layer
+│   ├── aiService.ts
+│   ├── jobsService.ts
+│   ├── bulk/        # Bulk operations
+│   └── ...
+├── utils/            # Utility functions
+│   ├── databaseQueries.ts  # Type-safe DB queries
+│   ├── statusUtils.ts      # Status mapping
+│   └── ...
+├── types/            # TypeScript definitions
+│   ├── database.ts        # Database types
+│   ├── databaseSchema.ts  # Schema reference
+│   └── ...
+├── contexts/         # React Context providers
+│   ├── AuthContext.tsx
+│   ├── AIContext.tsx
+│   └── ...
+├── integrations/     # Third-party integrations
+│   └── supabase/    # Supabase client setup
+├── design-system/    # Design system
+│   ├── components.tsx
+│   └── tokens.ts
+└── config/           # Configuration
+    └── auth.ts
+```
 
 ## 🔄 Current Workflows (Updated Oct 2025)
 
 ### Job Qualification Workflow
+
 **Status Enum:** `new | qualify | skip`
+
 - **New** - Newly discovered jobs awaiting review
 - **Qualify** - Jobs that meet criteria and should be pursued
 - **Skip** - Jobs to skip for now
@@ -14,7 +106,9 @@ Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, a
 **Database Field:** `jobs.qualification_status`
 
 ### People Status Workflow
+
 **Status Enum:** `new | qualified | proceed | skip`
+
 - **New** - New leads to review
 - **Qualified** - Leads that meet your criteria
 - **Proceed** - Ready for CRM integration or email outreach
@@ -25,12 +119,14 @@ Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, a
 ## ⚠️ Important: LinkedIn Automation Removed
 
 As of October 2025, LinkedIn automation features have been **completely removed**:
+
 - ❌ No LinkedInAutomationModal component
 - ❌ No automation buttons in UI
 - ❌ No lead selection checkboxes for bulk automation
 - ❌ No automation status tracking
 
 **Orphaned Files (not imported/used):**
+
 - `src/components/crm/automation/LinkedInAutomationModal.tsx`
 - `src/components/LinkedInConfirmationModal.tsx`
 - `src/components/crm/automation/AutomationModalManager.tsx`
@@ -40,44 +136,86 @@ These can be deleted in future cleanup.
 ## 🏗️ Architecture Guidelines
 
 ### Component Structure
+
 - Use functional components with TypeScript
 - Prefer composition over prop drilling
 - Use custom hooks for shared logic
 - Keep components focused and single-responsibility
 
 ### State Management
+
 - Use React Query for server state
 - Use React context for global UI state
 - Local state with useState for component-specific state
 - No LinkedIn automation state needed
 
 ### Database Access
+
 - **Always** use type-safe queries from `src/utils/databaseQueries.ts`
 - Reference schema in `src/types/database.ts` and `src/types/databaseSchema.ts`
 - Use RLS (Row Level Security) policies - never bypass security
 - Query only needed fields, avoid `SELECT *`
 
 ### Status Utilities
+
 - Use `src/utils/statusUtils.ts` for consistent status display
 - Use `getStatusDisplayText()` for UI display
 - Use `normalizeStatus()` for backend normalization
 
 ## 📋 Coding Standards
 
+### Naming Conventions
+
+- **Components**: PascalCase (`PersonCard.tsx`)
+- **Hooks**: camelCase with `use` prefix (`useBulkSelection.ts`)
+- **Utilities**: camelCase (`statusUtils.ts`)
+- **Services**: camelCase (`jobsService.ts`)
+- **Types/Interfaces**: PascalCase (`Job`, `Person`)
+- **Constants**: UPPER_SNAKE_CASE (`MAX_RETRIES`)
+- **Props interfaces**: `ComponentNameProps` (`PersonCardProps`)
+
 ### TypeScript
-- Strict mode enabled
+
+- Strict mode enabled (`strict: true` in tsconfig.json)
 - Define interfaces for all props
 - Avoid `any` type - use proper types
 - Export types from component files when shared
+- Use type assertions sparingly
+
+```typescript
+// ✅ CORRECT: Proper types
+interface PersonCardProps {
+  person: Person;
+  onSelect: (id: string) => void;
+}
+
+// ❌ INCORRECT: Using any
+function process(data: any) { ... }
+```
 
 ### React Best Practices
+
+- Use functional components with hooks
 - Use meaningful component names
 - Extract reusable logic to custom hooks
-- Memoize expensive computations with useMemo
-- Memoize callbacks with useCallback when passed to children
+- Memoize expensive computations with `useMemo`
+- Memoize callbacks with `useCallback` when passed to children
 - Lazy load heavy components for better performance
+- Use React.memo for components that receive same props frequently
+
+```typescript
+// ✅ CORRECT: Memoization
+const ExpensiveComponent = React.memo(({ data }: Props) => {
+  const processed = useMemo(() => heavyProcessing(data), [data]);
+  const handleClick = useCallback(() => doSomething(), []);
+});
+
+// ✅ CORRECT: Lazy loading
+const HeavyComponent = lazy(() => import('./HeavyComponent'));
+```
 
 ### File Organization
+
 ```
 src/
 ├── components/     # React components
@@ -115,17 +253,130 @@ src/
 ## 🗄️ Database Quick Reference
 
 ### Key Tables
+
 - **jobs** - Job postings (qualification_status: new | qualify | skip)
 - **people** - Leads/contacts (stage: new | qualified | proceed | skip)
 - **companies** - Company profiles
 - **interactions** - Activity tracking
 - **user_profiles** - User accounts
+- **client_jobs** - Client-specific job data
+- **campaigns** - Email campaigns
+- **campaign_participants** - Campaign member tracking
+
+### Database Access Patterns
+
+```typescript
+// ✅ CORRECT: Use type-safe queries
+import { DatabaseQueries } from '@/utils/databaseQueries';
+const person = await DatabaseQueries.getEntity<Person>('people', id);
+
+// ✅ CORRECT: Use service functions
+import { getJobs } from '@/services/jobsService';
+const jobs = await getJobs({ status: 'new' });
+
+// ❌ INCORRECT: Don't bypass type system
+const { data } = await supabase.from('people').select('*').eq('id', id);
+```
 
 ### Database Commands
+
 ```bash
 npm run db:schema              # Show all tables
 npm run db:schema people       # Show people table fields
 npm run db:schema companies name  # Show specific field
+```
+
+### Supabase Client Usage
+
+```typescript
+// Import the Supabase client
+import { supabase } from '@/integrations/supabase/client';
+
+// ✅ CORRECT: Always use service functions
+import { getPeople } from '@/services/peopleService';
+
+// ✅ CORRECT: Type-safe queries with proper selection
+const { data, error } = await supabase
+  .from('people')
+  .select('id, name, email_address, stage')
+  .eq('stage', 'new');
+
+// ❌ INCORRECT: Selecting all columns
+const { data } = await supabase.from('people').select('*');
+
+// ❌ INCORRECT: Not handling errors
+const { data } = await supabase.from('people').select('*');
+setPeople(data); // data could be null!
+```
+
+### RLS (Row Level Security)
+
+- RLS is **always enabled** on Supabase tables
+- Users can only access data they own (via `owner_id`)
+- Never bypass RLS - it's a security feature
+- Test with different users to ensure proper access control
+
+## 🔌 API & Service Layer
+
+### Service Pattern
+
+All database access goes through service functions in `src/services/`:
+
+```typescript
+// Example: src/services/jobsService.ts
+export async function getJobs(filters: JobFilters): Promise<Job[]> {
+  const query = supabase.from('jobs').select('*');
+  // Apply filters, joins, etc.
+  return data;
+}
+```
+
+### Key Services
+
+- `jobsService.ts` - Job management
+- `aiService.ts` - Gemini AI integration
+- `bulkPeopleService.ts` - Bulk operations
+- `decisionMakerService.ts` - Lead enrichment
+- `gmailService.ts` - Email integration
+- `logoService.ts` - Company logo fetching
+- `conversationService.ts` - Email tracking
+
+### React Query Usage
+
+```typescript
+// ✅ CORRECT: Use React Query for server state
+const { data, isLoading } = useQuery({
+  queryKey: ['jobs', filters],
+  queryFn: () => getJobs(filters),
+});
+
+// ❌ INCORRECT: Direct fetch in component
+useEffect(() => {
+  fetchJobs().then(setJobs);
+}, []);
+```
+
+## 🌍 Environment Variables
+
+### Required Variables (from .env.example)
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+VITE_GOOGLE_CLIENT_ID=your-client-id
+VITE_GEMINI_API_KEY=your-gemini-key
+VITE_TOKEN_ENCRYPTION_KEY=your-encryption-key
+```
+
+### Environment Access
+
+```typescript
+// ✅ CORRECT: Use import.meta.env in client code
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+// ❌ INCORRECT: Don't access server-side env vars on client
+const secret = import.meta.env.SUPABASE_SERVICE_ROLE_KEY; // BAD!
 ```
 
 ## 📚 Key Documentation
@@ -138,6 +389,7 @@ npm run db:schema companies name  # Show specific field
 ## 🔧 Common Tasks
 
 ### Adding a New Status
+
 1. Update enum in `src/types/database.ts`
 2. Add mapping in `src/utils/statusUtils.ts`
 3. Update UI components that display status
@@ -145,6 +397,7 @@ npm run db:schema companies name  # Show specific field
 5. Test thoroughly
 
 ### Modifying a Component
+
 1. Read existing component first
 2. Check for TypeScript types
 3. Ensure no LinkedIn automation logic remains
@@ -152,6 +405,7 @@ npm run db:schema companies name  # Show specific field
 5. Run TypeScript check: `npx tsc --noEmit`
 
 ### Creating a New Component
+
 1. Use TypeScript functional component
 2. Define Props interface
 3. Use proper imports from design system
@@ -160,11 +414,50 @@ npm run db:schema companies name  # Show specific field
 
 ## 🎨 UI/UX Guidelines
 
-- Use Radix UI components for consistency
-- Follow Tailwind CSS utility classes
-- Maintain responsive design (mobile-first)
-- Use design system tokens from `src/design-system/`
-- Ensure accessibility (ARIA labels, keyboard navigation)
+### Component Library (Radix UI + shadcn/ui)
+
+- Use Radix UI components for accessibility
+- Import from `src/components/ui/` for shadcn components
+- Never use HTML form elements directly - use UI components
+
+```typescript
+// ✅ CORRECT: Use UI components
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+
+// ❌ INCORRECT: Raw HTML elements
+<button onClick={handler}>Click me</button>
+<input type="text" value={value} />
+```
+
+### Styling
+
+- **Tailwind CSS 3.4** - Utility-first CSS
+- Use Tailwind utility classes (`px-4`, `bg-primary`, etc.)
+- Use `cn()` utility for conditional classes:
+
+```typescript
+import { cn } from '@/lib/utils';
+<div className={cn('base-classes', isActive && 'active-classes')} />
+```
+
+- Design tokens in `src/design-system/tokens.ts`
+- Responsive design (mobile-first): `sm:`, `md:`, `lg:`
+
+### Icons (Lucide React)
+
+```typescript
+import { Check, X, Search } from 'lucide-react';
+<Check className="h-4 w-4" />
+```
+
+### Accessibility
+
+- Use semantic HTML
+- ARIA labels on interactive elements
+- Keyboard navigation support
+- Focus management in modals/dialogs
 
 ## 🔍 Debugging Tips
 
@@ -175,6 +468,36 @@ npm run db:schema companies name  # Show specific field
 5. Review TypeScript errors in IDE
 6. Reference [docs/DEBUGGING/DEBUGGING_GUIDE.md](docs/DEBUGGING/DEBUGGING_GUIDE.md)
 
+## 🚀 Development Workflow
+
+### Running Locally
+
+```bash
+npm run dev          # Start dev server on port 8086
+npm run build        # Production build
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix linting errors
+npm run format       # Format with Prettier
+npm test             # Run tests
+npm run tsc          # Type checking
+```
+
+### Common Commands
+
+```bash
+# Type checking
+npx tsc --noEmit
+
+# Database schema
+npm run db:schema
+npm run db:schema people
+
+# Security audit
+npm run security:audit
+npm run security:scan
+```
+
 ## 🚀 Deployment
 
 - **Platform:** Vercel
@@ -182,10 +505,12 @@ npm run db:schema companies name  # Show specific field
 - **Environment:** Check `.env.example` for required variables
 - **Build Command:** `npm run build`
 - **Output:** `dist/`
+- **Node Version:** >= 18.0.0 (from package.json engines)
 
 ## 📝 Commit Guidelines
 
 Use conventional commits:
+
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `refactor:` - Code refactoring
@@ -206,7 +531,7 @@ Use conventional commits:
 ## 📞 Need Help?
 
 1. Check documentation in `docs/` directory
-2. Review recent progress reports (*.md files in root)
+2. Review recent progress reports (\*.md files in root)
 3. Check the Database Best Practices guide
 4. Review existing similar components for patterns
 

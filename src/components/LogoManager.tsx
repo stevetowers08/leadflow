@@ -6,11 +6,11 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  getClearbitLogo,
+  getCompanyLogoUrlSync,
   setCompanyLogoManually,
   testLogoUrl,
   updateCompanyLogo,
-} from '@/utils/logoService';
+} from '@/services/logoService';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { Image as ImageIcon, RefreshCw, Upload } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -85,13 +85,14 @@ export const LogoManager = () => {
           // Skip if already has a Clearbit logo
           if (
             company.profile_image_url &&
-            company.profile_image_url.includes('logo.clearbit.com')
+            (company.profile_image_url.includes('logo.clearbit.com') ||
+              company.profile_image_url.includes('img.logo.dev'))
           ) {
             skippedCount++;
             continue;
           }
 
-          const logoUrl = getClearbitLogo(company.name, company.website);
+          const logoUrl = getCompanyLogoUrlSync(company.name, company.website);
           if (logoUrl) {
             const isValid = await testLogoUrl(logoUrl);
             if (isValid) {
@@ -158,7 +159,10 @@ export const LogoManager = () => {
             company.profile_image_url &&
             company.profile_image_url.includes('media.licdn.com')
           ) {
-            const logoUrl = getClearbitLogo(company.name, company.website);
+            const logoUrl = getCompanyLogoUrlSync(
+              company.name,
+              company.website
+            );
             if (logoUrl) {
               const isValid = await testLogoUrl(logoUrl);
               if (isValid) {
@@ -454,7 +458,7 @@ export const LogoManager = () => {
                   <strong>Suggested Clearbit URL:</strong>
                 </p>
                 <p className='font-mono text-xs bg-gray-100 p-2 rounded'>
-                  {getClearbitLogo(
+                  {getCompanyLogoUrlSync(
                     selectedCompany.name,
                     selectedCompany.website
                   )}

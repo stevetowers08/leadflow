@@ -1,5 +1,6 @@
 import { NotesSection } from '@/components/NotesSection';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
+import { IndustryBadges } from '@/components/shared/IndustryBadge';
 import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,7 +12,7 @@ import {
   bulkFavouritePeople,
   bulkSyncToCRM,
 } from '@/services/bulk/bulkPeopleService';
-import { getClearbitLogo } from '@/services/logoService';
+import { getCompanyLogoUrlSync } from '@/services/logoService';
 import { Company, Job, Person } from '@/types/database';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import {
@@ -24,9 +25,9 @@ import {
   Globe,
   Mail,
   MapPin,
-  MessageSquarePlus,
   RefreshCw,
   Star,
+  StickyNote,
   Trash2,
   User,
 } from 'lucide-react';
@@ -41,6 +42,7 @@ interface CompanyDetailsSlideOutProps {
   onClose: () => void;
   onUpdate?: () => void;
   onPersonClick?: (personId: string) => void;
+  initialTab?: 'overview' | 'people' | 'jobs' | 'activity' | 'notes';
 }
 
 interface Interaction {
@@ -58,15 +60,21 @@ interface Interaction {
 
 const CompanyDetailsSlideOutComponent: React.FC<
   CompanyDetailsSlideOutProps
-> = ({ companyId, isOpen, onClose, onUpdate, onPersonClick }) => {
+> = ({ companyId, isOpen, onClose, onUpdate, onPersonClick, initialTab }) => {
   const [company, setCompany] = useState<Company | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
   const { toast } = useToast();
+  // When panel opens or company changes, optionally jump to requested initial tab
+  useEffect(() => {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab, companyId]);
 
   // Tab options with counts
   const tabOptions = useMemo<TabOption[]>(
@@ -90,7 +98,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
         id: 'notes',
         label: 'Notes',
         count: 0,
-        icon: MessageSquarePlus,
+        icon: StickyNote,
         showCount: false,
       },
     ],
@@ -456,7 +464,11 @@ const CompanyDetailsSlideOutComponent: React.FC<
     },
     {
       label: 'Industry',
-      value: company.industry || '-',
+      value: company.industry ? (
+        <IndustryBadges industries={company.industry} />
+      ) : (
+        '-'
+      ),
     },
     {
       label: 'Head Office',
@@ -573,7 +585,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
             <div className='w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200'>
               {company.website ? (
                 <img
-                  src={getClearbitLogo(company.name, company.website)}
+                  src={getCompanyLogoUrlSync(company.name, company.website) || ''}
                   alt={`${company.name} logo`}
                   className='w-12 h-12 rounded-lg object-cover'
                   onError={e => {
@@ -692,8 +704,77 @@ const CompanyDetailsSlideOutComponent: React.FC<
       {activeTab === 'people' && (
         <div className='relative pb-20'>
           {people.length > 0 ? (
-            <div className='space-y-1'>
-              {people.map(person => renderPersonCard(person))}
+            <div className='grid grid-cols-1 gap-4'>
+              {people.map(person => (
+                <div key={person.id} className='group cursor-pointer'>
+                  <div
+                    onClick={() => handlePersonClick(person.id)}
+                    className='bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden'
+                  >
+                    <div className='p-6'>
+                      <div className='flex items-center gap-4'>
+                        {/* Checkbox */}
+                        <div onClick={e => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedPeople.includes(person.id)}
+                            onCheckedChange={() =>
+                              togglePersonSelection(person.id)
+                            }
+                            className='flex-shrink-0'
+                          />
+                        </div>
+
+                        <div className='relative'>
+                          <div className='w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white font-semibold text-lg shadow-lg'>
+                            {person.name
+                              ? person.name
+                                  .split(' ')
+                                  .map(n => n[0])
+                                  .join('')
+                                  .toUpperCase()
+                                  .slice(0, 2)
+                              : 'U'}
+                          </div>
+                          <div className='absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full' />
+                        </div>
+
+                        <div className='flex-1'>
+                          <div className='flex items-center gap-2 mb-1'>
+                            <h4 className='font-semibold text-foreground'>
+                              {person.name || 'Unknown'}
+                            </h4>
+                            {person.lead_score && (
+                              <span className='text-xs font-medium px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full'>
+                                {person.lead_score}
+                              </span>
+                            )}
+                          </div>
+                          <p className='text-sm text-muted-foreground mb-2'>
+                            {person.company_role || 'No role specified'}
+                          </p>
+                          <div className='flex items-center gap-2'>
+                            {person.people_stage && (
+                              <span className='text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded'>
+                                {getStatusDisplayText(person.people_stage)}
+                              </span>
+                            )}
+                            {person.email_address && (
+                              <span className='text-xs px-2 py-0.5 bg-purple-50 text-purple-700 rounded'>
+                                Verified Email
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Hover indicator */}
+                        <div className='opacity-0 group-hover:opacity-100 transition-opacity'>
+                          <div className='w-2 h-2 bg-blue-500 rounded-full' />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className='text-center py-12 text-gray-500'>
@@ -853,48 +934,151 @@ const CompanyDetailsSlideOutComponent: React.FC<
       )}
 
       {activeTab === 'activity' && (
-        <div className='space-y-3'>
-          {interactions.length > 0 ? (
-            <div className='space-y-3'>
-              {interactions.map(interaction => (
-                <div
-                  key={interaction.id}
-                  className='flex gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
-                >
-                  <div className='flex-shrink-0 w-1 bg-blue-500 rounded-full' />
-                  <div className='flex-1 min-w-0'>
-                    <div className='flex items-center gap-2 mb-1'>
-                      <span className='text-xs font-medium text-blue-600'>
-                        {getInteractionTypeDisplay(
-                          interaction.interaction_type
-                        )}
-                      </span>
-                      <span className='text-xs text-gray-500'>
-                        {formatDate(interaction.occurred_at)}
-                      </span>
-                    </div>
-                    <div className='text-sm font-medium text-gray-700'>
-                      {interaction.people?.name || 'Unknown Person'}
-                    </div>
-                    {interaction.subject && (
-                      <div className='text-xs text-gray-600 mt-1 truncate'>
-                        {interaction.subject}
-                      </div>
-                    )}
-                    {interaction.content && (
-                      <div className='text-xs text-gray-500 mt-1 line-clamp-2'>
-                        {interaction.content}
-                      </div>
-                    )}
+        <div className='space-y-4'>
+          {/* Recent Alerts Card - Notification Style */}
+          {interactions.length > 0 && (
+            <div className='bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden'>
+              <div className='p-6'>
+                <div className='flex items-center justify-between mb-4'>
+                  <h3 className='font-semibold text-foreground'>
+                    Recent Alerts
+                  </h3>
+                  <div className='flex items-center gap-2'>
+                    <span className='relative flex h-3 w-3'>
+                      <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75' />
+                      <span className='relative inline-flex rounded-full h-3 w-3 bg-red-500' />
+                    </span>
+                    <span className='text-xs font-medium text-muted-foreground'>
+                      {interactions.length} New
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className='text-center py-8 text-gray-500'>
-              No activity yet
+
+                <div className='space-y-3'>
+                  {interactions.slice(0, 3).map((interaction, idx) => {
+                    const interactionType = getInteractionTypeDisplay(
+                      interaction.interaction_type
+                    );
+                    // Determine color based on interaction type
+                    let bgColor = 'bg-blue-50';
+                    let borderColor = 'border-blue-100';
+                    let dotColor = 'bg-blue-500';
+                    let textColor = 'text-blue-600';
+                    let hoverColor = 'hover:bg-blue-100';
+
+                    if (interaction.interaction_type?.includes('email')) {
+                      bgColor = 'bg-blue-50';
+                      borderColor = 'border-blue-100';
+                      dotColor = 'bg-blue-500';
+                      textColor = 'text-blue-600';
+                      hoverColor = 'hover:bg-blue-100';
+                    } else if (
+                      interaction.interaction_type?.includes('reply') ||
+                      interaction.interaction_type?.includes('positive')
+                    ) {
+                      bgColor = 'bg-emerald-50';
+                      borderColor = 'border-emerald-100';
+                      dotColor = 'bg-emerald-500';
+                      textColor = 'text-emerald-600';
+                      hoverColor = 'hover:bg-emerald-100';
+                    } else if (
+                      interaction.interaction_type?.includes('decline') ||
+                      interaction.interaction_type?.includes('negative')
+                    ) {
+                      bgColor = 'bg-red-50';
+                      borderColor = 'border-red-100';
+                      dotColor = 'bg-red-500';
+                      textColor = 'text-red-600';
+                      hoverColor = 'hover:bg-red-100';
+                    }
+
+                    return (
+                      <div
+                        key={interaction.id}
+                        className={`flex items-start gap-3 p-3 ${bgColor} border ${borderColor} rounded-lg group ${hoverColor} transition-colors cursor-pointer`}
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${dotColor} mt-1.5 flex-shrink-0`}
+                        />
+                        <div className='flex-1 min-w-0'>
+                          <p className='text-sm font-medium text-foreground'>
+                            {interactionType}
+                          </p>
+                          <p className='text-xs text-muted-foreground mt-0.5'>
+                            {interaction.people?.name || 'Unknown Person'}
+                          </p>
+                          {interaction.subject && (
+                            <p className='text-xs text-muted-foreground mt-0.5 truncate'>
+                              {interaction.subject}
+                            </p>
+                          )}
+                          <span
+                            className={`text-xs ${textColor} mt-1 inline-block`}
+                          >
+                            {formatDate(interaction.occurred_at)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {interactions.length > 3 && (
+                  <button className='mt-4 w-full text-xs font-medium text-center text-blue-600 hover:text-blue-700 py-2 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors'>
+                    View All Alerts ({interactions.length})
+                  </button>
+                )}
+              </div>
             </div>
           )}
+
+          {/* Activity Timeline */}
+          <div className='space-y-3'>
+            <h3 className='text-sm font-semibold text-foreground px-1'>
+              All Activity
+            </h3>
+            {interactions.length > 0 ? (
+              <div className='space-y-3'>
+                {interactions.map(interaction => (
+                  <div
+                    key={interaction.id}
+                    className='flex gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+                  >
+                    <div className='flex-shrink-0 w-1 bg-blue-500 rounded-full' />
+                    <div className='flex-1 min-w-0'>
+                      <div className='flex items-center gap-2 mb-1'>
+                        <span className='text-xs font-medium text-blue-600'>
+                          {getInteractionTypeDisplay(
+                            interaction.interaction_type
+                          )}
+                        </span>
+                        <span className='text-xs text-gray-500'>
+                          {formatDate(interaction.occurred_at)}
+                        </span>
+                      </div>
+                      <div className='text-sm font-medium text-gray-700'>
+                        {interaction.people?.name || 'Unknown Person'}
+                      </div>
+                      {interaction.subject && (
+                        <div className='text-xs text-gray-600 mt-1 truncate'>
+                          {interaction.subject}
+                        </div>
+                      )}
+                      {interaction.content && (
+                        <div className='text-xs text-gray-500 mt-1 line-clamp-2'>
+                          {interaction.content}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className='text-center py-8 text-gray-500'>
+                No activity yet
+              </div>
+            )}
+          </div>
         </div>
       )}
 

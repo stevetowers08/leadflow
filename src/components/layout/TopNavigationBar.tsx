@@ -8,7 +8,9 @@
  * - Responsive design with modern styling
  */
 
+import { AllCompanyNotesButton } from '@/components/companies/AllCompanyNotesButton';
 import { GlobalSearchDropdown } from '@/components/search/GlobalSearchDropdown';
+import { RecentActivityButton } from '@/components/shared/RecentActivityButton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,7 +44,7 @@ export const TopNavigationBar = ({
     <header
       className={cn(
         'fixed top-0 z-30',
-        'bg-[#2d3e50]',
+        'bg-gray-50 border-b border-gray-200',
         isMobile ? 'w-full px-4 py-2 left-0' : 'left-56 right-0 px-6 py-2',
         className
       )}
@@ -56,37 +58,40 @@ export const TopNavigationBar = ({
               variant='ghost'
               size='icon'
               onClick={onMenuClick}
-              className='h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md mr-2'
+              className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md mr-2'
             >
               <Menu className='h-4 w-4' />
             </Button>
-            <h1 className='font-semibold text-white tracking-tight text-sm'>
+            <h1 className='font-semibold text-gray-900 tracking-tight text-sm'>
               {pageTitle}
             </h1>
           </div>
 
           {/* Right Section - Actions */}
-          <div className='flex items-center gap-1'>
+          <div className='flex items-center gap-2'>
             <Button
               variant='ghost'
               size='icon'
-              className='h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+              className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
             >
               <Search className='h-4 w-4' />
             </Button>
             <Button
               variant='ghost'
               size='icon'
-              className='h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+              className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
             >
               <Bell className='h-4 w-4' />
             </Button>
+            <RecentActivityButton />
+            <AllCompanyNotesButton />
+            <div className='mx-1 h-6 w-px bg-gray-300' aria-hidden='true' />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant='ghost'
-                    className='h-8 w-8 p-0 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+                    className='h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
                   >
                     <Avatar className='h-7 w-7'>
                       <AvatarImage
@@ -129,7 +134,7 @@ export const TopNavigationBar = ({
         <div className='grid grid-cols-[1fr_auto_1fr] items-center w-full gap-4'>
           {/* Left Section - Page Title */}
           <div className='flex items-center justify-start'>
-            <h1 className='font-semibold text-white tracking-tight text-base'>
+            <h1 className='font-semibold text-gray-900 tracking-tight text-base'>
               {pageTitle}
             </h1>
           </div>
@@ -142,20 +147,23 @@ export const TopNavigationBar = ({
           </div>
 
           {/* Right Section - Actions */}
-          <div className='flex items-center gap-1 justify-end'>
+          <div className='flex items-center gap-2 justify-end'>
             <Button
               variant='ghost'
               size='icon'
-              className='h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+              className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
             >
               <Bell className='h-4 w-4' />
             </Button>
+            <RecentActivityButton />
+            <AllCompanyNotesButton />
+            <div className='mx-1 h-6 w-px bg-gray-300' aria-hidden='true' />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant='ghost'
-                    className='h-7 w-7 p-0 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+                    className='h-7 w-7 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
                   >
                     <Avatar className='h-7 w-7'>
                       <AvatarImage

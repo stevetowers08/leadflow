@@ -161,9 +161,9 @@ export function JobFilteringForm({
                 <Label htmlFor='platform'>Platform *</Label>
                 <p className='text-sm text-gray-600 mb-2'>
                   Job board platform for this configuration. Each platform
-                  requires specific query format and scraper configuration.
-                  Supports multi-platform strategies with separate configs per
-                  platform.
+                  requires specific query format and AI enrichment
+                  configuration. Supports multi-platform strategies with
+                  separate configs per platform.
                 </p>
                 <Select
                   value={formData.platform || 'linkedin'}

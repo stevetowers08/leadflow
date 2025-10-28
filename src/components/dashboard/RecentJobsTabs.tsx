@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
+import { getCompanyLogoUrlSync } from '@/services/logoService';
 
 interface RecentJobsTabsProps {
   jobs: RecentJob[];
@@ -30,26 +31,21 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
 
-  // Get company logo using Clearbit
+  // Get company logo using stored/provider helper
   const getCompanyLogo = (job: RecentJob) => {
     if (job.company_logo_url) return job.company_logo_url;
     if (!job.company_name) return null;
 
-    // If we have a company website, use it for Clearbit
+    // Prefer website; fallback to name-based domain
     if (job.company_website) {
-      const cleanWebsite = job.company_website
-        .replace(/^https?:\/\/(www\.)?/, '')
-        .split('/')[0];
-      return `https://logo.clearbit.com/${cleanWebsite}`;
+      return getCompanyLogoUrlSync(job.company_name, job.company_website);
     }
 
-    // Fallback: try to generate from company name
     const cleanCompanyName = job.company_name
       .toLowerCase()
       .replace(/\s+/g, '')
       .replace(/[^a-z0-9]/g, '');
-
-    return `https://logo.clearbit.com/${cleanCompanyName}.com`;
+    return getCompanyLogoUrlSync(job.company_name, `${cleanCompanyName}.com`);
   };
 
   // Filter jobs by assignment status and sort by date created

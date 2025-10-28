@@ -3,9 +3,16 @@ import { supabase } from '@/integrations/supabase/client';
 /**
  * Handles company insertion with optional owner_id assignment
  * If no owner_id is provided, it will be set to null (unassigned)
+ *
+ * Best Practice: Always include proper validation and error handling
  */
 export const insertCompanyWithOwner = async (companyData: any) => {
   try {
+    // Validate required fields
+    if (!companyData.name) {
+      throw new Error('Company name is required');
+    }
+
     // Get the current user (optional)
     const {
       data: { user },

@@ -1,0 +1,91 @@
+---
+description: Common development tasks, workflows, and commands
+globs: []
+alwaysApply: false
+---
+
+# Common Tasks and Workflows
+
+## Adding a New Status
+
+1. Update enum in `src/types/database.ts`
+2. Add mapping in `src/utils/statusUtils.ts`
+3. Update UI components that display status
+4. Update database constraints (migration required)
+5. Test thoroughly
+
+## Modifying a Component
+
+1. Read existing component first
+2. Check for TypeScript types
+3. Ensure no LinkedIn automation logic remains
+4. Update related components if needed
+5. Run TypeScript check: `npx tsc --noEmit`
+
+## Creating a New Component
+
+1. Use TypeScript functional component
+2. Define Props interface
+3. Use proper imports from design system
+4. Follow naming conventions (PascalCase)
+5. Export from index if shared component
+
+## Development Workflow
+
+### Running Locally
+
+```bash
+npm run dev          # Start dev server on port 8086
+npm run build        # Production build
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix linting errors
+npm run format      # Format with Prettier
+npm test             # Run tests
+npm run tsc          # Type checking
+```
+
+### Common Commands
+
+```bash
+# Type checking
+npx tsc --noEmit
+
+# Database schema
+npm run db:schema
+npm run db:schema people
+
+# Security audit
+npm run security:audit
+npm run security:scan
+```
+
+## Deployment
+
+- **Platform:** Vercel
+- **Branch:** Deploy from `main` branch
+- **Environment:** Check `.env.example` for required variables
+- **Build Command:** `npm run build`
+- **Output:** `dist/`
+- **Node Version:** >= 18.0.0 (from package.json engines)
+
+## Commit Guidelines
+
+Use conventional commits:
+
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `refactor:` - Code refactoring
+- `docs:` - Documentation changes
+- `style:` - Formatting changes
+- `test:` - Test additions/changes
+- `chore:` - Build/tooling changes
+
+## Security
+
+- Never commit `.env` files
+- Never expose API keys in code
+- Always use RLS policies
+- Validate user input
+- Sanitize data before display
+- Follow [SECURITY.md](SECURITY.md) guidelines

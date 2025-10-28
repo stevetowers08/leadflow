@@ -19,6 +19,16 @@ export default {
       },
     },
     extend: {
+      fontSize: {
+        // Attio CRM font scale with 14px as base
+        xs: ['0.75rem', { lineHeight: '1rem' }], // 12px
+        sm: ['0.875rem', { lineHeight: '1.25rem' }], // 14px - Attio base
+        base: ['0.875rem', { lineHeight: '1.25rem' }], // 14px - Attio base (same as sm)
+        lg: ['1rem', { lineHeight: '1.5rem' }], // 16px
+        xl: ['1.125rem', { lineHeight: '1.75rem' }], // 18px
+        '2xl': ['1.5rem', { lineHeight: '2rem' }], // 24px
+        '3xl': ['1.875rem', { lineHeight: '2.25rem' }], // 30px
+      },
       fontFamily: {
         sans: [
           'Inter',

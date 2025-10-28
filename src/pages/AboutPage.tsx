@@ -51,7 +51,7 @@ const AboutPage = () => {
       benefits: [
         'Quick access to your top prospects',
         'Never lose track of important contacts',
-        'Personalized lead management',
+        'Personalised lead management',
         'Streamlined follow-up process',
       ],
     },
@@ -73,7 +73,7 @@ const AboutPage = () => {
       benefits: [
         'Scale your outreach efforts',
         'Consistent follow-up timing',
-        'Personalized message sequences',
+        'Personalised message sequences',
         'Never miss a follow-up opportunity',
       ],
     },
@@ -443,7 +443,7 @@ const AboutPage = () => {
                     <h3 className='font-semibold'>Explore Your Dashboard</h3>
                   </div>
                   <p className='text-sm text-muted-foreground ml-10'>
-                    Start with your personalized dashboard to see your key
+                    Start with your personalised dashboard to see your key
                     metrics and recent activity.
                   </p>
                 </div>

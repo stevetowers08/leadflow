@@ -1,9 +1,11 @@
+import { RecruitEdgeLogoHorizontal } from '@/components/RecruitEdgeLogo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 
 export const SignIn: React.FC = () => {
@@ -245,12 +247,6 @@ export const SignIn: React.FC = () => {
               <button className='block w-full text-sm text-sidebar-primary hover:text-sidebar-primary/80 font-medium'>
                 Can't Access Your Account?
               </button>
-              <div className='text-sm text-gray-600'>
-                Don't have an account?{' '}
-                <button className='text-sidebar-primary hover:text-sidebar-primary/80 font-medium'>
-                  Sign Up
-                </button>
-              </div>
             </div>
           </CardContent>
         </Card>

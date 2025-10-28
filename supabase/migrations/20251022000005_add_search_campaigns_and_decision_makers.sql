@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS public.job_sources (
   enrichment_cost_usd DECIMAL(10,4),
   
   -- Metadata
-  raw_data JSONB DEFAULT '{}'::jsonb, -- Original scraped/API data
+  raw_data JSONB DEFAULT '{}'::jsonb, -- Original enriched/API data
   
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()

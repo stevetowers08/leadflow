@@ -23,7 +23,7 @@ export const mockCampaigns: CampaignWithStats[] = [
     status: 'draft',
     target_audience: 'Software engineers at Series A startups',
     messaging_template:
-      'Personalized connection requests with value proposition',
+      'Personalised connection requests with value proposition',
     linkedin_message:
       "Hi {{name}}, I noticed you're {{title}} at {{company}}. I'd love to connect and share some insights about our latest product.",
     email_subject: null,
@@ -83,7 +83,7 @@ export const mockCampaigns: CampaignWithStats[] = [
     campaign_type: 'linkedin',
     status: 'active',
     target_audience: 'Sales Directors at B2B SaaS companies',
-    messaging_template: 'Personalized outreach with industry insights',
+    messaging_template: 'Personalised outreach with industry insights',
     linkedin_message:
       "Hi {{name}}, I saw your recent post about {{company}}'s growth. I'd love to share some insights that might be relevant.",
     email_subject: 'Partnership opportunity for {{company}}',

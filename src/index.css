@@ -40,26 +40,26 @@ All colors MUST be HSL.
 
     /* SIMPLIFIED COLOR PALETTE - 6 Essential Colors + Neutrals */
 
-    /* Primary Brand Color - Monday.com Blue */
-    --primary: 240 100% 70%; /* Monday.com Blue #6161FF */
+    /* Primary Brand Color - Attio Dodger Blue */
+    --primary: 219 87% 55%; /* Attio Dodger Blue #266DF0 */
     --primary-foreground: 0 0% 98%;
-    --primary-hover: 240 100% 65%;
-    --primary-light: 240 100% 95%;
-    --primary-medium: 240 100% 85%;
+    --primary-hover: 219 87% 50%;
+    --primary-light: 219 87% 95%;
+    --primary-medium: 219 87% 85%;
 
     /* Secondary - Same as primary for consistency */
-    --secondary: 240 100% 60%; /* Slightly darker blue */
+    --secondary: 219 87% 50%; /* Slightly darker blue */
     --secondary-foreground: 0 0% 98%;
-    --secondary-hover: 240 100% 55%;
-    --secondary-light: 240 100% 90%;
-    --secondary-medium: 240 100% 80%;
+    --secondary-hover: 219 87% 45%;
+    --secondary-light: 219 87% 90%;
+    --secondary-medium: 219 87% 80%;
 
     /* Accent - Same as primary for consistency */
-    --accent: 240 100% 70%;
+    --accent: 219 87% 55%;
     --accent-foreground: 0 0% 98%;
-    --accent-hover: 240 100% 65%;
-    --accent-light: 240 100% 95%;
-    --accent-medium: 240 100% 85%;
+    --accent-hover: 219 87% 50%;
+    --accent-light: 219 87% 95%;
+    --accent-medium: 219 87% 85%;
 
     /* Muted - Professional grays with improved readability */
     --muted: 240 4.8% 95.9%;
@@ -87,16 +87,16 @@ All colors MUST be HSL.
     --destructive-light: 0 84.2% 95%;
     --destructive-medium: 0 84.2% 85%;
 
-    --info: 240 100% 70%; /* Blue for info (same as primary) */
+    --info: 219 87% 55%; /* Blue for info (same as primary) */
     --info-foreground: 0 0% 98%;
-    --info-hover: 240 100% 65%;
-    --info-light: 240 100% 95%;
-    --info-medium: 240 100% 85%;
+    --info-hover: 219 87% 50%;
+    --info-light: 219 87% 95%;
+    --info-medium: 219 87% 85%;
 
     /* Clean Neutrals */
     --border: 240 5.9% 90%; /* Lighter borders for cleaner look */
     --input: 240 5.9% 95%; /* Very light input backgrounds */
-    --ring: 240 100% 70%; /* Monday.com blue focus rings */
+    --ring: 219 87% 55%; /* Attio blue focus rings */
 
     --radius: 0.5rem; /* Slightly less rounded for professional look */
 
@@ -106,25 +106,25 @@ All colors MUST be HSL.
     --table-border-style: solid;
     --table-header-bg: rgb(255, 255, 255); /* Pure white for clean look */
     --table-cell-padding: 0.5rem 1rem; /* Reduced padding for 40px height */
-    --table-row-height: 40px; /* Exact 40px - HubSpot/Monday.com standard */
+    --table-row-height: 40px; /* Exact 40px - Unified standard for all tables */
     --table-inner-border-width: 1px; /* Subtle inner borders */
     --table-row-hover: rgb(249, 250, 251); /* gray-50 - hover state */
     --table-shadow:
       0 1px 3px 0 rgb(0, 0, 0, 0.1), 0 1px 2px 0 rgb(0, 0, 0, 0.06); /* Modern shadow */
     --table-radius: 0.75rem; /* Modern rounded corners */
 
-    /* Professional Sidebar - Custom Dark Blue */
-    --sidebar-background: 210 28% 24%; /* Dark professional background #2d3e50 */
-    --sidebar-foreground: 0 0% 100%; /* Pure white text */
-    --sidebar-primary: 240 100% 70%; /* Monday.com Blue */
+    /* Professional Sidebar - Light Grey */
+    --sidebar-background: 0 0% 98%; /* Lighter grey background */
+    --sidebar-foreground: 240 10% 20%; /* Dark text for contrast */
+    --sidebar-primary: 219 87% 55%; /* Attio Dodger Blue */
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-primary-hover: 240 100% 65%;
-    --sidebar-primary-light: 240 100% 95%;
-    --sidebar-primary-medium: 240 100% 85%;
+    --sidebar-primary-hover: 219 87% 50%;
+    --sidebar-primary-light: 219 87% 95%;
+    --sidebar-primary-medium: 219 87% 85%;
     --sidebar-accent: 240 5% 96%; /* Very light gray for hover */
     --sidebar-accent-foreground: 240 10% 20%; /* Dark text */
     --sidebar-border: 240 5.9% 85%;
-    --sidebar-ring: 240 100% 70%; /* Monday.com blue focus */
+    --sidebar-ring: 219 87% 55%; /* Attio blue focus */
 
     /* Glassmorphism sidebar background - Enterprise Professional */
     --sidebar-glass-bg: linear-gradient(
@@ -187,13 +187,13 @@ All colors MUST be HSL.
     );
     --gradient-info: linear-gradient(
       135deg,
-      hsl(240 100% 70%) 0%,
-      hsl(240 100% 70% / 0.9) 100%
+      hsl(219 87% 55%) 0%,
+      hsl(219 87% 55% / 0.9) 100%
     );
     --gradient-info-subtle: linear-gradient(
       135deg,
-      hsl(240 100% 70% / 0.05) 0%,
-      hsl(240 100% 70% / 0.02) 100%
+      hsl(219 87% 55% / 0.05) 0%,
+      hsl(219 87% 55% / 0.02) 100%
     );
   }
 }
@@ -223,8 +223,9 @@ All colors MUST be HSL.
     padding: 0;
     overflow: hidden !important;
     overflow-x: hidden !important;
-    /* BEST PRACTICE: Use only system fonts for crisp rendering */
+    /* Inter font for modern CRM aesthetic - matches Attio */
     font-family:
+      'Inter',
       system-ui,
       -apple-system,
       BlinkMacSystemFont,
@@ -233,6 +234,8 @@ All colors MUST be HSL.
       'Helvetica Neue',
       Arial,
       sans-serif;
+    font-weight: 500; /* Attio medium weight */
+    font-size: 14px; /* Attio base font size */
     background-color: hsl(var(--background)) !important;
     /* Ensure consistent text rendering across Chrome and Firefox */
     -webkit-font-smoothing: antialiased;
@@ -242,6 +245,8 @@ All colors MUST be HSL.
     font-feature-settings:
       'kern' 1,
       'liga' 1;
+    font-optical-sizing: auto;
+    font-variation-settings: normal;
   }
 
   /* Modern Table Design System (2025) - Best Practices */
@@ -734,6 +739,41 @@ All colors MUST be HSL.
     scrollbar-color: #9ca3af #f3f4f6;
   }
 
+  /* Modern minimal scrollbar: subtle, rounded, hover-reveal */
+  .scrollbar-modern {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: transparent transparent; /* Hidden until hover */
+  }
+
+  .scrollbar-modern:hover {
+    scrollbar-color: #c7cdd4 transparent; /* Firefox on hover */
+  }
+
+  .scrollbar-modern::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+  }
+
+  .scrollbar-modern::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0); /* Hidden by default */
+    border-radius: 9999px;
+    border: 2px solid transparent; /* Creates inset effect */
+    background-clip: padding-box;
+  }
+
+  .scrollbar-modern:hover::-webkit-scrollbar-thumb {
+    background: rgba(107, 114, 128, 0.45); /* gray-500 @ 45% */
+  }
+
+  .scrollbar-modern::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-modern::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
   .scrollbar-thin::-webkit-scrollbar {
     height: 8px;
     width: 8px;
@@ -780,6 +820,26 @@ All colors MUST be HSL.
 
   .table-scroll-container .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: #9ca3af;
+  }
+
+  /* Table-specific minimal scrollbars (thinner + lighter) */
+  .table-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #dadfe5 transparent; /* gray-300ish */
+  }
+
+  .table-scroll::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+
+  .table-scroll::-webkit-scrollbar-thumb {
+    background: rgba(203, 213, 225, 0.9); /* slate-300 */
+    border-radius: 9999px;
+  }
+
+  .table-scroll:hover::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.9); /* slate-400 */
   }
 
   /* Touch-friendly improvements */
@@ -914,19 +974,19 @@ All colors MUST be HSL.
 
   /* Info states - Blue */
   .bg-info-solid {
-    background-color: hsl(240 100% 70%);
+    background-color: hsl(219 87% 55%);
   }
   .text-info-solid {
-    color: hsl(240 100% 70%);
+    color: hsl(219 87% 55%);
   }
   .border-info-solid {
-    border-color: hsl(240 100% 85%);
+    border-color: hsl(219 87% 85%);
   }
   .bg-info-light {
-    background-color: hsl(240 100% 95%);
+    background-color: hsl(219 87% 95%);
   }
   .text-info-dark {
-    color: hsl(240 100% 65%);
+    color: hsl(219 87% 50%);
   }
 
   /* Neutral states - Gray */

@@ -1,16 +1,15 @@
 import {
-  useAsyncOperation,
   useAsyncData,
   useAsyncMutation,
+  useAsyncOperation,
 } from '@/hooks/useAsyncOperation';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
 import {
-  useRetryLogic,
-  useNetworkRetry,
   useApiRetry,
   useDatabaseRetry,
+  useNetworkRetry,
 } from '@/hooks/useRetryLogic';
-import { useUserFeedback, useActionFeedback } from '@/hooks/useUserFeedback';
-import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useActionFeedback, useUserFeedback } from '@/hooks/useUserFeedback';
 import { supabase } from '@/integrations/supabase/client';
 import { insertCompanyWithOwner } from '@/utils/companyUtils';
 
@@ -303,12 +302,19 @@ export function useNetworkService(options: ServiceOptions = {}) {
   const makeRequest = useAsyncOperation(
     async ({ url, options }: { url: string; options?: RequestInit }) => {
       return executeWithRetry(async () => {
+        const method = (options?.method || 'GET').toUpperCase();
+
+        // Only set Content-Type for requests with a body (non-GET)
+        const computedHeaders: HeadersInit | undefined = {
+          ...(options?.headers || {}),
+          ...(method !== 'GET' && !('Content-Type' in (options?.headers || {}))
+            ? { 'Content-Type': 'application/json' }
+            : {}),
+        };
+
         const response = await fetch(url, {
           ...options,
-          headers: {
-            'Content-Type': 'application/json',
-            ...options?.headers,
-          },
+          headers: computedHeaders,
         });
 
         if (!response.ok) {

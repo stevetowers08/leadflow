@@ -22,19 +22,41 @@ class SupabaseMCPServer {
       const urlObj = new URL(url);
       const path = urlObj.pathname;
 
+      // Basic CORS support
+      const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      };
+
+      if (method === 'OPTIONS') {
+        return new Response(null, { headers: corsHeaders });
+      }
+
       if (method === 'POST' && path === '/mcp/tools') {
-        return await this.handleToolCall(request);
+        const res = await this.handleToolCall(request);
+        return new Response(await res.text(), {
+          status: res.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
       if (method === 'GET' && path === '/mcp/tools') {
-        return await this.listTools();
+        const res = await this.listTools();
+        return new Response(await res.text(), {
+          status: res.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
-      return new Response('Not Found', { status: 404 });
+      return new Response('Not Found', { status: 404, headers: corsHeaders });
     } catch (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
+      return new Response(JSON.stringify({ error: (error as Error).message }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       });
     }
   }
@@ -142,7 +164,7 @@ class SupabaseMCPServer {
       return new Response(
         JSON.stringify({
           success: false,
-          error: error.message,
+          error: (error as Error).message,
         }),
         {
           status: 500,

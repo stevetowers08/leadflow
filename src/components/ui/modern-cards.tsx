@@ -203,13 +203,13 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
   const getScoreColor = (score?: string) => {
     switch (score?.toLowerCase()) {
       case 'high':
-        return 'bg-emerald-50/80 text-emerald-700 border-emerald-100/60';
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       case 'medium':
-        return 'bg-yellow-50/80 text-yellow-700 border-yellow-100/60';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'low':
-        return 'bg-red-50/80 text-red-700 border-red-100/60';
+        return 'bg-orange-100 text-orange-800 border-orange-200';
       default:
-        return 'bg-gray-50/80 text-gray-700 border-gray-100/60';
+        return 'bg-gray-100 text-gray-500 border-gray-200';
     }
   };
 

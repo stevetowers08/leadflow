@@ -1,0 +1,68 @@
+---
+description: Service layer patterns, API usage, React Query, and environment variables
+globs: ['**/services/**', '**/hooks/*.ts']
+alwaysApply: false
+---
+
+# Services and API Layer
+
+## Service Pattern
+
+All database access goes through service functions in `src/services/`:
+
+```typescript
+// Example: src/services/jobsService.ts
+export async function getJobs(filters: JobFilters): Promise<Job[]> {
+  const query = supabase.from('jobs').select('*');
+  // Apply filters, joins, etc.
+  return data;
+}
+```
+
+## Key Services
+
+- `jobsService.ts` - Job management
+- `aiService.ts` - Gemini AI integration
+- `bulkPeopleService.ts` - Bulk operations
+- `decisionMakerService.ts` - Lead enrichment
+- `gmailService.ts` - Email integration
+- `logoService.ts` - Company logo fetching
+- `conversationService.ts` - Email tracking
+
+## React Query Usage
+
+```typescript
+// ✅ CORRECT: Use React Query for server state
+const { data, isLoading } = useQuery({
+  queryKey: ['jobs', filters],
+  queryFn: () => getJobs(filters),
+});
+
+// ❌ INCORRECT: Direct fetch in component
+useEffect(() => {
+  fetchJobs().then(setJobs);
+}, []);
+```
+
+## Environment Variables
+
+### Required Variables (from .env.example)
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+VITE_GOOGLE_CLIENT_ID=your-client-id
+VITE_GEMINI_API_KEY=your-gemini-key
+VITE_TOKEN_ENCRYPTION_KEY=your-encryption-key
+```
+
+### Environment Access
+
+```typescript
+// ✅ CORRECT: Use import.meta.env in client code
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+// ❌ INCORRECT: Don't access server-side env vars on client
+const secret = import.meta.env.SUPABASE_SERVICE_ROLE_KEY; // BAD!
+```

@@ -25,6 +25,8 @@ export const jobsService = {
   async getJobs(filters: JobFilters = {}): Promise<Job[]> {
     console.log('🔍 JobsService.getJobs called with filters:', filters);
 
+    const today = new Date().toISOString().split('T')[0];
+
     const { data, error } = await supabase
       .from('jobs')
       .select(
@@ -35,6 +37,7 @@ export const jobsService = {
         posted_date, valid_through
       `
       )
+      .or(`valid_through.is.null,valid_through.gte.${today}`)
       .order(filters.sortBy || 'posted_date', {
         ascending: filters.sortOrder === 'asc',
       });

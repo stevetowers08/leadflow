@@ -87,7 +87,7 @@ export const RecentActivityButton: React.FC = () => {
 
       // Process interactions
       for (const interaction of interactions || []) {
-        const person = interaction.people as any;
+        const person = interaction.people as { companies?: { name: string } };
         const company = person?.companies;
 
         let activityType: ActivityItem['type'] = 'interaction';
@@ -194,8 +194,8 @@ export const RecentActivityButton: React.FC = () => {
       );
 
       setActivities(sorted.slice(0, 100));
-    } catch (e: any) {
-      setError(e?.message || 'Failed to load activities');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load activities');
       setActivities([]);
     } finally {
       setIsLoading(false);

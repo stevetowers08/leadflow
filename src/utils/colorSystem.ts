@@ -1,12 +1,12 @@
 /**
- * Unified Color System for Monday.com Blue Theme
+ * Unified Color System for Attio Blue Theme
  *
  * This file provides a centralized way to manage all colors in the application.
  * All colors should use CSS variables defined in index.css for consistency.
  */
 
 export const colorSystem = {
-  // Primary Monday.com Blue Colors
+  // Primary Attio Blue Colors
   primary: {
     main: 'bg-primary text-primary-foreground',
     hover: 'hover:bg-primary-hover',

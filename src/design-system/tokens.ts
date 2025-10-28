@@ -144,19 +144,22 @@ export const designTokens = {
     },
   },
 
-  // Shadows - Professional elevation system
+  // Shadows - Professional elevation system (2025 Best Practices)
   shadows: {
-    sm: 'shadow-sm',
-    md: 'shadow-md',
-    lg: 'shadow-lg',
-    xl: 'shadow-xl',
-    // Professional card-specific shadow patterns
-    card: 'shadow-sm hover:shadow-md transition-shadow duration-300',
-    cardStatic: 'shadow-sm',
-    cardHover: 'hover:shadow-md transition-shadow duration-300',
-    mobile: 'shadow-sm',
+    sm: 'shadow-sm', // 0 1px 2px 0 rgb(0 0 0 / 0.05) - Very subtle (static state)
+    md: 'shadow-md', // 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) - Medium elevation (hover state)
+    lg: 'shadow-lg', // Large elevation (for special cases only)
+    xl: 'shadow-xl', // Extra large elevation (for special cases only)
+    // Professional card-specific shadow patterns (2025 Best Practices)
+    card: 'shadow-sm hover:shadow-md transition-all duration-200', // Updated for 2025 standards
+    cardStatic: 'shadow-sm', // Static cards with no hover
+    cardHover: 'hover:bg-gray-100 hover:shadow-md transition-all duration-200', // Updated: includes background + shadow
+    mobile: 'shadow-sm', // Mobile-optimized minimal shadows
     // Professional button shadows
     button: 'shadow-sm hover:shadow-md',
+    // Clickable card hover (Dashboard, Getting Started, etc.)
+    cardInteractive:
+      'hover:bg-gray-100 hover:shadow-md transition-all duration-200',
   },
 
   // Borders - Unified border system using CSS variables

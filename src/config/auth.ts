@@ -32,15 +32,18 @@ export const getAuthConfig = (): AuthConfig => {
   const shouldBypass =
     isDevelopment || bypassAuth || import.meta.env.MODE === 'production';
 
-  console.log('🔍 Auth Config Debug:', {
-    isDevelopment,
-    bypassAuth,
-    shouldBypass,
-    nodeEnv: import.meta.env.NODE_ENV,
-    mode: import.meta.env.MODE,
-    dev: import.meta.env.DEV,
-    viteBypassAuth: import.meta.env.VITE_BYPASS_AUTH,
-  });
+  // Debug logging (development only)
+  if (isDevelopment) {
+    console.log('🔍 Auth Config Debug:', {
+      isDevelopment,
+      bypassAuth,
+      shouldBypass,
+      nodeEnv: import.meta.env.NODE_ENV,
+      mode: import.meta.env.MODE,
+      dev: import.meta.env.DEV,
+      viteBypassAuth: import.meta.env.VITE_BYPASS_AUTH,
+    });
+  }
 
   return {
     bypassAuth: shouldBypass,

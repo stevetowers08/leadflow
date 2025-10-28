@@ -1,0 +1,82 @@
+---
+description: Database patterns, Supabase usage, and RLS security
+globs:
+  [
+    '**/services/**',
+    '**/utils/databaseQueries.ts',
+    '**/integrations/supabase/**',
+  ]
+alwaysApply: false
+---
+
+# Database Best Practices
+
+## Key Tables
+
+- **jobs** - Job postings (qualification_status: new | qualify | skip)
+- **people** - Leads/contacts (stage: new | qualified | proceed | skip)
+- **companies** - Company profiles
+- **interactions** - Activity tracking
+- **user_profiles** - User accounts
+- **client_jobs** - Client-specific job data
+- **campaigns** - Email campaigns
+- **campaign_participants** - Campaign member tracking
+
+## Database Access Patterns
+
+```typescript
+// ✅ CORRECT: Use type-safe queries
+import { DatabaseQueries } from '@/utils/databaseQueries';
+const person = await DatabaseQueries.getEntity<Person>('people', id);
+
+// ✅ CORRECT: Use service functions
+import { getJobs } from '@/services/jobsService';
+const jobs = await getJobs({ status: 'new' });
+
+// ❌ INCORRECT: Don't bypass type system
+const { data } = await supabase.from('people').select('*').eq('id', id);
+```
+
+## Supabase Client Usage
+
+```typescript
+// Import the Supabase client
+import { supabase } from '@/integrations/supabase/client';
+
+// ✅ CORRECT: Always use service functions
+import { getPeople } from '@/services/peopleService';
+
+// ✅ CORRECT: Type-safe queries with proper selection
+const { data, error } = await supabase
+  .from('people')
+  .select('id, name, email_address, stage')
+  .eq('stage', 'new');
+
+// ❌ INCORRECT: Selecting all columns
+const { data } = await supabase.from('people').select('*');
+
+// ❌ INCORRECT: Not handling errors
+const { data } = await supabase.from('people').select('*');
+setPeople(data); // data could be null!
+```
+
+## RLS (Row Level Security)
+
+- RLS is **always enabled** on Supabase tables
+- Users can only access data they own (via `owner_id`)
+- Never bypass RLS - it's a security feature
+- Test with different users to ensure proper access control
+
+## Database Commands
+
+```bash
+npm run db:schema              # Show all tables
+npm run db:schema people       # Show people table fields
+npm run db:schema companies name  # Show specific field
+```
+
+## Status Utilities
+
+- Use `src/utils/statusUtils.ts` for consistent status display
+- Use `getStatusDisplayText()` for UI display
+- Use `normalizeStatus()` for backend normalization

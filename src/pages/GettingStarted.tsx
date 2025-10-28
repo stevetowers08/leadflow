@@ -10,15 +10,13 @@ import { Page } from '@/design-system/components';
 import { supabase } from '@/integrations/supabase/client';
 import {
   ArrowRight,
-  Brain,
   CheckCircle,
+  ChevronRight,
   Circle,
   Database,
   Mail,
   Rocket,
   SlidersHorizontal,
-  Target,
-  Users,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -138,19 +136,20 @@ export default function GettingStarted() {
             An <strong className='font-semibold'>AI-powered</strong> B2B
             sales-focused recruitment tool that helps recruiters and agencies
             identify companies with open positions, qualify them as potential
-            clients, and reach out to decision-makers. It bridges the gap
+            clients, and reach out to decision makers. It bridges the gap
             between job discovery and business development.
           </p>
           <p className='text-sm text-gray-700 leading-relaxed'>
             Rather than a full ATS (Applicant Tracking System), this focuses on
-            business development. You browse job postings to identify companies
-            who are hiring.{' '}
+            business development. You browse pre-filtered job postings to
+            identify companies who are hiring.{' '}
             <strong className='font-semibold'>AI automatically finds</strong>{' '}
             the right decision makers at those companies and{' '}
             <strong className='font-semibold'>
               generates personalised messages
             </strong>{' '}
-            ready to use, turning job postings into new clients.
+            ready to use—either individually or via email campaigns—turning job
+            postings into new clients.
           </p>
         </div>
 
@@ -159,52 +158,105 @@ export default function GettingStarted() {
           <h2 className='text-lg font-semibold text-foreground mb-4'>
             How It Works
           </h2>
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
-            <div className='flex items-start gap-3'>
-              <div className='p-2 rounded-lg bg-blue-50 border border-blue-200'>
-                <Target className='h-5 w-5 text-blue-600' />
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
+            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
+              <div className='flex-shrink-0 w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
+                1
               </div>
-              <div>
-                <h3 className='font-semibold text-sm text-gray-900 mb-1'>
-                  Find Companies Hiring
+              <div className='flex-1 min-w-0'>
+                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+                  Discover & Qualify Jobs
                 </h3>
-                <p className='text-xs text-gray-600'>
-                  Monitor job boards and LinkedIn for companies actively
-                  recruiting. This is your strongest signal for potential
-                  clients.
+                <p className='text-sm text-gray-600'>
+                  Browse pre-filtered job postings from LinkedIn that match your
+                  criteria. Qualify promising opportunities to automatically add
+                  companies to your pipeline.
                 </p>
               </div>
+              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
             </div>
 
-            <div className='flex items-start gap-3'>
-              <div className='p-2 rounded-lg bg-purple-50 border border-purple-200'>
-                <Users className='h-5 w-5 text-purple-600' />
+            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
+              <div className='flex-shrink-0 w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
+                2
               </div>
-              <div>
-                <h3 className='font-semibold text-sm text-gray-900 mb-1'>
-                  AI Finds Decision Makers
+              <div className='flex-1 min-w-0'>
+                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+                  Review Companies
                 </h3>
-                <p className='text-xs text-gray-600'>
-                  AI automatically scrapes LinkedIn to identify hiring managers,
-                  CTOs, HR directors, and department heads at each company.
+                <p className='text-sm text-gray-600'>
+                  System automatically creates company records when you qualify
+                  jobs. Review your pipeline and identify the best
+                  opportunities.
                 </p>
               </div>
+              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
             </div>
 
-            <div className='flex items-start gap-3'>
-              <div className='p-2 rounded-lg bg-green-50 border border-green-200'>
-                <Mail className='h-5 w-5 text-green-600' />
+            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
+              <div className='flex-shrink-0 w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
+                3
               </div>
-              <div>
-                <h3 className='font-semibold text-sm text-gray-900 mb-1'>
-                  AI-Generated Outreach
+              <div className='flex-1 min-w-0'>
+                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+                  Find Decision Makers
                 </h3>
-                <p className='text-xs text-gray-600'>
-                  Get personalised messages ready to send via Gmail, or sync
-                  contacts to your CRM (Salesforce, HubSpot, etc.) for manual
-                  follow-up.
+                <p className='text-sm text-gray-600'>
+                  AI automatically enriches LinkedIn data to identify hiring
+                  managers, CTOs, HR directors, and department heads who can
+                  hire you.
                 </p>
               </div>
+              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
+            </div>
+
+            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
+              <div className='flex-shrink-0 w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
+                4
+              </div>
+              <div className='flex-1 min-w-0'>
+                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+                  Generate Messages
+                </h3>
+                <p className='text-sm text-gray-600'>
+                  AI creates personalised messages that reference their role and
+                  the job. Review and edit for authenticity before sending.
+                </p>
+              </div>
+              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
+            </div>
+
+            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
+              <div className='flex-shrink-0 w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
+                5
+              </div>
+              <div className='flex-1 min-w-0'>
+                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+                  Send & Track
+                </h3>
+                <p className='text-sm text-gray-600'>
+                  Send individually via Gmail or launch email campaigns to
+                  multiple contacts. AI tracks email replies and automatically
+                  moves leads through the pipeline—or move them manually.
+                </p>
+              </div>
+              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
+            </div>
+
+            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
+              <div className='flex-shrink-0 w-12 h-12 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
+                6
+              </div>
+              <div className='flex-1 min-w-0'>
+                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+                  Close Deals
+                </h3>
+                <p className='text-sm text-gray-600'>
+                  Convert interested companies into clients. Track meetings,
+                  proposals, and closed deals throughout your pipeline.
+                </p>
+              </div>
+              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
             </div>
           </div>
         </div>
@@ -235,7 +287,7 @@ export default function GettingStarted() {
             return (
               <div
                 key={step.id}
-                className='p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-primary hover:shadow-sm transition-all duration-200 group'
+                className='p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 hover:shadow-md transition-all duration-200 group'
                 onClick={() => navigate(step.href)}
               >
                 <div className='flex items-center gap-3'>

@@ -174,6 +174,10 @@ export const useJobs = (
       // Only show jobs assigned to this client
       query = query.eq('client_jobs.client_id', clientId);
 
+      // Exclude expired jobs
+      const today = new Date().toISOString().split('T')[0];
+      query = query.or(`valid_through.is.null,valid_through.gte.${today}`);
+
       // Apply filters
       if (search) {
         query = query.or(`title.ilike.%${search}%,location.ilike.%${search}%`);

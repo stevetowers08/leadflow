@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export interface Permission {
   id: string;
@@ -826,15 +826,17 @@ export function PermissionsProvider({
       // Use role from user profile database record
       const userRole = userProfile.role;
 
-      // Always log in production for debugging
-      console.log('PermissionsContext Debug:', {
-        userEmail: user.email,
-        userProfileRole: userRole,
-        userMetadataRole: user.user_metadata?.role,
-        userProfileExists: !!userProfile,
-        userProfileData: userProfile,
-        availableRoles: roles.map(r => r.id),
-      });
+      // Debug logging (development only)
+      if (import.meta.env.DEV) {
+        console.log('PermissionsContext Debug:', {
+          userEmail: user.email,
+          userProfileRole: userRole,
+          userMetadataRole: user.user_metadata?.role,
+          userProfileExists: !!userProfile,
+          userProfileData: userProfile,
+          availableRoles: roles.map(r => r.id),
+        });
+      }
 
       const role = roles.find(role => role.id === userRole);
 
@@ -848,11 +850,16 @@ export function PermissionsProvider({
         // If role not found, try owner first for mock users, then default to recruiter
         const ownerRole = roles.find(role => role.id === 'owner');
         const defaultRole = roles.find(role => role.id === 'recruiter');
-        
+
         const roleToUse = ownerRole || defaultRole;
-        
+
         if (roleToUse) {
-          console.log('PermissionsContext: Using fallback role:', roleToUse.id);
+          if (import.meta.env.DEV) {
+            console.log(
+              'PermissionsContext: Using fallback role:',
+              roleToUse.id
+            );
+          }
           setUserPermissions({
             userId: user.id,
             roles: [roleToUse],

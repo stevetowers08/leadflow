@@ -1,48 +1,45 @@
 /**
  * Company Logo Service
- * Uses Clearbit API for company logos with fallback to initials
+ * Stores provider-fetched logos in Supabase Storage and returns cached URLs.
  */
 
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * Get logo URL from Clearbit API
- */
-export const getClearbitLogo = (
-  companyName: string,
-  website?: string
-): string | null => {
+const getDomainFromWebsite = (website?: string): string | null => {
   try {
-    // Try website domain first (most reliable)
-    if (website && typeof website === 'string' && website.trim()) {
-      const domain = website
-        .replace(/^https?:\/\//, '') // Remove protocol
-        .replace(/^www\./, '') // Remove www
-        .split('/')[0] // Get domain only
-        .split('?')[0]; // Remove query params
-
-      if (domain && domain.length > 0) {
-        return `https://logo.clearbit.com/${domain}`;
-      }
-    }
-
-    // Fallback: try common domain patterns
-    if (companyName && typeof companyName === 'string' && companyName.trim()) {
-      const cleanName = companyName
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '') // Remove special chars
-        .replace(/\s+/g, ''); // Remove spaces
-
-      if (cleanName && cleanName.length > 0) {
-        return `https://logo.clearbit.com/${cleanName}.com`;
-      }
-    }
-
-    return null;
-  } catch (error) {
-    // Silently handle errors - logo failures are common and expected
+    if (!website || typeof website !== 'string' || !website.trim()) return null;
+    const domain = website
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .split('/')[0]
+      .split('?')[0]
+      .trim();
+    return domain || null;
+  } catch {
     return null;
   }
+};
+
+const getFallbackDomainFromName = (companyName?: string): string | null => {
+  if (!companyName || typeof companyName !== 'string' || !companyName.trim())
+    return null;
+  const cleanName = companyName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/\s+/g, '');
+  return cleanName ? `${cleanName}.com` : null;
+};
+
+const buildProviderUrl = (domain: string): string => {
+  const logoDevKey = import.meta.env.VITE_LOGO_DEV_API_KEY as
+    | string
+    | undefined;
+  if (logoDevKey) {
+    // Logo.dev image endpoint
+    return `https://img.logo.dev/${domain}?apikey=${logoDevKey}`;
+  }
+  // Fallback (deprecated) to Clearbit while migrating
+  return `https://logo.clearbit.com/${domain}`;
 };
 
 /**
@@ -58,23 +55,61 @@ export const testLogoUrl = async (url: string): Promise<boolean> => {
 };
 
 /**
- * Get company logo URL using Clearbit API
- * This is the primary method for getting company logos
+ * Get or fetch-and-store company logo, returning a public URL.
+ * If a cached URL is passed, it is returned without network calls.
  */
-export const getCompanyLogoUrl = (
-  companyName: string,
-  website?: string
-): string | null => {
+export const getOrStoreCompanyLogo = async (
+  company: { id: string; name: string; website: string | null; logo_url?: string | null }
+): Promise<string | null> => {
   try {
-    // Only use Clearbit if website exists and is valid
-    if (website && typeof website === 'string' && website.trim()) {
-      return getClearbitLogo(companyName || '', website);
+    if (company.logo_url && company.logo_url.trim()) return company.logo_url;
+
+    const domain =
+      getDomainFromWebsite(company.website || undefined) ||
+      getFallbackDomainFromName(company.name || undefined);
+    if (!domain) return null;
+
+    const providerUrl = buildProviderUrl(domain);
+    const ok = await testLogoUrl(providerUrl);
+    if (!ok) return null;
+
+    const res = await fetch(providerUrl);
+    if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || 'image/png';
+    const extension = contentType.includes('webp')
+      ? 'webp'
+      : contentType.includes('svg')
+      ? 'svg'
+      : contentType.includes('jpeg') || contentType.includes('jpg')
+      ? 'jpg'
+      : 'png';
+    const arrayBuffer = await res.arrayBuffer();
+
+    const objectPath = `companies/${domain}.${extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from('logos')
+      .upload(objectPath, new Blob([arrayBuffer], { type: contentType }), {
+        upsert: true,
+        contentType,
+      });
+    if (uploadError) {
+      console.error('Logo upload failed:', uploadError);
+      return null;
     }
 
-    // Return null if no website (will fallback to initials in UI)
-    return null;
+    const { data } = supabase.storage.from('logos').getPublicUrl(objectPath);
+    const publicUrl = data?.publicUrl || null;
+
+    if (publicUrl) {
+      await supabase
+        .from('companies')
+        .update({ logo_url: publicUrl, logo_cached_at: new Date().toISOString() })
+        .eq('id', company.id);
+    }
+
+    return publicUrl;
   } catch (error) {
-    console.error('Error in getCompanyLogoUrl:', error);
+    console.error('Error fetching/storing company logo:', error);
     return null;
   }
 };
@@ -164,10 +199,10 @@ export const getCompanyLogoUrlSync = (
       return cachedLogoUrl;
     }
 
-    // 2. Generate Clearbit URL if website exists
-    if (website && typeof website === 'string' && website.trim()) {
-      return getClearbitLogo(companyName || '', website);
-    }
+    // 2. Build provider URL (sync, uncached) as a temporary display until stored
+    const domain =
+      getDomainFromWebsite(website) || getFallbackDomainFromName(companyName);
+    if (domain) return buildProviderUrl(domain);
 
     // 3. Return null if no website (will fallback to initials in UI)
     return null;

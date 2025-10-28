@@ -39,7 +39,7 @@ export const SecondaryNavigation = ({
       </div>
 
       {/* Navigation */}
-      <nav className='flex-1 px-2 py-4 overflow-y-auto'>
+      <nav className='flex-1 px-2 py-4 overflow-y-auto scrollbar-modern'>
         <div className='space-y-1'>
           {items.map(item => {
             const isActive = location.pathname === item.href;

@@ -188,12 +188,12 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
             <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
               {conversation.person_company_website ? (
                 <img
-                  src={`https://logo.clearbit.com/${
-                    conversation.person_company_website
-                      .replace(/^https?:\/\//, '')
-                      .replace(/^www\./, '')
-                      .split('/')[0]
-                  }`}
+                  src={
+                    getCompanyLogoUrlSync(
+                      conversation.person_company || '',
+                      conversation.person_company_website
+                    ) || ''
+                  }
                   alt={conversation.person_company}
                   className='w-10 h-10 rounded-lg object-cover'
                   onError={e => {

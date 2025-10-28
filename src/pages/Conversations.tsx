@@ -252,108 +252,107 @@ const ConversationsPage: React.FC = () => {
   });
 
   return (
-    <div className='bg-white -mx-4 -my-4 lg:-mx-6 lg:-my-6'>
-      <div className='flex bg-white' style={{ height: 'calc(100vh - 4rem)' }}>
-        {/* Left Sidebar - Simplified */}
-        <div className='w-56 bg-gray-50 border-r border-gray-200 flex flex-col flex-shrink-0'>
-          {/* Search Section */}
-          <div className='p-4 border-b border-gray-200'>
-            <div className='relative'>
-              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
-              <Input
-                placeholder='Search conversations'
-                className='pl-10 bg-white border-gray-300 text-sm h-9'
-              />
-            </div>
-          </div>
-
-          {/* Navigation Items - Simplified */}
-          <div className='flex-1 p-3'>
-            <div className='space-y-1'>
-              {[
-                {
-                  id: 'inbox',
-                  label: 'Inbox',
-                  icon: MailOpen,
-                  count: null,
-                },
-                {
-                  id: 'unread',
-                  label: 'Unread',
-                  icon: Mail,
-                  count: unreadCount,
-                },
-                { id: 'sent', label: 'Sent', icon: MessageSquare, count: null },
-              ].map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveView(item.id)}
-                  className={cn(
-                    'w-full flex items-center justify-between px-3 py-2 text-sm rounded transition-colors',
-                    activeView === item.id
-                      ? 'bg-primary-light text-primary'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  )}
-                >
-                  <div className='flex items-center gap-3'>
-                    <item.icon className='h-4 w-4' />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.count !== null &&
-                    item.count !== undefined &&
-                    item.count > 0 && (
-                      <Badge
-                        variant='secondary'
-                        className='bg-red-100 text-red-700 text-xs px-2 py-0.5 h-5'
-                      >
-                        {item.count}
-                      </Badge>
-                    )}
-                </button>
-              ))}
-            </div>
+    <div className='flex bg-white h-full overflow-hidden'>
+      {/* Left Sidebar - Simplified */}
+      <div className='w-56 bg-gray-50 border-r border-gray-200 flex flex-col flex-shrink-0'>
+        {/* Search Section */}
+        <div className='p-4 border-b border-gray-200'>
+          <div className='relative'>
+            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+            <Input
+              placeholder='Search conversations'
+              className='pl-10 bg-white border-gray-300 text-sm h-9'
+            />
           </div>
         </div>
 
-        {/* Middle Panel - Thread List */}
-        <div className='w-80 flex flex-col bg-white flex-shrink-0 border-l border-gray-200'>
-          <div className='p-4 border-b border-gray-200 bg-white'>
-            <div className='flex items-center justify-between'>
-              <h2 className='text-sm font-semibold text-gray-900'>
-                Conversations
-              </h2>
-              <Button variant='ghost' size='sm' className='h-7 w-7 p-0'>
-                <Search className='h-4 w-4' />
-              </Button>
-            </div>
+        {/* Navigation Items - Simplified */}
+        <div className='flex-1 p-3'>
+          <div className='space-y-1'>
+            {[
+              {
+                id: 'inbox',
+                label: 'Inbox',
+                icon: MailOpen,
+                count: null,
+              },
+              {
+                id: 'unread',
+                label: 'Unread',
+                icon: Mail,
+                count: unreadCount,
+              },
+              { id: 'sent', label: 'Sent', icon: MessageSquare, count: null },
+            ].map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveView(item.id)}
+                className={cn(
+                  'w-full flex items-center justify-between px-3 py-2 text-sm rounded transition-colors',
+                  activeView === item.id
+                    ? 'bg-primary-light text-primary'
+                    : 'text-gray-700 hover:bg-gray-100'
+                )}
+              >
+                <div className='flex items-center gap-3'>
+                  <item.icon className='h-4 w-4' />
+                  <span>{item.label}</span>
+                </div>
+                {item.count !== null &&
+                  item.count !== undefined &&
+                  item.count > 0 && (
+                    <Badge
+                      variant='secondary'
+                      className='bg-red-100 text-red-700 text-xs px-2 py-0.5 h-5'
+                    >
+                      {item.count}
+                    </Badge>
+                  )}
+              </button>
+            ))}
           </div>
+        </div>
+      </div>
 
-          {/* Thread List */}
-          <div className='flex-1 overflow-y-auto'>
-            {loading ? (
-              <div className='flex items-center justify-center h-32'>
-                <div className='animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-primary' />
-              </div>
-            ) : filteredThreads.length === 0 ? (
-              <div className='flex flex-col items-center justify-center h-full text-gray-500 p-4'>
-                <Mail className='h-10 w-10 mb-3 opacity-30' />
-                <p className='text-base font-medium'>No Conversations</p>
-                <p className='text-sm text-gray-400 text-center mt-2'>
-                  Conversations with your leads will appear here once emails are
-                  synced from Gmail.
-                </p>
-              </div>
-            ) : (
-              <div className='divide-y divide-gray-100'>
-                {filteredThreads.map(thread => (
+      {/* Middle Panel - Thread List */}
+      <div className='w-80 flex flex-col bg-white flex-shrink-0 border-l border-gray-200'>
+        <div className='p-4 border-b border-gray-200 bg-white'>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-sm font-semibold text-gray-900'>
+              Conversations
+            </h2>
+            <Button variant='ghost' size='sm' className='h-7 w-7 p-0'>
+              <Search className='h-4 w-4' />
+            </Button>
+          </div>
+        </div>
+
+        {/* Thread List */}
+        <div className='flex-1 overflow-y-auto min-h-0'>
+          {loading ? (
+            <div className='flex items-center justify-center h-32'>
+              <div className='animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-primary' />
+            </div>
+          ) : filteredThreads.length === 0 ? (
+            <div className='flex flex-col items-center justify-center h-full text-gray-500 p-4'>
+              <Mail className='h-10 w-10 mb-3 opacity-30' />
+              <p className='text-base font-medium'>No Conversations</p>
+              <p className='text-sm text-gray-400 text-center mt-2'>
+                Conversations with your leads will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className='divide-y divide-gray-100'>
+              {filteredThreads.map(thread => {
+                const isSelected = selectedThread?.id === thread.id;
+                return (
                   <div
                     key={thread.id}
                     onClick={() => handleThreadSelect(thread)}
                     className={cn(
-                      'p-4 hover:bg-gray-50 cursor-pointer transition-colors border-l-4 border-l-transparent',
-                      selectedThread?.id === thread.id &&
-                        'bg-primary-light border-l-primary',
-                      !thread.is_read && 'bg-blue-50/50'
+                      'p-4 cursor-pointer transition-colors',
+                      isSelected ? 'bg-primary/10' : 'hover:bg-gray-50',
+                      !isSelected && !thread.is_read && 'bg-blue-50/50'
                     )}
                   >
                     <div className='flex items-start gap-3'>
@@ -390,216 +389,272 @@ const ConversationsPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Panel - Message View */}
-        <div className='flex-1 flex flex-col bg-white min-w-0 border-l border-gray-200'>
-          {selectedThread ? (
-            <>
-              {/* Thread Header */}
-              <div className='p-4 border-b border-gray-200 bg-white'>
-                <div className='flex items-start justify-between mb-3'>
-                  <div className='flex-1'>
-                    <div className='flex items-center gap-3 mb-2'>
-                      <div className='w-8 h-8 bg-gradient-to-br from-primary to-primary-hover rounded-full flex items-center justify-center'>
-                        <User className='h-4 w-4 text-white' />
-                      </div>
-                      <div>
-                        <h2 className='text-base font-semibold text-gray-900'>
-                          {selectedThread.person_name}
-                        </h2>
-                        <p className='text-xs text-gray-600'>
-                          {selectedThread.person_email}
-                        </p>
-                      </div>
-                    </div>
-
-                    {selectedThread.person_company && (
-                      <div className='flex items-center gap-2 text-sm text-gray-600'>
-                        <Building2 className='h-4 w-4' />
-                        <span>{selectedThread.person_company}</span>
-                        {selectedThread.person_job_title && (
-                          <span>• {selectedThread.person_job_title}</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div className='flex-1 p-4 overflow-y-auto'>
-                {messagesLoading ? (
-                  <div className='flex items-center justify-center h-32'>
-                    <div className='animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-primary' />
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className='flex flex-col items-center justify-center h-full text-gray-500'>
-                    <Mail className='h-12 w-12 mb-3 opacity-30' />
-                    <p className='text-sm font-medium'>No messages loaded</p>
-                  </div>
-                ) : (
-                  <div className='space-y-4'>
-                    {messages.map(message => (
-                      <div
-                        key={message.id}
-                        className={cn(
-                          'p-3 rounded border',
-                          message.is_sent
-                            ? 'bg-primary-light border-primary-medium ml-6'
-                            : 'bg-gray-50 border-gray-200 mr-6'
-                        )}
-                      >
-                        <div className='flex items-start justify-between mb-2'>
-                          <div className='flex items-center gap-2'>
-                            {message.is_sent ? (
-                              <Mail className='h-3 w-3 text-primary' />
-                            ) : (
-                              <MailOpen className='h-3 w-3 text-gray-600' />
-                            )}
-                            <span className='font-medium text-sm'>
-                              {message.is_sent ? 'You' : message.from_email}
-                            </span>
-                          </div>
-                          <span className='text-xs text-gray-500'>
-                            {new Date(message.received_at).toLocaleString()}
-                          </span>
-                        </div>
-                        <div className='prose prose-sm max-w-none text-sm'>
-                          {message.body_html ? (
-                            <div
-                              dangerouslySetInnerHTML={{
-                                __html: message.body_html,
-                              }}
-                            />
-                          ) : (
-                            <div className='whitespace-pre-wrap'>
-                              {message.body_text}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Reply/Compose Section */}
-              <div className='p-4 border-t border-gray-200 bg-gray-50'>
-                <div className='flex items-center justify-between mb-2'>
-                  <span className='text-xs text-gray-500'>Compose Reply</span>
-                  {emailSignature && (
-                    <div className='flex items-center gap-2 text-xs text-green-600'>
-                      <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-                      <span>Signature enabled</span>
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        className='h-6 p-1'
-                        onClick={() => setShowSignatureSettings(true)}
-                      >
-                        <Settings className='h-3 w-3' />
-                      </Button>
-                    </div>
-                  )}
-                  {!emailSignature && (
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      className='h-6 text-xs text-gray-500'
-                      onClick={() => setShowSignatureSettings(true)}
-                    >
-                      + Add signature
-                    </Button>
-                  )}
-                </div>
-                <textarea
-                  placeholder='Type your reply...'
-                  value={replyText}
-                  onChange={e => setReplyText(e.target.value)}
-                  disabled={isSending}
-                  className='w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:cursor-not-allowed'
-                  rows={4}
-                />
-                <div className='flex items-center justify-end gap-3 mt-3'>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={() => setReplyText('')}
-                    disabled={isSending}
-                  >
-                    Clear
-                  </Button>
-                  <Button
-                    size='sm'
-                    onClick={handleSendReply}
-                    disabled={isSending || !replyText.trim()}
-                    className='bg-primary hover:bg-primary-hover'
-                  >
-                    <Mail className='h-4 w-4 mr-2' />
-                    {isSending ? 'Sending...' : 'Send Reply'}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Signature Settings Modal */}
-              {showSignatureSettings && (
-                <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-                  <div className='bg-white rounded-lg p-6 w-full max-w-md'>
-                    <h3 className='text-lg font-semibold mb-4'>
-                      Email Signature
-                    </h3>
-                    <textarea
-                      value={emailSignature}
-                      onChange={e => setEmailSignature(e.target.value)}
-                      placeholder='John Doe
-Recruitment Team
-john@company.com
-+1 234 567 8900'
-                      className='w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary'
-                      rows={5}
-                    />
-                    <div className='flex items-center justify-between mt-4'>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => setShowSignatureSettings(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size='sm'
-                        onClick={async () => {
-                          await saveEmailSignature();
-                          setShowSignatureSettings(false);
-                        }}
-                        className='bg-primary hover:bg-primary-hover'
-                      >
-                        Save
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className='flex-1 flex items-center justify-center bg-gray-50'>
-              <div className='text-center'>
-                <Mail className='h-16 w-16 text-gray-300 mx-auto mb-4' />
-                <h3 className='text-lg font-semibold text-gray-900 mb-1'>
-                  Select a Conversation
-                </h3>
-                <p className='text-sm text-gray-600'>
-                  Choose a conversation from the list to view messages
-                </p>
-              </div>
+                );
+              })}
             </div>
           )}
         </div>
+      </div>
+
+      {/* Right Panel - Message View */}
+      <div className='flex-1 flex flex-col bg-white min-w-0 border-l border-gray-200'>
+        {selectedThread ? (
+          <>
+            {/* Thread Header */}
+            <div className='p-4 border-b border-gray-200 bg-white'>
+              <div className='flex items-start justify-between mb-3'>
+                <div className='flex-1'>
+                  <div className='flex items-center gap-3 mb-2'>
+                    <div className='w-8 h-8 bg-gradient-to-br from-primary to-primary-hover rounded-full flex items-center justify-center'>
+                      <User className='h-4 w-4 text-white' />
+                    </div>
+                    <div>
+                      <h2 className='text-base font-semibold text-gray-900'>
+                        {selectedThread.person_name}
+                      </h2>
+                      <p className='text-xs text-gray-600'>
+                        {selectedThread.person_email}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedThread.person_company && (
+                    <div className='flex items-center gap-2 text-sm text-gray-600'>
+                      <Building2 className='h-4 w-4' />
+                      <span>{selectedThread.person_company}</span>
+                      {selectedThread.person_job_title && (
+                        <span>• {selectedThread.person_job_title}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div className='flex-1 px-6 py-4 overflow-y-auto min-h-0'>
+              {messagesLoading ? (
+                <div className='flex items-center justify-center h-32'>
+                  <div className='animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-primary' />
+                </div>
+              ) : messages.length === 0 ? (
+                <div className='flex flex-col items-center justify-center h-full text-gray-500'>
+                  <Mail className='h-12 w-12 mb-3 opacity-30' />
+                  <p className='text-sm font-medium'>No messages loaded</p>
+                </div>
+              ) : (
+                <div className='space-y-4'>
+                  {messages.map((message, index) => {
+                    const prevMessage = messages[index - 1];
+                    const showSenderInfo =
+                      !prevMessage ||
+                      prevMessage.from_email !== message.from_email ||
+                      Math.abs(
+                        new Date(message.received_at).getTime() -
+                          new Date(prevMessage.received_at).getTime()
+                      ) >
+                        5 * 60 * 1000; // 5 minutes
+
+                    return (
+                      <div
+                        key={message.id}
+                        className={cn(
+                          'flex gap-3 group',
+                          message.is_sent && 'flex-row-reverse'
+                        )}
+                      >
+                        {/* Avatar */}
+                        <div
+                          className={cn(
+                            'flex-shrink-0 rounded-full flex items-center justify-center text-xs font-medium',
+                            message.is_sent
+                              ? 'w-8 h-8 bg-primary text-white'
+                              : 'w-8 h-8 bg-gray-200 text-gray-600'
+                          )}
+                        >
+                          {message.is_sent ? (
+                            <User className='h-4 w-4' />
+                          ) : (
+                            <MailOpen className='h-4 w-4' />
+                          )}
+                        </div>
+
+                        {/* Message Content */}
+                        <div
+                          className={cn(
+                            'flex-1 min-w-0',
+                            message.is_sent ? 'flex flex-col items-end' : ''
+                          )}
+                        >
+                          {/* Sender & Timestamp - Only show for first message or after a gap */}
+                          {showSenderInfo && (
+                            <div
+                              className={cn(
+                                'flex items-center gap-2 mb-1.5',
+                                message.is_sent && 'flex-row-reverse'
+                              )}
+                            >
+                              <span className='text-xs font-medium text-gray-900'>
+                                {message.is_sent ? 'You' : message.from_email}
+                              </span>
+                              <span className='text-xs text-gray-400'>
+                                {new Date(
+                                  message.received_at
+                                ).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Message Bubble */}
+                          <div
+                            className={cn(
+                              'rounded-2xl px-5 py-3 max-w-[75%] shadow-sm transition-shadow',
+                              message.is_sent
+                                ? 'bg-primary text-white shadow-primary/20'
+                                : 'bg-white border border-gray-200 text-gray-900 shadow-gray-200/50 hover:shadow-md'
+                            )}
+                          >
+                            <div className='text-sm leading-relaxed break-words'>
+                              {message.body_html ? (
+                                <div
+                                  dangerouslySetInnerHTML={{
+                                    __html: message.body_html,
+                                  }}
+                                  className={cn(
+                                    message.is_sent
+                                      ? 'prose-invert prose-sm'
+                                      : 'prose prose-sm'
+                                  )}
+                                />
+                              ) : (
+                                <div className='whitespace-pre-wrap'>
+                                  {message.body_text}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Reply/Compose Section */}
+            <div className='p-4 border-t border-gray-200 bg-gray-50'>
+              <div className='flex items-center justify-between mb-2'>
+                <span className='text-xs text-gray-500'>Compose Reply</span>
+                {emailSignature && (
+                  <div className='flex items-center gap-2 text-xs text-green-600'>
+                    <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+                    <span>Signature enabled</span>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='h-6 p-1'
+                      onClick={() => setShowSignatureSettings(true)}
+                    >
+                      <Settings className='h-3 w-3' />
+                    </Button>
+                  </div>
+                )}
+                {!emailSignature && (
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    className='h-6 text-xs text-gray-500'
+                    onClick={() => setShowSignatureSettings(true)}
+                  >
+                    + Add signature
+                  </Button>
+                )}
+              </div>
+              <textarea
+                placeholder='Type your reply...'
+                value={replyText}
+                onChange={e => setReplyText(e.target.value)}
+                disabled={isSending}
+                className='w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:cursor-not-allowed'
+                rows={4}
+              />
+              <div className='flex items-center justify-end gap-3 mt-3'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => setReplyText('')}
+                  disabled={isSending}
+                >
+                  Clear
+                </Button>
+                <Button
+                  size='sm'
+                  onClick={handleSendReply}
+                  disabled={isSending || !replyText.trim()}
+                  className='bg-primary hover:bg-primary-hover'
+                >
+                  <Mail className='h-4 w-4 mr-2' />
+                  {isSending ? 'Sending...' : 'Send Reply'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Signature Settings Modal */}
+            {showSignatureSettings && (
+              <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+                <div className='bg-white rounded-lg p-6 w-full max-w-md'>
+                  <h3 className='text-lg font-semibold mb-4'>
+                    Email Signature
+                  </h3>
+                  <textarea
+                    value={emailSignature}
+                    onChange={e => setEmailSignature(e.target.value)}
+                    placeholder='John Doe
+Recruitment Team
+john@company.com
++1 234 567 8900'
+                    className='w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary'
+                    rows={5}
+                  />
+                  <div className='flex items-center justify-between mt-4'>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={() => setShowSignatureSettings(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size='sm'
+                      onClick={async () => {
+                        await saveEmailSignature();
+                        setShowSignatureSettings(false);
+                      }}
+                      className='bg-primary hover:bg-primary-hover'
+                    >
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className='flex-1 flex items-center justify-center bg-gray-50'>
+            <div className='text-center'>
+              <Mail className='h-16 w-16 text-gray-300 mx-auto mb-4' />
+              <h3 className='text-lg font-semibold text-gray-900 mb-1'>
+                Select a Conversation
+              </h3>
+              <p className='text-sm text-gray-600'>
+                Choose a conversation from the list to view messages
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

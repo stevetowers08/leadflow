@@ -31,6 +31,7 @@ export const ClientManagementTab: React.FC = () => {
 
   useEffect(() => {
     fetchClients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchClients = async () => {
@@ -98,11 +99,12 @@ export const ClientManagementTab: React.FC = () => {
       });
       setShowAddDialog(false);
       fetchClients();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding client:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to add client',
+        description:
+          error instanceof Error ? error.message : 'Failed to add client',
         variant: 'destructive',
       });
     }
@@ -125,11 +127,12 @@ export const ClientManagementTab: React.FC = () => {
       });
 
       fetchClients();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting client:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to delete client',
+        description:
+          error instanceof Error ? error.message : 'Failed to delete client',
         variant: 'destructive',
       });
     }

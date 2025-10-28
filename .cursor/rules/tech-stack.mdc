@@ -1,0 +1,51 @@
+---
+description: Tech stack, dependencies, and development tools
+globs: []
+alwaysApply: true
+---
+
+# Tech Stack
+
+## Core Framework
+
+- **React 18.2** - Functional components, hooks, strict mode
+- **TypeScript 5.9** - Strict mode, no implicit any, proper null checks
+- **Vite 7.1** - Build tool, HMR, optimized chunks
+- **React Router 7.9** - Client-side routing
+
+## State Management
+
+- **TanStack Query 5.90** - Server state, caching, refetching
+- **React Context API** - Global UI state (Auth, Search, Sidebar, etc.)
+- **Local State** - useState for component-specific state
+
+## UI Component Library
+
+- **Radix UI** - Accessible primitives (@radix-ui/react-\*)
+- **shadcn/ui** - Base component library
+- **Lucide Icons** - Icon library
+- **Tailwind CSS 3.4** - Utility-first styling
+- **Sonner** - Toast notifications
+
+## Backend & Database
+
+- **Supabase** - PostgreSQL database with RLS
+- **Supabase JS SDK 2.39** - Client library
+- **Row Level Security (RLS)** - Always enforce security policies
+
+## Key Dependencies
+
+- `@google/generative-ai` - Gemini AI for analysis
+- `@tanstack/react-table` - Data table management
+- `@dnd-kit` - Drag and drop
+- `chart.js` / `recharts` - Data visualization
+- `date-fns` - Date utilities
+- `clsx` / `tailwind-merge` - Class name utilities
+
+## Development Tools
+
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **Vitest** - Testing framework
+- **Husky** - Git hooks
+- **TypeScript** - Type checking

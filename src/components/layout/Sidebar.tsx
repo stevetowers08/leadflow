@@ -15,12 +15,12 @@ import {
   BarChart3,
   Briefcase,
   Building2,
-  Filter,
   Home,
   Megaphone,
   MessageSquare,
   Rocket,
   Settings,
+  Target,
   Users,
   X,
 } from 'lucide-react';
@@ -55,7 +55,7 @@ const navigationSections = [
   {
     // Advanced Features (Phase 2)
     items: [
-      { name: 'Pipeline', href: '/pipeline', icon: Filter },
+      { name: 'Deals', href: '/pipeline', icon: Target },
       { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
       { name: 'Analytics', href: '/reporting', icon: BarChart3 },
     ],
@@ -84,7 +84,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               <RecruitEdgeLogo size={20} />
               <div className='absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse' />
             </div>
-            <h1 className='text-base font-bold text-gray-200'>RECRUITEDGE</h1>
+            <h1 className='text-base font-bold text-gray-900'>RECRUITEDGE</h1>
           </div>
           <div className='flex items-center gap-2'>
             {onClose && (
@@ -92,7 +92,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                 variant='ghost'
                 size='icon'
                 onClick={onClose}
-                className='lg:hidden h-9 w-9 p-0 text-gray-200 hover:text-gray-100 hover:bg-white/10 rounded-lg'
+                className='lg:hidden h-9 w-9 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-lg'
               >
                 <X className='h-5 w-5' />
               </Button>
@@ -102,7 +102,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
       </div>
 
       {/* Navigation with Section Dividers */}
-      <nav className='flex-1 px-3 py-5 overflow-y-auto custom-scrollbar pb-4'>
+      <nav className='flex-1 px-3 py-5 overflow-y-auto custom-scrollbar scrollbar-modern pb-4'>
         <div className='space-y-2'>
           {/* Getting Started - Always at top */}
           {(() => {
@@ -116,8 +116,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
                   'transition-all duration-200 ease-in-out',
                   isActive
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                    ? 'bg-gray-200 text-gray-900'
+                    : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900',
                   'group'
                 )}
               >
@@ -125,8 +125,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                   className={cn(
                     'h-4 w-4 transition-all duration-200',
                     isActive
-                      ? 'text-white'
-                      : 'text-gray-400 group-hover:text-white'
+                      ? 'text-gray-900'
+                      : 'text-gray-600 group-hover:text-gray-900'
                   )}
                 />
                 <span>{gettingStartedItem.name}</span>
@@ -146,8 +146,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
                   'transition-all duration-200 ease-in-out',
                   isActive
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                    ? 'bg-gray-200 text-gray-900'
+                    : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900',
                   'group'
                 )}
               >
@@ -155,8 +155,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                   className={cn(
                     'h-4 w-4 transition-all duration-200',
                     isActive
-                      ? 'text-white'
-                      : 'text-gray-400 group-hover:text-white'
+                      ? 'text-gray-900'
+                      : 'text-gray-600 group-hover:text-gray-900'
                   )}
                 />
                 <span>{dashboardItem.name}</span>
@@ -184,8 +184,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                           'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
                           'transition-all duration-200 ease-in-out',
                           isActive
-                            ? 'bg-blue-500 text-white'
-                            : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                            ? 'bg-gray-200 text-gray-900'
+                            : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900',
                           'group'
                         )}
                       >
@@ -193,8 +193,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                           className={cn(
                             'h-4 w-4 transition-all duration-200',
                             isActive
-                              ? 'text-white'
-                              : 'text-gray-400 group-hover:text-white'
+                              ? 'text-gray-900'
+                              : 'text-gray-600 group-hover:text-gray-900'
                           )}
                         />
                         <span>{item.name}</span>

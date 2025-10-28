@@ -152,11 +152,12 @@ export async function registerNewClient(
       client: clientData as Client,
       userProfile: profileData as UserProfile,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Client registration error:', error);
     return {
       success: false,
-      error: error.message || 'Failed to register client',
+      error:
+        error instanceof Error ? error.message : 'Failed to register client',
     };
   }
 }
@@ -230,11 +231,12 @@ export async function registerClientAfterOAuth(
       client: clientData as Client,
       userProfile: profileData as UserProfile,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('OAuth client registration error:', error);
     return {
       success: false,
-      error: error.message || 'Failed to register client',
+      error:
+        error instanceof Error ? error.message : 'Failed to register client',
     };
   }
 }

@@ -97,6 +97,7 @@ export interface Company {
     | 'qualified'
     | 'message_sent'
     | 'replied'
+    | 'interested'
     | 'meeting_scheduled'
     | 'proposal_sent'
     | 'negotiation'
@@ -110,6 +111,9 @@ export interface Company {
   source_job_id: string | null;
   source: string | null;
   normalized_company_size: string | null;
+  last_activity: string | null;
+  funding_raised: number | null;
+  estimated_arr: number | null;
 }
 
 export interface Job {
@@ -136,6 +140,7 @@ export interface Job {
   logo_url: string | null;
   owner_id: string | null;
   airtable_id: string | null;
+  source: string | null;
   // Qualification fields
   qualified: boolean | null;
   qualified_at: string | null;
@@ -198,6 +203,7 @@ export interface Company {
     | 'qualified'
     | 'message_sent'
     | 'replied'
+    | 'interested'
     | 'meeting_scheduled'
     | 'proposal_sent'
     | 'negotiation'
@@ -210,6 +216,9 @@ export interface Company {
   updated_at: string | null;
   source: string | null;
   normalized_company_size: string | null;
+  last_activity: string | null;
+  funding_raised: number | null;
+  estimated_arr: number | null;
 }
 
 export interface Job {
@@ -234,6 +243,7 @@ export interface Job {
   logo_url: string | null;
   owner_id: string | null;
   airtable_id: string | null;
+  source: string | null;
   qualification_status: 'new' | 'qualify' | 'skip' | null;
   created_at: string | null;
   updated_at: string | null;
@@ -278,6 +288,7 @@ export interface Person {
     | 'not_interested'
     | null;
   linkedin_url: string | null;
+  last_activity: string | null;
   // Joined fields
   company_name?: string | null;
   company_website?: string | null;

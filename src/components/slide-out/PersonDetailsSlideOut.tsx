@@ -5,7 +5,7 @@ import { UnifiedActionComponent } from '@/components/shared/UnifiedActionCompone
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { getClearbitLogo } from '@/services/logoService';
+import { getCompanyLogoUrlSync } from '@/services/logoService';
 import { useStatusAutomation } from '@/services/statusAutomationService';
 import { Company, Person } from '@/types/database';
 import { getStatusDisplayText } from '@/utils/statusUtils';
@@ -259,7 +259,12 @@ export const PersonDetailsSlideOut: React.FC<PersonDetailsSlideOutProps> = memo(
                 value: (
                   <div className='flex items-center gap-2'>
                     <img
-                      src={getClearbitLogo(company.name, company.website || '')}
+                      src={
+                        getCompanyLogoUrlSync(
+                          company.name,
+                          company.website || undefined
+                        ) || ''
+                      }
                       alt={company.name}
                       className='w-6 h-6 rounded'
                     />

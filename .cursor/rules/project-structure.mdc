@@ -1,0 +1,71 @@
+---
+description: Project structure, file organization, and architecture guidelines
+globs: []
+alwaysApply: false
+---
+
+# Project Structure
+
+```
+src/
+├── components/        # React components
+│   ├── crm/          # CRM features
+│   ├── jobs/         # Job management
+│   ├── companies/    # Company management
+│   ├── people/       # Lead management
+│   ├── shared/       # Reusable components
+│   ├── ui/           # Base UI components (Radix-based)
+│   └── slide-out/    # Slide-out panels
+├── pages/            # Page-level routes
+├── hooks/            # Custom React hooks
+│   ├── useBulkSelection.ts
+│   ├── useDebounce.ts
+│   └── useSupabaseData.ts
+├── services/         # API service layer
+│   ├── aiService.ts
+│   ├── jobsService.ts
+│   ├── bulk/        # Bulk operations
+│   └── ...
+├── utils/            # Utility functions
+│   ├── databaseQueries.ts  # Type-safe DB queries
+│   ├── statusUtils.ts      # Status mapping
+│   └── ...
+├── types/            # TypeScript definitions
+│   ├── database.ts        # Database types
+│   ├── databaseSchema.ts  # Schema reference
+│   └── ...
+├── contexts/         # React Context providers
+│   ├── AuthContext.tsx
+│   ├── AIContext.tsx
+│   └── ...
+├── integrations/     # Third-party integrations
+│   └── supabase/    # Supabase client setup
+├── design-system/    # Design system
+│   ├── components.tsx
+│   └── tokens.ts
+└── config/           # Configuration
+    └── auth.ts
+```
+
+## Architecture Guidelines
+
+### Component Structure
+
+- Use functional components with TypeScript
+- Prefer composition over prop drilling
+- Use custom hooks for shared logic
+- Keep components focused and single-responsibility
+
+### State Management
+
+- Use React Query for server state
+- Use React context for global UI state
+- Local state with useState for component-specific state
+- No LinkedIn automation state needed
+
+### Database Access
+
+- **Always** use type-safe queries from `src/utils/databaseQueries.ts`
+- Reference schema in `src/types/database.ts` and `src/types/databaseSchema.ts`
+- Use RLS (Row Level Security) policies - never bypass security
+- Query only needed fields, avoid `SELECT *`

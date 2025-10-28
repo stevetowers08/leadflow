@@ -74,16 +74,18 @@ const AppRoutes = () => {
   const authConfig = getAuthConfig();
   const bypassAuth = shouldBypassAuth();
 
-  // Debug logging
-  console.log('🔍 Auth Debug:', {
-    user: !!user,
-    userProfile: !!userProfile,
-    loading,
-    authConfig,
-    bypassAuth,
-    nodeEnv: import.meta.env.NODE_ENV,
-    viteBypassAuth: import.meta.env.VITE_BYPASS_AUTH,
-  });
+  // Debug logging (development only)
+  if (import.meta.env.DEV) {
+    console.log('🔍 Auth Debug:', {
+      user: !!user,
+      userProfile: !!userProfile,
+      loading,
+      authConfig,
+      bypassAuth,
+      nodeEnv: import.meta.env.NODE_ENV,
+      viteBypassAuth: import.meta.env.VITE_BYPASS_AUTH,
+    });
+  }
 
   if (loading && !bypassAuth) {
     return (

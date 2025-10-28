@@ -103,7 +103,7 @@ Design tokens are centralized in `src/design-system/tokens.ts`:
 ```typescript
 export const designTokens = {
   colors: {
-    primary: 'hsl(var(--primary))', // Monday.com Blue #6161FF
+    primary: 'hsl(var(--primary))', // Attio Dodger Blue #266DF0
     secondary: 'hsl(var(--secondary))', // Blue
     success: 'hsl(var(--success))', // Green
     warning: 'hsl(var(--warning))', // Amber
@@ -116,16 +116,16 @@ export const designTokens = {
     fontFamily: 'Inter, system-ui, sans-serif',
     fontSize: {
       xs: '0.75rem', // 12px
-      sm: '0.875rem', // 14px
-      base: '1rem', // 16px
-      lg: '1.125rem', // 18px
-      xl: '1.25rem', // 20px
+      sm: '0.8125rem', // 13px
+      base: '0.875rem', // 14px - Attio base (html and body default)
+      lg: '1rem', // 16px
+      xl: '1.125rem', // 18px
       '2xl': '1.5rem', // 24px
       '3xl': '1.875rem', // 30px
     },
     fontWeight: {
       normal: '400',
-      medium: '500',
+      medium: '500', // Attio default body weight
       semibold: '600',
       bold: '700',
     },
@@ -154,11 +154,22 @@ export const designTokens = {
 
 ## Typography
 
-### Font Stack
+### Font Stack (Attio CRM Style)
 
-- **Primary**: Inter (Google Fonts)
+- **Primary**: Inter (Google Fonts) - Medium weight (500) for body text
 - **Fallback**: system-ui, -apple-system, sans-serif
+- **Base Size**: 14px (matching Attio CRM standards)
 - **Monospace**: 'Fira Code', 'Consolas', monospace
+
+**Key Settings**:
+
+- `font-family`: 'Inter', system-ui, -apple-system, sans-serif
+- `font-weight`: 500 (medium) for body text
+- `font-size`: 14px base size
+- `-webkit-font-smoothing`: antialiased
+- `-moz-osx-font-smoothing`: grayscale
+- `text-rendering`: optimizeLegibility
+- `font-optical-sizing`: auto
 
 ### Type Scale
 
@@ -181,18 +192,18 @@ export const designTokens = {
   font-weight: 500;
 } /* Subheadings */
 
-/* Body text */
+/* Body text - 14px base matching Attio */
 .text-base {
-  font-size: 1rem;
-  font-weight: 400;
+  font-size: 0.875rem; /* 14px - Attio base */
+  font-weight: 500; /* Medium - Attio default */
 } /* Default body */
 .text-sm {
-  font-size: 0.875rem;
-  font-weight: 400;
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 500; /* Medium - Attio default */
 } /* Secondary text */
 .text-xs {
-  font-size: 0.75rem;
-  font-weight: 400;
+  font-size: 0.75rem; /* 12px */
+  font-weight: 500; /* Medium - Attio default */
 } /* Captions */
 ```
 
@@ -223,19 +234,19 @@ export const designTokens = {
 ### Primary Palette
 
 ```css
-/* Primary Blue - Main brand color (Monday.com Blue) */
---primary: 240 100% 70%; /* Main primary #6161FF */
+/* Primary Blue - Main brand color (Attio Dodger Blue) */
+--primary: 219 87% 55%; /* Main primary #266DF0 */
 --primary-foreground: 0 0% 98%;
---primary-hover: 240 100% 65%;
---primary-light: 240 100% 95%;
---primary-medium: 240 100% 85%;
+--primary-hover: 219 87% 50%;
+--primary-light: 219 87% 95%;
+--primary-medium: 219 87% 85%;
 
 /* Secondary - Accent color */
---secondary: 240 100% 60%;
+--secondary: 219 87% 50%;
 --secondary-foreground: 0 0% 98%;
---secondary-hover: 240 100% 55%;
---secondary-light: 240 100% 90%;
---secondary-medium: 240 100% 80%;
+--secondary-hover: 219 87% 45%;
+--secondary-light: 219 87% 90%;
+--secondary-medium: 219 87% 80%;
 
 /* Note: Using HSL format for better flexibility */
 ```
@@ -672,12 +683,12 @@ className =
 
 ### Table Row Heights - **UNIFIED STANDARD**
 
-- **All Table Rows**: `min-h-[56px]` (56px minimum height) - **MANDATORY**
-- **Table Headers**: `min-h-[56px]` (56px minimum height) - **MANDATORY**
-- **Table Cells**: `px-4 min-h-[56px]` (16px horizontal padding, 56px minimum height)
+- **All Table Rows**: `h-[40px]` (40px fixed height) - **MANDATORY**
+- **Table Headers**: `h-[40px]` (40px fixed height) - **MANDATORY**
+- **Table Cells**: `px-4` (16px horizontal padding)
+- **Table Layout**: `table-layout: fixed` - **MANDATORY** for consistent widths
 - **Action Buttons in Rows**: `h-8 w-8` (32px × 32px)
-- **Status Badges in Rows**: `min-h-[56px]` (56px minimum height to match row)
-- **Avatars in Rows**: `w-8 h-8` (32px × 32px)
+- **Avatars in Rows**: `w-6 h-6` (24px × 24px)
 - **Icons in Rows**: `h-4 w-4` (16px × 16px)
 
 ### Table Column Widths - **STANDARDIZED**
@@ -808,6 +819,115 @@ import { UnifiedTable, ColumnConfig } from '@/components/ui/unified-table';
 | **Dropdown Select** | `px-3 py-2`   | `border-border`   | `rounded-md`  | White      | `h-4 w-4` | `h-8`  |
 | **Filter Button**   | `px-3 py-2`   | `border-border`   | `rounded-md`  | White      | `h-4 w-4` | `h-8`  |
 
+## Shadow Hover Effects (2025 Best Practices)
+
+### Overview
+
+Modern UI design in 2025 emphasizes **subtle and realistic shadow effects** to enhance user experience without overwhelming the interface. Our implementation follows industry best practices for interactive elements.
+
+### Key Principles
+
+1. **Subtle Elevation**: Use medium shadows (`shadow-md`) for hover states
+2. **Layered Shadows**: Combine vertical offset with blur for realistic depth
+3. **Smooth Transitions**: Always include transition properties (200ms duration)
+4. **Accessibility**: Ensure shadow effects don't compromise readability
+5. **Consistency**: Use the same shadow pattern across all interactive elements
+
+### Implementation Standards
+
+#### Clickable Card Hover States
+
+```tsx
+// Standard hover state for clickable cards
+className =
+  'p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 hover:shadow-md transition-all duration-200';
+```
+
+**Key Features**:
+
+- **Background**: `hover:bg-gray-100` - Subtle gray background change
+- **Shadow**: `hover:shadow-md` - Medium elevation for depth
+- **Duration**: `duration-200` - Smooth 200ms transitions
+- **Border**: `border-gray-200` - Consistent border styling
+
+#### Shadow Values
+
+**Tailwind Shadow Classes**:
+
+```css
+/* shadow-sm - Very subtle (static state) */
+0 1px 2px 0 rgb(0 0 0 / 0.05)
+
+/* shadow-md - Medium elevation (hover state) - RECOMMENDED */
+0 4px 6px -1px rgb(0 0 0 / 0.1),
+0 2px 4px -2px rgb(0 0 0 / 0.1)
+
+/* shadow-lg - Large elevation (not recommended for hover) */
+0 10px 15px -3px rgb(0 0 0 / 0.1),
+0 4px 6px -4px rgb(0 0 0 / 0.1)
+```
+
+#### Best Practices
+
+✅ **DO**:
+
+- Use `shadow-md` for hover states - creates subtle but noticeable elevation
+- Include `transition-all duration-200` for smooth animations
+- Combine with `hover:bg-gray-100` for background feedback
+- Use `border-gray-200` for clean, professional borders
+- Maintain consistent shadow values across all interactive elements
+
+❌ **DON'T**:
+
+- Don't use `shadow-sm` for hover - too subtle for modern UX
+- Don't use `shadow-lg` for hover - too dramatic and distracting
+- Don't use scale transforms (`scale-105`) on hover - breaks layouts
+- Don't skip transition timing - makes interactions feel abrupt
+- Don't use overly complex multi-layer shadows - reduces performance
+
+#### Examples
+
+```tsx
+// Dashboard Recent Jobs/Companies Cards
+<div
+  onClick={handleClick}
+  className='flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer'
+>
+  {/* Card content */}
+</div>
+
+// Getting Started Setup Steps
+<div
+  onClick={() => navigate(step.href)}
+  className='p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 hover:shadow-md transition-all duration-200 group'
+>
+  {/* Step content */}
+</div>
+```
+
+### Performance Considerations
+
+- **Hardware Acceleration**: Shadows automatically use GPU acceleration
+- **Mobile Optimization**: Subtle shadows maintain performance on mobile devices
+- **Reduced Motion**: Respects `prefers-reduced-motion` for accessibility
+- **Layering**: Limit to maximum of 2 shadow layers for optimal performance
+
+### Accessible Alternatives
+
+For users who prefer reduced motion:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .hover\:shadow-md:hover {
+    box-shadow: none;
+  }
+}
+```
+
+This ensures the background color change (`hover:bg-gray-100`) still provides visual feedback.
+
+---
+
 ## Card System
 
 ### Modern Card System (2025)
@@ -825,9 +945,10 @@ The application uses a sophisticated card design system based on 2025 best pract
 
 - **Solid White Backgrounds**: All cards use `bg-white` for maximum readability
 - **Consistent Shadows**: `shadow-sm` (minimal), `shadow-lg` (elevated), `shadow-xl` (glass)
-- **Unified Hover States**: `hover:shadow-md hover:scale-[1.01] transition-all duration-200`
+- **Unified Hover States**: `hover:bg-gray-100 hover:shadow-md transition-all duration-200`
 - **Standardized Borders**: `border border-gray-200` for all variants
-- **Rounded Corners**: `rounded-2xl` for modern feel
+- **Rounded Corners**: `rounded-lg` for modern feel
+- **No Scale Effects**: Avoid scale transforms that break layout flow
 
 #### Card Components
 
@@ -1186,10 +1307,10 @@ const tabOptions: TabOption[] = [
 
 #### Visual Style
 
-- **Active Tab**: Blue underline (`border-blue-600`) with blue text (`text-blue-600`)
+- **Active Tab**: Blue underline (`border-primary`) with primary text (`text-primary`)
 - **Inactive Tabs**: Gray text (`text-gray-500`) with transparent border
 - **Count Badges**:
-  - Active: Blue background (`bg-blue-100`) with blue text (`text-blue-600`)
+  - Active: Light blue background (`bg-primary/10`) with primary text (`text-primary`)
   - Inactive: Gray background (`bg-gray-100`) with gray text (`text-gray-500`)
 - **Icons**: Optional 16px icons with proper spacing
 - **Hover States**: Gray underline on hover for inactive tabs

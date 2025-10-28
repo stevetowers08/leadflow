@@ -28,7 +28,7 @@ const STEP_TYPES: StepType[] = [
   {
     id: 'email',
     name: 'Email',
-    description: 'Send personalized email to prospects',
+    description: 'Send personalised email to prospects',
     icon: <Mail className='w-5 h-5' />,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',

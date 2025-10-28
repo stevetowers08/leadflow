@@ -1,16 +1,17 @@
 import { StatusBadge } from '@/components/StatusBadge';
+import { IndustryBadges } from '@/components/shared/IndustryBadge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { getClearbitLogo } from '@/services/logoService';
-import { Company, Job, Person } from '@/types/database';
+import { getCompanyLogoUrlSync } from '@/services/logoService';
+import { Company, Job } from '@/types/database';
 import {
   summarizeJobFromSupabase,
   updateJobSummaryInSupabase,
 } from '@/utils/jobSummarization';
 import { format } from 'date-fns';
-import { ExternalLink, Sparkles, User } from 'lucide-react';
+import { ExternalLink, Sparkles } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { GridItem, SlideOutGrid } from './SlideOutGrid';
 import { SlideOutPanel } from './SlideOutPanel';
@@ -31,7 +32,6 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
 }) => {
   const [job, setJob] = useState<Job | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
-  const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(false);
   const [generatingSummary, setGeneratingSummary] = useState(false);
   const { toast } = useToast();
@@ -60,19 +60,6 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
       // Set company
       if (jobData.companies) {
         setCompany(jobData.companies as unknown as Company);
-
-        // Fetch people at the company
-        if (jobData.company_id) {
-          const { data: peopleData, error: peopleError } = await supabase
-            .from('people')
-            .select('*')
-            .eq('company_id', jobData.company_id)
-            .limit(5);
-
-          if (!peopleError && peopleData) {
-            setPeople(peopleData as Person[]);
-          }
-        }
       }
     } catch (error) {
       console.error('Error fetching job details:', error);
@@ -214,7 +201,12 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
           value: (
             <div className='flex items-center gap-2'>
               <img
-                src={getClearbitLogo(company.name, company.website || '')}
+                src={
+                  getCompanyLogoUrlSync(
+                    company.name,
+                    company.website || undefined
+                  ) || ''
+                }
                 alt={company.name}
                 className='w-6 h-6 rounded'
               />
@@ -224,7 +216,11 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
         },
         {
           label: 'Industry',
-          value: company.industry || '-',
+          value: company.industry ? (
+            <IndustryBadges industries={company.industry} />
+          ) : (
+            '-'
+          ),
         },
         {
           label: 'Website',
@@ -360,35 +356,6 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
                   </Button>
                 </div>
               ) : null}
-            </SlideOutSection>
-          )}
-
-          {/* Related People Section */}
-          {people.length > 0 && (
-            <SlideOutSection title={`Related People (${people.length})`}>
-              <div className='space-y-3'>
-                {people.map(person => (
-                  <div
-                    key={person.id}
-                    className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer'
-                  >
-                    <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
-                      <User className='h-5 w-5 text-gray-500' />
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <div className='font-medium text-sm text-gray-900 truncate'>
-                        {person.name}
-                      </div>
-                      <div className='text-xs text-gray-500 truncate'>
-                        {person.company_role || 'No role specified'}
-                      </div>
-                    </div>
-                    {person.people_stage && (
-                      <StatusBadge status={person.people_stage} size='sm' />
-                    )}
-                  </div>
-                ))}
-              </div>
             </SlideOutSection>
           )}
 

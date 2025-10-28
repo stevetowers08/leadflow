@@ -1,0 +1,52 @@
+---
+description: UI components, styling with Tailwind CSS, and accessibility guidelines
+globs: ['**/components/**', '**/pages/**']
+alwaysApply: false
+---
+
+# UI Component Guidelines
+
+## Component Library (Radix UI + shadcn/ui)
+
+- Use Radix UI components for accessibility
+- Import from `src/components/ui/` for shadcn components
+- Never use HTML form elements directly - use UI components
+
+```typescript
+// ✅ CORRECT: Use UI components
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+
+// ❌ INCORRECT: Raw HTML elements
+<button onClick={handler}>Click me</button>
+<input type="text" value={value} />
+```
+
+## Styling
+
+- **Tailwind CSS 3.4** - Utility-first CSS
+- Use Tailwind utility classes (`px-4`, `bg-primary`, etc.)
+- Use `cn()` utility for conditional classes:
+
+```typescript
+import { cn } from '@/lib/utils';
+<div className={cn('base-classes', isActive && 'active-classes')} />
+```
+
+- Design tokens in `src/design-system/tokens.ts`
+- Responsive design (mobile-first): `sm:`, `md:`, `lg:`
+
+## Icons (Lucide React)
+
+```typescript
+import { Check, X, Search } from 'lucide-react';
+<Check className="h-4 w-4" />
+```
+
+## Accessibility
+
+- Use semantic HTML
+- ARIA labels on interactive elements
+- Keyboard navigation support
+- Focus management in modals/dialogs

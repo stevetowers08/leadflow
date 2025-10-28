@@ -1,0 +1,49 @@
+---
+description: Project overview and workflows for Empowr CRM
+globs: []
+alwaysApply: true
+---
+
+# Project Overview
+
+Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, and Supabase. The focus is on simplicity and clear workflows for managing jobs and people.
+
+## Current Workflows (Updated Oct 2025)
+
+### Job Qualification Workflow
+
+**Status Enum:** `new | qualify | skip`
+
+- **New** - Newly discovered jobs awaiting review
+- **Qualify** - Jobs that meet criteria and should be pursued
+- **Skip** - Jobs to skip for now
+
+**Database Field:** `jobs.qualification_status`
+
+### People Status Workflow
+
+**Status Enum:** `new | qualified | proceed | skip`
+
+- **New** - New leads to review
+- **Qualified** - Leads that meet your criteria
+- **Proceed** - Ready for CRM integration or email outreach
+- **Skip** - Not pursuing at this time
+
+**Database Field:** `people.stage`
+
+## LinkedIn Automation Removed
+
+As of October 2025, LinkedIn automation features have been **completely removed**:
+
+- ❌ No LinkedInAutomationModal component
+- ❌ No automation buttons in UI
+- ❌ No lead selection checkboxes for bulk automation
+- ❌ No automation status tracking
+
+**Orphaned Files (not imported/used):**
+
+- `src/components/crm/automation/LinkedInAutomationModal.tsx`
+- `src/components/LinkedInConfirmationModal.tsx`
+- `src/components/crm/automation/AutomationModalManager.tsx`
+
+These can be deleted in future cleanup.

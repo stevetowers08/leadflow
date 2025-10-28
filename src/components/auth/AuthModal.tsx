@@ -145,9 +145,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     try {
-      // TODO: Implement email/password sign up
-      setError('Email/password sign up not yet implemented');
+      const { registerNewClient } = await import(
+        '@/services/clientRegistrationService'
+      );
+
+      const result = await registerNewClient({
+        email,
+        password,
+        name: fullName,
+        companyName: headline || fullName,
+        fullName,
+        headline,
+      });
+
+      if (!result.success) {
+        setError(result.error || 'Failed to create account');
+        setLoading(null);
+        return;
+      }
+
+      // Success - close modal and show success message
+      onClose();
+      setEmail('');
+      setPassword('');
+      setFullName('');
+      setHeadline('');
       setLoading(null);
+
+      // TODO: Show success toast
     } catch (err) {
       console.error('Email sign-up error:', err);
       setError('An unexpected error occurred. Please try again.');

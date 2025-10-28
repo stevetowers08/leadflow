@@ -43,6 +43,7 @@ export const DATABASE_SCHEMA = {
       lead_score: 'text',
       stage: 'people_stage_enum',
       last_interaction_at: 'timestamptz',
+      last_activity: 'timestamptz',
       owner_id: 'uuid',
       created_at: 'timestamptz',
       updated_at: 'timestamptz',
@@ -81,6 +82,9 @@ export const DATABASE_SCHEMA = {
       source_details: 'text',
       source_date: 'timestamptz',
       pipeline_stage: 'company_pipeline_stage_enum',
+      last_activity: 'timestamptz',
+      funding_raised: 'numeric',
+      estimated_arr: 'numeric',
     },
     jobs: {
       id: 'uuid',
@@ -103,6 +107,7 @@ export const DATABASE_SCHEMA = {
       function: 'text',
       logo_url: 'text',
       owner_id: 'uuid',
+      source: 'text',
     },
     user_profiles: {
       id: 'uuid',
@@ -131,6 +136,7 @@ export const DATABASE_SCHEMA = {
     confidence_level_enum: ['low', 'medium', 'high'],
     company_pipeline_stage_enum: [
       'new_lead',
+      'qualified',
       'message_sent',
       'replied',
       'meeting_scheduled',
@@ -192,10 +198,10 @@ export const isValidField = <T extends TableName>(
 // Common field selections for queries
 export const COMMON_SELECTIONS = {
   people:
-    'id, name, company_id, email_address, linkedin_url, employee_location, company_role, lead_score, people_stage, owner_id, created_at, updated_at, confidence_level, email_draft, is_favourite, lead_source, source_details, source_date',
+    'id, name, company_id, email_address, linkedin_url, employee_location, company_role, lead_score, people_stage, last_interaction_at, last_activity, owner_id, created_at, updated_at, confidence_level, email_draft, is_favourite, lead_source, source_details, source_date',
 
   companies:
-    'id, name, website, linkedin_url, head_office, industry_id, industry, company_size, confidence_level, lead_score, score_reason, is_favourite, ai_info, key_info_raw, loxo_company_id, created_at, updated_at, priority, logo_url, logo_cached_at, owner_id, lead_source, source_details, source_date, pipeline_stage',
+    'id, name, website, linkedin_url, head_office, industry_id, industry, company_size, confidence_level, lead_score, score_reason, is_favourite, ai_info, key_info_raw, loxo_company_id, created_at, updated_at, priority, logo_url, logo_cached_at, owner_id, lead_source, source_details, source_date, pipeline_stage, last_activity, funding_raised, estimated_arr',
 
   jobs: 'id, title, company_id, job_url, posted_date, valid_through, location, description, summary, employment_type, seniority_level, linkedin_job_id, created_at, updated_at, priority, lead_score_job, salary, function, logo_url, owner_id',
 

@@ -1,10 +1,6 @@
 // AI Service for lead scoring, job summaries, and optimization
 // Now uses SECURE server-side processing via Supabase Edge Functions
-import {
-  serverAIService,
-  type ServerAIJobSummary,
-  type ServerAIResponse,
-} from './serverAIService';
+import { serverAIService } from './serverAIService';
 
 export interface AIScore {
   score: number;
@@ -218,7 +214,7 @@ class AIService {
       // Fallback optimization
       return {
         suggested_actions: [
-          'Send personalized LinkedIn connection',
+          'Send personalised LinkedIn connection',
           'Follow up with email',
           'Research company recent news',
         ],

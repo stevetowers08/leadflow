@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
+import { getCompanyLogoUrlSync } from '@/services/logoService';
 
 interface RecentCompaniesTabsProps {
   companies: RecentCompany[];
@@ -32,14 +33,10 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
   );
   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
 
-  // Get company logo using Clearbit
+  // Get company logo using stored/provider helper
   const getCompanyLogo = (company: RecentCompany) => {
     if (company.logo) return company.logo;
-    if (!company.website) return null;
-    const cleanWebsite = company.website
-      .replace(/^https?:\/\/(www\.)?/, '')
-      .split('/')[0];
-    return `https://logo.clearbit.com/${cleanWebsite}`;
+    return getCompanyLogoUrlSync(company.name, company.website || undefined);
   };
 
   // Filter companies by assignment status and sort by date created

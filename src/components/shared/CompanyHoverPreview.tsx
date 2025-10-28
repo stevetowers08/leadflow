@@ -1,4 +1,5 @@
 import { Company } from '@/types/database';
+import { getCompanyLogoUrlSync } from '@/services/logoService';
 import { Building2, Globe, MapPin } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -28,12 +29,9 @@ export const CompanyHoverPreview: React.FC<CompanyHoverPreviewProps> = ({
               <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
                 {company.website ? (
                   <img
-                    src={`https://logo.clearbit.com/${
-                      company.website
-                        .replace(/^https?:\/\//, '')
-                        .replace(/^www\./, '')
-                        .split('/')[0]
-                    }`}
+                    src={
+                      getCompanyLogoUrlSync(company.name, company.website) || ''
+                    }
                     alt={company.name}
                     className='w-10 h-10 rounded-lg object-cover'
                     onError={e => {

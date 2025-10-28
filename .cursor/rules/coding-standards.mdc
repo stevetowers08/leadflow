@@ -1,0 +1,78 @@
+---
+description: Coding standards, naming conventions, TypeScript and React best practices
+globs: ['**/*.ts', '**/*.tsx']
+alwaysApply: false
+---
+
+# Coding Standards
+
+## Naming Conventions
+
+- **Components**: PascalCase (`PersonCard.tsx`)
+- **Hooks**: camelCase with `use` prefix (`useBulkSelection.ts`)
+- **Utilities**: camelCase (`statusUtils.ts`)
+- **Services**: camelCase (`jobsService.ts`)
+- **Types/Interfaces**: PascalCase (`Job`, `Person`)
+- **Constants**: UPPER_SNAKE_CASE (`MAX_RETRIES`)
+- **Props interfaces**: `ComponentNameProps` (`PersonCardProps`)
+
+## TypeScript
+
+Strict mode enabled (`strict: true` in tsconfig.json)
+
+- Define interfaces for all props
+- Avoid `any` type - use proper types
+- Export types from component files when shared
+- Use type assertions sparingly
+
+```typescript
+// ✅ CORRECT: Proper types
+interface PersonCardProps {
+  person: Person;
+  onSelect: (id: string) => void;
+}
+
+// ❌ INCORRECT: Using any
+function process(data: any) { ... }
+```
+
+## React Best Practices
+
+- Use functional components with hooks
+- Use meaningful component names
+- Extract reusable logic to custom hooks
+- Memoize expensive computations with `useMemo`
+- Memoize callbacks with `useCallback` when passed to children
+- Lazy load heavy components for better performance
+- Use React.memo for components that receive same props frequently
+
+```typescript
+// ✅ CORRECT: Memoization
+const ExpensiveComponent = React.memo(({ data }: Props) => {
+  const processed = useMemo(() => heavyProcessing(data), [data]);
+  const handleClick = useCallback(() => doSomething(), []);
+});
+
+// ✅ CORRECT: Lazy loading
+const HeavyComponent = lazy(() => import('./HeavyComponent'));
+```
+
+## 🚫 Don't Do This
+
+1. **Don't add LinkedIn automation** - It has been intentionally removed
+2. **Don't use old status values** - Use the new simplified enums
+3. **Don't bypass RLS** - Always use authenticated queries
+4. **Don't use `any` type** - Define proper types
+5. **Don't mutate props** - React props are immutable
+6. **Don't fetch in render** - Use useEffect or React Query
+7. **Don't hardcode status strings** - Use status utilities
+
+## ✅ Do This
+
+1. **Use the new status workflows** - Follow the simplified 3/4-step workflows
+2. **Reference types** - Import from `src/types/database.ts`
+3. **Use status utilities** - Import from `src/utils/statusUtils.ts`
+4. **Follow TypeScript strict mode** - No implicit any, proper null checks
+5. **Use React Query** - For all server state management
+6. **Test your changes** - Run `npx tsc --noEmit` before committing
+7. **Update documentation** - Keep docs in sync with code changes

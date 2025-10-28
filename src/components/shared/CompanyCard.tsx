@@ -1,6 +1,7 @@
 import { StatusBadge } from '@/components/StatusBadge';
 import { cn } from '@/lib/utils';
 import { Building2 } from 'lucide-react';
+import { getCompanyLogoUrlSync } from '@/services/logoService';
 import React from 'react';
 
 interface CompanyCardProps {
@@ -24,14 +25,10 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
   onClick,
   className = '',
 }) => {
-  // Get company logo using Clearbit
+  // Get company logo using stored/provider helper
   const getCompanyLogo = () => {
     if (company.logo) return company.logo;
-    if (!company.website) return null;
-    const cleanWebsite = company.website
-      .replace(/^https?:\/\/(www\.)?/, '')
-      .split('/')[0];
-    return `https://logo.clearbit.com/${cleanWebsite}`;
+    return getCompanyLogoUrlSync(company.name, company.website || undefined);
   };
 
   const logo = getCompanyLogo();

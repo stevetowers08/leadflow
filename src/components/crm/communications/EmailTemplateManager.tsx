@@ -118,7 +118,7 @@ export const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
         <div>
           <h2 className='text-2xl font-bold'>Email Templates</h2>
           <p className='text-muted-foreground'>
-            Manage your email templates for personalized outreach
+            Manage your email templates for personalised outreach
           </p>
         </div>
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>

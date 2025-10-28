@@ -9,7 +9,7 @@ export const MinimalLayout = ({ children }: MinimalLayoutProps) => {
   return (
     <div className='min-h-screen w-full bg-gray-50'>
       {/* Main content without sidebar */}
-      <main className='w-full overflow-auto'>
+      <main className='w-full overflow-auto scrollbar-modern'>
         {/* Content */}
         <div className={cn('min-h-screen')}>{children}</div>
       </main>
