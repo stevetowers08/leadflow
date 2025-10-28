@@ -16,6 +16,12 @@ export interface ColumnConfig<T = unknown> {
   getStatusValue?: (row: T) => string; // For status cells to get the status value
 }
 
+export interface TableGroup<T = unknown> {
+  label: string;
+  count: number;
+  data: T[];
+}
+
 export interface UnifiedTableProps<T = unknown> {
   data: T[];
   columns: ColumnConfig<T>[];
@@ -27,6 +33,10 @@ export interface UnifiedTableProps<T = unknown> {
   loading?: boolean;
   emptyMessage?: string;
   scrollable?: boolean;
+  grouped?: boolean;
+  groups?: TableGroup<T>[];
+  expandedGroups?: Set<string>;
+  onToggleGroup?: (groupLabel: string) => void;
 }
 
 // Compound Component Pattern - Table Sub-components
@@ -157,6 +167,10 @@ export const UnifiedTable = React.memo(
     loading = false,
     emptyMessage = 'No data available',
     scrollable = false,
+    grouped = false,
+    groups,
+    expandedGroups,
+    onToggleGroup,
   }: UnifiedTableProps<T>) => {
     // State for scroll-based shadow
     const [isScrolled, setIsScrolled] = React.useState(false);
@@ -251,47 +265,145 @@ export const UnifiedTable = React.memo(
               </TableHeader>
 
               <TableBody>
-                {data.map((row, index) => (
-                  <TableRow
-                    key={index}
-                    index={index}
-                    onClick={() => onRowClick?.(row, index)}
-                  >
-                    {columns.map((column, colIndex) => {
-                      // Get status value for status and ai-score cells
-                      const statusValue =
-                        (column.cellType === 'status' ||
-                          column.cellType === 'ai-score') &&
-                        column.getStatusValue
-                          ? column.getStatusValue(row)
-                          : undefined;
+                {(() => {
+                  return grouped &&
+                    groups &&
+                    Array.isArray(groups) &&
+                    groups.length > 0 &&
+                    expandedGroups
+                    ? // Render grouped data
+                      groups.map((group, groupIndex) => {
+                        const isExpanded = expandedGroups.has(group.label);
+                        const shouldRender = group.data.length > 0;
 
-                      // Extract the value for this column
-                      const value = (row as Record<string, unknown>)[
-                        column.key
-                      ];
+                        if (!shouldRender) return null;
 
-                      return (
-                        <TableCell
-                          key={`${index}-${colIndex}`}
-                          cellType={column.cellType}
-                          align={column.align}
-                          statusValue={statusValue}
-                          style={{
-                            width: column.width,
-                            minWidth: column.minWidth || column.width,
-                          }}
+                        return (
+                          <React.Fragment
+                            key={`group-${group.label}-${groupIndex}`}
+                          >
+                            {/* Spacer between groups */}
+                            {groupIndex > 0 && (
+                              <TableRow className='h-4 bg-transparent pointer-events-none border-0'>
+                                <TableCell
+                                  colSpan={columns.length}
+                                  className='p-0 border-0'
+                                />
+                              </TableRow>
+                            )}
+
+                            {/* Group Header Row */}
+                            <TableRow
+                              className='bg-gray-100 hover:bg-gray-200 border-l-4 border-l-primary cursor-pointer'
+                              onClick={() => onToggleGroup?.(group.label)}
+                            >
+                              <TableCell
+                                colSpan={columns.length}
+                                className='font-semibold text-sm text-gray-900 py-3'
+                              >
+                                <div className='flex items-center justify-between'>
+                                  <span>{group.label}</span>
+                                  <div className='flex items-center gap-3'>
+                                    <span className='text-xs font-normal text-gray-600'>
+                                      {group.count}
+                                    </span>
+                                    <span className='text-xs'>
+                                      {isExpanded ? '−' : '+'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+
+                            {/* Group Rows */}
+                            {isExpanded &&
+                              group.data.map((row, index) => (
+                                <TableRow
+                                  key={`${group.label}-${index}`}
+                                  index={index}
+                                  onClick={() => onRowClick?.(row, index)}
+                                  className='bg-white'
+                                >
+                                  {columns.map((column, colIndex) => {
+                                    const statusValue =
+                                      (column.cellType === 'status' ||
+                                        column.cellType === 'ai-score') &&
+                                      column.getStatusValue
+                                        ? column.getStatusValue(row)
+                                        : undefined;
+
+                                    const value = (
+                                      row as Record<string, unknown>
+                                    )[column.key];
+
+                                    return (
+                                      <TableCell
+                                        key={`${group.label}-${index}-${colIndex}`}
+                                        cellType={column.cellType}
+                                        align={column.align}
+                                        statusValue={statusValue}
+                                        style={{
+                                          width: column.width,
+                                          minWidth:
+                                            column.minWidth || column.width,
+                                        }}
+                                      >
+                                        {column.render ? (
+                                          column.render(value, row, index)
+                                        ) : (
+                                          <span>{value || '-'}</span>
+                                        )}
+                                      </TableCell>
+                                    );
+                                  })}
+                                </TableRow>
+                              ))}
+                          </React.Fragment>
+                        );
+                      })
+                    : // Render ungrouped data
+                      data.map((row, index) => (
+                        <TableRow
+                          key={index}
+                          index={index}
+                          onClick={() => onRowClick?.(row, index)}
                         >
-                          {column.render ? (
-                            column.render(value, row, index)
-                          ) : (
-                            <span>{value || '-'}</span>
-                          )}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
+                          {columns.map((column, colIndex) => {
+                            // Get status value for status and ai-score cells
+                            const statusValue =
+                              (column.cellType === 'status' ||
+                                column.cellType === 'ai-score') &&
+                              column.getStatusValue
+                                ? column.getStatusValue(row)
+                                : undefined;
+
+                            // Extract the value for this column
+                            const value = (row as Record<string, unknown>)[
+                              column.key
+                            ];
+
+                            return (
+                              <TableCell
+                                key={`${index}-${colIndex}`}
+                                cellType={column.cellType}
+                                align={column.align}
+                                statusValue={statusValue}
+                                style={{
+                                  width: column.width,
+                                  minWidth: column.minWidth || column.width,
+                                }}
+                              >
+                                {column.render ? (
+                                  column.render(value, row, index)
+                                ) : (
+                                  <span>{value || '-'}</span>
+                                )}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      ));
+                })()}
               </TableBody>
             </table>
           </div>
@@ -305,6 +417,10 @@ export const UnifiedTable = React.memo(
       onRowClick,
       scrollable,
       isScrolled,
+      grouped,
+      groups,
+      expandedGroups,
+      onToggleGroup,
     ]);
 
     return tableStructure;

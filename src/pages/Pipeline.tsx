@@ -1,14 +1,23 @@
 import { FavoriteToggle } from '@/components/FavoriteToggle';
 import { OwnerDisplay } from '@/components/OwnerDisplay';
+import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
+import { PeopleAvatars } from '@/components/shared/PeopleAvatars';
+import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
+import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { DropdownSelect } from '@/components/ui/dropdown-select';
-import { Page } from '@/design-system/components';
-import { designTokens } from '@/design-system/tokens';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { TabNavigation } from '@/components/ui/tab-navigation';
+import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
+import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
+import { getClearbitLogo } from '@/services/logoService';
+import type { Company as CompanyType, Person } from '@/types/database';
+import {
+  ReplyIntentIndicator,
+  type ReplyIntent,
+} from '@/utils/replyIntentUtils.tsx';
 import {
   DndContext,
   DragEndEvent,
@@ -31,18 +40,17 @@ import {
   Building2,
   CheckCircle,
   FileText,
-  Filter,
+  Grid3x3,
   MapPin,
-  RefreshCw,
-  Star,
   User,
   Users,
   XCircle,
   Zap,
 } from 'lucide-react';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-type Company = Tables<'companies'> & {
+type Company = CompanyType & {
   people_count?: number;
   jobs_count?: number;
   reply_stats?: {
@@ -56,6 +64,7 @@ type Company = Tables<'companies'> & {
 const Pipeline = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [hoveredCompanyId, setHoveredCompanyId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -63,6 +72,51 @@ const Pipeline = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showAllAssignedUsers, setShowAllAssignedUsers] = useState(false);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'pipeline' | 'table'>('table');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [groupByStage, setGroupByStage] = useState(true);
+
+  // Pipeline scroll control
+  const pipelineScrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(true);
+
+  // Stage filter state
+  const [stageFilter, setStageFilter] = useState<string[]>([]);
+
+  // Slide-out state
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
+    null
+  );
+  const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
+
+  // Grouping state - start with all groups expanded
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
+    new Set([
+      'Replied',
+      'Interested',
+      'Meeting Scheduled',
+      'Proposal Sent',
+      'Negotiation',
+      'On Hold',
+      'Closed Won',
+      'Closed Lost',
+    ])
+  );
+
+  // Toggle group expansion
+  const handleToggleGroup = useCallback((groupLabel: string) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupLabel)) {
+        newSet.delete(groupLabel);
+      } else {
+        newSet.add(groupLabel);
+      }
+      return newSet;
+    });
+  }, []);
 
   // Use React Query for data fetching with caching
   const {
@@ -115,15 +169,75 @@ const Pipeline = () => {
         }
       });
 
+      // Fetch reply statistics for companies
+      const { data: peopleWithReplies } = await supabase
+        .from('people')
+        .select('company_id, reply_type')
+        .not('company_id', 'is', null)
+        .not('reply_type', 'is', null);
+
+      // Calculate reply statistics per company
+      const companyReplyStats: Record<
+        string,
+        {
+          interested: number;
+          not_interested: number;
+          maybe: number;
+          total: number;
+        }
+      > = {};
+      peopleWithReplies?.forEach(person => {
+        if (person.company_id) {
+          if (!companyReplyStats[person.company_id]) {
+            companyReplyStats[person.company_id] = {
+              interested: 0,
+              not_interested: 0,
+              maybe: 0,
+              total: 0,
+            };
+          }
+          companyReplyStats[person.company_id].total++;
+          if (person.reply_type === 'interested') {
+            companyReplyStats[person.company_id].interested++;
+          } else if (person.reply_type === 'not_interested') {
+            companyReplyStats[person.company_id].not_interested++;
+          } else if (person.reply_type === 'maybe') {
+            companyReplyStats[person.company_id].maybe++;
+          }
+        }
+      });
+
       // Add counts to companies
       return (companiesData || []).map(company => ({
         ...company,
         people_count: companyPeopleCount[company.id] || 0,
         jobs_count: companyJobsCount[company.id] || 0,
+        reply_stats: companyReplyStats[company.id] || {
+          interested: 0,
+          not_interested: 0,
+          maybe: 0,
+          total: 0,
+        },
       }));
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Fetch people data for avatars
+  const { data: people = [] } = useQuery<Person[]>({
+    queryKey: ['pipeline-people'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('people')
+        .select('*')
+        .not('company_id', 'is', null);
+
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
 
   const { data: users = [], isLoading: usersLoading } = useQuery<
@@ -162,19 +276,24 @@ const Pipeline = () => {
   const pipelineStages = useMemo(
     () => [
       {
-        key: 'new_lead',
-        label: 'New Lead',
+        key: 'qualified',
+        label: 'Qualified',
         color: 'bg-gray-100 text-gray-700 border-gray-200',
       },
       {
-        key: 'automated',
-        label: 'Automated',
+        key: 'message_sent',
+        label: 'Message Sent',
         color: 'bg-green-600 text-white border-green-700',
       },
       {
         key: 'replied',
         label: 'Replied',
         color: 'bg-amber-600 text-white border-amber-700',
+      },
+      {
+        key: 'interested',
+        label: 'Interested',
+        color: 'bg-blue-600 text-white border-blue-700',
       },
       {
         key: 'meeting_scheduled',
@@ -229,8 +348,18 @@ const Pipeline = () => {
   // Valid stage transitions - moved to constant for better performance
   const VALID_TRANSITIONS = useMemo(
     () => ({
-      automated: ['replied'],
+      qualified: ['message_sent'],
+      message_sent: ['replied'],
       replied: [
+        'interested',
+        'meeting_scheduled',
+        'proposal_sent',
+        'negotiation',
+        'closed_won',
+        'closed_lost',
+        'on_hold',
+      ],
+      interested: [
         'meeting_scheduled',
         'proposal_sent',
         'negotiation',
@@ -380,9 +509,23 @@ const Pipeline = () => {
   const companiesByStage = useMemo(() => {
     const result: Record<string, Company[]> = {};
 
-    // Initialize all stages
+    // Initialize all stages for the Kanban view (including early stages, excluding new_lead)
+    const allStageKeys = [
+      'qualified',
+      'message_sent',
+      'replied',
+      'interested',
+      'meeting_scheduled',
+      'proposal_sent',
+      'negotiation',
+      'closed_won',
+      'closed_lost',
+      'on_hold',
+    ];
     pipelineStages.forEach(stage => {
-      result[stage.key] = [];
+      if (allStageKeys.includes(stage.key)) {
+        result[stage.key] = [];
+      }
     });
 
     // Group companies by stage
@@ -397,7 +540,25 @@ const Pipeline = () => {
         matchesUser = company.owner_id !== null; // Show only assigned companies
       }
 
-      if (matchesFavorites && matchesUser && company.pipeline_stage) {
+      // Include all active stages (excluding new_lead which shouldn't show on frontend)
+      const activeStages = [
+        'qualified',
+        'message_sent',
+        'replied',
+        'interested',
+        'meeting_scheduled',
+        'proposal_sent',
+        'negotiation',
+        'closed_won',
+        'closed_lost',
+        'on_hold',
+      ];
+      if (
+        matchesFavorites &&
+        matchesUser &&
+        company.pipeline_stage &&
+        activeStages.includes(company.pipeline_stage)
+      ) {
         const stage = company.pipeline_stage;
         if (result[stage]) {
           result[stage].push(company);
@@ -419,10 +580,366 @@ const Pipeline = () => {
     company => company.is_favourite
   ).length;
 
-  const handleCompanyClick = (company: Company) => {
-    // TODO: Implement company details view (slide-out panel or navigation)
-    console.log('Company clicked:', company.name);
-  };
+  const handleCompanyClick = useCallback((company: Company) => {
+    setSelectedCompanyId(company.id);
+    setIsSlideOutOpen(true);
+  }, []);
+
+  const handleCompanyUpdate = useCallback(() => {
+    refetchCompanies();
+  }, [refetchCompanies]);
+
+  // Check scroll position and update fade indicators
+  const handlePipelineScroll = useCallback(() => {
+    if (pipelineScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } =
+        pipelineScrollRef.current;
+      const isAtLeft = scrollLeft <= 0;
+      const isAtRight = scrollLeft + clientWidth >= scrollWidth - 5; // 5px tolerance for rounding
+
+      setShowLeftFade(!isAtLeft);
+      setShowRightFade(!isAtRight);
+    }
+  }, []);
+
+  // Setup scroll listener
+  useEffect(() => {
+    const scrollElement = pipelineScrollRef.current;
+    if (scrollElement) {
+      scrollElement.addEventListener('scroll', handlePipelineScroll);
+      // Initial check
+      handlePipelineScroll();
+
+      return () => {
+        scrollElement.removeEventListener('scroll', handlePipelineScroll);
+      };
+    }
+  }, [handlePipelineScroll]);
+
+  // Stage filter options (all active stages)
+  const stageFilterOptions = useMemo(
+    () => [
+      { label: 'All Stages', value: 'all' },
+      ...pipelineStages
+        .filter(s =>
+          [
+            'qualified',
+            'message_sent',
+            'replied',
+            'interested',
+            'meeting_scheduled',
+            'proposal_sent',
+            'negotiation',
+            'closed_won',
+            'closed_lost',
+            'on_hold',
+          ].includes(s.key)
+        )
+        .map(stage => ({
+          label: stage.label,
+          value: stage.key,
+        })),
+    ],
+    [pipelineStages]
+  );
+
+  // Filter companies for table view - show all active stages (including qualified and message_sent)
+  const filteredCompanies = useMemo(() => {
+    let filtered = companies;
+    // Show companies in all active stages (including early engagement)
+    const engagedStages = [
+      'qualified',
+      'message_sent',
+      'replied',
+      'interested',
+      'meeting_scheduled',
+      'proposal_sent',
+      'negotiation',
+      'closed_won',
+      'closed_lost',
+      'on_hold',
+    ];
+    filtered = filtered.filter(
+      c => c.pipeline_stage && engagedStages.includes(c.pipeline_stage)
+    );
+
+    // Stage filter (only for engaged stages)
+    if (stageFilter.length > 0 && !stageFilter.includes('all')) {
+      filtered = filtered.filter(company =>
+        stageFilter.includes(company.pipeline_stage || 'replied')
+      );
+    }
+
+    if (showFavoritesOnly) filtered = filtered.filter(c => c.is_favourite);
+    if (selectedUserId)
+      filtered = filtered.filter(c => c.owner_id === selectedUserId);
+    else if (showAllAssignedUsers)
+      filtered = filtered.filter(c => c.owner_id !== null);
+    return filtered;
+  }, [
+    companies,
+    showFavoritesOnly,
+    selectedUserId,
+    showAllAssignedUsers,
+    stageFilter,
+  ]);
+
+  // Group companies by stage - create grouped structure
+  const groupedData = useMemo(() => {
+    if (!groupByStage) return null;
+
+    // Define group labels based on stages
+    const stageGroups: Record<string, string> = {
+      qualified: 'Qualified',
+      message_sent: 'Message Sent',
+      replied: 'Replied',
+      interested: 'Interested',
+      meeting_scheduled: 'Meeting Scheduled',
+      proposal_sent: 'Proposal Sent',
+      negotiation: 'Negotiation',
+      closed_won: 'Closed Won',
+      closed_lost: 'Closed Lost',
+      on_hold: 'On Hold',
+    };
+
+    // Organize companies into groups
+    const groupsMap: Record<string, Company[]> = {};
+
+    filteredCompanies.forEach(company => {
+      const stage = company.pipeline_stage || 'replied';
+      const groupLabel = stageGroups[stage] || 'Other';
+
+      if (!groupsMap[groupLabel]) {
+        groupsMap[groupLabel] = [];
+      }
+      groupsMap[groupLabel].push(company);
+    });
+
+    // Convert to groups array with proper ordering
+    const groupOrder = [
+      'Negotiation',
+      'Proposal Sent',
+      'Meeting Scheduled',
+      'Interested',
+      'Replied',
+      'Message Sent',
+      'Qualified',
+      'On Hold',
+      'Closed Won',
+      'Closed Lost',
+    ];
+
+    return groupOrder
+      .filter(label => groupsMap[label] && groupsMap[label].length > 0)
+      .map(label => ({
+        label,
+        count: groupsMap[label].length,
+        data: groupsMap[label],
+      }));
+  }, [filteredCompanies, groupByStage]);
+
+  // For ungrouped view, use flat list
+  const ungroupedData = useMemo(() => {
+    if (groupByStage) return [];
+    return filteredCompanies;
+  }, [filteredCompanies, groupByStage]);
+
+  // For grouped view, don't paginate - show all groups
+  // For ungrouped view, paginate normally
+  const displayData = groupByStage ? filteredCompanies : ungroupedData;
+
+  const totalPages = Math.ceil(displayData.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedData = groupByStage
+    ? displayData // Show all when grouped
+    : displayData.slice(startIndex, endIndex); // Paginate when ungrouped
+
+  // Tab options
+  const tabOptions = useMemo(
+    () => [
+      { id: 'table', label: 'Main Table', count: filteredCompanies.length },
+      { id: 'pipeline', label: 'Pipeline', count: companies.length },
+    ],
+    [companies.length, filteredCompanies.length]
+  );
+
+  // Table columns
+  const tableColumns: ColumnConfig<Company>[] = useMemo(
+    () => [
+      {
+        key: 'company',
+        label: 'Deal Name',
+        width: '280px',
+        minWidth: '280px',
+        render: (_, company) => (
+          <div className='min-w-0 cursor-pointer hover:bg-muted rounded-md p-1 -m-1 transition-colors duration-150'>
+            <div className='flex items-center gap-2'>
+              <div className='w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0'>
+                {company.website ? (
+                  <img
+                    src={getClearbitLogo(company.name || '', company.website)}
+                    alt={company.name}
+                    className='w-7 h-7 rounded-lg object-cover'
+                    onError={e => {
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget
+                        .nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <Building2 className='h-3 w-3 text-muted-foreground' />
+              </div>
+              <div className='text-sm font-medium text-foreground truncate'>
+                {company.name}
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: 'owner',
+        label: 'Owner',
+        width: '80px',
+        minWidth: '80px',
+        align: 'center',
+        render: (_, company) => (
+          <div
+            onClick={e => e.stopPropagation()}
+            className='flex items-center justify-center'
+          >
+            <IconOnlyAssignmentCell
+              ownerId={company.owner_id}
+              entityId={company.id}
+              entityType='companies'
+              onAssignmentChange={() => {
+                refetchCompanies();
+              }}
+            />
+          </div>
+        ),
+      },
+      {
+        key: 'contact',
+        label: 'Contact',
+        width: '180px',
+        minWidth: '180px',
+        render: (_, company) => (
+          <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm'>
+            {company.head_office || '-'}
+          </div>
+        ),
+      },
+      {
+        key: 'account',
+        label: 'Account',
+        width: '200px',
+        minWidth: '200px',
+        render: (_, company) => (
+          <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm'>
+            {company.name}
+          </div>
+        ),
+      },
+      {
+        key: 'people',
+        label: 'People',
+        width: '120px',
+        minWidth: '120px',
+        cellType: 'regular',
+        align: 'center',
+        render: (_, company) => {
+          const companyPeople = people.filter(p => p.company_id === company.id);
+          return (
+            <div onClick={e => e.stopPropagation()}>
+              <PeopleAvatars
+                people={companyPeople}
+                onPersonClick={personId => navigate(`/people/${personId}`)}
+                maxVisible={3}
+              />
+            </div>
+          );
+        },
+      },
+      {
+        key: 'stage',
+        label: 'Stage',
+        width: '150px',
+        minWidth: '150px',
+        cellType: 'status',
+        align: 'center',
+        getStatusValue: company => company.pipeline_stage || 'qualified',
+        render: (_, company) => {
+          const availableStages = [
+            'qualified',
+            'message_sent',
+            'replied',
+            'interested',
+            'meeting_scheduled',
+            'proposal_sent',
+            'negotiation',
+            'closed_won',
+            'closed_lost',
+            'on_hold',
+          ];
+          return (
+            <div onClick={e => e.stopPropagation()}>
+              <UnifiedStatusDropdown
+                entityId={company.id}
+                entityType='companies'
+                currentStatus={company.pipeline_stage || 'qualified'}
+                availableStatuses={availableStages}
+                variant='cell'
+                onStatusChange={() => {
+                  refetchCompanies();
+                }}
+              />
+            </div>
+          );
+        },
+      },
+      {
+        key: 'reply_intent',
+        label: 'Intent',
+        width: '120px',
+        minWidth: '120px',
+        align: 'center',
+        render: (_, company) => {
+          if (!company.reply_stats || company.reply_stats.total === 0) {
+            return <span className='text-xs text-gray-400'>—</span>;
+          }
+          const dominantIntent: ReplyIntent =
+            company.reply_stats.interested > company.reply_stats.not_interested
+              ? 'interested'
+              : company.reply_stats.not_interested > 0
+                ? 'not_interested'
+                : 'maybe';
+          return (
+            <div className='flex flex-col items-center gap-1'>
+              <ReplyIntentIndicator intent={dominantIntent} size='sm' />
+              <span className='text-xs text-gray-500'>
+                {company.reply_stats.total} replies
+              </span>
+            </div>
+          );
+        },
+      },
+      {
+        key: 'value',
+        label: 'Deal Value',
+        width: '120px',
+        minWidth: '120px',
+        align: 'right',
+        render: (_, company) => (
+          <div className='text-sm font-medium text-foreground'>
+            {company.lead_score || '-'}
+          </div>
+        ),
+      },
+    ],
+    [people, navigate, refetchCompanies]
+  );
 
   // Enhanced Draggable Company Card Component with better accessibility and visual feedback
   const DraggableCompanyCard = memo(({ company }: { company: Company }) => {
@@ -562,6 +1079,22 @@ const Pipeline = () => {
                 <span className='inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary-light text-primary border-primary-medium'>
                   <Brain className='h-3 w-3 mr-1' />
                   {company.lead_score}
+                </span>
+              )}
+              {/* Reply Intent Indicator */}
+              {company.reply_stats && company.reply_stats.total > 0 && (
+                <span className='inline-flex items-center px-2 py-1 rounded-md text-xs font-medium'>
+                  <ReplyIntentIndicator
+                    intent={
+                      company.reply_stats.interested >
+                      company.reply_stats.not_interested
+                        ? 'interested'
+                        : company.reply_stats.not_interested > 0
+                          ? 'not_interested'
+                          : 'maybe'
+                    }
+                    size='sm'
+                  />
                 </span>
               )}
               {company.automation_active && (
@@ -759,64 +1292,69 @@ const Pipeline = () => {
   DroppableStage.displayName = 'DroppableStage';
 
   return (
-    <Page title='Company Pipeline' hideHeader allowScroll>
+    <Page title='Deals' hideHeader allowScroll>
       <div className='space-y-3 h-full flex flex-col'>
         {/* Page Header */}
-        <div className='mb-2'>
+        <div className='mb-1'>
           <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-            Company Pipeline
+            Deals
           </h1>
           <p className='text-sm text-muted-foreground'>
-            Drag and drop companies between stages to manage your sales pipeline
+            {activeTab === 'pipeline'
+              ? 'Drag and drop companies between stages'
+              : 'Deals that have expressed interest and are actively engaged'}
           </p>
         </div>
 
-        {/* Controls Bar */}
-        <div className='flex gap-3 mb-3 w-full'>
-          <Button
-            variant='outline'
-            size='xs'
-            onClick={() => refetchCompanies()}
-            className={designTokens.shadows.button}
-          >
-            <RefreshCw className='h-4 w-4 mr-2' />
-            Refresh
-          </Button>
-
-          {/* Favorites Icon Button */}
-          <button
-            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-            className={cn(
-              'h-7 w-7 rounded-md border flex items-center justify-center transition-colors',
-              showFavoritesOnly
-                ? 'bg-primary-50 text-primary-700 border-primary-200'
-                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-            )}
-            title={
-              showFavoritesOnly ? 'Show all companies' : 'Show favorites only'
-            }
-          >
-            <Star
-              className={cn('h-4 w-4', showFavoritesOnly && 'fill-current')}
+        {/* Tab Navigation and Filters */}
+        <div className='flex items-center justify-end gap-4 py-1 mb-2 flex-nowrap overflow-hidden'>
+          {/* Tab Navigation */}
+          <div className='flex-shrink-0 mr-auto'>
+            <TabNavigation
+              tabs={tabOptions}
+              activeTab={activeTab}
+              onTabChange={tabId => {
+                setActiveTab(tabId as 'pipeline' | 'table');
+                setCurrentPage(1);
+              }}
+              className='border-b-0'
             />
-          </button>
+          </div>
 
-          {/* Global User Filter */}
-          <div className='flex items-center gap-2'>
-            <User className='h-4 w-4 text-gray-500' />
-            <DropdownSelect
-              options={[
-                { label: 'All Companies', value: 'all' },
-                { label: 'All Assigned Users', value: 'assigned' },
+          {/* Filter Controls */}
+          <div className='flex items-center gap-2 flex-shrink-0'>
+            <FilterControls
+              statusOptions={stageFilterOptions}
+              userOptions={[
+                { label: 'All Users', value: 'all' },
+                { label: 'My Assignments', value: 'assigned' },
                 ...users.map(user => ({
                   label: user.full_name,
                   value: user.id,
                 })),
               ]}
-              value={
+              sortOptions={[]}
+              statusFilter={
+                stageFilter.length === 0 || stageFilter.includes('all')
+                  ? 'all'
+                  : stageFilter[0]
+              }
+              selectedUser={
                 showAllAssignedUsers ? 'assigned' : selectedUserId || 'all'
               }
-              onValueChange={value => {
+              sortBy=''
+              showFavoritesOnly={showFavoritesOnly}
+              searchTerm=''
+              isSearchActive={false}
+              onStatusChange={value => {
+                if (value === 'all') {
+                  setStageFilter([]);
+                } else {
+                  setStageFilter([value]);
+                }
+                setCurrentPage(1);
+              }}
+              onUserChange={value => {
                 if (value === 'all') {
                   setSelectedUserId(null);
                   setShowAllAssignedUsers(false);
@@ -828,128 +1366,203 @@ const Pipeline = () => {
                   setShowAllAssignedUsers(false);
                 }
               }}
-              placeholder='Filter by user...'
-              className='w-48 h-7'
+              onSortChange={() => {}}
+              onFavoritesToggle={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              onSearchChange={() => {}}
+              onSearchToggle={() => {}}
             />
-            {(selectedUserId || showAllAssignedUsers) && (
-              <Button
-                variant='ghost'
-                size='xs'
-                onClick={() => {
-                  setSelectedUserId(null);
-                  setShowAllAssignedUsers(false);
-                }}
-                className='text-gray-500 hover:text-gray-700 h-7 px-2'
+
+            {/* Group Toggle - Only for table view */}
+            {activeTab === 'table' && (
+              <button
+                onClick={() => setGroupByStage(!groupByStage)}
+                className={cn(
+                  'h-8 px-3 rounded-md border flex items-center gap-2 transition-colors',
+                  groupByStage
+                    ? 'bg-primary-50 text-primary-700 border-primary-200'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                )}
+                title={groupByStage ? 'Ungroup' : 'Group by stage'}
               >
-                Clear
-              </Button>
+                <Grid3x3 className='h-4 w-4' />
+                <span className='text-sm font-medium'>Group</span>
+              </button>
             )}
           </div>
-
-          <Button
-            variant='outline'
-            size='sm'
-            className={designTokens.shadows.button}
-          >
-            <Filter className='h-4 w-4 mr-2' />
-            Filter
-          </Button>
         </div>
 
-        {/* Enhanced Drag and Drop Context */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          {/* Modern Single-Scroll Pipeline Board */}
-          <div className='relative'>
-            <div
-              className='overflow-x-auto pb-4 scrollbar-thin w-full'
-              style={{
-                // Optimize scrolling performance
-                willChange: 'scroll-position',
-                transform: 'translateZ(0)', // Force hardware acceleration
-                backfaceVisibility: 'hidden',
-              }}
-            >
-              <div
-                className='flex gap-6 min-w-max'
-                style={{
-                  // Optimize for smooth drag and drop
-                  willChange: 'transform',
-                  transform: 'translateZ(0)',
-                }}
-              >
-                {loading
-                  ? // Loading skeleton
-                    pipelineStages.map(stage => (
-                      <div key={stage.key} className='w-80 space-y-3'>
-                        <div className='h-8 bg-gray-200 animate-pulse rounded' />
-                        {[...Array(3)].map((_, i) => (
-                          <div
-                            key={i}
-                            className='h-24 bg-gray-100 animate-pulse rounded-md'
-                          />
-                        ))}
-                      </div>
-                    ))
-                  : pipelineStages.map(stage => {
-                      const stageCompanies = companiesByStage[stage.key] || [];
-                      return (
-                        <DroppableStage
-                          key={stage.key}
-                          stage={stage}
-                          companies={stageCompanies}
-                        />
-                      );
-                    })}
-              </div>
+        {/* Conditional Render: Table or Pipeline */}
+        {activeTab === 'table' ? (
+          <>
+            <div className='flex-1 min-h-0'>
+              <UnifiedTable
+                data={paginatedData}
+                columns={tableColumns}
+                pagination={false}
+                stickyHeaders={true}
+                scrollable={true}
+                onRowClick={handleCompanyClick}
+                loading={loading}
+                emptyMessage='No deals found'
+                grouped={groupByStage}
+                groups={groupedData}
+                expandedGroups={expandedGroups}
+                onToggleGroup={handleToggleGroup}
+              />
             </div>
-          </div>
+            {!groupByStage && (
+              <div className='flex-shrink-0 pt-1'>
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  pageSize={pageSize}
+                  totalItems={displayData.length}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={size => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                  }}
+                  className='mt-0'
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {/* Pipeline View - Kanban Board */}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+            >
+              {/* Modern Single-Scroll Pipeline Board */}
+              <div className='relative'>
+                {/* Gradient Fade Overlays - clickable scroll areas */}
+                {showLeftFade && (
+                  <button
+                    onClick={() => {
+                      pipelineScrollRef.current?.scrollBy({
+                        left: -400,
+                        behavior: 'smooth',
+                      });
+                    }}
+                    className='absolute left-0 top-0 bottom-8 w-32 bg-gradient-to-r from-white to-transparent hover:from-gray-50 transition-colors cursor-pointer z-20'
+                    aria-label='Scroll left'
+                  />
+                )}
+                {showRightFade && (
+                  <button
+                    onClick={() => {
+                      pipelineScrollRef.current?.scrollBy({
+                        left: 400,
+                        behavior: 'smooth',
+                      });
+                    }}
+                    className='absolute right-0 top-0 bottom-8 w-32 bg-gradient-to-l from-white to-transparent hover:from-gray-50 transition-colors cursor-pointer z-20'
+                    aria-label='Scroll right'
+                  />
+                )}
 
-          {/* Optimized Drag Overlay */}
-          <DragOverlay>
-            {activeId
-              ? (() => {
-                  const activeCompany = companies.find(
-                    company => company.id === activeId
-                  );
-                  if (!activeCompany) return null;
-
-                  return (
-                    <div className='opacity-90 transform rotate-2 scale-105 shadow-2xl border-2 border-blue-400 rounded-xl'>
-                      <div className='bg-white rounded-xl p-4 shadow-lg'>
-                        <div className='flex items-center gap-3'>
-                          <div className='w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center'>
-                            <Building2 className='h-5 w-5' />
+                <div
+                  ref={pipelineScrollRef}
+                  className='overflow-x-auto pb-4 scrollbar-thin w-full'
+                  style={{
+                    // Optimize scrolling performance
+                    willChange: 'scroll-position',
+                    transform: 'translateZ(0)', // Force hardware acceleration
+                    backfaceVisibility: 'hidden',
+                  }}
+                >
+                  <div
+                    className='flex gap-6 min-w-max'
+                    style={{
+                      // Optimize for smooth drag and drop
+                      willChange: 'transform',
+                      transform: 'translateZ(0)',
+                    }}
+                  >
+                    {loading
+                      ? // Loading skeleton
+                        pipelineStages.map(stage => (
+                          <div key={stage.key} className='w-80 space-y-3'>
+                            <div className='h-8 bg-gray-200 animate-pulse rounded' />
+                            {[...Array(3)].map((_, i) => (
+                              <div
+                                key={i}
+                                className='h-24 bg-gray-100 animate-pulse rounded-md'
+                              />
+                            ))}
                           </div>
-                          <div>
-                            <h3 className='font-semibold text-foreground text-base'>
-                              {activeCompany.name}
-                            </h3>
-                            <p className='text-xs text-gray-500'>
-                              {
-                                pipelineStages.find(
-                                  stage =>
-                                    stage.key === activeCompany.pipeline_stage
-                                )?.label
-                              }
-                            </p>
+                        ))
+                      : pipelineStages.map(stage => {
+                          const stageCompanies =
+                            companiesByStage[stage.key] || [];
+                          return (
+                            <DroppableStage
+                              key={stage.key}
+                              stage={stage}
+                              companies={stageCompanies}
+                            />
+                          );
+                        })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Optimized Drag Overlay */}
+              <DragOverlay>
+                {activeId
+                  ? (() => {
+                      const activeCompany = companies.find(
+                        company => company.id === activeId
+                      );
+                      if (!activeCompany) return null;
+
+                      return (
+                        <div className='opacity-90 transform rotate-2 scale-105 shadow-2xl border-2 border-blue-400 rounded-xl'>
+                          <div className='bg-white rounded-xl p-4 shadow-lg'>
+                            <div className='flex items-center gap-3'>
+                              <div className='w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center'>
+                                <Building2 className='h-5 w-5' />
+                              </div>
+                              <div>
+                                <h3 className='font-semibold text-foreground text-base'>
+                                  {activeCompany.name}
+                                </h3>
+                                <p className='text-xs text-gray-500'>
+                                  {
+                                    pipelineStages.find(
+                                      stage =>
+                                        stage.key ===
+                                        activeCompany.pipeline_stage
+                                    )?.label
+                                  }
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })()
-              : null}
-          </DragOverlay>
-        </DndContext>
-
-        {/* Company Detail Modal - TODO: Implement slide-out panel */}
+                      );
+                    })()
+                  : null}
+              </DragOverlay>
+            </DndContext>
+          </>
+        )}
       </div>
+
+      {/* Company Details Slide-Out */}
+      <CompanyDetailsSlideOut
+        companyId={selectedCompanyId}
+        isOpen={isSlideOutOpen}
+        onClose={() => {
+          setIsSlideOutOpen(false);
+          setSelectedCompanyId(null);
+        }}
+        onUpdate={handleCompanyUpdate}
+      />
     </Page>
   );
 };
