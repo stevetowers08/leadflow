@@ -479,12 +479,6 @@ const CompanyDetailsSlideOutComponent: React.FC<
       value: company.company_size || '-',
     },
     {
-      label: 'Pipeline Stage',
-      value: company.pipeline_stage
-        ? getStatusDisplayText(company.pipeline_stage)
-        : '-',
-    },
-    {
       label: 'AI Score',
       value: (
         <div
