@@ -22,7 +22,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { Bell, LogIn, LogOut, Menu, Search } from 'lucide-react';
+import { Bell, LogIn, LogOut, Menu } from 'lucide-react';
 
 interface TopNavigationBarProps {
   pageTitle: string;
@@ -52,30 +52,25 @@ export const TopNavigationBar = ({
       {isMobile ? (
         // Mobile Layout - Simple flex with justify-between
         <div className='flex items-center justify-between w-full'>
-          {/* Left Section - Mobile Menu + Page Title */}
+          {/* Left Section - Mobile Menu */}
           <div className='flex items-center'>
             <Button
               variant='ghost'
               size='icon'
               onClick={onMenuClick}
-              className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md mr-2'
+              className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
             >
               <Menu className='h-4 w-4' />
             </Button>
-            <h1 className='font-semibold text-gray-900 tracking-tight text-sm'>
-              {pageTitle}
-            </h1>
+          </div>
+
+          {/* Center Section - Search Bar */}
+          <div className='flex-1 mx-4'>
+            <GlobalSearchDropdown />
           </div>
 
           {/* Right Section - Actions */}
-          <div className='flex items-center gap-2'>
-            <Button
-              variant='ghost'
-              size='icon'
-              className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
-            >
-              <Search className='h-4 w-4' />
-            </Button>
+          <div className='flex items-center gap-1'>
             <Button
               variant='ghost'
               size='icon'
@@ -83,9 +78,6 @@ export const TopNavigationBar = ({
             >
               <Bell className='h-4 w-4' />
             </Button>
-            <RecentActivityButton />
-            <AllCompanyNotesButton />
-            <div className='mx-1 h-6 w-px bg-gray-300' aria-hidden='true' />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -130,24 +122,17 @@ export const TopNavigationBar = ({
           </div>
         </div>
       ) : (
-        // Desktop Layout - Grid with proper centering
-        <div className='grid grid-cols-[1fr_auto_1fr] items-center w-full gap-4'>
-          {/* Left Section - Page Title */}
-          <div className='flex items-center justify-start'>
-            <h1 className='font-semibold text-gray-900 tracking-tight text-base'>
-              {pageTitle}
-            </h1>
-          </div>
-
+        // Desktop Layout - Relative positioning for true centering
+        <div className='relative flex items-center w-full'>
           {/* Center Section - Search Bar */}
-          <div className='flex justify-center'>
-            <div className='w-80'>
+          <div className='absolute left-1/2 -translate-x-1/2'>
+            <div className='w-full max-w-2xl'>
               <GlobalSearchDropdown />
             </div>
           </div>
 
-          {/* Right Section - Actions */}
-          <div className='flex items-center gap-2 justify-end'>
+          {/* Right Section - Actions + User Profile */}
+          <div className='flex items-center gap-2 ml-auto'>
             <Button
               variant='ghost'
               size='icon'

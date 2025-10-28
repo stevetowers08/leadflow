@@ -11,7 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   ArrowRight,
   CheckCircle,
-  ChevronRight,
   Circle,
   Database,
   Mail,
@@ -62,7 +61,7 @@ export default function GettingStarted() {
     {
       id: 'first_message',
       title: 'Start your outreach',
-      description: 'Review job opportunities and begin contacting companies',
+      description: 'Review job deals and begin contacting companies',
       href: '/jobs',
       completed: false,
       icon: Rocket,
@@ -129,7 +128,7 @@ export default function GettingStarted() {
 
         {/* Overview */}
         <div className='p-6 bg-white border border-gray-200 rounded-lg'>
-          <h2 className='text-lg font-semibold text-foreground mb-3'>
+          <h2 className='text-xl font-semibold text-foreground mb-3'>
             Overview
           </h2>
           <p className='text-sm text-gray-700 mb-3 leading-relaxed'>
@@ -155,108 +154,113 @@ export default function GettingStarted() {
 
         {/* How It Works */}
         <div className='p-6 bg-white border border-gray-200 rounded-lg'>
-          <h2 className='text-lg font-semibold text-foreground mb-4'>
+          <h2 className='text-xl font-semibold text-foreground mb-4'>
             How It Works
           </h2>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
-            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
-              <div className='flex-shrink-0 w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
-                1
+            <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm shadow-sm flex flex-col h-full'>
+              <div className='absolute top-4 left-4'>
+                <span className='text-2xl font-bold text-blue-500/20 leading-none'>
+                  01
+                </span>
               </div>
-              <div className='flex-1 min-w-0'>
-                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+              <div className='relative z-10 p-5 pt-12 flex-1'>
+                <h3 className='font-semibold text-base text-foreground mb-2'>
                   Discover & Qualify Jobs
                 </h3>
-                <p className='text-sm text-gray-600'>
+                <p className='text-sm text-muted-foreground'>
                   Browse pre-filtered job postings from LinkedIn that match your
-                  criteria. Qualify promising opportunities to automatically add
+                  criteria. Qualify promising deals to automatically add
                   companies to your pipeline.
                 </p>
               </div>
-              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
             </div>
 
-            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
-              <div className='flex-shrink-0 w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
-                2
+            <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 backdrop-blur-sm shadow-sm flex flex-col h-full'>
+              <div className='absolute top-4 left-4'>
+                <span className='text-2xl font-bold text-purple-500/20 leading-none'>
+                  02
+                </span>
               </div>
-              <div className='flex-1 min-w-0'>
-                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+              <div className='relative z-10 p-5 pt-12 flex-1'>
+                <h3 className='font-semibold text-base text-foreground mb-2'>
                   Review Companies
                 </h3>
-                <p className='text-sm text-gray-600'>
+                <p className='text-sm text-muted-foreground'>
                   System automatically creates company records when you qualify
-                  jobs. Review your pipeline and identify the best
-                  opportunities.
+                  jobs. Review your pipeline and identify the best deals.
                 </p>
               </div>
-              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
             </div>
 
-            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
-              <div className='flex-shrink-0 w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
-                3
+            <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-indigo-500/5 via-indigo-50/30 to-indigo-500/10 backdrop-blur-sm shadow-sm flex flex-col h-full'>
+              <div className='absolute top-4 left-4'>
+                <span className='text-2xl font-bold text-indigo-500/20 leading-none'>
+                  03
+                </span>
               </div>
-              <div className='flex-1 min-w-0'>
-                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+              <div className='relative z-10 p-5 pt-12 flex-1'>
+                <h3 className='font-semibold text-base text-foreground mb-2'>
                   Find Decision Makers
                 </h3>
-                <p className='text-sm text-gray-600'>
+                <p className='text-sm text-muted-foreground'>
                   AI automatically enriches LinkedIn data to identify hiring
-                  managers, CTOs, HR directors, and department heads who can
-                  hire you.
+                  managers, CTOs, HR directors, and department heads who need
+                  recruitment services.
                 </p>
               </div>
-              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
             </div>
 
-            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
-              <div className='flex-shrink-0 w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
-                4
+            <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-green-500/5 via-green-50/30 to-green-500/10 backdrop-blur-sm shadow-sm flex flex-col h-full'>
+              <div className='absolute top-4 left-4'>
+                <span className='text-2xl font-bold text-green-500/20 leading-none'>
+                  04
+                </span>
               </div>
-              <div className='flex-1 min-w-0'>
-                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+              <div className='relative z-10 p-5 pt-12 flex-1'>
+                <h3 className='font-semibold text-base text-foreground mb-2'>
                   Generate Messages
                 </h3>
-                <p className='text-sm text-gray-600'>
+                <p className='text-sm text-muted-foreground'>
                   AI creates personalised messages that reference their role and
                   the job. Review and edit for authenticity before sending.
                 </p>
               </div>
-              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
             </div>
 
-            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
-              <div className='flex-shrink-0 w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
-                5
+            <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-orange-500/5 via-orange-50/30 to-orange-500/10 backdrop-blur-sm shadow-sm flex flex-col h-full'>
+              <div className='absolute top-4 left-4'>
+                <span className='text-2xl font-bold text-orange-500/20 leading-none'>
+                  05
+                </span>
               </div>
-              <div className='flex-1 min-w-0'>
-                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+              <div className='relative z-10 p-5 pt-12 flex-1'>
+                <h3 className='font-semibold text-base text-foreground mb-2'>
                   Send & Track
                 </h3>
-                <p className='text-sm text-gray-600'>
+                <p className='text-sm text-muted-foreground'>
                   Send individually via Gmail or launch email campaigns to
-                  multiple contacts. AI tracks email replies and automatically
+                  multiple people. AI tracks email replies and automatically
                   moves leads through the pipeline—or move them manually.
                 </p>
               </div>
-              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
             </div>
 
-            <div className='flex items-start gap-3 p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow'>
-              <div className='flex-shrink-0 w-12 h-12 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
-                6
+            <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-teal-500/5 via-teal-50/30 to-teal-500/10 backdrop-blur-sm shadow-sm flex flex-col h-full'>
+              <div className='absolute top-4 left-4'>
+                <span className='text-2xl font-bold text-teal-500/20 leading-none'>
+                  06
+                </span>
               </div>
-              <div className='flex-1 min-w-0'>
-                <h3 className='font-semibold text-base text-gray-900 mb-1'>
+              <div className='relative z-10 p-5 pt-12 flex-1'>
+                <h3 className='font-semibold text-base text-foreground mb-2'>
                   Close Deals
                 </h3>
-                <p className='text-sm text-gray-600'>
+                <p className='text-sm text-muted-foreground'>
                   Convert interested companies into clients. Track meetings,
                   proposals, and closed deals throughout your pipeline.
                 </p>
               </div>
-              <ChevronRight className='h-4 w-4 text-gray-400 flex-shrink-0' />
             </div>
           </div>
         </div>
