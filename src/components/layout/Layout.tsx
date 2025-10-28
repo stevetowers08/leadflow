@@ -172,54 +172,43 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         />
       )}
 
-      {/* Sidebar rendered via portal */}
-      {isMobile
-        ? // Mobile: only render when open
-          sidebarOpen &&
-          createPortal(
-            <aside
-              style={{
-                position: 'fixed',
-                top: '0px',
-                left: '0px',
-                height: '100vh',
-                width: '224px',
-                zIndex: 9999,
-                overflow: 'hidden',
-                backgroundColor: 'hsl(var(--sidebar-background))',
-                color: 'hsl(var(--sidebar-foreground))',
-                transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
-                transition: 'transform 0.3s ease-in-out',
-                willChange: 'transform',
-              }}
-              role='navigation'
-              aria-label='Main navigation'
-            >
-              <Sidebar onClose={() => setSidebarOpen(false)} />
-            </aside>,
-            document.body
-          )
-        : // Desktop: always render
-          createPortal(
-            <aside
-              style={{
-                position: 'fixed',
-                top: '0px',
-                left: '0px',
-                height: '100vh',
-                width: '224px',
-                zIndex: 9999,
-                overflow: 'hidden',
-                backgroundColor: 'hsl(var(--sidebar-background))',
-                color: 'hsl(var(--sidebar-foreground))',
-              }}
-              role='navigation'
-              aria-label='Main navigation'
-            >
-              <Sidebar />
-            </aside>,
-            document.body
-          )}
+      {/* Desktop Sidebar - Always visible on desktop */}
+      {!isMobile &&
+        createPortal(
+          <aside
+            className='desktop-sidebar fixed top-0 left-0 h-screen w-56 bg-sidebar z-50'
+            role='navigation'
+            aria-label='Main navigation'
+          >
+            <Sidebar />
+          </aside>,
+          document.body
+        )}
+
+      {/* Mobile Sidebar - Only when menu is open */}
+      {isMobile &&
+        sidebarOpen &&
+        createPortal(
+          <aside
+            style={{
+              position: 'fixed',
+              top: '0px',
+              left: '0px',
+              height: '100vh',
+              width: '224px',
+              zIndex: 9999,
+              backgroundColor: 'hsl(var(--sidebar-background))',
+              color: 'hsl(var(--sidebar-foreground))',
+              transform: 'translateX(0)',
+              transition: 'transform 0.3s ease-in-out',
+            }}
+            role='navigation'
+            aria-label='Main navigation'
+          >
+            <Sidebar onClose={() => setSidebarOpen(false)} />
+          </aside>,
+          document.body
+        )}
 
       {/* Top Navigation Bar rendered via portal */}
       {createPortal(
@@ -252,7 +241,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
             !isMobile && 'pl-56',
             // Add top padding for fixed header (header height is ~48px)
             'pt-12',
-            // Mobile: Add bottom padding for mobile nav
+            // Mobile: Add bottom padding for mobile nav (nav height + safe area ≈ 80px)
             isMobile && 'pb-20'
           )}
           role='main'
@@ -265,7 +254,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
               designTokens.spacing.pagePadding.responsive
             )}
           >
-            <div className='h-full w-full'>{children}</div>
+            <div className='h-full w-full overflow-y-auto'>{children}</div>
           </div>
         </main>
 
