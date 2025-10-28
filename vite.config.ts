@@ -29,9 +29,9 @@ export default defineConfig(({ mode }) => ({
       '@supabase/supabase-js',
       'chart.js',
       'react-chartjs-2',
+      'recharts',
     ],
     exclude: ['@vite/client', '@vite/env'],
-    force: true,
   },
   resolve: {
     alias: {
