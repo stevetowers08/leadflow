@@ -974,9 +974,9 @@ const Pipeline = () => {
         style={style}
         {...attributes}
         {...listeners}
-        className={`relative bg-white rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group ${
+        className={`w-full relative bg-white rounded-lg border border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer group ${
           isDraggable
-            ? 'hover:shadow-xl cursor-grab active:cursor-grabbing'
+            ? 'hover:shadow-lg cursor-grab active:cursor-grabbing'
             : 'cursor-pointer'
         } ${isDragging ? 'shadow-xl scale-[1.02] z-50 border-primary border-primary-medium' : ''} ${
           isCurrentlyUpdating ? 'opacity-60 pointer-events-none' : ''
@@ -1000,11 +1000,11 @@ const Pipeline = () => {
         }}
       >
         {/* Card Header */}
-        <div className='p-4 pb-3'>
+        <div className='p-3 pb-2.5'>
           {/* Company Logo and Name */}
-          <div className='flex items-start gap-3'>
+          <div className='flex items-start gap-2'>
             {/* Company Logo */}
-            <div className='flex-shrink-0 w-12 h-12 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden'>
+            <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden'>
               {company.website ? (
                 <img
                   src={`https://logo.clearbit.com/${
@@ -1014,7 +1014,7 @@ const Pipeline = () => {
                       .split('/')[0]
                   }`}
                   alt={company.name}
-                  className='w-12 h-12 rounded-lg object-cover'
+                  className='w-10 h-10 rounded-lg object-cover'
                   loading='lazy'
                   decoding='async'
                   onError={e => {
@@ -1037,21 +1037,21 @@ const Pipeline = () => {
                 />
               ) : null}
               <div
-                className='w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-hover text-primary-foreground flex items-center justify-center'
+                className='w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary-hover text-primary-foreground flex items-center justify-center'
                 style={{ display: company.website ? 'none' : 'flex' }}
               >
-                <Building2 className='h-6 w-6' />
+                <Building2 className='h-5 w-5' />
               </div>
             </div>
 
             {/* Company Name and Location */}
             <div className='flex-1 min-w-0'>
-              <h3 className='font-semibold text-foreground text-base truncate leading-tight'>
+              <h3 className='font-semibold text-foreground text-sm truncate leading-tight'>
                 {company.name}
               </h3>
               {/* Head Office - Below company name, smaller */}
               {company.head_office && (
-                <div className='flex items-center gap-1 text-xs text-gray-500 mt-1'>
+                <div className='flex items-center gap-1 text-xs text-gray-500 mt-0.5'>
                   <MapPin className='h-3 w-3' />
                   <span className='truncate'>{company.head_office}</span>
                 </div>
@@ -1061,29 +1061,29 @@ const Pipeline = () => {
         </div>
 
         {/* Card Content */}
-        <div className='px-4 pt-2 pb-4'>
+        <div className='px-3 pt-2 pb-3'>
           {/* Industry - On its own line */}
           {company.industry && (
-            <div className='mb-4'>
-              <span className='inline-block bg-gray-50 px-2 py-1 rounded-md text-sm text-gray-600'>
+            <div className='mb-2'>
+              <span className='inline-block bg-gray-50 px-2 py-0.5 rounded-md text-xs text-gray-600'>
                 {company.industry}
               </span>
             </div>
           )}
 
           {/* Bottom Section */}
-          <div className='flex items-center gap-4'>
+          <div className='flex items-center gap-2 flex-wrap'>
             {/* Badges with Icons */}
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-1.5 flex-wrap'>
               {company.lead_score && (
-                <span className='inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary-light text-primary border-primary-medium'>
-                  <Brain className='h-3 w-3 mr-1' />
+                <span className='inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-primary-light text-primary'>
+                  <Brain className='h-3 w-3 mr-0.5' />
                   {company.lead_score}
                 </span>
               )}
               {/* Reply Intent Indicator */}
               {company.reply_stats && company.reply_stats.total > 0 && (
-                <span className='inline-flex items-center px-2 py-1 rounded-md text-xs font-medium'>
+                <span className='inline-flex items-center'>
                   <ReplyIntentIndicator
                     intent={
                       company.reply_stats.interested >
@@ -1098,56 +1098,53 @@ const Pipeline = () => {
                 </span>
               )}
               {company.automation_active && (
-                <span className='inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200'>
-                  <Zap className='h-3 w-3 mr-1' />
+                <span className='inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-700'>
+                  <Zap className='h-3 w-3 mr-0.5' />
                   Auto
                 </span>
               )}
               {isCurrentlyUpdating && (
-                <span className='inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200'>
-                  <div className='animate-spin rounded-full h-3 w-3 border border-yellow-300 border-t-yellow-600 mr-1' />
+                <span className='inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-yellow-50 text-yellow-700'>
+                  <div className='animate-spin rounded-full h-3 w-3 border border-yellow-300 border-t-yellow-600 mr-0.5' />
                   Moving
                 </span>
               )}
-            </div>
 
-            {/* People Count */}
-            <div className='inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200'>
-              <Users className='h-3 w-3 mr-1' />
-              <span className='font-medium'>{company.people_count || 0}</span>
-            </div>
+              {/* People Count */}
+              <div className='inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-gray-50 text-gray-700'>
+                <Users className='h-3 w-3 mr-0.5' />
+                <span className='font-medium'>{company.people_count || 0}</span>
+              </div>
 
-            {/* Actions */}
-            <div className='flex items-center gap-2'>
-              {/* Notes Button */}
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  // TODO: Implement company details view (slide-out panel or navigation)
-                  console.log('View notes for:', company.name);
-                }}
-                className='p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-200'
-                title='View notes'
-              >
-                <FileText className='h-4 w-4' />
-              </button>
+              {/* Actions */}
+              <div className='flex items-center gap-0.5 ml-auto'>
+                {/* Notes Button */}
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    console.log('View notes for:', company.name);
+                  }}
+                  className='p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-200'
+                  title='View notes'
+                >
+                  <FileText className='h-3.5 w-3.5' />
+                </button>
 
-              {/* Favorite Toggle */}
-              <FavoriteToggle
-                entityId={company.id}
-                entityType='company'
-                isFavorite={company.is_favourite}
-                size='sm'
-              />
+                {/* Favorite Toggle */}
+                <FavoriteToggle
+                  entityId={company.id}
+                  entityType='company'
+                  isFavorite={company.is_favourite}
+                  size='sm'
+                />
+              </div>
             </div>
           </div>
 
           {/* Assignment */}
-          <div className='mt-3 pt-3 border-t border-gray-100'>
-            <div className='flex items-center gap-2'>
-              <span className='text-xs text-gray-500 font-medium'>
-                Assigned to:
-              </span>
+          <div className='mt-2 pt-2 border-t border-gray-100'>
+            <div className='flex items-center gap-1.5'>
+              <span className='text-xs text-gray-500'>Assigned to:</span>
               <OwnerDisplay
                 ownerId={company.owner_id}
                 size='sm'
@@ -1202,42 +1199,45 @@ const Pipeline = () => {
       const isActiveDropTarget = isOver && isDropTarget && activeId;
 
       return (
-        <div key={stage.key} className='flex-shrink-0 w-80'>
-          {/* Stage Header */}
-          <div className='mb-4'>
-            <div className='flex items-center justify-between mb-3'>
-              <h3 className='font-semibold text-foreground text-base'>
-                {stage.label}
-              </h3>
-              <Badge
-                variant='secondary'
-                className='bg-gray-100 text-gray-700 border-none'
-              >
-                {stageCompanies.length}
-              </Badge>
-            </div>
+        <div key={stage.key} className='flex-shrink-0 w-72'>
+          {/* Stage Header Card */}
+          <div className='mb-3 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden'>
+            {/* Colored Top Bar */}
+            <div className={cn('h-1.5', stage.color)} />
 
-            {/* User Filter Indicator */}
-            {(selectedUserId || showAllAssignedUsers) && (
-              <div className='mb-3'>
-                <div className='flex items-center gap-2 text-xs text-primary bg-primary/10 px-2 py-1 rounded-md'>
-                  <User className='h-3 w-3' />
-                  <span>
-                    {showAllAssignedUsers
-                      ? 'Filtered by: All Assigned Users'
-                      : `Filtered by: ${users.find(user => user.id === selectedUserId)?.full_name}`}
-                  </span>
-                </div>
+            <div className='p-3 pb-2'>
+              <div className='flex items-center justify-between'>
+                <h3 className='font-semibold text-foreground text-sm'>
+                  {stage.label}
+                </h3>
+                <Badge
+                  variant='secondary'
+                  className='bg-gray-100 text-gray-700 border-none text-xs h-5'
+                >
+                  {stageCompanies.length}
+                </Badge>
               </div>
-            )}
 
-            <div className='h-px bg-gray-200'></div>
+              {/* User Filter Indicator */}
+              {(selectedUserId || showAllAssignedUsers) && (
+                <div className='mt-2'>
+                  <div className='flex items-center gap-2 text-xs text-primary bg-primary/10 px-2 py-1 rounded-md'>
+                    <User className='h-3 w-3' />
+                    <span>
+                      {showAllAssignedUsers
+                        ? 'Filtered by: All Assigned Users'
+                        : `Filtered by: ${users.find(user => user.id === selectedUserId)?.full_name}`}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Companies Column */}
           <div
             ref={setNodeRef}
-            className={`space-y-3 min-h-[200px] p-2 rounded-lg transition-all duration-200 border-2 border-transparent ${
+            className={`space-y-2 min-h-[200px] rounded-lg transition-all duration-200 border-2 border-transparent ${
               isActiveDropTarget
                 ? canAcceptDrop
                   ? 'border-green-400 bg-green-50/50'
@@ -1280,7 +1280,9 @@ const Pipeline = () => {
             )}
 
             {stageCompanies.map(company => (
-              <DraggableCompanyCard key={company.id} company={company} />
+              <div key={company.id}>
+                <DraggableCompanyCard company={company} />
+              </div>
             ))}
           </div>
         </div>
@@ -1486,7 +1488,7 @@ const Pipeline = () => {
                     {loading
                       ? // Loading skeleton
                         pipelineStages.map(stage => (
-                          <div key={stage.key} className='w-80 space-y-3'>
+                          <div key={stage.key} className='w-72 space-y-3'>
                             <div className='h-8 bg-gray-200 animate-pulse rounded' />
                             {[...Array(3)].map((_, i) => (
                               <div
