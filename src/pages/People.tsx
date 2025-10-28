@@ -15,6 +15,7 @@
 import { FloatingActionBar } from '@/components/people/FloatingActionBar';
 import { StatusDropdown } from '@/components/people/StatusDropdown';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
+import { ScoreBadge } from '@/components/shared/ScoreBadge';
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -35,9 +36,21 @@ import {
 } from '@/services/bulk/bulkPeopleService';
 import { getClearbitLogo } from '@/services/logoService';
 import { Person, UserProfile } from '@/types/database';
-import { convertNumericScoreToStatus } from '@/utils/colorScheme';
+import { formatLastActivity } from '@/utils/relativeTime';
+import {
+  ReplyIntentIndicator,
+  type ReplyIntent,
+} from '@/utils/replyIntentUtils.tsx';
 import { getStatusDisplayText } from '@/utils/statusUtils';
-import { Building2, CheckCircle, Target, Users, Zap } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import {
+  Building2,
+  CheckCircle,
+  Sparkles,
+  Target,
+  Users,
+  Zap,
+} from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 const People: React.FC = () => {
@@ -82,10 +95,23 @@ const People: React.FC = () => {
   const statusOptions = useMemo(
     () => [
       { label: 'All Stages', value: 'all' },
-      { label: getStatusDisplayText('new'), value: 'new' },
-      { label: getStatusDisplayText('qualified'), value: 'qualified' },
-      { label: getStatusDisplayText('proceed'), value: 'proceed' },
-      { label: getStatusDisplayText('skip'), value: 'skip' },
+      { label: getStatusDisplayText('new_lead'), value: 'new_lead' },
+      { label: getStatusDisplayText('message_sent'), value: 'message_sent' },
+      { label: getStatusDisplayText('replied'), value: 'replied' },
+      { label: getStatusDisplayText('interested'), value: 'interested' },
+      {
+        label: getStatusDisplayText('meeting_scheduled'),
+        value: 'meeting_scheduled',
+      },
+      {
+        label: getStatusDisplayText('meeting_completed'),
+        value: 'meeting_completed',
+      },
+      { label: getStatusDisplayText('follow_up'), value: 'follow_up' },
+      {
+        label: getStatusDisplayText('not_interested'),
+        value: 'not_interested',
+      },
     ],
     []
   );
@@ -640,7 +666,7 @@ const People: React.FC = () => {
       },
       {
         key: 'assigned_icon',
-        label: '', // No header
+        label: 'Owner',
         width: '60px',
         cellType: 'regular',
         align: 'center',
@@ -689,6 +715,54 @@ const People: React.FC = () => {
         ),
       },
       {
+        key: 'last_activity',
+        label: 'Last Activity',
+        width: '140px',
+        cellType: 'regular',
+        render: (_, person) => {
+          const activityText = person.last_activity
+            ? formatLastActivity(person.last_activity)
+            : 'No contact';
+          const isNoContact =
+            !person.last_activity || activityText === 'No contact';
+
+          return (
+            <div
+              className={`whitespace-nowrap overflow-hidden text-ellipsis text-sm ${
+                isNoContact ? 'text-gray-400' : 'text-foreground'
+              }`}
+            >
+              {activityText}
+            </div>
+          );
+        },
+      },
+      {
+        key: 'reply_intent',
+        label: (
+          <span className='flex items-center gap-1'>
+            <Sparkles className='h-3 w-3' /> Reply Intent
+          </span>
+        ),
+        width: '120px',
+        minWidth: '120px',
+        cellType: 'regular',
+        align: 'center',
+        render: (_, person) => {
+          if (!person.reply_type && !person.last_reply_at) {
+            return <span className='text-xs text-gray-400'>—</span>;
+          }
+          return (
+            <div className='flex items-center justify-center'>
+              <ReplyIntentIndicator
+                intent={person.reply_type as ReplyIntent}
+                size='sm'
+              />
+            </div>
+          );
+        },
+      },
+      {
         key: 'email_address',
         label: 'Email Address',
         width: '250px',
@@ -712,24 +786,16 @@ const People: React.FC = () => {
       },
       {
         key: 'lead_score',
-        label: 'Match Score',
+        label: (
+          <span className='flex items-center gap-1'>
+            <Sparkles className='h-3 w-3' /> Score
+          </span>
+        ),
         width: '100px',
-        cellType: 'ai-score',
+        cellType: 'regular',
         align: 'center',
-        getStatusValue: person => {
-          // Convert numeric score to status-like value for unified styling
-          const score = person.lead_score;
-          if (
-            typeof score === 'string' &&
-            ['High', 'Medium', 'Low'].includes(score)
-          ) {
-            return score; // Text-based scores for people
-          }
-          // For numeric scores, convert to status-like value
-          return convertNumericScoreToStatus(score);
-        },
         render: (_, person) => (
-          <span className='font-medium'>{person.lead_score ?? '-'}</span>
+          <ScoreBadge score={person.lead_score} variant='compact' />
         ),
       },
       {
