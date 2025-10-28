@@ -660,10 +660,10 @@ const Pipeline = () => {
     [pipelineStages]
   );
 
-  // Filter companies for table view - show all active stages (including qualified and message_sent)
+  // Filter companies for table view - show all active stages (excluding new_lead)
   const filteredCompanies = useMemo(() => {
     let filtered = companies;
-    // Show companies in all active stages (including early engagement)
+    // Show companies in all engaged stages (excluding new_lead which stays in People page)
     const engagedStages = [
       'qualified',
       'message_sent',
@@ -677,7 +677,8 @@ const Pipeline = () => {
       'on_hold',
     ];
     filtered = filtered.filter(
-      c => c.pipeline_stage && engagedStages.includes(c.pipeline_stage)
+      c =>
+        c.pipeline_stage && engagedStages.includes(c.pipeline_stage as string)
     );
 
     // Stage filter (only for engaged stages)
