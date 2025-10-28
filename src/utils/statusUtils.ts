@@ -235,7 +235,6 @@ export function getStatusDisplayText(status: string): string {
     FAILED: 'Failed',
 
     // Reply types
-    INTERESTED: 'Interested',
     'not interested': 'Not Interested',
     NOT_INTERESTED: 'Not Interested',
     maybe: 'Maybe',
