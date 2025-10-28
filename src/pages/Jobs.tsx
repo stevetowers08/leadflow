@@ -482,16 +482,14 @@ const Jobs: React.FC = () => {
       width: '300px',
       cellType: 'regular',
       render: (_, job) => (
-        <div className='min-w-0 cursor-pointer hover:bg-muted rounded-md p-1 -m-1 transition-colors duration-150'>
-          <div className='flex items-center gap-2'>
-            <ClearbitLogoSync
-              companyName={job.companies?.name || ''}
-              website={job.companies?.website}
-              size='sm'
-            />
-            <div className='text-sm font-medium text-foreground'>
-              {job.companies?.name || '-'}
-            </div>
+        <div className='flex items-center gap-2'>
+          <ClearbitLogoSync
+            companyName={job.companies?.name || ''}
+            website={job.companies?.website}
+            size='sm'
+          />
+          <div className='text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
+            {job.companies?.name || '-'}
           </div>
         </div>
       ),
