@@ -13,7 +13,7 @@ import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
-import { getClearbitLogo } from '@/services/logoService';
+import { getCompanyLogoUrlSync } from '@/services/logoService';
 import type { Company as CompanyType, Person } from '@/types/database';
 import {
   ReplyIntentIndicator,
@@ -61,6 +61,20 @@ type Company = CompanyType & {
     total: number;
   };
 };
+
+// Define status arrays as constants to prevent recreation on every render
+const PIPELINE_STATUS_OPTIONS: string[] = [
+  'qualified',
+  'message_sent',
+  'replied',
+  'interested',
+  'meeting_scheduled',
+  'proposal_sent',
+  'negotiation',
+  'closed_won',
+  'closed_lost',
+  'on_hold',
+];
 
 const Pipeline = () => {
   const { toast } = useToast();
@@ -779,7 +793,12 @@ const Pipeline = () => {
               <div className='w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0'>
                 {company.website ? (
                   <img
-                    src={getClearbitLogo(company.name || '', company.website)}
+                    src={
+                      getCompanyLogoUrlSync(
+                        company.name || '',
+                        company.website
+                      ) || ''
+                    }
                     alt={company.name}
                     className='w-7 h-7 rounded-lg object-cover'
                     onError={e => {
@@ -872,31 +891,17 @@ const Pipeline = () => {
         align: 'center',
         getStatusValue: company => company.pipeline_stage || 'qualified',
         render: (_, company) => {
-          const availableStages = [
-            'qualified',
-            'message_sent',
-            'replied',
-            'interested',
-            'meeting_scheduled',
-            'proposal_sent',
-            'negotiation',
-            'closed_won',
-            'closed_lost',
-            'on_hold',
-          ];
           return (
-            <div onClick={e => e.stopPropagation()}>
-              <UnifiedStatusDropdown
-                entityId={company.id}
-                entityType='companies'
-                currentStatus={company.pipeline_stage || 'qualified'}
-                availableStatuses={availableStages}
-                variant='cell'
-                onStatusChange={() => {
-                  refetchCompanies();
-                }}
-              />
-            </div>
+            <UnifiedStatusDropdown
+              entityId={company.id}
+              entityType='companies'
+              currentStatus={company.pipeline_stage || 'qualified'}
+              availableStatuses={PIPELINE_STATUS_OPTIONS}
+              variant='cell'
+              onStatusChange={() => {
+                refetchCompanies();
+              }}
+            />
           );
         },
       },
@@ -1009,12 +1014,9 @@ const Pipeline = () => {
             <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden'>
               {company.website ? (
                 <img
-                  src={`https://logo.clearbit.com/${
-                    company.website
-                      .replace(/^https?:\/\//, '')
-                      .replace(/^www\./, '')
-                      .split('/')[0]
-                  }`}
+                  src={
+                    getCompanyLogoUrlSync(company.name, company.website) || ''
+                  }
                   alt={company.name}
                   className='w-10 h-10 rounded-lg object-cover'
                   loading='lazy'

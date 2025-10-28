@@ -482,13 +482,13 @@ const Jobs: React.FC = () => {
       width: '300px',
       cellType: 'regular',
       render: (_, job) => (
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-2 min-w-0'>
           <ClearbitLogoSync
             companyName={job.companies?.name || ''}
             website={job.companies?.website}
             size='sm'
           />
-          <div className='font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
+          <div className='font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
             {job.companies?.name || '-'}
           </div>
         </div>

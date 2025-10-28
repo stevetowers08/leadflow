@@ -12,6 +12,7 @@
  * - AI Score cells with status-like styling
  */
 
+import { ClearbitLogoSync } from '@/components/ClearbitLogo';
 import { FloatingActionBar } from '@/components/people/FloatingActionBar';
 import { StatusDropdown } from '@/components/people/StatusDropdown';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
@@ -34,7 +35,6 @@ import {
   bulkFavouritePeople,
   bulkSyncToCRM,
 } from '@/services/bulk/bulkPeopleService';
-import { getClearbitLogo } from '@/services/logoService';
 import { Person, UserProfile } from '@/types/database';
 import { formatLastActivity } from '@/utils/relativeTime';
 import {
@@ -42,16 +42,20 @@ import {
   type ReplyIntent,
 } from '@/utils/replyIntentUtils.tsx';
 import { getStatusDisplayText } from '@/utils/statusUtils';
-import { formatDistanceToNow } from 'date-fns';
-import {
-  Building2,
-  CheckCircle,
-  Sparkles,
-  Target,
-  Users,
-  Zap,
-} from 'lucide-react';
+import { CheckCircle, Sparkles, Target, Users, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+
+// Define status arrays as constants to prevent recreation on every render
+const PEOPLE_STATUS_OPTIONS: string[] = [
+  'new_lead',
+  'message_sent',
+  'replied',
+  'interested',
+  'meeting_scheduled',
+  'meeting_completed',
+  'follow_up',
+  'not_interested',
+];
 
 const People: React.FC = () => {
   const { user } = useAuth();
@@ -534,6 +538,39 @@ const People: React.FC = () => {
     paginatedPeople.map(p => p.id)
   ).length;
 
+  // Memoized checkbox render to prevent re-renders
+  const renderCheckbox = useCallback(
+    (person: Person) => (
+      <div
+        className='flex items-center justify-center'
+        data-bulk-checkbox
+        onClick={e => e.stopPropagation()}
+      >
+        <Checkbox
+          checked={bulkSelection.isSelected(person.id)}
+          onCheckedChange={() => bulkSelection.toggleItem(person.id)}
+          aria-label={`Select ${person.name}`}
+        />
+      </div>
+    ),
+    [bulkSelection]
+  );
+
+  // Memoized status dropdown render to prevent re-renders
+  const renderStatusDropdown = useCallback(
+    (_: unknown, person: Person) => (
+      <StatusDropdown
+        entityId={person.id}
+        entityType='people'
+        currentStatus={person.people_stage || 'new_lead'}
+        availableStatuses={PEOPLE_STATUS_OPTIONS}
+        variant='cell'
+        onStatusChange={handlePersonUpdate}
+      />
+    ),
+    [handlePersonUpdate]
+  );
+
   // Table columns configuration
   const columns: ColumnConfig<Person>[] = useMemo(
     () => [
@@ -560,19 +597,7 @@ const People: React.FC = () => {
         width: '50px',
         cellType: 'regular',
         align: 'center',
-        render: (_, person) => (
-          <div
-            className='flex items-center justify-center'
-            data-bulk-checkbox
-            onClick={e => e.stopPropagation()}
-          >
-            <Checkbox
-              checked={bulkSelection.isSelected(person.id)}
-              onCheckedChange={() => bulkSelection.toggleItem(person.id)}
-              aria-label={`Select ${person.name}`}
-            />
-          </div>
-        ),
+        render: (_, person) => renderCheckbox(person),
       },
       {
         key: 'stage',
@@ -587,16 +612,7 @@ const People: React.FC = () => {
             entityId={person.id}
             entityType='people'
             currentStatus={person.people_stage || 'new_lead'}
-            availableStatuses={[
-              'new_lead',
-              'message_sent',
-              'replied',
-              'interested',
-              'meeting_scheduled',
-              'meeting_completed',
-              'follow_up',
-              'not_interested',
-            ]}
+            availableStatuses={PEOPLE_STATUS_OPTIONS}
             variant='cell'
             onStatusChange={handlePersonUpdate}
           />
@@ -608,7 +624,7 @@ const People: React.FC = () => {
         width: '200px',
         cellType: 'regular',
         render: (_, person) => (
-          <div className='text-sm font-semibold text-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
+          <div className='font-semibold text-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
             {person.name || '-'}
           </div>
         ),
@@ -619,7 +635,7 @@ const People: React.FC = () => {
         width: '250px',
         cellType: 'regular',
         render: (_, person) => (
-          <div className='text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
+          <div className='text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
             {person.company_role || '-'}
           </div>
         ),
@@ -631,34 +647,12 @@ const People: React.FC = () => {
         cellType: 'regular',
         render: (_, person) => (
           <div className='flex items-center gap-2 min-w-0'>
-            <div className='w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
-              {person.company_website ? (
-                <img
-                  src={getClearbitLogo(
-                    person.company_name || '',
-                    person.company_website
-                  )}
-                  alt={person.company_name || ''}
-                  className='w-6 h-6 rounded-lg object-cover'
-                  onError={e => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      'none';
-                    const nextElement = e.currentTarget
-                      .nextElementSibling as HTMLElement;
-                    if (nextElement) {
-                      nextElement.style.display = 'flex';
-                    }
-                  }}
-                />
-              ) : null}
-              <div
-                className='w-6 h-6 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center'
-                style={{ display: person.company_website ? 'none' : 'flex' }}
-              >
-                <Building2 className='h-3 w-3' />
-              </div>
-            </div>
-            <div className='text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
+            <ClearbitLogoSync
+              companyName={person.company_name || ''}
+              website={person.company_website}
+              size='sm'
+            />
+            <div className='font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
               {person.company_name || '-'}
             </div>
           </div>
@@ -728,7 +722,7 @@ const People: React.FC = () => {
 
           return (
             <div
-              className={`whitespace-nowrap overflow-hidden text-ellipsis text-sm ${
+              className={`whitespace-nowrap overflow-hidden text-ellipsis ${
                 isNoContact ? 'text-gray-400' : 'text-foreground'
               }`}
             >
@@ -768,7 +762,7 @@ const People: React.FC = () => {
         width: '250px',
         cellType: 'regular',
         render: (_, person) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm'>
+          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
             {person.email_address || '-'}
           </div>
         ),
@@ -779,7 +773,7 @@ const People: React.FC = () => {
         width: '150px',
         cellType: 'regular',
         render: (_, person) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm'>
+          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
             {person.employee_location || '-'}
           </div>
         ),
@@ -812,7 +806,13 @@ const People: React.FC = () => {
         ),
       },
     ],
-    [paginatedPeople, bulkSelection, handlePersonUpdate]
+    [
+      paginatedPeople,
+      bulkSelection,
+      handlePersonUpdate,
+      renderCheckbox,
+      renderStatusDropdown,
+    ]
   );
 
   // Stats for People page

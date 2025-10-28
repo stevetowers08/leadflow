@@ -11,8 +11,8 @@
  * - Centralized design tokens
  */
 
+import { ClearbitLogoSync } from '@/components/ClearbitLogo';
 import { StatusDropdown } from '@/components/people/StatusDropdown';
-import { CompanyHoverPreview } from '@/components/shared/CompanyHoverPreview';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { IndustryBadges } from '@/components/shared/IndustryBadge';
 import { PeopleAvatars } from '@/components/shared/PeopleAvatars';
@@ -36,6 +36,20 @@ import { getStatusDisplayText } from '@/utils/statusUtils';
 import { Building2, CheckCircle, Sparkles, Target, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// Define status arrays as constants to prevent recreation on every render
+const COMPANY_STATUS_OPTIONS: string[] = [
+  'new_lead',
+  'qualified',
+  'message_sent',
+  'replied',
+  'meeting_scheduled',
+  'proposal_sent',
+  'negotiation',
+  'closed_won',
+  'closed_lost',
+  'on_hold',
+];
 
 const Companies: React.FC = () => {
   const { user } = useAuth();
@@ -470,25 +484,12 @@ const Companies: React.FC = () => {
         align: 'center',
         getStatusValue: company => company.pipeline_stage || 'new_lead',
         render: (_, company) => {
-          const availableStatuses = [
-            'new_lead',
-            'qualified',
-            'message_sent',
-            'replied',
-            'meeting_scheduled',
-            'proposal_sent',
-            'negotiation',
-            'closed_won',
-            'closed_lost',
-            'on_hold',
-          ];
-
           return (
             <StatusDropdown
               entityId={company.id}
               entityType='companies'
               currentStatus={company.pipeline_stage || 'new_lead'}
-              availableStatuses={availableStatuses}
+              availableStatuses={COMPANY_STATUS_OPTIONS}
               variant='cell'
               onStatusChange={() => {
                 // Trigger refetch of companies data
@@ -519,43 +520,22 @@ const Companies: React.FC = () => {
         width: '300px',
         cellType: 'regular',
         render: (_, company) => (
-          <CompanyHoverPreview company={company}>
-            <div className='flex items-center gap-2 min-w-0'>
-              <div className='w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
-                {company.website ? (
-                  <img
-                    src={`https://logo.clearbit.com/${
-                      company.website
-                        .replace(/^https?:\/\//, '')
-                        .replace(/^www\./, '')
-                        .split('/')[0]
-                    }`}
-                    alt={company.name}
-                    className='w-6 h-6 rounded-lg object-cover'
-                    onError={e => {
-                      (e.currentTarget as HTMLImageElement).style.display =
-                        'none';
-                      const nextElement = e.currentTarget
-                        .nextElementSibling as HTMLElement;
-                      if (nextElement) {
-                        nextElement.style.display = 'flex';
-                      }
-                    }}
-                  />
-                ) : null}
-                <Building2 className='h-3 w-3 text-gray-400' />
-              </div>
-              <div className='text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
-                {company.name || '-'}
-              </div>
+          <div className='flex items-center gap-2 min-w-0'>
+            <ClearbitLogoSync
+              companyName={company.name}
+              website={company.website}
+              size='sm'
+            />
+            <div className='font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
+              {company.name || '-'}
             </div>
-          </CompanyHoverPreview>
+          </div>
         ),
       },
       {
         key: 'assigned_icon',
         label: 'Owner',
-        width: '60px',
+        width: '80px',
         cellType: 'regular',
         align: 'center',
         render: (_, company) => (
@@ -568,7 +548,7 @@ const Companies: React.FC = () => {
               e.stopPropagation();
               e.preventDefault();
             }}
-            className='flex items-center justify-center'
+            className='flex items-center justify-center w-full overflow-hidden'
           >
             <IconOnlyAssignmentCell
               ownerId={company.owner_id}
@@ -783,7 +763,7 @@ const Companies: React.FC = () => {
 
           return (
             <div
-              className={`whitespace-nowrap overflow-hidden text-ellipsis text-sm ${
+              className={`whitespace-nowrap overflow-hidden text-ellipsis ${
                 isNoContact ? 'text-gray-400' : 'text-foreground'
               }`}
             >

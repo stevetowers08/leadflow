@@ -44,11 +44,7 @@ export const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead
-    ref={ref}
-    className={cn('bg-gray-50 border-b-2 border-gray-300', className)}
-    {...props}
-  />
+  <thead ref={ref} className={cn('bg-gray-50', className)} {...props} />
 ));
 
 export const TableBody = React.forwardRef<
@@ -57,7 +53,7 @@ export const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={cn('[&_tr:last-child]:border-0', className)}
+    className={cn('[&_tr_td]:border-b [&_tr_td]:border-gray-200', className)}
     {...props}
   />
 ));
@@ -72,16 +68,14 @@ export const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'transition-all duration-150 ease-out cursor-pointer group',
+      'cursor-pointer group h-[46px]',
       'hover:bg-gray-100 border-l-2 border-transparent hover:border-l-2 hover:border-primary-400',
-      'shadow-sm hover:shadow-sm',
-      'focus:outline-none focus:ring-2 focus:ring-primary-200 focus:ring-inset',
       onClick && 'cursor-pointer',
       className
     )}
     role='row'
-    tabIndex={0}
-    aria-label={`Row ${(index || 0) + 1}`}
+    tabIndex={onClick ? 0 : undefined}
+    aria-label={onClick ? `Row ${(index || 0) + 1}` : undefined}
     onClick={onClick}
     {...props}
   />
@@ -110,14 +104,15 @@ export const TableCell = React.forwardRef<
     <td
       ref={ref}
       className={cn(
-        // Conditional padding: remove padding for status cells to allow full-cell dropdowns
-        cellType === 'status' ? 'p-0 relative' : 'px-3 py-1.5',
-        'text-sm border-r border-gray-200 border-b border-gray-200 last:border-r-0 text-gray-700',
-        'transition-colors duration-150',
-        'group-hover:text-gray-600',
+        // Status cells: no padding, relative positioning, apply background colors directly
+        // Regular cells: standard padding
+        cellType === 'status' ? 'p-0 relative' : 'px-4 py-2',
+        'text-sm border-r border-gray-200 last:border-r-0 text-gray-700',
+        // Don't apply hover text color change to status cells (they have colored backgrounds)
+        cellType !== 'status' && 'group-hover:text-gray-600',
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
-        // Apply unified status colors for full-cell backgrounds
+        // Apply unified status colors for full-cell backgrounds on the td
         statusClasses,
         className
       )}
@@ -141,7 +136,8 @@ export const TableHead = React.forwardRef<
     <th
       ref={ref}
       className={cn(
-        'px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide border-r border-b-2 border-gray-200 last:border-r-0 whitespace-nowrap',
+        'px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
+        'border-b border-gray-200',
         'transition-colors duration-150',
         isFirst && 'rounded-tl-lg',
         isLast && 'rounded-tr-lg',
@@ -149,6 +145,7 @@ export const TableHead = React.forwardRef<
         align === 'right' && 'text-right',
         className
       )}
+      style={props.style}
       {...props}
     />
   )
@@ -172,25 +169,29 @@ export const UnifiedTable = React.memo(
     expandedGroups,
     onToggleGroup,
   }: UnifiedTableProps<T>) => {
-    // State for scroll-based shadow
+    // State for scroll-based shadow - optimized for performance
     const [isScrolled, setIsScrolled] = React.useState(false);
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
-    // Handle scroll events to show/hide shadow
+    // Optimized scroll handler with requestAnimationFrame for smooth performance
     const handleScroll = React.useCallback(() => {
-      if (scrollContainerRef.current) {
+      if (!scrollContainerRef.current) return;
+
+      requestAnimationFrame(() => {
+        if (!scrollContainerRef.current) return;
         const scrollTop = scrollContainerRef.current.scrollTop;
         setIsScrolled(scrollTop > 0);
-      }
+      });
     }, []);
 
-    // Add scroll listener when scrollable
+    // Optimized scroll listener
     React.useEffect(() => {
+      if (!scrollable || !scrollContainerRef.current) return;
+
       const container = scrollContainerRef.current;
-      if (scrollable && container) {
-        container.addEventListener('scroll', handleScroll);
-        return () => container.removeEventListener('scroll', handleScroll);
-      }
+      container.addEventListener('scroll', handleScroll, { passive: true });
+
+      return () => container.removeEventListener('scroll', handleScroll);
     }, [scrollable, handleScroll]);
 
     // Memoize the table structure to prevent unnecessary re-renders
@@ -231,14 +232,30 @@ export const UnifiedTable = React.memo(
                 ? 'flex-1 min-h-0 overflow-auto table-scroll scrollbar-modern'
                 : 'w-full'
             )}
+            style={
+              scrollable
+                ? {
+                    contain: 'strict',
+                    contentVisibility: 'auto',
+                  }
+                : undefined
+            }
           >
-            <table className='w-full border-collapse'>
+            <table
+              className='w-full border-separate border-spacing-0'
+              style={{
+                tableLayout: 'fixed',
+                width: '100%',
+              }}
+            >
               <TableHeader
-                className={
-                  scrollable
-                    ? `sticky top-0 z-20 bg-gray-50 ${isScrolled ? 'shadow-sm' : ''}`
-                    : 'bg-gray-50'
-                }
+                className={cn(
+                  scrollable && 'sticky top-0 z-30 bg-gray-50',
+                  !scrollable && 'bg-gray-50',
+                  isScrolled &&
+                    scrollable &&
+                    'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
+                )}
               >
                 <tr>
                   {columns.map((column, index) => {

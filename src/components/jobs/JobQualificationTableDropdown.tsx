@@ -1,11 +1,8 @@
 import { CelebrationModal } from '@/components/onboarding/CelebrationModal';
 import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
-import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Job } from '@/types/database';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface JobQualificationTableDropdownProps {
@@ -13,77 +10,28 @@ interface JobQualificationTableDropdownProps {
   onStatusChange?: () => void;
 }
 
-export const JobQualificationTableDropdown: React.FC<
+// Define status array as constant to prevent recreation on every render
+const JOB_STATUS_OPTIONS: string[] = ['new', 'qualify', 'skip'];
+
+const JobQualificationTableDropdownComponent: React.FC<
   JobQualificationTableDropdownProps
 > = ({ job, onStatusChange }) => {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const { state, incrementJobsQualified, markStepComplete } = useOnboarding();
   const [showCelebration, setShowCelebration] = useState(false);
 
-  // Initialize status from job data with useMemo to avoid setState in effect
-  const initialStatus = useMemo(() => {
-    if (job.client_jobs && job.client_jobs.length > 0) {
-      return job.client_jobs[0].status || 'new';
-    }
-    return 'new';
+  // Get current status from job data (no local state needed)
+  const currentStatus = useMemo(() => {
+    return job.client_jobs?.[0]?.status || 'new';
   }, [job.client_jobs]);
 
-  const [currentStatus, setCurrentStatus] = useState<string>(initialStatus);
-
-  // Load current status from database when needed
-  useEffect(() => {
-    const loadStatus = async () => {
-      if (!user?.id) return;
-
-      try {
-        const { data: clientUser } = await supabase
-          .from('client_users')
-          .select('client_id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (!clientUser?.client_id) return;
-
-        const { data } = await supabase
-          .from('client_jobs')
-          .select('status')
-          .eq('client_id', clientUser.client_id)
-          .eq('job_id', job.id)
-          .maybeSingle();
-
-        if (data) setCurrentStatus(data.status || 'new');
-      } catch (error) {
-        console.error('Error loading status:', error);
-      }
-    };
-
-    loadStatus();
-  }, [job.id, job.client_jobs, user?.id]);
-
-  const handleStatusChange = async () => {
+  const handleStatusChange = () => {
     // Track onboarding progress when qualifying
-    const { data: clientUser } = await supabase
-      .from('client_users')
-      .select('client_id')
-      .eq('user_id', user?.id)
-      .maybeSingle();
-
-    if (clientUser?.client_id) {
-      const { data } = await supabase
-        .from('client_jobs')
-        .select('status')
-        .eq('client_id', clientUser.client_id)
-        .eq('job_id', job.id)
-        .maybeSingle();
-
-      if (data?.status === 'qualify') {
-        incrementJobsQualified();
-        if (state.jobsQualifiedCount + 1 === 3) {
-          markStepComplete('qualify_3_jobs');
-          setShowCelebration(true);
-        }
+    if (currentStatus === 'qualify') {
+      incrementJobsQualified();
+      if (state.jobsQualifiedCount + 1 === 3) {
+        markStepComplete('qualify_3_jobs');
+        setShowCelebration(true);
       }
     }
 
@@ -96,7 +44,7 @@ export const JobQualificationTableDropdown: React.FC<
         entityId={job.id}
         entityType='jobs'
         currentStatus={currentStatus}
-        availableStatuses={['new', 'qualify', 'skip']}
+        availableStatuses={JOB_STATUS_OPTIONS}
         variant='cell'
         onStatusChange={handleStatusChange}
       />
@@ -120,3 +68,8 @@ export const JobQualificationTableDropdown: React.FC<
     </>
   );
 };
+
+// Memoize component to prevent re-renders when parent re-renders
+export const JobQualificationTableDropdown = React.memo(
+  JobQualificationTableDropdownComponent
+);
