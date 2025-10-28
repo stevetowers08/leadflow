@@ -14,9 +14,9 @@
   }
 }
 
-/* Safe area padding for bottom navigation */
+/* Safe area padding for bottom navigation - enhanced */
 .safe-area-pb {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
 }
 
 /* Enhanced safe area handling for better edge-to-edge experience */
@@ -36,7 +36,20 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Prevent zoom on input focus */
+/* Viewport height fix for mobile browsers */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari viewport height fix */
+  .mobile-vh {
+    height: -webkit-fill-available;
+  }
+
+  /* Full height mobile containers */
+  .mobile-full-height {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Prevent zoom on input focus - HubSpot best practice */
 @media screen and (max-width: 767px) {
   input[type='text'],
   input[type='email'],
@@ -44,15 +57,61 @@
   input[type='search'],
   input[type='tel'],
   input[type='url'],
+  input[type='number'],
   textarea,
   select {
-    font-size: 16px;
-    transform: translateZ(0); /* Force hardware acceleration */
+    font-size: 16px !important;
+    transform: translateZ(0);
   }
 
   /* Override Tailwind's text-sm for mobile inputs */
   .mobile-input {
+    font-size: 16px !important;
+  }
+
+  /* Better input styling */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    font-size: 16px !important;
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+/* Improved mobile typography - better readability */
+@media (max-width: 767px) {
+  /* Ensure readable font sizes */
+  body {
     font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Headings */
+  h1 {
+    font-size: 1.75rem;
+    line-height: 1.2;
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+    font-weight: 600;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  /* Improve contrast for better readability */
+  p,
+  span {
+    line-height: 1.6;
   }
 }
 
@@ -67,18 +126,16 @@ button[title*='Favorite'] {
   width: 32px !important;
 }
 
-/* Better touch targets */
+/* Better touch targets - HubSpot best practice (48-56px) */
 @media (hover: none) and (pointer: coarse) {
-  button,
-  [role='button'],
+  /* Ensure all interactive elements are at least 44-48px */
+  button:not([class*='min-h']):not([class*='h-']),
+  [role='button']:not([class*='min-h']),
   input[type='button'],
   input[type='submit'],
-  a {
-    min-height: 48px;
-    min-width: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  a:not([class*='min-h']) {
+    min-height: 44px;
+    min-width: 44px;
   }
 
   /* Remove hover effects on touch devices */
@@ -94,7 +151,7 @@ button[title*='Favorite'] {
   button:active,
   [role='button']:active,
   a:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
     transition: transform 0.1s ease;
   }
 
@@ -108,8 +165,9 @@ button[title*='Favorite'] {
   button:focus-visible,
   [role='button']:focus-visible,
   a:focus-visible {
-    outline: 2px solid hsl(201 100% 35%);
+    outline: 2px solid hsl(201 100% 50%);
     outline-offset: 2px;
+    border-radius: 4px;
   }
 
   /* Override focus outline for sidebar navigation links */
@@ -278,12 +336,6 @@ button[title*='Favorite'] {
 
 /* Mobile performance optimizations */
 @media (max-width: 767px) {
-  /* Reduce animations on mobile for better performance */
-  * {
-    animation-duration: 0.15s !important;
-    transition-duration: 0.15s !important;
-  }
-
   /* Optimize scrolling */
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;
@@ -302,7 +354,7 @@ button[title*='Favorite'] {
   }
 
   /* Optimize mobile navigation */
-  .mobile-nav {
+  nav[role='navigation'] {
     will-change: transform;
     transform: translateZ(0);
   }
@@ -314,6 +366,24 @@ button[title*='Favorite'] {
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+/* Enhanced touch interactions - HubSpot inspired */
+@media (hover: none) and (pointer: coarse) {
+  /* Better touch feedback for mobile navigation */
+  nav[role='navigation'] button,
+  nav[role='navigation'] a {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Smooth scaling on touch */
+  nav[role='navigation'] button:active,
+  nav[role='navigation'] a:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
   }
 }
 

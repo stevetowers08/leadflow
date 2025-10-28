@@ -14,7 +14,15 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 import { cn } from '@/lib/utils';
-import { ReactNode, Suspense, lazy, useEffect, useRef, useState } from 'react';
+import {
+  ReactNode,
+  Suspense,
+  lazy,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
@@ -39,24 +47,26 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   const { mediumHaptic } = useHapticFeedback();
   const location = useLocation();
 
-  // Dynamic page title based on current route
-  const getPageTitle = () => {
+  // Dynamic page title based on current route (memoized for performance)
+  const currentPageTitle = useMemo(() => {
     if (pageTitle) return pageTitle;
 
     const routeTitles: Record<string, string> = {
       '/': 'Dashboard',
+      '/getting-started': 'Getting Started',
       '/jobs': 'Jobs',
       '/people': 'People',
       '/companies': 'Companies',
       '/pipeline': 'Pipeline',
       '/conversations': 'Conversations',
+      '/campaigns': 'Campaigns',
       '/reporting': 'Reporting',
       '/settings': 'Settings',
       '/tab-designs': 'Tab Designs',
     };
 
     return routeTitles[location.pathname] || 'Dashboard';
-  };
+  }, [pageTitle, location.pathname]);
 
   // Enhanced swipe gestures with better touch handling
   const { attachListeners } = useSwipeGestures({
@@ -162,34 +172,59 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         />
       )}
 
-      {/* Sidebar rendered via portal to avoid CSS conflicts */}
-      {createPortal(
-        <aside
-          style={{
-            position: 'fixed',
-            top: '0px',
-            left: '0px',
-            height: '100vh',
-            width: '224px',
-            zIndex: 9999,
-            overflow: 'hidden',
-            backgroundColor: 'hsl(var(--sidebar-background))',
-            color: 'hsl(var(--sidebar-foreground))',
-            transform: 'none',
-            willChange: 'auto',
-          }}
-          role='navigation'
-          aria-label='Main navigation'
-        >
-          <Sidebar onClose={() => setSidebarOpen(false)} />
-        </aside>,
-        document.body
-      )}
+      {/* Sidebar rendered via portal */}
+      {isMobile
+        ? // Mobile: only render when open
+          sidebarOpen &&
+          createPortal(
+            <aside
+              style={{
+                position: 'fixed',
+                top: '0px',
+                left: '0px',
+                height: '100vh',
+                width: '224px',
+                zIndex: 9999,
+                overflow: 'hidden',
+                backgroundColor: 'hsl(var(--sidebar-background))',
+                color: 'hsl(var(--sidebar-foreground))',
+                transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+                transition: 'transform 0.3s ease-in-out',
+                willChange: 'transform',
+              }}
+              role='navigation'
+              aria-label='Main navigation'
+            >
+              <Sidebar onClose={() => setSidebarOpen(false)} />
+            </aside>,
+            document.body
+          )
+        : // Desktop: always render
+          createPortal(
+            <aside
+              style={{
+                position: 'fixed',
+                top: '0px',
+                left: '0px',
+                height: '100vh',
+                width: '224px',
+                zIndex: 9999,
+                overflow: 'hidden',
+                backgroundColor: 'hsl(var(--sidebar-background))',
+                color: 'hsl(var(--sidebar-foreground))',
+              }}
+              role='navigation'
+              aria-label='Main navigation'
+            >
+              <Sidebar />
+            </aside>,
+            document.body
+          )}
 
       {/* Top Navigation Bar rendered via portal */}
       {createPortal(
         <TopNavigationBar
-          pageTitle={getPageTitle()}
+          pageTitle={currentPageTitle}
           onSearch={onSearch}
           onMenuClick={() => {
             if (isMobile) {
@@ -216,7 +251,9 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
             // Desktop: Add left padding for fixed sidebar (14rem = 224px)
             !isMobile && 'pl-56',
             // Add top padding for fixed header (header height is ~48px)
-            'pt-12'
+            'pt-12',
+            // Mobile: Add bottom padding for mobile nav
+            isMobile && 'pb-20'
           )}
           role='main'
         >

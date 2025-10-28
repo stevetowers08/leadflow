@@ -3,7 +3,6 @@
  * Implements mobile CRM navigation best practices
  */
 
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -22,7 +21,7 @@ import {
   Target,
   Users,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 
 interface NavItem {
@@ -111,14 +110,17 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
   const { lightHaptic, mediumHaptic } = useHapticFeedback();
   const { canView } = usePermissions();
 
-  // Filter navigation items based on user permissions
-  const filteredNavItems = allNavItems.filter(
-    item => !item.permission || canView(item.permission)
-  );
+  // Filter navigation items based on user permissions (memoize for performance)
+  const { primaryItems, secondaryItems } = useMemo(() => {
+    const filteredNavItems = allNavItems.filter(
+      item => !item.permission || canView(item.permission)
+    );
 
-  // Separate into primary and secondary items
-  const primaryItems = filteredNavItems.filter(item => item.isPrimary);
-  const secondaryItems = filteredNavItems.filter(item => !item.isPrimary);
+    const primary = filteredNavItems.filter(item => item.isPrimary);
+    const secondary = filteredNavItems.filter(item => !item.isPrimary);
+
+    return { primaryItems: primary, secondaryItems: secondary };
+  }, [canView]);
 
   // Close more menu when clicking outside
   useEffect(() => {
@@ -149,107 +151,128 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
       {/* Bottom Navigation Bar */}
       <nav
         className={cn(
-          'fixed bottom-0 inset-x-0 z-30 border-t bg-background/95 backdrop-blur',
-          'supports-[backdrop-filter]:bg-background/60 lg:hidden',
-          'safe-area-pb', // Add safe area padding for devices with home indicators
+          'fixed bottom-0 inset-x-0 z-30 bg-background',
+          'border-t border-border lg:hidden',
+          'shadow-[0_-4px_20px_rgba(0,0,0,0.08)]',
+          'safe-area-pb', // Safe area padding for devices with home indicators
           className
         )}
         role='navigation'
         aria-label='Main navigation'
       >
-        {/* Visual indicator for active state */}
-        <div className='absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 transition-opacity duration-300' />
-
-        <div className='flex items-center justify-around px-2 py-3'>
-          {primaryItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                cn(
-                  'flex flex-col items-center justify-center gap-1 py-2 px-2 sm:gap-1.5 sm:py-3 sm:px-3',
-                  'text-xs transition-all duration-200 select-none touch-manipulation',
-                  'min-h-[48px] min-w-[48px] sm:min-h-[56px] sm:min-w-[56px] rounded-xl relative',
-                  'hover:bg-accent/50 active:bg-accent',
-                  'focus:outline-none focus:ring-2 focus:ring-primary/20',
-                  'border border-transparent hover:border-accent/20',
-                  'group relative overflow-hidden',
+        <div className='flex items-center justify-around px-3 py-2.5 max-w-screen-sm mx-auto gap-1'>
+          {primaryItems.map(item => {
+            const isActive = location.pathname === item.to;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  'flex flex-col items-center justify-center gap-1 flex-1',
+                  'py-2 px-1 min-h-[56px]',
+                  'transition-all duration-200 select-none touch-manipulation',
+                  'rounded-xl relative group',
+                  'active:scale-[0.95] active:bg-accent/30',
                   isActive
-                    ? 'text-sidebar-primary bg-sidebar-primary/10 scale-105 shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )
-              }
-              aria-current={location.pathname === item.to ? 'page' : undefined}
-              aria-label={`Navigate to ${item.label}`}
-              title={item.label}
-            >
-              <div className='relative'>
-                <div className='h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center'>
-                  {item.icon}
+                    ? 'text-primary font-semibold'
+                    : 'text-muted-foreground active:text-foreground'
+                )}
+                aria-current={isActive ? 'page' : undefined}
+                aria-label={`Navigate to ${item.label}`}
+                title={item.label}
+              >
+                <div className='relative'>
+                  <div
+                    className={cn(
+                      'h-5 w-5 flex items-center justify-center',
+                      'transition-all duration-200',
+                      isActive && 'scale-110'
+                    )}
+                  >
+                    {item.icon}
+                  </div>
+                  {item.badge && (
+                    <span className='absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-sm'>
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
                 </div>
-                {item.badge && (
-                  <span className='absolute -top-1 -right-1 bg-sidebar-primary text-sidebar-primary-foreground text-xs rounded-full h-3 w-3 sm:h-4 sm:w-4 flex items-center justify-center font-medium animate-pulse'>
-                    {item.badge}
-                  </span>
+                <span
+                  className={cn(
+                    'text-[10px] leading-tight text-center px-0.5',
+                    'transition-all duration-200',
+                    isActive ? 'font-semibold' : 'font-medium'
+                  )}
+                >
+                  {item.label}
+                </span>
+                {/* Active indicator line */}
+                {isActive && (
+                  <div className='absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full shadow-sm' />
                 )}
-                {/* Active state indicator */}
-                {location.pathname === item.to && (
-                  <div className='absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-sidebar-primary rounded-full animate-pulse' />
-                )}
-              </div>
-              <span className='mobile-nav-item leading-none font-medium text-center'>
-                {item.label}
-              </span>
-            </NavLink>
-          ))}
+              </NavLink>
+            );
+          })}
 
           {/* More Menu Button */}
-          <div className='relative'>
-            <Button
-              variant='ghost'
-              size='sm'
+          <div className='relative flex-1'>
+            <button
               onClick={() => {
                 mediumHaptic();
                 setShowMoreMenu(!showMoreMenu);
               }}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 py-2 px-2 sm:gap-1.5 sm:py-3 sm:px-3',
-                'text-xs transition-all duration-200 select-none touch-manipulation',
-                'min-h-[48px] min-w-[48px] sm:min-h-[56px] sm:min-w-[56px] rounded-xl',
-                'hover:bg-accent/50 active:bg-accent',
-                'focus:outline-none focus:ring-2 focus:ring-primary/20',
-                'border border-transparent hover:border-accent/20',
+                'flex flex-col items-center justify-center gap-1 w-full',
+                'py-2 px-1 min-h-[56px]',
+                'transition-all duration-200 select-none touch-manipulation',
+                'rounded-xl relative group',
+                'active:scale-[0.95] active:bg-accent/30',
                 showMoreMenu
-                  ? 'text-sidebar-primary bg-sidebar-primary/10 scale-105 shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-primary font-semibold'
+                  : 'text-muted-foreground active:text-foreground'
               )}
               data-more-button
               aria-label='More options'
               aria-expanded={showMoreMenu}
             >
-              <div className='h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center'>
-                <MoreHorizontal className='h-4 w-4 sm:h-5 sm:w-5' />
+              <div
+                className={cn(
+                  'h-5 w-5 flex items-center justify-center',
+                  'transition-all duration-200',
+                  showMoreMenu && 'scale-110'
+                )}
+              >
+                <MoreHorizontal className='h-5 w-5' />
               </div>
-              <span className='mobile-nav-item leading-none font-medium text-center'>
+              <span
+                className={cn(
+                  'text-[10px] leading-tight text-center',
+                  'transition-all duration-200',
+                  showMoreMenu ? 'font-semibold' : 'font-medium'
+                )}
+              >
                 More
               </span>
-            </Button>
+              {showMoreMenu && (
+                <div className='absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full shadow-sm' />
+              )}
+            </button>
 
             {/* More Menu Dropdown */}
             {showMoreMenu && (
               <div
-                className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-64 bg-background/95 border border-border/50 rounded-2xl shadow-2xl z-40 backdrop-blur-md animate-in slide-in-from-bottom-2 duration-200'
+                className='absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-72 bg-background border border-border rounded-2xl shadow-xl z-40 animate-in fade-in slide-in-from-bottom-2 duration-200'
                 data-more-menu
                 role='menu'
                 aria-label='Additional navigation options'
               >
-                <div className='py-2'>
-                  <div className='px-3 py-2 border-b border-border/20'>
-                    <h3 className='mobile-supporting-sm font-semibold uppercase tracking-wide'>
+                <div className='py-2 max-h-[60vh] overflow-y-auto'>
+                  <div className='px-4 py-2.5 border-b border-border'>
+                    <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
                       More Options
                     </h3>
                   </div>
-                  <div className='py-2'>
+                  <div className='py-1'>
                     {secondaryItems.map(item => (
                       <NavLink
                         key={item.to}
@@ -260,20 +283,18 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
                         }}
                         className={({ isActive }) =>
                           cn(
-                            'flex items-center gap-3 px-4 py-3 text-sm transition-all duration-200',
-                            'hover:bg-accent active:bg-accent/80',
-                            'touch-manipulation min-h-[48px] rounded-xl mx-2',
-                            'focus:outline-none focus:ring-2 focus:ring-primary/20',
-                            'border border-transparent hover:border-accent/20',
+                            'flex items-center gap-3 px-4 py-3 min-h-[48px]',
+                            'transition-all duration-150 active:scale-[0.98]',
+                            'touch-manipulation',
                             isActive
-                              ? 'text-sidebar-primary bg-sidebar-primary/10 shadow-sm'
+                              ? 'text-primary bg-primary/5'
                               : 'text-foreground'
                           )
                         }
                         role='menuitem'
                       >
-                        <div className='flex-shrink-0'>{item.icon}</div>
-                        <span className='mobile-body-sm font-medium'>
+                        <div className='flex-shrink-0 h-5 w-5'>{item.icon}</div>
+                        <span className='text-sm font-medium'>
                           {item.label}
                         </span>
                       </NavLink>
