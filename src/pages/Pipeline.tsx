@@ -1,6 +1,7 @@
 import { FavoriteToggle } from '@/components/FavoriteToggle';
 import { OwnerDisplay } from '@/components/OwnerDisplay';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
+import { NotesButton } from '@/components/shared/NotesButton';
 import { PeopleAvatars } from '@/components/shared/PeopleAvatars';
 import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
 import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
@@ -39,9 +40,9 @@ import {
   Brain,
   Building2,
   CheckCircle,
-  FileText,
   Grid3x3,
   MapPin,
+  Sparkles,
   User,
   Users,
   XCircle,
@@ -901,7 +902,11 @@ const Pipeline = () => {
       },
       {
         key: 'reply_intent',
-        label: 'Intent',
+        label: (
+          <span className='flex items-center gap-1'>
+            <Sparkles className='h-3 w-3' /> Intent
+          </span>
+        ),
         width: '120px',
         minWidth: '120px',
         align: 'center',
@@ -916,11 +921,8 @@ const Pipeline = () => {
                 ? 'not_interested'
                 : 'maybe';
           return (
-            <div className='flex flex-col items-center gap-1'>
+            <div className='flex items-center justify-center'>
               <ReplyIntentIndicator intent={dominantIntent} size='sm' />
-              <span className='text-xs text-gray-500'>
-                {company.reply_stats.total} replies
-              </span>
             </div>
           );
         },
@@ -1118,17 +1120,13 @@ const Pipeline = () => {
 
               {/* Actions */}
               <div className='flex items-center gap-0.5 ml-auto'>
-                {/* Notes Button */}
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    console.log('View notes for:', company.name);
-                  }}
-                  className='p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-200'
-                  title='View notes'
-                >
-                  <FileText className='h-3.5 w-3.5' />
-                </button>
+                {/* Notes Button - universal */}
+                <NotesButton
+                  entityId={company.id}
+                  entityType='company'
+                  entityName={company.name || undefined}
+                  size='sm'
+                />
 
                 {/* Favorite Toggle */}
                 <FavoriteToggle
@@ -1559,6 +1557,7 @@ const Pipeline = () => {
       <CompanyDetailsSlideOut
         companyId={selectedCompanyId}
         isOpen={isSlideOutOpen}
+        initialTab={'notes'}
         onClose={() => {
           setIsSlideOutOpen(false);
           setSelectedCompanyId(null);
