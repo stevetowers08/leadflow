@@ -521,7 +521,7 @@ const Companies: React.FC = () => {
         render: (_, company) => (
           <CompanyHoverPreview company={company}>
             <div className='flex items-center gap-2 min-w-0'>
-              <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+              <div className='w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
                 {company.website ? (
                   <img
                     src={`https://logo.clearbit.com/${
@@ -531,7 +531,7 @@ const Companies: React.FC = () => {
                         .split('/')[0]
                     }`}
                     alt={company.name}
-                    className='w-7 h-7 rounded-lg object-cover'
+                    className='w-6 h-6 rounded-lg object-cover'
                     onError={e => {
                       (e.currentTarget as HTMLImageElement).style.display =
                         'none';

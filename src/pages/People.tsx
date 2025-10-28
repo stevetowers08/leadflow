@@ -631,7 +631,7 @@ const People: React.FC = () => {
         cellType: 'regular',
         render: (_, person) => (
           <div className='flex items-center gap-2 min-w-0'>
-            <div className='w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
+            <div className='w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
               {person.company_website ? (
                 <img
                   src={getClearbitLogo(
@@ -639,7 +639,7 @@ const People: React.FC = () => {
                     person.company_website
                   )}
                   alt={person.company_name || ''}
-                  className='w-7 h-7 rounded-lg object-cover'
+                  className='w-6 h-6 rounded-lg object-cover'
                   onError={e => {
                     (e.currentTarget as HTMLImageElement).style.display =
                       'none';
@@ -652,7 +652,7 @@ const People: React.FC = () => {
                 />
               ) : null}
               <div
-                className='w-7 h-7 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center'
+                className='w-6 h-6 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center'
                 style={{ display: person.company_website ? 'none' : 'flex' }}
               >
                 <Building2 className='h-3 w-3' />
