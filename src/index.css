@@ -30,13 +30,13 @@ All colors MUST be HSL.
   :root {
     /* Modern Light Theme - Clean and Minimal */
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 240 5% 15%; /* Lighter for better readability - modern CRM best practice */
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 240 5% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 240 5% 15%;
 
     /* SIMPLIFIED COLOR PALETTE - 6 Essential Colors + Neutrals */
 
@@ -61,9 +61,9 @@ All colors MUST be HSL.
     --accent-light: 240 100% 95%;
     --accent-medium: 240 100% 85%;
 
-    /* Muted - Professional grays */
+    /* Muted - Professional grays with improved readability */
     --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted-foreground: 240 5% 45%; /* Lighter muted text */
     --muted-hover: 240 4.8% 90%;
     --muted-light: 240 4.8% 98%;
     --muted-medium: 240 4.8% 85%;

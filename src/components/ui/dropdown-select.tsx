@@ -39,7 +39,7 @@ export const DropdownSelect = ({
       onValueChange={onValueChange}
       disabled={disabled || loading}
     >
-      <SelectTrigger className={cn('w-full', className)}>
+      <SelectTrigger className={cn('w-full text-gray-700', className)}>
         <SelectValue placeholder={loading ? 'Loading...' : placeholder} />
       </SelectTrigger>
       <SelectContent className='bg-background/95 backdrop-blur-sm border border-gray-300/50 shadow-lg'>
@@ -61,7 +61,7 @@ export const DropdownSelect = ({
               key={optionValue}
               value={optionValue}
               className={cn(
-                'cursor-pointer hover:bg-accent/50 focus:bg-accent/50',
+                'cursor-pointer hover:bg-accent/50 focus:bg-accent/50 text-gray-700',
                 !isReferenceOption(option) && option.color
               )}
             >

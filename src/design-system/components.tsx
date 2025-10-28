@@ -24,7 +24,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   <div className='mb-3'>
     <div className='flex items-center justify-between'>
       <div>
-        <h1 className='text-2xl font-bold tracking-tight text-foreground'>
+        <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
           {title}
         </h1>
         {count !== undefined && (
@@ -143,7 +143,7 @@ export const Page: React.FC<PageProps> = ({
             <div className='flex-shrink-0 mb-2'>
               <div className='flex items-center justify-between w-full'>
                 <div>
-                  <h1 className='text-2xl font-bold tracking-tight text-foreground'>
+                  <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
                     {title}
                   </h1>
                   {stats && (
@@ -189,14 +189,14 @@ export interface FilterControlsProps {
   statusFilter: string | string[];
   selectedUser: string;
   sortBy: string;
-  showFavoritesOnly: boolean;
+  showFavoritesOnly?: boolean;
   searchTerm: string;
   isSearchActive: boolean;
   onStatusChange: (value: string) => void;
   onMultiSelectStatusChange?: (values: string[]) => void;
   onUserChange: (value: string) => void;
   onSortChange: (value: string) => void;
-  onFavoritesToggle: () => void;
+  onFavoritesToggle?: () => void;
   onSearchChange: (value: string) => void;
   onSearchToggle: () => void;
   useMultiSelectStatus?: boolean;
@@ -263,24 +263,26 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
             className={cn(tokens.dropdown, tokens.dropdownMedium)}
           />
 
-          {/* Favorites Icon Button */}
-          <button
-            onClick={onFavoritesToggle}
-            className={cn(
-              tokens.button,
-              showFavoritesOnly ? tokens.buttonActive : tokens.buttonDefault
-            )}
-            aria-label={
-              showFavoritesOnly ? 'Show all items' : 'Show favorites only'
-            }
-          >
-            <Star
+          {/* Favorites Icon Button - Only show if props provided */}
+          {onFavoritesToggle && (
+            <button
+              onClick={onFavoritesToggle}
               className={cn(
-                tokens.icon,
-                showFavoritesOnly && tokens.iconActive
+                tokens.button,
+                showFavoritesOnly ? tokens.buttonActive : tokens.buttonDefault
               )}
-            />
-          </button>
+              aria-label={
+                showFavoritesOnly ? 'Show all items' : 'Show favorites only'
+              }
+            >
+              <Star
+                className={cn(
+                  tokens.icon,
+                  showFavoritesOnly && tokens.iconActive
+                )}
+              />
+            </button>
+          )}
 
           {/* Sort By Dropdown */}
           <DropdownSelect

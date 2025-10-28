@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
+import { useClientId } from '@/hooks/useClientId';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -44,6 +45,7 @@ export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
   variant = 'button',
 }) => {
   const { user } = useAuth();
+  const { data: clientId } = useClientId(); // Use cached client_id
   const { toast } = useToast();
   const [localStatus, setLocalStatus] = useState(currentStatus);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -64,18 +66,12 @@ export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
       // Jobs use client_jobs table
       if (entityType === 'jobs') {
         if (!user?.id) throw new Error('No user found');
+        if (!clientId) throw new Error('No client found');
 
-        const { data: clientUser } = await supabase
-          .from('client_users')
-          .select('client_id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (!clientUser?.client_id) throw new Error('No client found');
-
+        // Optimized: Use cached client_id instead of fetching
         const { error } = await supabase.from('client_jobs').upsert(
           {
-            client_id: clientUser.client_id,
+            client_id: clientId,
             job_id: entityId,
             status: newStatus,
             priority_level: 'medium',
@@ -105,7 +101,7 @@ export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
                 const webhookPayload = {
                   job_id: entityId,
                   company_id: jobData.company_id,
-                  client_id: clientUser.client_id,
+                  client_id: clientId,
                   user_id: user.id,
                 };
 
@@ -229,7 +225,7 @@ export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
                   statusIndicatorClass
                 )}
               />
-              <span className='text-gray-900 font-medium text-xs'>
+              <span className='text-gray-700 font-medium text-xs'>
                 {displayText}
               </span>
             </div>
@@ -259,7 +255,7 @@ export const UnifiedStatusDropdown: React.FC<UnifiedStatusDropdownProps> = ({
               disabled={isSelected}
               className={cn(
                 'flex items-center justify-between gap-2 cursor-pointer px-2.5 py-1.5 rounded-md text-sm',
-                'transition-colors text-gray-900',
+                'transition-colors text-gray-700',
                 isSelected ? 'bg-blue-50 font-medium' : 'hover:bg-gray-50'
               )}
             >
