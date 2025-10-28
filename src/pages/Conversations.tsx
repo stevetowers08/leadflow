@@ -103,23 +103,23 @@ const ConversationsPage: React.FC = () => {
   }, [showCompose]);
 
   useEffect(() => {
-    if (searchContacts) {
+    if (searchPeople) {
       const filtered = people
         .filter(
           person =>
-            person.name?.toLowerCase().includes(searchContacts.toLowerCase()) ||
+            person.name?.toLowerCase().includes(searchPeople.toLowerCase()) ||
             person.email_address
               ?.toLowerCase()
-              .includes(searchContacts.toLowerCase())
+              .includes(searchPeople.toLowerCase())
         )
         .slice(0, 10);
-      setFilteredContacts(filtered);
-      setShowContactPicker(true);
+      setFilteredPeople(filtered);
+      setShowPeoplePicker(true);
     } else {
-      setFilteredContacts([]);
-      setShowContactPicker(false);
+      setFilteredPeople([]);
+      setShowPeoplePicker(false);
     }
-  }, [searchContacts, people]);
+  }, [searchPeople, people]);
 
   const loadThreads = async () => {
     try {
@@ -738,9 +738,9 @@ john@company.com
                     }}
                     className='border-gray-300 focus:border-primary focus:ring-primary'
                   />
-                  {showContactPicker && filteredContacts.length > 0 && (
+                  {showPeoplePicker && filteredPeople.length > 0 && (
                     <div className='absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
-                      {filteredContacts.map(person => (
+                      {filteredPeople.map(person => (
                         <button
                           key={person.id}
                           onClick={() => {
@@ -748,8 +748,8 @@ john@company.com
                               ...composeEmail,
                               to: person.email_address || '',
                             });
-                            setSearchContacts('');
-                            setShowContactPicker(false);
+                            setSearchPeople('');
+                            setShowPeoplePicker(false);
                           }}
                           className='w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-3'
                         >
