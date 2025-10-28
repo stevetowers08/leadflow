@@ -192,7 +192,6 @@ export function getStatusDisplayText(status: string): string {
 
     // Legacy people stages - simplified workflow
     new: 'New',
-    qualified: 'Qualified',
     proceed: 'Proceed',
     skip: 'Skip',
 
@@ -203,6 +202,13 @@ export function getStatusDisplayText(status: string): string {
     // Company pipeline stages - business pipeline workflow
     NEW_LEAD: 'New Lead',
     qualified: 'Qualified',
+    QUALIFIED: 'Qualified',
+    message_sent: 'Message Sent',
+    MESSAGE_SENT: 'Message Sent',
+    replied: 'Replied',
+    REPLIED: 'Replied',
+    interested: 'Interested',
+    INTERESTED: 'Interested',
     'meeting scheduled': 'Meeting Scheduled',
     MEETING_SCHEDULED: 'Meeting Scheduled',
     proposal_sent: 'Proposal Sent',
