@@ -90,7 +90,7 @@ const Pipeline = () => {
   const [activeTab, setActiveTab] = useState<'pipeline' | 'table'>('table');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
-  const [groupByStage, setGroupByStage] = useState(true);
+  const [groupByStage, setGroupByStage] = useState(false);
 
   // Pipeline scroll control
   const pipelineScrollRef = useRef<HTMLDivElement>(null);
@@ -663,6 +663,7 @@ const Pipeline = () => {
   // Filter companies for table view - show all active stages (excluding new_lead)
   const filteredCompanies = useMemo(() => {
     let filtered = companies;
+
     // Show companies in all engaged stages (excluding new_lead which stays in People page)
     const engagedStages = [
       'qualified',
