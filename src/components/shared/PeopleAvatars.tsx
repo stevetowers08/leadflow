@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Person } from '@/types/database';
+import { getStatusDisplayText } from '@/utils/statusUtils';
 import { ExternalLink, Mail, MapPin } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -75,7 +76,7 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
           {hoveredPersonId === person.id && hoveredPerson && (
             <div
               className={cn(
-                'absolute left-0 top-full mt-2 z-[100] w-64',
+                'absolute left-0 top-full mt-2 z-[9999] w-64',
                 index >= maxVisible / 2 && 'left-auto right-0'
               )}
             >
@@ -130,7 +131,7 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
                     <div className='flex items-center gap-2 text-xs text-gray-600 pt-2 border-t border-gray-100'>
                       <span className='font-medium'>Status:</span>
                       <span className='text-gray-900'>
-                        {person.people_stage}
+                        {getStatusDisplayText(person.people_stage)}
                       </span>
                     </div>
                   )}

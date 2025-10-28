@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
+import { getStatusDisplayText } from '@/utils/statusUtils';
 import React from 'react';
 
 /**
@@ -44,7 +45,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
         className
       )}
     >
-      {status}
+      {getStatusDisplayText(status)}
     </span>
   );
 };
