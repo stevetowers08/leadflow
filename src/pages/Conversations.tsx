@@ -11,6 +11,7 @@ import {
   MailOpen,
   MessageSquare,
   Search,
+  Send,
   Settings,
   User,
 } from 'lucide-react';
@@ -59,11 +60,66 @@ const ConversationsPage: React.FC = () => {
   const [isSending, setIsSending] = useState(false);
   const [emailSignature, setEmailSignature] = useState('');
   const [showSignatureSettings, setShowSignatureSettings] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
+  const [composeEmail, setComposeEmail] = useState({
+    to: '',
+    subject: '',
+    body: '',
+  });
+  const [people, setPeople] = useState<
+    Array<{ id: string; name: string; email_address: string }>
+  >([]);
+  const [searchPeople, setSearchPeople] = useState('');
+  const [showPeoplePicker, setShowPeoplePicker] = useState(false);
+  const [filteredPeople, setFilteredPeople] = useState<
+    Array<{ id: string; name: string; email_address: string }>
+  >([]);
 
   usePageMeta({
     title: 'Conversations - Empowr CRM',
     description: 'Manage all your email conversations with leads.',
   });
+
+  const loadPeople = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('people')
+        .select('id, name, email_address')
+        .not('email_address', 'is', null)
+        .order('name', { ascending: true })
+        .limit(500);
+
+      if (error) throw error;
+      setPeople(data || []);
+    } catch (error) {
+      console.error('Failed to load people:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (showCompose) {
+      loadPeople();
+    }
+  }, [showCompose]);
+
+  useEffect(() => {
+    if (searchContacts) {
+      const filtered = people
+        .filter(
+          person =>
+            person.name?.toLowerCase().includes(searchContacts.toLowerCase()) ||
+            person.email_address
+              ?.toLowerCase()
+              .includes(searchContacts.toLowerCase())
+        )
+        .slice(0, 10);
+      setFilteredContacts(filtered);
+      setShowContactPicker(true);
+    } else {
+      setFilteredContacts([]);
+      setShowContactPicker(false);
+    }
+  }, [searchContacts, people]);
 
   const loadThreads = async () => {
     try {
@@ -321,9 +377,19 @@ const ConversationsPage: React.FC = () => {
             <h2 className='text-sm font-semibold text-gray-900'>
               Conversations
             </h2>
-            <Button variant='ghost' size='sm' className='h-7 w-7 p-0'>
-              <Search className='h-4 w-4' />
-            </Button>
+            <div className='flex items-center gap-2'>
+              <Button variant='ghost' size='sm' className='h-7 w-7 p-0'>
+                <Search className='h-4 w-4' />
+              </Button>
+              <Button
+                size='sm'
+                onClick={() => setShowCompose(true)}
+                className='gap-2'
+              >
+                <Mail className='h-4 w-4' />
+                New Email
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -642,6 +708,112 @@ john@company.com
               </div>
             )}
           </>
+        ) : showCompose ? (
+          <div className='flex-1 flex flex-col bg-white border-l border-gray-200'>
+            <div className='p-4 border-b border-gray-200 bg-gray-50'>
+              <div className='flex items-center justify-between'>
+                <h3 className='text-sm font-semibold text-gray-900'>
+                  New Message
+                </h3>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => setShowCompose(false)}
+                  className='text-xs'
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+
+            <div className='flex-1 flex flex-col overflow-hidden'>
+              <div className='flex-1 overflow-y-auto p-4 space-y-4'>
+                <div className='relative'>
+                  <Input
+                    placeholder='To'
+                    value={composeEmail.to}
+                    onChange={e => {
+                      setComposeEmail({ ...composeEmail, to: e.target.value });
+                      setSearchPeople(e.target.value);
+                    }}
+                    className='border-gray-300 focus:border-primary focus:ring-primary'
+                  />
+                  {showContactPicker && filteredContacts.length > 0 && (
+                    <div className='absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                      {filteredContacts.map(person => (
+                        <button
+                          key={person.id}
+                          onClick={() => {
+                            setComposeEmail({
+                              ...composeEmail,
+                              to: person.email_address || '',
+                            });
+                            setSearchContacts('');
+                            setShowContactPicker(false);
+                          }}
+                          className='w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-3'
+                        >
+                          <User className='h-4 w-4 text-gray-400' />
+                          <div>
+                            <p className='text-sm font-medium text-gray-900'>
+                              {person.name}
+                            </p>
+                            <p className='text-xs text-gray-500'>
+                              {person.email_address}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <Input
+                    placeholder='Subject'
+                    value={composeEmail.subject}
+                    onChange={e =>
+                      setComposeEmail({
+                        ...composeEmail,
+                        subject: e.target.value,
+                      })
+                    }
+                    className='border-gray-300 focus:border-primary focus:ring-primary'
+                  />
+                </div>
+                <div className='flex-1 min-h-[300px]'>
+                  <textarea
+                    placeholder='Type your message...'
+                    value={composeEmail.body}
+                    onChange={e =>
+                      setComposeEmail({ ...composeEmail, body: e.target.value })
+                    }
+                    className='w-full h-full resize-none border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary'
+                    rows={15}
+                  />
+                </div>
+              </div>
+
+              <div className='border-t border-gray-200 p-3 bg-gray-50'>
+                <div className='flex items-center justify-end gap-3'>
+                  <Button variant='outline' size='sm'>
+                    📎 Attach
+                  </Button>
+                  <Button
+                    size='sm'
+                    className='bg-primary hover:bg-primary-hover'
+                    onClick={() => {
+                      // TODO: Implement send email functionality
+                      setShowCompose(false);
+                      setComposeEmail({ to: '', subject: '', body: '' });
+                    }}
+                  >
+                    <Send className='h-4 w-4 mr-2' />
+                    Send
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className='flex-1 flex items-center justify-center bg-gray-50'>
             <div className='text-center'>
