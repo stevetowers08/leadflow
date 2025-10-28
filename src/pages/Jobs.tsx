@@ -585,11 +585,11 @@ const Jobs: React.FC = () => {
       width: '120px',
       cellType: 'regular',
       render: (_, job) => (
-        <span>
+        <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
           {job.valid_through
             ? format(new Date(job.valid_through), 'MMM d, yyyy')
             : '-'}
-        </span>
+        </div>
       ),
     },
     {
