@@ -729,11 +729,13 @@ const Companies: React.FC = () => {
         render: (_, company) => {
           const companyPeople = people.filter(p => p.company_id === company.id);
           return (
-            <PeopleAvatars
-              people={companyPeople}
-              onPersonClick={handlePersonClick}
-              maxVisible={3}
-            />
+            <div className='flex justify-center items-center overflow-hidden w-full'>
+              <PeopleAvatars
+                people={companyPeople}
+                onPersonClick={handlePersonClick}
+                maxVisible={3}
+              />
+            </div>
           );
         },
       },

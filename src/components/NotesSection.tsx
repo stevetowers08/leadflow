@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -494,17 +495,17 @@ export const NotesSection = ({
                               variant='ghost'
                               size='icon'
                               onClick={() => startEditing(note)}
-                              className='h-7 w-7 text-muted-foreground hover:text-foreground'
+                              className='text-muted-foreground hover:text-foreground'
                             >
-                              <Edit3 className='h-3.5 w-3.5' />
+                              <Edit3 className='h-4 w-4' />
                             </Button>
                             <Button
                               variant='ghost'
                               size='icon'
                               onClick={() => deleteNote(note.id)}
-                              className='h-7 w-7 text-muted-foreground hover:text-destructive'
+                              className='text-muted-foreground hover:text-destructive'
                             >
-                              <Trash2 className='h-3.5 w-3.5' />
+                              <Trash2 className='h-4 w-4' />
                             </Button>
                           </div>
                         )}

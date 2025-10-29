@@ -285,7 +285,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                 </span>
               )}
               {person.people_stage && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200'>
+                <span className='inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20'>
                   {getStatusDisplayText(person.people_stage)}
                 </span>
               )}
@@ -319,7 +319,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                 target='_blank'
                 rel='noopener noreferrer'
                 onClick={e => e.stopPropagation()}
-                className='p-2 hover:bg-blue-50 rounded-md text-gray-400 hover:text-blue-600 transition-colors'
+                className='p-2 hover:bg-gray-100 rounded-md text-gray-400 hover:text-gray-600 transition-colors'
                 title='Open LinkedIn'
               >
                 <ExternalLink className='h-5 w-5' />
@@ -579,7 +579,9 @@ const CompanyDetailsSlideOutComponent: React.FC<
             <div className='w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200'>
               {company.website ? (
                 <img
-                  src={getCompanyLogoUrlSync(company.name, company.website) || ''}
+                  src={
+                    getCompanyLogoUrlSync(company.name, company.website) || ''
+                  }
                   alt={`${company.name} logo`}
                   className='w-12 h-12 rounded-lg object-cover'
                   onError={e => {
@@ -685,8 +687,8 @@ const CompanyDetailsSlideOutComponent: React.FC<
           {/* AI Analysis Section */}
           {company.score_reason && (
             <SlideOutSection title='AI Analysis'>
-              <div className='p-4 bg-blue-50 border border-blue-200 rounded-lg'>
-                <p className='text-sm text-blue-900 leading-relaxed whitespace-pre-wrap'>
+              <div className='p-4 bg-primary/5 border border-primary/10 rounded-lg'>
+                <p className='text-sm text-foreground leading-relaxed whitespace-pre-wrap'>
                   {company.score_reason}
                 </p>
               </div>

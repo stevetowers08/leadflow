@@ -54,6 +54,8 @@ const Campaigns = lazy(() => import('./pages/Campaigns'));
 const CampaignSequenceBuilderPage = lazy(
   () => import('./pages/CampaignSequenceBuilderPage')
 );
+const IntegrationsPage = lazy(() => import('./components/IntegrationsPage'));
+const IntegrationCallback = lazy(() => import('./pages/IntegrationCallback'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -180,6 +182,14 @@ const AppRoutes = () => {
                     <Route
                       path='/campaigns/sequence/:id'
                       element={<CampaignSequenceBuilderPage />}
+                    />
+                    <Route
+                      path='/integrations'
+                      element={<IntegrationsPage />}
+                    />
+                    <Route
+                      path='/integrations/callback'
+                      element={<IntegrationCallback />}
                     />
                   </Routes>
                 </Suspense>

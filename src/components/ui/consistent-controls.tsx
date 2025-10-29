@@ -92,7 +92,7 @@ TabsList.displayName = 'TabsList';
 
 // Modern Filter Dropdown Component
 const filterVariants = cva(
-  'inline-flex items-center justify-between whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 bg-white border border-gray-300 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:border-gray-400 hover:bg-gray-50',
+  'inline-flex items-center justify-between whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 bg-white border border-gray-300 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:border-gray-400 hover:bg-gray-100',
   {
     variants: {
       variant: {
@@ -125,7 +125,7 @@ const FilterButton = forwardRef<HTMLButtonElement, FilterProps>(
   ({ className, variant, size, label, icon, children, ...props }, ref) => {
     return (
       <button
-        className={cn(filterVariants({ variant, size, className }))}
+        className={cn(filterVariants({ variant, size }), className)}
         ref={ref}
         {...props}
       >
@@ -143,7 +143,7 @@ FilterButton.displayName = 'FilterButton';
 
 // Modern Search Input Component
 const searchVariants = cva(
-  'flex w-full items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50',
+  'flex w-full items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100',
   {
     variants: {
       variant: {
@@ -239,7 +239,7 @@ const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(
   ({ className, variant, size, icon, loading, children, ...props }, ref) => {
     return (
       <button
-        className={cn(actionButtonVariants({ variant, size, className }))}
+        className={cn(actionButtonVariants({ variant, size }), className)}
         ref={ref}
         disabled={loading}
         {...props}
@@ -364,7 +364,7 @@ const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
   ({ className, size, trigger, children, ...props }, ref) => {
     return (
       <div
-        className={cn(dropdownVariants({ size, className }))}
+        className={cn(dropdownVariants({ size }), className)}
         ref={ref}
         {...props}
       >

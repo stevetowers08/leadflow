@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS public.client_users (
   UNIQUE(client_id, user_id)
 );
 
--- Client job opportunities (which jobs each client is actively pursuing)
-CREATE TABLE IF NOT EXISTS public.client_job_opportunities (
+-- Client job deals (which jobs each client is actively pursuing)
+CREATE TABLE IF NOT EXISTS public.client_job_deals (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   client_id UUID NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
   job_id UUID NOT NULL REFERENCES public.jobs(id) ON DELETE CASCADE,
@@ -76,7 +76,7 @@ ADD COLUMN IF NOT EXISTS default_client_id UUID REFERENCES public.clients(id) ON
 
 -- NOTE: We do NOT add client_id to companies, jobs, or people
 -- because these are SHARED CANONICAL DATA
--- Access control is via client_job_opportunities and client_decision_maker_outreach
+-- Access control is via client_job_deals and client_decision_maker_outreach
 
 -- =======================
 -- PART 3: Indexes
@@ -90,10 +90,10 @@ CREATE INDEX IF NOT EXISTS idx_client_users_client_id ON public.client_users(cli
 CREATE INDEX IF NOT EXISTS idx_client_users_user_id ON public.client_users(user_id);
 CREATE INDEX IF NOT EXISTS idx_client_users_role ON public.client_users(role);
 
-CREATE INDEX IF NOT EXISTS idx_client_job_opportunities_client_id ON public.client_job_opportunities(client_id);
-CREATE INDEX IF NOT EXISTS idx_client_job_opportunities_job_id ON public.client_job_opportunities(job_id);
-CREATE INDEX IF NOT EXISTS idx_client_job_opportunities_status ON public.client_job_opportunities(status);
-CREATE INDEX IF NOT EXISTS idx_client_job_opportunities_priority ON public.client_job_opportunities(priority);
+CREATE INDEX IF NOT EXISTS idx_client_job_deals_client_id ON public.client_job_deals(client_id);
+CREATE INDEX IF NOT EXISTS idx_client_job_deals_job_id ON public.client_job_deals(job_id);
+CREATE INDEX IF NOT EXISTS idx_client_job_deals_status ON public.client_job_deals(status);
+CREATE INDEX IF NOT EXISTS idx_client_job_deals_priority ON public.client_job_deals(priority);
 
 CREATE INDEX IF NOT EXISTS idx_client_decision_maker_outreach_client_id ON public.client_decision_maker_outreach(client_id);
 CREATE INDEX IF NOT EXISTS idx_client_decision_maker_outreach_dm_id ON public.client_decision_maker_outreach(decision_maker_id);
@@ -106,7 +106,7 @@ CREATE INDEX IF NOT EXISTS idx_client_decision_maker_outreach_status ON public.c
 
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.client_users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.client_job_opportunities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.client_job_deals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.client_decision_maker_outreach ENABLE ROW LEVEL SECURITY;
 
 -- Helper function to get user's client IDs
@@ -156,14 +156,14 @@ CREATE POLICY "Admins can manage client users" ON public.client_users
     )
   );
 
--- Client Job Opportunities: Users can only see their client's jobs
-CREATE POLICY "Users can view their client job opportunities" ON public.client_job_opportunities
+-- Client Job Deals: Users can only see their client's jobs
+CREATE POLICY "Users can view their client job deals" ON public.client_job_deals
   FOR SELECT 
   USING (
     client_id IN (SELECT client_id FROM get_user_client_ids(auth.uid()))
   );
 
-CREATE POLICY "Users can manage their client job opportunities" ON public.client_job_opportunities
+CREATE POLICY "Users can manage their client job deals" ON public.client_job_deals
   FOR ALL 
   USING (
     client_id IN (SELECT client_id FROM get_user_client_ids(auth.uid()))
@@ -191,8 +191,8 @@ CREATE TRIGGER update_clients_updated_at
   FOR EACH ROW 
   EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_client_job_opportunities_updated_at 
-  BEFORE UPDATE ON public.client_job_opportunities 
+CREATE TRIGGER update_client_job_deals_updated_at 
+  BEFORE UPDATE ON public.client_job_deals 
   FOR EACH ROW 
   EXECUTE FUNCTION update_updated_at_column();
 
@@ -207,6 +207,6 @@ CREATE TRIGGER update_client_decision_maker_outreach_updated_at
 
 COMMENT ON TABLE public.clients IS 'Multi-tenant client organizations using the platform';
 COMMENT ON TABLE public.client_users IS 'Maps users to their client organizations with roles';
-COMMENT ON TABLE public.client_job_opportunities IS 'Tracks which jobs each client is actively pursuing';
+COMMENT ON TABLE public.client_job_deals IS 'Tracks which jobs each client is actively pursuing';
 COMMENT ON TABLE public.client_decision_maker_outreach IS 'Tracks which decision makers each client is contacting';
 COMMENT ON FUNCTION get_user_client_ids IS 'Helper function to get all client IDs for a user (for RLS)';

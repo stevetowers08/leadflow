@@ -11,7 +11,7 @@ export class GmailApiService {
    */
   static async exchangeCodeForTokens(code: string) {
     const response = await fetch(
-      `${this.SUPABASE_URL}/functions/v1/gmail-token`,
+      `${this.SUPABASE_URL}/functions/v1/gmail-auth`,
       {
         method: 'POST',
         headers: {

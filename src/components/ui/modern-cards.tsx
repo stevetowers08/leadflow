@@ -313,7 +313,7 @@ export const ListCard: React.FC<ListCardProps> = ({
       className={cn(
         'p-3',
         onClick &&
-          'cursor-pointer group hover:bg-gray-50 transition-colors duration-200',
+          'cursor-pointer group hover:bg-gray-100 transition-colors duration-200',
         className
       )}
       onClick={onClick}

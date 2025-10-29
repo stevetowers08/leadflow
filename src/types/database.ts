@@ -425,7 +425,7 @@ export interface ClientJob {
   updated_at: string | null;
 }
 
-export interface ClientJobOpportunity {
+export interface ClientJobDeal {
   id: string;
   client_id: string;
   job_id: string;
@@ -737,7 +737,7 @@ export interface ClientUser {
   joined_at: string | null;
 }
 
-export interface ClientJobOpportunity {
+export interface ClientJobDeal {
   id: string;
   client_id: string;
   job_id: string;
@@ -935,7 +935,7 @@ export interface CampaignJobMatch {
   reviewed: boolean | null;
   reviewed_at: string | null;
   reviewed_by: string | null;
-  added_to_opportunities: boolean | null;
+  added_to_deals: boolean | null;
   discovered_at: string | null;
 }
 

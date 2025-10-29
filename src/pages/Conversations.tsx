@@ -378,14 +378,10 @@ const ConversationsPage: React.FC = () => {
               Conversations
             </h2>
             <div className='flex items-center gap-2'>
-              <Button variant='ghost' size='sm' className='h-7 w-7 p-0'>
+              <Button variant='ghost' size='icon'>
                 <Search className='h-4 w-4' />
               </Button>
-              <Button
-                size='sm'
-                onClick={() => setShowCompose(true)}
-                className='gap-2'
-              >
+              <Button onClick={() => setShowCompose(true)} className='gap-2'>
                 <Mail className='h-4 w-4' />
                 New Email
               </Button>
@@ -620,19 +616,17 @@ const ConversationsPage: React.FC = () => {
                     <span>Signature enabled</span>
                     <Button
                       variant='ghost'
-                      size='sm'
-                      className='h-6 p-1'
+                      size='icon'
                       onClick={() => setShowSignatureSettings(true)}
                     >
-                      <Settings className='h-3 w-3' />
+                      <Settings className='h-4 w-4' />
                     </Button>
                   </div>
                 )}
                 {!emailSignature && (
                   <Button
                     variant='ghost'
-                    size='sm'
-                    className='h-6 text-xs text-gray-500'
+                    className='text-xs text-gray-500'
                     onClick={() => setShowSignatureSettings(true)}
                   >
                     + Add signature
@@ -650,14 +644,12 @@ const ConversationsPage: React.FC = () => {
               <div className='flex items-center justify-end gap-3 mt-3'>
                 <Button
                   variant='outline'
-                  size='sm'
                   onClick={() => setReplyText('')}
                   disabled={isSending}
                 >
                   Clear
                 </Button>
                 <Button
-                  size='sm'
                   onClick={handleSendReply}
                   disabled={isSending || !replyText.trim()}
                   className='bg-primary hover:bg-primary-hover'
@@ -688,13 +680,11 @@ john@company.com
                   <div className='flex items-center justify-between mt-4'>
                     <Button
                       variant='outline'
-                      size='sm'
                       onClick={() => setShowSignatureSettings(false)}
                     >
                       Cancel
                     </Button>
                     <Button
-                      size='sm'
                       onClick={async () => {
                         await saveEmailSignature();
                         setShowSignatureSettings(false);
@@ -717,7 +707,6 @@ john@company.com
                 </h3>
                 <Button
                   variant='ghost'
-                  size='sm'
                   onClick={() => setShowCompose(false)}
                   className='text-xs'
                 >
@@ -795,11 +784,8 @@ john@company.com
 
               <div className='border-t border-gray-200 p-3 bg-gray-50'>
                 <div className='flex items-center justify-end gap-3'>
-                  <Button variant='outline' size='sm'>
-                    📎 Attach
-                  </Button>
+                  <Button variant='actionbar'>📎 Attach</Button>
                   <Button
-                    size='sm'
                     className='bg-primary hover:bg-primary-hover'
                     onClick={() => {
                       // TODO: Implement send email functionality

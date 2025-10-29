@@ -117,7 +117,7 @@ export function JobFilteringForm({
         <CardDescription>
           {config?.id
             ? 'Update your job discovery configuration settings'
-            : 'Set up automated job posting monitoring for LinkedIn, Indeed, or Seek. Configure search parameters, targeting criteria, and AI processing rules to discover relevant executive opportunities in your market.'}
+            : 'Set up automated job posting monitoring for LinkedIn, Indeed, or Seek. Configure search parameters, targeting criteria, and AI processing rules to discover relevant executive deals in your market.'}
         </CardDescription>
       </CardHeader>
       <CardContent>

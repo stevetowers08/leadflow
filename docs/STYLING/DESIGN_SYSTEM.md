@@ -38,14 +38,15 @@ const tokens = designTokens.filterControls;
 }
 ```
 
-### Action Bar Standards
+### Action Bar Standards (January 2025)
 
-**Height Consistency**: All action bar elements use `h-7` (28px)
+**Height Consistency**: All action bar elements use `h-8` (32px)
 
-- Filter dropdowns: `h-7`
-- Action buttons: `h-7 w-7`
-- Search inputs: `h-7`
-- Icons: `h-4 w-4` (16px)
+- Filter dropdowns: `h-8` (32px)
+- Action buttons: `h-8` (32px)
+- Search inputs: `h-8` (32px)
+- Icon buttons: `h-8 w-8` (32px × 32px)
+- Icons inside buttons: `h-4 w-4` (16px)
 
 **Implementation Pattern**:
 
@@ -72,7 +73,7 @@ export const FilterControls = ({ ... }) => {
 1. **Single Source of Truth**: Design tokens in `src/design-system/tokens.ts`
 2. **No Custom CSS**: Use Tailwind utilities exclusively
 3. **No `!important`**: Clean CSS hierarchy
-4. **Consistent Heights**: All action elements are `h-7`
+4. **Consistent Heights**: All action elements are `h-8` (32px)
 5. **Inline Search**: Expand inline instead of popup modals
 
 ---
@@ -630,16 +631,26 @@ Modern CRM tables now feature sophisticated hover interactions following 2025 be
 - **No Zoom Effects**: Avoids scale transforms that break table layouts
 - **Consistent Timing**: All transitions use 150ms duration for uniformity
 
-### Action Element Heights - **FINAL STANDARD**
+### Action Element Heights - **UNIFIED STANDARD (January 2025)**
 
-- **All Action Elements**: `h-8` (32px height) - **MANDATORY**
-- **Search Icon Button**: `h-8 w-8` (32px × 32px)
+**ALL action elements across the app use `h-8` (32px) for visual consistency:**
+
+- **Buttons**: `h-8` (32px height) - **ALL button sizes (default, sm, xs, icon)**
 - **Dropdown Selects**: `h-8` (32px height)
+- **Search Icon Buttons**: `h-8 w-8` (32px × 32px)
 - **Filter Buttons**: `h-8` (32px height)
 - **Sort Controls**: `h-8` (32px height)
 - **Input Fields**: `h-8` (32px height)
-- **Icon Buttons**: `h-8` (32px height)
-- **Action Buttons**: `h-8` (32px height)
+- **Icon Buttons**: `h-8 w-8` (32px × 32px)
+- **Action Bar Elements**: `h-8` (32px height)
+
+**Why h-8 (32px)?**
+
+- Industry standard for touch targets (WCAG 2.1 AA compliant)
+- Matches dropdown heights for visual consistency
+- Comfortable spacing for professional apps
+- Better than h-7 (28px) which can feel cramped
+- 2025 best practice for action elements
 
 ### Action Bar Styling - **UNIFIED PATTERN**
 
@@ -649,21 +660,21 @@ All action bars across pages and popups now use consistent styling:
 
 ```tsx
 className =
-  'min-w-32 bg-white h-8 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50';
+  'bg-white h-8 px-3 text-sm border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors';
 ```
 
 #### Icon Buttons (Favorites, etc.)
 
 ```tsx
 className =
-  'h-8 w-8 rounded-md border flex items-center justify-center transition-colors bg-white text-gray-600 border-gray-300 hover:border-gray-400 hover:bg-gray-50';
+  'h-8 w-8 rounded-md border flex items-center justify-center transition-colors bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50';
 ```
 
 #### Sort Order Button
 
 ```tsx
 className =
-  'px-2 h-8 text-sm border border-gray-300 rounded-md bg-white hover:border-gray-400 hover:bg-gray-50 flex items-center justify-center transition-colors';
+  'px-2 h-8 text-sm border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50 flex items-center justify-center transition-colors';
 ```
 
 #### Active States
@@ -1343,29 +1354,55 @@ const tabOptions = useMemo<TabOption[]>(
 
 ### Button Component
 
+**Standard Height**: All buttons use `h-8` (32px) for consistency with dropdowns and action bar elements.
+
 ```tsx
-// Button variants
+// Button Variants (January 2025)
 const buttonVariants = {
-  primary: 'bg-primary text-primary-foreground hover:bg-primary-hover',
-  secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-700',
-  outline: 'border border-gray-300 hover:bg-gray-50 text-gray-700',
-  ghost: 'hover:bg-gray-100 text-gray-700',
-  destructive:
-    'bg-destructive text-destructive-foreground hover:bg-destructive-hover',
+  default: 'bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm hover:shadow-md', // Blue primary button
+  actionbar: 'border border-border bg-background hover:bg-accent', // For action bars above tables
+  outline: 'border border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground',
+  ghost: 'text-primary hover:bg-primary-light', // No border/background
+  destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive-hover',
+  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary-hover',
 };
 
-// Button sizes - ALL ACTION ELEMENTS USE h-8 (32px) HEIGHT
+// Button Sizes - ALL USE h-8 (32px) HEIGHT
 const buttonSizes = {
-  sm: 'px-3 py-1.5 text-sm h-8', // Small buttons
-  md: 'px-4 py-2 text-base h-8', // Standard height for all action elements
-  lg: 'px-6 py-3 text-lg h-12', // Large buttons
+  default: 'h-8 px-3 py-1.5 text-sm', // Standard button
+  sm: 'h-8 px-2.5 py-1 text-xs', // Compact with reduced padding
+  xs: 'h-8 px-2 py-1 text-xs', // Minimal padding
+  icon: 'h-8 w-8', // Icon-only button (h-8 × h-8)
+  lg: 'h-11 px-8 text-base', // Large CTA buttons
 };
 
-// Usage
-<Button variant='primary' size='md'>
-  Primary Button
-</Button>;
+// Usage Examples
+<Button>Primary Action</Button> {/* Blue primary button, h-8 */}
+<Button variant='actionbar'>Action Bar Button</Button> {/* For filter bars */}
+<Button variant='outline'>Cancel</Button> {/* Secondary action */}
+<Button variant='ghost' size='icon'><Edit /></Button> {/* Icon button */}
 ```
+
+**Button Usage Guidelines:**
+
+1. **Action Bar Buttons**: Use `variant='actionbar'` for buttons in filter bars above tables
+2. **Primary Buttons**: Use default variant (blue) for main actions in forms
+3. **Secondary Actions**: Use `variant='outline'` for cancel/back buttons
+4. **Icon Buttons**: Use `size='icon'` for icon-only buttons
+5. **Never override height**: Buttons are already h-8, don't add `className='h-6'` or similar
+
+**Button Hover States (January 2025):**
+
+| Variant             | Hover Color                            | When to Use                                  |
+| ------------------- | -------------------------------------- | -------------------------------------------- |
+| `default` (primary) | Darker blue (`hover:bg-primary-hover`) | Main actions, submit buttons, important CTAs |
+| `actionbar`         | Unified gray (`hover:bg-gray-100`)     | Filter bars, action bars above tables        |
+| `outline`           | Unified gray (`hover:bg-gray-100`)     | Cancel, back, secondary actions              |
+| `ghost`             | Unified gray (`hover:bg-gray-100`)     | Subtle actions, icon buttons                 |
+| `secondary`         | Medium gray (`hover:bg-gray-200`)      | Alternative secondary actions                |
+| `destructive`       | Darker red                             | Delete, dangerous actions                    |
+
+**Key Rule**: Only primary buttons (default variant) should use the darker blue hover. All other buttons use neutral gray hovers.
 
 ### Form Components
 
@@ -1424,6 +1461,80 @@ const StatusBadge = ({ status, children }) => {
   />
 </div>;
 ```
+
+## Hover States System (January 2025)
+
+### Hover Color Standards
+
+**Consistent hover states across all interactive elements:**
+
+**Dropdowns & Selects:**
+
+```tsx
+'hover:border-gray-300 hover:bg-gray-100 transition-colors';
+```
+
+- Medium gray background (`gray-100`) on hover for consistency
+- Border changes to `gray-300` on hover
+- Smooth transition
+
+**Action Bar Buttons:**
+
+```tsx
+'hover:bg-gray-100 transition-colors';
+```
+
+- Unified gray-100 hover across all action elements
+
+**Ghost Buttons:**
+
+```tsx
+'hover:bg-gray-100 transition-colors';
+```
+
+- Unified gray-100 hover for subtle feedback
+
+**Secondary Buttons:**
+
+```tsx
+'hover:bg-gray-200 transition-colors';
+```
+
+- Medium gray for clear feedback
+
+**Primary Buttons (Blue):**
+
+```tsx
+'hover:bg-primary-hover'; // Darker blue
+```
+
+- ONLY primary buttons get the darker blue hover
+- Used for main actions, submit buttons
+
+**Table Rows:**
+
+```tsx
+'hover:bg-gray-100';
+```
+
+- Consistent with ghost buttons
+
+### Hover Best Practices
+
+✅ **DO:**
+
+- Use `gray-100` for **ALL** interactive elements (dropdowns, tables, buttons, action bars)
+- Use `gray-200` only for backgrounds that need more contrast (e.g., secondary button default state)
+- Only use darker blue hover (`primary-hover`) for primary buttons
+- Always include `transition-colors` for smooth animations
+
+❌ **DON'T:**
+
+- Don't use `gray-50` for hover states (too light)
+- Don't use darker blue hover for non-primary buttons
+- Don't mix hover colors inconsistently
+- Don't skip transition effects
+- Don't use `primary-hover` for secondary actions
 
 ## Icons & Imagery
 

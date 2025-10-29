@@ -283,7 +283,7 @@ class GeminiService {
       - Key technical and soft skills required
       - Experience level and seniority
       - Company culture indicators
-      - Growth opportunities mentioned
+      - Growth potential mentioned
       - Compensation competitiveness
     `;
   }

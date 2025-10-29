@@ -307,7 +307,7 @@ Jobs → Companies → People → Automation → Responses → Deals
 - **Proposal Sent**: Formal proposal delivered
 - **Negotiation**: Active discussions on terms
 - **Closed Won**: Successfully secured as client
-- **Closed Lost**: Opportunity lost
+- **Closed Lost**: Deal lost
 - **On Hold**: Temporarily paused or delayed
 
 ### Metrics & KPIs

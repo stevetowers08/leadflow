@@ -197,7 +197,7 @@ CREATE TABLE people (
 
 ### 3. **Jobs** (`jobs`)
 
-Job postings and opportunities with qualification workflow.
+Job postings and deals with qualification workflow.
 
 ```sql
 CREATE TABLE jobs (
@@ -664,9 +664,9 @@ User Profiles (1) ←→ (Many) Jobs (owner)
 **Client Management:**
 
 - `client_users.client_id` → `clients.id`
-- `client_job_opportunities.client_id` → `clients.id`
-- `client_job_opportunities.company_id` → `companies.id`
-- `client_job_opportunities.job_id` → `jobs.id`
+- `client_job_deals.client_id` → `clients.id`
+- `client_job_deals.company_id` → `companies.id`
+- `client_job_deals.job_id` → `jobs.id`
 - `client_decision_maker_outreach.client_id` → `clients.id`
 - `client_decision_maker_outreach.decision_maker_id` → `people.id`
 - `client_decision_maker_outreach.job_id` → `jobs.id`

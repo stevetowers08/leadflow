@@ -867,7 +867,7 @@ const People: React.FC = () => {
             Qualified Leads
           </h1>
           <p className='text-sm text-muted-foreground'>
-            Manage your contacts and track your outreach to decision makers
+            Manage your people and track your outreach to decision makers
           </p>
         </div>
 

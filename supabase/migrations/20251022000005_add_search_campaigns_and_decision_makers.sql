@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS public.campaign_job_matches (
   reviewed_by UUID REFERENCES auth.users(id),
   
   -- Action taken
-  added_to_opportunities BOOLEAN DEFAULT false, -- Added to client_job_opportunities
+  added_to_deals BOOLEAN DEFAULT false, -- Added to client_job_deals
   
   discovered_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   
@@ -227,7 +227,7 @@ CREATE POLICY "Users can view job sources for their client jobs" ON public.job_s
   USING (
     job_id IN (
       SELECT cjo.job_id 
-      FROM public.client_job_opportunities cjo
+      FROM public.client_job_deals cjo
       WHERE cjo.client_id IN (SELECT client_id FROM get_user_client_ids(auth.uid()))
     )
     OR discovered_by_client_id IN (SELECT client_id FROM get_user_client_ids(auth.uid()))

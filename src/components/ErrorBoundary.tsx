@@ -242,6 +242,84 @@ export class BaseErrorBoundary extends Component<
     window.location.reload();
   };
 
+  getErrorMessage(error: Error): {
+    title: string;
+    description: string;
+    action: string;
+  } {
+    const errorMessage = error.message.toLowerCase();
+
+    // Component render errors (import/compilation issues)
+    if (
+      errorMessage.includes('not defined') ||
+      errorMessage.includes('undefined') ||
+      errorMessage.includes('is not a function')
+    ) {
+      return {
+        title: 'Component Error',
+        description:
+          "This section has a technical issue. You can still use other parts of the app. We've logged the error for our team.",
+        action:
+          'Try navigating to a different page, or contact support if this persists.',
+      };
+    }
+
+    // Network/API errors
+    if (
+      errorMessage.includes('fetch') ||
+      errorMessage.includes('network') ||
+      errorMessage.includes('failed to fetch')
+    ) {
+      return {
+        title: 'Connection Issue',
+        description:
+          'Unable to connect to our servers. Please check your internet connection.',
+        action: 'Try again once your connection is stable.',
+      };
+    }
+
+    // Data loading errors
+    if (
+      errorMessage.includes('null') ||
+      errorMessage.includes('cannot read') ||
+      errorMessage.includes('cannot access')
+    ) {
+      return {
+        title: 'Data Loading Error',
+        description: "Some information couldn't be loaded in this section.",
+        action:
+          'Navigate to another page and come back, or contact support if this continues.',
+      };
+    }
+
+    // Authentication errors
+    if (
+      errorMessage.includes('unauthorized') ||
+      errorMessage.includes('403') ||
+      errorMessage.includes('401') ||
+      errorMessage.includes('permission')
+    ) {
+      return {
+        title: 'Access Issue',
+        description: "You don't have permission to access this feature.",
+        action: 'Contact your administrator if you believe this is an error.',
+      };
+    }
+
+    // Generic message
+    return {
+      title: 'Something Went Wrong',
+      description:
+        'An unexpected error occurred in this section. The rest of the app is still working.',
+      action: 'Navigate to another page or contact support if this continues.',
+    };
+  }
+
+  getSimpleErrorMessage(error: Error): string {
+    const msg = this.getErrorMessage(error);
+    return `${msg.title}: ${msg.description}`;
+  }
+
   render(): ReactNode {
     if (this.state.hasError) {
       // Custom fallback UI
@@ -269,15 +347,23 @@ export class BaseErrorBoundary extends Component<
               </svg>
             </div>
 
-            <h2 className='text-lg font-semibold text-gray-900 text-center mb-2'>
-              Something went wrong
-            </h2>
-
-            <p className='text-sm text-gray-600 text-center mb-6'>
-              {this.props.recoverable !== false
-                ? "We're sorry, but something unexpected happened. You can try again or reload the page."
-                : 'A critical error occurred. Please reload the page to continue.'}
-            </p>
+            {this.state.error &&
+              (() => {
+                const errorInfo = this.getErrorMessage(this.state.error);
+                return (
+                  <>
+                    <h2 className='text-lg font-semibold text-gray-900 text-center mb-2'>
+                      {errorInfo.title}
+                    </h2>
+                    <p className='text-sm text-gray-600 text-center mb-3'>
+                      {errorInfo.description}
+                    </p>
+                    <p className='text-xs text-gray-500 text-center mb-6 italic'>
+                      {errorInfo.action}
+                    </p>
+                  </>
+                );
+              })()}
 
             {this.props.showDetails && this.state.error && (
               <details className='mb-6'>
@@ -410,18 +496,73 @@ export class CriticalErrorBoundary extends Component<
     window.location.reload();
   };
 
+  getErrorMessage(error: Error): {
+    title: string;
+    description: string;
+    action: string;
+  } {
+    const errorMessage = error.message.toLowerCase();
+
+    // Component render errors
+    if (
+      errorMessage.includes('not defined') ||
+      errorMessage.includes('undefined') ||
+      errorMessage.includes('is not a function')
+    ) {
+      return {
+        title: 'Application Error',
+        description:
+          "The app encountered a technical issue. We've automatically logged this for our team.",
+        action: 'Please refresh the page or contact support if this continues.',
+      };
+    }
+
+    // Network errors
+    if (errorMessage.includes('fetch') || errorMessage.includes('network')) {
+      return {
+        title: 'Connection Error',
+        description:
+          'Cannot connect to our servers. Please check your internet connection.',
+        action: 'Once connected, refresh the page.',
+      };
+    }
+
+    return {
+      title: 'Critical Error',
+      description:
+        'The application encountered a critical error. This has been logged for our team.',
+      action: 'Please refresh the page or contact support.',
+    };
+  }
+
+  getSimpleErrorMessage(error: Error): string {
+    const msg = this.getErrorMessage(error);
+    return msg.description;
+  }
+
   render() {
     if (this.state.hasError) {
       return (
         <div className='min-h-screen flex items-center justify-center bg-gray-50 px-4'>
           <div className='max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center'>
             <div className='text-red-500 text-6xl mb-4'>⚠️</div>
-            <h1 className='text-xl font-semibold text-gray-900 mb-2'>
-              Critical Error
-            </h1>
-            <p className='text-gray-600 mb-4'>
-              A critical error has occurred. Please reload the page.
-            </p>
+            {this.state.error &&
+              (() => {
+                const errorInfo = this.getErrorMessage(this.state.error);
+                return (
+                  <>
+                    <h1 className='text-xl font-semibold text-gray-900 mb-2'>
+                      {errorInfo.title}
+                    </h1>
+                    <p className='text-gray-600 mb-2'>
+                      {errorInfo.description}
+                    </p>
+                    <p className='text-sm text-gray-500 mb-4 italic'>
+                      {errorInfo.action}
+                    </p>
+                  </>
+                );
+              })()}
             <button
               onClick={this.handleReload}
               className='w-full bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700'
@@ -516,7 +657,7 @@ export class NetworkErrorBoundary extends Component<
   }
 }
 
-// Error boundary provider
+// Error boundary provider with graceful fallback for minor errors
 export const ErrorBoundaryProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {

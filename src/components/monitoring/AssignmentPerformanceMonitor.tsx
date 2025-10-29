@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -6,10 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, Clock, Database, Users, AlertTriangle } from 'lucide-react';
 import { AssignmentService } from '@/services/assignmentService';
+import { AlertTriangle, Clock, Database, RefreshCw, Users } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface PerformanceMetrics {
   assignmentCount: number;
@@ -93,7 +93,7 @@ export const AssignmentPerformanceMonitor: React.FC = () => {
           <h2 className='text-2xl font-bold'>Performance Monitoring</h2>
           <p className='text-muted-foreground'>
             Monitor assignment system performance and identify optimization
-            opportunities
+            potential
           </p>
         </div>
         <Button onClick={loadMetrics} variant='outline' size='sm'>

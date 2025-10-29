@@ -23,13 +23,11 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
   const [loading, setLoading] = useState(false);
   const [showDeclineForm, setShowDeclineForm] = useState(false);
   const [declineReason, setDeclineReason] = useState('');
-  const [opportunityStatus, setOpportunityStatus] = useState<string | null>(
-    null
-  );
+  const [dealStatus, setDealStatus] = useState<string | null>(null);
 
-  // Check existing opportunity status on mount
+  // Check existing deal status on mount
   React.useEffect(() => {
-    const checkOpportunityStatus = async () => {
+    const checkDealStatus = async () => {
       try {
         // Get user's client_id
         const { data: clientUser, error: clientUserError } = await supabase
@@ -40,7 +38,7 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
 
         if (clientUserError) return;
 
-        // Check if opportunity exists
+        // Check if deal exists
         const { data, error } = await supabase
           .from('client_jobs')
           .select('status')
@@ -49,16 +47,14 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
           .maybeSingle();
 
         if (!error && data) {
-          setOpportunityStatus(
-            data.status === 'qualify' ? 'approved' : 'rejected'
-          );
+          setDealStatus(data.status === 'qualify' ? 'approved' : 'rejected');
         }
       } catch (error) {
-        console.error('Error checking opportunity status:', error);
+        console.error('Error checking deal status:', error);
       }
     };
 
-    checkOpportunityStatus();
+    checkDealStatus();
   }, [jobId, user?.id]);
 
   const handleStartPursuing = async () => {
@@ -103,10 +99,10 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
       toast({
         title: 'Success',
         description:
-          'Job added to your pipeline. You can now start pursuing this opportunity.',
+          'Job added to your pipeline. You can now start pursuing this deal.',
       });
 
-      setOpportunityStatus('approved');
+      setDealStatus('approved');
       onStatusChange?.();
     } catch (error) {
       console.error('Error starting pursuit:', error);
@@ -133,7 +129,7 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
     if (!declineReason.trim()) {
       toast({
         title: 'Reason Required',
-        description: 'Please provide a reason for passing on this opportunity.',
+        description: 'Please provide a reason for passing on this deal.',
         variant: 'destructive',
       });
       return;
@@ -169,17 +165,17 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
       if (error) throw error;
 
       toast({
-        title: 'Opportunity Passed',
+        title: 'Deal Passed',
         description:
           'This job has been marked as not a fit. Thank you for the feedback.',
       });
 
-      setOpportunityStatus('rejected');
+      setDealStatus('rejected');
       setShowDeclineForm(false);
       setDeclineReason('');
       onStatusChange?.();
     } catch (error) {
-      console.error('Error passing opportunity:', error);
+      console.error('Error passing deal:', error);
       toast({
         title: 'Error',
         description: 'Failed to update status. Please try again.',
@@ -191,7 +187,7 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
   };
 
   // Show status if already decided
-  if (opportunityStatus === 'approved') {
+  if (dealStatus === 'approved') {
     return (
       <Card className='border-green-200 bg-green-50'>
         <CardContent className='pt-4'>
@@ -204,14 +200,14 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
     );
   }
 
-  if (opportunityStatus === 'rejected') {
+  if (dealStatus === 'rejected') {
     return (
       <Card className='border-gray-200 bg-gray-50'>
         <CardContent className='pt-4'>
           <div className='flex items-center gap-2 text-gray-600'>
             <XCircle className='h-5 w-5' />
             <p className='text-sm font-medium'>
-              You previously passed on this opportunity
+              You previously passed on this deal
             </p>
           </div>
         </CardContent>
@@ -228,7 +224,7 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
             <AlertCircle className='h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0' />
             <div className='flex-1'>
               <p className='text-sm font-medium text-orange-900 mb-1'>
-                Why is this opportunity not a fit?
+                Why is this deal not a fit?
               </p>
               <p className='text-xs text-orange-700'>
                 This helps improve future job recommendations

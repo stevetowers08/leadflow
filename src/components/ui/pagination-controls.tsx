@@ -67,7 +67,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          className='px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+          className='px-3 py-1 text-sm border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed'
           aria-label='Go to previous page'
         >
           <ChevronLeft className='h-4 w-4' />
@@ -78,7 +78,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className='px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+          className='px-3 py-1 text-sm border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed'
           aria-label='Go to next page'
         >
           <ChevronRight className='h-4 w-4' />

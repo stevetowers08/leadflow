@@ -121,9 +121,9 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
                   onClick={() => handleSelect(option.value)}
                   className={cn(
                     'w-full flex items-center justify-between px-3 py-2 text-sm',
-                    'hover:bg-gray-50 transition-colors duration-150',
-                    'focus:outline-none focus:bg-gray-50',
-                    value === option.value && 'bg-blue-50'
+                    'hover:bg-gray-100 transition-colors duration-150',
+                    'focus:outline-none focus:bg-gray-100',
+                    value === option.value && 'bg-primary/10' // Light blue for selected
                   )}
                 >
                   <div className='flex items-center gap-3'>
@@ -139,7 +139,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
                       className={cn(
                         'font-medium',
                         value === option.value
-                          ? 'text-blue-900'
+                          ? 'text-primary'
                           : 'text-gray-900'
                       )}
                     >
@@ -154,7 +154,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
                   </div>
 
                   {value === option.value && (
-                    <Check className='h-4 w-4 text-blue-600' />
+                    <Check className='h-4 w-4 text-primary' />
                   )}
                 </button>
               ))}
@@ -301,9 +301,9 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
                       onClick={() => handleSelect(option.value)}
                       className={cn(
                         'w-full flex items-center justify-between px-3 py-2 text-sm',
-                        'hover:bg-gray-50 transition-colors duration-150',
-                        'focus:outline-none focus:bg-gray-50',
-                        value === option.value && 'bg-blue-50'
+                        'hover:bg-gray-100 transition-colors duration-150',
+                        'focus:outline-none focus:bg-gray-100',
+                        value === option.value && 'bg-primary/10' // Light blue for selected
                       )}
                     >
                       <div className='flex items-center gap-3'>

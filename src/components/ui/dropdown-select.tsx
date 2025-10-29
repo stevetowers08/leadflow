@@ -61,7 +61,7 @@ export const DropdownSelect = ({
               key={optionValue}
               value={optionValue}
               className={cn(
-                'cursor-pointer hover:bg-accent/50 focus:bg-accent/50 text-gray-700',
+                'cursor-pointer text-gray-700',
                 !isReferenceOption(option) && option.color
               )}
             >

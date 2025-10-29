@@ -10,15 +10,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm hover:shadow-md',
+          'bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm hover:shadow-md', // Darker blue hover for primary actions only
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md',
         outline:
-          'border border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground shadow-sm hover:shadow-md',
+          'border border-border bg-background hover:bg-gray-100 transition-colors', // Unified gray-100 hover
         secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary-hover shadow-sm hover:shadow-md',
-        ghost: 'text-primary hover:bg-primary-light',
+          'bg-gray-100 text-foreground hover:bg-gray-200 transition-colors', // Medium gray hover
+        ghost: 'text-foreground hover:bg-gray-100 transition-colors', // Unified gray-100 hover for subtle actions
         link: 'text-primary underline-offset-4 hover:underline',
+        actionbar:
+          'border border-border bg-background hover:bg-gray-100 transition-colors', // Unified gray-100 hover to match dropdowns
         danger:
           'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md', // Alias for destructive
         success:
@@ -27,12 +29,12 @@ const buttonVariants = cva(
           'bg-warning text-warning-foreground hover:bg-warning-hover shadow-sm hover:shadow-md',
       },
       size: {
-        default: 'h-10 px-4 py-2', // Standard button height
-        sm: 'h-9 rounded-md px-3', // Small button height
-        xs: 'h-8 px-2 text-xs', // Extra small - matches our action element standard
-        lg: 'h-11 rounded-md px-8', // Large button height
-        icon: 'h-8 w-8', // Icon button - matches our action element standard
-        mobile: 'h-12 px-4 py-3 text-base', // Mobile-optimized size
+        default: 'h-8 px-3 py-1.5 text-sm', // h-8 (32px) - standard height for all action elements
+        sm: 'h-8 px-2.5 py-1 text-xs', // h-8 with reduced padding
+        xs: 'h-8 px-2 py-1 text-xs', // h-8 minimal padding
+        lg: 'h-11 px-8 text-base', // Large button for CTAs
+        icon: 'h-8 w-8', // Icon button - h-8 to match action bar height
+        mobile: 'h-12 px-4 py-3 text-base', // Mobile-optimized size for touch
       },
     },
     defaultVariants: {
@@ -53,7 +55,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : 'button';
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
         {...props}
       />

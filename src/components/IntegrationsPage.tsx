@@ -8,6 +8,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Calendar, CheckCircle2, Mail, Users, XCircle } from 'lucide-react';
+import { secureGmailService } from '@/services/secureGmailService';
+import { useCallback, useEffect, useState } from 'react';
 
 interface Integration {
   id: string;
@@ -19,13 +21,28 @@ interface Integration {
 }
 
 const IntegrationsPage = () => {
+  const [gmailConnected, setGmailConnected] = useState(false);
+
+  const checkGmailStatus = useCallback(async () => {
+    try {
+      const connected = await secureGmailService.isGmailConnected();
+      setGmailConnected(connected);
+    } catch (error) {
+      console.error('Error checking Gmail status:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    void checkGmailStatus();
+  }, [checkGmailStatus]);
+
   const integrations: Integration[] = [
     {
       id: 'gmail',
       name: 'Gmail',
       description: 'Connect your Gmail account to send and receive emails',
       icon: <Mail className='h-5 w-5' />,
-      status: 'disconnected',
+      status: gmailConnected ? 'connected' : 'disconnected',
       category: 'email',
     },
     {
@@ -69,9 +86,40 @@ const IntegrationsPage = () => {
     }
   };
 
-  const handleConnect = (integrationId: string) => {
-    // TODO: Implement actual integration connection logic
-    console.log('Connecting to:', integrationId);
+  const handleConnect = async (integrationId: string) => {
+    try {
+      switch (integrationId) {
+        case 'gmail':
+          await secureGmailService.authenticateWithGmail();
+          // Refresh status after connection
+          await checkGmailStatus();
+          break;
+        case 'google-calendar':
+          // TODO: Implement Google Calendar connection
+          console.log('Google Calendar connection not yet implemented');
+          alert('Google Calendar integration coming soon!');
+          break;
+        case 'hubspot':
+          // TODO: Implement HubSpot connection
+          console.log('HubSpot connection not yet implemented');
+          alert('HubSpot integration coming soon!');
+          break;
+        case 'mailchimp':
+          // TODO: Implement Mailchimp connection
+          console.log('Mailchimp connection not yet implemented');
+          alert('Mailchimp integration coming soon!');
+          break;
+        default:
+          console.log('Unknown integration:', integrationId);
+      }
+    } catch (error) {
+      console.error('Error connecting integration:', error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Failed to connect integration. Please try again.'
+      );
+    }
   };
 
   const getStatusBadge = (status: Integration['status']) => {

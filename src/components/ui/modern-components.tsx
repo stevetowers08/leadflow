@@ -164,7 +164,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     return (
       <button
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
         {...props}
       />
@@ -206,7 +206,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <input
         type={type}
-        className={cn(inputVariants({ variant, size, className }))}
+        className={cn(inputVariants({ variant, size }), className)}
         ref={ref}
         {...props}
       />
@@ -242,7 +242,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     return (
       <div
         ref={ref}
-        className={cn(cardVariants({ variant, className }))}
+        className={cn(cardVariants({ variant }), className)}
         {...props}
       />
     );
@@ -382,7 +382,7 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
     return (
       <div
         ref={ref}
-        className={cn(avatarVariants({ size, variant, className }))}
+        className={cn(avatarVariants({ size, variant }), className)}
         {...props}
       />
     );

@@ -50,7 +50,7 @@ const AboutPage = () => {
       description: 'Mark and track your most important leads and companies',
       benefits: [
         'Quick access to your top prospects',
-        'Never lose track of important contacts',
+        'Never lose track of important people',
         'Personalised lead management',
         'Streamlined follow-up process',
       ],

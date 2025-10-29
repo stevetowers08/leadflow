@@ -49,7 +49,7 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
   };
 
   return (
-    <div className='relative flex items-center gap-1'>
+    <div className='relative flex items-center gap-1 max-w-full'>
       {visiblePeople.map((person, index) => (
         <div
           key={person.id}
@@ -63,7 +63,7 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
               onPersonClick(person.id);
             }}
             className={cn(
-              'relative w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-medium hover:scale-110 transition-transform cursor-pointer',
+              'relative w-7 h-7 rounded-full border-2 border-transparent flex items-center justify-center text-xs font-medium hover:scale-110 transition-transform cursor-pointer',
               getAvatarColor(index)
             )}
             style={{ zIndex: maxVisible - index }}
@@ -158,9 +158,9 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
 
       {/* Remaining count badge */}
       {remainingCount > 0 && (
-        <div className='relative inline-block'>
+        <div className='relative inline-block flex-shrink-0'>
           <div
-            className='w-7 h-7 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-gray-600 text-xs font-medium hover:scale-110 transition-transform'
+            className='w-7 h-7 rounded-full border-2 border-transparent bg-gray-100 flex items-center justify-center text-gray-600 text-xs font-medium hover:scale-110 transition-transform'
             title={`${remainingCount} more person${remainingCount > 1 ? 's' : ''}`}
           >
             +{remainingCount}

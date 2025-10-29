@@ -35,7 +35,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                 'relative flex items-center gap-2 py-3 text-sm font-medium transition-colors duration-150',
                 'border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300',
                 activeTab === tab.id
-                  ? 'text-blue-600 border-blue-600'
+                  ? 'text-primary border-primary'
                   : 'text-gray-500'
               )}
             >
@@ -46,7 +46,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                   className={cn(
                     'inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full',
                     activeTab === tab.id
-                      ? 'bg-blue-100 text-blue-600'
+                      ? 'bg-primary/10 text-primary'
                       : 'bg-gray-100 text-gray-500'
                   )}
                 >

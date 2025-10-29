@@ -184,8 +184,8 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
         </div>
 
         <div className='flex gap-2'>
-          <Button variant='outline' size='sm'>
-            <Paperclip className='mr-2 h-4 w-4' />
+          <Button variant='actionbar'>
+            <Paperclip className='h-4 w-4' />
             Attach
           </Button>
           <Button
@@ -197,12 +197,12 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
           >
             {isSending ? (
               <>
-                <Send className='mr-2 h-4 w-4 animate-spin' />
+                <Send className='h-4 w-4 animate-spin' />
                 Sending...
               </>
             ) : (
               <>
-                <Send className='mr-2 h-4 w-4' />
+                <Send className='h-4 w-4' />
                 Send Email
               </>
             )}
