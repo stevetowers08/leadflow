@@ -1,4 +1,3 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,15 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Calendar,
-  CheckCircle2,
-  Database,
-  Mail,
-  MessageSquare,
-  Plug,
-  XCircle,
-} from 'lucide-react';
+import { Calendar, CheckCircle2, Mail, Users, XCircle } from 'lucide-react';
 
 interface Integration {
   id: string;
@@ -38,28 +29,28 @@ const IntegrationsPage = () => {
       category: 'email',
     },
     {
-      id: 'supabase',
-      name: 'Supabase',
-      description: 'Database and authentication backend',
-      icon: <Database className='h-5 w-5' />,
-      status: 'connected',
-      category: 'data',
-    },
-    {
-      id: 'email-templates',
-      name: 'Email Templates',
-      description: 'Manage your email templates and sequences',
-      icon: <MessageSquare className='h-5 w-5' />,
-      status: 'disconnected',
-      category: 'messaging',
-    },
-    {
-      id: 'calendar',
-      name: 'Calendar Sync',
+      id: 'google-calendar',
+      name: 'Google Calendar',
       description: 'Sync your calendar for meeting scheduling',
       icon: <Calendar className='h-5 w-5' />,
       status: 'disconnected',
       category: 'calendar',
+    },
+    {
+      id: 'hubspot',
+      name: 'HubSpot',
+      description: 'Sync contacts, companies, and deals bidirectionally',
+      icon: <Users className='h-5 w-5' />,
+      status: 'disconnected',
+      category: 'data',
+    },
+    {
+      id: 'mailchimp',
+      name: 'Mailchimp',
+      description: 'Sync contacts and manage marketing campaigns',
+      icon: <Mail className='h-5 w-5' />,
+      status: 'disconnected',
+      category: 'email',
     },
   ];
 
@@ -124,24 +115,55 @@ const IntegrationsPage = () => {
 
       <div className='grid gap-4 md:grid-cols-2'>
         {integrations.map(integration => (
-          <Card key={integration.id}>
-            <CardHeader>
-              <div className='flex items-start justify-between'>
-                <div className='flex items-center gap-3'>
-                  <div className='rounded-lg bg-gray-100 p-2'>
-                    {integration.icon}
-                  </div>
-                  <div>
-                    <CardTitle className='text-base'>
-                      {integration.name}
-                    </CardTitle>
-                    <CardDescription>{integration.description}</CardDescription>
-                  </div>
+          <Card
+            key={integration.id}
+            className='hover:border-primary/50 transition-colors'
+          >
+            <CardHeader className='pb-4'>
+              <div className='flex items-center gap-3'>
+                {/* Integration Logo */}
+                <div className='flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-white flex items-center justify-center p-2'>
+                  {integration.id === 'gmail' && (
+                    <img
+                      src='/gmail-logo.svg'
+                      alt='Gmail'
+                      className='w-full h-full object-contain'
+                    />
+                  )}
+                  {integration.id === 'google-calendar' && (
+                    <img
+                      src='/google-calendar-logo.svg'
+                      alt='Google Calendar'
+                      className='w-full h-full object-contain'
+                    />
+                  )}
+                  {integration.id === 'hubspot' && (
+                    <img
+                      src='/hubspot-logo.svg'
+                      alt='HubSpot'
+                      className='w-full h-full object-contain'
+                    />
+                  )}
+                  {integration.id === 'mailchimp' && (
+                    <img
+                      src='/mailchimp-logo.svg'
+                      alt='Mailchimp'
+                      className='w-full h-full object-contain'
+                    />
+                  )}
+                </div>
+                <div className='flex-1 min-w-0'>
+                  <CardTitle className='text-base font-semibold'>
+                    {integration.name}
+                  </CardTitle>
+                  <CardDescription className='text-sm text-muted-foreground'>
+                    {integration.description}
+                  </CardDescription>
                 </div>
                 {getStatusBadge(integration.status)}
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className='pt-0'>
               <div className='flex items-center justify-between'>
                 <Badge
                   variant='secondary'
@@ -150,7 +172,7 @@ const IntegrationsPage = () => {
                   {integration.category}
                 </Badge>
                 <Button
-                  size='sm'
+                  size='default'
                   variant={
                     integration.status === 'connected' ? 'outline' : 'default'
                   }
@@ -163,14 +185,6 @@ const IntegrationsPage = () => {
           </Card>
         ))}
       </div>
-
-      <Alert>
-        <Plug className='h-4 w-4' />
-        <AlertDescription>
-          More integrations are coming soon. Contact support to request
-          additional integrations.
-        </AlertDescription>
-      </Alert>
     </div>
   );
 };
