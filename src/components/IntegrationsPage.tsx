@@ -36,6 +36,8 @@ const IntegrationsPage = () => {
     void checkGmailStatus();
   }, [checkGmailStatus]);
 
+  // Filter integrations - only show Gmail and Google Calendar for now
+  // HubSpot and Mailchimp hidden until credentials are added
   const integrations: Integration[] = [
     {
       id: 'gmail',
@@ -53,22 +55,23 @@ const IntegrationsPage = () => {
       status: 'disconnected',
       category: 'calendar',
     },
-    {
-      id: 'hubspot',
-      name: 'HubSpot',
-      description: 'Sync contacts, companies, and deals bidirectionally',
-      icon: <Users className='h-5 w-5' />,
-      status: 'disconnected',
-      category: 'data',
-    },
-    {
-      id: 'mailchimp',
-      name: 'Mailchimp',
-      description: 'Sync contacts and manage marketing campaigns',
-      icon: <Mail className='h-5 w-5' />,
-      status: 'disconnected',
-      category: 'email',
-    },
+    // TODO: Add HubSpot and Mailchimp when credentials are ready
+    // {
+    //   id: 'hubspot',
+    //   name: 'HubSpot',
+    //   description: 'Sync contacts, companies, and deals bidirectionally',
+    //   icon: <Users className='h-5 w-5' />,
+    //   status: 'disconnected',
+    //   category: 'data',
+    // },
+    // {
+    //   id: 'mailchimp',
+    //   name: 'Mailchimp',
+    //   description: 'Sync contacts and manage marketing campaigns',
+    //   icon: <Mail className='h-5 w-5' />,
+    //   status: 'disconnected',
+    //   category: 'email',
+    // },
   ];
 
   const getCategoryColor = (category: Integration['category']) => {
@@ -99,16 +102,17 @@ const IntegrationsPage = () => {
           console.log('Google Calendar connection not yet implemented');
           alert('Google Calendar integration coming soon!');
           break;
-        case 'hubspot':
-          // TODO: Implement HubSpot connection
-          console.log('HubSpot connection not yet implemented');
-          alert('HubSpot integration coming soon!');
-          break;
-        case 'mailchimp':
-          // TODO: Implement Mailchimp connection
-          console.log('Mailchimp connection not yet implemented');
-          alert('Mailchimp integration coming soon!');
-          break;
+        // HubSpot and Mailchimp hidden until credentials are added
+        // case 'hubspot':
+        //   // TODO: Implement HubSpot connection
+        //   console.log('HubSpot connection not yet implemented');
+        //   alert('HubSpot integration coming soon!');
+        //   break;
+        // case 'mailchimp':
+        //   // TODO: Implement Mailchimp connection
+        //   console.log('Mailchimp connection not yet implemented');
+        //   alert('Mailchimp integration coming soon!');
+        //   break;
         default:
           console.log('Unknown integration:', integrationId);
       }
@@ -182,20 +186,6 @@ const IntegrationsPage = () => {
                     <img
                       src='/google-calendar-logo.svg'
                       alt='Google Calendar'
-                      className='w-full h-full object-contain'
-                    />
-                  )}
-                  {integration.id === 'hubspot' && (
-                    <img
-                      src='/hubspot-logo.svg'
-                      alt='HubSpot'
-                      className='w-full h-full object-contain'
-                    />
-                  )}
-                  {integration.id === 'mailchimp' && (
-                    <img
-                      src='/mailchimp-logo.svg'
-                      alt='Mailchimp'
                       className='w-full h-full object-contain'
                     />
                   )}
