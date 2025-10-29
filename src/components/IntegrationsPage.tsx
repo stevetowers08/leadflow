@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { secureGmailService } from '@/services/secureGmailService';
-import { Calendar, CheckCircle2, Mail, Users, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle2, Mail, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 interface Integration {
