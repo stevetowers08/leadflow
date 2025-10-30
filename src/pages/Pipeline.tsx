@@ -1313,7 +1313,7 @@ const Pipeline = () => {
         </div>
 
         {/* Tab Navigation and Filters */}
-        <div className='flex items-center justify-end gap-4 py-1 mb-2 flex-nowrap overflow-hidden'>
+        <div className='flex items-center justify-end gap-4 py-1 mb-2 flex-wrap md:flex-nowrap overflow-visible'>
           {/* Tab Navigation */}
           <div className='flex-shrink-0 mr-auto'>
             <TabNavigation
@@ -1454,7 +1454,7 @@ const Pipeline = () => {
                         behavior: 'smooth',
                       });
                     }}
-                    className='absolute left-0 top-0 bottom-8 w-32 bg-gradient-to-r from-white to-transparent hover:from-gray-50 transition-colors cursor-pointer z-20'
+                    className='absolute left-0 top-0 bottom-8 w-32 bg-gradient-to-r from-white to-transparent hover:from-gray-50 transition-colors cursor-pointer z-10'
                     aria-label='Scroll left'
                   />
                 )}
@@ -1466,7 +1466,7 @@ const Pipeline = () => {
                         behavior: 'smooth',
                       });
                     }}
-                    className='absolute right-0 top-0 bottom-8 w-32 bg-gradient-to-l from-white to-transparent hover:from-gray-50 transition-colors cursor-pointer z-20'
+                    className='absolute right-0 top-0 bottom-8 w-32 bg-gradient-to-l from-white to-transparent hover:from-gray-50 transition-colors cursor-pointer z-10'
                     aria-label='Scroll right'
                   />
                 )}
