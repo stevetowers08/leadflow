@@ -52,7 +52,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                 onPageSizeChange(Number(e.target.value));
                 onPageChange(1); // Reset to first page when changing page size
               }}
-              className='px-2 py-1 text-sm border border-gray-300 rounded hover:border-gray-400'
+              className='px-2 py-1 text-sm border border-gray-300 rounded bg-white hover:border-gray-400'
             >
               {pageSizeOptions.map(size => (
                 <option key={size} value={size}>

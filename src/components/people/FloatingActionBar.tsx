@@ -10,7 +10,6 @@
  * - Responsive design
  */
 
-import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +20,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Select,
   SelectContent,
@@ -30,10 +37,12 @@ import {
 } from '@/components/ui/select';
 import {
   Download,
-  Heart,
-  MessageCircle,
+  ListPlus,
+  Mail,
+  MoreHorizontal,
   RefreshCw,
   Trash2,
+  Workflow,
   X,
 } from 'lucide-react';
 import React, { useState } from 'react';
@@ -45,6 +54,7 @@ export interface FloatingActionBarProps {
   onFavourite: () => Promise<void>;
   onExport: () => Promise<void>;
   onSyncCRM: () => Promise<void>;
+  onSendEmail: () => Promise<void>;
   onAddToCampaign: (campaignId: string) => Promise<void>;
   onClear: () => void;
   campaigns?: Array<{ id: string; name: string }>;
@@ -57,6 +67,7 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
   onFavourite,
   onExport,
   onSyncCRM,
+  onSendEmail,
   onAddToCampaign,
   onClear,
   campaigns = [],
@@ -90,8 +101,8 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
   };
 
   const countText = isAllSelected
-    ? `All people selected`
-    : `${selectedCount} ${selectedCount === 1 ? 'person' : 'people'} selected`;
+    ? `All selected`
+    : `${selectedCount} selected`;
 
   return (
     <>
@@ -101,106 +112,81 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
         role='toolbar'
         aria-label='Bulk actions toolbar'
       >
-        <div className='bg-primary text-primary-foreground rounded-lg shadow-2xl border border-primary/20'>
-          <div className='flex items-center gap-4 px-6 py-4'>
-            {/* Selection Count */}
-            <div className='flex items-center gap-2 text-sm font-medium'>
-              <span>{countText}</span>
+        <div className='rounded-xl shadow-xl border bg-background text-foreground'>
+          <div className='flex items-center gap-3 px-3 py-2'>
+            {/* Count pill */}
+            <div className='inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-sm font-medium'>
+              <span>{isAllSelected ? 'All' : selectedCount}</span>
+              <span className='text-muted-foreground'>selected</span>
             </div>
 
-            {/* Divider */}
-            <div className='h-6 w-px bg-primary-foreground/20' />
-
-            {/* Actions */}
-            <div className='flex items-center gap-2'>
-              {/* Favourite */}
+            {/* Add to list */}
+            {campaigns.length > 0 && (
               <Button
-                variant='ghost'
+                variant='secondary'
                 size='sm'
-                onClick={() => handleAction('favourite', onFavourite)}
+                onClick={() => setShowCampaignSelect(true)}
                 disabled={loading !== null}
-                className='text-primary-foreground hover:bg-primary-foreground/10'
-                title='Add to favourites'
+                className='gap-2'
               >
-                <Heart className='h-4 w-4 mr-2' />
-                Favourite
+                <ListPlus className='h-4 w-4' />
+                Add to list
               </Button>
+            )}
 
-              {/* Export CSV */}
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => handleAction('export', onExport)}
-                disabled={loading !== null}
-                className='text-primary-foreground hover:bg-primary-foreground/10'
-                title='Export to CSV'
-              >
-                <Download className='h-4 w-4 mr-2' />
-                Export
-              </Button>
-
-              {/* Sync to CRM */}
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => handleAction('sync', onSyncCRM)}
-                disabled={loading !== null}
-                className='text-primary-foreground hover:bg-primary-foreground/10'
-                title='Sync to CRM via n8n'
-              >
-                <RefreshCw className='h-4 w-4 mr-2' />
-                Sync CRM
-              </Button>
-
-              {/* Add to Campaign */}
-              {campaigns.length > 0 && (
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={() => setShowCampaignSelect(true)}
-                  disabled={loading !== null}
-                  className='text-primary-foreground hover:bg-primary-foreground/10'
-                  title='Add to campaign'
-                >
-                  <MessageCircle className='h-4 w-4 mr-2' />
-                  Campaign
-                </Button>
-              )}
-
-              {/* Delete */}
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => setShowDeleteDialog(true)}
-                disabled={loading !== null}
-                className='text-primary-foreground hover:bg-destructive hover:text-destructive-foreground'
-                title='Delete selected'
-              >
-                <Trash2 className='h-4 w-4 mr-2' />
-                Delete
-              </Button>
-            </div>
-
-            {/* Divider */}
-            <div className='h-6 w-px bg-primary-foreground/20' />
-
-            {/* Clear Selection */}
+            {/* Send email (placeholder – caller can replace later) */}
             <Button
-              variant='ghost'
+              variant='secondary'
               size='sm'
-              onClick={onClear}
+              onClick={() => handleAction('email', onSendEmail)}
               disabled={loading !== null}
-              className='text-primary-foreground hover:bg-primary-foreground/10'
-              title='Clear selection'
+              className='gap-2'
             >
-              <X className='h-4 w-4' />
+              <Mail className='h-4 w-4' />
+              Send email
             </Button>
+
+            {/* Run workflow */}
+            <Button
+              variant='secondary'
+              size='sm'
+              onClick={() => handleAction('sync', onSyncCRM)}
+              disabled={loading !== null}
+              className='gap-2'
+            >
+              <Workflow className='h-4 w-4' />
+              Run workflow
+            </Button>
+
+            {/* More */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant='secondary' size='sm' className='gap-2'>
+                  More
+                  <MoreHorizontal className='h-4 w-4' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='start'>
+                <DropdownMenuItem
+                  onClick={() => handleAction('export', onExport)}
+                >
+                  <Download className='h-4 w-4 mr-2' /> Export CSV
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowDeleteDialog(true)}>
+                  <Trash2 className='h-4 w-4 mr-2' /> Delete
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onClear}>
+                  <X className='h-4 w-4 mr-2' /> Clear selection
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          {/* Loading Indicator */}
           {loading && (
-            <div className='absolute inset-0 bg-primary/80 rounded-lg flex items-center justify-center'>
-              <div className='flex items-center gap-2 text-primary-foreground'>
+            <div className='absolute inset-0 bg-background/80 rounded-xl flex items-center justify-center'>
+              <div className='flex items-center gap-2'>
                 <RefreshCw className='h-4 w-4 animate-spin' />
                 <span className='text-sm font-medium'>Processing...</span>
               </div>

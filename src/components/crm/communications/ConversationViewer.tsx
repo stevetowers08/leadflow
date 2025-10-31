@@ -354,7 +354,7 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
             <input
               type='text'
               placeholder='Type your reply...'
-              className='w-full px-5 py-4 bg-background border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 shadow-sm hover:shadow-md'
+              className='w-full px-5 py-4 bg-background border border-border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 shadow-sm hover:shadow-md'
             />
           </div>
           <div className='flex items-center gap-2'>

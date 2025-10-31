@@ -126,7 +126,7 @@ export class DashboardServiceOptimized {
               .from('people')
               .select(
                 `
-              id, name, email_address, company_role, employee_location, stage, 
+              id, name, email_address, company_role, employee_location, people_stage, 
               lead_score, owner_id, created_at, is_favourite, last_interaction_at,
               companies!left(name, logo_url, website)
             `

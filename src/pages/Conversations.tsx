@@ -16,6 +16,7 @@ import {
   User,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 interface EmailThread {
   id: string;
@@ -48,6 +49,7 @@ interface EmailMessage {
 
 const ConversationsPage: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [activeView, setActiveView] = useState('inbox');
   const [threads, setThreads] = useState<EmailThread[]>([]);
   const [selectedThread, setSelectedThread] = useState<EmailThread | null>(
@@ -101,6 +103,35 @@ const ConversationsPage: React.FC = () => {
       loadPeople();
     }
   }, [showCompose]);
+
+  // Open compose via URL params: /conversations?compose=1&toIds=a,b,c
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('compose') === '1') {
+      setShowCompose(true);
+      const toIds = params.get('toIds');
+      if (toIds) {
+        const idList = toIds.split(',').filter(Boolean);
+        if (idList.length > 0) {
+          (async () => {
+            const { data, error } = await supabase
+              .from('people')
+              .select('id, email_address')
+              .in('id', idList)
+              .not('email_address', 'is', null);
+            if (!error && data) {
+              const emails = data
+                .map(p => p.email_address)
+                .filter((e): e is string => !!e);
+              if (emails.length > 0) {
+                setComposeEmail(prev => ({ ...prev, to: emails.join(',') }));
+              }
+            }
+          })();
+        }
+      }
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (searchPeople) {
@@ -260,7 +291,7 @@ const ConversationsPage: React.FC = () => {
         .from('user_settings')
         .select('preferences')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
 
@@ -310,10 +341,10 @@ const ConversationsPage: React.FC = () => {
   return (
     <div className='flex bg-white h-full overflow-hidden'>
       {/* Left Sidebar - Simplified */}
-      <div className='w-56 bg-gray-50 border-r border-gray-200 flex flex-col flex-shrink-0'>
+      <div className='w-56 bg-gray-50 flex flex-col flex-shrink-0'>
         {/* Search Section */}
-        <div className='p-4 border-b border-gray-200'>
-          <div className='relative'>
+        <div className='h-16 border-b border-gray-200 flex items-center px-4'>
+          <div className='relative w-full'>
             <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
             <Input
               placeholder='Search conversations'
@@ -323,7 +354,7 @@ const ConversationsPage: React.FC = () => {
         </div>
 
         {/* Navigation Items - Simplified */}
-        <div className='flex-1 p-3'>
+        <div className='flex-1 p-3 overflow-y-auto'>
           <div className='space-y-1'>
             {[
               {
@@ -372,8 +403,8 @@ const ConversationsPage: React.FC = () => {
 
       {/* Middle Panel - Thread List */}
       <div className='w-80 flex flex-col bg-white flex-shrink-0 border-l border-gray-200'>
-        <div className='p-4 border-b border-gray-200 bg-white'>
-          <div className='flex items-center justify-between'>
+        <div className='h-16 border-b border-gray-200 bg-white flex items-center px-4'>
+          <div className='flex items-center justify-between w-full'>
             <h2 className='text-sm font-semibold text-gray-900'>
               Conversations
             </h2>
@@ -463,8 +494,8 @@ const ConversationsPage: React.FC = () => {
         {selectedThread ? (
           <>
             {/* Thread Header */}
-            <div className='p-4 border-b border-gray-200 bg-white'>
-              <div className='flex items-start justify-between mb-3'>
+            <div className='h-16 border-b border-gray-200 bg-white flex items-center px-4'>
+              <div className='flex items-center justify-between w-full'>
                 <div className='flex-1'>
                   <div className='flex items-center gap-3 mb-2'>
                     <div className='w-8 h-8 bg-gradient-to-br from-primary to-primary-hover rounded-full flex items-center justify-center'>
@@ -638,7 +669,7 @@ const ConversationsPage: React.FC = () => {
                 value={replyText}
                 onChange={e => setReplyText(e.target.value)}
                 disabled={isSending}
-                className='w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:cursor-not-allowed'
+                className='w-full p-3 border border-gray-300 rounded-lg resize-none bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500'
                 rows={4}
               />
               <div className='flex items-center justify-end gap-3 mt-3'>

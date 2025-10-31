@@ -4,6 +4,7 @@
  * Uses OnboardingDashboard design style with real database checks
  */
 
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
 import { Page } from '@/design-system/components';
@@ -69,6 +70,7 @@ export default function GettingStarted() {
   ]);
 
   const [loading, setLoading] = useState(true);
+  const [newlyCompleted, setNewlyCompleted] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const checkProgress = async () => {
@@ -85,17 +87,30 @@ export default function GettingStarted() {
             checkFirstMessageSent(),
           ]);
 
-        setSteps(prev =>
-          prev.map(step => {
-            if (step.id === 'gmail')
-              return { ...step, completed: gmailConnected };
-            if (step.id === 'job_filtering')
-              return { ...step, completed: jobFilterSet };
-            if (step.id === 'first_message')
-              return { ...step, completed: hasSentMessage };
-            return step;
-          })
-        );
+        setSteps(prev => {
+          const updated = prev.map(step => {
+            const wasCompleted = step.completed;
+            let isCompleted = step.completed;
+
+            if (step.id === 'gmail') isCompleted = gmailConnected;
+            if (step.id === 'job_filtering') isCompleted = jobFilterSet;
+            if (step.id === 'first_message') isCompleted = hasSentMessage;
+
+            if (!wasCompleted && isCompleted) {
+              setNewlyCompleted(prevSet => new Set(prevSet).add(step.id));
+              setTimeout(() => {
+                setNewlyCompleted(prevSet => {
+                  const next = new Set(prevSet);
+                  next.delete(step.id);
+                  return next;
+                });
+              }, 2000);
+            }
+
+            return { ...step, completed: isCompleted };
+          });
+          return updated;
+        });
       } catch (error) {
         console.error('Error checking progress:', error);
       } finally {
@@ -109,9 +124,18 @@ export default function GettingStarted() {
   const completedCount = steps.filter(s => s.completed).length;
   const progressPercentage = (completedCount / steps.length) * 100;
 
-  const getStatusIcon = (completed: boolean) => {
+  const getStatusIcon = (completed: boolean, stepId: string) => {
     if (completed) {
-      return <CheckCircle className='h-5 w-5 text-green-600' />;
+      const isNewlyCompleted = newlyCompleted.has(stepId);
+      return (
+        <CheckCircle
+          className={`h-5 w-5 text-green-600 transition-all ${
+            isNewlyCompleted
+              ? 'animate-[bounce_0.6s_ease-out,scale-110_0.6s_ease-out]'
+              : ''
+          }`}
+        />
+      );
     }
     return <Circle className='h-5 w-5 text-gray-400' />;
   };
@@ -133,23 +157,36 @@ export default function GettingStarted() {
           </h2>
           <p className='text-sm text-gray-700 mb-3 leading-relaxed'>
             An <strong className='font-semibold'>AI-powered</strong> B2B
-            sales-focused recruitment tool that helps recruiters and agencies
-            identify companies with open positions, qualify them as potential
-            clients, and reach out to decision makers. It bridges the gap
-            between job discovery and business development.
+            platform that helps recruiters and agencies turn job postings into
+            clients fast. It bridges the gap between job discovery and business
+            development so you can focus on winning deals.
           </p>
           <p className='text-sm text-gray-700 leading-relaxed'>
-            Rather than a full ATS (Applicant Tracking System), this focuses on
-            business development. You browse pre-filtered job postings to
-            identify companies who are hiring.{' '}
-            <strong className='font-semibold'>AI automatically finds</strong>{' '}
-            the right decision makers at those companies and{' '}
             <strong className='font-semibold'>
-              generates personalised messages
+              AI automatically discovers
             </strong>{' '}
-            ready to use—either individually or via email campaigns—turning job
-            postings into new clients.
+            companies hiring,
+            <strong className='font-semibold'>
+              {' '}
+              identifies decision makers
+            </strong>
+            , and
+            <strong className='font-semibold'>
+              {' '}
+              drafts personalised messages
+            </strong>
+            , saving you hours of manual work and accelerating outreach from
+            discovery to closed deals.
           </p>
+          <div className='mt-6'>
+            <Button
+              onClick={() => navigate('/settings/job-filtering')}
+              className='bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2'
+            >
+              Begin Job Discovery
+              <ArrowRight className='ml-2 h-4 w-4' />
+            </Button>
+          </div>
         </div>
 
         {/* How It Works */}
@@ -168,7 +205,7 @@ export default function GettingStarted() {
                 <h3 className='font-semibold text-base text-foreground mb-2'>
                   Discover & Qualify Jobs
                 </h3>
-                <p className='text-sm text-muted-foreground'>
+                <p className='text-sm text-muted-foreground mb-3'>
                   Browse pre-filtered job postings from LinkedIn that match your
                   criteria. Qualify promising deals to automatically add
                   companies to your pipeline.
@@ -186,7 +223,7 @@ export default function GettingStarted() {
                 <h3 className='font-semibold text-base text-foreground mb-2'>
                   Review Companies
                 </h3>
-                <p className='text-sm text-muted-foreground'>
+                <p className='text-sm text-muted-foreground mb-3'>
                   System automatically creates company records when you qualify
                   jobs. Review your pipeline and identify the best deals.
                 </p>
@@ -203,7 +240,7 @@ export default function GettingStarted() {
                 <h3 className='font-semibold text-base text-foreground mb-2'>
                   Find Decision Makers
                 </h3>
-                <p className='text-sm text-muted-foreground'>
+                <p className='text-sm text-muted-foreground mb-3'>
                   AI automatically enriches LinkedIn data to identify hiring
                   managers, CTOs, HR directors, and department heads who need
                   recruitment services.
@@ -221,7 +258,7 @@ export default function GettingStarted() {
                 <h3 className='font-semibold text-base text-foreground mb-2'>
                   Generate Messages
                 </h3>
-                <p className='text-sm text-muted-foreground'>
+                <p className='text-sm text-muted-foreground mb-3'>
                   AI creates personalised messages that reference their role and
                   the job. Review and edit for authenticity before sending.
                 </p>
@@ -238,7 +275,7 @@ export default function GettingStarted() {
                 <h3 className='font-semibold text-base text-foreground mb-2'>
                   Send & Track
                 </h3>
-                <p className='text-sm text-muted-foreground'>
+                <p className='text-sm text-muted-foreground mb-3'>
                   Send individually via Gmail or launch email campaigns to
                   multiple people. AI tracks email replies and automatically
                   moves leads through the pipeline—or move them manually.
@@ -256,7 +293,7 @@ export default function GettingStarted() {
                 <h3 className='font-semibold text-base text-foreground mb-2'>
                   Close Deals
                 </h3>
-                <p className='text-sm text-muted-foreground'>
+                <p className='text-sm text-muted-foreground mb-3'>
                   Convert interested companies into clients. Track meetings,
                   proposals, and closed deals throughout your pipeline.
                 </p>
@@ -277,7 +314,10 @@ export default function GettingStarted() {
                 : `${completedCount} of ${steps.length} completed`}
             </span>
           </div>
-          <Progress value={progressPercentage} className='mb-3 h-2' />
+          <Progress
+            value={progressPercentage}
+            className='mb-3 h-2 transition-all duration-500 ease-out'
+          />
           <div className='flex items-center gap-2 text-sm text-gray-700'>
             <CheckCircle className='h-4 w-4 text-green-600' />
             <span>{Math.round(progressPercentage)}% complete</span>
@@ -288,26 +328,59 @@ export default function GettingStarted() {
         <div className='space-y-3'>
           {steps.map(step => {
             const Icon = step.icon;
+            const isPrimaryStep = step.id === 'job_filtering';
             return (
               <div
                 key={step.id}
-                className='p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 hover:shadow-md transition-all duration-200 group'
+                className={`relative p-4 bg-white rounded-lg cursor-pointer hover:shadow-md transition-all duration-200 group ${
+                  isPrimaryStep
+                    ? 'border-2 border-blue-500 shadow-md bg-gradient-to-r from-blue-50/50 to-white'
+                    : 'border border-gray-200 hover:bg-gray-100'
+                }`}
                 onClick={() => navigate(step.href)}
               >
-                <div className='flex items-center gap-3'>
-                  <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center group-hover:bg-primary/10 group-hover:border-primary/20 transition-all'>
-                    <Icon className='h-5 w-5 text-gray-600 group-hover:text-primary' />
+                {isPrimaryStep && (
+                  <div className='absolute -top-2 -left-2 bg-blue-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1'>
+                    <ArrowRight className='h-3 w-3 rotate-[-45deg]' />
+                    Start here
                   </div>
-                  {getStatusIcon(step.completed)}
+                )}
+                <div className='flex items-center gap-3'>
+                  <div
+                    className={`flex-shrink-0 w-10 h-10 rounded-lg border flex items-center justify-center transition-all ${
+                      isPrimaryStep
+                        ? 'bg-blue-50 border-blue-300 group-hover:bg-blue-100 group-hover:border-blue-400'
+                        : 'bg-gray-50 border-gray-200 group-hover:bg-primary/10 group-hover:border-primary/20'
+                    }`}
+                  >
+                    <Icon
+                      className={`h-5 w-5 transition-all ${
+                        isPrimaryStep
+                          ? 'text-blue-600 group-hover:text-blue-700'
+                          : 'text-gray-600 group-hover:text-primary'
+                      }`}
+                    />
+                  </div>
+                  {getStatusIcon(step.completed, step.id)}
                   <div className='flex-1'>
-                    <h3 className='font-semibold text-sm text-gray-900'>
+                    <h3
+                      className={`font-semibold text-sm ${
+                        isPrimaryStep ? 'text-blue-900' : 'text-gray-900'
+                      }`}
+                    >
                       {step.title}
                     </h3>
                     <p className='text-xs text-gray-600 mt-0.5'>
                       {step.description}
                     </p>
                   </div>
-                  <ArrowRight className='h-4 w-4 text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0' />
+                  <ArrowRight
+                    className={`h-4 w-4 flex-shrink-0 group-hover:translate-x-1 transition-all ${
+                      isPrimaryStep
+                        ? 'text-blue-500 group-hover:text-blue-600'
+                        : 'text-gray-400 group-hover:text-primary'
+                    }`}
+                  />
                 </div>
               </div>
             );

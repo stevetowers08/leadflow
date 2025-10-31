@@ -373,6 +373,167 @@ export const useDashboardStats = (options: QueryOptions = {}) => {
   });
 };
 
+// Job Discovery metrics for dashboard KPIs
+export const useJobDiscoveryMetrics = (options: QueryOptions = {}) => {
+  return useQuery({
+    queryKey: ['dashboard', 'job-discovery-metrics'],
+    queryFn: async () => {
+      const now = new Date();
+      const startOfToday = new Date(now);
+      startOfToday.setHours(0, 0, 0, 0);
+      const endOfToday = new Date(startOfToday);
+      endOfToday.setDate(endOfToday.getDate() + 1);
+
+      const startOfWeek = new Date(now);
+      const day = startOfWeek.getDay();
+      const diff = (day === 0 ? -6 : 1) - day; // Monday start
+      startOfWeek.setDate(startOfWeek.getDate() + diff);
+      startOfWeek.setHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 7);
+
+      const tStart = startOfToday.toISOString();
+      const tEnd = endOfToday.toISOString();
+      const wStart = startOfWeek.toISOString();
+      const wEnd = endOfWeek.toISOString();
+
+      const [
+        // Today
+        analyzedToday,
+        qualifiedToday,
+        reviewedToday,
+        nonExecToday,
+        indeedToday,
+        linkedinToday,
+        // This week
+        analyzedWeek,
+        qualifiedWeek,
+        reviewedWeek,
+        nonExecWeek,
+        indeedWeek,
+        linkedinWeek,
+      ] = await Promise.all([
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', tStart)
+          .lt('created_at', tEnd),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .eq('qualification_status', 'qualify')
+          .gte('created_at', tStart)
+          .lt('created_at', tEnd),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .in('qualification_status', ['qualify', 'skip'])
+          .gte('created_at', tStart)
+          .lt('created_at', tEnd),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .eq('qualification_status', 'skip')
+          .or(
+            `seniority_level.neq.executive,filter_reason.ilike.%non-executive%`
+          )
+          .gte('created_at', tStart)
+          .lt('created_at', tEnd),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .or(`source.eq.Indeed,job_url.ilike.%indeed.%`)
+          .gte('created_at', tStart)
+          .lt('created_at', tEnd),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .or(
+            `source.eq.LinkedIn,linkedin_job_id.not.is.null,job_url.ilike.%linkedin.%`
+          )
+          .gte('created_at', tStart)
+          .lt('created_at', tEnd),
+
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', wStart)
+          .lt('created_at', wEnd),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .eq('qualification_status', 'qualify')
+          .gte('created_at', wStart)
+          .lt('created_at', wEnd),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .in('qualification_status', ['qualify', 'skip'])
+          .gte('created_at', wStart)
+          .lt('created_at', wEnd),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .eq('qualification_status', 'skip')
+          .or(
+            `seniority_level.neq.executive,filter_reason.ilike.%non-executive%`
+          )
+          .gte('created_at', wStart)
+          .lt('created_at', wEnd),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .or(`source.eq.Indeed,job_url.ilike.%indeed.%`)
+          .gte('created_at', wStart)
+          .lt('created_at', wEnd),
+        supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .or(
+            `source.eq.LinkedIn,linkedin_job_id.not.is.null,job_url.ilike.%linkedin.%`
+          )
+          .gte('created_at', wStart)
+          .lt('created_at', wEnd),
+      ]);
+
+      const todayAnalyzed = analyzedToday.count || 0;
+      const todayQualified = qualifiedToday.count || 0;
+      const todayReviewed = reviewedToday.count || 0;
+      const todayRate =
+        todayReviewed > 0
+          ? Math.round((todayQualified / todayReviewed) * 100)
+          : 0;
+
+      const weekAnalyzed = analyzedWeek.count || 0;
+      const weekQualified = qualifiedWeek.count || 0;
+      const weekReviewed = reviewedWeek.count || 0;
+      const weekRate =
+        weekReviewed > 0 ? Math.round((weekQualified / weekReviewed) * 100) : 0;
+
+      return {
+        today: {
+          analyzed: todayAnalyzed,
+          qualificationRatePercent: todayRate,
+          nonExecutiveFiltered: nonExecToday.count || 0,
+          indeedOpportunities: indeedToday.count || 0,
+          linkedinOpportunities: linkedinToday.count || 0,
+        },
+        week: {
+          analyzed: weekAnalyzed,
+          qualificationRatePercent: weekRate,
+          nonExecutiveFiltered: nonExecWeek.count || 0,
+          indeedOpportunities: indeedWeek.count || 0,
+          linkedinOpportunities: linkedinWeek.count || 0,
+        },
+      };
+    },
+    enabled: options.enabled !== false,
+    staleTime: options.staleTime || 60 * 1000,
+    cacheTime: options.cacheTime || 5 * 60 * 1000,
+    refetchOnWindowFocus: options.refetchOnWindowFocus || false,
+  });
+};
+
 // Infinite query for large datasets
 export const useInfiniteLeads = (
   sort: SortParams,

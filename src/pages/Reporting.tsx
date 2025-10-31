@@ -243,7 +243,7 @@ export default function Reporting() {
           onValueChange={setActiveTab}
           className='space-y-6'
         >
-          <TabsList className='grid w-full max-w-4xl grid-cols-3'>
+          <TabsList className='flex space-x-8'>
             <TabsTrigger value='jobs' className='flex items-center gap-2'>
               <Briefcase className='h-4 w-4' />
               Jobs Discovery

@@ -10,6 +10,7 @@
 
 import { AllCompanyNotesButton } from '@/components/companies/AllCompanyNotesButton';
 import { GlobalSearchDropdown } from '@/components/search/GlobalSearchDropdown';
+import { NotificationCenter } from '@/components/shared/NotificationCenter';
 import { RecentActivityButton } from '@/components/shared/RecentActivityButton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { Bell, LogIn, LogOut, Menu } from 'lucide-react';
+import { LogIn, LogOut, Menu } from 'lucide-react';
 
 interface TopNavigationBarProps {
   pageTitle: string;
@@ -71,13 +72,7 @@ export const TopNavigationBar = ({
 
           {/* Right Section - Actions */}
           <div className='flex items-center gap-1'>
-            <Button
-              variant='ghost'
-              size='icon'
-              className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
-            >
-              <Bell className='h-4 w-4' />
-            </Button>
+            <NotificationCenter />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -126,20 +121,14 @@ export const TopNavigationBar = ({
         <div className='relative flex items-center w-full'>
           {/* Center Section - Search Bar */}
           <div className='absolute left-1/2 -translate-x-1/2'>
-            <div className='w-full max-w-2xl'>
-              <GlobalSearchDropdown />
+            <div className='w-full max-w-6xl'>
+              <GlobalSearchDropdown className='w-full max-w-6xl' />
             </div>
           </div>
 
           {/* Right Section - Actions + User Profile */}
           <div className='flex items-center gap-2 ml-auto'>
-            <Button
-              variant='ghost'
-              size='icon'
-              className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
-            >
-              <Bell className='h-4 w-4' />
-            </Button>
+            <NotificationCenter />
             <RecentActivityButton />
             <AllCompanyNotesButton />
             <div className='mx-1 h-6 w-px bg-gray-300' aria-hidden='true' />

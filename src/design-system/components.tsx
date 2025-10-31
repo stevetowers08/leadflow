@@ -234,7 +234,7 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
           className
         )}
       >
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-3'>
           {/* Status Multi-Select - if enabled */}
           {useMultiSelectStatus && onMultiSelectStatusChange ? (
             <MultiSelectDropdown

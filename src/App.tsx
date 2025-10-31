@@ -6,6 +6,7 @@ import {
   useGlobalErrorHandler,
   usePerformanceMonitoring,
 } from './hooks/useGlobalErrorHandler';
+import { useNotificationTriggers } from './hooks/useNotificationTriggers';
 import { initializeConsoleFilter } from './utils/consoleFilter';
 import {
   initializeErrorHandling,
@@ -71,6 +72,8 @@ const AppRoutes = () => {
   // Enable error logging and performance monitoring
   useGlobalErrorHandler();
   usePerformanceMonitoring();
+  // Initialize notification triggers (meeting reminders, follow-ups)
+  useNotificationTriggers();
 
   const { user, userProfile, loading } = useAuth();
   const authConfig = getAuthConfig();

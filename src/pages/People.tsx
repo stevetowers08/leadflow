@@ -44,6 +44,7 @@ import {
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { CheckCircle, Sparkles, Target, Users, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Define status arrays as constants to prevent recreation on every render
 const PEOPLE_STATUS_OPTIONS: string[] = [
@@ -60,6 +61,7 @@ const PEOPLE_STATUS_OPTIONS: string[] = [
 const People: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // State management
   const [people, setPeople] = useState<Person[]>([]);
@@ -410,6 +412,19 @@ const People: React.FC = () => {
     });
   }, [bulkSelection, filteredPeople, toast]);
 
+  const handleBulkSendEmail = useCallback(async () => {
+    const selectedIds = bulkSelection.getSelectedIds(
+      filteredPeople.map(p => p.id)
+    );
+    if (selectedIds.length === 0) {
+      toast({ title: 'Select at least one contact' });
+      return;
+    }
+    // Route to Conversations composer with selected person IDs
+    const toIdsParam = encodeURIComponent(selectedIds.join(','));
+    navigate(`/conversations?compose=1&toIds=${toIdsParam}`);
+  }, [bulkSelection, filteredPeople, navigate, toast]);
+
   const handleBulkSyncCRM = useCallback(async () => {
     const idsToSync = bulkSelection.getSelectedIds(
       filteredPeople.map(p => p.id)
@@ -533,9 +548,9 @@ const People: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [bulkSelection, paginatedPeople]);
 
-  // Calculate actual selected count
+  // Calculate actual selected count (resolves select-all against all filtered rows)
   const actualSelectedCount = bulkSelection.getSelectedIds(
-    paginatedPeople.map(p => p.id)
+    filteredPeople.map(p => p.id)
   ).length;
 
   // Memoized checkbox render to prevent re-renders
@@ -897,6 +912,7 @@ const People: React.FC = () => {
           <UnifiedTable
             data={paginatedPeople}
             columns={columns}
+            tableId='people'
             pagination={false} // We handle pagination externally
             stickyHeaders={true}
             scrollable={true}
@@ -949,6 +965,7 @@ const People: React.FC = () => {
         onFavourite={handleBulkFavourite}
         onExport={handleBulkExport}
         onSyncCRM={handleBulkSyncCRM}
+        onSendEmail={handleBulkSendEmail}
         onAddToCampaign={handleBulkAddToCampaign}
         onClear={bulkSelection.deselectAll}
         campaigns={campaigns}

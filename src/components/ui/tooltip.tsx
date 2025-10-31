@@ -1,28 +1,45 @@
 import * as React from 'react';
-import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-
 import { cn } from '@/lib/utils';
 
-const TooltipProvider = TooltipPrimitive.Provider;
+// Lightweight fallback tooltip to avoid Radix optimize errors during dev
+export const TooltipProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => <>{children}</>;
 
-const Tooltip = TooltipPrimitive.Root;
+export const Tooltip: React.FC<
+  { children: React.ReactNode } & React.HTMLAttributes<HTMLDivElement>
+> = ({ children }) => <>{children}</>;
 
-const TooltipTrigger = TooltipPrimitive.Trigger;
-
-const TooltipContent = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => (
-  <TooltipPrimitive.Content
-    ref={ref}
-    sideOffset={sideOffset}
-    className={cn(
-      'z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-      className
-    )}
-    {...props}
-  />
+export const TooltipTrigger = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { asChild?: boolean }
+>(({ asChild, children, ...props }, ref) => (
+  <div ref={ref} {...props}>
+    {children}
+  </div>
 ));
-TooltipContent.displayName = TooltipPrimitive.Content.displayName;
+TooltipTrigger.displayName = 'TooltipTrigger';
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };
+export const TooltipContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    side?: 'top' | 'right' | 'bottom' | 'left';
+    align?: 'start' | 'center' | 'end';
+    hidden?: boolean;
+  }
+>(({ className, hidden, children, ...props }, ref) =>
+  hidden ? null : (
+    <div
+      ref={ref}
+      role='tooltip'
+      className={cn(
+        'z-50 rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+);
+TooltipContent.displayName = 'TooltipContent';

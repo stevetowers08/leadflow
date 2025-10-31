@@ -16,10 +16,18 @@ import { Job } from '@/types/database';
 import { useNavigate } from 'react-router-dom';
 // Removed deprecated jobStatus import - using statusUtils instead
 import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
+// Temporarily avoid Tooltip to resolve Vite optimize dep error
+import { serverAIService } from '@/services/serverAIService';
 import { formatLocation } from '@/utils/locationDisplay';
 import { format } from 'date-fns';
-import { Sparkles } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ChevronRight, Sparkles } from 'lucide-react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 // Job filtering function (comprehensive version)
 function applyJobFilters(
@@ -212,6 +220,66 @@ const Jobs: React.FC = () => {
 
   // Debounced search term for better performance
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // AI summary generation state per job
+  const [generatingSummaryById, setGeneratingSummaryById] = useState<
+    Record<string, boolean>
+  >({});
+  const [failedSummaryById, setFailedSummaryById] = useState<
+    Record<string, boolean>
+  >({});
+  const processedSummaryIdsRef = useRef<Set<string>>(new Set());
+
+  const triggerGenerateSummary = useCallback(
+    async (job: Job) => {
+      if (!job.id || generatingSummaryById[job.id]) return;
+      if (!job.description || job.summary) return;
+      if (processedSummaryIdsRef.current.has(job.id)) return;
+
+      setGeneratingSummaryById(prev => ({ ...prev, [job.id]: true }));
+      try {
+        const response = await serverAIService.generateJobSummary({
+          id: job.id,
+          title: job.title || '',
+          company: job.companies?.name || 'Unknown Company',
+          description: job.description || '',
+          location: job.location || undefined,
+          salary: job.salary || undefined,
+          employment_type: job.employment_type || undefined,
+          seniority_level: job.seniority_level || undefined,
+        });
+
+        if (response.success && response.data?.summary) {
+          // Persist to Supabase
+          await supabase
+            .from('jobs')
+            .update({
+              summary: response.data.summary,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', job.id);
+
+          // Update local state
+          setJobs(prev =>
+            prev.map(j =>
+              j.id === job.id ? { ...j, summary: response.data!.summary } : j
+            )
+          );
+          processedSummaryIdsRef.current.add(job.id);
+          setFailedSummaryById(prev => ({ ...prev, [job.id]: false }));
+        } else {
+          setFailedSummaryById(prev => ({ ...prev, [job.id]: true }));
+        }
+      } catch (e) {
+        setFailedSummaryById(prev => ({ ...prev, [job.id]: true }));
+      } finally {
+        setGeneratingSummaryById(prev => ({ ...prev, [job.id]: false }));
+      }
+    },
+    [generatingSummaryById]
+  );
+
+  // (moved below after paginatedJobs definition)
 
   // Tab options - focused on qualification status
   const tabOptions = useMemo(
@@ -435,6 +503,16 @@ const Jobs: React.FC = () => {
   const endIndex = startIndex + pageSize;
   const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
 
+  // Auto-generate AI summaries for visible jobs on load/page change
+  useEffect(() => {
+    paginatedJobs.forEach(job => {
+      if (!job.summary && job.description) {
+        void triggerGenerateSummary(job);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paginatedJobs]);
+
   // Update tab counts - memoized to prevent re-renders (use client-specific status)
   const tabCounts = useMemo(() => {
     const counts = {
@@ -463,7 +541,10 @@ const Jobs: React.FC = () => {
       minWidth: '120px',
       cellType: 'status',
       align: 'center',
-      getStatusValue: job => job.client_jobs?.[0]?.status || 'new',
+      getStatusValue: job => {
+        const s = job.client_jobs?.[0]?.status || 'new';
+        return s ? `job-${s}` : 'job-new';
+      },
       render: (_, job) => {
         return (
           <JobQualificationTableDropdown
@@ -491,6 +572,7 @@ const Jobs: React.FC = () => {
           <div className='font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
             {job.companies?.name || '-'}
           </div>
+          <ChevronRight className='h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity' />
         </div>
       ),
     },
@@ -563,6 +645,43 @@ const Jobs: React.FC = () => {
       render: (_, job) => (
         <ScoreBadge score={job.companies?.lead_score} variant='compact' />
       ),
+    },
+    {
+      key: 'ai_summary',
+      label: (
+        <span className='flex items-center gap-1'>
+          <Sparkles className='h-3 w-3' /> Job Summary
+        </span>
+      ),
+      width: '520px',
+      cellType: 'regular',
+      render: (_, job) => {
+        const isGenerating = generatingSummaryById[job.id || ''] || false;
+        if (job.summary && !isGenerating) {
+          return (
+            <div
+              className='text-sm text-foreground whitespace-nowrap overflow-hidden text-ellipsis'
+              title={job.summary}
+            >
+              {job.summary}
+            </div>
+          );
+        }
+        if (isGenerating) {
+          return (
+            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <Sparkles className='h-4 w-4 animate-pulse' />
+              <span className='animate-pulse'>Generating your summary…</span>
+            </div>
+          );
+        }
+        // On error or no description, show simple dash per spec
+        if (failedSummaryById[job.id || ''] || !job.description) {
+          return <span className='text-sm text-muted-foreground'>-</span>;
+        }
+        // Default (no summary yet but has description): show dash until generator kicks in
+        return <span className='text-sm text-muted-foreground'>-</span>;
+      },
     },
     {
       key: 'posted',
@@ -713,6 +832,7 @@ const Jobs: React.FC = () => {
           <UnifiedTable
             data={paginatedJobs}
             columns={columns}
+            tableId='jobs'
             pagination={false} // We handle pagination externally
             stickyHeaders={true}
             scrollable={true}

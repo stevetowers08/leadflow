@@ -158,7 +158,7 @@ export class DashboardService {
           email_address,
           company_role,
           employee_location,
-          stage,
+          people_stage,
           created_at,
           owner_id,
           companies(name, logo_url)

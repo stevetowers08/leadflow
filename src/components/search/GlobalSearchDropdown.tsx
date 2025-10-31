@@ -136,10 +136,7 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
     showSuggestions && suggestions.length > 0 && !isSearching;
 
   return (
-    <div
-      ref={dropdownRef}
-      className={cn('relative w-full max-w-md', className)}
-    >
+    <div ref={dropdownRef} className={cn('relative w-full', className)}>
       {/* Search Input */}
       <form onSubmit={handleSubmit} className='relative'>
         <div className='relative'>

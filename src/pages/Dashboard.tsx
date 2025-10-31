@@ -7,9 +7,11 @@ import { ClearbitLogoSync } from '@/components/ClearbitLogo';
 import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
 import { Card } from '@/components/ui/card';
 import { Page } from '@/design-system/components';
+import { useClientId } from '@/hooks/useClientId';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
+import { useJobDiscoveryMetrics } from '@/hooks/useSupabaseData';
 import { useNavigate } from 'react-router-dom';
 
 interface Job {
@@ -37,30 +39,33 @@ interface EmailThread {
   participants: unknown;
 }
 
-interface PipelineSnapshot {
-  new: number;
-  qualified: number;
-  proceed: number;
-  total: number;
-}
+// Removed pipeline snapshot UI per request
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { data: clientId, isLoading: clientIdLoading } = useClientId();
   const [jobsToReview, setJobsToReview] = useState<Job[]>([]);
   const [emailReplies, setEmailReplies] = useState<EmailThread[]>([]);
   const [newLeadsToday, setNewLeadsToday] = useState<number>(0);
   const [newCompaniesToday, setNewCompaniesToday] = useState<number>(0);
-  const [pipeline, setPipeline] = useState<PipelineSnapshot>({
-    new: 0,
-    qualified: 0,
-    proceed: 0,
-    total: 0,
-  });
+  // Past week metrics
+  const [newJobsPastWeek, setNewJobsPastWeek] = useState<number>(0);
+  const [qualifiedCompaniesPastWeek, setQualifiedCompaniesPastWeek] =
+    useState<number>(0);
+  const [peopleAddedPastWeek, setPeopleAddedPastWeek] = useState<number>(0);
+  // Last week for trend comparison
+  const [newJobsLastWeek, setNewJobsLastWeek] = useState<number>(0);
+  const [qualifiedCompaniesLastWeek, setQualifiedCompaniesLastWeek] =
+    useState<number>(0);
+  const [peopleAddedLastWeek, setPeopleAddedLastWeek] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [isJobSlideOutOpen, setIsJobSlideOutOpen] = useState(false);
+
+  // Job discovery KPIs for Today and Week
+  const { data: jobKpis, isLoading: jobKpisLoading } = useJobDiscoveryMetrics();
 
   useEffect(() => {
     const load = async () => {
@@ -72,12 +77,20 @@ export default function Dashboard() {
           Date.now() - 48 * 60 * 60 * 1000
         ).toISOString();
 
+        const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
         const [
           jobsRes,
           threadsRes,
           leadsTodayRes,
           companiesTodayRes,
-          peopleRes,
+          jobsWeekRes,
+          repliesWeekRes,
+          progressedWeekRes,
+          jobsLastWeekRes,
+          repliesLastWeekRes,
+          progressedLastWeekRes,
         ] = await Promise.all([
           supabase
             .from('jobs')
@@ -104,7 +117,39 @@ export default function Dashboard() {
             .from('companies')
             .select('id, created_at')
             .gte('created_at', new Date().toISOString().split('T')[0]),
-          supabase.from('people').select('id, people_stage'),
+          // Past week metrics
+          supabase
+            .from('jobs')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', oneWeekAgo.toISOString()),
+          supabase
+            .from('client_companies')
+            .select('*', { count: 'exact', head: true })
+            .eq('client_id', clientId)
+            .eq('qualification_status', 'qualify')
+            .gte('qualified_at', oneWeekAgo.toISOString()),
+          supabase
+            .from('people')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', oneWeekAgo.toISOString()),
+          // Last week metrics for trend calculation
+          supabase
+            .from('jobs')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', twoWeeksAgo.toISOString())
+            .lt('created_at', oneWeekAgo.toISOString()),
+          supabase
+            .from('client_companies')
+            .select('*', { count: 'exact', head: true })
+            .eq('client_id', clientId)
+            .eq('qualification_status', 'qualify')
+            .gte('qualified_at', twoWeeksAgo.toISOString())
+            .lt('qualified_at', oneWeekAgo.toISOString()),
+          supabase
+            .from('people')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', twoWeeksAgo.toISOString())
+            .lt('created_at', oneWeekAgo.toISOString()),
         ]);
 
         console.log('Dashboard data:', {
@@ -118,15 +163,13 @@ export default function Dashboard() {
           jobsRes.error ||
           threadsRes.error ||
           leadsTodayRes.error ||
-          companiesTodayRes.error ||
-          peopleRes.error
+          companiesTodayRes.error
         ) {
           console.error('Dashboard errors:', {
             jobs: jobsRes.error,
             threads: threadsRes.error,
             leads: leadsTodayRes.error,
             companies: companiesTodayRes.error,
-            people: peopleRes.error,
           });
           throw new Error('Failed to load dashboard data');
         }
@@ -157,16 +200,25 @@ export default function Dashboard() {
         setNewLeadsToday(leadsTodayRes.data?.length || 0);
         setNewCompaniesToday(companiesTodayRes.data?.length || 0);
 
-        const people =
-          (peopleRes.data as Array<{ id: string; people_stage: string }>) || [];
-        setPipeline({
-          new: people.filter(
-            p => p.people_stage === 'new' || p.people_stage === 'new_lead'
-          ).length,
-          qualified: people.filter(p => p.people_stage === 'qualified').length,
-          proceed: people.filter(p => p.people_stage === 'proceed').length,
-          total: people.length,
-        });
+        // Past week metrics are optional; default to 0 on error
+        setNewJobsPastWeek(jobsWeekRes.error ? 0 : jobsWeekRes.count || 0);
+        setQualifiedCompaniesPastWeek(
+          repliesWeekRes.error ? 0 : repliesWeekRes.count || 0
+        );
+        setPeopleAddedPastWeek(
+          progressedWeekRes.error ? 0 : progressedWeekRes.count || 0
+        );
+
+        // Last week metrics for trends
+        setNewJobsLastWeek(
+          jobsLastWeekRes.error ? 0 : jobsLastWeekRes.count || 0
+        );
+        setQualifiedCompaniesLastWeek(
+          repliesLastWeekRes.error ? 0 : repliesLastWeekRes.count || 0
+        );
+        setPeopleAddedLastWeek(
+          progressedLastWeekRes.error ? 0 : progressedLastWeekRes.count || 0
+        );
       } catch (e) {
         console.error('Dashboard load error:', e);
         setError('Failed to load dashboard data');
@@ -174,8 +226,10 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
-    load();
-  }, []);
+    if (!clientIdLoading) {
+      load();
+    }
+  }, [clientId, clientIdLoading]);
 
   const handleJobClick = useCallback((jobId: string) => {
     setSelectedJobId(jobId);
@@ -197,9 +251,32 @@ export default function Dashboard() {
     return 'Good evening';
   };
 
+  // Calculate trend percentage
+  const calculateTrend = (current: number, previous: number): string => {
+    if (previous === 0) {
+      return current > 0 ? 'New' : '0%';
+    }
+    const change = ((current - previous) / previous) * 100;
+    if (Math.abs(change) < 0.5) return '0%';
+    return `${change > 0 ? '+' : ''}${Math.round(change)}%`;
+  };
+
+  const handleWeeklyCardClick = useCallback(
+    (type: 'jobs' | 'companies' | 'people') => {
+      if (type === 'jobs') {
+        navigate('/jobs?tab=new');
+      } else if (type === 'companies') {
+        navigate('/companies');
+      } else if (type === 'people') {
+        navigate('/people');
+      }
+    },
+    [navigate]
+  );
+
   return (
     <Page title='Dashboard' hideHeader allowScroll>
-      <div className='space-y-6 pb-8'>
+      <div className='space-y-5 pb-8'>
         <div className='mb-6'>
           <h1 className='text-2xl font-bold tracking-tight text-foreground'>
             {greeting()}
@@ -214,8 +291,176 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Metrics Grid */}
-        <div className='grid gap-4 grid-cols-2 lg:grid-cols-4'>
+        {/* Today Summary - Job Discovery */}
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-lg font-semibold tracking-tight text-foreground mt-0 mb-2'>
+              Today Summary
+            </h2>
+          </div>
+          <div className='grid gap-3 grid-cols-1 md:grid-cols-3'>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  Jobs Analyzed
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading ? '…' : jobKpis?.today.analyzed || 0}
+                </p>
+              </div>
+            </Card>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-green-500/5 via-green-50/30 to-green-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  Qualification Rate
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading
+                    ? '…'
+                    : `${jobKpis?.today.qualificationRatePercent || 0}%`}
+                </p>
+              </div>
+            </Card>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  Non-Executive Filtered
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading
+                    ? '…'
+                    : jobKpis?.today.nonExecutiveFiltered || 0}
+                </p>
+              </div>
+            </Card>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-amber-500/5 via-amber-50/30 to-amber-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  Indeed Opportunities
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading
+                    ? '…'
+                    : jobKpis?.today.indeedOpportunities || 0}
+                </p>
+              </div>
+            </Card>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-sky-500/5 via-sky-50/30 to-sky-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  LinkedIn Opportunities
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading
+                    ? '…'
+                    : jobKpis?.today.linkedinOpportunities || 0}
+                </p>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* Past Week Summary Section */}
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-lg font-semibold tracking-tight text-foreground mt-0 mb-2'>
+              Past Week Summary
+            </h2>
+          </div>
+          <div className='grid gap-3 grid-cols-1 md:grid-cols-3'>
+            <Card
+              onClick={() => handleWeeklyCardClick('jobs')}
+              className='cursor-pointer hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm shadow-sm'
+            >
+              <div className='p-4'>
+                <div className='flex items-center gap-2 mb-1'>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    New Jobs
+                  </p>
+                </div>
+                <p className='text-2xl font-bold tracking-tight text-foreground mb-1'>
+                  {loading ? '…' : newJobsPastWeek}
+                </p>
+                {/* Trend removed per request */}
+              </div>
+            </Card>
+            <Card
+              onClick={() => handleWeeklyCardClick('companies')}
+              className='cursor-pointer hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 backdrop-blur-sm shadow-sm'
+            >
+              <div className='p-4'>
+                <div className='flex items-center gap-2 mb-1'>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    Qualified Companies
+                  </p>
+                </div>
+                <p className='text-2xl font-bold tracking-tight text-foreground mb-1'>
+                  {loading ? '…' : qualifiedCompaniesPastWeek}
+                </p>
+                {/* Trend removed per request */}
+              </div>
+            </Card>
+            <Card
+              onClick={() => handleWeeklyCardClick('people')}
+              className='cursor-pointer hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-emerald-500/5 via-emerald-50/30 to-emerald-500/10 backdrop-blur-sm shadow-sm'
+            >
+              <div className='p-4'>
+                <div className='flex items-center gap-2 mb-1'>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    People Added
+                  </p>
+                </div>
+                <p className='text-2xl font-bold tracking-tight text-foreground mb-1'>
+                  {loading ? '…' : peopleAddedPastWeek}
+                </p>
+                {/* Trend removed per request */}
+              </div>
+            </Card>
+          </div>
+          {/* Weekly Job Discovery KPI add-on */}
+          <div className='grid gap-3 grid-cols-1 md:grid-cols-3 mt-2'>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  Jobs Analyzed
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading ? '…' : jobKpis?.week.analyzed || 0}
+                </p>
+              </div>
+            </Card>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-green-500/5 via-green-50/30 to-green-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  Qualification Rate
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading
+                    ? '…'
+                    : `${jobKpis?.week.qualificationRatePercent || 0}%`}
+                </p>
+              </div>
+            </Card>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  Non-Executive Filtered
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading
+                    ? '…'
+                    : jobKpis?.week.nonExecutiveFiltered || 0}
+                </p>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* Current Actions */}
+        <h2 className='text-lg font-semibold tracking-tight text-foreground mt-2 mb-2'>
+          Current Actions
+        </h2>
+        <div className='grid gap-3 grid-cols-1 md:grid-cols-3 lg:grid-cols-4'>
           <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 p-4 backdrop-blur-sm shadow-sm'>
             <p className='text-sm font-medium text-muted-foreground mb-2'>
               Jobs to Review
@@ -259,9 +504,9 @@ export default function Dashboard() {
               </h3>
               <button
                 onClick={() => navigate('/jobs')}
-                className='text-xs text-primary hover:text-primary/80 transition-colors'
+                className='text-xs text-primary hover:text-primary/80 transition-colors font-medium'
               >
-                See all
+                View Pipeline
               </button>
             </div>
             {jobsToReview.length > 0 && (
@@ -351,9 +596,9 @@ export default function Dashboard() {
               </h3>
               <button
                 onClick={() => navigate('/crm/communications')}
-                className='text-xs text-muted-foreground hover:text-foreground transition-colors'
+                className='text-xs text-primary hover:text-primary/80 transition-colors font-medium'
               >
-                Open inbox
+                Open Conversation
               </button>
             </div>
             <div className='space-y-1'>
@@ -386,46 +631,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Pipeline snapshot */}
-        <div>
-          <h3 className='text-base font-semibold tracking-tight text-foreground mb-4'>
-            Pipeline Overview
-          </h3>
-          <div className='grid gap-3 grid-cols-2 lg:grid-cols-4'>
-            <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 p-4 backdrop-blur-sm shadow-sm'>
-              <p className='text-xs font-medium text-muted-foreground mb-1.5'>
-                New
-              </p>
-              <p className='text-2xl font-bold tracking-tight text-foreground'>
-                {pipeline.new}
-              </p>
-            </div>
-            <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 p-4 backdrop-blur-sm shadow-sm'>
-              <p className='text-xs font-medium text-muted-foreground mb-1.5'>
-                Qualified
-              </p>
-              <p className='text-2xl font-bold tracking-tight text-foreground'>
-                {pipeline.qualified}
-              </p>
-            </div>
-            <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-emerald-500/5 via-emerald-50/30 to-emerald-500/10 p-4 backdrop-blur-sm shadow-sm'>
-              <p className='text-xs font-medium text-muted-foreground mb-1.5'>
-                Proceed
-              </p>
-              <p className='text-2xl font-bold tracking-tight text-foreground'>
-                {pipeline.proceed}
-              </p>
-            </div>
-            <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-gray-500/5 via-gray-50/30 to-gray-500/10 p-4 backdrop-blur-sm shadow-sm'>
-              <p className='text-xs font-medium text-muted-foreground mb-1.5'>
-                Total
-              </p>
-              <p className='text-2xl font-bold tracking-tight text-foreground'>
-                {pipeline.total}
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Pipeline Overview removed per request */}
       </div>
 
       <JobDetailsSlideOut

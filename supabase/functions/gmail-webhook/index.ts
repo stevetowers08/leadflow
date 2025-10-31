@@ -46,7 +46,7 @@ serve(async (req: Request) => {
     // Get user's Gmail access token from integrations table
     const { data: integration } = await supabase
       .from('integrations')
-      .select('config')
+      .select('config, user_id')
       .eq('platform', 'gmail')
       .eq('connected', true)
       .eq('config->>user_email', notification.emailAddress)
@@ -235,6 +235,39 @@ async function processGmailReply(
       },
       owner_id: interaction.people.id, // Use person's owner
     });
+
+    // Create notification for email response received
+    // Get the user_id who should receive the notification
+    // Priority: interaction owner, then integration user_id, then person owner
+    const { data: ownerUser } = await supabase
+      .from('people')
+      .select('owner_id')
+      .eq('id', interaction.person_id)
+      .single();
+
+    const notificationUserId =
+      interaction.people.owner_id ||
+      integration?.user_id ||
+      ownerUser?.owner_id;
+
+    if (notificationUserId) {
+      await supabase.from('user_notifications').insert({
+        user_id: notificationUserId,
+        type: 'email_response_received',
+        priority: 'high',
+        title: 'New Email Response',
+        message: `${interaction.people.name || 'Someone'} replied to your message`,
+        action_type: 'navigate',
+        action_url: `/people/${interaction.person_id}`,
+        action_entity_type: 'person',
+        action_entity_id: interaction.person_id,
+        metadata: {
+          person_id: interaction.person_id,
+          company_id: interaction.people.company_id,
+          reply_id: reply.id,
+        },
+      });
+    }
 
     console.log(
       `Processed reply ${messageId} with ${sentiment.sentiment} sentiment`

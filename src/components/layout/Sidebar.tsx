@@ -75,31 +75,32 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <div className='flex flex-col h-full w-full'>
-      {/* Clean Header */}
-      <div className='px-4 py-4 flex-shrink-0'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
-            <div className='relative'>
-              <RecruitEdgeLogo size={20} />
-              <div className='absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse' />
-            </div>
-            <h1 className='text-base font-bold text-gray-900'>RECRUITEDGE</h1>
+    <div className='flex flex-col h-full w-full overflow-hidden bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm'>
+      {/* Clean Header - Above border line */}
+      <div className='px-4 py-2 flex-shrink-0 flex items-center h-[48px]'>
+        <div className='flex items-center gap-3'>
+          <div className='relative'>
+            <RecruitEdgeLogo size={20} />
+            <div className='absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse' />
           </div>
-          <div className='flex items-center gap-2'>
-            {onClose && (
-              <Button
-                variant='ghost'
-                size='icon'
-                onClick={onClose}
-                className='lg:hidden h-9 w-9 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-lg'
-              >
-                <X className='h-5 w-5' />
-              </Button>
-            )}
-          </div>
+          <h1 className='text-base font-bold text-gray-900'>RECRUITEDGE</h1>
         </div>
+        {onClose && (
+          <div className='ml-auto'>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={onClose}
+              className='lg:hidden h-9 w-9 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-lg'
+            >
+              <X className='h-5 w-5' />
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Border line matching header */}
+      <div className='h-px bg-gray-200 flex-shrink-0' />
 
       {/* Navigation with Section Dividers */}
       <nav className='flex-1 px-3 py-5 overflow-y-auto custom-scrollbar scrollbar-modern pb-4'>

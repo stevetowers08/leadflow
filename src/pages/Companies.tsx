@@ -18,6 +18,7 @@ import { IndustryBadges } from '@/components/shared/IndustryBadge';
 import { PeopleAvatars } from '@/components/shared/PeopleAvatars';
 import { ScoreBadge } from '@/components/shared/ScoreBadge';
 import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
+import { FloatingActionBar } from '@/components/people/FloatingActionBar';
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -355,6 +356,115 @@ const Companies: React.FC = () => {
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedCompanies = filteredCompanies.slice(startIndex, endIndex);
+
+  // Keyboard shortcuts (Cmd/Ctrl+A to select all on page, Esc to clear)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+        e.preventDefault();
+        const allIds = paginatedCompanies.map(c => c.id);
+        if (bulkSelection.getSelectedIds(allIds).length === allIds.length) {
+          bulkSelection.deselectAll();
+        } else {
+          bulkSelection.selectAll(allIds);
+        }
+      }
+      if (e.key === 'Escape') {
+        bulkSelection.deselectAll();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [bulkSelection, paginatedCompanies]);
+
+  // Actual selected count across all filtered rows
+  const actualSelectedCount = bulkSelection.getSelectedIds(
+    filteredCompanies.map(c => c.id)
+  ).length;
+
+  // Placeholder bulk handlers for Companies (UI presence)
+  const handleCompaniesExport = useCallback(async () => {
+    toast({
+      title: 'Export coming soon',
+      description: 'Companies export is not implemented yet.',
+    });
+  }, [toast]);
+
+  const handleCompaniesWorkflow = useCallback(async () => {
+    const ids = bulkSelection.getSelectedIds(filteredCompanies.map(c => c.id));
+    if (ids.length === 0) return;
+    const { error } = await supabase
+      .from('companies')
+      .update({
+        updated_at: new Date().toISOString(),
+        pipeline_stage: 'qualified',
+      })
+      .in('id', ids);
+    if (error) {
+      toast({
+        title: 'Workflow failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Workflow ran',
+        description: `Updated ${ids.length} compan${ids.length === 1 ? 'y' : 'ies'}.`,
+      });
+      // Reflect locally
+      setCompanies(prev =>
+        prev.map(c =>
+          ids.includes(c.id)
+            ? {
+                ...c,
+                pipeline_stage: 'qualified',
+                updated_at: new Date().toISOString() as string,
+              }
+            : c
+        )
+      );
+    }
+  }, [toast]);
+
+  const handleCompaniesDelete = useCallback(async () => {
+    const ids = bulkSelection.getSelectedIds(filteredCompanies.map(c => c.id));
+    if (ids.length === 0) return;
+    const { error } = await supabase.from('companies').delete().in('id', ids);
+    if (error) {
+      toast({
+        title: 'Delete failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Deleted',
+        description: `Removed ${ids.length} compan${ids.length === 1 ? 'y' : 'ies'}.`,
+      });
+      setCompanies(prev => prev.filter(c => !ids.includes(c.id)));
+      bulkSelection.deselectAll();
+    }
+  }, [toast, bulkSelection, filteredCompanies]);
+
+  const handleCompaniesSendEmail = useCallback(async () => {
+    // Collect people under selected companies and route to Conversations compose
+    const companyIds = bulkSelection.getSelectedIds(
+      filteredCompanies.map(c => c.id)
+    );
+    const targetPeople = people
+      .filter(p => p.company_id && companyIds.includes(p.company_id))
+      .filter(p => !!p.email_address);
+    const toIds = targetPeople.map(p => p.id);
+    if (toIds.length === 0) {
+      toast({
+        title: 'No contact emails found',
+        description: 'Selected companies have no contacts with emails.',
+      });
+      return;
+    }
+    const toIdsParam = encodeURIComponent(toIds.join(','));
+    navigate(`/conversations?compose=1&toIds=${toIdsParam}`);
+  }, [bulkSelection, filteredCompanies, people, navigate, toast]);
 
   // User options for filter
   const userOptions = useMemo(
@@ -896,6 +1006,7 @@ const Companies: React.FC = () => {
             <UnifiedTable
               data={paginatedCompanies}
               columns={columns}
+              tableId='companies'
               pagination={false} // We handle pagination externally
               stickyHeaders={true}
               scrollable={true}
@@ -966,6 +1077,20 @@ const Companies: React.FC = () => {
           };
           fetchPeople();
         }}
+      />
+
+      {/* Floating Action Bar for Bulk Operations (Companies) */}
+      <FloatingActionBar
+        selectedCount={actualSelectedCount}
+        isAllSelected={bulkSelection.isAllSelected}
+        onDelete={handleCompaniesDelete}
+        onFavourite={async () => {}}
+        onExport={handleCompaniesExport}
+        onSyncCRM={handleCompaniesWorkflow}
+        onSendEmail={handleCompaniesSendEmail}
+        onAddToCampaign={async () => {}}
+        onClear={bulkSelection.deselectAll}
+        campaigns={[]}
       />
     </Page>
   );

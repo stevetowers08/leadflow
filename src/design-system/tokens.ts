@@ -233,7 +233,7 @@ export const designTokens = {
 
     // Button styling - cleaner borders, larger size
     button:
-      'h-8 w-8 rounded-md border flex items-center justify-center transition-colors',
+      'h-8 w-8 rounded-md border flex items-center justify-center transition-colors flex-shrink-0',
     buttonDefault:
       'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50',
     buttonActive:

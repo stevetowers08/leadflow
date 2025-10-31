@@ -368,9 +368,14 @@ function getUnifiedStatusClass(status: string): string {
 
   // Info/Default states
   if (
-    ['new_lead', 'message_sent', 'replied', 'new', 'automated'].includes(
-      statusLower
-    )
+    [
+      'new_lead',
+      'new lead',
+      'message_sent',
+      'replied',
+      'new',
+      'automated',
+    ].includes(statusLower)
   ) {
     return 'bg-blue-100 text-blue-800 border-blue-200';
   }

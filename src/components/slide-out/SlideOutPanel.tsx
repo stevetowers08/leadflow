@@ -63,7 +63,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
       {/* Panel */}
       <div
         className={cn(
-          'fixed top-12 right-0 bottom-0 bg-white z-[10001] flex flex-col transition-transform duration-300 ease-in-out',
+          'fixed top-12 -mt-px right-0 bottom-0 bg-white z-[10001] flex flex-col transition-transform duration-300 ease-in-out',
           widthClasses
         )}
         style={{

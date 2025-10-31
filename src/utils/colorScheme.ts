@@ -52,24 +52,41 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
   leadStages: {
     // Initial/New - Light Grey (neutral, starting point)
     'NEW LEAD': {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
     new: {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
     'new lead': {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
+    },
+    new_lead: {
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
     contacted: {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
+    },
+
+    // Proceed (next actionable step) - Modern Blue (in progress/next)
+    proceed: {
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
+    },
+    PROCEED: {
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
 
     // Active/In Progress - Modern Dark Amber/Orange (work in progress) - Better contrast
@@ -108,6 +125,16 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
       text: 'text-white',
       border: 'border-warning-solid',
     },
+    'message sent': {
+      background: 'bg-warning-solid',
+      text: 'text-white',
+      border: 'border-warning-solid',
+    },
+    message_sent: {
+      background: 'bg-warning-solid',
+      text: 'text-white',
+      border: 'border-warning-solid',
+    },
     messaged: {
       background: 'bg-warning-solid',
       text: 'text-white',
@@ -139,6 +166,11 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
       background: 'bg-success-solid',
       text: 'text-white',
       border: 'border-success-solid',
+    },
+    skip: {
+      background: 'bg-error-solid',
+      text: 'text-white',
+      border: 'border-error-solid',
     },
     interview: {
       background: 'bg-success-solid',
@@ -196,24 +228,34 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
 
   jobStatuses: {
     'job-new': {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
     new: {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
     'new job': {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
+    },
+    'job-qualify': {
+      background: 'bg-success-solid',
+      text: 'text-white',
+      border: 'border-success-solid',
     },
     qualify: {
       background: 'bg-success-solid',
       text: 'text-white',
       border: 'border-success-solid',
+    },
+    'job-skip': {
+      background: 'bg-error-solid',
+      text: 'text-white',
+      border: 'border-error-solid',
     },
     skip: {
       background: 'bg-error-solid',
@@ -285,9 +327,9 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
     },
     // Company pipeline stages - Modern Dark Colors
     new_lead: {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
     automated: {
       background: 'bg-success-solid',
@@ -313,21 +355,21 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
 
   // Company Pipeline Stages - Modern Dark Colors (2024-2025 Standards)
   companyPipelineStages: {
-    // Initial stages - Light Grey (neutral, starting point)
+    // Initial stages - Dark Info (modern informative)
     new_lead: {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
     NEW_LEAD: {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
     'new lead': {
-      background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
 
     // Qualified - Modern Dark Green (system working)
@@ -364,6 +406,22 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
       background: 'bg-warning-solid',
       text: 'text-white',
       border: 'border-warning-solid',
+    },
+    // Distinguish message sent from replied: use info (blue) for sent, amber for replied
+    message_sent: {
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
+    },
+    'message sent': {
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
+    },
+    'MSG SENT': {
+      background: 'bg-info-solid',
+      text: 'text-white',
+      border: 'border-info-solid',
     },
     meeting_scheduled: {
       background: 'bg-warning-solid',
@@ -762,10 +820,12 @@ export function getUnifiedStatusColors(status: string): ColorScheme {
 
   // Search in all categories with early returns
   const categories = [
-    UNIFIED_COLOR_SCHEME.leadStages,
+    // Prioritize context-specific mappings first to avoid cross-entity collisions
     UNIFIED_COLOR_SCHEME.jobStatuses,
     UNIFIED_COLOR_SCHEME.companyStatuses,
     UNIFIED_COLOR_SCHEME.companyPipelineStages,
+    // Then generic/people mappings
+    UNIFIED_COLOR_SCHEME.leadStages,
     UNIFIED_COLOR_SCHEME.replyTypes,
     UNIFIED_COLOR_SCHEME.campaignStatus,
     UNIFIED_COLOR_SCHEME.priorities,

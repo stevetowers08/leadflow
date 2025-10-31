@@ -368,3 +368,4 @@ COMMENT ON TABLE public.mailchimp_sync_logs IS 'Logs synchronization activity be
 COMMENT ON TABLE public.mailchimp_subscriber_mappings IS 'Maps internal people records to Mailchimp subscribers';
 
 COMMENT ON TABLE public.integration_settings IS 'Stores platform-specific integration settings per user';
+

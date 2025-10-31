@@ -1,8 +1,8 @@
 # PDR: Client-Scoped Notes with Lead Association
 
 **Date:** October 22, 2025  
-**Status:** Planning  
-**Related Issues:** TBD
+**Status:** Partially Implemented  
+**Related Issues:** Created in Linear: "Implement client-scoped notes in services/UI"
 
 ## Overview
 
@@ -39,12 +39,12 @@ Both clients see EACH OTHER'S notes! ❌
 
 ## Proposed Solution
 
-Implement an association table pattern that:
+Implement client scoping on notes with optional lead association. Final approach chosen in implementation is to add columns directly on `notes`:
 
-1. **Links notes to specific clients** (via `client_company_notes`)
-2. **Optionally links notes to specific leads** (via `related_lead_id`)
-3. **Maintains separation** using RLS policies
-4. **Follows existing patterns** consistent with `client_companies` and `client_jobs`
+1. **Client scoping on notes** via `notes.client_id`
+2. **Optional lead link** via `notes.related_lead_id`
+3. **RLS policies** enforce client isolation
+4. Simpler than an association table and performs well with indexes
 
 ### New Architecture
 
@@ -177,26 +177,25 @@ const { data: notes } = await supabase
 
 ### Phase 1: Database Migration (✅ Done)
 
-- [x] Create `client_company_notes` table
-- [x] Add RLS policies
-- [x] Create indexes
-- [x] Add update trigger
+- [x] Add `client_id` and `related_lead_id` columns to `public.notes` (see `supabase/migrations/20251022000004_create_client_company_notes.sql`)
+- [x] Update RLS policies to scope by `client_id`
+- [x] Create indexes on `client_id`, `(client_id, entity_id)` and `related_lead_id`
+- [x] Keep existing triggers for `updated_at`
 
 ### Phase 2: Backend Logic
 
 1. **Update Note Creation Flow**
 
    Modify the note creation logic to:
-   - Create note in `notes` table
-   - Create association in `client_company_notes` table
-   - Include optional `related_lead_id`
+   - Insert into `notes` with `client_id` and optional `related_lead_id`
+   - Ensure `author_id` is current user and `client_id` is the active client
 
 2. **Update Note Fetching Logic**
 
    Modify note fetching to:
-   - Filter by `client_id` via `client_company_notes`
-   - Join with `notes` table for content
-   - Join with `people` table if `related_lead_id` exists
+   - Filter by `notes.client_id = currentClientId`
+   - Filter by `entity_id` and `entity_type`
+   - Join author and optional lead for display
 
 3. **Update Note Deletion Logic**
    - Handle cascade deletes properly
@@ -207,7 +206,7 @@ const { data: notes } = await supabase
 #### Update `NotesSection.tsx`
 
 ```typescript
-// Current (incorrect):
+// Current (missing client scoping):
 const { data } = await supabase
   .from('notes')
   .select('*')
@@ -215,16 +214,19 @@ const { data } = await supabase
 
 // New (client-scoped):
 const { data } = await supabase
-  .from('client_company_notes')
+  .from('notes')
   .select(
     `
-    *,
-    note:notes!inner (content, author_id, created_at),
-    lead:people (name, company_role)
+    id,
+    content,
+    author:user_profiles!notes_author_id_fkey (full_name),
+    related_lead_id,
+    created_at
   `
   )
   .eq('client_id', currentClientId)
-  .eq('company_id', companyId)
+  .eq('entity_id', companyId)
+  .eq('entity_type', 'company')
   .order('created_at', { ascending: false });
 ```
 
