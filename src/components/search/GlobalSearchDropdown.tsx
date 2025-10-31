@@ -135,13 +135,10 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
     showSuggestions && suggestions.length > 0 && !isSearching;
 
   return (
-    <div
-      ref={dropdownRef}
-      className={cn('relative w-full overflow-visible', className)}
-    >
+    <div ref={dropdownRef} className={cn('relative w-full', className)}>
       {/* Search Input */}
-      <form onSubmit={handleSubmit} className='relative overflow-visible'>
-        <div className='relative overflow-visible'>
+      <form onSubmit={handleSubmit} className='relative w-full'>
+        <div className='relative w-full'>
           <input
             ref={inputRef}
             type='text'
@@ -150,15 +147,15 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
             onChange={handleInputChange}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            className='w-full h-8 rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-900 font-normal leading-[1.2] py-0 ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100 focus:border-primary focus:ring-primary'
+            className='w-full h-8 rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:border-gray-400 focus:border-primary search-input-light'
           />
 
           {/* Search Icon */}
-          <div className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none'>
+          <div className='absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none'>
             {isSearching ? (
-              <Loader2 className='w-4 h-4 animate-spin' />
+              <Loader2 className='w-4 h-4 text-gray-400 animate-spin' />
             ) : (
-              <Search className='w-4 h-4' />
+              <Search className='w-4 h-4 text-gray-400' />
             )}
           </div>
 
@@ -167,7 +164,7 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
             <button
               type='button'
               onClick={handleClearSearch}
-              className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors'
+              className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors'
             >
               <X className='w-4 h-4' />
             </button>

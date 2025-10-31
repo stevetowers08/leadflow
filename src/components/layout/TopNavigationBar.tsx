@@ -75,7 +75,7 @@ export const TopNavigationBar = ({
           </div>
 
           {/* Center Section - Search Bar */}
-          <div className='flex-1 mx-4'>
+          <div className='flex-1 min-w-0 mx-2'>
             <GlobalSearchDropdown />
           </div>
 
@@ -158,10 +158,8 @@ export const TopNavigationBar = ({
           </div>
 
           {/* Center Section - Search Bar */}
-          <div className='absolute left-1/2 -translate-x-1/2'>
-            <div className='w-full max-w-6xl'>
-              <GlobalSearchDropdown className='w-full max-w-6xl' />
-            </div>
+          <div className='absolute left-1/2 -translate-x-1/2 w-full max-w-xl px-4'>
+            <GlobalSearchDropdown />
           </div>
 
           {/* Right Section - Actions + User Profile */}
