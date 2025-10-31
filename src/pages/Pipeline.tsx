@@ -1299,21 +1299,9 @@ const Pipeline = () => {
 
   return (
     <Page title='Deals' hideHeader>
-      <div className='space-y-3 h-full flex flex-col'>
-        {/* Page Header */}
-        <div className='mb-1'>
-          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-            Deals
-          </h1>
-          <p className='text-sm text-muted-foreground'>
-            {activeTab === 'pipeline'
-              ? 'Drag and drop companies between stages'
-              : 'Deals that have expressed interest and are actively engaged'}
-          </p>
-        </div>
-
+      <div className='space-y-4 h-full flex flex-col'>
         {/* Tab Navigation and Filters */}
-        <div className='flex items-center justify-end gap-4 py-1 mb-2 flex-wrap md:flex-nowrap overflow-visible'>
+        <div className='flex items-center justify-end gap-4 flex-wrap md:flex-nowrap overflow-visible'>
           {/* Tab Navigation */}
           <div className='flex-shrink-0 mr-auto'>
             <TabNavigation

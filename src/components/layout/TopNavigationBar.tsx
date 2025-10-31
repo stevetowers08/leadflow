@@ -20,13 +20,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { LogIn, LogOut, Menu } from 'lucide-react';
+import { Info, LogIn, LogOut, Menu } from 'lucide-react';
 
 interface TopNavigationBarProps {
   pageTitle: string;
+  pageSubheading?: string;
   onSearch?: (query: string) => void;
   onMenuClick?: () => void;
   className?: string;
@@ -34,6 +41,7 @@ interface TopNavigationBarProps {
 
 export const TopNavigationBar = ({
   pageTitle,
+  pageSubheading,
   onSearch,
   onMenuClick,
   className,
@@ -44,9 +52,10 @@ export const TopNavigationBar = ({
   return (
     <header
       className={cn(
-        'fixed top-0 z-30',
+        'fixed top-0 z-30 h-12',
         'bg-gray-50 border-b border-gray-200',
-        isMobile ? 'w-full px-4 py-2 left-0' : 'left-56 right-0 px-6 py-2',
+        isMobile ? 'w-full px-4 left-0' : 'left-56 right-0 px-6',
+        'flex items-center',
         className
       )}
     >
@@ -119,6 +128,35 @@ export const TopNavigationBar = ({
       ) : (
         // Desktop Layout - Relative positioning for true centering
         <div className='relative flex items-center w-full'>
+          {/* Left Section - Page Title with Info Icon */}
+          <div className='flex items-center gap-2'>
+            <h1 className='text-lg font-semibold tracking-tight text-foreground'>
+              {pageTitle}
+            </h1>
+            {pageSubheading && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type='button'
+                      className='rounded-full hover:bg-gray-100 transition-colors p-0.5'
+                      aria-label='More information'
+                    >
+                      <Info className='h-4 w-4 text-gray-400' />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side='bottom'
+                    align='start'
+                    className='bg-white text-gray-900 border border-gray-200 shadow-lg'
+                  >
+                    <p className='text-sm max-w-xs'>{pageSubheading}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
+
           {/* Center Section - Search Bar */}
           <div className='absolute left-1/2 -translate-x-1/2'>
             <div className='w-full max-w-6xl'>

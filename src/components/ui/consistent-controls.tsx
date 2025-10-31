@@ -143,7 +143,7 @@ FilterButton.displayName = 'FilterButton';
 
 // Modern Search Input Component
 const searchVariants = cva(
-  'w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 leading-[1.5] ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:text-gray-500 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100',
+  'w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:text-gray-500 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100',
   {
     variants: {
       variant: {
@@ -153,9 +153,9 @@ const searchVariants = cva(
         neumorphism: 'neumorphism-light focus:shadow-lg focus:bg-white',
       },
       size: {
-        default: 'h-9',
-        sm: 'h-8 text-xs leading-[1.5]',
-        lg: 'h-12 text-base leading-[1.5]',
+        default: 'h-8 py-0 leading-normal',
+        sm: 'h-8 py-0 text-xs leading-normal',
+        lg: 'h-12 py-0 text-base leading-normal',
       },
     },
     defaultVariants: {

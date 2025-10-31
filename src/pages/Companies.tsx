@@ -942,19 +942,9 @@ const Companies: React.FC = () => {
 
   return (
     <Page stats={stats} title='Companies' hideHeader>
-      <div className='flex-1 flex flex-col min-h-0 space-y-1'>
-        {/* Page Header */}
-        <div className='mb-4'>
-          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-            Qualified Companies
-          </h1>
-          <p className='text-sm text-muted-foreground'>
-            Manage your qualified companies and find decision makers
-          </p>
-        </div>
-
+      <div className='flex-1 flex flex-col min-h-0 space-y-4'>
         {/* Filter Controls - Left Aligned */}
-        <div className='flex items-center justify-start gap-4 py-2 mb-4'>
+        <div className='flex items-center justify-start gap-4'>
           <FilterControls
             statusOptions={statusOptions}
             userOptions={userOptions}

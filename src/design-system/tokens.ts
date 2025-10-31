@@ -44,11 +44,11 @@ export const designTokens = {
       lg: 'p-6', // 1.5rem
       xl: 'p-8', // 2rem
     },
-    // Page-level padding following modern best practices
+    // Page-level padding following modern best practices - aligned with header
     pagePadding: {
-      mobile: 'px-4 py-4', // Mobile: 1rem horizontal, 1rem vertical
-      desktop: 'px-6 py-6', // Desktop: 1.5rem horizontal, 1.5rem vertical
-      responsive: 'px-4 py-4 lg:px-6 lg:py-6', // Responsive scaling
+      mobile: 'px-4', // Mobile: 1rem horizontal only
+      desktop: 'px-6', // Desktop: 1.5rem horizontal only - matches header px-6
+      responsive: 'px-4 lg:px-6', // Responsive scaling - aligned with header, no vertical padding
     },
     // Card-specific padding patterns
     cardPadding: {
@@ -227,9 +227,9 @@ export const designTokens = {
     // Dropdown styling - cleaner borders and larger sizes
     dropdown:
       'bg-white h-8 px-3 text-sm border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors',
-    dropdownSmall: 'min-w-36',
-    dropdownMedium: 'min-w-44',
-    dropdownLarge: 'min-w-48',
+    dropdownSmall: 'min-w-28',
+    dropdownMedium: 'min-w-32',
+    dropdownLarge: 'min-w-40',
 
     // Button styling - cleaner borders, larger size
     button:

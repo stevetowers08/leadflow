@@ -36,30 +36,20 @@ export default function CommunicationsPage() {
   return (
     <Page title='Communications' hideHeader>
       <div className='space-y-6'>
-        {/* Header */}
-        <div className='flex items-center justify-between'>
-          <div>
-            <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-              Communications
-            </h1>
-            <p className='text-sm text-muted-foreground mt-1'>
-              Manage email campaigns and communication history
-            </p>
-          </div>
-          <div className='flex items-center gap-3'>
-            <Button variant='outline' size='sm'>
-              <Filter className='w-4 h-4 mr-2' />
-              Filter
-            </Button>
-            <Button variant='outline' size='sm'>
-              <Search className='w-4 h-4 mr-2' />
-              Search
-            </Button>
-            <Button size='sm'>
-              <Plus className='w-4 h-4 mr-2' />
-              New Email
-            </Button>
-          </div>
+        {/* Action Buttons */}
+        <div className='flex items-center justify-end gap-3'>
+          <Button variant='outline' size='sm'>
+            <Filter className='w-4 h-4 mr-2' />
+            Filter
+          </Button>
+          <Button variant='outline' size='sm'>
+            <Search className='w-4 h-4 mr-2' />
+            Search
+          </Button>
+          <Button size='sm'>
+            <Plus className='w-4 h-4 mr-2' />
+            New Email
+          </Button>
         </div>
 
         {/* Tab Navigation */}

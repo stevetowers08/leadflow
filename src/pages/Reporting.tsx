@@ -199,16 +199,8 @@ export default function Reporting() {
   return (
     <Page title='Reporting' hideHeader allowScroll>
       <div className='space-y-6'>
-        {/* Header */}
-        <div className='flex items-center justify-between'>
-          <div>
-            <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-              Reporting Dashboard
-            </h1>
-            <p className='text-sm text-muted-foreground mt-1'>
-              Track your recruitment performance and insights
-            </p>
-          </div>
+        {/* Period Selector */}
+        <div className='flex items-center justify-end'>
           <div className='flex items-center gap-3'>
             <select
               value={selectedPeriod}

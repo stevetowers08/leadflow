@@ -113,7 +113,7 @@ export const Page: React.FC<PageProps> = ({
 
         {/* Full-width content with proper overflow handling for hover elements */}
         <div className='relative h-full w-full'>
-          <div className='space-y-6 w-full px-4 py-6 lg:px-6 h-full flex flex-col pb-8'>
+          <div className='space-y-6 w-full h-full flex flex-col'>
             <LoadingState title={title} message={loadingMessage} />
           </div>
         </div>
@@ -135,7 +135,7 @@ export const Page: React.FC<PageProps> = ({
       >
         <div
           className={cn(
-            'w-full flex flex-col px-6 py-2',
+            'w-full flex flex-col',
             allowScroll ? '' : 'flex-1 min-h-0'
           )}
         >

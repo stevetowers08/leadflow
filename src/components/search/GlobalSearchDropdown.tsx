@@ -1,5 +1,4 @@
 import { SearchResults } from '@/components/search/SearchResults';
-import { SearchInput } from '@/components/ui/consistent-controls';
 import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
 import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
@@ -136,11 +135,14 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
     showSuggestions && suggestions.length > 0 && !isSearching;
 
   return (
-    <div ref={dropdownRef} className={cn('relative w-full', className)}>
+    <div
+      ref={dropdownRef}
+      className={cn('relative w-full overflow-visible', className)}
+    >
       {/* Search Input */}
-      <form onSubmit={handleSubmit} className='relative'>
-        <div className='relative'>
-          <SearchInput
+      <form onSubmit={handleSubmit} className='relative overflow-visible'>
+        <div className='relative overflow-visible'>
+          <input
             ref={inputRef}
             type='text'
             placeholder='Search people, companies, jobs...'
@@ -148,11 +150,11 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
             onChange={handleInputChange}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            className='w-full pr-20'
+            className='w-full h-8 rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-900 font-normal leading-[1.2] py-0 ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100 focus:border-primary focus:ring-primary'
           />
 
           {/* Search Icon */}
-          <div className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400'>
+          <div className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none'>
             {isSearching ? (
               <Loader2 className='w-4 h-4 animate-spin' />
             ) : (

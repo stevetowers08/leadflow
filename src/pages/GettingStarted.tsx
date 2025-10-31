@@ -143,13 +143,6 @@ export default function GettingStarted() {
   return (
     <Page title='Getting Started' hideHeader allowScroll>
       <div className='space-y-6'>
-        {/* Header */}
-        <div className='mb-4'>
-          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-            Getting Started
-          </h1>
-        </div>
-
         {/* Overview */}
         <div className='p-6 bg-white border border-gray-200 rounded-lg'>
           <h2 className='text-xl font-semibold text-foreground mb-3'>

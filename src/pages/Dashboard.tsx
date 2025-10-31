@@ -278,10 +278,7 @@ export default function Dashboard() {
     <Page title='Dashboard' hideHeader allowScroll>
       <div className='space-y-5 pb-8'>
         <div className='mb-6'>
-          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-            {greeting()}
-          </h1>
-          <p className='text-sm text-muted-foreground mt-1'>
+          <p className='text-sm text-muted-foreground'>
             Here's what's happening with your pipeline today
           </p>
           {error && (

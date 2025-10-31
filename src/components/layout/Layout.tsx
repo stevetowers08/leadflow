@@ -47,25 +47,72 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   const { mediumHaptic } = useHapticFeedback();
   const location = useLocation();
 
-  // Dynamic page title based on current route (memoized for performance)
-  const currentPageTitle = useMemo(() => {
-    if (pageTitle) return pageTitle;
+  // Dynamic page title and subheading based on current route (memoized for performance)
+  const { currentPageTitle, currentPageSubheading } = useMemo(() => {
+    if (pageTitle) {
+      return { currentPageTitle: pageTitle, currentPageSubheading: undefined };
+    }
 
-    const routeTitles: Record<string, string> = {
-      '/': 'Dashboard',
-      '/getting-started': 'Getting Started',
-      '/jobs': 'Jobs',
-      '/people': 'People',
-      '/companies': 'Companies',
-      '/pipeline': 'Pipeline',
-      '/conversations': 'Conversations',
-      '/campaigns': 'Campaigns',
-      '/reporting': 'Reporting',
-      '/settings': 'Settings',
-      '/tab-designs': 'Tab Designs',
+    const routeData: Record<string, { title: string; subheading?: string }> = {
+      '/': {
+        title: 'Dashboard',
+        subheading: 'View your recruitment pipeline overview and key metrics',
+      },
+      '/getting-started': {
+        title: 'Getting Started',
+        subheading:
+          'Learn how to use Empowr CRM and get started with recruitment',
+      },
+      '/jobs': {
+        title: 'Jobs Feed',
+        subheading:
+          'Qualify jobs to get more company info and decision makers using AI',
+      },
+      '/people': {
+        title: 'Contacts',
+        subheading:
+          'Manage your people and track your outreach to decision makers',
+      },
+      '/companies': {
+        title: 'Companies',
+        subheading: 'Manage your qualified companies and find decision makers',
+      },
+      '/pipeline': {
+        title: 'Deals',
+        subheading: 'Manage your sales pipeline and track deals through stages',
+      },
+      '/conversations': {
+        title: 'Conversations',
+        subheading:
+          'View and manage all email conversations with your contacts',
+      },
+      '/crm/communications': {
+        title: 'Communications',
+        subheading: 'Manage email campaigns and communication history',
+      },
+      '/campaigns': {
+        title: 'Campaigns',
+        subheading: 'Create and manage email campaigns for outreach',
+      },
+      '/reporting': {
+        title: 'Reporting',
+        subheading: 'View analytics and reports on your recruitment activities',
+      },
+      '/settings': {
+        title: 'Settings',
+        subheading: 'Configure your account settings and preferences',
+      },
+      '/tab-designs': {
+        title: 'Tab Designs',
+        subheading: 'Customize the design and layout of your tabs',
+      },
     };
 
-    return routeTitles[location.pathname] || 'Dashboard';
+    const data = routeData[location.pathname] || { title: 'Dashboard' };
+    return {
+      currentPageTitle: data.title,
+      currentPageSubheading: data.subheading,
+    };
   }, [pageTitle, location.pathname]);
 
   // Enhanced swipe gestures with better touch handling
@@ -220,6 +267,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       {createPortal(
         <TopNavigationBar
           pageTitle={currentPageTitle}
+          pageSubheading={currentPageSubheading}
           onSearch={onSearch}
           onMenuClick={() => {
             if (isMobile) {
@@ -245,8 +293,9 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
             'relative z-10 transition-all duration-300 w-full h-full bg-background flex flex-col', // Full height with flex layout
             // Desktop: Add left padding for fixed sidebar (14rem = 224px)
             !isMobile && 'pl-56',
-            // Add top padding for fixed header (header height is ~48px)
-            'pt-12',
+            // Add top padding for fixed header (h-12 = 48px) + extra spacing
+            // Conversations and Settings only get minimal padding for header (48px)
+            isConversationsRoute || isSettingsRoute ? 'pt-12' : 'pt-[72px]',
             // Mobile: Add bottom padding for mobile nav (nav height + safe area ≈ 80px)
             isMobile && 'pb-20'
           )}

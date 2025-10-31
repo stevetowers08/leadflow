@@ -768,7 +768,7 @@ const Jobs: React.FC = () => {
 
   if (error) {
     return (
-      <Page title='Job Intelligence' hideHeader>
+      <Page title='Jobs Feed' hideHeader>
         <div className='flex items-center justify-center h-32 text-destructive'>
           Error: {error}
         </div>
@@ -777,20 +777,10 @@ const Jobs: React.FC = () => {
   }
 
   return (
-    <Page title='Job Intelligence' hideHeader>
-      <div className='flex-1 flex flex-col min-h-0 space-y-1'>
-        {/* Page Header */}
-        <div className='mb-1'>
-          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-            Job Intelligence
-          </h1>
-          <p className='text-sm text-muted-foreground'>
-            Qualify jobs to get more company info and decision makers using AI
-          </p>
-        </div>
-
+    <Page title='Jobs Feed' hideHeader>
+      <div className='flex-1 flex flex-col min-h-0 space-y-4'>
         {/* Tab Navigation and Filter Controls on Same Row */}
-        <div className='flex items-center justify-end gap-4 py-1 mb-2 flex-nowrap overflow-hidden'>
+        <div className='flex items-center justify-end gap-4 flex-nowrap overflow-hidden'>
           {/* Tab Navigation */}
           <div className='flex-shrink-0 mr-auto'>
             <TabNavigation
