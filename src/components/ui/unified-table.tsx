@@ -1,3 +1,5 @@
+'use client';
+
 import { cn } from '@/lib/utils';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
 import React from 'react';
@@ -769,4 +771,6 @@ UnifiedTable.Row = TableRow;
 UnifiedTable.Cell = TableCell;
 UnifiedTable.Head = TableHead;
 
+// Explicit exports
+export { UnifiedTable };
 export default UnifiedTable;

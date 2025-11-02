@@ -23,7 +23,8 @@ import {
   Target,
   Users,
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
 
 interface NavItem {
@@ -106,8 +107,7 @@ interface MobileNavProps {
 }
 
 export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
-  const location = useLocation();
-  const pathname = location.pathname;
+  const pathname = usePathname();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const isMobile = useIsMobile();
   const { lightHaptic, mediumHaptic } = useHapticFeedback();
@@ -296,7 +296,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
                           )}
                           role='menuitem'
                         >
-                          <div className='flex-shrink-0 h-5 w-5'>{item.icon}</div>
+                          <div className='flex-shrink-0 h-5 w-5'>
+                            {item.icon}
+                          </div>
                           <span className='text-sm font-medium'>
                             {item.label}
                           </span>
