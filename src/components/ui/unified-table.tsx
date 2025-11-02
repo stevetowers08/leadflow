@@ -171,6 +171,7 @@ export const TableHead = React.forwardRef<
     />
   )
 );
+TableHead.displayName = 'TableHead';
 
 // Main UnifiedTable Component
 export function UnifiedTable<T = unknown>({
