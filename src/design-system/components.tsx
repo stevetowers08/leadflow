@@ -148,21 +148,17 @@ export const Page: React.FC<PageProps> = ({
     </div>
   );
 
+  // FINAL FIX: Match Conversations/Settings pattern exactly
+  // They use h-full directly, so Page should too - remove flex-1 since parent already has it
   return (
     <>
       <div className='fixed inset-0 bg-background -z-10' />
-      <div
-        className={cn(
-          'relative w-full flex flex-col flex-1 min-h-0',
-          allowScroll ? '' : 'overflow-hidden'
-        )}
-      >
+      <div className='relative w-full h-full flex flex-col overflow-hidden'>
         {!hideHeader && (
           <div
             className={cn(
-              'flex-shrink-0 mb-2',
-              allowScroll && 'sticky top-0 bg-background z-10 pt-6 pb-4',
-              'px-4 lg:px-6' // Always add horizontal padding for header
+              'flex-shrink-0 mb-2 px-4 lg:px-6',
+              allowScroll && 'sticky top-0 bg-background z-10 pt-6 pb-4'
             )}
           >
             <div className='flex items-center justify-between w-full'>
@@ -191,15 +187,17 @@ export const Page: React.FC<PageProps> = ({
             </div>
           </div>
         )}
-        <div
-          className={cn(
-            allowScroll
-              ? 'flex-1 min-h-0 overflow-auto scrollbar-modern px-4 lg:px-6 pb-6'
-              : 'flex-1 flex flex-col min-h-0 px-4 lg:px-6' // Add padding to table pages too
-          )}
-        >
-          {children}
-        </div>
+        {allowScroll ? (
+          // Scrollable page: match Settings pattern - flex-1 overflow-y-auto
+          <div className='flex-1 overflow-y-auto scrollbar-modern px-4 lg:px-6 pb-6'>
+            {children}
+          </div>
+        ) : (
+          // Table page: let children (tables) handle their own scrolling
+          <div className='flex-1 flex flex-col min-h-0 px-4 lg:px-6'>
+            {children}
+          </div>
+        )}
       </div>
     </>
   );
