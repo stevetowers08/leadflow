@@ -153,8 +153,10 @@ export const Page: React.FC<PageProps> = ({
       <div className='fixed inset-0 bg-background -z-10' />
       <div
         className={cn(
-          'relative w-full flex flex-col flex-1 min-h-0',
-          allowScroll ? 'overflow-auto scrollbar-modern' : 'overflow-hidden'
+          'relative w-full',
+          allowScroll
+            ? 'h-full overflow-auto scrollbar-modern'
+            : 'flex flex-col flex-1 min-h-0 overflow-hidden'
         )}
       >
         <div
