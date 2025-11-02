@@ -420,37 +420,68 @@ All cards within pages should:
 
 ### Page Layout Architecture (Fixed Viewport)
 
-All pages use a unified fixed-viewport layout with internal scrolling:
+All pages use a unified fixed-viewport layout with internal scrolling via the `Page` component:
 
 ```tsx
 // Layout Container (h-screen overflow-hidden)
 //   └─ Main Content (h-full flex flex-col)
 //       └─ Content Wrapper (flex-1 overflow-hidden)
 //           └─ Page Component (h-full overflow-hidden)
-//               └─ Page Content (flex-1 flex flex-col min-h-0)
-//                   ├─ Filters (flex-shrink-0)
-//                   ├─ Table Wrapper (flex-1 min-h-0)
-//                   └─ Pagination (flex-shrink-0)
+//               ├─ Header (optional, flex-shrink-0)
+//               └─ Scroll Container (flex-1 min-h-0 overflow-y-auto)
+//                   └─ Content Wrapper (h-full flex flex-col, padding)
+//                       └─ Page Content (flex flex-col, height: 100%)
+//                           ├─ Filters (flex-shrink-0)
+//                           ├─ Table Wrapper (flex-1 min-h-0)
+//                           └─ Pagination (flex-shrink-0)
 ```
 
 **Key Classes**:
 
 - Layout: `h-screen overflow-hidden` - Prevents page scrolling
 - Content: `flex-1 overflow-hidden` - Let pages handle overflow
-- Page: `h-full overflow-hidden` - Page fills container without scrolling
-- Table Container: `flex-1 min-h-0` - Takes available space
+- Page Container: `h-full flex flex-col overflow-hidden` - Page fills container
+- Scroll Container: `flex-1 min-h-0 overflow-y-auto` - Handles vertical scrolling
+- Content Wrapper: `h-full flex flex-col` - Flex container with padding
+- Table Container: `flex flex-col` with `height: 100%` - Fills content wrapper
+- Table Wrapper: `flex-1 min-h-0` - Takes available space
 - Table: `overflow-auto` - Table scrolls internally
+
+**Page Component Padding System** (Updated January 2025):
+
+The `Page` component supports two padding modes:
+
+- **Default Padding** (`padding='default'`):
+  - Horizontal: `1rem` mobile, `1.5rem` desktop (`px-4 lg:px-6`)
+  - Top: `1.5rem` (24px) (`pt-6`)
+  - Bottom: `0.75rem` (12px) (`pb-3`)
+  - Used for: Jobs, Contacts, Companies
+
+- **Large Padding** (`padding='large'`):
+  - Horizontal: `3rem` mobile, `4rem` desktop (`px-12 lg:px-16`)
+  - Top: `3rem` (48px) (`pt-12`)
+  - Bottom: `1.5rem` (24px) (`pb-6`)
+  - Used for: Dashboard, Getting Started, Reporting/Analytics
+
+**Scroll Padding**:
+
+- Content uses `scroll-padding-top` and `scroll-padding-bottom` to prevent cut-off
+- Default: `1.5rem` (24px)
+- Large: `3rem` (48px)
 
 **Table Pages Structure**:
 
 ```tsx
-<Page title='Jobs' hideHeader>
-  <div className='flex-1 flex flex-col min-h-0 space-y-4'>
-    {/* Filters - fixed at top */}
-    <FilterControls {...props} />
+<Page title='Jobs Feed' hideHeader>
+  {/* Container fills content wrapper height */}
+  <div className='flex flex-col' style={{ height: '100%', minHeight: 0 }}>
+    {/* Filters - Fixed at top */}
+    <div className='flex-shrink-0 pb-4'>
+      <FilterControls {...props} />
+    </div>
 
-    {/* Table - scrollable area */}
-    <div className='flex-1 min-h-0'>
+    {/* Table - Scrollable middle */}
+    <div className='flex-1 min-h-0 flex flex-col overflow-hidden'>
       <UnifiedTable
         scrollable={true}
         onRowClick={handleRowClick}
@@ -458,8 +489,23 @@ All pages use a unified fixed-viewport layout with internal scrolling:
       />
     </div>
 
-    {/* Pagination - fixed at bottom */}
-    <PaginationControls {...props} />
+    {/* Pagination - Fixed at bottom */}
+    <div className='flex-shrink-0 pt-4'>
+      <PaginationControls {...props} />
+    </div>
+  </div>
+</Page>
+```
+
+**Content Pages Structure** (Dashboard, Getting Started, Reporting):
+
+```tsx
+<Page title='Dashboard' hideHeader padding='large'>
+  <div className='space-y-5 pb-8'>
+    {/* Content sections with spacing */}
+    <div className='grid gap-3 grid-cols-1 md:grid-cols-3 lg:grid-cols-4'>
+      {/* Cards */}
+    </div>
   </div>
 </Page>
 ```
@@ -1346,11 +1392,72 @@ const tabOptions = useMemo<TabOption[]>(
 );
 ```
 
-**Usage**: This component is used on:
+### UnifiedTable Component
 
-- Jobs page (New, Qualified, Skip, All)
-- Company Details slide-out (Overview, People, Jobs, Activity)
-- Any page requiring tab-based navigation
+The application uses a standardized `UnifiedTable` component for all data tables across Jobs, Contacts, and Companies pages.
+
+#### Table Styling Standards (Updated January 2025)
+
+**Row Heights:**
+
+- **Table Rows**: `h-[40px]` (40px / 2.5rem) - Standardized across all tables
+- **Table Headers**: `h-[40px]` (40px / 2.5rem) - Matches row height
+- **Cell Padding**: `px-4 py-1` (16px horizontal, 4px vertical) - Total 8px vertical padding leaves 32px for content
+
+**Visual Design:**
+
+- **Border System**: `border-r border-gray-200` on cells, removed on last column
+- **Hover States**:
+  - Row: `hover:bg-gray-100` with `hover:border-l-2 hover:border-primary-400` left border accent
+  - Cell text: `group-hover:text-gray-600`
+- **Header Style**:
+  - Background: `bg-gray-50`
+  - Text: `text-xs font-semibold text-gray-700 uppercase tracking-wide`
+  - Sticky: `sticky top-0 z-30` when scrollable
+
+**Scrolling:**
+
+- **Scroll Container**: `flex-1 min-h-0 overflow-y-auto overflow-x-auto`
+- **Scrollbar**: `scrollbar-thin` for modern appearance
+- **Fixed Table Layout**: `table-layout: fixed` with colgroup for consistent column widths
+
+**Implementation Pattern:**
+
+```tsx
+<Page title='Jobs Feed' hideHeader>
+  <div className='flex flex-col' style={{ height: '100%', minHeight: 0 }}>
+    {/* Filters */}
+    <div className='flex-shrink-0 pb-4'>
+      <FilterControls {...props} />
+    </div>
+
+    {/* Table */}
+    <div className='flex-1 min-h-0 flex flex-col overflow-hidden'>
+      <UnifiedTable
+        data={jobs}
+        columns={columns}
+        tableId='jobs'
+        scrollable={true}
+        stickyHeaders={true}
+        onRowClick={handleRowClick}
+        loading={loading}
+      />
+    </div>
+
+    {/* Pagination */}
+    <div className='flex-shrink-0 pt-4'>
+      <PaginationControls {...props} />
+    </div>
+  </div>
+</Page>
+```
+
+**Usage**: UnifiedTable is used on:
+
+- Jobs Feed page (with tabs: New, Qualified, Skip, All)
+- Contacts page (People management)
+- Companies page (Company management)
+- Slide-out panels (Company Details, Person Details)
 
 ### Button Component
 

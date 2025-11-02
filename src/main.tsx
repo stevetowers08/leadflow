@@ -14,19 +14,19 @@ const initializeApp = async () => {
   logger.info('🚀 RECRUITEDGE starting...');
 
   // Only show environment debug info in development
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     logger.debug('🔍 Environment Debug Info:');
     logger.debug(
       'NEXT_PUBLIC_SUPABASE_URL:',
-      process.env.NEXT_PUBLIC_SUPABASE_URL
+      import.meta.env.NEXT_PUBLIC_SUPABASE_URL
     );
     logger.debug(
       'NEXT_PUBLIC_SUPABASE_ANON_KEY:',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
+      import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
     );
     logger.debug(
       'NEXT_PUBLIC_GOOGLE_CLIENT_ID:',
-      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+      import.meta.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     );
   }
 

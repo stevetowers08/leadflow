@@ -5,6 +5,8 @@ import { defineConfig } from 'vite';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   base: '/', // Ensure correct base path for Vercel
+  // Expose NEXT_PUBLIC_* environment variables for legacy compatibility
+  envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
   server: {
     host: true, // Listen on all interfaces to allow Cloudflare tunnel access
     port: 8086,

@@ -28,7 +28,6 @@ import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { TopNavigationBar } from './TopNavigationBar';
 
-const MobileTestPanel = lazy(() => import('../mobile/MobileTestPanel'));
 const MobileNav = lazy(() => import('../mobile/MobileNav'));
 
 interface LayoutProps {
@@ -259,11 +258,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
           <MobileNav />
         </Suspense>
       )}
-
-      {/* Mobile Test Panel (Development Only) */}
-      <Suspense fallback={null}>
-        <MobileTestPanel />
-      </Suspense>
     </>
   );
 };
