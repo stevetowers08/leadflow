@@ -6,8 +6,12 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Empowr CRM - AI-powered Recruitment Platform',
+  title: 'RECRUITEDGE Intelligence Platform - 4Twenty',
   description: 'AI-powered recruitment platform for managing jobs and people',
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({

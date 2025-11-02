@@ -105,7 +105,7 @@ const ConversationsContent: React.FC = () => {
   >([]);
 
   usePageMeta({
-    title: 'Conversations - Empowr CRM',
+    title: 'Conversations - RECRUITEDGE',
     description: 'Manage all your email conversations with leads.',
   });
 

@@ -139,7 +139,8 @@ class NotificationService {
 
     try {
       const { data, error } = await supabase.rpc(
-        'get_unread_notification_count'
+        'get_unread_notification_count',
+        {}
       );
 
       if (error) {
@@ -159,7 +160,7 @@ class NotificationService {
         return count || 0;
       }
 
-      return (data as number) || 0;
+      return typeof data === 'number' ? data : 0;
     } catch (error) {
       console.error('Failed to get unread count:', error);
       return 0;
@@ -184,14 +185,17 @@ class NotificationService {
    * Mark all notifications as read
    */
   async markAllAsRead(): Promise<number> {
-    const { data, error } = await supabase.rpc('mark_all_notifications_read');
+    const { data, error } = await supabase.rpc(
+      'mark_all_notifications_read',
+      {}
+    );
 
     if (error) {
       console.error('Failed to mark all as read:', error);
       throw error;
     }
 
-    return data || 0;
+    return typeof data === 'number' ? data : 0;
   }
 
   /**

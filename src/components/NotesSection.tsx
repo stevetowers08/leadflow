@@ -3,8 +3,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
-import { Edit3, Plus, Save, StickyNote, Trash2 } from 'lucide-react';
+import { Edit3, Plus, StickyNote, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface NotesSectionProps {
@@ -35,8 +36,8 @@ export const NotesSection = ({
   const [newNoteContent, setNewNoteContent] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -340,85 +341,78 @@ export const NotesSection = ({
   }
 
   return (
-    <div className={className}>
-      {/* Add Note Form - Floating at Top */}
+    <div
+      className={cn('w-full min-w-0 flex flex-col', className)}
+      style={{ width: '100%' }}
+    >
+      {/* Add Note Button - Show Plus Icon */}
+      {!isAdding && (
+        <div className='mb-4'>
+          <Button
+            onClick={() => setIsAdding(true)}
+            variant='outline'
+            size='sm'
+            className='w-full border-dashed'
+          >
+            <Plus className='h-4 w-4 mr-2' />
+            Add Note
+          </Button>
+        </div>
+      )}
+
+      {/* Simple Add Note Input - Only Visible When Adding */}
       {isAdding && (
-        <div className='mb-4 p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 shadow-sm'>
-          <div className='flex items-center gap-2 mb-3'>
-            <div className='p-1.5 rounded-lg bg-primary/20'>
-              <Plus className='h-4 w-4 text-primary' />
-            </div>
-            <div className='text-sm font-semibold text-foreground'>
-              Add New Note
-            </div>
-          </div>
+        <div className='mb-4'>
           <Textarea
-            placeholder={`Share your thoughts about ${entityName || `this ${entityType}`}...`}
+            placeholder={`Add a note...`}
             value={newNoteContent}
             onChange={e => setNewNoteContent(e.target.value)}
-            rows={4}
-            className='resize-none mb-3'
+            onKeyDown={e => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                addNote();
+              }
+            }}
+            rows={3}
+            className='resize-none'
             autoFocus
           />
-          <div className='flex gap-2'>
-            <Button
-              onClick={addNote}
-              disabled={!newNoteContent.trim() || isSaving}
-              size='sm'
-              className='flex-1'
-            >
-              <Save className='h-3.5 w-3.5 mr-2' />
-              {isSaving ? 'Saving...' : 'Save Note'}
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => {
-                setIsAdding(false);
-                setNewNoteContent('');
-              }}
-            >
-              Cancel
-            </Button>
+          <div className='flex items-center justify-between mt-2'>
+            <span className='text-xs text-gray-500'>
+              Press Cmd/Ctrl + Enter to save
+            </span>
+            <div className='flex gap-2'>
+              <Button
+                onClick={() => {
+                  setIsAdding(false);
+                  setNewNoteContent('');
+                }}
+                variant='ghost'
+                size='sm'
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={addNote}
+                disabled={!newNoteContent.trim() || isSaving}
+                size='sm'
+              >
+                {isSaving ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Notes List */}
-      <div className='space-y-4 max-h-[60vh] overflow-y-auto pr-2'>
+      <div className='space-y-3 flex-1 overflow-y-auto'>
         {isLoading ? (
-          <div className='flex flex-col items-center justify-center py-12'>
-            <div className='animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent mb-4'></div>
-            <div className='text-sm font-medium text-foreground'>
-              Loading notes...
-            </div>
-            <div className='text-xs text-muted-foreground'>
-              Please wait a moment
-            </div>
+          <div className='text-sm text-gray-500 text-center py-8'>
+            Loading...
           </div>
-        ) : notes.length === 0 && !isAdding ? (
-          <div className='flex flex-col items-center justify-center py-12 px-4'>
-            <div className='p-3 rounded-full bg-muted mb-4'>
-              <StickyNote className='h-8 w-8 text-muted-foreground' />
-            </div>
-            <div className='text-base font-semibold text-foreground mb-1'>
-              No notes yet
-            </div>
-            <div className='text-sm text-muted-foreground text-center max-w-sm'>
-              Be the first to add a note about this item. Your notes help keep
-              everyone informed.
-            </div>
-            {!isAdding && (
-              <Button
-                onClick={() => setIsAdding(true)}
-                variant='outline'
-                size='sm'
-                className='mt-4'
-              >
-                <Plus className='h-4 w-4 mr-2' />
-                Add First Note
-              </Button>
-            )}
+        ) : notes.length === 0 ? (
+          <div className='text-sm text-gray-500 text-center py-8'>
+            No notes yet
           </div>
         ) : (
           <>
@@ -430,14 +424,14 @@ export const NotesSection = ({
               return (
                 <div
                   key={note.id}
-                  className='group relative p-4 bg-white border border-border rounded-xl hover:border-primary/30 hover:shadow-md transition-all duration-200'
+                  className='group relative p-3 bg-gray-50 rounded-md border border-gray-200'
                 >
                   {isEditing ? (
-                    <div className='space-y-3'>
+                    <div className='space-y-2'>
                       <Textarea
                         value={editingContent}
                         onChange={e => setEditingContent(e.target.value)}
-                        rows={4}
+                        rows={3}
                         className='resize-none'
                         autoFocus
                       />
@@ -447,11 +441,10 @@ export const NotesSection = ({
                           disabled={!editingContent.trim() || isSaving}
                           size='sm'
                         >
-                          <Save className='h-3.5 w-3.5 mr-2' />
-                          {isSaving ? 'Saving...' : 'Update Note'}
+                          Save
                         </Button>
                         <Button
-                          variant='outline'
+                          variant='ghost'
                           size='sm'
                           onClick={cancelEditing}
                         >
@@ -461,58 +454,37 @@ export const NotesSection = ({
                     </div>
                   ) : (
                     <>
-                      {/* Author Info & Actions */}
-                      <div className='flex items-start justify-between mb-3'>
-                        <div className='flex items-center gap-3'>
-                          <div className='flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-bold shadow-sm'>
-                            {note.author_name
-                              .split(' ')
-                              .map(namePart => namePart[0])
-                              .join('')
-                              .toUpperCase()
-                              .slice(0, 2)}
-                          </div>
-                          <div>
-                            <div className='text-sm font-semibold text-foreground'>
-                              {note.author_name}
-                            </div>
-                            <div
-                              className='text-xs text-muted-foreground flex items-center gap-1'
-                              title={dateInfo.absolute}
-                            >
-                              {dateInfo.relative}
-                              {note.updated_at && (
-                                <span className='text-muted-foreground/70'>
-                                  · edited
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                      <div className='flex items-start justify-between gap-2 mb-2'>
+                        <div className='flex items-center gap-2'>
+                          <span className='text-xs font-medium text-gray-700'>
+                            {note.author_name}
+                          </span>
+                          <span className='text-xs text-gray-500'>
+                            {dateInfo.relative}
+                          </span>
                         </div>
                         {canEdit && (
-                          <div className='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity'>
+                          <div className='flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
                             <Button
                               variant='ghost'
-                              size='icon'
+                              size='sm'
                               onClick={() => startEditing(note)}
-                              className='text-muted-foreground hover:text-foreground'
+                              className='h-6 px-2 text-gray-500 hover:text-gray-700'
                             >
-                              <Edit3 className='h-4 w-4' />
+                              <Edit3 className='h-3 w-3' />
                             </Button>
                             <Button
                               variant='ghost'
-                              size='icon'
+                              size='sm'
                               onClick={() => deleteNote(note.id)}
-                              className='text-muted-foreground hover:text-destructive'
+                              className='h-6 px-2 text-gray-500 hover:text-red-600'
                             >
-                              <Trash2 className='h-4 w-4' />
+                              <Trash2 className='h-3 w-3' />
                             </Button>
                           </div>
                         )}
                       </div>
-
-                      {/* Note Content */}
-                      <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed break-words'>
+                      <div className='text-sm text-gray-900 whitespace-pre-wrap leading-relaxed'>
                         {note.content}
                       </div>
                     </>
@@ -520,18 +492,6 @@ export const NotesSection = ({
                 </div>
               );
             })}
-
-            {/* Add Note Button - When not adding and notes exist */}
-            {!isAdding && notes.length > 0 && (
-              <Button
-                onClick={() => setIsAdding(true)}
-                variant='outline'
-                className='w-full border-dashed hover:bg-muted/50'
-              >
-                <Plus className='h-4 w-4 mr-2' />
-                Add Another Note
-              </Button>
-            )}
           </>
         )}
       </div>

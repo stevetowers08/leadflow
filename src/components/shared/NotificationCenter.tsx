@@ -78,38 +78,55 @@ export const NotificationCenter: React.FC = () => {
 
   const handleNotificationClick = useCallback(
     async (notification: Notification) => {
-      // Mark as read
-      if (!notification.is_read) {
-        await notificationService.markAsRead(notification.id);
-        queryClient.invalidateQueries({ queryKey: ['notifications'] });
-        queryClient.invalidateQueries({
-          queryKey: ['notification-unread-count'],
-        });
-      }
+      try {
+        // Mark as read
+        if (!notification.is_read) {
+          await notificationService.markAsRead(notification.id);
+          queryClient.invalidateQueries({ queryKey: ['notifications'] });
+          queryClient.invalidateQueries({
+            queryKey: ['notification-unread-count'],
+          });
+        }
 
-      // Navigate if action exists
-      if (notification.action_type === 'navigate' && notification.action_url) {
-        setOpen(false);
-        router.push(notification.action_url);
+        // Navigate if action exists
+        if (
+          notification.action_type === 'navigate' &&
+          notification.action_url
+        ) {
+          setOpen(false);
+          router.push(notification.action_url);
+        }
+      } catch (error) {
+        console.error('Failed to handle notification click:', error);
       }
     },
     [router, queryClient]
   );
 
   const handleMarkAllRead = useCallback(async () => {
-    await notificationService.markAllAsRead();
-    queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    queryClient.invalidateQueries({ queryKey: ['notification-unread-count'] });
+    try {
+      await notificationService.markAllAsRead();
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({
+        queryKey: ['notification-unread-count'],
+      });
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
   }, [queryClient]);
 
   const handleDeleteNotification = useCallback(
     async (e: React.MouseEvent, notificationId: string) => {
       e.stopPropagation();
-      await notificationService.deleteNotification(notificationId);
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({
-        queryKey: ['notification-unread-count'],
-      });
+      try {
+        await notificationService.deleteNotification(notificationId);
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        queryClient.invalidateQueries({
+          queryKey: ['notification-unread-count'],
+        });
+      } catch (error) {
+        console.error('Failed to delete notification:', error);
+      }
     },
     [queryClient]
   );

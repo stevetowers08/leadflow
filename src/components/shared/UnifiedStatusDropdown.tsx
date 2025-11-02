@@ -218,10 +218,12 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
           : 'hover:opacity-90 cursor-pointer'
       )
     : cn(
-        'flex items-center gap-2 px-3 py-1.5 text-sm',
-        'bg-white border border-gray-200 rounded-lg',
-        'hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500',
-        'transition-all duration-200',
+        'flex items-center gap-2 px-3 text-sm',
+        'bg-white border border-gray-200 rounded-md',
+        'hover:border-gray-300 hover:bg-gray-50',
+        'focus:outline-none focus:ring-2 focus:ring-blue-500',
+        'transition-colors',
+        'h-8',
         'min-w-[140px]',
         disabled || isUpdating
           ? 'opacity-50 cursor-not-allowed'
@@ -250,7 +252,7 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
                   statusIndicatorClass
                 )}
               />
-              <span className='text-gray-700 font-medium text-xs'>
+              <span className='text-gray-700 font-medium text-sm'>
                 {displayText}
               </span>
             </div>

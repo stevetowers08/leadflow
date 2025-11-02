@@ -48,7 +48,7 @@ const previewHtml = `<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <h1>Empowr CRM Favicon Preview</h1>
+  <h1>RECRUITEDGE Favicon Preview</h1>
   <div class="preview">
     <div class="favicon">${svgContent}</div>
     <div class="favicon-large">${svgContent}</div>

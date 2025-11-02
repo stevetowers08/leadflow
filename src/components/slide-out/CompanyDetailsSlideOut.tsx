@@ -1,6 +1,7 @@
 import { NotesSection } from '@/components/NotesSection';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { IndustryBadges } from '@/components/shared/IndustryBadge';
+import { ScoreBadge } from '@/components/shared/ScoreBadge';
 import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,6 +9,7 @@ import { TabNavigation, TabOption } from '@/components/ui/tab-navigation';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
+  bulkAddToCampaign,
   bulkExportPeople,
   bulkFavouritePeople,
   bulkSyncToCRM,
@@ -26,11 +28,16 @@ import {
   Mail,
   MapPin,
   RefreshCw,
+  Send,
+  Sparkles,
   Star,
   StickyNote,
   Trash2,
   User,
+  ListPlus,
+  Workflow,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { GridItem, SlideOutGrid } from './SlideOutGrid';
 import { SlideOutPanel } from './SlideOutPanel';
@@ -61,6 +68,7 @@ interface Interaction {
 const CompanyDetailsSlideOutComponent: React.FC<
   CompanyDetailsSlideOutProps
 > = ({ companyId, isOpen, onClose, onUpdate, onPersonClick, initialTab }) => {
+  const router = useRouter();
   const [company, setCompany] = useState<Company | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -68,6 +76,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
+  const [notesCount, setNotesCount] = useState<number>(0);
   const { toast } = useToast();
   // When panel opens or company changes, optionally jump to requested initial tab
   useEffect(() => {
@@ -158,10 +167,48 @@ const CompanyDetailsSlideOutComponent: React.FC<
     if (selectedPeople.length === 0) return;
     toast({
       title: 'Add to Campaign',
-      description: 'This feature will add selected people to a campaign',
+      description: 'Please select a campaign from the dropdown',
     });
-    // TODO: Implement campaign addition
+    // TODO: Implement campaign selection dialog
   }, [selectedPeople.length, toast]);
+
+  // Individual person action handlers
+  const handlePersonSendMessage = useCallback(
+    (personId: string) => {
+      router.push(`/conversations?compose=1&toIds=${personId}`);
+    },
+    [router]
+  );
+
+  const handlePersonSyncCRM = useCallback(
+    async (personId: string) => {
+      const result = await bulkSyncToCRM([personId]);
+      toast({
+        title: result.success ? 'Success' : 'Error',
+        description: result.message,
+        variant: result.success ? 'default' : 'destructive',
+      });
+      if (result.success) {
+        onUpdate?.();
+      }
+    },
+    [toast, onUpdate]
+  );
+
+  const handlePersonAddToCampaign = useCallback(
+    async (personId: string, campaignId: string) => {
+      const result = await bulkAddToCampaign([personId], campaignId);
+      toast({
+        title: result.success ? 'Success' : 'Error',
+        description: result.message,
+        variant: result.success ? 'default' : 'destructive',
+      });
+      if (result.success) {
+        onUpdate?.();
+      }
+    },
+    [toast, onUpdate]
+  );
 
   const handleToggleFavourite = useCallback(async () => {
     if (!company) return;
@@ -423,6 +470,16 @@ const CompanyDetailsSlideOutComponent: React.FC<
         setPeople((peopleData as unknown as Person[]) || []);
         setJobs((jobsData as Job[]) || []);
         setInteractions((interactionsData as Interaction[]) || []);
+
+        // Fetch notes count
+        if (companyData?.id) {
+          const { count } = await supabase
+            .from('notes')
+            .select('*', { count: 'exact', head: true })
+            .eq('entity_id', companyData.id)
+            .eq('entity_type', 'company');
+          setNotesCount(count || 0);
+        }
       } catch (error) {
         console.error('Error fetching company details:', error);
         toast({
@@ -471,71 +528,13 @@ const CompanyDetailsSlideOutComponent: React.FC<
       ),
     },
     {
-      label: 'Head Office',
-      value: company.head_office || '-',
-    },
-    {
       label: 'Company Size',
       value: company.company_size || '-',
     },
     {
-      label: 'AI Score',
-      value: (
-        <div
-          className={`inline-flex h-6 px-2 rounded-md border text-xs font-semibold items-center justify-center ${
-            company.lead_score === 'High'
-              ? 'bg-green-50 border-green-200 text-green-700'
-              : company.lead_score === 'Medium'
-                ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
-                : company.lead_score === 'Low'
-                  ? 'bg-red-50 border-red-200 text-red-700'
-                  : 'bg-gray-50 border-gray-200 text-gray-700'
-          }`}
-        >
-          {company.lead_score || '-'}
-        </div>
-      ),
-    },
-    {
-      label: 'Website',
-      value: company.website ? (
-        <a
-          href={
-            company.website.startsWith('http')
-              ? company.website
-              : `https://${company.website}`
-          }
-          target='_blank'
-          rel='noopener noreferrer'
-          className='text-blue-600 hover:text-blue-800 flex items-center gap-1'
-        >
-          <Globe className='h-3 w-3' />
-          Visit Website
-        </a>
-      ) : (
-        '-'
-      ),
-    },
-    {
-      label: 'LinkedIn',
-      value: company.linkedin_url ? (
-        <a
-          href={company.linkedin_url}
-          target='_blank'
-          rel='noopener noreferrer'
-          className='text-blue-600 hover:text-blue-800 flex items-center gap-1'
-        >
-          <ExternalLink className='h-3 w-3' />
-          View Profile
-        </a>
-      ) : (
-        '-'
-      ),
-    },
-    {
-      label: 'Created Date',
-      value: company.created_at
-        ? new Date(company.created_at).toLocaleDateString('en-US', {
+      label: 'Last Updated',
+      value: company.updated_at
+        ? new Date(company.updated_at).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -543,8 +542,17 @@ const CompanyDetailsSlideOutComponent: React.FC<
         : '-',
     },
     {
-      label: 'Lead Source',
-      value: company.lead_source || '-',
+      label: 'Source',
+      value: company.source || '-',
+    },
+    {
+      label: (
+        <span className='flex items-center gap-1.5'>
+          <Sparkles className='h-3.5 w-3.5' />
+          AI Score
+        </span>
+      ),
+      value: <ScoreBadge score={company.lead_score} variant='compact' />,
     },
   ];
 
@@ -572,18 +580,18 @@ const CompanyDetailsSlideOutComponent: React.FC<
       onClose={onClose}
       title=''
       subtitle=''
-      width='default'
+      width='wide'
       customHeader={
         <div className='flex items-center justify-between w-full'>
           <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200'>
+            <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200'>
               {company.website ? (
                 <img
                   src={
                     getCompanyLogoUrlSync(company.name, company.website) || ''
                   }
                   alt={`${company.name} logo`}
-                  className='w-12 h-12 rounded-lg object-cover'
+                  className='w-10 h-10 rounded-lg object-cover'
                   onError={e => {
                     (e.currentTarget as HTMLImageElement).style.display =
                       'none';
@@ -595,12 +603,47 @@ const CompanyDetailsSlideOutComponent: React.FC<
                   }}
                 />
               ) : null}
-              <Building2 className='h-6 w-6 text-gray-400' />
+              <Building2 className='h-5 w-5 text-gray-400' />
             </div>
             <div className='flex-1 min-w-0'>
-              <h2 className='text-lg font-semibold text-gray-700 truncate'>
-                {company.name}
-              </h2>
+              <div className='flex items-center gap-3'>
+                <h2 className='text-lg font-semibold text-gray-700 truncate'>
+                  {company.name}
+                </h2>
+                {company.website && (
+                  <a
+                    href={
+                      company.website.startsWith('http')
+                        ? company.website
+                        : `https://${company.website}`
+                    }
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-gray-400 hover:text-gray-600 transition-colors'
+                    title='Visit Website'
+                  >
+                    <Globe className='h-4 w-4' />
+                  </a>
+                )}
+                {company.linkedin_url && (
+                  <a
+                    href={company.linkedin_url}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-gray-400 hover:text-blue-600 transition-colors'
+                    title='View LinkedIn Profile'
+                  >
+                    <svg
+                      className='h-4 w-4'
+                      fill='currentColor'
+                      viewBox='0 0 24 24'
+                      aria-hidden='true'
+                    >
+                      <path d='M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z' />
+                    </svg>
+                  </a>
+                )}
+              </div>
               <p className='text-sm text-gray-500 truncate'>
                 {company.head_office || 'Company Information'}
               </p>
@@ -611,11 +654,11 @@ const CompanyDetailsSlideOutComponent: React.FC<
               size='sm'
               variant='ghost'
               onClick={handleToggleFavourite}
-              className={
+              className={`h-8 w-8 p-0 border border-gray-200 rounded-md hover:border-gray-300 ${
                 company.is_favourite
-                  ? 'text-yellow-500 hover:text-yellow-600'
-                  : 'text-gray-500'
-              }
+                  ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50'
+                  : 'text-gray-500 hover:text-gray-700 bg-white'
+              }`}
               title={
                 company.is_favourite
                   ? 'Remove from favorites'
@@ -655,437 +698,610 @@ const CompanyDetailsSlideOutComponent: React.FC<
           </div>
         </div>
       }
-      footer={
-        <div className='flex items-center justify-between w-full'>
-          <div className='flex items-center gap-2'>
-            <span className='text-sm text-gray-500'>
-              {people.length} people • {jobs.length} jobs
-            </span>
-          </div>
-          <div className='flex items-center gap-2'>
-            {/* Actions can be added here if needed */}
-          </div>
-        </div>
-      }
     >
-      {/* Tabs for Organization */}
-      <TabNavigation
-        tabs={tabOptions}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        className='mb-6'
-      />
+      <div className='flex gap-0 h-full -mx-6'>
+        {/* Left Column - Tabs and Content */}
+        <section className='flex-1 min-w-0 flex flex-col overflow-hidden m-0 p-0'>
+          {/* Tabs for Organization */}
+          <div className='pt-6 pb-6 pl-6 pr-0 flex-shrink-0 overflow-visible'>
+            <TabNavigation
+              tabs={tabOptions.filter(tab =>
+                ['overview', 'people', 'jobs'].includes(tab.id)
+              )}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              variant='pill'
+              className='w-full mr-0 pr-0'
+            />
+          </div>
 
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div className='space-y-4'>
-          {/* Company Details Section */}
-          <SlideOutSection title='Company Details'>
-            <SlideOutGrid items={companyDetailsItems} />
-          </SlideOutSection>
+          {/* Tab Content - Scrollable */}
+          <div className='flex-1 overflow-y-auto overflow-x-hidden select-text m-0 p-0'>
+            {activeTab === 'overview' && (
+              <div className='space-y-4 px-6 pb-4'>
+                {/* Divider */}
+                <div className='w-full border-t border-gray-200'></div>
 
-          {/* AI Analysis Section */}
-          {company.score_reason && (
-            <SlideOutSection title='AI Analysis'>
-              <div className='p-4 bg-primary/5 border border-primary/10 rounded-lg'>
-                <p className='text-sm text-foreground leading-relaxed whitespace-pre-wrap'>
-                  {company.score_reason}
-                </p>
-              </div>
-            </SlideOutSection>
-          )}
-        </div>
-      )}
+                {/* Company Details Section */}
+                <div className='mb-6'>
+                  <SlideOutGrid items={companyDetailsItems} />
+                </div>
 
-      {activeTab === 'people' && (
-        <div className='relative pb-20'>
-          {people.length > 0 ? (
-            <div className='grid grid-cols-1 gap-4'>
-              {people.map(person => (
-                <div key={person.id} className='group cursor-pointer'>
-                  <div
-                    onClick={() => handlePersonClick(person.id)}
-                    className='bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden'
-                  >
-                    <div className='p-6'>
-                      <div className='flex items-center gap-4'>
-                        {/* Checkbox */}
-                        <div onClick={e => e.stopPropagation()}>
-                          <Checkbox
-                            checked={selectedPeople.includes(person.id)}
-                            onCheckedChange={() =>
-                              togglePersonSelection(person.id)
-                            }
-                            className='flex-shrink-0'
-                          />
-                        </div>
+                {/* Financial Information Section */}
+                {(company.funding_raised || company.estimated_arr) && (
+                  <SlideOutSection title='Financial Information'>
+                    <SlideOutGrid
+                      items={[
+                        ...(company.funding_raised
+                          ? [
+                              {
+                                label: 'Funding Raised',
+                                value: `$${Number(company.funding_raised).toLocaleString()}`,
+                              },
+                            ]
+                          : []),
+                        ...(company.estimated_arr
+                          ? [
+                              {
+                                label: 'Estimated ARR',
+                                value: `$${Number(company.estimated_arr).toLocaleString()}`,
+                              },
+                            ]
+                          : []),
+                      ]}
+                    />
+                  </SlideOutSection>
+                )}
 
-                        <div className='relative'>
-                          <div className='w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white font-semibold text-lg shadow-lg'>
-                            {person.name
-                              ? person.name
-                                  .split(' ')
-                                  .map(n => n[0])
-                                  .join('')
-                                  .toUpperCase()
-                                  .slice(0, 2)
-                              : 'U'}
-                          </div>
-                          <div className='absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full' />
-                        </div>
+                {/* Divider */}
+                {company.score_reason && (
+                  <div className='w-full border-t border-gray-200 my-8'></div>
+                )}
 
-                        <div className='flex-1'>
-                          <div className='flex items-center gap-2 mb-1'>
-                            <h4 className='font-semibold text-foreground'>
-                              {person.name || 'Unknown'}
-                            </h4>
-                            {person.lead_score && (
-                              <span className='text-xs font-medium px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full'>
-                                {person.lead_score}
-                              </span>
-                            )}
-                          </div>
-                          <p className='text-sm text-muted-foreground mb-2'>
-                            {person.company_role || 'No role specified'}
-                          </p>
-                          <div className='flex items-center gap-2'>
-                            {person.people_stage && (
-                              <span className='text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded'>
-                                {getStatusDisplayText(person.people_stage)}
-                              </span>
-                            )}
-                            {person.email_address && (
-                              <span className='text-xs px-2 py-0.5 bg-purple-50 text-purple-700 rounded'>
-                                Verified Email
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Hover indicator */}
-                        <div className='opacity-0 group-hover:opacity-100 transition-opacity'>
-                          <div className='w-2 h-2 bg-blue-500 rounded-full' />
-                        </div>
-                      </div>
+                {/* AI Analysis Section */}
+                {company.score_reason && (
+                  <div className='mb-4 last:mb-0'>
+                    <div className='flex items-center gap-1.5 mb-3'>
+                      <Sparkles className='h-4 w-4 text-gray-500' />
+                      <h4 className='text-sm font-semibold text-gray-900'>
+                        AI Analysis
+                      </h4>
+                    </div>
+                    <div className='p-4 bg-primary/5 border border-primary/10 rounded-lg'>
+                      <p className='text-sm text-foreground leading-relaxed whitespace-pre-wrap'>
+                        {company.score_reason}
+                      </p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className='text-center py-12 text-gray-500'>
-              <User className='h-12 w-12 text-gray-300 mx-auto mb-3' />
-              <p className='text-sm'>No people at this company</p>
-            </div>
-          )}
-
-          {/* Fixed Action Bar at Bottom */}
-          <div className='fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-50'>
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-3'>
-                {selectedPeople.length > 0 ? (
-                  <>
-                    <CheckCircle className='h-5 w-5 text-blue-600' />
-                    <span className='text-sm font-medium text-gray-700'>
-                      {selectedPeople.length} selected
-                    </span>
-                    <button
-                      onClick={() => setSelectedPeople([])}
-                      className='text-xs text-gray-500 hover:text-gray-700 transition-colors'
-                    >
-                      Clear
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <User className='h-4 w-4 text-gray-400' />
-                    <span className='text-sm text-gray-500'>
-                      Select people to perform actions
-                    </span>
-                  </>
                 )}
               </div>
-              {selectedPeople.length > 0 && (
-                <div className='flex items-center gap-2'>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    onClick={handleFavouritePeople}
-                  >
-                    <User className='h-4 w-4 mr-2' />
-                    Favourite
-                  </Button>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    onClick={handleExportPeople}
-                  >
-                    <Globe className='h-4 w-4 mr-2' />
-                    Export
-                  </Button>
-                  <Button size='sm' variant='outline' onClick={handleSyncCRM}>
-                    <RefreshCw className='h-4 w-4 mr-2' />
-                    Sync CRM
-                  </Button>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    onClick={handleAddToCampaign}
-                  >
-                    <Mail className='h-4 w-4 mr-2' />
-                    Campaign
-                  </Button>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    className='text-red-600 hover:text-red-700'
-                    onClick={handleDeletePeople}
-                  >
-                    <Trash2 className='h-4 w-4 mr-2' />
-                    Delete
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+            )}
 
-      {activeTab === 'jobs' && (
-        <div className='space-y-1'>
-          {jobs.length > 0 ? (
-            <>
-              {jobs.slice(0, 10).map(job => (
-                <div
-                  key={job.id}
-                  className='group flex items-center gap-3 p-4 hover:bg-gray-50 rounded-lg transition-colors relative'
-                >
-                  <div className='flex-shrink-0 w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center'>
-                    <Calendar className='h-4 w-4 text-gray-600' />
-                  </div>
-
-                  <div className='flex-1 min-w-0 flex items-center justify-between gap-3'>
-                    <div className='flex-1 min-w-0'>
-                      <div className='flex items-center gap-2'>
-                        <div className='text-sm font-medium text-gray-700'>
-                          {job.title || '-'}
-                        </div>
-                        {job.qualification_status && (
-                          <span className='text-xs px-2 py-0.5 bg-green-50 text-green-700 rounded-md flex-shrink-0'>
-                            {getStatusDisplayText(job.qualification_status)}
-                          </span>
-                        )}
-                      </div>
-                      <div className='text-xs text-gray-500 truncate mt-0.5'>
-                        {job.function && <span>{job.function}</span>}
-                        {job.location && job.function && <span> • </span>}
-                        {job.location && <span>{job.location}</span>}
-                        {job.posted_date && (
-                          <span>
-                            {' '}
-                            •{' '}
-                            {new Date(job.posted_date).toLocaleDateString(
-                              'en-US',
-                              { month: 'short', day: 'numeric' }
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
-                      {job.job_url && (
-                        <a
-                          href={job.job_url}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          className='p-1.5 hover:bg-blue-50 rounded-md text-gray-600 hover:text-blue-600 transition-colors'
-                          title='View Job'
+            {activeTab === 'people' && (
+              <div className='flex flex-col px-6 pb-4'>
+                {people.length > 0 ? (
+                  <div className='grid grid-cols-1 gap-3'>
+                    {people.map(person => (
+                      <div key={person.id} className='group cursor-pointer'>
+                        <div
+                          onClick={() => handlePersonClick(person.id)}
+                          className='bg-white border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors overflow-hidden relative'
                         >
-                          <ExternalLink className='h-4 w-4' />
+                          <div className='px-4 py-3'>
+                            {/* Top Row: Role/Title (Prominent) */}
+                            <div className='mb-1'>
+                              {person.company_role && (
+                                <h3 className='text-base font-semibold text-gray-900 mb-1.5'>
+                                  {person.company_role}
+                                </h3>
+                              )}
+                              <div className='flex items-center gap-2 flex-wrap'>
+                                <h4 className='text-sm font-medium text-gray-700'>
+                                  {person.name || 'Unknown'}
+                                </h4>
+                                {person.employee_location && (
+                                  <>
+                                    <span className='text-gray-400'>•</span>
+                                    <span className='text-sm text-gray-500'>
+                                      {person.employee_location}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Compact Info Row */}
+                            <div className='flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-2'>
+                              {person.email_address && (
+                                <div className='flex items-center gap-1.5'>
+                                  <Mail className='h-4 w-4 text-gray-400' />
+                                  <span className='truncate max-w-[200px]'>
+                                    {person.email_address}
+                                  </span>
+                                </div>
+                              )}
+                              {person.linkedin_url && (
+                                <a
+                                  href={person.linkedin_url}
+                                  target='_blank'
+                                  rel='noopener noreferrer'
+                                  onClick={e => e.stopPropagation()}
+                                  className='flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors'
+                                >
+                                  <ExternalLink className='h-4 w-4' />
+                                  <span>LinkedIn</span>
+                                </a>
+                              )}
+                            </div>
+
+                            {/* Status Dropdown and Actions at Bottom */}
+                            <div className='pt-3 mt-3 border-t border-gray-200'>
+                              <div className='flex items-center gap-2 justify-between'>
+                                <UnifiedStatusDropdown
+                                  entityId={person.id}
+                                  entityType='people'
+                                  currentStatus={
+                                    person.people_stage || 'new_lead'
+                                  }
+                                  availableStatuses={[
+                                    'new_lead',
+                                    'message_sent',
+                                    'replied',
+                                    'interested',
+                                    'meeting_scheduled',
+                                    'meeting_completed',
+                                    'follow_up',
+                                    'not_interested',
+                                  ]}
+                                  onStatusChange={() => onUpdate?.()}
+                                  variant='button'
+                                />
+                                <div
+                                  className='flex items-center gap-1'
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  <Button
+                                    variant='ghost'
+                                    size='sm'
+                                    className='h-8 w-8 p-0 border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50'
+                                    onClick={() =>
+                                      handlePersonSendMessage(person.id)
+                                    }
+                                    title='Send Message'
+                                  >
+                                    <Send className='h-4 w-4 text-gray-600' />
+                                  </Button>
+                                  <Button
+                                    variant='ghost'
+                                    size='sm'
+                                    className='h-8 w-8 p-0 border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50'
+                                    onClick={() =>
+                                      handlePersonSyncCRM(person.id)
+                                    }
+                                    title='Sync to CRM'
+                                  >
+                                    <Workflow className='h-4 w-4 text-gray-600' />
+                                  </Button>
+                                  <Button
+                                    variant='ghost'
+                                    size='sm'
+                                    className='h-8 w-8 p-0 border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50'
+                                    onClick={() => {
+                                      // TODO: Open campaign selection dialog
+                                      toast({
+                                        title: 'Add to Campaign',
+                                        description:
+                                          'Campaign selection coming soon',
+                                      });
+                                    }}
+                                    title='Add to Campaign'
+                                  >
+                                    <ListPlus className='h-4 w-4 text-gray-600' />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className='text-center py-12 text-gray-500'>
+                    <User className='h-12 w-12 text-gray-300 mx-auto mb-3' />
+                    <p className='text-sm'>No people at this company</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'jobs' && (
+              <div className='flex flex-col px-6 pb-4'>
+                {jobs.length > 0 ? (
+                  <div className='grid grid-cols-1 gap-3'>
+                    {jobs.slice(0, 10).map(job => {
+                      const currentJobStatus =
+                        job.client_jobs?.[0]?.status || 'new';
+                      return (
+                        <div
+                          key={job.id}
+                          className='bg-white border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors overflow-hidden relative'
+                        >
+                          <div className='px-4 py-3'>
+                            {/* Top Row: Title (Prominent) */}
+                            <div className='mb-2'>
+                              <div className='flex items-center gap-2 flex-wrap'>
+                                <h3 className='text-base font-semibold text-gray-900'>
+                                  {job.title || 'Untitled Job'}
+                                </h3>
+                                {job.location && (
+                                  <>
+                                    <span className='text-gray-400'>•</span>
+                                    <span className='text-sm text-gray-500'>
+                                      {job.location}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Compact Info Row */}
+                            <div className='flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-2'>
+                              {job.function && (
+                                <div className='flex items-center gap-1.5'>
+                                  <FileText className='h-4 w-4 text-gray-400' />
+                                  <span>{job.function}</span>
+                                </div>
+                              )}
+                              {job.posted_date && (
+                                <div className='flex items-center gap-1.5'>
+                                  <Calendar className='h-4 w-4 text-gray-400' />
+                                  <span>
+                                    {new Date(
+                                      job.posted_date
+                                    ).toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      year: 'numeric',
+                                    })}
+                                  </span>
+                                </div>
+                              )}
+                              {job.job_url && (
+                                <a
+                                  href={job.job_url}
+                                  target='_blank'
+                                  rel='noopener noreferrer'
+                                  onClick={e => e.stopPropagation()}
+                                  className='flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors'
+                                >
+                                  <ExternalLink className='h-4 w-4' />
+                                  <span>View Job</span>
+                                </a>
+                              )}
+                            </div>
+
+                            {/* Status Dropdown and Actions at Bottom */}
+                            <div className='pt-3 mt-3 border-t border-gray-200'>
+                              <div className='flex items-center gap-2 justify-between'>
+                                <UnifiedStatusDropdown
+                                  entityId={job.id}
+                                  entityType='jobs'
+                                  currentStatus={currentJobStatus}
+                                  availableStatuses={['new', 'qualify', 'skip']}
+                                  onStatusChange={() => onUpdate?.()}
+                                  variant='button'
+                                />
+                                <div className='flex items-center gap-1'>
+                                  {job.job_url && (
+                                    <Button
+                                      variant='ghost'
+                                      size='sm'
+                                      className='h-8 w-8 p-0 border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50'
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        window.open(job.job_url, '_blank');
+                                      }}
+                                      title='View Job'
+                                    >
+                                      <ExternalLink className='h-4 w-4 text-gray-600' />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant='ghost'
+                                    size='sm'
+                                    className='h-8 w-8 p-0 border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50'
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      toast({
+                                        title: 'Sync to CRM',
+                                        description: 'Job sync coming soon',
+                                      });
+                                    }}
+                                    title='Sync to CRM'
+                                  >
+                                    <Workflow className='h-4 w-4 text-gray-600' />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {jobs.length > 10 && (
+                      <div className='text-center pt-4'>
+                        <a
+                          href={`/jobs?company=${companyId}`}
+                          className='text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1.5'
+                        >
+                          View all {jobs.length} jobs
+                          <ExternalLink className='h-3.5 w-3.5' />
                         </a>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className='text-center py-12 text-gray-500'>
+                    <Calendar className='h-12 w-12 text-gray-300 mx-auto mb-3' />
+                    <p className='text-sm'>No jobs at this company</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'activity' && (
+              <div className='space-y-4 px-6 pb-4'>
+                {/* Recent Alerts Card - Notification Style */}
+                {interactions.length > 0 && (
+                  <div className='bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden'>
+                    <div className='p-6'>
+                      <div className='flex items-center justify-between mb-4'>
+                        <h3 className='font-semibold text-foreground'>
+                          Recent Alerts
+                        </h3>
+                        <div className='flex items-center gap-2'>
+                          <span className='relative flex h-3 w-3'>
+                            <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75' />
+                            <span className='relative inline-flex rounded-full h-3 w-3 bg-red-500' />
+                          </span>
+                          <span className='text-xs font-medium text-muted-foreground'>
+                            {interactions.length} New
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className='space-y-3'>
+                        {interactions.slice(0, 3).map((interaction, idx) => {
+                          const interactionType = getInteractionTypeDisplay(
+                            interaction.interaction_type
+                          );
+                          // Determine color based on interaction type
+                          let bgColor = 'bg-blue-50';
+                          let borderColor = 'border-blue-100';
+                          let dotColor = 'bg-blue-500';
+                          let textColor = 'text-blue-600';
+                          let hoverColor = 'hover:bg-blue-100';
+
+                          if (interaction.interaction_type?.includes('email')) {
+                            bgColor = 'bg-blue-50';
+                            borderColor = 'border-blue-100';
+                            dotColor = 'bg-blue-500';
+                            textColor = 'text-blue-600';
+                            hoverColor = 'hover:bg-blue-100';
+                          } else if (
+                            interaction.interaction_type?.includes('reply') ||
+                            interaction.interaction_type?.includes('positive')
+                          ) {
+                            bgColor = 'bg-emerald-50';
+                            borderColor = 'border-emerald-100';
+                            dotColor = 'bg-emerald-500';
+                            textColor = 'text-emerald-600';
+                            hoverColor = 'hover:bg-emerald-100';
+                          } else if (
+                            interaction.interaction_type?.includes('decline') ||
+                            interaction.interaction_type?.includes('negative')
+                          ) {
+                            bgColor = 'bg-red-50';
+                            borderColor = 'border-red-100';
+                            dotColor = 'bg-red-500';
+                            textColor = 'text-red-600';
+                            hoverColor = 'hover:bg-red-100';
+                          }
+
+                          return (
+                            <div
+                              key={interaction.id}
+                              className={`flex items-start gap-3 p-3 ${bgColor} border ${borderColor} rounded-lg group ${hoverColor} transition-colors cursor-pointer`}
+                            >
+                              <div
+                                className={`w-2 h-2 rounded-full ${dotColor} mt-1.5 flex-shrink-0`}
+                              />
+                              <div className='flex-1 min-w-0'>
+                                <p className='text-sm font-medium text-foreground'>
+                                  {interactionType}
+                                </p>
+                                <p className='text-xs text-muted-foreground mt-0.5'>
+                                  {interaction.people?.name || 'Unknown Person'}
+                                </p>
+                                {interaction.subject && (
+                                  <p className='text-xs text-muted-foreground mt-0.5 truncate'>
+                                    {interaction.subject}
+                                  </p>
+                                )}
+                                <span
+                                  className={`text-xs ${textColor} mt-1 inline-block`}
+                                >
+                                  {formatDate(interaction.occurred_at)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {interactions.length > 3 && (
+                        <button className='mt-4 w-full text-xs font-medium text-center text-blue-600 hover:text-blue-700 py-2 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors'>
+                          View All Alerts ({interactions.length})
+                        </button>
                       )}
                     </div>
                   </div>
-                </div>
-              ))}
-              {jobs.length > 10 && (
-                <div className='text-center pt-2'>
-                  <a
-                    href={`/jobs?company=${companyId}`}
-                    className='text-sm text-blue-600 hover:text-blue-800 font-medium'
-                  >
-                    View all {jobs.length} jobs →
-                  </a>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className='text-center py-12 text-gray-500'>
-              <Calendar className='h-12 w-12 text-gray-300 mx-auto mb-3' />
-              <p className='text-sm'>No jobs at this company</p>
-            </div>
-          )}
-        </div>
-      )}
+                )}
 
-      {activeTab === 'activity' && (
-        <div className='space-y-4'>
-          {/* Recent Alerts Card - Notification Style */}
-          {interactions.length > 0 && (
-            <div className='bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden'>
-              <div className='p-6'>
-                <div className='flex items-center justify-between mb-4'>
-                  <h3 className='font-semibold text-foreground'>
-                    Recent Alerts
-                  </h3>
-                  <div className='flex items-center gap-2'>
-                    <span className='relative flex h-3 w-3'>
-                      <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75' />
-                      <span className='relative inline-flex rounded-full h-3 w-3 bg-red-500' />
-                    </span>
-                    <span className='text-xs font-medium text-muted-foreground'>
-                      {interactions.length} New
-                    </span>
-                  </div>
-                </div>
-
+                {/* Activity Timeline */}
                 <div className='space-y-3'>
-                  {interactions.slice(0, 3).map((interaction, idx) => {
+                  <h3 className='text-sm font-semibold text-foreground px-1'>
+                    All Activity
+                  </h3>
+                  {interactions.length > 0 ? (
+                    <div className='space-y-3'>
+                      {interactions.map(interaction => (
+                        <div
+                          key={interaction.id}
+                          className='flex gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+                        >
+                          <div className='flex-shrink-0 w-1 bg-blue-500 rounded-full' />
+                          <div className='flex-1 min-w-0'>
+                            <div className='flex items-center gap-2 mb-1'>
+                              <span className='text-xs font-medium text-blue-600'>
+                                {getInteractionTypeDisplay(
+                                  interaction.interaction_type
+                                )}
+                              </span>
+                              <span className='text-xs text-gray-500'>
+                                {formatDate(interaction.occurred_at)}
+                              </span>
+                            </div>
+                            <div className='text-sm font-medium text-gray-700'>
+                              {interaction.people?.name || 'Unknown Person'}
+                            </div>
+                            {interaction.subject && (
+                              <div className='text-xs text-gray-600 mt-1 truncate'>
+                                {interaction.subject}
+                              </div>
+                            )}
+                            {interaction.content && (
+                              <div className='text-xs text-gray-500 mt-1 line-clamp-2'>
+                                {interaction.content}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className='text-center py-8 text-gray-500'>
+                      No activity yet
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Right Column - Sidebar */}
+        <div className='w-80 flex-shrink-0 border-l border-gray-200 flex flex-col h-full overflow-hidden ml-0'>
+          <div className='flex-1 flex flex-col overflow-y-auto'>
+            {/* Activity Section */}
+            <div className='px-6 pt-6 pb-4'>
+              <h3 className='text-base font-semibold text-gray-900 mb-4'>
+                <div className='flex items-center gap-1.5'>
+                  <Mail className='h-4 w-4 text-gray-500' />
+                  <span>Activity</span>
+                  {interactions.length > 0 && (
+                    <span className='ml-1.5 text-gray-500 font-normal'>
+                      ({interactions.length})
+                    </span>
+                  )}
+                </div>
+              </h3>
+              <div className='space-y-2 select-text overflow-x-hidden'>
+                {interactions.length > 0 ? (
+                  interactions.slice(0, 5).map(interaction => {
                     const interactionType = getInteractionTypeDisplay(
                       interaction.interaction_type
                     );
-                    // Determine color based on interaction type
-                    let bgColor = 'bg-blue-50';
-                    let borderColor = 'border-blue-100';
                     let dotColor = 'bg-blue-500';
-                    let textColor = 'text-blue-600';
-                    let hoverColor = 'hover:bg-blue-100';
-
-                    if (interaction.interaction_type?.includes('email')) {
-                      bgColor = 'bg-blue-50';
-                      borderColor = 'border-blue-100';
-                      dotColor = 'bg-blue-500';
-                      textColor = 'text-blue-600';
-                      hoverColor = 'hover:bg-blue-100';
-                    } else if (
+                    if (
                       interaction.interaction_type?.includes('reply') ||
                       interaction.interaction_type?.includes('positive')
                     ) {
-                      bgColor = 'bg-emerald-50';
-                      borderColor = 'border-emerald-100';
                       dotColor = 'bg-emerald-500';
-                      textColor = 'text-emerald-600';
-                      hoverColor = 'hover:bg-emerald-100';
                     } else if (
                       interaction.interaction_type?.includes('decline') ||
                       interaction.interaction_type?.includes('negative')
                     ) {
-                      bgColor = 'bg-red-50';
-                      borderColor = 'border-red-100';
                       dotColor = 'bg-red-500';
-                      textColor = 'text-red-600';
-                      hoverColor = 'hover:bg-red-100';
                     }
 
                     return (
                       <div
                         key={interaction.id}
-                        className={`flex items-start gap-3 p-3 ${bgColor} border ${borderColor} rounded-lg group ${hoverColor} transition-colors cursor-pointer`}
+                        className='flex gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200 select-text'
                       >
                         <div
-                          className={`w-2 h-2 rounded-full ${dotColor} mt-1.5 flex-shrink-0`}
+                          className={`flex-shrink-0 w-2 h-2 rounded-full ${dotColor} mt-1.5`}
                         />
                         <div className='flex-1 min-w-0'>
-                          <p className='text-sm font-medium text-foreground'>
+                          <div className='text-xs font-medium text-gray-900'>
                             {interactionType}
-                          </p>
-                          <p className='text-xs text-muted-foreground mt-0.5'>
-                            {interaction.people?.name || 'Unknown Person'}
-                          </p>
-                          {interaction.subject && (
-                            <p className='text-xs text-muted-foreground mt-0.5 truncate'>
-                              {interaction.subject}
-                            </p>
-                          )}
-                          <span
-                            className={`text-xs ${textColor} mt-1 inline-block`}
-                          >
+                          </div>
+                          <div className='text-xs text-gray-500 mt-0.5'>
+                            {interaction.people?.name || 'Unknown'}
+                          </div>
+                          <div className='text-xs text-gray-400 mt-1'>
                             {formatDate(interaction.occurred_at)}
-                          </span>
+                          </div>
                         </div>
                       </div>
                     );
-                  })}
-                </div>
-
-                {interactions.length > 3 && (
-                  <button className='mt-4 w-full text-xs font-medium text-center text-blue-600 hover:text-blue-700 py-2 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors'>
-                    View All Alerts ({interactions.length})
+                  })
+                ) : (
+                  <p className='text-sm text-gray-400 py-2'>No activity</p>
+                )}
+                {interactions.length > 5 && (
+                  <button
+                    onClick={() => setActiveTab('activity')}
+                    className='text-xs text-blue-600 hover:text-blue-700 w-full text-left py-2 font-medium'
+                  >
+                    View all {interactions.length} activities →
                   </button>
                 )}
               </div>
             </div>
-          )}
 
-          {/* Activity Timeline */}
-          <div className='space-y-3'>
-            <h3 className='text-sm font-semibold text-foreground px-1'>
-              All Activity
-            </h3>
-            {interactions.length > 0 ? (
-              <div className='space-y-3'>
-                {interactions.map(interaction => (
-                  <div
-                    key={interaction.id}
-                    className='flex gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
-                  >
-                    <div className='flex-shrink-0 w-1 bg-blue-500 rounded-full' />
-                    <div className='flex-1 min-w-0'>
-                      <div className='flex items-center gap-2 mb-1'>
-                        <span className='text-xs font-medium text-blue-600'>
-                          {getInteractionTypeDisplay(
-                            interaction.interaction_type
-                          )}
-                        </span>
-                        <span className='text-xs text-gray-500'>
-                          {formatDate(interaction.occurred_at)}
-                        </span>
-                      </div>
-                      <div className='text-sm font-medium text-gray-700'>
-                        {interaction.people?.name || 'Unknown Person'}
-                      </div>
-                      {interaction.subject && (
-                        <div className='text-xs text-gray-600 mt-1 truncate'>
-                          {interaction.subject}
-                        </div>
-                      )}
-                      {interaction.content && (
-                        <div className='text-xs text-gray-500 mt-1 line-clamp-2'>
-                          {interaction.content}
-                        </div>
-                      )}
-                    </div>
+            {/* Divider - Full Width */}
+            <div className='w-full border-t border-gray-200'></div>
+
+            {/* Notes Section */}
+            <div className='flex-1 flex flex-col min-h-0 pt-4 pb-6 select-text'>
+              <div className='px-6'>
+                <h3 className='text-base font-semibold text-gray-900 mb-4'>
+                  <div className='flex items-center gap-1.5'>
+                    <StickyNote className='h-4 w-4 text-gray-500' />
+                    <span>Notes</span>
+                    {notesCount > 0 && (
+                      <span className='ml-1.5 text-gray-500 font-normal'>
+                        ({notesCount})
+                      </span>
+                    )}
                   </div>
-                ))}
+                </h3>
               </div>
-            ) : (
-              <div className='text-center py-8 text-gray-500'>
-                No activity yet
+              <div className='flex-1 min-h-0 w-full' style={{ minWidth: 0 }}>
+                <NotesSection
+                  entityId={company.id}
+                  entityType='company'
+                  entityName={company.name}
+                  className='px-6'
+                />
               </div>
-            )}
+            </div>
           </div>
         </div>
-      )}
-
-      {activeTab === 'notes' && (
-        <NotesSection
-          entityId={company.id}
-          entityType='company'
-          entityName={company.name}
-          className='-mx-6 -my-6'
-        />
-      )}
+      </div>
     </SlideOutPanel>
   );
 };

@@ -12,7 +12,7 @@ interface SlideOutPanelProps {
   subtitle?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  width?: 'default' | 'wide';
+  width?: 'default' | 'medium' | 'wide';
   customHeader?: React.ReactNode;
 }
 
@@ -27,7 +27,12 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
   customHeader,
 }) => {
   // Calculate width classes based on width prop
-  const widthClasses = width === 'wide' ? 'w-[75vw]' : 'w-[50vw]';
+  const widthClasses =
+    width === 'wide'
+      ? 'w-[75vw]'
+      : width === 'medium'
+        ? 'w-[60vw]'
+        : 'w-[50vw]';
   // Handle ESC key
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -71,7 +76,11 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'tween', duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            transition={{
+              type: 'tween',
+              duration: 0.3,
+              ease: [0.4, 0, 0.2, 1],
+            }}
             className={cn(
               'fixed top-12 -mt-px right-0 bottom-0 bg-white z-[10001] flex flex-col',
               widthClasses
@@ -106,7 +115,9 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
             </div>
 
             {/* Content */}
-            <div className='flex-1 overflow-y-auto px-6 py-6 slide-out-scroll'>{children}</div>
+            <div className='flex-1 overflow-y-auto px-6 pb-6 slide-out-scroll'>
+              {children}
+            </div>
 
             {/* Footer */}
             {footer && (

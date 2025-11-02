@@ -913,7 +913,7 @@ const JobsContent: React.FC = () => {
         {/* Filters - Fixed at top */}
         <div className='flex-shrink-0 pb-4 space-y-2'>
           {/* Tab Navigation */}
-          <div className='flex-shrink-0'>
+          <div className='flex-shrink-0 pb-2'>
             <TabNavigation
               tabs={tabCounts}
               activeTab={activeTab}

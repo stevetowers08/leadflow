@@ -157,13 +157,16 @@ export const TableHead = React.forwardRef<
     <th
       ref={ref}
       className={cn(
-        'px-4 py-1 h-[40px] text-left text-xs font-semibold text-gray-700 uppercase tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
+        'px-4 py-1 h-[40px] text-xs font-semibold text-gray-700 uppercase tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
         'border-b border-gray-200',
         'transition-colors duration-150',
         isFirst && 'rounded-tl-lg',
         isLast && 'rounded-tr-lg',
+        // Apply alignment classes - remove text-left default, use align-specific
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
+        align === 'left' && 'text-left',
+        !align && 'text-left', // Default fallback
         className
       )}
       style={props.style}
@@ -455,17 +458,14 @@ export function UnifiedTable<T = unknown>({
                       <div
                         className={cn(
                           'relative w-full h-full select-none',
-                          column.align === 'center' &&
-                            'flex items-center justify-center',
-                          column.align === 'right' &&
-                            'flex items-center justify-end'
+                          'flex items-center',
+                          column.align === 'center' && 'justify-center',
+                          column.align === 'right' && 'justify-end',
+                          column.align === 'left' && 'justify-start',
+                          !column.align && 'justify-start'
                         )}
                       >
-                        <div
-                          className={column.align === 'center' ? '' : 'pr-2'}
-                        >
-                          {labelContent}
-                        </div>
+                        {labelContent}
                       </div>
                       {tsCol && index !== orderedColumns.length - 1 && (
                         <div

@@ -171,7 +171,7 @@ const SidebarPreview = ({ scheme }: { scheme: (typeof colorSchemes)[0] }) => {
             className='text-xs font-semibold'
             style={{ color: scheme.textColor }}
           >
-            Empowr CRM
+            RECRUITEDGE
           </div>
         </div>
 

@@ -61,7 +61,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       '/getting-started': {
         title: 'Getting Started',
         subheading:
-          'Learn how to use Empowr CRM and get started with recruitment',
+          'Learn how to use RECRUITEDGE and get started with recruitment',
       },
       '/jobs': {
         title: 'Jobs Feed',
