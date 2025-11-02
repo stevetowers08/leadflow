@@ -48,7 +48,16 @@ export const designTokens = {
     pagePadding: {
       mobile: 'px-4', // Mobile: 1rem horizontal only
       desktop: 'px-6', // Desktop: 1.5rem horizontal only - matches header px-6
-      responsive: 'px-4 lg:px-6', // Responsive scaling - aligned with header, no vertical padding
+      responsive: 'px-4 lg:px-6', // Responsive scaling - aligned with header, horizontal only
+      // Full padding (horizontal + vertical) for Page component
+      full: 'p-4 lg:p-6', // Responsive: 1rem mobile, 1.5rem desktop (all sides)
+      // Horizontal padding only (for scrollbar edge cases)
+      horizontal: 'px-4 lg:px-6', // Horizontal only, responsive
+      // Vertical padding only
+      vertical: 'py-6', // Vertical only, 1.5rem
+      // Split padding for scrollbar edge handling
+      content: 'px-4 lg:px-6 py-6', // Content padding (all sides)
+      container: 'pt-6 pl-4 pb-6 lg:pl-6 pr-0', // Container padding (no right for scrollbar edge)
     },
     // Card-specific padding patterns
     cardPadding: {

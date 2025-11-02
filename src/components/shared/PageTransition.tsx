@@ -21,11 +21,12 @@ const pageTransition = {
 export function PageTransition({ children }: PageTransitionProps) {
   return (
     <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
+      initial='initial'
+      animate='animate'
+      exit='exit'
       variants={pageVariants}
       transition={pageTransition}
+      className='flex-1 min-h-0 flex flex-col overflow-hidden'
     >
       {children}
     </motion.div>

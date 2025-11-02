@@ -32,7 +32,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Job filtering function (comprehensive version)
 function applyJobFilters(
@@ -220,6 +220,7 @@ const JobsContent: React.FC = () => {
   const router = useRouter();
   const { toast } = useToast();
   const { data: clientId, isLoading: clientIdLoading } = useClientId();
+  const queryClient = useQueryClient();
 
   // State management
   const [sources, setSources] = useState<string[]>([]);
@@ -283,11 +284,20 @@ const JobsContent: React.FC = () => {
             })
             .eq('id', job.id);
 
-          // Update local state
-          setJobs(prev =>
-            prev.map(j =>
-              j.id === job.id ? { ...j, summary: response.data!.summary } : j
-            )
+          // Update React Query cache
+          queryClient.setQueryData<{ jobs: Job[]; sources: string[] }>(
+            ['jobs-page', clientId, refreshTrigger],
+            oldData => {
+              if (!oldData) return oldData;
+              return {
+                ...oldData,
+                jobs: oldData.jobs.map(j =>
+                  j.id === job.id
+                    ? { ...j, summary: response.data!.summary }
+                    : j
+                ),
+              };
+            }
           );
           processedSummaryIdsRef.current.add(job.id);
           setFailedSummaryById(prev => ({ ...prev, [job.id]: false }));
@@ -300,7 +310,7 @@ const JobsContent: React.FC = () => {
         setGeneratingSummaryById(prev => ({ ...prev, [job.id]: false }));
       }
     },
-    [generatingSummaryById]
+    [generatingSummaryById, queryClient, clientId, refreshTrigger]
   );
 
   // (moved below after paginatedJobs definition)
@@ -896,7 +906,10 @@ const JobsContent: React.FC = () => {
   return (
     <Page title='Jobs Feed' hideHeader>
       {/* Container for table layout - fills available height */}
-      <div className='flex flex-col flex-1 min-h-0'>
+      <div
+        className='flex flex-col -mt-2'
+        style={{ height: '100%', minHeight: 0 }}
+      >
         {/* Filters - Fixed at top */}
         <div className='flex-shrink-0 pb-4 space-y-2'>
           {/* Tab Navigation */}
@@ -935,7 +948,7 @@ const JobsContent: React.FC = () => {
         </div>
 
         {/* Table - Scrollable middle */}
-        <div className='flex-1 min-h-0 flex flex-col'>
+        <div className='flex-1 min-h-0 flex flex-col overflow-hidden'>
           <UnifiedTable
             data={paginatedJobs}
             columns={columns}

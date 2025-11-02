@@ -1,13 +1,14 @@
 'use client';
 
 /**
- * Layout Component - Grid + Fixed Positioning Architecture
+ * Layout Component - Simplified 3-Layer Architecture
  *
  * Industry-standard approach (Salesforce, HubSpot, Linear):
- * - Grid for structure
- * - Fixed positioning for sidebar/header/main
- * - Simple height chain (3 levels max)
- * - No h-full in flex contexts
+ * - Layer 1: Root + Fixed Header + Fixed Sidebar
+ * - Layer 2: Main Content (fixed positioning, padding integrated)
+ * - Layer 3: Page Component (direct child of main)
+ *
+ * This eliminates nested divs and simplifies the height chain.
  */
 
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -29,34 +30,6 @@ import { TopNavigationBar } from './TopNavigationBar';
 
 const MobileTestPanel = lazy(() => import('../mobile/MobileTestPanel'));
 const MobileNav = lazy(() => import('../mobile/MobileNav'));
-
-// Debug component to avoid hook issues
-const DebugHeightIndicator = ({
-  mainRef,
-}: {
-  mainRef: React.RefObject<HTMLElement>;
-}) => {
-  const [height, setHeight] = useState<string>('...');
-
-  useEffect(() => {
-    const updateHeight = () => {
-      if (mainRef.current) {
-        const computed = window.getComputedStyle(mainRef.current);
-        setHeight(computed.height);
-      }
-    };
-
-    updateHeight();
-    const interval = setInterval(updateHeight, 500);
-    return () => clearInterval(interval);
-  }, [mainRef]);
-
-  return (
-    <div className='fixed top-16 right-4 z-[100] bg-blue-500 text-white px-2 py-1 text-xs rounded shadow-lg'>
-      Main H: {height}
-    </div>
-  );
-};
 
 interface LayoutProps {
   children: ReactNode;
@@ -203,40 +176,11 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     }
   }, [isMobile, attachListeners]);
 
-  // Debug: Log heights on mount - MUST be before any conditional returns
-  useEffect(() => {
-    if (!isMounted || !mainContentRef.current) return;
-
-    // Delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      if (mainContentRef.current) {
-        const main = mainContentRef.current;
-        const computed = window.getComputedStyle(main);
-        console.log(
-          '🔍 DEBUG Layout Main:',
-          `top: ${computed.top}, bottom: ${computed.bottom}, height: ${computed.height}, overflow: ${computed.overflow}, position: ${computed.position}`
-        );
-
-        const innerDiv = main.querySelector('div');
-        if (innerDiv) {
-          const innerComputed = window.getComputedStyle(innerDiv);
-          console.log(
-            '🔍 DEBUG Inner Div:',
-            `height: ${innerComputed.height}, minHeight: ${innerComputed.minHeight}, overflow: ${innerComputed.overflow}`
-          );
-        }
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [isMounted]);
-
+  // Route detection - MUST be before useEffect hooks that use these variables
   const isConversationsRoute = pathname === '/conversations';
   const isSettingsRoute = pathname === '/settings';
-  const isTablePage = ['/jobs', '/people', '/companies'].includes(pathname);
-
   // Constants for fixed positioning
-  const topNavHeight = 48;
+  const topNavHeight = 49;
   const sidebarWidth = 224;
   const mobileBottomNavHeight = 80;
 
@@ -250,9 +194,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
 
   return (
     <>
-      {/* DEBUG: Height Indicator */}
-      <DebugHeightIndicator mainRef={mainContentRef} />
-
       {/* Mobile sidebar overlay */}
       {isMobile && sidebarOpen && (
         <div
@@ -280,7 +221,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
 
       {/* Top Navigation - Fixed position */}
       <header
-        className='fixed top-0 right-0 z-40 bg-sidebar border-b border-border'
+        className='fixed top-0 right-0 z-40 bg-sidebar'
         style={{
           height: `${topNavHeight}px`,
           left: isMobile ? 0 : `${sidebarWidth}px`,
@@ -294,54 +235,22 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         />
       </header>
 
-      {/* Main Content - Fixed position with proper offsets */}
+      {/* Main Content - Fixed positioning with explicit height */}
       <main
         ref={mainContentRef}
-        className={cn(
-          'fixed bg-background',
-          isTablePage || isConversationsRoute || isSettingsRoute
-            ? 'overflow-hidden'
-            : 'overflow-y-auto'
-        )}
+        className='fixed bg-background z-10 flex flex-col overflow-hidden'
         style={{
           top: `${topNavHeight}px`,
           left: isMobile ? 0 : `${sidebarWidth}px`,
           right: 0,
           bottom: isMobile ? `${mobileBottomNavHeight}px` : 0,
+          height: isMobile
+            ? `calc(100vh - ${topNavHeight}px - ${mobileBottomNavHeight}px)`
+            : `calc(100vh - ${topNavHeight}px)`,
         }}
+        role='main'
       >
-        <div
-          className={cn(
-            'h-full',
-            isTablePage || isConversationsRoute || isSettingsRoute
-              ? 'flex flex-col overflow-hidden'
-              : 'overflow-y-auto'
-          )}
-          style={{
-            padding: isMobile ? '1rem' : '1.5rem',
-            paddingLeft: isMobile ? '1rem' : '1.5rem',
-            paddingRight: isMobile ? '1rem' : '1.5rem',
-            boxSizing: 'border-box',
-          }}
-          ref={el => {
-            if (
-              el &&
-              (isTablePage || isConversationsRoute || isSettingsRoute)
-            ) {
-              const computed = window.getComputedStyle(el);
-              const child = el.firstElementChild;
-              const childComputed = child
-                ? window.getComputedStyle(child)
-                : null;
-              console.log(
-                '🔍 DEBUG Padding Container:',
-                `height: ${computed.height}, maxHeight: ${computed.maxHeight}, firstChild height: ${childComputed?.height || 'N/A'}, overflow: ${computed.overflow}`
-              );
-            }
-          }}
-        >
-          {children}
-        </div>
+        {children}
       </main>
 
       {/* Mobile bottom nav */}

@@ -16,11 +16,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html
+      lang='en'
+      className='h-full overflow-hidden'
+      style={{ height: '100vh' }}
+    >
+      <body
+        className={`${inter.className} h-full overflow-hidden`}
+        style={{ height: '100%', margin: 0, padding: 0 }}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
-

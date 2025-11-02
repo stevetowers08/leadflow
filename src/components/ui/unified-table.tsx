@@ -85,7 +85,7 @@ export const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'cursor-pointer group h-[46px]',
+      'cursor-pointer group h-[40px]',
       'hover:bg-gray-100 border-l-2 border-transparent hover:border-l-2 hover:border-primary-400',
       onClick && 'cursor-pointer',
       className
@@ -125,8 +125,8 @@ export const TableCell = React.forwardRef<
       ref={ref}
       className={cn(
         // Status cells: no padding, relative positioning, apply background colors directly
-        // Regular cells: standard padding
-        cellType === 'status' ? 'p-0 relative' : 'px-4 py-3',
+        // Regular cells: reduced padding for 40px row height (py-1 = 4px top + 4px bottom = 8px total, leaving 32px for content)
+        cellType === 'status' ? 'p-0 relative' : 'px-4 py-1',
         'text-sm border-r border-gray-200 last:border-r-0 text-gray-700',
         // Don't apply hover text color change to status cells (they have colored backgrounds)
         cellType !== 'status' && 'group-hover:text-gray-600',
@@ -157,7 +157,7 @@ export const TableHead = React.forwardRef<
     <th
       ref={ref}
       className={cn(
-        'px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
+        'px-4 py-1 h-[40px] text-left text-xs font-semibold text-gray-700 uppercase tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
         'border-b border-gray-200',
         'transition-colors duration-150',
         isFirst && 'rounded-tl-lg',
@@ -384,30 +384,15 @@ export function UnifiedTable<T = unknown>({
       <div
         className={cn(
           'bg-card rounded-lg border shadow-sm w-full',
-          scrollable && 'flex flex-col flex-1 min-h-0',
+          scrollable && 'flex flex-col flex-1 min-h-0 overflow-hidden',
           !scrollable && 'overflow-hidden overflow-x-auto scrollbar-modern',
           className
         )}
-        ref={el => {
-          if (el && scrollable) {
-            const computed = window.getComputedStyle(el);
-            console.log(
-              '🔍 DEBUG UnifiedTable Outer:',
-              `height: ${computed.height}, minHeight: ${computed.minHeight}, overflow: ${computed.overflow}, flex: ${computed.flex}`
-            );
-          }
-        }}
+        style={scrollable ? { minHeight: 0, maxHeight: '100%' } : undefined}
       >
         <div
           ref={el => {
             scrollContainerRef.current = el;
-            if (el && scrollable) {
-              const computed = window.getComputedStyle(el);
-              console.log(
-                '🔍 DEBUG UnifiedTable Scroll Container:',
-                `height: ${computed.height}, overflowY: ${computed.overflowY}, scrollHeight: ${el.scrollHeight}px, clientHeight: ${el.clientHeight}px, canScroll: ${el.scrollHeight > el.clientHeight}`
-              );
-            }
           }}
           className={cn(
             scrollable &&

@@ -167,7 +167,7 @@ function GettingStartedContent() {
   };
 
   return (
-    <Page title='Getting Started' hideHeader>
+    <Page title='Getting Started' hideHeader padding='large'>
       <div className='space-y-6'>
         {/* Overview */}
         <div className='p-6 bg-white border border-gray-200 rounded-lg'>

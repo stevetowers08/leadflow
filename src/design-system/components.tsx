@@ -93,6 +93,7 @@ interface PageProps {
   loading?: boolean;
   loadingMessage?: string;
   hideHeader?: boolean;
+  padding?: 'default' | 'large'; // Padding size: default (p-4 lg:p-6) or large (p-8 lg:p-10)
 }
 
 export const Page: React.FC<PageProps> = ({
@@ -102,6 +103,7 @@ export const Page: React.FC<PageProps> = ({
   loading = false,
   loadingMessage,
   hideHeader = false,
+  padding = 'default',
 }) => {
   if (loading) {
     return (
@@ -116,10 +118,39 @@ export const Page: React.FC<PageProps> = ({
     );
   }
 
+  // Uses design tokens for consistent, responsive padding
+  // Container has no right padding (pr-0) so horizontal scrollbar extends to edge
+  // Vertical padding moved inside scroll container so content isn't cut off when scrolling
+  // Content areas (header, scroll container) add right padding back via design tokens
+
+  // Padding sizes: default (1rem mobile, 1.5rem desktop) or large (3rem mobile, 4rem desktop)
+  const isLargePadding = padding === 'large';
+  const containerPadding = isLargePadding
+    ? 'pl-12 lg:pl-16 pr-0' // Large: 3rem mobile, 4rem desktop
+    : 'pl-4 lg:pl-6 pr-0'; // Default: 1rem mobile, 1.5rem desktop
+  const contentRightPadding = isLargePadding
+    ? 'pr-12 lg:pr-16' // Large: 3rem mobile, 4rem desktop
+    : 'pr-4 lg:pr-6'; // Default: 1rem mobile, 1.5rem desktop
+  const verticalPadding = isLargePadding
+    ? 'pt-12 pb-6' // Large: top 3rem (48px), bottom 1.5rem (24px)
+    : 'pt-6 pb-3'; // Default: top 1.5rem (24px), bottom 0.75rem (12px)
+  const scrollPadding = isLargePadding
+    ? '3rem' // 48px
+    : '1.5rem'; // 24px
+
   return (
-    <div className='w-full h-full flex flex-col overflow-hidden'>
+    <div
+      className={cn('w-full flex flex-col overflow-hidden', containerPadding)}
+      style={{ height: '100%', minHeight: 0, maxHeight: '100%' }}
+    >
       {!hideHeader && (
-        <div className='mb-6 flex-shrink-0'>
+        <div
+          className={cn(
+            'mb-6 flex-shrink-0',
+            contentRightPadding,
+            isLargePadding ? 'pt-12' : 'pt-6'
+          )}
+        >
           <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
             {title}
           </h1>
@@ -142,7 +173,27 @@ export const Page: React.FC<PageProps> = ({
           )}
         </div>
       )}
-      <div className='flex-1 min-h-0 overflow-hidden'>{children}</div>
+      <div
+        className={cn(
+          'flex-1 min-h-0 overflow-y-auto overflow-x-auto',
+          contentRightPadding
+        )}
+        style={{
+          scrollPaddingTop: scrollPadding,
+          scrollPaddingBottom: scrollPadding,
+        }}
+      >
+        {/* Content wrapper with padding for visual spacing */}
+        <div
+          className={cn(
+            hideHeader ? verticalPadding : isLargePadding ? 'pb-6' : 'pb-3',
+            'h-full flex flex-col'
+          )}
+          style={{ minHeight: 0 }}
+        >
+          {children}
+        </div>
+      </div>
     </div>
   );
 };

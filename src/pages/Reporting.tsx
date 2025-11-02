@@ -188,7 +188,7 @@ function ReportingContent() {
 
   if (error) {
     return (
-      <Page title='Reporting' hideHeader>
+      <Page title='Reporting' hideHeader padding='large'>
         <div className='flex items-center justify-center min-h-[400px]'>
           <Card className='max-w-md'>
             <CardContent className='flex flex-col items-center justify-center py-12'>

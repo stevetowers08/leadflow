@@ -297,13 +297,21 @@ function DashboardContent() {
     [router]
   );
 
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   return (
-    <Page title='Dashboard' hideHeader>
+    <Page title='Dashboard' hideHeader padding='large'>
       <div className='space-y-5 pb-8'>
         <div className='mb-6'>
-          <p className='text-sm text-muted-foreground'>
-            Here&apos;s what&apos;s happening with your pipeline today
-          </p>
+          <h1 className='text-2xl font-bold tracking-tight text-foreground mb-4'>
+            {getGreeting()}
+          </h1>
           {error && (
             <div className='mt-4 p-3 bg-red-50 border border-red-200 rounded-lg'>
               <p className='text-sm text-red-600'>{error}</p>
@@ -311,116 +319,40 @@ function DashboardContent() {
           )}
         </div>
 
-        {/* Today Summary - Job Discovery */}
-        <div className='space-y-2'>
-          <div className='flex items-center justify-between'>
-            <h2 className='text-lg font-semibold tracking-tight text-foreground mt-0 mb-2'>
-              Today Summary
-            </h2>
+        {/* Current Actions */}
+        <div className='grid gap-3 grid-cols-1 md:grid-cols-3 lg:grid-cols-4'>
+          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 p-4 backdrop-blur-sm shadow-sm'>
+            <p className='text-sm font-medium text-muted-foreground mb-2'>
+              Jobs to Review
+            </p>
+            <p className='text-3xl font-bold tracking-tight text-foreground'>
+              {loading ? '…' : jobsToReview.length}
+            </p>
           </div>
-          <motion.div
-            className='grid gap-3 grid-cols-1 md:grid-cols-3'
-            initial='hidden'
-            animate='visible'
-            variants={{
-              visible: { transition: { staggerChildren: 0.1 } },
-              hidden: {},
-            }}
-          >
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 8 },
-                visible: { opacity: 1, y: 0 },
-              }}
-            >
-              <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm shadow-sm'>
-                <div className='p-4'>
-                  <p className='text-sm font-medium text-muted-foreground mb-1'>
-                    Jobs Analyzed
-                  </p>
-                  <p className='text-2xl font-bold tracking-tight text-foreground'>
-                    {jobKpisLoading ? '…' : jobKpis?.today.analyzed || 0}
-                  </p>
-                </div>
-              </Card>
-            </motion.div>
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 8 },
-                visible: { opacity: 1, y: 0 },
-              }}
-            >
-              <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-green-500/5 via-green-50/30 to-green-500/10 backdrop-blur-sm shadow-sm'>
-                <div className='p-4'>
-                  <p className='text-sm font-medium text-muted-foreground mb-1'>
-                    Qualification Rate
-                  </p>
-                  <p className='text-2xl font-bold tracking-tight text-foreground'>
-                    {jobKpisLoading
-                      ? '…'
-                      : `${jobKpis?.today.qualificationRatePercent || 0}%`}
-                  </p>
-                </div>
-              </Card>
-            </motion.div>
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 8 },
-                visible: { opacity: 1, y: 0 },
-              }}
-            >
-              <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 backdrop-blur-sm shadow-sm'>
-                <div className='p-4'>
-                  <p className='text-sm font-medium text-muted-foreground mb-1'>
-                    Non-Executive Filtered
-                  </p>
-                  <p className='text-2xl font-bold tracking-tight text-foreground'>
-                    {jobKpisLoading
-                      ? '…'
-                      : jobKpis?.today.nonExecutiveFiltered || 0}
-                  </p>
-                </div>
-              </Card>
-            </motion.div>
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 8 },
-                visible: { opacity: 1, y: 0 },
-              }}
-            >
-              <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-amber-500/5 via-amber-50/30 to-amber-500/10 backdrop-blur-sm shadow-sm'>
-                <div className='p-4'>
-                  <p className='text-sm font-medium text-muted-foreground mb-1'>
-                    Indeed Opportunities
-                  </p>
-                  <p className='text-2xl font-bold tracking-tight text-foreground'>
-                    {jobKpisLoading
-                      ? '…'
-                      : jobKpis?.today.indeedOpportunities || 0}
-                  </p>
-                </div>
-              </Card>
-            </motion.div>
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 8 },
-                visible: { opacity: 1, y: 0 },
-              }}
-            >
-              <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-sky-500/5 via-sky-50/30 to-sky-500/10 backdrop-blur-sm shadow-sm'>
-                <div className='p-4'>
-                  <p className='text-sm font-medium text-muted-foreground mb-1'>
-                    LinkedIn Opportunities
-                  </p>
-                  <p className='text-2xl font-bold tracking-tight text-foreground'>
-                    {jobKpisLoading
-                      ? '…'
-                      : jobKpis?.today.linkedinOpportunities || 0}
-                  </p>
-                </div>
-              </Card>
-            </motion.div>
-          </motion.div>
+          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 p-4 backdrop-blur-sm shadow-sm'>
+            <p className='text-sm font-medium text-muted-foreground mb-2'>
+              Unread Replies
+            </p>
+            <p className='text-3xl font-bold tracking-tight text-foreground'>
+              {loading ? '…' : emailReplies.length}
+            </p>
+          </div>
+          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-emerald-500/5 via-emerald-50/30 to-emerald-500/10 p-4 backdrop-blur-sm shadow-sm'>
+            <p className='text-sm font-medium text-muted-foreground mb-2'>
+              New Leads Today
+            </p>
+            <p className='text-3xl font-bold tracking-tight text-foreground'>
+              {loading ? '…' : newLeadsToday}
+            </p>
+          </div>
+          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-amber-500/5 via-amber-50/30 to-amber-500/10 p-4 backdrop-blur-sm shadow-sm'>
+            <p className='text-sm font-medium text-muted-foreground mb-2'>
+              New Companies Today
+            </p>
+            <p className='text-3xl font-bold tracking-tight text-foreground'>
+              {loading ? '…' : newCompaniesToday}
+            </p>
+          </div>
         </div>
 
         {/* Past Week Summary Section */}
@@ -444,7 +376,6 @@ function DashboardContent() {
                 <p className='text-2xl font-bold tracking-tight text-foreground mb-1'>
                   {loading ? '…' : newJobsPastWeek}
                 </p>
-                {/* Trend removed per request */}
               </div>
             </Card>
             <Card
@@ -460,7 +391,6 @@ function DashboardContent() {
                 <p className='text-2xl font-bold tracking-tight text-foreground mb-1'>
                   {loading ? '…' : qualifiedCompaniesPastWeek}
                 </p>
-                {/* Trend removed per request */}
               </div>
             </Card>
             <Card
@@ -476,7 +406,6 @@ function DashboardContent() {
                 <p className='text-2xl font-bold tracking-tight text-foreground mb-1'>
                   {loading ? '…' : peopleAddedPastWeek}
                 </p>
-                {/* Trend removed per request */}
               </div>
             </Card>
           </div>
@@ -516,45 +445,6 @@ function DashboardContent() {
                 </p>
               </div>
             </Card>
-          </div>
-        </div>
-
-        {/* Current Actions */}
-        <h2 className='text-lg font-semibold tracking-tight text-foreground mt-2 mb-2'>
-          Current Actions
-        </h2>
-        <div className='grid gap-3 grid-cols-1 md:grid-cols-3 lg:grid-cols-4'>
-          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 p-4 backdrop-blur-sm shadow-sm'>
-            <p className='text-sm font-medium text-muted-foreground mb-2'>
-              Jobs to Review
-            </p>
-            <p className='text-3xl font-bold tracking-tight text-foreground'>
-              {loading ? '…' : jobsToReview.length}
-            </p>
-          </div>
-          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 p-4 backdrop-blur-sm shadow-sm'>
-            <p className='text-sm font-medium text-muted-foreground mb-2'>
-              Unread Replies
-            </p>
-            <p className='text-3xl font-bold tracking-tight text-foreground'>
-              {loading ? '…' : emailReplies.length}
-            </p>
-          </div>
-          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-emerald-500/5 via-emerald-50/30 to-emerald-500/10 p-4 backdrop-blur-sm shadow-sm'>
-            <p className='text-sm font-medium text-muted-foreground mb-2'>
-              New Leads Today
-            </p>
-            <p className='text-3xl font-bold tracking-tight text-foreground'>
-              {loading ? '…' : newLeadsToday}
-            </p>
-          </div>
-          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-amber-500/5 via-amber-50/30 to-amber-500/10 p-4 backdrop-blur-sm shadow-sm'>
-            <p className='text-sm font-medium text-muted-foreground mb-2'>
-              New Companies Today
-            </p>
-            <p className='text-3xl font-bold tracking-tight text-foreground'>
-              {loading ? '…' : newCompaniesToday}
-            </p>
           </div>
         </div>
 

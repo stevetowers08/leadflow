@@ -983,7 +983,7 @@ const CompaniesContent: React.FC = () => {
   return (
     <Page stats={stats} title='Companies' hideHeader>
       {/* Container for table layout - fills available height */}
-      <div className='flex flex-col flex-1 min-h-0'>
+      <div className='flex flex-col' style={{ height: '100%', minHeight: 0 }}>
         {/* Filters - Fixed at top */}
         <div className='flex-shrink-0 pb-4'>
           <CollapsibleFilterControls
@@ -1009,7 +1009,7 @@ const CompaniesContent: React.FC = () => {
         </div>
 
         {/* Table - Scrollable middle */}
-        <div className='flex-1 min-h-0 flex flex-col'>
+        <div className='flex-1 min-h-0 flex flex-col overflow-hidden'>
           {!loading && filteredCompanies.length === 0 ? (
             <div className='bg-white rounded-lg border border-gray-300 overflow-hidden'>
               <div className='flex flex-col items-center justify-center py-16 px-4'>
