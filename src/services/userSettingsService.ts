@@ -1,3 +1,4 @@
+import { shouldBypassAuth } from '@/config/auth';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface TablePreferences {
@@ -15,6 +16,12 @@ export async function getUserTablePreferences(
   tableId: string
 ): Promise<TablePreferences | null> {
   try {
+    // Skip Supabase calls if auth is bypassed (dev mode)
+    if (shouldBypassAuth()) {
+      // Return local preferences only in bypass mode
+      return loadLocalTablePreferences(tableId);
+    }
+
     const {
       data: { user },
       error: authError,
@@ -44,6 +51,13 @@ export async function saveUserTablePreferences(
   preferences: TablePreferences
 ): Promise<void> {
   try {
+    // Skip Supabase calls if auth is bypassed (dev mode)
+    if (shouldBypassAuth()) {
+      // Save to localStorage only in bypass mode
+      persistLocalTablePreferences(tableId, preferences);
+      return;
+    }
+
     const {
       data: { user },
       error: authError,

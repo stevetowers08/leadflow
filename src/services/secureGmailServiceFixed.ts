@@ -90,11 +90,11 @@ class SecureTokenEncryption {
    * Get encryption key from environment or generate a secure one
    */
   private static async getEncryptionKey(): Promise<CryptoKey> {
-    const keyString = import.meta.env.VITE_TOKEN_ENCRYPTION_KEY;
+    const keyString = process.env.TOKEN_ENCRYPTION_KEY;
 
     if (!keyString) {
       throw new Error(
-        'VITE_TOKEN_ENCRYPTION_KEY environment variable is required'
+        'TOKEN_ENCRYPTION_KEY environment variable is required'
       );
     }
 
@@ -285,7 +285,7 @@ export class SecureGmailService {
   private redirectUri: string;
 
   constructor() {
-    this.clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    this.clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
     this.redirectUri = `${window.location.origin}/auth/gmail-callback`;
 
     if (!this.clientId) {

@@ -243,8 +243,8 @@ export const bulkSyncToCRM = async (
 
     if (error) throw error;
 
-    // Get n8n webhook URL from environment
-    const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+    // Get n8n webhook URL from environment (server-only, no NEXT_PUBLIC_ prefix)
+    const webhookUrl = process.env.N8N_WEBHOOK_URL;
 
     if (!webhookUrl) {
       return {

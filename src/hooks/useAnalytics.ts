@@ -37,7 +37,7 @@ interface AnalyticsConfig {
 
 const defaultConfig: AnalyticsConfig = {
   enabled: true,
-  debug: import.meta.env.DEV,
+  debug: process.env.NODE_ENV === 'development',
   trackPageViews: true,
   trackClicks: true,
   trackScroll: true,
@@ -85,6 +85,11 @@ class AnalyticsTracker {
   private setupEventListeners(): void {
     if (!this.config.enabled) return;
 
+    // Only setup on client-side
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
     // Track page views
     if (this.config.trackPageViews) {
       this.trackPageView();
@@ -129,6 +134,8 @@ class AnalyticsTracker {
   }
 
   private trackPageView(): void {
+    if (typeof window === 'undefined') return;
+
     this.behavior.pageViews++;
     this.pageStartTime = Date.now();
     this.behavior.navigationPath.push(window.location.pathname);
@@ -136,8 +143,8 @@ class AnalyticsTracker {
     this.trackEvent('page_view', {
       url: window.location.href,
       path: window.location.pathname,
-      referrer: document.referrer,
-      userAgent: navigator.userAgent,
+      referrer: typeof document !== 'undefined' ? document.referrer : '',
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
       viewport: {
         width: window.innerWidth,
         height: window.innerHeight,
@@ -161,6 +168,8 @@ class AnalyticsTracker {
   }
 
   private handleScroll(): void {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const documentHeight =
       document.documentElement.scrollHeight - window.innerHeight;
@@ -310,6 +319,10 @@ class AnalyticsTracker {
   }
 
   public destroy(): void {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
     // Remove event listeners
     document.removeEventListener('click', this.handleClick);
     window.removeEventListener('scroll', this.handleScroll);

@@ -80,7 +80,7 @@ class DataAwareGeminiChatService {
   private model: string = 'gemini-2.0-flash-001'; // Fast model optimized for speed
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    this.apiKey = process.env.GEMINI_API_KEY || '';
   }
 
   /**

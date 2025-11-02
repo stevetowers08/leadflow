@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * People - Unified System Implementation
  *
@@ -23,11 +25,13 @@ import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
 import { useAuth } from '@/contexts/AuthContext';
+import { shouldBypassAuth } from '@/config/auth';
 import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import {
   bulkAddToCampaign,
   bulkDeletePeople,
@@ -44,7 +48,7 @@ import {
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { CheckCircle, Sparkles, Target, Users, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 // Define status arrays as constants to prevent recreation on every render
 const PEOPLE_STATUS_OPTIONS: string[] = [
@@ -58,16 +62,35 @@ const PEOPLE_STATUS_OPTIONS: string[] = [
   'not_interested',
 ];
 
+// Client-side mount guard wrapper
 const People: React.FC = () => {
-  const { user } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading people...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <PeopleContent />;
+};
+
+const PeopleContent: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   // State management
-  const [people, setPeople] = useState<Person[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Filter and search state
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -136,69 +159,93 @@ const People: React.FC = () => {
     []
   );
 
-  // Fetch data with parallel requests for better performance
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Parallel data fetching for better performance with limit
-        const [peopleResult, usersResult] = await Promise.all([
-          supabase
-            .from('people')
-            .select(
-              `
+  // Fetch data with React Query for caching and better loading states
+  const {
+    data: peopleData,
+    isLoading: peopleLoading,
+    error: peopleError,
+  } = useQuery({
+    queryKey: ['people-page'],
+    queryFn: async () => {
+      // Parallel data fetching for better performance with limit
+      const [peopleResult, usersResult] = await Promise.all([
+        supabase
+          .from('people')
+          .select(
+            `
               *,
               companies!left(name, website)
             `
-            )
-            .order('created_at', { ascending: false })
-            .limit(1000), // Limit to prevent loading all records
-          supabase
-            .from('user_profiles')
-            .select('id, full_name')
-            .order('full_name'),
-        ]);
+          )
+          .order('created_at', { ascending: false })
+          .limit(1000), // Limit to prevent loading all records
+        supabase
+          .from('user_profiles')
+          .select('id, full_name')
+          .order('full_name'),
+      ]);
 
-        if (peopleResult.error) throw peopleResult.error;
-        if (usersResult.error) throw usersResult.error;
+      if (peopleResult.error) throw peopleResult.error;
+      if (usersResult.error) throw usersResult.error;
 
-        // Normalize the data to match our Person interface
-        const normalizedPeople = (peopleResult.data || []).map(
-          (person: Record<string, unknown>) => ({
-            ...person,
-            company_name:
-              (person.companies as Record<string, unknown>)?.name || null,
-            company_website:
-              (person.companies as Record<string, unknown>)?.website || null,
-          })
-        );
+      // Normalize the data to match our Person interface
+      const normalizedPeople = (peopleResult.data || []).map(
+        (person: Record<string, unknown>) => ({
+          ...person,
+          company_name:
+            (person.companies as Record<string, unknown>)?.name || null,
+          company_website:
+            (person.companies as Record<string, unknown>)?.website || null,
+        })
+      );
 
-        setPeople(normalizedPeople as Person[]);
-        setUsers(usersResult.data || []);
+      return {
+        people: normalizedPeople as Person[],
+        users: usersResult.data || [],
+      };
+    },
+    enabled: shouldBypassAuth() || (!authLoading && !!user),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+    refetchOnWindowFocus: false,
+  });
 
-        // Fetch campaigns for bulk operations
-        const { data: campaignsData } = await supabase
-          .from('campaigns')
-          .select('id, name')
-          .order('name');
-        setCampaigns(campaignsData || []);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
-        toast({
-          title: 'Error',
-          description: 'Failed to load people data',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
+  // Extract people from query result
+  const people = peopleData?.people || [];
+  const loading = peopleLoading;
+  const error = peopleError
+    ? (peopleError instanceof Error ? peopleError.message : 'Failed to fetch data')
+    : null;
+
+  // Update users state when data changes
+  useEffect(() => {
+    if (peopleData?.users) {
+      setUsers(peopleData.users);
+    }
+  }, [peopleData?.users]);
+
+  // Fetch campaigns for bulk operations (separate query)
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      const { data: campaignsData } = await supabase
+        .from('campaigns')
+        .select('id, name')
+        .order('name');
+      setCampaigns(campaignsData || []);
     };
+    fetchCampaigns();
+  }, []);
 
-    fetchData();
-  }, [toast]);
+  // Show error toast if query fails
+  useEffect(() => {
+    if (peopleError) {
+      toast({
+        title: 'Error',
+        description: 'Failed to load people data',
+        variant: 'destructive',
+      });
+    }
+  }, [peopleError, toast]);
 
   // Filter and sort people
   const filteredPeople = useMemo(() => {
@@ -422,8 +469,8 @@ const People: React.FC = () => {
     }
     // Route to Conversations composer with selected person IDs
     const toIdsParam = encodeURIComponent(selectedIds.join(','));
-    navigate(`/conversations?compose=1&toIds=${toIdsParam}`);
-  }, [bulkSelection, filteredPeople, navigate, toast]);
+    router.push(`/conversations?compose=1&toIds=${toIdsParam}`);
+  }, [bulkSelection, filteredPeople, router, toast]);
 
   const handleBulkSyncCRM = useCallback(async () => {
     const idsToSync = bulkSelection.getSelectedIds(
@@ -877,7 +924,7 @@ const People: React.FC = () => {
     <Page stats={stats} title='Contacts' hideHeader>
       <div className='flex-1 flex flex-col min-h-0 space-y-4'>
         {/* Filter Controls - Left Aligned */}
-        <div className='flex items-center justify-start gap-4'>
+        <div className='flex items-center justify-start gap-4 min-w-0 flex-wrap'>
           <FilterControls
             statusOptions={statusOptions}
             userOptions={userOptions}

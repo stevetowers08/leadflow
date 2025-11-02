@@ -20,7 +20,7 @@ export const useAuthState = () => {
       setError(null);
 
       // Check if Google OAuth is configured
-      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
       if (!googleClientId || googleClientId.includes('your-google-client-id')) {
         const authError = new Error(
           'Google OAuth is not configured. Please contact your administrator.'

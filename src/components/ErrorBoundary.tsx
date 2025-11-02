@@ -79,13 +79,18 @@ class GlobalErrorHandler {
   }
 
   private setupGlobalHandlers(): void {
+    // Only setup on client-side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     // Handle unhandled promise rejections
     window.addEventListener('unhandledrejection', event => {
       const error = new Error(`Unhandled Promise Rejection: ${event.reason}`);
       this.handleError(error, {
         componentName: 'Global',
         timestamp: new Date(),
-        userAgent: navigator.userAgent,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
         url: window.location.href,
         severity: ErrorSeverity.HIGH,
         type: ErrorType.UNKNOWN,
@@ -100,7 +105,7 @@ class GlobalErrorHandler {
       this.handleError(error, {
         componentName: 'Global',
         timestamp: new Date(),
-        userAgent: navigator.userAgent,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
         url: window.location.href,
         severity: ErrorSeverity.HIGH,
         type: ErrorType.UNKNOWN,
@@ -150,7 +155,10 @@ class GlobalErrorHandler {
     context: ErrorContext
   ): Promise<void> {
     // Send to error reporting service
-    if (import.meta.env.PROD) {
+    // Use Next.js compatible environment check
+    const isProduction =
+      typeof process !== 'undefined' && process.env.NODE_ENV === 'production';
+    if (isProduction) {
       try {
         // Replace with actual error reporting service
         await fetch('/api/errors', {
@@ -202,8 +210,8 @@ export class BaseErrorBoundary extends Component<
     const context: ErrorContext = {
       componentName: this.props.componentName || 'Unknown',
       timestamp: new Date(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      url: typeof window !== 'undefined' ? window.location.href : 'unknown',
       stackTrace: error.stack,
       severity: this.props.severity || ErrorSeverity.MEDIUM,
       type: ErrorType.RENDER,
@@ -239,7 +247,9 @@ export class BaseErrorBoundary extends Component<
   };
 
   private handleReload = (): void => {
-    window.location.reload();
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
   };
 
   getErrorMessage(error: Error): {
@@ -445,7 +455,7 @@ export class ComponentErrorBoundary extends BaseErrorBoundary {
       recoverable: true,
       enableRetry: true,
       maxRetries: 1,
-      showDetails: import.meta.env.DEV,
+      showDetails: process.env.NODE_ENV === 'development',
     });
   }
 }
@@ -493,7 +503,9 @@ export class CriticalErrorBoundary extends Component<
   };
 
   handleReload = () => {
-    window.location.reload();
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
   };
 
   getErrorMessage(error: Error): {
@@ -592,12 +604,21 @@ export class NetworkErrorBoundary extends Component<
   }
 
   componentDidMount(): void {
+    // Only setup on client-side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     // Listen for network errors
     window.addEventListener('online', this.handleOnline);
     window.addEventListener('offline', this.handleOffline);
   }
 
   componentWillUnmount(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     window.removeEventListener('online', this.handleOnline);
     window.removeEventListener('offline', this.handleOffline);
   }
@@ -643,7 +664,11 @@ export class NetworkErrorBoundary extends Component<
             </p>
 
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.location.reload();
+                }
+              }}
               className='bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700'
             >
               Retry Connection
@@ -676,8 +701,8 @@ export function useErrorHandler() {
     const fullContext: ErrorContext = {
       componentName: 'Unknown',
       timestamp: new Date(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      url: typeof window !== 'undefined' ? window.location.href : 'unknown',
       severity: ErrorSeverity.MEDIUM,
       type: ErrorType.UNKNOWN,
       recoverable: true,

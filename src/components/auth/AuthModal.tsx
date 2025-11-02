@@ -43,7 +43,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setError(null);
 
     try {
-      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
       if (!googleClientId || googleClientId.includes('your-google-client-id')) {
         setError(
           'Google OAuth is not configured. Please contact your administrator.'

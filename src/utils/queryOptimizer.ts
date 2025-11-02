@@ -154,7 +154,7 @@ export class QueryPerformanceMonitor {
     this.queries.delete(queryId);
 
     // Log slow queries in development
-    if (import.meta.env.DEV && duration > 100) {
+    if (process.env.NODE_ENV === 'development' && duration > 100) {
       console.warn(
         `Slow query detected: ${queryId} took ${duration.toFixed(2)}ms`
       );

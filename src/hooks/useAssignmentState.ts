@@ -52,17 +52,19 @@ export const useAssignmentState = (options: AssignmentOptions) => {
   // Check if user can assign
   const canAssign = hasRole('admin') || hasRole('owner');
 
-  // Debug logging
-  console.log('🔍 Assignment Debug:', {
-    entityType,
-    entityId,
-    canAssign,
-    hasAdminRole: hasRole('admin'),
-    hasOwnerRole: hasRole('owner'),
-    hasRecruiterRole: hasRole('recruiter'),
-    userEmail: user?.email,
-    allUserRoles: user?.user_metadata?.role || 'no role metadata',
-  });
+  // Debug logging (verbose mode only)
+  if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+    console.log('🔍 Assignment Debug:', {
+      entityType,
+      entityId,
+      canAssign,
+      hasAdminRole: hasRole('admin'),
+      hasOwnerRole: hasRole('owner'),
+      hasRecruiterRole: hasRole('recruiter'),
+      userEmail: user?.email,
+      allUserRoles: user?.user_metadata?.role || 'no role metadata',
+    });
+  }
 
   // Fetch current assignment
   const fetchAssignment = useCallback(async () => {

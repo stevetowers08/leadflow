@@ -1,3 +1,5 @@
+'use client';
+
 import { cn } from '@/lib/utils';
 import { Person } from '@/types/database';
 import {
@@ -9,7 +11,7 @@ import {
   User,
 } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 interface ExpandableTableRowProps<T = unknown> {
   parentRow: T;
@@ -143,7 +145,7 @@ export const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
   index,
   className,
 }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleExpandToggle = useCallback((e: React.MouseEvent) => {
@@ -159,9 +161,9 @@ export const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
 
   const handlePersonClick = useCallback(
     (person: Person) => {
-      navigate(`/people/${person.id}`);
+      router.push(`/people/${person.id}`);
     },
-    [navigate]
+    [router]
   );
 
   const childrenCount = children.length;

@@ -8,10 +8,10 @@ Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, a
 
 ### Core Framework
 
+- **Next.js 16.0.1** - App Router, Server Components, API Routes
 - **React 18.2** - Functional components, hooks, strict mode
 - **TypeScript 5.9** - Strict mode, no implicit any, proper null checks
-- **Vite 7.1** - Build tool, HMR, optimized chunks
-- **React Router 7.9** - Client-side routing
+- **React Router 7.9** - Client-side routing (legacy routes, migrating to Next.js)
 
 ### State Management
 
@@ -44,11 +44,12 @@ Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, a
 
 ### Development Tools
 
-- **ESLint** - Code linting
+- **ESLint** - Code linting (with Next.js rules: `next/core-web-vitals`)
+- **Next.js Built-in Linting** - Framework-specific error detection
 - **Prettier** - Code formatting
 - **Vitest** - Testing framework
 - **Husky** - Git hooks
-- **TypeScript** - Type checking
+- **TypeScript** - Type checking (with Next.js plugin)
 
 ## 📁 Project Structure
 
@@ -358,33 +359,56 @@ useEffect(() => {
 
 ## 🌍 Environment Variables
 
-### Required Variables (from .env.example)
+### Next.js Environment Variables
+
+**Client-side (public):** Use `NEXT_PUBLIC_*` prefix
+**Server-side (private):** No prefix (server-only)
+
+### Required Variables
 
 ```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
+# Client-side (NEXT_PUBLIC_ prefix required)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id
+
+# Server-side (no prefix - API routes, Server Components only)
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
-VITE_GOOGLE_CLIENT_ID=your-client-id
-VITE_GEMINI_API_KEY=your-gemini-key
-VITE_TOKEN_ENCRYPTION_KEY=your-encryption-key
+GEMINI_API_KEY=your-gemini-key
+TOKEN_ENCRYPTION_KEY=your-encryption-key
 ```
 
 ### Environment Access
 
 ```typescript
-// ✅ CORRECT: Use import.meta.env in client code
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+// ✅ CORRECT: Client-side access (NEXT_PUBLIC_ prefix)
+const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-// ❌ INCORRECT: Don't access server-side env vars on client
-const secret = import.meta.env.SUPABASE_SERVICE_ROLE_KEY; // BAD!
+// ✅ CORRECT: Server-side access (API routes, Server Components)
+const apiKey = process.env.GEMINI_API_KEY;
+
+// ❌ INCORRECT: Don't access server-only env vars on client
+const secret = process.env.SUPABASE_SERVICE_ROLE_KEY; // BAD! (unless in API route)
+
+// ✅ CORRECT: In API route
+export async function GET() {
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY; // OK in API route
+}
 ```
 
 ## 📚 Key Documentation
 
+### Project Documentation
 1. **Recent Changes:** [LINKEDIN_AUTOMATION_REMOVAL_PROGRESS.md](LINKEDIN_AUTOMATION_REMOVAL_PROGRESS.md)
 2. **Database Guide:** [docs/DATABASE/DATABASE_BEST_PRACTICES.md](docs/DATABASE/DATABASE_BEST_PRACTICES.md)
 3. **Development Guide:** [docs/CORE/DEVELOPMENT_GUIDE.md](docs/CORE/DEVELOPMENT_GUIDE.md)
 4. **Schema Reference:** [src/types/databaseSchema.ts](src/types/databaseSchema.ts)
+
+### Next.js Documentation (for Cursor @Docs)
+- **Next.js 16 Docs:** https://nextjs.org/docs
+- **App Router Guide:** https://nextjs.org/docs/app
+- **API Routes:** https://nextjs.org/docs/app/building-your-application/routing/route-handlers
+- **Server Components:** https://nextjs.org/docs/app/building-your-application/rendering/server-components
 
 ## 🔧 Common Tasks
 
@@ -473,11 +497,13 @@ import { Check, X, Search } from 'lucide-react';
 ### Running Locally
 
 ```bash
-npm run dev          # Start dev server on port 8086
-npm run build        # Production build
+npm run dev          # Start Next.js dev server on port 8086
+npm run build        # Production build (Next.js)
 npm run preview      # Preview production build
-npm run lint         # Run ESLint
-npm run lint:fix     # Fix linting errors
+npm run lint         # Run ESLint (Next.js + custom rules)
+npm run lint:fix   # Fix linting errors
+npm run lint:app     # Lint only app directory
+npm run lint:api     # Lint only API routes
 npm run format       # Format with Prettier
 npm test             # Run tests
 npm run tsc          # Type checking
@@ -488,6 +514,10 @@ npm run tsc          # Type checking
 ```bash
 # Type checking
 npx tsc --noEmit
+
+# Next.js specific linting
+npm run lint:app     # Check app directory only
+npm run lint:api     # Check API routes only
 
 # Database schema
 npm run db:schema
@@ -500,12 +530,18 @@ npm run security:scan
 
 ## 🚀 Deployment
 
-- **Platform:** Vercel
+- **Platform:** Vercel (optimized for Next.js)
 - **Branch:** Deploy from `main` branch
 - **Environment:** Check `.env.example` for required variables
-- **Build Command:** `npm run build`
-- **Output:** `dist/`
-- **Node Version:** >= 18.0.0 (from package.json engines)
+- **Build Command:** `npm run build` (Next.js)
+- **Output:** `.next/` (Next.js build output)
+- **Node Version:** >= 20.9.0 (from package.json engines)
+
+### Next.js Specific Notes
+- **Environment Variables:** Use `NEXT_PUBLIC_*` prefix for client-side variables
+- **Server Variables:** No prefix for server-only (API routes, Server Components)
+- **API Routes:** Located in `src/app/api/*/route.ts`
+- **Pages:** Located in `src/app/*/page.tsx` (App Router)
 
 ## 📝 Commit Guidelines
 

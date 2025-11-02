@@ -28,24 +28,39 @@ export class AuditLogger {
   }
 
   private loadLogs(): void {
+    // Only access localStorage on client-side
+    if (typeof window === 'undefined') {
+      this.logs = [];
+      return;
+    }
+
     try {
       const savedLogs = localStorage.getItem('audit_logs');
       if (savedLogs) {
         this.logs = JSON.parse(savedLogs);
       }
     } catch (error) {
-      console.error('Failed to load audit logs:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to load audit logs:', error);
+      }
       this.logs = [];
     }
   }
 
   private saveLogs(): void {
+    // Only access localStorage on client-side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     try {
       // Keep only last 1000 entries to prevent localStorage bloat
       const recentLogs = this.logs.slice(-1000);
       localStorage.setItem('audit_logs', JSON.stringify(recentLogs));
     } catch (error) {
-      console.error('Failed to save audit logs:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to save audit logs:', error);
+      }
     }
   }
 
@@ -65,7 +80,7 @@ export class AuditLogger {
       details,
       timestamp: new Date().toISOString(),
       ipAddress: this.getClientIP(),
-      userAgent: navigator.userAgent,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
     };
 
     this.logs.push(logEntry);

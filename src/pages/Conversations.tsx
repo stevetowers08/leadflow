@@ -1,3 +1,5 @@
+'use client';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +18,31 @@ import {
   User,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useSearchParams } from 'next/navigation';
+
+// Client-side mount guard wrapper
+const ConversationsPage: React.FC = () => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Don't call useAuth until component is mounted on client
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading conversations...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Now safe to use useAuth after mount (client-side only)
+  return <ConversationsContent />;
+};
 
 interface EmailThread {
   id: string;
@@ -47,9 +73,10 @@ interface EmailMessage {
   attachments?: Record<string, unknown>[];
 }
 
-const ConversationsPage: React.FC = () => {
+// Client-side mount guard - prevents useAuth from being called during SSR/build
+const ConversationsContent: React.FC = () => {
   const { user } = useAuth();
-  const location = useLocation();
+  const searchParams = useSearchParams();
   const [activeView, setActiveView] = useState('inbox');
   const [threads, setThreads] = useState<EmailThread[]>([]);
   const [selectedThread, setSelectedThread] = useState<EmailThread | null>(
@@ -106,7 +133,7 @@ const ConversationsPage: React.FC = () => {
 
   // Open compose via URL params: /conversations?compose=1&toIds=a,b,c
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(searchParams.toString());
     if (params.get('compose') === '1') {
       setShowCompose(true);
       const toIds = params.get('toIds');
@@ -131,7 +158,7 @@ const ConversationsPage: React.FC = () => {
         }
       }
     }
-  }, [location.search]);
+  }, [searchParams]);
 
   useEffect(() => {
     if (searchPeople) {

@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Layout Component with Glassmorphism Design
  *
@@ -24,7 +26,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { TopNavigationBar } from './TopNavigationBar';
 
@@ -42,10 +44,16 @@ interface LayoutProps {
 export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const isMobile = useIsMobile();
   const mainContentRef = useRef<HTMLElement>(null);
   const { mediumHaptic } = useHapticFeedback();
-  const location = useLocation();
+  const pathname = usePathname();
+
+  // Ensure we only render portals on the client side
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Dynamic page title and subheading based on current route (memoized for performance)
   const { currentPageTitle, currentPageSubheading } = useMemo(() => {
@@ -108,12 +116,12 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       },
     };
 
-    const data = routeData[location.pathname] || { title: 'Dashboard' };
+    const data = routeData[pathname] || { title: 'Dashboard' };
     return {
       currentPageTitle: data.title,
       currentPageSubheading: data.subheading,
     };
-  }, [pageTitle, location.pathname]);
+  }, [pageTitle, pathname]);
 
   // Enhanced swipe gestures with better touch handling
   const { attachListeners } = useSwipeGestures({
@@ -179,18 +187,14 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     }
   }, [isMobile, attachListeners]);
 
-  // Prevent body scroll when sidebar is open on mobile
+  // Prevent body scroll - Layout container handles overflow instead
   useEffect(() => {
-    if (isMobile && sidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
+    // Layout container with h-screen overflow-hidden prevents page scroll
+    // No need to set body overflow since Layout container is fixed viewport
     return () => {
-      document.body.style.overflow = 'unset';
+      // Cleanup not needed - Layout container handles it
     };
-  }, [isMobile, sidebarOpen]);
+  }, []);
 
   // Apply dark mode to document
   useEffect(() => {
@@ -202,8 +206,17 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   }, [darkMode]);
 
   // Route-specific layout tweaks
-  const isConversationsRoute = location.pathname === '/conversations';
-  const isSettingsRoute = location.pathname === '/settings';
+  const isConversationsRoute = pathname === '/conversations';
+  const isSettingsRoute = pathname === '/settings';
+
+  // Don't render portals until client-side mounted
+  if (!isMounted) {
+    return (
+      <div className='h-screen w-full bg-background'>
+        <main className='h-full w-full'>{children}</main>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -282,44 +295,23 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       {/* Main content container - Fixed viewport height */}
       <div
         className={cn(
-          'h-screen w-full', // Fixed viewport height
-          'bg-background text-foreground' // No overflow hidden here - let content handle it
+          'h-screen w-full overflow-hidden', // Fixed viewport height, prevent page scroll
+          'bg-background text-foreground'
         )}
       >
         {/* Main content with glassmorphism container */}
         <main
           ref={mainContentRef}
           className={cn(
-            'relative z-10 transition-all duration-300 w-full h-full bg-background flex flex-col', // Full height with flex layout
-            // Desktop: Add left padding for fixed sidebar (14rem = 224px)
+            'relative z-10 w-full h-full bg-background flex flex-col',
             !isMobile && 'pl-56',
-            // Add top padding for fixed header (h-12 = 48px) + extra spacing
-            // Conversations and Settings only get minimal padding for header (48px)
             isConversationsRoute || isSettingsRoute ? 'pt-12' : 'pt-[72px]',
-            // Mobile: Add bottom padding for mobile nav (nav height + safe area ≈ 80px)
             isMobile && 'pb-20'
           )}
           role='main'
         >
-          {/* Content Container - Each page handles its own overflow */}
-          <div
-            className={cn(
-              'flex-1 w-full overflow-hidden',
-              // Apply standard page padding everywhere except Conversations and Settings
-              !isConversationsRoute &&
-                !isSettingsRoute &&
-                designTokens.spacing.pagePadding.responsive
-            )}
-          >
-            <div
-              className={cn(
-                'h-full w-full',
-                // Prevent outer scroll on Conversations and Settings; let page handle its own overflow
-                !isConversationsRoute && !isSettingsRoute && 'overflow-y-auto'
-              )}
-            >
-              {children}
-            </div>
+          <div className={cn('flex-1 min-h-0', !isConversationsRoute && !isSettingsRoute && 'px-4 lg:px-6')}>
+            {children}
           </div>
         </main>
 

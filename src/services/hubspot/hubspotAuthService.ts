@@ -206,8 +206,8 @@ export class HubSpotAuthService {
     // If token expires within 5 minutes, refresh it
     if (expiresAt && expiresAt.getTime() - now.getTime() < 5 * 60 * 1000) {
       try {
-        const clientId = import.meta.env.VITE_HUBSPOT_CLIENT_ID;
-        const clientSecret = import.meta.env.VITE_HUBSPOT_CLIENT_SECRET;
+        const clientId = process.env.NEXT_PUBLIC_HUBSPOT_CLIENT_ID || '';
+        const clientSecret = process.env.HUBSPOT_CLIENT_SECRET;
 
         if (!clientId || !clientSecret) {
           console.error('HubSpot client credentials not configured');

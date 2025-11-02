@@ -18,7 +18,7 @@ export function validateProviderSetup(): ProviderValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === 'development') {
     // Check if we're in a React environment
     try {
       const React = require('react');
@@ -92,7 +92,7 @@ export function validateProviderSetup(): ProviderValidationResult {
  * Logs provider validation results to console in development
  */
 export function logProviderValidation(): void {
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === 'development') {
     const result = validateProviderSetup();
 
     if (result.isValid) {

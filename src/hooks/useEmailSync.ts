@@ -22,6 +22,12 @@ export const useEmailSync = () => {
 
   const checkConnectionStatus = async () => {
     try {
+      // Only access localStorage on client-side
+      if (typeof window === 'undefined') {
+        setStatus(prev => ({ ...prev, isConnected: false, error: null }));
+        return;
+      }
+
       const token = localStorage.getItem('gmail_access_token');
       setStatus(prev => ({
         ...prev,

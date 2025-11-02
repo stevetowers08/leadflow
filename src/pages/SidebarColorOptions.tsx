@@ -5,6 +5,8 @@
  * inspired by current design trends and Monday.com's aesthetic.
  */
 
+'use client';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +18,7 @@ import {
 } from '@/components/ui/card';
 import { ArrowLeft, BarChart3, Home, Settings, Users } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 // Color scheme definitions
 const colorSchemes = [
@@ -211,7 +213,7 @@ const SidebarColorOptions = () => {
       <div className='max-w-7xl mx-auto'>
         {/* Header */}
         <div className='mb-8'>
-          <Link to='/settings'>
+          <Link href='/settings'>
             <Button variant='ghost' className='mb-4'>
               <ArrowLeft className='w-4 h-4 mr-2' />
               Back to Settings

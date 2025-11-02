@@ -79,7 +79,7 @@ export const TableRow = React.forwardRef<
     onClick?: () => void;
     index?: number;
   }
->(({ className, onClick, index, ...props }, ref) => (
+>(({ className, onClick, index, children, ...props }, ref) => (
   <tr
     ref={ref}
     className={cn(
@@ -93,7 +93,9 @@ export const TableRow = React.forwardRef<
     aria-label={onClick ? `Row ${(index || 0) + 1}` : undefined}
     onClick={onClick}
     {...props}
-  />
+  >
+    {children}
+  </tr>
 ));
 
 export const TableCell = React.forwardRef<
@@ -121,7 +123,7 @@ export const TableCell = React.forwardRef<
       className={cn(
         // Status cells: no padding, relative positioning, apply background colors directly
         // Regular cells: standard padding
-        cellType === 'status' ? 'p-0 relative' : 'px-4 py-2',
+        cellType === 'status' ? 'p-0 relative' : 'px-4 py-3',
         'text-sm border-r border-gray-200 last:border-r-0 text-gray-700',
         // Don't apply hover text color change to status cells (they have colored backgrounds)
         cellType !== 'status' && 'group-hover:text-gray-600',
@@ -151,7 +153,7 @@ export const TableHead = React.forwardRef<
     <th
       ref={ref}
       className={cn(
-        'px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
+        'px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
         'border-b border-gray-200',
         'transition-colors duration-150',
         isFirst && 'rounded-tl-lg',
@@ -167,24 +169,23 @@ export const TableHead = React.forwardRef<
 );
 
 // Main UnifiedTable Component
-export const UnifiedTable = React.memo(
-  <T,>({
-    data,
-    columns,
-    pagination = true,
-    stickyHeaders = true,
-    maxHeight = '500px',
-    className,
-    onRowClick,
-    loading = false,
-    emptyMessage = 'No data available',
-    scrollable = false,
-    grouped = false,
-    groups,
-    expandedGroups,
-    onToggleGroup,
-    tableId,
-  }: UnifiedTableProps<T>) => {
+export function UnifiedTable<T = unknown>({
+  data,
+  columns,
+  pagination = true,
+  stickyHeaders = true,
+  maxHeight = '500px',
+  className,
+  onRowClick,
+  loading = false,
+  emptyMessage = 'No data available',
+  scrollable = false,
+  grouped = false,
+  groups,
+  expandedGroups,
+  onToggleGroup,
+  tableId,
+}: UnifiedTableProps<T>) {
     // ----- Column sizing & order (TanStack Table headless) -----
     const initialSizing = React.useRef<ColumnSizingState>({});
     const initialOrder = React.useRef<ColumnOrderState>([]);
@@ -316,6 +317,18 @@ export const UnifiedTable = React.memo(
         );
       }
 
+      // Debug logging
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+        console.log('🔍 UnifiedTable render:', {
+          hasData: !!data,
+          dataLength: Array.isArray(data) ? data.length : 'not array',
+          dataType: typeof data,
+          dataSample: Array.isArray(data) && data.length > 0 ? data[0] : null,
+          loading,
+          columnsCount: columns.length,
+        });
+      }
+
       if (!data || data.length === 0) {
         return (
           <div className='bg-card rounded-lg border shadow-sm w-full overflow-hidden'>
@@ -342,27 +355,18 @@ export const UnifiedTable = React.memo(
       return (
         <div
           className={cn(
-            'bg-card rounded-lg border shadow-sm w-full overflow-hidden',
-            scrollable
-              ? 'flex flex-col h-full'
-              : 'overflow-x-auto scrollbar-modern'
+            'bg-card rounded-lg border shadow-sm w-full',
+            scrollable && 'flex flex-col flex-1 min-h-0',
+            !scrollable && 'overflow-hidden overflow-x-auto scrollbar-modern',
+            className
           )}
         >
           <div
             ref={scrollContainerRef}
             className={cn(
-              scrollable
-                ? 'flex-1 min-h-0 overflow-auto table-scroll scrollbar-modern'
-                : 'w-full'
+              scrollable && 'flex-1 min-h-0 overflow-y-auto overflow-x-auto scrollbar-thin',
+              !scrollable && 'w-full'
             )}
-            style={
-              scrollable
-                ? {
-                    contain: 'strict',
-                    contentVisibility: 'auto',
-                  }
-                : undefined
-            }
           >
             <table
               className={cn(
@@ -552,6 +556,17 @@ export const UnifiedTable = React.memo(
                     );
                   }
 
+                  // Debug: Log what path we're taking
+                  if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+                    console.log('🔍 TableBody rendering path:', {
+                      grouped,
+                      hasGroups: !!groups && Array.isArray(groups),
+                      groupsLength: groups && Array.isArray(groups) ? groups.length : 0,
+                      dataIsArray: Array.isArray(data),
+                      dataLength: Array.isArray(data) ? data.length : 'not array',
+                    });
+                  }
+
                   return grouped &&
                     groups &&
                     Array.isArray(groups) &&
@@ -650,7 +665,7 @@ export const UnifiedTable = React.memo(
                     : // Render ungrouped data
                       data.map((row, index) => (
                         <TableRow
-                          key={index}
+                          key={`row-${index}-${(row as Record<string, unknown>)?.id || index}`}
                           index={index}
                           onClick={() => onRowClick?.(row, index)}
                         >
@@ -707,11 +722,12 @@ export const UnifiedTable = React.memo(
       groups,
       expandedGroups,
       onToggleGroup,
+      columnOrder,
+      table,
     ]);
 
     return tableStructure;
-  }
-) as <T>(props: UnifiedTableProps<T>) => JSX.Element;
+}
 
 // Export compound components for advanced usage
 UnifiedTable.Header = TableHeader;

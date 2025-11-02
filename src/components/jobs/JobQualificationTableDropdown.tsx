@@ -1,9 +1,11 @@
+'use client';
+
 import { CelebrationModal } from '@/components/onboarding/CelebrationModal';
 import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { Job } from '@/types/database';
 import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 interface JobQualificationTableDropdownProps {
   job: Job;
@@ -16,7 +18,7 @@ const JOB_STATUS_OPTIONS: string[] = ['new', 'qualify', 'skip'];
 const JobQualificationTableDropdownComponent: React.FC<
   JobQualificationTableDropdownProps
 > = ({ job, onStatusChange }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { state, incrementJobsQualified, markStepComplete } = useOnboarding();
   const [showCelebration, setShowCelebration] = useState(false);
 
@@ -54,7 +56,7 @@ const JobQualificationTableDropdownComponent: React.FC<
         onClose={() => setShowCelebration(false)}
         onContinue={() => {
           setShowCelebration(false);
-          navigate('/companies');
+          router.push('/companies');
         }}
         title='🎉 Congratulations!'
         description="You've qualified 3 potential clients and added them to your pipeline."

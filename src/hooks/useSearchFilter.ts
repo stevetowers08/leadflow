@@ -53,16 +53,20 @@ export const useSearchFilter = (
       setSearchTerm(urlSearchTerm);
       setFilters({ ...initialFilters, ...urlFilters });
     } else {
-      // Load from localStorage
-      try {
-        const saved = localStorage.getItem(storageKey);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          setSearchTerm(parsed.searchTerm || '');
-          setFilters({ ...initialFilters, ...parsed.filters });
+      // Load from localStorage (only on client)
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem(storageKey);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            setSearchTerm(parsed.searchTerm || '');
+            setFilters({ ...initialFilters, ...parsed.filters });
+          }
+        } catch (error) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Failed to load search filters from localStorage:', error);
+          }
         }
-      } catch (error) {
-        console.warn('Failed to load search filters from localStorage:', error);
       }
     }
   }, [location.search, persistInUrl, storageKey, initialFilters]);

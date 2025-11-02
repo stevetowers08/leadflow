@@ -108,7 +108,7 @@ export function runMobileTests() {
 }
 
 // Auto-run tests in development
-if (import.meta.env.DEV === true) {
+if (process.env.NODE_ENV === 'development') {
   // Run tests after page load
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {

@@ -22,9 +22,9 @@ npm run dev
 
 ## 🛠️ Tech Stack
 
-- Frontend: React 18, TypeScript, Vite, Radix UI, Tailwind
-- Backend: Supabase (PostgreSQL)
-- Deploy: Vercel
+- Frontend: Next.js 16.0.1, React 18, TypeScript, Radix UI, Tailwind CSS
+- Backend: Next.js API Routes, Supabase (PostgreSQL)
+- Deploy: Vercel (optimized for Next.js)
 
 ## 📊 Workflows
 

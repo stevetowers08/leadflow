@@ -1,3 +1,5 @@
+'use client';
+
 import { ClearbitLogoSync } from '@/components/ClearbitLogo';
 import { JobQualificationTableDropdown } from '@/components/jobs/JobQualificationTableDropdown';
 import { IndustryBadges } from '@/components/shared/IndustryBadge';
@@ -7,13 +9,14 @@ import { SearchModal } from '@/components/ui/search-modal';
 import { TabNavigation } from '@/components/ui/tab-navigation';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
 import { useAuth } from '@/contexts/AuthContext';
+import { shouldBypassAuth } from '@/config/auth';
 import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
 import { useClientId } from '@/hooks/useClientId';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { Job } from '@/types/database';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 // Removed deprecated jobStatus import - using statusUtils instead
 import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
 // Temporarily avoid Tooltip to resolve Vite optimize dep error
@@ -28,6 +31,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 // Job filtering function (comprehensive version)
 function applyJobFilters(
@@ -188,17 +192,36 @@ function checkLocationMatch(
   return jobCity.includes(targetCity) || targetCity.includes(jobCity);
 }
 
+// Client-side mount guard wrapper
 const Jobs: React.FC = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading jobs...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <JobsContent />;
+};
+
+const JobsContent: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
   const { data: clientId, isLoading: clientIdLoading } = useClientId();
 
   // State management
-  const [jobs, setJobs] = useState<Job[]>([]);
   const [sources, setSources] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Filter and search state
   const [activeTab, setActiveTab] = useState<string>('new'); // Default to 'new' jobs
@@ -315,27 +338,40 @@ const Jobs: React.FC = () => {
     []
   );
 
-  // Fetch data with parallel requests for better performance
-  useEffect(() => {
-    const fetchData = async () => {
+  // Fetch data with React Query for caching and better loading states
+  const bypassAuth = shouldBypassAuth();
+  const queryEnabled = bypassAuth || (!authLoading && !clientIdLoading && !!user);
+  if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+    console.log('🔍 Jobs query enabled check:', {
+      bypassAuth,
+      authLoading,
+      clientIdLoading,
+      hasUser: !!user,
+      queryEnabled,
+    });
+  }
+  const {
+    data: jobsData,
+    isLoading: jobsLoading,
+    error: jobsError,
+    refetch,
+  } = useQuery({
+    queryKey: ['jobs-page', clientId, refreshTrigger],
+    queryFn: async () => {
+      console.log('🔍 Jobs queryFn executing:', { bypassAuth, clientId, clientIdLoading });
       // Don't fetch if client ID is still loading
-      if (clientIdLoading) {
-        setLoading(true);
-        return;
+      if (clientIdLoading && !bypassAuth) {
+        return { jobs: [], sources: [] };
       }
 
-      try {
-        setLoading(true);
-        setError(null);
+      // Get ALL jobs (with or without client ID) - use limit for initial load
+      const today = new Date().toISOString().split('T')[0];
 
-        // Get ALL jobs (with or without client ID) - use limit for initial load
-        const today = new Date().toISOString().split('T')[0];
-
-        const [jobsResult, filterConfigResult] = await Promise.all([
-          supabase
-            .from('jobs')
-            .select(
-              `
+      const [jobsResult, filterConfigResult] = await Promise.all([
+        supabase
+          .from('jobs')
+          .select(
+            `
               *,
               source,
               companies!jobs_company_id_fkey (
@@ -356,71 +392,119 @@ const Jobs: React.FC = () => {
                 client_id
               )
             `
-            )
-            .or(`valid_through.is.null,valid_through.gte.${today}`)
-            .order('created_at', { ascending: false })
-            .limit(500),
-          clientId
-            ? supabase
-                .schema('public')
-                .from('job_filter_configs')
-                .select('*')
-                .eq('client_id', clientId)
-                .eq('is_active', true)
-                .maybeSingle()
-            : Promise.resolve({ data: null, error: null }),
-        ]);
+          )
+          .or(`valid_through.is.null,valid_through.gte.${today}`)
+          .order('created_at', { ascending: false })
+          .limit(500),
+        clientId
+          ? supabase
+              .schema('public')
+              .from('job_filter_configs')
+              .select('*')
+              .eq('client_id', clientId)
+              .eq('is_active', true)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
 
-        if (jobsResult.error) throw jobsResult.error;
+      if (jobsResult.error) throw jobsResult.error;
 
-        let allJobs: Job[] = (jobsResult.data as unknown as Job[]) || [];
+      let allJobs: Job[] = (jobsResult.data as unknown as Job[]) || [];
+      
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+        console.log('Jobs query result:', {
+          rawCount: allJobs.length,
+          hasClientId: !!clientId,
+          hasFilterConfig: !!(filterConfigResult.data && !filterConfigResult.error),
+        });
+      }
 
-        // Filter client_jobs to only show entries for the current client
-        if (clientId) {
-          allJobs = allJobs.map(job => {
-            const filteredClientJobs = Array.isArray(job.client_jobs)
-              ? job.client_jobs.filter(cj => cj.client_id === clientId)
-              : [];
+      // Filter client_jobs to only show entries for the current client
+      if (clientId) {
+        allJobs = allJobs.map(job => {
+          const filteredClientJobs = Array.isArray(job.client_jobs)
+            ? job.client_jobs.filter(cj => cj.client_id === clientId)
+            : [];
 
-            return {
-              ...job,
-              client_jobs: filteredClientJobs,
-            };
+          return {
+            ...job,
+            client_jobs: filteredClientJobs,
+          };
+        });
+      }
+
+      // Apply client's job filter config if available
+      if (filterConfigResult.data && !filterConfigResult.error) {
+        const filterConfig = filterConfigResult.data;
+        const jobsBeforeFilter = allJobs.length;
+        allJobs = allJobs.filter(job => applyJobFilters(job, filterConfig));
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.log('Job filter applied:', {
+            jobsBeforeFilter,
+            jobsAfterFilter: allJobs.length,
+            filterConfig: filterConfig,
           });
         }
-
-        // Apply client's job filter config if available
-        if (filterConfigResult.data && !filterConfigResult.error) {
-          const filterConfig = filterConfigResult.data;
-          allJobs = allJobs.filter(job => applyJobFilters(job, filterConfig));
-        }
-
-        // Extract unique sources from jobs
-        const uniqueSources = Array.from(
-          new Set(
-            allJobs
-              .map(job => job.source)
-              .filter((source): source is string => !!source)
-          )
-        ).sort();
-
-        setJobs(allJobs);
-        setSources(uniqueSources);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
-        toast({
-          title: 'Error',
-          description: 'Failed to load jobs data',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchData();
-  }, [toast, refreshTrigger, clientId, clientIdLoading]);
+      // Extract unique sources from jobs
+      const uniqueSources = Array.from(
+        new Set(
+          allJobs
+            .map(job => job.source)
+            .filter((source): source is string => !!source)
+        )
+      ).sort();
+
+      return { jobs: allJobs, sources: uniqueSources };
+    },
+    enabled: queryEnabled,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+    refetchOnWindowFocus: false,
+  });
+
+  // Extract jobs and sources from query result
+  const jobs = jobsData?.jobs || [];
+  const loading = jobsLoading;
+  
+  // Debug logging
+  if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+    console.log('🔍 Jobs data extraction:', {
+      hasJobsData: !!jobsData,
+      jobsLength: jobs.length,
+      jobsDataType: Array.isArray(jobs) ? 'array' : typeof jobs,
+      firstJobSample: jobs[0] ? {
+        id: jobs[0].id,
+        title: jobs[0].title,
+        client_jobs: jobs[0].client_jobs,
+        hasClientJobs: !!jobs[0].client_jobs?.length,
+      } : null,
+      jobsLoading,
+      jobsError: jobsError?.message,
+    });
+  }
+  const error = jobsError
+    ? (jobsError instanceof Error ? jobsError.message : 'Failed to fetch data')
+    : null;
+
+  // Update sources state when data changes
+  useEffect(() => {
+    if (jobsData?.sources) {
+      setSources(jobsData.sources);
+    }
+  }, [jobsData?.sources]);
+
+  // Show error toast if query fails
+  useEffect(() => {
+    if (jobsError) {
+      toast({
+        title: 'Error',
+        description: 'Failed to load jobs data',
+        variant: 'destructive',
+      });
+    }
+  }, [jobsError, toast]);
 
   // Filter and sort jobs
   const filteredJobs = useMemo(() => {
@@ -502,6 +586,25 @@ const Jobs: React.FC = () => {
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
+  
+  // Debug logging
+  if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+    console.log('🔍 Pagination Debug:', {
+      jobsLength: jobs.length,
+      activeTab,
+      filteredJobsLength: filteredJobs.length,
+      paginatedJobsLength: paginatedJobs.length,
+      currentPage,
+      pageSize,
+      startIndex,
+      endIndex,
+      firstPaginatedJob: paginatedJobs[0] ? {
+        id: paginatedJobs[0].id,
+        title: paginatedJobs[0].title,
+        client_jobs_status: paginatedJobs[0].client_jobs?.[0]?.status,
+      } : null,
+    });
+  }
 
   // Auto-generate AI summaries for visible jobs on load/page change
   useEffect(() => {
@@ -780,7 +883,7 @@ const Jobs: React.FC = () => {
     <Page title='Jobs Feed' hideHeader>
       <div className='flex-1 flex flex-col min-h-0 space-y-4'>
         {/* Tab Navigation and Filter Controls on Same Row */}
-        <div className='flex items-center justify-end gap-4 flex-nowrap overflow-hidden'>
+        <div className='flex items-center justify-end gap-4 flex-nowrap min-w-0'>
           {/* Tab Navigation */}
           <div className='flex-shrink-0 mr-auto'>
             <TabNavigation

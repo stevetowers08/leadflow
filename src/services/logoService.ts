@@ -31,7 +31,7 @@ const getFallbackDomainFromName = (companyName?: string): string | null => {
 };
 
 const buildProviderUrl = (domain: string): string => {
-  const logoDevKey = import.meta.env.VITE_LOGO_DEV_API_KEY as
+  const logoDevKey = process.env.LOGO_DEV_API_KEY as
     | string
     | undefined;
   if (logoDevKey) {

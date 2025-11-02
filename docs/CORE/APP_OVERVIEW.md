@@ -57,12 +57,13 @@ Jobs → Companies → People → Automation → Responses → Deals
 
 ### Frontend Architecture
 
-- **Framework**: React 18.2.0 with TypeScript
-- **Styling**: Tailwind CSS + Radix UI components
-- **State Management**: React Query for server state, React hooks for local state
-- **Routing**: React Router for navigation
+- **Framework**: Next.js 16.0.1 with React 18.2.0 and TypeScript
+- **Routing**: Next.js App Router (file-based routing)
+- **Styling**: Tailwind CSS 3.4 + Radix UI components
+- **State Management**: TanStack Query 5.90 for server state, React hooks for local state
 - **Charts**: Recharts for data visualization
 - **Drag & Drop**: dnd-kit for pipeline management
+- **Build Tool**: Next.js (Turbopack-enabled)
 
 ### Backend Architecture
 
@@ -70,7 +71,8 @@ Jobs → Companies → People → Automation → Responses → Deals
 - **Authentication**: Supabase Auth with Google OAuth
 - **Real-time**: Supabase real-time subscriptions
 - **Storage**: Supabase Storage for file uploads
-- **API**: Supabase REST API with Row Level Security (RLS)
+- **API**: Next.js API Routes (replacing Supabase Edge Functions) + Supabase REST API with Row Level Security (RLS)
+- **Server Components**: Next.js Server Components for data fetching
 
 ### Design System
 

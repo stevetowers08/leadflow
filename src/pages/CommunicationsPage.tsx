@@ -84,7 +84,9 @@ export default function CommunicationsPage() {
                   selectedPerson={selectedPerson}
                   onSent={() => {
                     // Refresh data or show success message
-                    console.log('Email sent successfully');
+                    if (process.env.NODE_ENV === 'development') {
+                      console.log('Email sent successfully');
+                    }
                   }}
                 />
               </div>

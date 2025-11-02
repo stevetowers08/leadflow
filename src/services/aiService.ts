@@ -43,8 +43,9 @@ class AIService {
   private config: AIServiceConfig;
 
   constructor(config: AIServiceConfig = { provider: 'auto' }) {
-    this.openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
-    this.geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    // OpenAI API key should be server-only (no NEXT_PUBLIC_ prefix)
+    this.openaiApiKey = process.env.OPENAI_API_KEY || '';
+    this.geminiApiKey = process.env.GEMINI_API_KEY || '';
     this.baseUrl = 'https://api.openai.com/v1';
     this.config = config;
   }

@@ -23,7 +23,7 @@ class GeminiService {
   private model: string = 'gemini-2.5-flash'; // Latest stable model
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    this.apiKey = process.env.GEMINI_API_KEY || '';
   }
 
   /**

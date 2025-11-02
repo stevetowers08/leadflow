@@ -155,11 +155,17 @@ export const usePerformanceMonitoring = () => {
                 `⚠️ Needs improvement ${metric}: ${value}ms (threshold: ${threshold.good}ms)`
               );
             } else {
-              console.log(`✅ Good ${metric}: ${value}ms`);
+              // Only log good metrics if they're above threshold or in verbose mode
+              if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+                console.log(`✅ Good ${metric}: ${value}ms`);
+              }
             }
           });
         } else if (entry.entryType === 'measure') {
-          console.log('Custom Measure:', entry.name, entry.duration);
+          // Only log slow measures (>50ms) or important metrics, not every component mount
+          if (entry.duration > 50 || entry.name.includes('Page') || entry.name.includes('Load')) {
+            console.log('Custom Measure:', entry.name, entry.duration);
+          }
         }
       });
     });

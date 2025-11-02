@@ -4,7 +4,8 @@ export class DecisionMakerService {
   private webhookUrl: string;
 
   constructor() {
-    this.webhookUrl = import.meta.env.VITE_DECISION_MAKER_WEBHOOK_URL;
+    // Webhook URL should be server-only (no NEXT_PUBLIC_ prefix for security)
+    this.webhookUrl = process.env.DECISION_MAKER_WEBHOOK_URL || '';
   }
 
   async triggerDecisionMakerEnrichment(
@@ -58,7 +59,11 @@ export class DecisionMakerService {
   private async generateSignature(
     data: Record<string, unknown>
   ): Promise<string> {
-    const secret = import.meta.env.VITE_DECISION_MAKER_WEBHOOK_SECRET;
+    // Webhook secret must be server-only (no NEXT_PUBLIC_ prefix)
+    const secret = process.env.DECISION_MAKER_WEBHOOK_SECRET || '';
+    if (!secret) {
+      throw new Error('DECISION_MAKER_WEBHOOK_SECRET environment variable is required');
+    }
     const payload = JSON.stringify(data);
     const encoder = new TextEncoder();
     const key = await crypto.subtle.importKey(

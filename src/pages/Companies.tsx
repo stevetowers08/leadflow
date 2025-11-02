@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Companies - Unified System Implementation
  *
@@ -26,17 +28,19 @@ import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
 import { useAuth } from '@/contexts/AuthContext';
+import { shouldBypassAuth } from '@/config/auth';
 import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { Company, Person, UserProfile } from '@/types/database';
 import { formatLastActivity } from '@/utils/relativeTime';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { Building2, CheckCircle, Sparkles, Target, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 // Define status arrays as constants to prevent recreation on every render
 const COMPANY_STATUS_OPTIONS: string[] = [
@@ -52,18 +56,36 @@ const COMPANY_STATUS_OPTIONS: string[] = [
   'on_hold',
 ];
 
+// Client-side mount guard wrapper
 const Companies: React.FC = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading companies...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <CompaniesContent />;
+};
+
+const CompaniesContent: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
   const [currentClientId, setCurrentClientId] = useState<string | null>(null);
 
   // State management
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [people, setPeople] = useState<Person[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Filter and search state
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -131,136 +153,150 @@ const Companies: React.FC = () => {
   // Fetch current client ID
   useEffect(() => {
     const fetchClientId = async () => {
-      console.log('🔍 fetchClientId called with user.id:', user?.id);
-      if (!user?.id) {
-        console.log('❌ No user.id, returning early');
-        return;
-      }
+      if (!user?.id) return;
 
       try {
-        console.log('📡 Fetching client_users for user:', user.id);
         const { data: clientUser, error } = await supabase
           .from('client_users')
           .select('client_id')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        console.log('📦 client_users response:', { clientUser, error });
-
         if (error && error.code !== 'PGRST116') {
-          console.error('❌ Error fetching client ID:', error);
+          if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+            console.error('Error fetching client ID:', error);
+          }
           return;
         }
 
-        console.log('✅ Setting currentClientId to:', clientUser?.client_id);
         setCurrentClientId(clientUser?.client_id || null);
       } catch (err) {
-        console.error('❌ Error fetching client ID:', err);
+        console.error('Error fetching client ID:', err);
       }
     };
 
     fetchClientId();
   }, [user?.id]);
 
-  // Fetch data with parallel requests for better performance
+  // Get client ID for dev mode fallback
   useEffect(() => {
-    const fetchData = async () => {
-      console.log('🔍 fetchData called with clientId:', currentClientId);
-      // If we don't have a client ID from RLS (due to bypass auth),
-      // we can't query client_companies either due to RLS
-      // For development: use the known test client_id
+    if (
+      !currentClientId &&
+      (process.env.NODE_ENV === 'development' ||
+        process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true')
+    ) {
+      const devClientId = '720ab0e4-0c24-4b71-b906-f1928e44712f';
+      // Development mode: using known client_id
+      setCurrentClientId(devClientId);
+    }
+  }, [currentClientId]);
+
+  // Fetch data with React Query for caching and better loading states
+  const {
+    data: companiesData,
+    isLoading: companiesLoading,
+    error: companiesError,
+  } = useQuery({
+    queryKey: ['companies-page', currentClientId],
+    queryFn: async () => {
+      // If we don't have a client ID, return empty data
       if (!currentClientId) {
-        console.log('⚠️ No currentClientId from RLS (bypass auth mode)');
-
-        // DEVELOPMENT ONLY: In production, this should never be needed
-        // In dev, we know the test user's client_id
-        if (import.meta.env.MODE === 'development') {
-          const devClientId = '720ab0e4-0c24-4b71-b906-f1928e44712f';
-          console.log(
-            '🔧 Development mode: using known client_id:',
-            devClientId
-          );
-          setCurrentClientId(devClientId);
-          // Return early - useEffect will re-run with the new client_id
-          return;
-        }
-
-        console.log('❌ No currentClientId, returning early');
-        return;
+        return {
+          companies: [],
+          people: [],
+          users: [],
+        };
       }
 
-      try {
-        setLoading(true);
-        setError(null);
-        console.log('📡 Fetching companies for client:', currentClientId);
-
-        // Fetch only companies this client has qualified
-        // IMPORTANT: Due to RLS, we need to query client_companies first, then get company details
-        const [clientCompaniesResult, peopleResult, usersResult] =
-          await Promise.all([
-            supabase
-              .from('client_companies')
-              .select(
-                `
+      // Fetch only companies this client has qualified
+      // IMPORTANT: Due to RLS, we need to query client_companies first, then get company details
+      const [clientCompaniesResult, peopleResult, usersResult] =
+        await Promise.all([
+          supabase
+            .from('client_companies')
+            .select(
+              `
               *,
               companies!inner(*)
             `
-              )
-              .eq('client_id', currentClientId)
-              .limit(1000), // Limit to prevent loading all records
-            supabase
-              .from('people')
-              .select('*')
-              .order('created_at', { ascending: false })
-              .limit(500), // Limit people for context
-            supabase
-              .from('user_profiles')
-              .select('id, full_name')
-              .order('full_name'),
-          ]);
+            )
+            .eq('client_id', currentClientId)
+            .limit(1000), // Limit to prevent loading all records
+          supabase
+            .from('people')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(500), // Limit people for context
+          supabase
+            .from('user_profiles')
+            .select('id, full_name')
+            .order('full_name'),
+        ]);
 
-        if (clientCompaniesResult.error) throw clientCompaniesResult.error;
-        if (peopleResult.error) throw peopleResult.error;
-        if (usersResult.error) throw usersResult.error;
+      if (clientCompaniesResult.error) throw clientCompaniesResult.error;
+      if (peopleResult.error) throw peopleResult.error;
+      if (usersResult.error) throw usersResult.error;
 
-        // Transform the data: client_companies has nested companies object
-        const transformedCompanies =
-          clientCompaniesResult.data?.map(item => {
-            return {
-              ...item.companies, // The nested company data
-              qualification_status: item.qualification_status,
-              qualified_at: item.qualified_at,
-              qualified_by: item.qualified_by,
-              client_priority: item.priority,
-              // Keep the actual pipeline_stage from the company
-            };
-          }) || [];
+      // Transform the data: client_companies has nested companies object
+      const transformedCompanies =
+        clientCompaniesResult.data?.map(item => {
+          return {
+            ...item.companies, // The nested company data
+            qualification_status: item.qualification_status,
+            qualified_at: item.qualified_at,
+            qualified_by: item.qualified_by,
+            client_priority: item.priority,
+            // Keep the actual pipeline_stage from the company
+          };
+        }) || [];
 
-        console.log('🔍 Companies Debug:', {
-          rawData: clientCompaniesResult.data,
-          transformedCount: transformedCompanies.length,
-          transformedCompanies,
-          currentClientId,
-        });
+        // Debug: Companies fetched and transformed
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.log('🔍 Companies Debug:', {
+            rawData: clientCompaniesResult.data,
+            transformedCount: transformedCompanies.length,
+            transformedCompanies,
+            currentClientId,
+          });
+        }
 
-        setCompanies(transformedCompanies as Company[]);
-        setPeople((peopleResult.data as unknown as Person[]) || []);
-        setUsers((usersResult.data as unknown as UserProfile[]) || []);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
-        toast({
-          title: 'Error',
-          description: 'Failed to load companies data',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+      return {
+        companies: transformedCompanies as Company[],
+        people: (peopleResult.data as unknown as Person[]) || [],
+        users: usersResult.data || [],
+      };
+    },
+    enabled: shouldBypassAuth() || (!authLoading && !!user && !!currentClientId),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+    refetchOnWindowFocus: false,
+  });
 
-    fetchData();
-  }, [toast, currentClientId]);
+  // Extract data from query result
+  const companies = companiesData?.companies || [];
+  const people = companiesData?.people || [];
+  const loading = companiesLoading;
+  const error = companiesError
+    ? (companiesError instanceof Error ? companiesError.message : 'Failed to fetch data')
+    : null;
+
+  // Update users state when data changes
+  useEffect(() => {
+    if (companiesData?.users) {
+      setUsers(companiesData.users);
+    }
+  }, [companiesData?.users]);
+
+  // Show error toast if query fails
+  useEffect(() => {
+    if (companiesError) {
+      toast({
+        title: 'Error',
+        description: 'Failed to load companies data',
+        variant: 'destructive',
+      });
+    }
+  }, [companiesError, toast]);
 
   // Filter and sort companies
   const filteredCompanies = useMemo(() => {
@@ -463,8 +499,8 @@ const Companies: React.FC = () => {
       return;
     }
     const toIdsParam = encodeURIComponent(toIds.join(','));
-    navigate(`/conversations?compose=1&toIds=${toIdsParam}`);
-  }, [bulkSelection, filteredCompanies, people, navigate, toast]);
+    router.push(`/conversations?compose=1&toIds=${toIdsParam}`);
+  }, [bulkSelection, filteredCompanies, people, router, toast]);
 
   // User options for filter
   const userOptions = useMemo(
@@ -944,7 +980,7 @@ const Companies: React.FC = () => {
     <Page stats={stats} title='Companies' hideHeader>
       <div className='flex-1 flex flex-col min-h-0 space-y-4'>
         {/* Filter Controls - Left Aligned */}
-        <div className='flex items-center justify-start gap-4'>
+        <div className='flex items-center justify-start gap-4 min-w-0 flex-wrap'>
           <FilterControls
             statusOptions={statusOptions}
             userOptions={userOptions}
@@ -983,7 +1019,7 @@ const Companies: React.FC = () => {
                 </p>
                 {!searchTerm && (
                   <Button
-                    onClick={() => navigate('/jobs')}
+                    onClick={() => router.push('/jobs')}
                     className='inline-flex items-center gap-2'
                   >
                     <Target className='h-4 w-4' />

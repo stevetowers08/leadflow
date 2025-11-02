@@ -60,9 +60,9 @@ class EnhancedLogger {
   private constructor() {
     this.sessionId = this.generateSessionId();
     this.config = {
-      level: import.meta.env.DEV ? LogLevel.DEBUG : LogLevel.INFO,
+      level: process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.INFO,
       enableConsole: true,
-      enableRemote: import.meta.env.PROD,
+      enableRemote: process.env.NODE_ENV === 'production',
       enableStorage: true,
       maxStorageEntries: 1000,
       remoteEndpoint: '/api/logs',
@@ -91,6 +91,11 @@ class EnhancedLogger {
 
   // Setup global error handling
   private setupGlobalErrorHandling(): void {
+    // Only setup on client-side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     // Handle unhandled promise rejections
     window.addEventListener('unhandledrejection', event => {
       this.error('Unhandled Promise Rejection', {
@@ -121,6 +126,11 @@ class EnhancedLogger {
 
   // Setup performance logging
   private setupPerformanceLogging(): void {
+    // Only setup on client-side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     if (!this.config.enablePerformance) return;
 
     // Log page load performance
@@ -256,6 +266,11 @@ class EnhancedLogger {
 
   // Storage logging
   private logToStorage(entry: LogEntry): void {
+    // Only store on client-side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     try {
       const storageKey = `logs_${this.sessionId}`;
       const existingLogs = JSON.parse(localStorage.getItem(storageKey) || '[]');
@@ -308,7 +323,9 @@ class EnhancedLogger {
   // Clear logs
   clearLogs(): void {
     this.logs = [];
-    localStorage.removeItem(`logs_${this.sessionId}`);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`logs_${this.sessionId}`);
+    }
   }
 
   // Export logs
@@ -401,22 +418,25 @@ export const LoggingProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   React.useEffect(() => {
-    logger.info('Application started', {
-      componentName: 'App',
-      action: 'start',
-      metadata: {
-        userAgent: navigator.userAgent,
-        url: window.location.href,
-        timestamp: new Date().toISOString(),
-      },
-    });
-
-    return () => {
-      logger.info('Application stopped', {
+    // Only log on client-side
+    if (typeof window !== 'undefined') {
+      logger.info('Application started', {
         componentName: 'App',
-        action: 'stop',
+        action: 'start',
+        metadata: {
+          userAgent: navigator.userAgent,
+          url: window.location.href,
+          timestamp: new Date().toISOString(),
+        },
       });
-    };
+
+      return () => {
+        logger.info('Application stopped', {
+          componentName: 'App',
+          action: 'stop',
+        });
+      };
+    }
   }, []);
 
   return React.createElement(React.Fragment, null, children);

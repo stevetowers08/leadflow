@@ -22,7 +22,7 @@ export function MobileTestPanel({ className }: MobileTestProps) {
   const deviceType = useDeviceType();
 
   // Only show in development
-  if (import.meta.env.DEV !== true) {
+  if (process.env.NODE_ENV !== 'development') {
     return null;
   }
 

@@ -48,8 +48,9 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
+import React from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 type Company = CompanyType & {
   people_count?: number;
@@ -76,10 +77,32 @@ const PIPELINE_STATUS_OPTIONS: string[] = [
   'on_hold',
 ];
 
-const Pipeline = () => {
+// Client-side mount guard wrapper
+const Pipeline: React.FC = () => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading pipeline...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <PipelineContent />;
+};
+
+const PipelineContent = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [hoveredCompanyId, setHoveredCompanyId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -879,7 +902,7 @@ const Pipeline = () => {
             <div onClick={e => e.stopPropagation()}>
               <PeopleAvatars
                 people={companyPeople}
-                onPersonClick={personId => navigate(`/people/${personId}`)}
+                onPersonClick={personId => router.push(`/people/${personId}`)}
                 maxVisible={3}
               />
             </div>
@@ -949,7 +972,7 @@ const Pipeline = () => {
         ),
       },
     ],
-    [people, navigate, refetchCompanies]
+    [people, refetchCompanies]
   );
 
   // Enhanced Draggable Company Card Component with better accessibility and visual feedback
@@ -1299,7 +1322,7 @@ const Pipeline = () => {
 
   return (
     <Page title='Deals' hideHeader>
-      <div className='space-y-4 h-full flex flex-col'>
+      <div className='flex-1 flex flex-col min-h-0 space-y-4'>
         {/* Tab Navigation and Filters */}
         <div className='flex items-center justify-end gap-4 flex-wrap md:flex-nowrap overflow-visible'>
           {/* Tab Navigation */}
@@ -1461,7 +1484,7 @@ const Pipeline = () => {
 
                 <div
                   ref={pipelineScrollRef}
-                  className='overflow-x-auto pb-4 scrollbar-thin w-full'
+                  className='overflow-x-auto pb-4 scrollbar-modern w-full'
                   style={{
                     // Optimize scrolling performance
                     willChange: 'scroll-position',

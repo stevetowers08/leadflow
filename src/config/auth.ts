@@ -23,41 +23,39 @@ export interface AuthConfig {
  * Get authentication configuration based on environment
  */
 export const getAuthConfig = (): AuthConfig => {
-  const isDevelopment =
-    import.meta.env.MODE === 'development' || import.meta.env.DEV;
-  const bypassAuth = import.meta.env.VITE_BYPASS_AUTH === 'true';
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
 
   // Force bypass in development for now, or when explicitly enabled in production
   // For demo purposes, always bypass in production
   const shouldBypass =
-    isDevelopment || bypassAuth || import.meta.env.MODE === 'production';
+    isDevelopment || bypassAuth || process.env.NODE_ENV === 'production';
 
-  // Debug logging (development only)
-  if (isDevelopment) {
+  // Debug logging (development only) - only log once to avoid spam
+  if (isDevelopment && !(getAuthConfig as any)._logged) {
     console.log('🔍 Auth Config Debug:', {
       isDevelopment,
       bypassAuth,
       shouldBypass,
-      nodeEnv: import.meta.env.NODE_ENV,
-      mode: import.meta.env.MODE,
-      dev: import.meta.env.DEV,
-      viteBypassAuth: import.meta.env.VITE_BYPASS_AUTH,
+      nodeEnv: process.env.NODE_ENV,
+      nextPublicBypassAuth: process.env.NEXT_PUBLIC_BYPASS_AUTH,
     });
+    (getAuthConfig as any)._logged = true;
   }
 
   return {
     bypassAuth: shouldBypass,
     mockUser: {
       id:
-        import.meta.env.VITE_MOCK_USER_ID ||
+        process.env.NEXT_PUBLIC_MOCK_USER_ID ||
         '8fecfbaf-34e3-4106-9dd8-2cadeadea100',
-      email: import.meta.env.VITE_MOCK_USER_EMAIL || 'test@example.com',
-      role: import.meta.env.VITE_MOCK_USER_ROLE || 'owner',
-      full_name: import.meta.env.VITE_MOCK_USER_NAME || 'Test User',
+      email: process.env.NEXT_PUBLIC_MOCK_USER_EMAIL || 'test@example.com',
+      role: process.env.NEXT_PUBLIC_MOCK_USER_ROLE || 'owner',
+      full_name: process.env.NEXT_PUBLIC_MOCK_USER_NAME || 'Test User',
     },
     environments: {
       development: isDevelopment,
-      production: import.meta.env.MODE === 'production',
+      production: process.env.NODE_ENV === 'production',
     },
   };
 };

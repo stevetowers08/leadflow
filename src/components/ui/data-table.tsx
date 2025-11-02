@@ -27,11 +27,11 @@ interface DataTableProps<TData, TValue> {
   searchKey?: string;
 }
 
-export function DataTable<TData, TValue>({
+export const DataTable = React.memo(<TData, TValue>({
   columns,
   data,
   searchKey,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData, TValue>) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -122,4 +122,6 @@ export function DataTable<TData, TValue>({
       </div>
     </div>
   );
-}
+}) as <TData, TValue>(props: DataTableProps<TData, TValue>) => JSX.Element;
+
+DataTable.displayName = 'DataTable';

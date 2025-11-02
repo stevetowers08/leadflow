@@ -27,7 +27,29 @@ import {
   Target,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
+
+// Client-side mount guard wrapper
+const Campaigns: React.FC = () => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading campaigns...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <CampaignsContent />;
+};
 
 const STATUS_COLORS = {
   draft: 'bg-gray-100 text-gray-800',
@@ -46,8 +68,8 @@ interface CampaignAnalytics {
   total_sender_bounced: number;
 }
 
-export default function Campaigns() {
-  const navigate = useNavigate();
+function CampaignsContent() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [campaignAnalytics, setCampaignAnalytics] = useState<
@@ -108,7 +130,9 @@ export default function Campaigns() {
         analyticsMap[sequence.id] = analytics;
       }
 
-      console.log('📊 Analytics loaded:', analyticsMap);
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+        console.log('📊 Analytics loaded:', analyticsMap);
+      }
       setCampaignAnalytics(analyticsMap);
     };
 
@@ -116,12 +140,6 @@ export default function Campaigns() {
       loadAnalytics();
     }
   }, [sequences, isLoading]);
-
-  // Debug logging
-  console.log('🔍 Campaigns page - sequences:', sequences);
-  console.log('🔍 Campaigns page - isLoading:', isLoading);
-  console.log('🔍 Campaigns page - sequences length:', sequences?.length);
-  console.log('📊 Campaign analytics state:', campaignAnalytics);
 
   // Memoized filtered sequences for better performance
   const filteredSequences = useMemo(() => {
@@ -145,7 +163,7 @@ export default function Campaigns() {
         description: '',
         status: 'draft',
       });
-      navigate(`/campaigns/sequence/${newSequence.id}`);
+      router.push(`/campaigns/sequence/${newSequence.id}`);
     } catch (error) {
       toast({
         title: 'Error',
@@ -174,7 +192,7 @@ export default function Campaigns() {
   };
 
   const handleOpenSequenceBuilder = (sequence: CampaignSequence) => {
-    navigate(`/campaigns/sequence/${sequence.id}`);
+    router.push(`/campaigns/sequence/${sequence.id}`);
   };
 
   return (
@@ -377,3 +395,5 @@ export default function Campaigns() {
     </Page>
   );
 }
+
+export default Campaigns;

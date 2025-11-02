@@ -13,18 +13,17 @@ const initializeApp = async () => {
   logger.info('🚀 RECRUITEDGE starting...');
 
   // Only show environment debug info in development
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === 'development') {
     logger.debug('🔍 Environment Debug Info:');
-    logger.debug('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+    logger.debug('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
     logger.debug(
-      'VITE_SUPABASE_ANON_KEY:',
-      import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY:',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
     );
     logger.debug(
-      'VITE_GOOGLE_CLIENT_ID:',
-      import.meta.env.VITE_GOOGLE_CLIENT_ID
+      'NEXT_PUBLIC_GOOGLE_CLIENT_ID:',
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     );
-    logger.debug('All env vars:', import.meta.env);
   }
 
   // Add global error handler

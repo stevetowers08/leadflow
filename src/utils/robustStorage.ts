@@ -259,15 +259,43 @@ class RobustStorage {
   }
 }
 
-// Create robust storage instances
-export const robustLocalStorage = new RobustStorage(localStorage, {
+// Create robust storage instances (only on client-side)
+const getLocalStorage = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage;
+  }
+  // Return a mock storage for SSR
+  return {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+    clear: () => {},
+    length: 0,
+  } as Storage;
+};
+
+const getSessionStorage = () => {
+  if (typeof window !== 'undefined') {
+    return sessionStorage;
+  }
+  // Return a mock storage for SSR
+  return {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+    clear: () => {},
+    length: 0,
+  } as Storage;
+};
+
+export const robustLocalStorage = new RobustStorage(getLocalStorage(), {
   fallbackToMemory: true,
   fallbackToSession: true,
   maxRetries: 3,
   retryDelay: 100,
 });
 
-export const robustSessionStorage = new RobustStorage(sessionStorage, {
+export const robustSessionStorage = new RobustStorage(getSessionStorage(), {
   fallbackToMemory: true,
   fallbackToSession: false,
   maxRetries: 2,

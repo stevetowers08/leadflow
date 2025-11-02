@@ -14,6 +14,11 @@ interface PageMeta {
 
 export const usePageMeta = (meta: PageMeta) => {
   useEffect(() => {
+    // Only update meta tags on client-side
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
     // Update document title
     document.title = meta.title;
 

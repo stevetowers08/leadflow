@@ -8,23 +8,28 @@ export const clearOAuthState = async () => {
     // Clear any existing session
     await supabase.auth.signOut();
 
-    // Clear localStorage items that might cause state conflicts
-    const keysToRemove = [
-      'sb-jedfundfhzytpnbjkspn-auth-token',
-      'supabase.auth.token',
-      'supabase.auth.refresh_token',
-    ];
+    // Only access localStorage/sessionStorage on client
+    if (typeof window !== 'undefined') {
+      // Clear localStorage items that might cause state conflicts
+      const keysToRemove = [
+        'sb-jedfundfhzytpnbjkspn-auth-token',
+        'supabase.auth.token',
+        'supabase.auth.refresh_token',
+      ];
 
-    keysToRemove.forEach(key => {
-      localStorage.removeItem(key);
-    });
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+      });
 
-    // Clear any sessionStorage items
-    sessionStorage.clear();
+      // Clear any sessionStorage items
+      sessionStorage.clear();
+    }
 
     return true;
   } catch (error) {
-    console.error('Error clearing OAuth state:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error clearing OAuth state:', error);
+    }
     return false;
   }
 };
@@ -33,6 +38,7 @@ export const clearOAuthState = async () => {
  * Check if the current URL contains OAuth error parameters
  */
 export const hasOAuthError = () => {
+  if (typeof window === 'undefined') return false;
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.has('error') || urlParams.has('error_code');
 };
@@ -41,6 +47,9 @@ export const hasOAuthError = () => {
  * Get OAuth error details from URL parameters
  */
 export const getOAuthError = () => {
+  if (typeof window === 'undefined') {
+    return { error: null, errorCode: null, errorDescription: null };
+  }
   const urlParams = new URLSearchParams(window.location.search);
   const error = urlParams.get('error');
   const errorCode = urlParams.get('error_code');

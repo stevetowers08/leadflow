@@ -11,9 +11,9 @@ export function validateEnvironment(): EnvironmentConfig {
   const errors: string[] = [];
 
   // Safely check for required CLIENT-SIDE environment variables only
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
   // Only validate if we have values to validate
   if (supabaseUrl) {
@@ -21,18 +21,18 @@ export function validateEnvironment(): EnvironmentConfig {
       !supabaseUrl.startsWith('https://') ||
       !supabaseUrl.includes('.supabase.co')
     ) {
-      errors.push('VITE_SUPABASE_URL must be a valid Supabase URL');
+      errors.push('NEXT_PUBLIC_SUPABASE_URL must be a valid Supabase URL');
     }
   } else {
-    errors.push('VITE_SUPABASE_URL is required');
+    errors.push('NEXT_PUBLIC_SUPABASE_URL is required');
   }
 
   if (supabaseAnonKey) {
     if (!supabaseAnonKey.startsWith('eyJ')) {
-      errors.push('VITE_SUPABASE_ANON_KEY appears to be invalid');
+      errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY appears to be invalid');
     }
   } else {
-    errors.push('VITE_SUPABASE_ANON_KEY is required');
+    errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY is required');
   }
 
   // Service role key should NOT be exposed to client-side
@@ -43,7 +43,7 @@ export function validateEnvironment(): EnvironmentConfig {
     googleClientId &&
     !googleClientId.includes('.apps.googleusercontent.com')
   ) {
-    errors.push('VITE_GOOGLE_CLIENT_ID appears to be invalid');
+    errors.push('NEXT_PUBLIC_GOOGLE_CLIENT_ID appears to be invalid');
   }
 
   return {
@@ -56,6 +56,11 @@ export function validateEnvironment(): EnvironmentConfig {
 }
 
 export function logEnvironmentStatus(): void {
+  // Only log in development
+  if (process.env.NODE_ENV !== 'development') {
+    return;
+  }
+
   const config = validateEnvironment();
 
   console.group('🔧 Environment Configuration');
@@ -81,6 +86,11 @@ export function logEnvironmentStatus(): void {
 
 // Error handling utilities
 export function handleSupabaseError(error: any, context: string): void {
+  // Only log in development
+  if (process.env.NODE_ENV !== 'development') {
+    return;
+  }
+
   console.group(`🚨 Supabase Error in ${context}`);
   console.error('Error:', error);
 

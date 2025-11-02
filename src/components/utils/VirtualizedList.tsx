@@ -80,7 +80,7 @@ export const VirtualizedList: React.FC<VirtualizedListProps> = memo(
         itemCount={items.length}
         itemSize={itemHeight}
         itemData={{ items, onItemClick, type }}
-        className='scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100'
+        className='scrollbar-modern'
       >
         {VirtualizedListItem}
       </List>

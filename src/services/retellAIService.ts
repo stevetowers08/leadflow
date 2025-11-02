@@ -56,8 +56,8 @@ class RetellAIService {
   private apiKey: string | null = null;
 
   constructor() {
-    // Initialize with API key from environment or user settings
-    this.apiKey = import.meta.env.VITE_RETELL_API_KEY || null;
+    // Initialize with API key from environment or user settings (server-only)
+    this.apiKey = process.env.RETELL_API_KEY || null;
   }
 
   setApiKey(apiKey: string) {

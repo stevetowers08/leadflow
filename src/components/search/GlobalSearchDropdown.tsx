@@ -1,3 +1,5 @@
+'use client';
+
 import { SearchResults } from '@/components/search/SearchResults';
 import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
 import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
@@ -12,7 +14,8 @@ interface GlobalSearchDropdownProps {
   className?: string;
 }
 
-export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
+// Internal component that requires SearchProvider
+const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
   className,
 }) => {
   const {
@@ -238,4 +241,33 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
       )}
     </div>
   );
+};
+
+// Public component with safe context access and SSR handling
+export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
+  className,
+}) => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // During SSR or before mount, return a placeholder to prevent hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className={cn('relative w-full', className)}>
+        <div className='w-full h-8 rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-900 opacity-50 pointer-events-none'>
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400' />
+          <span className='absolute left-10 top-1/2 -translate-y-1/2 text-gray-400'>
+            Search people, companies, jobs...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Once mounted on client, render the actual component
+  // Error boundary will catch if SearchProvider is missing
+  return <GlobalSearchDropdownContent className={className} />;
 };

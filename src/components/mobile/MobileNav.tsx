@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Mobile Navigation Component
  * Implements mobile CRM navigation best practices
@@ -21,8 +23,8 @@ import {
   Target,
   Users,
 } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import React, { useEffect, useMemo, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
 
 interface NavItem {
   to: string;
@@ -105,6 +107,7 @@ interface MobileNavProps {
 
 export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
   const location = useLocation();
+  const pathname = location.pathname;
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const isMobile = useIsMobile();
   const { lightHaptic, mediumHaptic } = useHapticFeedback();
@@ -162,11 +165,11 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
       >
         <div className='flex items-center justify-around px-3 py-2.5 max-w-screen-sm mx-auto gap-1'>
           {primaryItems.map(item => {
-            const isActive = location.pathname === item.to;
+            const isActive = pathname === item.to;
             return (
-              <NavLink
+              <Link
                 key={item.to}
-                to={item.to}
+                href={item.to}
                 className={cn(
                   'flex flex-col items-center justify-center gap-1 flex-1',
                   'py-2 px-1 min-h-[56px]',
@@ -210,7 +213,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
                 {isActive && (
                   <div className='absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full shadow-sm' />
                 )}
-              </NavLink>
+              </Link>
             );
           })}
 
@@ -273,32 +276,33 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
                     </h3>
                   </div>
                   <div className='py-1'>
-                    {secondaryItems.map(item => (
-                      <NavLink
-                        key={item.to}
-                        to={item.to}
-                        onClick={() => {
-                          lightHaptic();
-                          setShowMoreMenu(false);
-                        }}
-                        className={({ isActive }) =>
-                          cn(
+                    {secondaryItems.map(item => {
+                      const isActive = pathname === item.to;
+                      return (
+                        <Link
+                          key={item.to}
+                          href={item.to}
+                          onClick={() => {
+                            lightHaptic();
+                            setShowMoreMenu(false);
+                          }}
+                          className={cn(
                             'flex items-center gap-3 px-4 py-3 min-h-[48px]',
                             'transition-all duration-150 active:scale-[0.98]',
                             'touch-manipulation',
                             isActive
                               ? 'text-primary bg-primary/5'
                               : 'text-foreground'
-                          )
-                        }
-                        role='menuitem'
-                      >
-                        <div className='flex-shrink-0 h-5 w-5'>{item.icon}</div>
-                        <span className='text-sm font-medium'>
-                          {item.label}
-                        </span>
-                      </NavLink>
-                    ))}
+                          )}
+                          role='menuitem'
+                        >
+                          <div className='flex-shrink-0 h-5 w-5'>{item.icon}</div>
+                          <span className='text-sm font-medium'>
+                            {item.label}
+                          </span>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

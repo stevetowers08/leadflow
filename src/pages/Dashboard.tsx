@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Daily Dashboard - Morning View
  * Shows actionable items: new jobs to review, email replies, pipeline overview
@@ -12,7 +14,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 import { useJobDiscoveryMetrics } from '@/hooks/useSupabaseData';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import React from 'react';
 
 interface Job {
   id: string;
@@ -41,8 +45,30 @@ interface EmailThread {
 
 // Removed pipeline snapshot UI per request
 
-export default function Dashboard() {
-  const navigate = useNavigate();
+// Client-side mount guard wrapper
+const Dashboard: React.FC = () => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <DashboardContent />;
+};
+
+function DashboardContent() {
+  const router = useRouter();
   const { data: clientId, isLoading: clientIdLoading } = useClientId();
   const [jobsToReview, setJobsToReview] = useState<Job[]>([]);
   const [emailReplies, setEmailReplies] = useState<EmailThread[]>([]);
@@ -152,25 +178,21 @@ export default function Dashboard() {
             .lt('created_at', oneWeekAgo.toISOString()),
         ]);
 
-        console.log('Dashboard data:', {
-          jobsError: jobsRes.error,
-          threadsError: threadsRes.error,
-          jobsCount: jobsRes.data?.length,
-          threadsCount: threadsRes.data?.length,
-        });
-
+        // Only log errors in development
         if (
           jobsRes.error ||
           threadsRes.error ||
           leadsTodayRes.error ||
           companiesTodayRes.error
         ) {
-          console.error('Dashboard errors:', {
-            jobs: jobsRes.error,
-            threads: threadsRes.error,
-            leads: leadsTodayRes.error,
-            companies: companiesTodayRes.error,
-          });
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Dashboard errors:', {
+              jobs: jobsRes.error,
+              threads: threadsRes.error,
+              leads: leadsTodayRes.error,
+              companies: companiesTodayRes.error,
+            });
+          }
           throw new Error('Failed to load dashboard data');
         }
 
@@ -238,9 +260,9 @@ export default function Dashboard() {
 
   const handleEmailClick = useCallback(
     (threadId: string) => {
-      navigate(`/crm/communications?thread=${threadId}`);
+      router.push(`/crm/communications?thread=${threadId}`);
     },
-    [navigate]
+    [router]
   );
 
   // Dynamic greeting based on time of day
@@ -264,14 +286,14 @@ export default function Dashboard() {
   const handleWeeklyCardClick = useCallback(
     (type: 'jobs' | 'companies' | 'people') => {
       if (type === 'jobs') {
-        navigate('/jobs?tab=new');
+        router.push('/jobs?tab=new');
       } else if (type === 'companies') {
-        navigate('/companies');
+        router.push('/companies');
       } else if (type === 'people') {
-        navigate('/people');
+        router.push('/people');
       }
     },
-    [navigate]
+    [router]
   );
 
   return (
@@ -295,18 +317,39 @@ export default function Dashboard() {
               Today Summary
             </h2>
           </div>
-          <div className='grid gap-3 grid-cols-1 md:grid-cols-3'>
-            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm shadow-sm'>
-              <div className='p-4'>
-                <p className='text-sm font-medium text-muted-foreground mb-1'>
-                  Jobs Analyzed
-                </p>
-                <p className='text-2xl font-bold tracking-tight text-foreground'>
-                  {jobKpisLoading ? '…' : jobKpis?.today.analyzed || 0}
-                </p>
-              </div>
-            </Card>
-            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-green-500/5 via-green-50/30 to-green-500/10 backdrop-blur-sm shadow-sm'>
+          <motion.div
+            className='grid gap-3 grid-cols-1 md:grid-cols-3'
+            initial='hidden'
+            animate='visible'
+            variants={{
+              visible: { transition: { staggerChildren: 0.1 } },
+              hidden: {},
+            }}
+          >
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 8 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm shadow-sm'>
+                <div className='p-4'>
+                  <p className='text-sm font-medium text-muted-foreground mb-1'>
+                    Jobs Analyzed
+                  </p>
+                  <p className='text-2xl font-bold tracking-tight text-foreground'>
+                    {jobKpisLoading ? '…' : jobKpis?.today.analyzed || 0}
+                  </p>
+                </div>
+              </Card>
+            </motion.div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 8 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-green-500/5 via-green-50/30 to-green-500/10 backdrop-blur-sm shadow-sm'>
               <div className='p-4'>
                 <p className='text-sm font-medium text-muted-foreground mb-1'>
                   Qualification Rate
@@ -318,43 +361,65 @@ export default function Dashboard() {
                 </p>
               </div>
             </Card>
-            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 backdrop-blur-sm shadow-sm'>
-              <div className='p-4'>
-                <p className='text-sm font-medium text-muted-foreground mb-1'>
-                  Non-Executive Filtered
-                </p>
-                <p className='text-2xl font-bold tracking-tight text-foreground'>
-                  {jobKpisLoading
-                    ? '…'
-                    : jobKpis?.today.nonExecutiveFiltered || 0}
-                </p>
-              </div>
-            </Card>
-            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-amber-500/5 via-amber-50/30 to-amber-500/10 backdrop-blur-sm shadow-sm'>
-              <div className='p-4'>
-                <p className='text-sm font-medium text-muted-foreground mb-1'>
-                  Indeed Opportunities
-                </p>
-                <p className='text-2xl font-bold tracking-tight text-foreground'>
-                  {jobKpisLoading
-                    ? '…'
-                    : jobKpis?.today.indeedOpportunities || 0}
-                </p>
-              </div>
-            </Card>
-            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-sky-500/5 via-sky-50/30 to-sky-500/10 backdrop-blur-sm shadow-sm'>
-              <div className='p-4'>
-                <p className='text-sm font-medium text-muted-foreground mb-1'>
-                  LinkedIn Opportunities
-                </p>
-                <p className='text-2xl font-bold tracking-tight text-foreground'>
-                  {jobKpisLoading
-                    ? '…'
-                    : jobKpis?.today.linkedinOpportunities || 0}
-                </p>
-              </div>
-            </Card>
-          </div>
+            </motion.div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 8 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 backdrop-blur-sm shadow-sm'>
+                <div className='p-4'>
+                  <p className='text-sm font-medium text-muted-foreground mb-1'>
+                    Non-Executive Filtered
+                  </p>
+                  <p className='text-2xl font-bold tracking-tight text-foreground'>
+                    {jobKpisLoading
+                      ? '…'
+                      : jobKpis?.today.nonExecutiveFiltered || 0}
+                  </p>
+                </div>
+              </Card>
+            </motion.div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 8 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-amber-500/5 via-amber-50/30 to-amber-500/10 backdrop-blur-sm shadow-sm'>
+                <div className='p-4'>
+                  <p className='text-sm font-medium text-muted-foreground mb-1'>
+                    Indeed Opportunities
+                  </p>
+                  <p className='text-2xl font-bold tracking-tight text-foreground'>
+                    {jobKpisLoading
+                      ? '…'
+                      : jobKpis?.today.indeedOpportunities || 0}
+                  </p>
+                </div>
+              </Card>
+            </motion.div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 8 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-sky-500/5 via-sky-50/30 to-sky-500/10 backdrop-blur-sm shadow-sm'>
+                <div className='p-4'>
+                  <p className='text-sm font-medium text-muted-foreground mb-1'>
+                    LinkedIn Opportunities
+                  </p>
+                  <p className='text-2xl font-bold tracking-tight text-foreground'>
+                    {jobKpisLoading
+                      ? '…'
+                      : jobKpis?.today.linkedinOpportunities || 0}
+                  </p>
+                </div>
+              </Card>
+            </motion.div>
+          </motion.div>
         </div>
 
         {/* Past Week Summary Section */}
@@ -500,14 +565,14 @@ export default function Dashboard() {
                 Jobs to Review
               </h3>
               <button
-                onClick={() => navigate('/jobs')}
+                onClick={() => router.push('/jobs')}
                 className='text-xs text-primary hover:text-primary/80 transition-colors font-medium'
               >
                 View Pipeline
               </button>
             </div>
             {jobsToReview.length > 0 && (
-              <div className='overflow-x-auto'>
+              <div className='overflow-x-auto scrollbar-modern'>
                 <table className='w-full table-fixed'>
                   <thead>
                     <tr className='border-b border-border/50'>
@@ -592,7 +657,7 @@ export default function Dashboard() {
                 Unread Replies
               </h3>
               <button
-                onClick={() => navigate('/crm/communications')}
+                onClick={() => router.push('/crm/communications')}
                 className='text-xs text-primary hover:text-primary/80 transition-colors font-medium'
               >
                 Open Conversation
@@ -642,3 +707,5 @@ export default function Dashboard() {
     </Page>
   );
 }
+
+export default Dashboard;

@@ -280,11 +280,11 @@ npm run dev
 
 ### Development Server
 
-- **Local**: http://localhost:8082 (or next available port)
+- **Local**: http://localhost:8086 (Next.js default port)
 - **Network**: Accessible on local network for mobile testing
-- **Hot Reload**: Automatic refresh on file changes
-- **Onboarding Dashboard**: Access `/onboarding` for guided setup flow
-- **Status**: ✅ Stable - All critical issues resolved
+- **Hot Reload**: Fast Refresh with Next.js (instant updates)
+- **Onboarding Dashboard**: Access `/getting-started` for guided setup flow
+- **Status**: ✅ Stable - Next.js 16.0.1 with App Router
 
 ## Environment Setup
 
@@ -293,17 +293,20 @@ npm run dev
 #### Core Application
 
 ```env
-# Supabase Configuration
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Supabase Configuration (Client-side)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Supabase Service Role (Server-side only)
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 # Google OAuth
-VITE_GOOGLE_CLIENT_ID=your_google_client_id
-VITE_GOOGLE_CLIENT_SECRET=your_google_client_secret
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-# Application Settings
-VITE_APP_URL=http://localhost:8080
-VITE_ENVIRONMENT=development
+# Application Settings (if needed)
+NEXT_PUBLIC_APP_URL=http://localhost:8086
+NODE_ENV=development
 ```
 
 #### Optional Integrations

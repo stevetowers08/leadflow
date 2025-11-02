@@ -29,7 +29,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -43,7 +43,29 @@ import {
   YAxis,
 } from 'recharts';
 
-export default function Reporting() {
+// Client-side mount guard wrapper
+const Reporting: React.FC = () => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading reporting...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <ReportingContent />;
+};
+
+function ReportingContent() {
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>(
     '30d'
   );
@@ -835,3 +857,5 @@ export default function Reporting() {
     </Page>
   );
 }
+
+export default Reporting;

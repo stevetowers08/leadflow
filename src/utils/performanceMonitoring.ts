@@ -43,7 +43,7 @@ class PerformanceMonitor {
   private metrics: PerformanceMetrics = {};
   private observers: PerformanceObserver[] = [];
   private isMonitoring = false;
-  private startTime = performance.now();
+  private startTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
   static getInstance(): PerformanceMonitor {
     if (!PerformanceMonitor.instance) {
@@ -54,6 +54,11 @@ class PerformanceMonitor {
 
   // Initialize performance monitoring
   init(): void {
+    // Only initialize on client-side
+    if (typeof window === 'undefined' || typeof performance === 'undefined') {
+      return;
+    }
+
     if (this.isMonitoring) return;
 
     this.isMonitoring = true;
@@ -115,7 +120,7 @@ class PerformanceMonitor {
 
   // Observe Largest Contentful Paint
   private observeLCP(): void {
-    if (!('PerformanceObserver' in window)) return;
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
 
     // Check if largest-contentful-paint is supported
     const supportedEntryTypes = PerformanceObserver.supportedEntryTypes;
@@ -146,7 +151,7 @@ class PerformanceMonitor {
 
   // Observe First Input Delay
   private observeFID(): void {
-    if (!('PerformanceObserver' in window)) return;
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
 
     // Check if first-input is supported
     const supportedEntryTypes = PerformanceObserver.supportedEntryTypes;
@@ -175,7 +180,7 @@ class PerformanceMonitor {
 
   // Observe Cumulative Layout Shift
   private observeCLS(): void {
-    if (!('PerformanceObserver' in window)) return;
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
 
     // Check if layout-shift is supported
     const supportedEntryTypes = PerformanceObserver.supportedEntryTypes;
@@ -206,7 +211,7 @@ class PerformanceMonitor {
 
   // Observe First Contentful Paint
   private observeFCP(): void {
-    if (!('PerformanceObserver' in window)) return;
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
 
     const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
@@ -224,7 +229,7 @@ class PerformanceMonitor {
 
   // Observe Time to First Byte
   private observeTTFB(): void {
-    if (!('PerformanceObserver' in window)) return;
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
 
     const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
@@ -242,6 +247,7 @@ class PerformanceMonitor {
 
   // Measure bundle size
   private measureBundleSize(): void {
+    if (typeof window === 'undefined' || typeof performance === 'undefined') return;
     if ('performance' in window && 'getEntriesByType' in performance) {
       const resources = performance.getEntriesByType('resource');
       let totalSize = 0;
@@ -259,6 +265,7 @@ class PerformanceMonitor {
 
   // Observe memory usage
   private observeMemoryUsage(): void {
+    if (typeof performance === 'undefined') return;
     if ('memory' in performance) {
       const memory = (performance as unknown as Record<string, unknown>).memory;
       this.metrics.memoryUsage = memory.usedJSHeapSize;
@@ -270,6 +277,8 @@ class PerformanceMonitor {
 
   // Observe custom metrics
   private observeCustomMetrics(): void {
+    if (typeof window === 'undefined' || typeof performance === 'undefined') return;
+
     // Measure page load time
     window.addEventListener('load', () => {
       this.metrics.loadTime = performance.now() - this.startTime;
@@ -391,7 +400,11 @@ class PerformanceMonitor {
 
   // Send performance data to analytics
   async sendToAnalytics(): Promise<void> {
-    if (!import.meta.env.PROD) return;
+    if (typeof window === 'undefined') return;
+    // Use Next.js compatible environment check
+    const isProduction =
+      typeof process !== 'undefined' && process.env.NODE_ENV === 'production';
+    if (!isProduction) return;
 
     try {
       const report = this.generateReport();
@@ -401,7 +414,7 @@ class PerformanceMonitor {
         body: JSON.stringify({
           timestamp: new Date().toISOString(),
           url: window.location.href,
-          userAgent: navigator.userAgent,
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
           ...report,
         }),
       });

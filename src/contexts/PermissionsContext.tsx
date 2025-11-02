@@ -826,14 +826,13 @@ export function PermissionsProvider({
       // Use role from user profile database record
       const userRole = userProfile.role;
 
-      // Debug logging (development only)
-      if (import.meta.env.DEV) {
+      // Debug logging (verbose mode only)
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
         console.log('PermissionsContext Debug:', {
           userEmail: user.email,
           userProfileRole: userRole,
           userMetadataRole: user.user_metadata?.role,
           userProfileExists: !!userProfile,
-          userProfileData: userProfile,
           availableRoles: roles.map(r => r.id),
         });
       }
@@ -854,12 +853,12 @@ export function PermissionsProvider({
         const roleToUse = ownerRole || defaultRole;
 
         if (roleToUse) {
-          if (import.meta.env.DEV) {
-            console.log(
-              'PermissionsContext: Using fallback role:',
-              roleToUse.id
-            );
-          }
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.log(
+            'PermissionsContext: Using fallback role:',
+            roleToUse.id
+          );
+        }
           setUserPermissions({
             userId: user.id,
             roles: [roleToUse],
@@ -870,7 +869,7 @@ export function PermissionsProvider({
     } else if (user && !userProfile) {
       // User exists but no profile - try to use metadata role as fallback
       const metadataRole = user.user_metadata?.role;
-      if (import.meta.env.DEV) {
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
         console.log('PermissionsContext Debug: Using metadata role fallback', {
           userEmail: user.email,
           metadataRole: metadataRole,
@@ -902,7 +901,7 @@ export function PermissionsProvider({
       }
     } else {
       // No user or user profile, clear permissions
-      if (import.meta.env.DEV) {
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
         console.log('PermissionsContext Debug: No user or userProfile', {
           hasUser: !!user,
           hasUserProfile: !!userProfile,

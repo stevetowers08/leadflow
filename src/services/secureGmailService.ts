@@ -84,7 +84,7 @@ export interface GmailTokenResponse {
  */
 class TokenEncryption {
   private static readonly ENCRYPTION_KEY =
-    import.meta.env.VITE_TOKEN_ENCRYPTION_KEY ||
+    process.env.TOKEN_ENCRYPTION_KEY ||
     'default-key-change-in-production';
 
   /**
@@ -173,11 +173,16 @@ export class SecureGmailService {
   private redirectUri: string;
 
   constructor() {
-    this.clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    this.redirectUri = `${window.location.origin}/auth/gmail-callback`;
+    this.clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+    
+    // Only access window on client-side (Next.js may render on server)
+    const origin = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:8086';
+    this.redirectUri = `${origin}/auth/gmail-callback`;
 
     if (!this.clientId) {
-      throw new Error('VITE_GOOGLE_CLIENT_ID environment variable is required');
+      throw new Error('NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is required');
     }
   }
 
@@ -663,5 +668,26 @@ export class SecureGmailService {
   }
 }
 
-// Export singleton instance
-export const secureGmailService = new SecureGmailService();
+// Lazy initialization - only create instance when accessed
+// This prevents errors at import time if environment variables are not set
+let serviceInstance: SecureGmailService | null = null;
+
+function getSecureGmailService(): SecureGmailService {
+  if (!serviceInstance) {
+    serviceInstance = new SecureGmailService();
+  }
+  return serviceInstance;
+}
+
+// Export getter function instead of direct instance
+export const secureGmailService = new Proxy({} as SecureGmailService, {
+  get(_target, prop) {
+    const instance = getSecureGmailService();
+    const value = instance[prop as keyof SecureGmailService];
+    // Handle methods
+    if (typeof value === 'function') {
+      return value.bind(instance);
+    }
+    return value;
+  },
+});

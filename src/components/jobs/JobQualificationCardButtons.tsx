@@ -1,3 +1,5 @@
+'use client';
+
 import { CelebrationModal } from '@/components/onboarding/CelebrationModal';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 interface JobQualificationCardButtonsProps {
   jobId: string;
@@ -20,7 +22,7 @@ export const JobQualificationCardButtons: React.FC<
 > = ({ jobId, companyId, onStatusChange, size = 'sm' }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { state, incrementJobsQualified, markStepComplete } = useOnboarding();
   const [loading, setLoading] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -206,7 +208,7 @@ export const JobQualificationCardButtons: React.FC<
         onClose={() => setShowCelebration(false)}
         onContinue={() => {
           setShowCelebration(false);
-          navigate('/companies');
+          router.push('/companies');
         }}
         title='🎉 Congratulations!'
         description="You've qualified 3 potential clients and added them to your pipeline."

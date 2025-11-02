@@ -4,7 +4,9 @@ This document outlines all required and optional environment variables for the E
 
 ## Overview
 
-The Empowr CRM uses **Vite** as the build tool, which requires client-side environment variables to be prefixed with `VITE_` to be accessible in the browser.
+The Empowr CRM uses **Next.js 16.0.1** as the framework. Environment variables follow Next.js conventions:
+- **Client-side (public):** Must be prefixed with `NEXT_PUBLIC_` to be accessible in the browser
+- **Server-side (private):** No prefix required - these are secure and only accessible in API routes and Server Components
 
 ## Required Environment Variables
 
@@ -13,8 +15,8 @@ The Empowr CRM uses **Vite** as the build tool, which requires client-side envir
 These are **required** for the application to function:
 
 ```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 ```
 
@@ -24,18 +26,20 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 2. Select your project
 3. Go to Settings → API
 4. Copy the values:
-   - **Project URL** → `VITE_SUPABASE_URL`
-   - **Project API keys** → `anon public` → `VITE_SUPABASE_ANON_KEY`
-   - **Project API keys** → `service_role` → `SUPABASE_SERVICE_ROLE_KEY`
+   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
+   - **Project API keys** → `anon public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - **Project API keys** → `service_role` → `SUPABASE_SERVICE_ROLE_KEY` (server-only, no prefix)
 
 ### Google OAuth (For Authentication)
 
 Required for Google sign-in functionality:
 
 ```bash
-VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
+
+**Note:** `GOOGLE_CLIENT_SECRET` is server-only (no `NEXT_PUBLIC_` prefix) and should only be used in API routes or Server Components.
 
 **How to get these:**
 
@@ -69,18 +73,22 @@ GITHUB_PERSONAL_ACCESS_TOKEN=your-github-personal-access-token
 For AI-powered lead scoring and automation:
 
 ```bash
-VITE_GEMINI_API_KEY=your-gemini-api-key-here
+GEMINI_API_KEY=your-gemini-api-key-here
 N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/your-webhook-id
 ```
+
+**Security Note:** Both of these are **server-only** variables (no `NEXT_PUBLIC_` prefix). They should only be accessed in API routes or Server Components, never in client-side code.
 
 ### Error Monitoring & Notifications
 
 ```bash
-VITE_ADMIN_EMAIL=admin@yourcompany.com
-VITE_ERROR_NOTIFICATION_EMAIL=errors@yourcompany.com
-VITE_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
-VITE_ERROR_WEBHOOK_URL=https://your-monitoring-service.com/webhook/errors
+NEXT_PUBLIC_ADMIN_EMAIL=admin@yourcompany.com
+NEXT_PUBLIC_ERROR_NOTIFICATION_EMAIL=errors@yourcompany.com
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
+ERROR_WEBHOOK_URL=https://your-monitoring-service.com/webhook/errors
 ```
+
+**Security Note:** Email addresses can be public (using `NEXT_PUBLIC_` prefix), but webhook URLs containing secrets should be server-only (no prefix).
 
 ### Development Configuration
 

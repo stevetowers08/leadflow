@@ -42,14 +42,31 @@ const OnboardingContext = createContext<OnboardingContextType | undefined>(
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<OnboardingState>(() => {
+    // Only access localStorage on client-side
+    if (typeof window === 'undefined') {
+      return defaultState;
+    }
     // Load from localStorage on mount
-    const stored = localStorage.getItem('onboarding_state');
-    return stored ? JSON.parse(stored) : defaultState;
+    try {
+      const stored = localStorage.getItem('onboarding_state');
+      return stored ? JSON.parse(stored) : defaultState;
+    } catch {
+      return defaultState;
+    }
   });
 
   // Persist to localStorage on changes
   useEffect(() => {
-    localStorage.setItem('onboarding_state', JSON.stringify(state));
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('onboarding_state', JSON.stringify(state));
+      } catch (error) {
+        // Silently fail if localStorage is not available
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to persist onboarding state:', error);
+        }
+      }
+    }
   }, [state]);
 
   const markStepComplete = (step: string) => {

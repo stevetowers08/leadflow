@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Getting Started Page
  * Two sections: App information + Setup progress
@@ -19,7 +21,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 interface StepStatus {
   id: string;
@@ -30,9 +32,33 @@ interface StepStatus {
   icon: React.ComponentType<{ className?: string }>;
 }
 
+// Client-side mount guard wrapper
 export default function GettingStarted() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Don't call useAuth until component is mounted on client
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Now safe to use useAuth after mount (client-side only)
+  return <GettingStartedContent />;
+}
+
+function GettingStartedContent() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [steps, setSteps] = useState<StepStatus[]>([
     {
       id: 'job_filtering',
@@ -173,7 +199,7 @@ export default function GettingStarted() {
           </p>
           <div className='mt-6'>
             <Button
-              onClick={() => navigate('/settings/job-filtering')}
+              onClick={() => router.push('/settings/job-filtering')}
               className='bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2'
             >
               Begin Job Discovery
@@ -330,7 +356,7 @@ export default function GettingStarted() {
                     ? 'border-2 border-blue-500 shadow-md bg-gradient-to-r from-blue-50/50 to-white'
                     : 'border border-gray-200 hover:bg-gray-100'
                 }`}
-                onClick={() => navigate(step.href)}
+                onClick={() => router.push(step.href)}
               >
                 {isPrimaryStep && (
                   <div className='absolute -top-2 -left-2 bg-blue-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1'>

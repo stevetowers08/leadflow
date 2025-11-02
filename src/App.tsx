@@ -80,15 +80,15 @@ const AppRoutes = () => {
   const bypassAuth = shouldBypassAuth();
 
   // Debug logging (development only)
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === 'development') {
     console.log('🔍 Auth Debug:', {
       user: !!user,
       userProfile: !!userProfile,
       loading,
       authConfig,
       bypassAuth,
-      nodeEnv: import.meta.env.NODE_ENV,
-      viteBypassAuth: import.meta.env.VITE_BYPASS_AUTH,
+      nodeEnv: process.env.NODE_ENV,
+      nextPublicBypassAuth: process.env.NEXT_PUBLIC_BYPASS_AUTH,
     });
   }
 
@@ -214,7 +214,7 @@ const App = () => {
     const initErrorHandling = async () => {
       try {
         // Get admin email from environment or user profile
-        const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+        const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
         await initializeErrorHandling(adminEmail);
         setupGlobalErrorHandlers();
       } catch (error) {

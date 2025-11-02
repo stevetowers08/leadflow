@@ -1,10 +1,12 @@
+'use client';
+
 import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { secureGmailService } from '../services/secureGmailService';
 
 export const GmailCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
   );
@@ -18,7 +20,7 @@ export const GmailCallback: React.FC = () => {
         setStatus('success');
 
         // Redirect to communications page
-        navigate('/crm/communications');
+        router.push('/crm/communications');
       } catch (error) {
         setStatus('error');
         setError(
@@ -26,7 +28,7 @@ export const GmailCallback: React.FC = () => {
         );
       }
     },
-    [navigate]
+    [router]
   );
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export const GmailCallback: React.FC = () => {
 
       if (error) {
         setStatus('error');
-        setError('Authentication was cancelled or failed');
+        setError(error);
         return;
       }
 
@@ -52,36 +54,29 @@ export const GmailCallback: React.FC = () => {
   }, [searchParams, handleGmailCallback]);
 
   const handleRetry = () => {
-    navigate('/crm/communications');
+    router.push('/crm/communications');
   };
 
   // Minimal loading state
   if (status === 'loading') {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-white'>
-        <div className='flex items-center space-x-3'>
-          <div className='w-2 h-2 bg-sidebar-primary rounded-full animate-pulse'></div>
-          <div
-            className='w-2 h-2 bg-sidebar-primary rounded-full animate-pulse'
-            style={{ animationDelay: '0.2s' }}
-          ></div>
-          <div
-            className='w-2 h-2 bg-sidebar-primary rounded-full animate-pulse'
-            style={{ animationDelay: '0.4s' }}
-          ></div>
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Connecting Gmail...</p>
         </div>
       </div>
     );
   }
 
-  // Error state - minimal and clean
-  if (status === 'error') {
+  // Success state
+  if (status === 'success') {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-white'>
-        <div className='text-center max-w-md mx-auto px-6'>
-          <div className='w-12 h-12 mx-auto mb-4 bg-red-50 rounded-full flex items-center justify-center'>
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='mb-4'>
             <svg
-              className='w-6 h-6 text-red-600'
+              className='mx-auto h-12 w-12 text-green-500'
               fill='none'
               stroke='currentColor'
               viewBox='0 0 24 24'
@@ -90,33 +85,48 @@ export const GmailCallback: React.FC = () => {
                 strokeLinecap='round'
                 strokeLinejoin='round'
                 strokeWidth={2}
-                d='M6 18L18 6M6 6l12 12'
+                d='M5 13l4 4L19 7'
               />
             </svg>
           </div>
-          <h2 className='text-lg font-medium text-gray-900 mb-2'>
-            Gmail Connection Failed
+          <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+            Gmail Connected
           </h2>
-          <p className='text-gray-600 text-sm mb-6'>
-            {error || 'An error occurred during authentication'}
-          </p>
-          <button
-            onClick={handleRetry}
-            className='px-4 py-2 bg-sidebar-primary text-white text-sm font-medium rounded-md hover:bg-sidebar-primary/90 transition-colors'
-          >
-            Try Again
-          </button>
+          <p className='text-gray-600 mb-6'>Redirecting to communications...</p>
         </div>
       </div>
     );
   }
 
-  // Success state - should rarely be seen due to instant redirect
+  // Error state
   return (
-    <div className='min-h-screen flex items-center justify-center bg-white'>
-      <div className='flex items-center space-x-2'>
-        <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-        <span className='text-sm text-gray-600'>Redirecting...</span>
+    <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='text-center max-w-md mx-auto p-6'>
+        <div className='mb-4'>
+          <svg
+            className='mx-auto h-12 w-12 text-red-500'
+            fill='none'
+            stroke='currentColor'
+            viewBox='0 0 24 24'
+          >
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth={2}
+              d='M6 18L18 6M6 6l12 12'
+            />
+          </svg>
+        </div>
+        <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+          Connection Failed
+        </h2>
+        <p className='text-gray-600 text-sm mb-6'>{error}</p>
+        <button
+          onClick={handleRetry}
+          className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'
+        >
+          Go to Communications
+        </button>
       </div>
     </div>
   );

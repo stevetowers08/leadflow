@@ -1,10 +1,13 @@
+'use client';
+
 /**
  * Secondary Navigation Panel - HubSpot Style
  * Clean white sidebar for sub-navigation
  */
 
 import { cn } from '@/lib/utils';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface SecondaryNavItem {
   name: string;
@@ -23,7 +26,7 @@ export const SecondaryNavigation = ({
   items,
   className,
 }: SecondaryNavigationProps) => {
-  const location = useLocation();
+  const pathname = usePathname();
 
   return (
     <aside
@@ -42,13 +45,13 @@ export const SecondaryNavigation = ({
       <nav className='flex-1 px-2 py-4 overflow-y-auto scrollbar-modern'>
         <div className='space-y-1'>
           {items.map(item => {
-            const isActive = location.pathname === item.href;
+            const isActive = pathname === item.href;
             const Icon = item.icon;
 
             return (
               <Link
                 key={item.name}
-                to={item.href}
+                href={item.href}
                 className={cn(
                   'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium',
                   'transition-all duration-150 ease-in-out',

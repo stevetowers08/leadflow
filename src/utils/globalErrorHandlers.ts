@@ -23,6 +23,11 @@ export async function initializeErrorHandling(
 
 // Global error handlers
 export function setupGlobalErrorHandlers(): void {
+  // Only setup on client-side
+  if (typeof window === 'undefined') {
+    return;
+  }
+
   // Handle unhandled JavaScript errors
   window.addEventListener('error', async event => {
     await enhancedErrorLogger.logError(

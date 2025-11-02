@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Clean Sidebar - Minimal Design Matching Screenshots
  *
@@ -24,7 +26,8 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { RecruitEdgeLogo } from '../RecruitEdgeLogo';
 
 // Getting Started & Dashboard (always at top)
@@ -71,7 +74,7 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ onClose }: SidebarProps) => {
-  const location = useLocation();
+  const pathname = usePathname();
   const isMobile = useIsMobile();
 
   return (
@@ -107,11 +110,11 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
         <div className='space-y-2'>
           {/* Getting Started - Always at top */}
           {(() => {
-            const isActive = location.pathname === gettingStartedItem.href;
+            const isActive = pathname === gettingStartedItem.href;
             const Icon = gettingStartedItem.icon;
             return (
               <Link
-                to={gettingStartedItem.href}
+                href={gettingStartedItem.href}
                 onClick={isMobile ? onClose : undefined}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
@@ -137,11 +140,11 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
 
           {/* Dashboard - Below Getting Started */}
           {(() => {
-            const isActive = location.pathname === dashboardItem.href;
+            const isActive = pathname === dashboardItem.href;
             const Icon = dashboardItem.icon;
             return (
               <Link
-                to={dashboardItem.href}
+                href={dashboardItem.href}
                 onClick={isMobile ? onClose : undefined}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
@@ -174,12 +177,12 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               {/* Section Items - Consistent spacing */}
               <ul className='space-y-1'>
                 {section.items.map(item => {
-                  const isActive = location.pathname === item.href;
+                  const isActive = pathname === item.href;
                   const Icon = item.icon;
                   return (
                     <li key={item.name}>
                       <Link
-                        to={item.href}
+                        href={item.href}
                         onClick={isMobile ? onClose : undefined}
                         className={cn(
                           'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',

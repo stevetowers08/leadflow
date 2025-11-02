@@ -34,7 +34,9 @@ export function useOfflineSupport<T>(
     enableSync = true,
   } = options;
 
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [syncQueue, setSyncQueue] = useState<SyncQueueItem[]>([]);
@@ -45,6 +47,10 @@ export function useOfflineSupport<T>(
 
   // Monitor online/offline status
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const handleOnline = () => {
       setIsOnline(true);
       toast({
@@ -345,8 +351,15 @@ export function useOfflineData<T extends { id: string }>(
 
 // Service Worker registration for offline support
 export function registerServiceWorker() {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return;
+  }
+
   // Only register service worker in production
-  if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  // Use Next.js compatible environment check
+  const isProduction =
+    typeof process !== 'undefined' && process.env.NODE_ENV === 'production';
+  if (isProduction && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker
         .register('/sw.js')
@@ -357,7 +370,7 @@ export function registerServiceWorker() {
           console.log('SW registration failed: ', registrationError);
         });
     });
-  } else if (import.meta.env.DEV) {
+  } else if (process.env.NODE_ENV === 'development') {
     console.log('Skipping service worker registration in development mode');
   }
 }

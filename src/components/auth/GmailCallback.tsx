@@ -1,13 +1,15 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { secureGmailService } from '../../../services/secureGmailService';
 
 export const GmailCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
   );
@@ -38,7 +40,7 @@ export const GmailCallback: React.FC = () => {
 
       // Redirect to email dashboard after 2 seconds
       setTimeout(() => {
-        navigate('/crm/communications');
+        router.push('/crm/communications');
       }, 2000);
     } catch (error) {
       console.error('Gmail callback error:', error);
@@ -47,14 +49,14 @@ export const GmailCallback: React.FC = () => {
         error instanceof Error ? error.message : 'Authentication failed'
       );
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, router]);
 
   useEffect(() => {
     handleGmailCallback();
   }, [handleGmailCallback]);
 
   const handleRetry = () => {
-    navigate('/crm/communications');
+    router.push('/crm/communications');
   };
 
   const getStatusIcon = () => {

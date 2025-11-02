@@ -1,3 +1,5 @@
+'use client';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -99,22 +101,30 @@ const IntegrationsPage = () => {
           break;
         case 'google-calendar':
           // TODO: Implement Google Calendar connection
-          console.log('Google Calendar connection not yet implemented');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Google Calendar connection not yet implemented');
+          }
           alert('Google Calendar integration coming soon!');
           break;
         // HubSpot and Mailchimp hidden until credentials are added
         // case 'hubspot':
         //   // TODO: Implement HubSpot connection
-        //   console.log('HubSpot connection not yet implemented');
+        //   if (process.env.NODE_ENV === 'development') {
+        //     console.log('HubSpot connection not yet implemented');
+        //   }
         //   alert('HubSpot integration coming soon!');
         //   break;
         // case 'mailchimp':
         //   // TODO: Implement Mailchimp connection
-        //   console.log('Mailchimp connection not yet implemented');
+        //   if (process.env.NODE_ENV === 'development') {
+        //     console.log('Mailchimp connection not yet implemented');
+        //   }
         //   alert('Mailchimp integration coming soon!');
         //   break;
         default:
-          console.log('Unknown integration:', integrationId);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Unknown integration:', integrationId);
+          }
       }
     } catch (error) {
       console.error('Error connecting integration:', error);

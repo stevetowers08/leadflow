@@ -2,11 +2,37 @@ import CampaignSequenceBuilder from '@/components/campaigns/SmartleadStyleSequen
 import { useCampaignSequences } from '@/hooks/useCampaignSequences';
 import { CampaignSequence } from '@/types/campaign.types';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useRouter, useParams } from 'next/navigation';
 
+// Client-side mount guard wrapper
 export default function CampaignSequenceBuilderPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Don't call hooks until component is mounted on client
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading sequence...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Now safe to use hooks after mount (client-side only)
+  return <CampaignSequenceBuilderContent />;
+}
+
+function CampaignSequenceBuilderContent() {
+  // Get id from Next.js params - will be passed as prop in production
+  const router = useRouter();
+  const params = useParams();
+  const id = typeof params?.id === 'string' ? params.id : undefined;
   const { sequences, isLoading } = useCampaignSequences();
   const [sequence, setSequence] = useState<CampaignSequence | null>(null);
 
@@ -18,13 +44,13 @@ export default function CampaignSequenceBuilderPage() {
         setTimeout(() => setSequence(foundSequence), 0);
       } else if (!isLoading) {
         // Sequence not found, redirect to campaigns
-        navigate('/campaigns');
+        router.push('/campaigns');
       }
     }
-  }, [id, sequences, isLoading, navigate]);
+  }, [id, sequences, isLoading, router]);
 
   const handleClose = () => {
-    navigate('/campaigns');
+    router.push('/campaigns');
   };
 
   if (isLoading) {
@@ -49,7 +75,7 @@ export default function CampaignSequenceBuilderPage() {
             The requested sequence could not be found.
           </p>
           <button
-            onClick={() => navigate('/campaigns')}
+            onClick={() => router.push('/campaigns')}
             className='px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700'
           >
             Back to Campaigns

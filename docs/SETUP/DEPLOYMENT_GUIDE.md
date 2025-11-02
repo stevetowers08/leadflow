@@ -1,63 +1,160 @@
-# 🚀 DIRECT RENDER DEPLOYMENT - NO GITHUB NEEDED!
+# 🚀 Next.js Deployment Guide - Vercel
 
-## ✅ Files Ready:
+## Overview
 
-- `package.json` - Dependencies and scripts
-- `server.js` - Complete MCP server with your Supabase credentials
-- `empowr-mcp-server.tar.gz` - Compressed deployment package
+Empowr CRM is built with **Next.js 16.0.1** and is optimized for deployment on **Vercel**, the recommended platform for Next.js applications.
 
-## 🔧 Deploy to Render (Manual Upload):
+## Prerequisites
 
-### Step 1: Go to Render
+- **Node.js**: 20.9.0 or higher (specified in `package.json`)
+- **Vercel Account**: Sign up at [vercel.com](https://vercel.com)
+- **Git Repository**: GitHub, GitLab, or Bitbucket
 
-- Visit [render.com](https://render.com)
-- Sign up/Login with your account
+## Deployment Steps
 
-### Step 2: Create Web Service
+### Step 1: Connect Repository to Vercel
 
-- Click "New +" → "Web Service"
-- Choose "Build and deploy from a Git repository"
-- **OR** Choose "Deploy without Git" (if available)
+1. Go to [vercel.com/dashboard](https://vercel.com/dashboard)
+2. Click "Add New..." → "Project"
+3. Import your Git repository
+4. Vercel will auto-detect Next.js configuration
 
-### Step 3: Upload Files
+### Step 2: Configure Build Settings
 
-- Upload `package.json` and `server.js` files
-- Or upload the `empowr-mcp-server.tar.gz` and extract
+Vercel auto-detects Next.js, but verify these settings:
 
-### Step 4: Configure Service
+- **Framework Preset**: Next.js
+- **Build Command**: `npm run build` (default)
+- **Output Directory**: `.next` (default, handled automatically)
+- **Install Command**: `npm install` (default)
+- **Node Version**: 20.x (or match `package.json` engines)
 
-- **Name**: `empowr-mcp-server`
-- **Build Command**: `npm install`
-- **Start Command**: `node server.js`
-- **Node Version**: `18` or `20`
+### Step 3: Environment Variables
 
-### Step 5: Environment Variables
+Add all environment variables in Vercel dashboard:
 
-Add these in Render dashboard:
-
+**Client-side (Public):**
 ```
-SUPABASE_URL=https://jedfundfhzytpnbjkspn.supabase.co
-SUPABASE_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGZ1bmRmaHp5dHBuYmprc3BuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODM2MTk0MiwiZXhwIjoyMDczOTM3OTQyfQ.GpPDYihR_qSnN4cR0SXfgNa8AxB8iXCt7VkG1xYo44w
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ```
 
-### Step 6: Deploy!
+**Server-side (Private):**
+```
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+GEMINI_API_KEY=your-gemini-key
+GOOGLE_CLIENT_SECRET=your-client-secret
+HUBSPOT_CLIENT_SECRET=your-hubspot-secret
+MAILCHIMP_API_KEY=your-mailchimp-key
+TOKEN_ENCRYPTION_KEY=your-encryption-key
+SLACK_WEBHOOK_URL=https://hooks.slack.com/...
+ERROR_WEBHOOK_URL=https://your-monitoring-service.com/...
+```
 
-- Click "Create Web Service"
-- Wait for deployment to complete
-- Get your Render URL (e.g., `https://empowr-mcp-server.onrender.com`)
+**Important:** Server-side variables (no `NEXT_PUBLIC_` prefix) are only accessible in API routes and Server Components.
 
-## 🎯 Configure n8n:
+### Step 4: Deploy
 
-- **MCP Server URL**: Your Render URL
-- **Server Transport**: HTTP Streamable
-- **SSE Endpoint**: `https://your-app.onrender.com/mcp/sse`
+1. Click "Deploy"
+2. Wait for build to complete (typically 2-5 minutes)
+3. Get your deployment URL (e.g., `https://your-app.vercel.app`)
 
-## ✅ What's Included:
+### Step 5: Custom Domain (Optional)
 
-- ✅ Root POST endpoint for n8n compatibility
-- ✅ Full MCP 2024-11-05 protocol
-- ✅ Server-Sent Events (SSE) support
-- ✅ Your Supabase credentials built-in
-- ✅ All CRM tools: execute_sql, list_tables, get_table_data
+1. Go to Project Settings → Domains
+2. Add your custom domain
+3. Configure DNS records as instructed
+4. Vercel handles SSL automatically
 
-**No GitHub required! Direct deployment! 🚀**
+## Environment-Specific Deployments
+
+### Production
+
+- **Branch**: `main` (or your production branch)
+- **Auto-deploy**: Enabled (deploys on every push)
+
+### Preview
+
+- **Auto-deploy**: Enabled for all branches
+- **URL**: `https://your-app-git-branch.vercel.app`
+- **Environment**: Uses same environment variables as Production
+
+### Development
+
+- **Local**: `npm run dev` (port 8086)
+- **Environment**: Uses `.env.local` file (not committed)
+
+## Build Configuration
+
+The project includes:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev -p 8086",
+    "build": "next build",
+    "start": "next start -p 8086",
+    "vercel-build": "next build"
+  }
+}
+```
+
+Vercel automatically runs `vercel-build` during deployment.
+
+## API Routes
+
+All API routes are deployed automatically at:
+- `/api/*` - Next.js API routes (replacing Supabase Edge Functions)
+
+Example:
+- `https://your-app.vercel.app/api/ai-job-summary`
+- `https://your-app.vercel.app/api/gmail-auth`
+
+## Webhook Configuration
+
+Update external webhook URLs to point to your Vercel deployment:
+
+- **Gmail Watch**: `https://your-app.vercel.app/api/gmail-webhook`
+- **Job Qualification**: `https://your-app.vercel.app/api/job-qualification-webhook`
+- **Resend**: `https://your-app.vercel.app/api/resend-webhook`
+
+## Troubleshooting
+
+### Build Fails
+
+1. Check build logs in Vercel dashboard
+2. Verify all environment variables are set
+3. Ensure Node.js version matches (`>=20.9.0`)
+4. Check for TypeScript errors: `npm run lint`
+
+### API Routes Not Working
+
+1. Verify server-side environment variables are set
+2. Check API route files in `src/app/api/*`
+3. Review server logs in Vercel dashboard
+4. Test locally: `npm run dev`
+
+### Environment Variables Not Working
+
+1. **Client-side**: Must use `NEXT_PUBLIC_*` prefix
+2. **Server-side**: No prefix required (server-only)
+3. Restart deployment after adding variables
+4. Verify variable names match exactly
+
+## Post-Deployment Checklist
+
+- [ ] All environment variables configured
+- [ ] API routes tested
+- [ ] Authentication working
+- [ ] Database connections verified
+- [ ] External webhooks updated
+- [ ] Custom domain configured (if needed)
+- [ ] SSL certificate active
+- [ ] Monitoring set up
+
+## Additional Resources
+
+- [Next.js Deployment Documentation](https://nextjs.org/docs/app/building-your-application/deploying)
+- [Vercel Documentation](https://vercel.com/docs)
+- [Environment Variables Guide](../SETUP/ENVIRONMENT_VARIABLES.md)

@@ -103,15 +103,12 @@ export const Page: React.FC<PageProps> = ({
   loading = false,
   loadingMessage,
   hideHeader = false,
-  allowScroll = false,
+  allowScroll = false, // false = fit viewport (tables scroll), true = page scrolls
 }) => {
   if (loading) {
     return (
       <>
-        {/* Full-screen background */}
         <div className='fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10' />
-
-        {/* Full-width content with proper overflow handling for hover elements */}
         <div className='relative h-full w-full'>
           <div className='space-y-6 w-full h-full flex flex-col'>
             <LoadingState title={title} message={loadingMessage} />
@@ -121,16 +118,38 @@ export const Page: React.FC<PageProps> = ({
     );
   }
 
+  // Shared header component
+  const header = !hideHeader && (
+    <div className='flex-shrink-0 mb-2'>
+      <div className='flex items-center justify-between w-full'>
+        <div>
+          <h1 className='text-2xl font-bold tracking-tight text-gray-700'>{title}</h1>
+          {stats && (
+            <div className='flex items-center gap-4 mt-1 text-sm'>
+              {stats.map((stat, index) => {
+                const IconComponent = stat.icon;
+                return (
+                  <div key={index} className='flex items-center gap-1 text-muted-foreground'>
+                    <IconComponent className='h-3 w-3' />
+                    <span className='font-semibold'>{stat.value}</span>
+                    <span>{stat.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      {/* Full-screen background */}
       <div className='fixed inset-0 bg-background -z-10' />
-
-      {/* Full-width content with proper flex layout */}
       <div
         className={cn(
-          'relative h-full w-full flex flex-col',
-          allowScroll ? 'overflow-auto' : 'overflow-hidden'
+          'relative w-full flex flex-col flex-1 min-h-0',
+          allowScroll ? 'overflow-auto scrollbar-modern' : 'overflow-hidden'
         )}
       >
         <div
@@ -140,21 +159,16 @@ export const Page: React.FC<PageProps> = ({
           )}
         >
           {!hideHeader && (
-            <div className='flex-shrink-0 mb-2'>
+            <div className={cn('flex-shrink-0 mb-2', allowScroll && 'sticky top-0 bg-background z-10 px-4 lg:px-6 pt-6 pb-4')}>
               <div className='flex items-center justify-between w-full'>
                 <div>
-                  <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
-                    {title}
-                  </h1>
+                  <h1 className='text-2xl font-bold tracking-tight text-gray-700'>{title}</h1>
                   {stats && (
                     <div className='flex items-center gap-4 mt-1 text-sm'>
                       {stats.map((stat, index) => {
                         const IconComponent = stat.icon;
                         return (
-                          <div
-                            key={index}
-                            className='flex items-center gap-1 text-muted-foreground'
-                          >
+                          <div key={index} className='flex items-center gap-1 text-muted-foreground'>
                             <IconComponent className='h-3 w-3' />
                             <span className='font-semibold'>{stat.value}</span>
                             <span>{stat.label}</span>
@@ -167,7 +181,7 @@ export const Page: React.FC<PageProps> = ({
               </div>
             </div>
           )}
-          <div className={allowScroll ? '' : 'flex-1 flex flex-col min-h-0'}>
+          <div className={cn(allowScroll ? 'px-4 lg:px-6 pb-6' : 'flex-1 flex flex-col min-h-0')}>
             {children}
           </div>
         </div>

@@ -82,7 +82,29 @@ const SENIORITY_LEVELS = [
 ];
 const COMPANY_SIZES = ['startup', 'small', 'medium', 'large', 'enterprise'];
 
-function JobFilteringSettingsPage() {
+// Client-side mount guard wrapper
+const JobFilteringSettingsPage: React.FC = () => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <JobFilteringSettingsPageContent />;
+};
+
+function JobFilteringSettingsPageContent() {
   const [activePlatform, setActivePlatform] = useState<'linkedin' | 'seek'>(
     'linkedin'
   );

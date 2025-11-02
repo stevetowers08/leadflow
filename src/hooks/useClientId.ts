@@ -1,15 +1,20 @@
 // src/hooks/useClientId.ts
 import { useAuth } from '@/contexts/AuthContext';
+import { shouldBypassAuth } from '@/config/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
 export function useClientId() {
   const { user } = useAuth();
+  const bypassAuth = shouldBypassAuth();
 
   return useQuery({
     queryKey: ['client-id', user?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!user?.id && !bypassAuth) return null;
+
+      // In bypass auth mode, return null (client operations can work without clientId)
+      if (bypassAuth) return null;
 
       const { data: clientUser, error } = await supabase
         .from('client_users')
@@ -27,7 +32,7 @@ export function useClientId() {
 
       return clientUser?.client_id || null;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id || bypassAuth,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
   });

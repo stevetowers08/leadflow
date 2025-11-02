@@ -85,7 +85,7 @@ class ErrorLogger {
     }
 
     // Log to console in development
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV === 'development') {
       console.group(`🚨 Error [${severity.toUpperCase()}] - ${category}`);
       console.error('Message:', loggedError.message);
       console.error('Context:', loggedError.context);
@@ -287,7 +287,7 @@ class ErrorLogger {
     // In production, implement your error tracking service integration here
     // Examples: Sentry, LogRocket, Bugsnag, etc.
 
-    if (import.meta.env.PROD) {
+    if (process.env.NODE_ENV === 'production') {
       // Example: Send to external service
       // fetch('/api/errors', {
       //   method: 'POST',

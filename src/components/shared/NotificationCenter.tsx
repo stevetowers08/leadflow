@@ -24,7 +24,7 @@ import {
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 const NOTIFICATION_ICONS = {
   new_jobs_discovered: Briefcase,
@@ -44,7 +44,7 @@ const NOTIFICATION_COLORS = {
 
 export const NotificationCenter: React.FC = () => {
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   // Fetch notifications
@@ -90,10 +90,10 @@ export const NotificationCenter: React.FC = () => {
       // Navigate if action exists
       if (notification.action_type === 'navigate' && notification.action_url) {
         setOpen(false);
-        navigate(notification.action_url);
+        router.push(notification.action_url);
       }
     },
-    [navigate, queryClient]
+    [router, queryClient]
   );
 
   const handleMarkAllRead = useCallback(async () => {

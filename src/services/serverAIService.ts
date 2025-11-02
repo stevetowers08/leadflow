@@ -24,8 +24,8 @@ class ServerAIService {
   private supabaseAnonKey: string;
 
   constructor() {
-    this.supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-    this.supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+    this.supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    this.supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
   }
 
   /**
@@ -43,28 +43,30 @@ class ServerAIService {
     seniority_level?: string;
   }): Promise<ServerAIResponse> {
     try {
-      const response = await fetch(
-        `${this.supabaseUrl}/functions/v1/ai-job-summary`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.supabaseAnonKey}`,
+      // Use Next.js API route instead of Edge Function
+      const apiUrl = typeof window !== 'undefined' 
+        ? '/api/ai-job-summary' 
+        : `${this.supabaseUrl}/functions/v1/ai-job-summary`; // Fallback for SSR
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          jobData: {
+            title: jobData.title,
+            company: jobData.company,
+            description: jobData.description,
+            location: jobData.location,
+            salary: jobData.salary,
+            employment_type: jobData.employment_type,
+            seniority_level: jobData.seniority_level,
           },
-          body: JSON.stringify({
-            jobData: {
-              title: jobData.title,
-              company: jobData.company,
-              description: jobData.description,
-              location: jobData.location,
-              salary: jobData.salary,
-              employment_type: jobData.employment_type,
-              seniority_level: jobData.seniority_level,
-            },
-            jobId: jobData.id,
-          }),
-        }
-      );
+          jobId: jobData.id,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

@@ -9,7 +9,8 @@
     "@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:jsx-a11y/recommended"
+    "plugin:jsx-a11y/recommended",
+    "next/core-web-vitals"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -40,6 +41,7 @@
     "dist/",
     "node_modules/",
     "build/",
+    ".next/",
     "*.config.js",
     "*.config.ts"
   ]

@@ -104,14 +104,29 @@ export class GmailService {
   private refreshToken: string | null = null;
 
   constructor() {
-    this.loadTokens();
+    // Only load tokens on client-side
+    if (typeof window !== 'undefined') {
+      this.loadTokens();
+    }
   }
 
   private loadTokens() {
+    // Only access localStorage on client-side
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     const user = supabase.auth.getUser();
     if (user) {
-      this.accessToken = localStorage.getItem('gmail_access_token');
-      this.refreshToken = localStorage.getItem('gmail_refresh_token');
+      try {
+        this.accessToken = localStorage.getItem('gmail_access_token');
+        this.refreshToken = localStorage.getItem('gmail_refresh_token');
+      } catch (error) {
+        // Silently fail if localStorage is not available
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to load Gmail tokens from localStorage:', error);
+        }
+      }
     }
   }
 
@@ -152,11 +167,11 @@ export class GmailService {
   }
 
   async authenticateWithGmail(): Promise<string> {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
     if (!clientId) {
       throw new Error(
-        'Google OAuth is not configured. Please set VITE_GOOGLE_CLIENT_ID environment variable.'
+        'Google OAuth is not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable.'
       );
     }
 

@@ -1,20 +1,54 @@
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { HubSpotAuthService } from '@/services/hubspot/hubspotAuthService';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function IntegrationCallback() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
   );
   const [message, setMessage] = useState('');
+  const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<{ id: string } | null>(null);
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  const router = useRouter();
+  
+  // Ensure component only runs auth logic on client
+  useEffect(() => {
+    setMounted(true);
+    // Only access auth after component mounts (client-side only)
+    try {
+      // Dynamic import to avoid SSR issues
+      const { useAuth } = require('@/contexts/AuthContext');
+      const auth = useAuth();
+      setUser(auth.user);
+    } catch (error) {
+      // Auth context not available during SSR - will retry on client
+      console.warn('Auth context not available during SSR');
+    }
+  }, []);
+  
+  // Get auth once mounted (client-side only)
+  useEffect(() => {
+    if (mounted && typeof window !== 'undefined') {
+      try {
+        const { useAuth } = require('@/contexts/AuthContext');
+        const auth = useAuth();
+        setUser(auth.user);
+      } catch (error) {
+        // Handle gracefully
+      }
+    }
+  }, [mounted]);
 
   const handleCallback = useCallback(async () => {
+    // Don't run auth-dependent logic during SSR
+    if (!mounted) return;
+    
     try {
       const code = searchParams.get('code');
       const error = searchParams.get('error');
@@ -37,8 +71,8 @@ export default function IntegrationCallback() {
         return;
       }
 
-      const clientId = import.meta.env.VITE_HUBSPOT_CLIENT_ID;
-      const clientSecret = import.meta.env.VITE_HUBSPOT_CLIENT_SECRET;
+      const clientId = process.env.NEXT_PUBLIC_HUBSPOT_CLIENT_ID;
+      const clientSecret = process.env.NEXT_PUBLIC_HUBSPOT_CLIENT_SECRET;
       const redirectUri = `${window.location.origin}/integrations/callback`;
 
       if (!clientId || !clientSecret) {
@@ -60,18 +94,20 @@ export default function IntegrationCallback() {
       setMessage('Successfully connected to HubSpot');
 
       setTimeout(() => {
-        navigate('/integrations');
+        router.push('/integrations');
       }, 2000);
     } catch (error) {
       console.error('Callback error:', error);
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'Failed to connect');
     }
-  }, [searchParams, user, navigate]);
+  }, [mounted, searchParams, user?.id, router]);
 
   useEffect(() => {
-    void handleCallback();
-  }, [handleCallback]);
+    if (mounted) {
+      void handleCallback();
+    }
+  }, [mounted, handleCallback]);
 
   return (
     <div className='flex items-center justify-center min-h-screen p-4'>

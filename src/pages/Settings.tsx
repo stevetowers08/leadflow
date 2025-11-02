@@ -9,8 +9,8 @@ import { usePermissions } from '@/contexts/PermissionsContext';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { cn } from '@/lib/utils';
 import { Bell, Building2, Filter, Plug, User, Users } from 'lucide-react';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface SettingsSection {
   id: string;
@@ -21,7 +21,31 @@ interface SettingsSection {
   isExternal?: boolean;
 }
 
-const Settings = () => {
+// Client-side mount guard wrapper
+const Settings: React.FC = () => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Don't call useAuth until component is mounted on client
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Now safe to use useAuth after mount (client-side only)
+  return <SettingsContent />;
+};
+
+const SettingsContent: React.FC = () => {
   const { user, loading } = useAuth();
   const { hasRole } = usePermissions();
   const [activeSection, setActiveSection] = useState('profile');
@@ -128,7 +152,7 @@ const Settings = () => {
                 return (
                   <Link
                     key={section.id}
-                    to={`/settings/${section.id}`}
+                    href={`/settings/${section.id}`}
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors',
                       'hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',

@@ -6,12 +6,12 @@ import type { Database } from './types';
 // Validation will happen when client is first accessed
 
 // Environment variables for Supabase configuration (CLIENT-SIDE ONLY)
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // Note: Service role key should NOT be exposed to client-side
 
 // Development configuration
-const IS_DEVELOPMENT = import.meta.env.NODE_ENV === 'development';
+const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
 // Lazy initialization to prevent module loading issues
 let _supabaseClient: ReturnType<typeof createClient<Database>> | null = null;
@@ -20,11 +20,47 @@ function getSupabaseClient() {
   if (_supabaseClient) return _supabaseClient;
 
   try {
-    // Validate environment on first access
+    // Skip validation during SSR
+    if (typeof window === 'undefined') {
+      // Server-side: create client without validation
+      if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+        throw new Error('Missing Supabase environment variables');
+      }
+
+      _supabaseClient = createClient<Database>(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY,
+        {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false,
+          },
+          global: {
+            headers: {
+              apikey: SUPABASE_PUBLISHABLE_KEY,
+            },
+          },
+        }
+      );
+      return _supabaseClient;
+    }
+
+    // Client-side: validate environment on first access
+    // Only validate if environment variables exist (they might be set via .env.local)
     const envConfig = validateEnvironment();
-    if (!envConfig.isValid) {
-      console.error('❌ Supabase configuration validation failed:');
-      envConfig.errors.forEach(error => console.error(`  - ${error}`));
+    if (!envConfig.isValid && envConfig.errors.length > 0) {
+      // Only log errors if variables are actually missing, not just invalid format
+      const criticalErrors = envConfig.errors.filter(
+        e => e.includes('is required')
+      );
+      if (criticalErrors.length > 0 && IS_DEVELOPMENT) {
+        console.error('❌ Supabase configuration validation failed:');
+        criticalErrors.forEach(error => console.error(`  - ${error}`));
+        console.warn(
+          '⚠️ Make sure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your .env.local file'
+        );
+      }
     }
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
@@ -48,31 +84,35 @@ function getSupabaseClient() {
       }
     );
 
-    console.log('✅ Supabase client created successfully');
+    // Only log in development
+    if (IS_DEVELOPMENT) {
+      console.log('✅ Supabase client created successfully');
+    }
 
-    // Test connection (async, non-blocking)
-    setTimeout(() => {
-      _supabaseClient
-        .from('companies')
-        .select('count', { count: 'exact', head: true })
-        .then(({ count, error }) => {
-          if (error) {
-            console.error('❌ Supabase connection test failed:', error);
-          } else {
-            console.log(
-              '✅ Supabase connected successfully. Companies count:',
-              count
-            );
-          }
-        })
-        .catch(err => {
-          console.error('❌ Supabase connection error:', err);
-        });
-    }, 100);
+    // Test connection (async, non-blocking) - only on client
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        _supabaseClient
+          ?.from('companies')
+          .select('count', { count: 'exact', head: true })
+          .then(({ count, error }) => {
+            if (error && IS_DEVELOPMENT) {
+              console.error('❌ Supabase connection test failed:', error);
+            }
+          })
+          .catch(err => {
+            if (IS_DEVELOPMENT) {
+              console.error('❌ Supabase connection error:', err);
+            }
+          });
+      }, 100);
+    }
 
     return _supabaseClient;
   } catch (error) {
-    console.error('❌ Failed to create Supabase client:', error);
+    if (IS_DEVELOPMENT) {
+      console.error('❌ Failed to create Supabase client:', error);
+    }
 
     // Create a mock client to prevent app crash
     _supabaseClient = {
@@ -92,7 +132,7 @@ function getSupabaseClient() {
           data: { subscription: { unsubscribe: () => {} } },
         }),
       },
-    };
+    } as any;
     return _supabaseClient;
   }
 }

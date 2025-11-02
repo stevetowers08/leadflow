@@ -9,7 +9,7 @@ import { GmailApiService } from './gmailApiService';
 // Simple encryption using a proven method
 class SimpleTokenEncryption {
   private static readonly KEY =
-    import.meta.env.VITE_TOKEN_ENCRYPTION_KEY || 'default-key-change-me';
+    process.env.TOKEN_ENCRYPTION_KEY || 'default-key-change-me';
 
   static encrypt(text: string): string {
     // Simple XOR encryption (still better than base64)
@@ -43,11 +43,16 @@ export class SimpleGmailService {
   private redirectUri: string;
 
   constructor() {
-    this.clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    this.redirectUri = `${window.location.origin}/auth/gmail-callback`;
+    this.clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+    
+    // Only access window on client-side (Next.js may render on server)
+    const origin = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:8086';
+    this.redirectUri = `${origin}/auth/gmail-callback`;
 
     if (!this.clientId) {
-      throw new Error('VITE_GOOGLE_CLIENT_ID environment variable is required');
+      throw new Error('NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is required');
     }
   }
 
@@ -326,5 +331,26 @@ export class SimpleGmailService {
   }
 }
 
-// Export singleton instance
-export const simpleGmailService = new SimpleGmailService();
+// Lazy initialization - only create instance when accessed
+// This prevents errors at import time if environment variables are not set
+let serviceInstance: SimpleGmailService | null = null;
+
+function getSimpleGmailService(): SimpleGmailService {
+  if (!serviceInstance) {
+    serviceInstance = new SimpleGmailService();
+  }
+  return serviceInstance;
+}
+
+// Export getter function instead of direct instance
+export const simpleGmailService = new Proxy({} as SimpleGmailService, {
+  get(_target, prop) {
+    const instance = getSimpleGmailService();
+    const value = instance[prop as keyof SimpleGmailService];
+    // Handle methods
+    if (typeof value === 'function') {
+      return value.bind(instance);
+    }
+    return value;
+  },
+});

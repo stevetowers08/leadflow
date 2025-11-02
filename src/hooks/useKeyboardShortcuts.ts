@@ -1,5 +1,7 @@
+'use client';
+
 import { useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 interface KeyboardShortcut {
   key: string;
@@ -12,7 +14,7 @@ interface KeyboardShortcut {
 }
 
 export const useKeyboardShortcuts = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const shortcuts: KeyboardShortcut[] = [
     {
@@ -50,43 +52,43 @@ export const useKeyboardShortcuts = () => {
     {
       key: '1',
       ctrlKey: true,
-      action: () => navigate('/'),
+      action: () => router.push('/'),
       description: 'Go to Dashboard',
     },
     {
       key: '2',
       ctrlKey: true,
-      action: () => navigate('/leads'),
+      action: () => router.push('/leads'),
       description: 'Go to Leads',
     },
     {
       key: '3',
       ctrlKey: true,
-      action: () => navigate('/companies'),
+      action: () => router.push('/companies'),
       description: 'Go to Companies',
     },
     {
       key: '4',
       ctrlKey: true,
-      action: () => navigate('/jobs'),
+      action: () => router.push('/jobs'),
       description: 'Go to Jobs',
     },
     {
       key: '5',
       ctrlKey: true,
-      action: () => navigate('/pipeline'),
+      action: () => router.push('/pipeline'),
       description: 'Go to Pipeline',
     },
     {
       key: '6',
       ctrlKey: true,
-      action: () => navigate('/reporting'),
+      action: () => router.push('/reporting'),
       description: 'Go to Reporting',
     },
     {
       key: ',',
       ctrlKey: true,
-      action: () => navigate('/settings'),
+      action: () => router.push('/settings'),
       description: 'Go to Settings',
     },
     {
