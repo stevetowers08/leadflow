@@ -117,7 +117,7 @@ export const Page: React.FC<PageProps> = ({
   }
 
   return (
-    <div className='w-full flex flex-col flex-1 min-h-0 max-h-full overflow-hidden'>
+    <div className='w-full h-full flex flex-col overflow-hidden'>
       {!hideHeader && (
         <div className='mb-6 flex-shrink-0'>
           <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
