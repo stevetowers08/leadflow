@@ -123,13 +123,18 @@ export const Page: React.FC<PageProps> = ({
     <div className='flex-shrink-0 mb-2'>
       <div className='flex items-center justify-between w-full'>
         <div>
-          <h1 className='text-2xl font-bold tracking-tight text-gray-700'>{title}</h1>
+          <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
+            {title}
+          </h1>
           {stats && (
             <div className='flex items-center gap-4 mt-1 text-sm'>
               {stats.map((stat, index) => {
                 const IconComponent = stat.icon;
                 return (
-                  <div key={index} className='flex items-center gap-1 text-muted-foreground'>
+                  <div
+                    key={index}
+                    className='flex items-center gap-1 text-muted-foreground'
+                  >
                     <IconComponent className='h-3 w-3' />
                     <span className='font-semibold'>{stat.value}</span>
                     <span>{stat.label}</span>
@@ -159,16 +164,27 @@ export const Page: React.FC<PageProps> = ({
           )}
         >
           {!hideHeader && (
-            <div className={cn('flex-shrink-0 mb-2', allowScroll && 'sticky top-0 bg-background z-10 px-4 lg:px-6 pt-6 pb-4')}>
+            <div
+              className={cn(
+                'flex-shrink-0 mb-2',
+                allowScroll && 'sticky top-0 bg-background z-10 pt-6 pb-4',
+                'px-4 lg:px-6' // Always add horizontal padding for header
+              )}
+            >
               <div className='flex items-center justify-between w-full'>
                 <div>
-                  <h1 className='text-2xl font-bold tracking-tight text-gray-700'>{title}</h1>
+                  <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
+                    {title}
+                  </h1>
                   {stats && (
                     <div className='flex items-center gap-4 mt-1 text-sm'>
                       {stats.map((stat, index) => {
                         const IconComponent = stat.icon;
                         return (
-                          <div key={index} className='flex items-center gap-1 text-muted-foreground'>
+                          <div
+                            key={index}
+                            className='flex items-center gap-1 text-muted-foreground'
+                          >
                             <IconComponent className='h-3 w-3' />
                             <span className='font-semibold'>{stat.value}</span>
                             <span>{stat.label}</span>
@@ -181,7 +197,13 @@ export const Page: React.FC<PageProps> = ({
               </div>
             </div>
           )}
-          <div className={cn(allowScroll ? 'px-4 lg:px-6 pb-6' : 'flex-1 flex flex-col min-h-0')}>
+          <div
+            className={cn(
+              allowScroll
+                ? 'px-4 lg:px-6 pb-6'
+                : 'flex-1 flex flex-col min-h-0 px-4 lg:px-6' // Add padding to table pages too
+            )}
+          >
             {children}
           </div>
         </div>

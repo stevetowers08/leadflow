@@ -341,7 +341,8 @@ const JobsContent: React.FC = () => {
 
   // Fetch data with React Query for caching and better loading states
   const bypassAuth = shouldBypassAuth();
-  const queryEnabled = bypassAuth || (!authLoading && !clientIdLoading && !!user);
+  const queryEnabled =
+    bypassAuth || (!authLoading && !clientIdLoading && !!user);
   if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
     console.log('🔍 Jobs query enabled check:', {
       bypassAuth,
@@ -359,7 +360,11 @@ const JobsContent: React.FC = () => {
   } = useQuery({
     queryKey: ['jobs-page', clientId, refreshTrigger],
     queryFn: async () => {
-      console.log('🔍 Jobs queryFn executing:', { bypassAuth, clientId, clientIdLoading });
+      console.log('🔍 Jobs queryFn executing:', {
+        bypassAuth,
+        clientId,
+        clientIdLoading,
+      });
       // Don't fetch if client ID is still loading
       if (clientIdLoading && !bypassAuth) {
         return { jobs: [], sources: [] };
@@ -411,12 +416,14 @@ const JobsContent: React.FC = () => {
       if (jobsResult.error) throw jobsResult.error;
 
       let allJobs: Job[] = (jobsResult.data as unknown as Job[]) || [];
-      
+
       if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
         console.log('Jobs query result:', {
           rawCount: allJobs.length,
           hasClientId: !!clientId,
-          hasFilterConfig: !!(filterConfigResult.data && !filterConfigResult.error),
+          hasFilterConfig: !!(
+            filterConfigResult.data && !filterConfigResult.error
+          ),
         });
       }
 
@@ -468,25 +475,29 @@ const JobsContent: React.FC = () => {
   // Extract jobs and sources from query result
   const jobs = jobsData?.jobs || [];
   const loading = jobsLoading;
-  
+
   // Debug logging
   if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
     console.log('🔍 Jobs data extraction:', {
       hasJobsData: !!jobsData,
       jobsLength: jobs.length,
       jobsDataType: Array.isArray(jobs) ? 'array' : typeof jobs,
-      firstJobSample: jobs[0] ? {
-        id: jobs[0].id,
-        title: jobs[0].title,
-        client_jobs: jobs[0].client_jobs,
-        hasClientJobs: !!jobs[0].client_jobs?.length,
-      } : null,
+      firstJobSample: jobs[0]
+        ? {
+            id: jobs[0].id,
+            title: jobs[0].title,
+            client_jobs: jobs[0].client_jobs,
+            hasClientJobs: !!jobs[0].client_jobs?.length,
+          }
+        : null,
       jobsLoading,
       jobsError: jobsError?.message,
     });
   }
   const error = jobsError
-    ? (jobsError instanceof Error ? jobsError.message : 'Failed to fetch data')
+    ? jobsError instanceof Error
+      ? jobsError.message
+      : 'Failed to fetch data'
     : null;
 
   // Update sources state when data changes
@@ -587,7 +598,7 @@ const JobsContent: React.FC = () => {
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
-  
+
   // Debug logging
   if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
     console.log('🔍 Pagination Debug:', {
@@ -599,11 +610,13 @@ const JobsContent: React.FC = () => {
       pageSize,
       startIndex,
       endIndex,
-      firstPaginatedJob: paginatedJobs[0] ? {
-        id: paginatedJobs[0].id,
-        title: paginatedJobs[0].title,
-        client_jobs_status: paginatedJobs[0].client_jobs?.[0]?.status,
-      } : null,
+      firstPaginatedJob: paginatedJobs[0]
+        ? {
+            id: paginatedJobs[0].id,
+            title: paginatedJobs[0].title,
+            client_jobs_status: paginatedJobs[0].client_jobs?.[0]?.status,
+          }
+        : null,
     });
   }
 
@@ -921,7 +934,7 @@ const JobsContent: React.FC = () => {
         </div>
 
         {/* Unified Table - Scrollable area */}
-        <div className='flex-1 min-h-0 overflow-x-auto md:overflow-x-visible scrollbar-thin'>
+        <div className='flex-1 min-h-0'>
           <UnifiedTable
             data={paginatedJobs}
             columns={columns}

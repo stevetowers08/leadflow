@@ -215,7 +215,9 @@ const PeopleContent: React.FC = () => {
   const people = peopleData?.people || [];
   const loading = peopleLoading;
   const error = peopleError
-    ? (peopleError instanceof Error ? peopleError.message : 'Failed to fetch data')
+    ? peopleError instanceof Error
+      ? peopleError.message
+      : 'Failed to fetch data'
     : null;
 
   // Update users state when data changes
@@ -946,7 +948,7 @@ const PeopleContent: React.FC = () => {
         </div>
 
         {/* Unified Table - Scrollable area */}
-        <div className='flex-1 min-h-0 overflow-x-auto md:overflow-x-visible scrollbar-thin'>
+        <div className='flex-1 min-h-0'>
           <UnifiedTable
             data={paginatedPeople}
             columns={columns}

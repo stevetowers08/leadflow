@@ -251,15 +251,15 @@ const CompaniesContent: React.FC = () => {
           };
         }) || [];
 
-        // Debug: Companies fetched and transformed
-        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-          console.log('🔍 Companies Debug:', {
-            rawData: clientCompaniesResult.data,
-            transformedCount: transformedCompanies.length,
-            transformedCompanies,
-            currentClientId,
-          });
-        }
+      // Debug: Companies fetched and transformed
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+        console.log('🔍 Companies Debug:', {
+          rawData: clientCompaniesResult.data,
+          transformedCount: transformedCompanies.length,
+          transformedCompanies,
+          currentClientId,
+        });
+      }
 
       return {
         companies: transformedCompanies as Company[],
@@ -267,7 +267,8 @@ const CompaniesContent: React.FC = () => {
         users: usersResult.data || [],
       };
     },
-    enabled: shouldBypassAuth() || (!authLoading && !!user && !!currentClientId),
+    enabled:
+      shouldBypassAuth() || (!authLoading && !!user && !!currentClientId),
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
     refetchOnWindowFocus: false,
@@ -278,7 +279,9 @@ const CompaniesContent: React.FC = () => {
   const people = companiesData?.people || [];
   const loading = companiesLoading;
   const error = companiesError
-    ? (companiesError instanceof Error ? companiesError.message : 'Failed to fetch data')
+    ? companiesError instanceof Error
+      ? companiesError.message
+      : 'Failed to fetch data'
     : null;
 
   // Update users state when data changes
@@ -1005,7 +1008,7 @@ const CompaniesContent: React.FC = () => {
         </div>
 
         {/* Unified Table - Scrollable area */}
-        <div className='flex-1 min-h-0 overflow-x-auto md:overflow-x-visible scrollbar-thin'>
+        <div className='flex-1 min-h-0'>
           {!loading && filteredCompanies.length === 0 ? (
             <div className='bg-white rounded-lg border border-gray-300 overflow-hidden'>
               <div className='flex flex-col items-center justify-center py-16 px-4'>

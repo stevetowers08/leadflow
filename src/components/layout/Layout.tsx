@@ -313,9 +313,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
           )}
           role='main'
         >
-          <div className={cn('flex-1 min-h-0', !isConversationsRoute && !isSettingsRoute && 'px-4 lg:px-6')}>
-            {children}
-          </div>
+          <div className='flex-1 min-h-0'>{children}</div>
         </main>
 
         {/* Floating Chat Widget - Temporarily disabled */}
