@@ -17,6 +17,7 @@ import { useJobDiscoveryMetrics } from '@/hooks/useSupabaseData';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import React from 'react';
+import { ScrollToTopButton } from '@/components/shared/ScrollToTopButton';
 
 interface Job {
   id: string;
@@ -301,7 +302,7 @@ function DashboardContent() {
       <div className='space-y-5 pb-8'>
         <div className='mb-6'>
           <p className='text-sm text-muted-foreground'>
-            Here's what's happening with your pipeline today
+            Here&apos;s what&apos;s happening with your pipeline today
           </p>
           {error && (
             <div className='mt-4 p-3 bg-red-50 border border-red-200 rounded-lg'>
@@ -704,6 +705,7 @@ function DashboardContent() {
           setSelectedJobId(null);
         }}
       />
+      <ScrollToTopButton />
     </Page>
   );
 }

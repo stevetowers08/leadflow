@@ -145,6 +145,22 @@ All colors MUST be HSL.
     --shadow-xl:
       0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
+    /* Spacing Scale - Design Token System */
+    --space-1: 0.25rem; /* 4px */
+    --space-2: 0.5rem; /* 8px */
+    --space-3: 0.75rem; /* 12px */
+    --space-4: 1rem; /* 16px */
+    --space-6: 1.5rem; /* 24px */
+    --space-8: 2rem; /* 32px */
+
+    /* Layout Spacing */
+    --layout-padding-mobile: var(--space-4); /* 16px */
+    --layout-padding-desktop: var(--space-6); /* 24px */
+    --topnav-height-simple: 48px; /* pt-12 */
+    --topnav-height-full: 72px; /* pt-[72px] */
+    --sidebar-width: 224px; /* pl-56 */
+    --mobile-nav-height: 80px; /* pb-20 */
+
     /* 2025 Typography System - Font Weights */
     --font-weight-body: 500; /* Medium for body text */
     --font-weight-small: 500; /* Medium for small text */

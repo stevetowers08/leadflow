@@ -10,7 +10,8 @@ import { TabNavigation } from '@/components/ui/tab-navigation';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
-import { FilterControls, Page } from '@/design-system/components';
+import { Page } from '@/design-system/components';
+import { CollapsibleFilterControls } from '@/components/shared/CollapsibleFilterControls';
 import { useToast } from '@/hooks/use-toast';
 import { useClientId } from '@/hooks/useClientId';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -881,11 +882,11 @@ const JobsContent: React.FC = () => {
 
   return (
     <Page title='Jobs Feed' hideHeader>
-      <div className='flex-1 flex flex-col min-h-0 space-y-4'>
-        {/* Tab Navigation and Filter Controls on Same Row */}
-        <div className='flex items-center justify-end gap-4 flex-nowrap min-w-0'>
+      <div className='flex-1 flex flex-col min-h-0'>
+        {/* Filter Controls - Sticky on scroll, Collapsible on mobile */}
+        <div className='sticky top-0 bg-background z-20 pb-4 flex-shrink-0 space-y-2'>
           {/* Tab Navigation */}
-          <div className='flex-shrink-0 mr-auto'>
+          <div className='flex-shrink-0'>
             <TabNavigation
               tabs={tabCounts}
               activeTab={activeTab}
@@ -893,10 +894,9 @@ const JobsContent: React.FC = () => {
               className='border-b-0'
             />
           </div>
-
-          {/* Search, Filter and Sort Controls - Right Aligned */}
+          {/* Search, Filter and Sort Controls */}
           <div className='flex items-center gap-2 flex-shrink-0'>
-            <FilterControls
+            <CollapsibleFilterControls
               statusOptions={statusOptions}
               userOptions={[
                 { label: 'All Sources', value: 'all' },
@@ -921,7 +921,7 @@ const JobsContent: React.FC = () => {
         </div>
 
         {/* Unified Table - Scrollable area */}
-        <div className='flex-1 min-h-0'>
+        <div className='flex-1 min-h-0 overflow-x-auto md:overflow-x-visible scrollbar-thin'>
           <UnifiedTable
             data={paginatedJobs}
             columns={columns}
@@ -936,7 +936,7 @@ const JobsContent: React.FC = () => {
         </div>
 
         {/* Pagination - Compact */}
-        <div className='flex-shrink-0 pt-1'>
+        <div className='flex-shrink-0 pt-1 mt-4'>
           <PaginationControls
             currentPage={currentPage}
             totalPages={totalPages}

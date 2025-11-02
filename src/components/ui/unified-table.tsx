@@ -61,6 +61,7 @@ export const TableHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <thead ref={ref} className={cn('bg-gray-50', className)} {...props} />
 ));
+TableHeader.displayName = 'TableHeader';
 
 export const TableBody = React.forwardRef<
   HTMLTableSectionElement,
@@ -72,6 +73,7 @@ export const TableBody = React.forwardRef<
     {...props}
   />
 ));
+TableBody.displayName = 'TableBody';
 
 export const TableRow = React.forwardRef<
   HTMLTableRowElement,
@@ -97,6 +99,7 @@ export const TableRow = React.forwardRef<
     {children}
   </tr>
 ));
+TableRow.displayName = 'TableRow';
 
 export const TableCell = React.forwardRef<
   HTMLTableCellElement,
@@ -137,6 +140,7 @@ export const TableCell = React.forwardRef<
     />
   );
 });
+TableCell.displayName = 'TableCell';
 
 export const TableHead = React.forwardRef<
   HTMLTableCellElement,
@@ -310,8 +314,26 @@ export function UnifiedTable<T = unknown>({
       if (loading) {
         return (
           <div className='bg-card rounded-lg border shadow-sm w-full overflow-hidden'>
-            <div className='flex items-center justify-center h-32'>
-              <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+            <div className='border-b bg-muted/30 p-4'>
+              <div className='flex gap-4'>
+                {Array.from({ length: columns.length || 6 }).map((_, i) => (
+                  <div key={i} className='h-4 bg-muted rounded animate-pulse flex-1' />
+                ))}
+              </div>
+            </div>
+            <div className='divide-y'>
+              {Array.from({ length: 5 }).map((_, rowIndex) => (
+                <div key={rowIndex} className='p-4'>
+                  <div className='flex gap-4 items-center'>
+                    {Array.from({ length: columns.length || 6 }).map((_, colIndex) => (
+                      <div
+                        key={colIndex}
+                        className='h-4 bg-muted rounded animate-pulse flex-1'
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         );

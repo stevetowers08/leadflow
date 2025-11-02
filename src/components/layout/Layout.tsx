@@ -305,6 +305,9 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
           className={cn(
             'relative z-10 w-full h-full bg-background flex flex-col',
             !isMobile && 'pl-56',
+            // Top padding for fixed header:
+            // - pt-12 (48px): Conversations and Settings routes use shorter TopNav
+            // - pt-[72px] (72px): All other routes use full TopNav with breadcrumbs/subheading
             isConversationsRoute || isSettingsRoute ? 'pt-12' : 'pt-[72px]',
             isMobile && 'pb-20'
           )}

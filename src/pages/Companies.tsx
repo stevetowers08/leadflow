@@ -29,7 +29,8 @@ import { SearchModal } from '@/components/ui/search-modal';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
-import { FilterControls, Page } from '@/design-system/components';
+import { Page } from '@/design-system/components';
+import { CollapsibleFilterControls } from '@/components/shared/CollapsibleFilterControls';
 import { useToast } from '@/hooks/use-toast';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -978,10 +979,10 @@ const CompaniesContent: React.FC = () => {
 
   return (
     <Page stats={stats} title='Companies' hideHeader>
-      <div className='flex-1 flex flex-col min-h-0 space-y-4'>
-        {/* Filter Controls - Left Aligned */}
-        <div className='flex items-center justify-start gap-4 min-w-0 flex-wrap'>
-          <FilterControls
+      <div className='flex-1 flex flex-col min-h-0'>
+        {/* Filter Controls - Sticky on scroll, Collapsible on mobile */}
+        <div className='sticky top-0 bg-background z-20 pb-4 flex-shrink-0'>
+          <CollapsibleFilterControls
             statusOptions={statusOptions}
             userOptions={userOptions}
             sortOptions={sortOptions}
@@ -1004,7 +1005,7 @@ const CompaniesContent: React.FC = () => {
         </div>
 
         {/* Unified Table - Scrollable area */}
-        <div className='flex-1 min-h-0'>
+        <div className='flex-1 min-h-0 overflow-x-auto md:overflow-x-visible scrollbar-thin'>
           {!loading && filteredCompanies.length === 0 ? (
             <div className='bg-white rounded-lg border border-gray-300 overflow-hidden'>
               <div className='flex flex-col items-center justify-center py-16 px-4'>
