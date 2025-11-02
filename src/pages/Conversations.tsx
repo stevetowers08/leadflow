@@ -366,7 +366,10 @@ const ConversationsContent: React.FC = () => {
   });
 
   return (
-    <div className='flex bg-white h-full overflow-hidden'>
+    <div
+      className='flex bg-white overflow-hidden'
+      style={{ height: 'calc(100vh - 48px)' }} // viewport - topnav (no padding for Conversations)
+    >
       {/* Left Sidebar - Simplified */}
       <div className='w-56 bg-gray-50 flex flex-col flex-shrink-0'>
         {/* Search Section */}

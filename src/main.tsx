@@ -2,7 +2,8 @@ import { createRoot } from 'react-dom/client';
 
 import App from './App.tsx';
 import SupabaseErrorBoundary from './components/diagnostics/SupabaseErrorBoundary.tsx';
-import './index.css';
+// Note: index.css removed - using globals.css in Next.js layout.tsx instead
+// Only import component-specific styles here
 import './styles/hover-overflow-fixes.css';
 import './styles/mobile.css';
 import './styles/select-overrides.css';
@@ -15,7 +16,10 @@ const initializeApp = async () => {
   // Only show environment debug info in development
   if (process.env.NODE_ENV === 'development') {
     logger.debug('🔍 Environment Debug Info:');
-    logger.debug('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    logger.debug(
+      'NEXT_PUBLIC_SUPABASE_URL:',
+      process.env.NEXT_PUBLIC_SUPABASE_URL
+    );
     logger.debug(
       'NEXT_PUBLIC_SUPABASE_ANON_KEY:',
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'

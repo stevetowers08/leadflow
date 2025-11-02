@@ -219,7 +219,7 @@ function ReportingContent() {
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
 
   return (
-    <Page title='Reporting' hideHeader allowScroll>
+    <Page title='Reporting' hideHeader>
       <div className='space-y-6'>
         {/* Period Selector */}
         <div className='flex items-center justify-end'>
@@ -845,9 +845,9 @@ function ReportingContent() {
                   Advanced Email Analytics Coming Soon
                 </h3>
                 <p className='text-gray-600 text-center max-w-md'>
-                  We're working on advanced email metrics including open rates,
-                  click-through rates, reply tracking, and detailed performance
-                  analytics.
+                  We&apos;re working on advanced email metrics including open
+                  rates, click-through rates, reply tracking, and detailed
+                  performance analytics.
                 </p>
               </CardContent>
             </Card>

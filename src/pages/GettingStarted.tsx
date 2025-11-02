@@ -167,7 +167,7 @@ function GettingStartedContent() {
   };
 
   return (
-    <Page title='Getting Started' hideHeader allowScroll>
+    <Page title='Getting Started' hideHeader>
       <div className='space-y-6'>
         {/* Overview */}
         <div className='p-6 bg-white border border-gray-200 rounded-lg'>

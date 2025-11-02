@@ -248,7 +248,7 @@ function JobFilteringSettingsPageContent() {
   ];
 
   return (
-    <Page title='Job Discovery Configuration' hideHeader allowScroll>
+    <Page title='Job Discovery Configuration' hideHeader>
       <div className='space-y-6'>
         {/* Platform Tabs - Using App's TabNavigation */}
         <TabNavigation

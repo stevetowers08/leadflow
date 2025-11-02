@@ -73,7 +73,8 @@
   will-change: transform, opacity;
 }
 
-/* Page-level overflow fixes */
+/* Page-level overflow fixes - Only apply to specific page containers */
+/* NOTE: Do NOT use on main layout containers - they need overflow-hidden */
 .page-container {
   /* Allow hover elements to extend beyond page bounds */
   overflow-x: visible !important;
@@ -82,6 +83,13 @@
   /* Proper stacking context */
   position: relative;
   z-index: 1;
+}
+
+/* Exclude main layout elements from overflow visible */
+main.page-container,
+[role='main'].page-container {
+  overflow-x: visible !important;
+  overflow-y: auto !important;
 }
 
 /* Card hover effects that might extend beyond bounds */

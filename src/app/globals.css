@@ -210,6 +210,7 @@ All colors MUST be HSL.
     height: 100vh;
     width: 100%;
     max-width: 100vw;
+    overflow: hidden; /* Prevent page-level scrolling */
   }
 
   body {
@@ -219,6 +220,7 @@ All colors MUST be HSL.
     max-width: 100vw;
     margin: 0;
     padding: 0;
+    overflow: hidden; /* Prevent page-level scrolling - Layout handles all scrolling */
     /* Inter font for modern CRM aesthetic - matches Attio */
     font-family:
       'Inter',
@@ -730,75 +732,74 @@ All colors MUST be HSL.
   }
 
   /* Modern minimal scrollbar: ultra-thin, subtle, hover-reveal */
-  /* High specificity to override any global styles */
-  .scrollbar-modern.scrollbar-modern {
+  .scrollbar-modern {
     scrollbar-width: thin !important;
-    scrollbar-color: rgba(203, 213, 225, 0.3) transparent !important; /* slate-300 @ 30% - always slightly visible */
+    scrollbar-color: transparent transparent !important;
   }
 
-  .scrollbar-modern.scrollbar-modern:hover {
-    scrollbar-color: rgba(148, 163, 184, 0.5) transparent !important; /* slate-400 @ 50% opacity */
+  .scrollbar-modern:hover {
+    scrollbar-color: rgba(203, 213, 225, 0.4) transparent !important;
   }
 
-  .scrollbar-modern.scrollbar-modern::-webkit-scrollbar {
+  .scrollbar-modern::-webkit-scrollbar {
+    width: 4px !important;
+    height: 4px !important;
+    background: transparent !important;
+  }
+
+  .scrollbar-modern::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  .scrollbar-modern::-webkit-scrollbar-thumb {
+    background: transparent !important;
+    border-radius: 2px !important;
+    transition: background 0.2s ease !important;
+  }
+
+  .scrollbar-modern:hover::-webkit-scrollbar-thumb {
+    background: rgba(203, 213, 225, 0.4) !important;
+  }
+
+  .scrollbar-modern::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5) !important;
+  }
+
+  .scrollbar-modern::-webkit-scrollbar-corner {
+    background: transparent !important;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(203, 213, 225, 0.5) transparent !important;
+  }
+
+  .scrollbar-thin:hover {
+    scrollbar-color: rgba(148, 163, 184, 0.6) transparent !important;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
     width: 6px !important;
     height: 6px !important;
     background: transparent !important;
   }
 
-  .scrollbar-modern.scrollbar-modern::-webkit-scrollbar-track {
+  .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent !important;
   }
 
-  .scrollbar-modern.scrollbar-modern::-webkit-scrollbar-thumb {
-    background: rgba(203, 213, 225, 0.3) !important; /* slate-300 @ 30% - always visible */
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(203, 213, 225, 0.5) !important;
     border-radius: 3px !important;
     transition: background 0.2s ease !important;
   }
 
-  .scrollbar-modern.scrollbar-modern:hover::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.5) !important; /* slate-400 @ 50% opacity */
-  }
-
-  .scrollbar-modern.scrollbar-modern::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 116, 139, 0.6) !important; /* slate-500 @ 60% opacity */
-  }
-
-  .scrollbar-modern.scrollbar-modern::-webkit-scrollbar-corner {
-    background: transparent !important;
-  }
-
-  .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(203, 213, 225, 0.25) transparent; /* slate-300 @ 25% - always slightly visible */
-  }
-
-  .scrollbar-thin:hover {
-    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-    background: transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(203, 213, 225, 0.25); /* slate-300 @ 25% - always visible */
-    border-radius: 2px;
-    transition: background 0.2s ease;
-  }
-
   .scrollbar-thin:hover::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.4);
+    background: rgba(148, 163, 184, 0.6) !important;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 116, 139, 0.5);
+    background: rgba(100, 116, 139, 0.7) !important;
   }
 
   /* All table and panel scrolling uses scrollbar-thin */

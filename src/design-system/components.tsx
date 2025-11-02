@@ -85,7 +85,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   </div>
 );
 
-// Page wrapper component
+// Page wrapper component - Simplified for fixed positioning layout
 interface PageProps {
   title: string;
   stats?: StatItemProps[];
@@ -93,7 +93,6 @@ interface PageProps {
   loading?: boolean;
   loadingMessage?: string;
   hideHeader?: boolean;
-  allowScroll?: boolean; // Allow page to scroll (for informational pages like Getting Started)
 }
 
 export const Page: React.FC<PageProps> = ({
@@ -103,31 +102,29 @@ export const Page: React.FC<PageProps> = ({
   loading = false,
   loadingMessage,
   hideHeader = false,
-  allowScroll = false, // false = fit viewport (tables scroll), true = page scrolls
 }) => {
   if (loading) {
     return (
-      <>
-        <div className='fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 -z-10' />
-        <div className='relative h-full w-full'>
-          <div className='space-y-6 w-full h-full flex flex-col'>
-            <LoadingState title={title} message={loadingMessage} />
-          </div>
+      <div className='flex items-center justify-center min-h-screen'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4' />
+          <p className='text-muted-foreground'>
+            {loadingMessage || 'Loading...'}
+          </p>
         </div>
-      </>
+      </div>
     );
   }
 
-  // Shared header component
-  const header = !hideHeader && (
-    <div className='flex-shrink-0 mb-2'>
-      <div className='flex items-center justify-between w-full'>
-        <div>
+  return (
+    <div className='w-full flex flex-col flex-1 min-h-0 max-h-full overflow-hidden'>
+      {!hideHeader && (
+        <div className='mb-6 flex-shrink-0'>
           <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
             {title}
           </h1>
           {stats && (
-            <div className='flex items-center gap-4 mt-1 text-sm'>
+            <div className='flex items-center gap-4 mt-2 text-sm'>
               {stats.map((stat, index) => {
                 const IconComponent = stat.icon;
                 return (
@@ -144,62 +141,9 @@ export const Page: React.FC<PageProps> = ({
             </div>
           )}
         </div>
-      </div>
+      )}
+      <div className='flex-1 min-h-0 overflow-hidden'>{children}</div>
     </div>
-  );
-
-  // FINAL FIX: Match Conversations/Settings pattern exactly
-  // They use h-full directly, so Page should too - remove flex-1 since parent already has it
-  return (
-    <>
-      <div className='fixed inset-0 bg-background -z-10' />
-      <div className='relative w-full h-full flex flex-col overflow-hidden'>
-        {!hideHeader && (
-          <div
-            className={cn(
-              'flex-shrink-0 mb-2 px-4 lg:px-6',
-              allowScroll && 'sticky top-0 bg-background z-10 pt-6 pb-4'
-            )}
-          >
-            <div className='flex items-center justify-between w-full'>
-              <div>
-                <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
-                  {title}
-                </h1>
-                {stats && (
-                  <div className='flex items-center gap-4 mt-1 text-sm'>
-                    {stats.map((stat, index) => {
-                      const IconComponent = stat.icon;
-                      return (
-                        <div
-                          key={index}
-                          className='flex items-center gap-1 text-muted-foreground'
-                        >
-                          <IconComponent className='h-3 w-3' />
-                          <span className='font-semibold'>{stat.value}</span>
-                          <span>{stat.label}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-        {allowScroll ? (
-          // Scrollable page: match Settings pattern - flex-1 overflow-y-auto
-          <div className='flex-1 overflow-y-auto scrollbar-modern px-4 lg:px-6 pb-6'>
-            {children}
-          </div>
-        ) : (
-          // Table page: let children (tables) handle their own scrolling
-          <div className='flex-1 flex flex-col min-h-0 px-4 lg:px-6'>
-            {children}
-          </div>
-        )}
-      </div>
-    </>
   );
 };
 

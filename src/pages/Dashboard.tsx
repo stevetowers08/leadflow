@@ -298,7 +298,7 @@ function DashboardContent() {
   );
 
   return (
-    <Page title='Dashboard' hideHeader allowScroll>
+    <Page title='Dashboard' hideHeader>
       <div className='space-y-5 pb-8'>
         <div className='mb-6'>
           <p className='text-sm text-muted-foreground'>
@@ -351,17 +351,17 @@ function DashboardContent() {
               }}
             >
               <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-green-500/5 via-green-50/30 to-green-500/10 backdrop-blur-sm shadow-sm'>
-              <div className='p-4'>
-                <p className='text-sm font-medium text-muted-foreground mb-1'>
-                  Qualification Rate
-                </p>
-                <p className='text-2xl font-bold tracking-tight text-foreground'>
-                  {jobKpisLoading
-                    ? '…'
-                    : `${jobKpis?.today.qualificationRatePercent || 0}%`}
-                </p>
-              </div>
-            </Card>
+                <div className='p-4'>
+                  <p className='text-sm font-medium text-muted-foreground mb-1'>
+                    Qualification Rate
+                  </p>
+                  <p className='text-2xl font-bold tracking-tight text-foreground'>
+                    {jobKpisLoading
+                      ? '…'
+                      : `${jobKpis?.today.qualificationRatePercent || 0}%`}
+                  </p>
+                </div>
+              </Card>
             </motion.div>
             <motion.div
               variants={{

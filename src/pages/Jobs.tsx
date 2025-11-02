@@ -895,9 +895,10 @@ const JobsContent: React.FC = () => {
 
   return (
     <Page title='Jobs Feed' hideHeader>
-      <div className='flex-1 flex flex-col min-h-0'>
-        {/* Filter Controls - Sticky on scroll, Collapsible on mobile */}
-        <div className='sticky top-0 bg-background z-20 pb-4 flex-shrink-0 space-y-2'>
+      {/* Container for table layout - fills available height */}
+      <div className='flex flex-col flex-1 min-h-0'>
+        {/* Filters - Fixed at top */}
+        <div className='flex-shrink-0 pb-4 space-y-2'>
           {/* Tab Navigation */}
           <div className='flex-shrink-0'>
             <TabNavigation
@@ -933,8 +934,8 @@ const JobsContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Unified Table - Scrollable area */}
-        <div className='flex-1 min-h-0'>
+        {/* Table - Scrollable middle */}
+        <div className='flex-1 min-h-0 flex flex-col'>
           <UnifiedTable
             data={paginatedJobs}
             columns={columns}
@@ -948,8 +949,8 @@ const JobsContent: React.FC = () => {
           />
         </div>
 
-        {/* Pagination - Compact */}
-        <div className='flex-shrink-0 pt-1 mt-4'>
+        {/* Pagination - Fixed at bottom */}
+        <div className='flex-shrink-0 pt-4'>
           <PaginationControls
             currentPage={currentPage}
             totalPages={totalPages}

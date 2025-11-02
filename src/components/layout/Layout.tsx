@@ -1,17 +1,15 @@
 'use client';
 
 /**
- * Layout Component with Glassmorphism Design
+ * Layout Component - Grid + Fixed Positioning Architecture
  *
- * Features:
- * - Glassmorphism background with dynamic gradients
- * - Modern sidebar with smooth animations
- * - Responsive design optimized for all devices
- * - Dark mode support with theme switching
- * - Enhanced accessibility and keyboard navigation
+ * Industry-standard approach (Salesforce, HubSpot, Linear):
+ * - Grid for structure
+ * - Fixed positioning for sidebar/header/main
+ * - Simple height chain (3 levels max)
+ * - No h-full in flex contexts
  */
 
-import { designTokens } from '@/design-system/tokens';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
@@ -25,15 +23,40 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { TopNavigationBar } from './TopNavigationBar';
 
-// Lazy load heavy components for better performance
-// const FloatingChatWidget = lazy(() => import('../ai/FloatingChatWidget'));
 const MobileTestPanel = lazy(() => import('../mobile/MobileTestPanel'));
 const MobileNav = lazy(() => import('../mobile/MobileNav'));
+
+// Debug component to avoid hook issues
+const DebugHeightIndicator = ({
+  mainRef,
+}: {
+  mainRef: React.RefObject<HTMLElement>;
+}) => {
+  const [height, setHeight] = useState<string>('...');
+
+  useEffect(() => {
+    const updateHeight = () => {
+      if (mainRef.current) {
+        const computed = window.getComputedStyle(mainRef.current);
+        setHeight(computed.height);
+      }
+    };
+
+    updateHeight();
+    const interval = setInterval(updateHeight, 500);
+    return () => clearInterval(interval);
+  }, [mainRef]);
+
+  return (
+    <div className='fixed top-16 right-4 z-[100] bg-blue-500 text-white px-2 py-1 text-xs rounded shadow-lg'>
+      Main H: {height}
+    </div>
+  );
+};
 
 interface LayoutProps {
   children: ReactNode;
@@ -43,19 +66,16 @@ interface LayoutProps {
 
 export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const isMobile = useIsMobile();
   const mainContentRef = useRef<HTMLElement>(null);
   const { mediumHaptic } = useHapticFeedback();
   const pathname = usePathname();
 
-  // Ensure we only render portals on the client side
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Dynamic page title and subheading based on current route (memoized for performance)
   const { currentPageTitle, currentPageSubheading } = useMemo(() => {
     if (pageTitle) {
       return { currentPageTitle: pageTitle, currentPageSubheading: undefined };
@@ -123,7 +143,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     };
   }, [pageTitle, pathname]);
 
-  // Enhanced swipe gestures with better touch handling
   const { attachListeners } = useSwipeGestures({
     onSwipeRight: () => {
       if (isMobile && !sidebarOpen) {
@@ -141,7 +160,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     velocityThreshold: 0.3,
   });
 
-  // Close sidebar when clicking outside on mobile
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isMobile && sidebarOpen) {
@@ -163,7 +181,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobile, sidebarOpen]);
 
-  // Handle escape key and focus management
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && sidebarOpen) {
@@ -179,7 +196,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [sidebarOpen]);
 
-  // Attach swipe gestures to main content
   useEffect(() => {
     if (isMobile && mainContentRef.current) {
       const cleanup = attachListeners(mainContentRef.current);
@@ -187,32 +203,46 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     }
   }, [isMobile, attachListeners]);
 
-  // Prevent body scroll - Layout container handles overflow instead
+  // Debug: Log heights on mount - MUST be before any conditional returns
   useEffect(() => {
-    // Layout container with h-screen overflow-hidden prevents page scroll
-    // No need to set body overflow since Layout container is fixed viewport
-    return () => {
-      // Cleanup not needed - Layout container handles it
-    };
-  }, []);
+    if (!isMounted || !mainContentRef.current) return;
 
-  // Apply dark mode to document
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
+    // Delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      if (mainContentRef.current) {
+        const main = mainContentRef.current;
+        const computed = window.getComputedStyle(main);
+        console.log(
+          '🔍 DEBUG Layout Main:',
+          `top: ${computed.top}, bottom: ${computed.bottom}, height: ${computed.height}, overflow: ${computed.overflow}, position: ${computed.position}`
+        );
 
-  // Route-specific layout tweaks
+        const innerDiv = main.querySelector('div');
+        if (innerDiv) {
+          const innerComputed = window.getComputedStyle(innerDiv);
+          console.log(
+            '🔍 DEBUG Inner Div:',
+            `height: ${innerComputed.height}, minHeight: ${innerComputed.minHeight}, overflow: ${innerComputed.overflow}`
+          );
+        }
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [isMounted]);
+
   const isConversationsRoute = pathname === '/conversations';
   const isSettingsRoute = pathname === '/settings';
+  const isTablePage = ['/jobs', '/people', '/companies'].includes(pathname);
 
-  // Don't render portals until client-side mounted
+  // Constants for fixed positioning
+  const topNavHeight = 48;
+  const sidebarWidth = 224;
+  const mobileBottomNavHeight = 80;
+
   if (!isMounted) {
     return (
-      <div className='h-screen w-full bg-background'>
+      <div className='h-screen bg-background'>
         <main className='h-full w-full'>{children}</main>
       </div>
     );
@@ -220,119 +250,111 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
 
   return (
     <>
-      {/* Mobile sidebar overlay with glassmorphism */}
+      {/* DEBUG: Height Indicator */}
+      <DebugHeightIndicator mainRef={mainContentRef} />
+
+      {/* Mobile sidebar overlay */}
       {isMobile && sidebarOpen && (
         <div
-          className='fixed inset-0 z-40 bg-black/50 lg:hidden'
+          className='fixed inset-0 z-40 bg-black/50'
           onClick={() => setSidebarOpen(false)}
-          onKeyDown={e => {
-            if (e.key === 'Escape') {
-              setSidebarOpen(false);
-            }
-          }}
-          aria-hidden='true'
-          role='button'
-          tabIndex={-1}
         />
       )}
 
-      {/* Desktop Sidebar - Always visible on desktop */}
-      {!isMobile &&
-        createPortal(
-          <aside
-            className='desktop-sidebar fixed top-0 left-0 h-screen w-56 bg-sidebar z-50 border-r'
-            role='navigation'
-            aria-label='Main navigation'
-            style={{ borderRight: '1px solid hsl(var(--border))' }}
-          >
-            <Sidebar />
-          </aside>,
-          document.body
-        )}
+      {/* Desktop Sidebar - Fixed position */}
+      {!isMobile && (
+        <aside
+          className='fixed top-0 left-0 bottom-0 z-30 bg-sidebar border-r border-border overflow-y-auto'
+          style={{ width: `${sidebarWidth}px` }}
+        >
+          <Sidebar onClose={() => {}} />
+        </aside>
+      )}
 
-      {/* Mobile Sidebar - Only when menu is open */}
-      {isMobile &&
-        sidebarOpen &&
-        createPortal(
-          <aside
-            style={{
-              position: 'fixed',
-              top: '0px',
-              left: '0px',
-              height: '100vh',
-              width: '224px',
-              zIndex: 9999,
-              backgroundColor: 'hsl(var(--sidebar-background))',
-              color: 'hsl(var(--sidebar-foreground))',
-              transform: 'translateX(0)',
-              transition: 'transform 0.3s ease-in-out',
-              borderRight: '1px solid hsl(var(--border))',
-            }}
-            role='navigation'
-            aria-label='Main navigation'
-          >
-            <Sidebar onClose={() => setSidebarOpen(false)} />
-          </aside>,
-          document.body
-        )}
+      {/* Mobile Sidebar */}
+      {isMobile && sidebarOpen && (
+        <aside className='fixed top-0 left-0 bottom-0 z-50 w-56 bg-sidebar border-r border-border overflow-y-auto'>
+          <Sidebar onClose={() => setSidebarOpen(false)} />
+        </aside>
+      )}
 
-      {/* Top Navigation Bar rendered via portal */}
-      {createPortal(
+      {/* Top Navigation - Fixed position */}
+      <header
+        className='fixed top-0 right-0 z-40 bg-sidebar border-b border-border'
+        style={{
+          height: `${topNavHeight}px`,
+          left: isMobile ? 0 : `${sidebarWidth}px`,
+        }}
+      >
         <TopNavigationBar
           pageTitle={currentPageTitle}
           pageSubheading={currentPageSubheading}
           onSearch={onSearch}
-          onMenuClick={() => {
-            if (isMobile) {
-              mediumHaptic();
-              setSidebarOpen(true);
+          onMenuClick={() => isMobile && setSidebarOpen(true)}
+        />
+      </header>
+
+      {/* Main Content - Fixed position with proper offsets */}
+      <main
+        ref={mainContentRef}
+        className={cn(
+          'fixed bg-background',
+          isTablePage || isConversationsRoute || isSettingsRoute
+            ? 'overflow-hidden'
+            : 'overflow-y-auto'
+        )}
+        style={{
+          top: `${topNavHeight}px`,
+          left: isMobile ? 0 : `${sidebarWidth}px`,
+          right: 0,
+          bottom: isMobile ? `${mobileBottomNavHeight}px` : 0,
+        }}
+      >
+        <div
+          className={cn(
+            'h-full',
+            isTablePage || isConversationsRoute || isSettingsRoute
+              ? 'flex flex-col overflow-hidden'
+              : 'overflow-y-auto'
+          )}
+          style={{
+            padding: isMobile ? '1rem' : '1.5rem',
+            paddingLeft: isMobile ? '1rem' : '1.5rem',
+            paddingRight: isMobile ? '1rem' : '1.5rem',
+            boxSizing: 'border-box',
+          }}
+          ref={el => {
+            if (
+              el &&
+              (isTablePage || isConversationsRoute || isSettingsRoute)
+            ) {
+              const computed = window.getComputedStyle(el);
+              const child = el.firstElementChild;
+              const childComputed = child
+                ? window.getComputedStyle(child)
+                : null;
+              console.log(
+                '🔍 DEBUG Padding Container:',
+                `height: ${computed.height}, maxHeight: ${computed.maxHeight}, firstChild height: ${childComputed?.height || 'N/A'}, overflow: ${computed.overflow}`
+              );
             }
           }}
-        />,
-        document.body
+        >
+          {children}
+        </div>
+      </main>
+
+      {/* Mobile bottom nav */}
+      {isMobile && (
+        <Suspense fallback={null}>
+          <MobileNav />
+        </Suspense>
       )}
 
-      {/* Main content container - Fixed viewport height */}
-      <div
-        className={cn(
-          'h-screen w-full overflow-hidden', // Fixed viewport height, prevent page scroll
-          'bg-background text-foreground'
-        )}
-      >
-        {/* Main content with glassmorphism container */}
-        <main
-          ref={mainContentRef}
-          className={cn(
-            'relative z-10 w-full h-full bg-background flex flex-col',
-            !isMobile && 'pl-56',
-            // Top padding for fixed header:
-            // - pt-12 (48px): Conversations and Settings routes use shorter TopNav
-            // - pt-[72px] (72px): All other routes use full TopNav with breadcrumbs/subheading
-            isConversationsRoute || isSettingsRoute ? 'pt-12' : 'pt-[72px]',
-            isMobile && 'pb-20'
-          )}
-          role='main'
-        >
-          <div className='flex-1 min-h-0'>{children}</div>
-        </main>
-
-        {/* Floating Chat Widget - Temporarily disabled */}
-        {/* <Suspense fallback={null}>
-        <FloatingChatWidget />
-      </Suspense> */}
-
-        {/* Enhanced Mobile Navigation */}
-        {isMobile && (
-          <Suspense fallback={null}>
-            <MobileNav />
-          </Suspense>
-        )}
-
-        {/* Mobile Test Panel (Development Only) */}
-        <Suspense fallback={null}>
-          <MobileTestPanel />
-        </Suspense>
-      </div>
+      {/* Mobile Test Panel (Development Only) */}
+      <Suspense fallback={null}>
+        <MobileTestPanel />
+      </Suspense>
     </>
   );
 };

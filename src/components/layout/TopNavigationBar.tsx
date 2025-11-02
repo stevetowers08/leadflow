@@ -52,9 +52,9 @@ export const TopNavigationBar = ({
   return (
     <header
       className={cn(
-        'fixed top-0 z-30 h-12',
-        'bg-gray-50 border-b border-gray-200',
-        isMobile ? 'w-full px-4 left-0' : 'left-56 right-0 px-6',
+        'h-full w-full',
+        'bg-sidebar',
+        isMobile ? 'px-4' : 'px-6',
         'flex items-center',
         className
       )}
