@@ -155,7 +155,7 @@ export const Page: React.FC<PageProps> = ({
         className={cn(
           'relative w-full',
           allowScroll
-            ? 'h-full overflow-auto scrollbar-modern'
+            ? 'flex flex-col flex-1 min-h-0 overflow-auto scrollbar-modern'
             : 'flex flex-col flex-1 min-h-0 overflow-hidden'
         )}
       >
