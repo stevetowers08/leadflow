@@ -7,6 +7,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { User } from '@supabase/supabase-js';
 import { useCallback, useState } from 'react';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
@@ -17,7 +18,7 @@ export const useUserProfile = () => {
   const [profileError, setProfileError] = useState<string | null>(null);
 
   // Consolidated profile creation utility
-  const createFallbackProfile = useCallback((user: any): UserProfile => {
+  const createFallbackProfile = useCallback((user: User): UserProfile => {
     return {
       id: user.id,
       email: user.email,

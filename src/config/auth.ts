@@ -28,20 +28,24 @@ export interface AuthConfig {
 export const getAuthConfig = (): AuthConfig => {
   const isDevelopment = process.env.NODE_ENV === 'development';
   const envBypass = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
-  
+
   // FUTURE: URL parameter support (currently disabled - will be enabled in future)
   // Check URL parameter (client-side only)
   let urlBypass = false;
-  if (typeof window !== 'undefined' && false) { // Disabled for now - set to true in future
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('bypass') === 'true') {
-      urlBypass = true;
-      // Store in localStorage for future sessions
-      localStorage.setItem('bypassAuth', 'true');
-    }
-    
-    // Check localStorage for persisted bypass
-    const storedBypass = localStorage.getItem('bypassAuth') === 'true';
+  // Disabled for now - uncomment to enable URL parameter bypass
+  // if (typeof window !== 'undefined') {
+  //   const urlParams = new URLSearchParams(window.location.search);
+  //   if (urlParams.get('bypass') === 'true') {
+  //     urlBypass = true;
+  //     // Store in localStorage for future sessions
+  //     localStorage.setItem('bypassAuth', 'true');
+  //   }
+  // }
+
+  // Check localStorage for persisted bypass
+  let storedBypass = false;
+  if (typeof window !== 'undefined') {
+    storedBypass = localStorage.getItem('bypassAuth') === 'true';
     urlBypass = urlBypass || storedBypass;
   }
 

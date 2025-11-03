@@ -43,7 +43,8 @@ class PerformanceMonitor {
   private metrics: PerformanceMetrics = {};
   private observers: PerformanceObserver[] = [];
   private isMonitoring = false;
-  private startTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  private startTime =
+    typeof performance !== 'undefined' ? performance.now() : Date.now();
 
   static getInstance(): PerformanceMonitor {
     if (!PerformanceMonitor.instance) {
@@ -120,7 +121,8 @@ class PerformanceMonitor {
 
   // Observe Largest Contentful Paint
   private observeLCP(): void {
-    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window))
+      return;
 
     // Check if largest-contentful-paint is supported
     const supportedEntryTypes = PerformanceObserver.supportedEntryTypes;
@@ -151,7 +153,8 @@ class PerformanceMonitor {
 
   // Observe First Input Delay
   private observeFID(): void {
-    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window))
+      return;
 
     // Check if first-input is supported
     const supportedEntryTypes = PerformanceObserver.supportedEntryTypes;
@@ -180,7 +183,8 @@ class PerformanceMonitor {
 
   // Observe Cumulative Layout Shift
   private observeCLS(): void {
-    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window))
+      return;
 
     // Check if layout-shift is supported
     const supportedEntryTypes = PerformanceObserver.supportedEntryTypes;
@@ -211,7 +215,8 @@ class PerformanceMonitor {
 
   // Observe First Contentful Paint
   private observeFCP(): void {
-    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window))
+      return;
 
     const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
@@ -229,7 +234,8 @@ class PerformanceMonitor {
 
   // Observe Time to First Byte
   private observeTTFB(): void {
-    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window))
+      return;
 
     const observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
@@ -247,7 +253,8 @@ class PerformanceMonitor {
 
   // Measure bundle size
   private measureBundleSize(): void {
-    if (typeof window === 'undefined' || typeof performance === 'undefined') return;
+    if (typeof window === 'undefined' || typeof performance === 'undefined')
+      return;
     if ('performance' in window && 'getEntriesByType' in performance) {
       const resources = performance.getEntriesByType('resource');
       let totalSize = 0;
@@ -277,7 +284,8 @@ class PerformanceMonitor {
 
   // Observe custom metrics
   private observeCustomMetrics(): void {
-    if (typeof window === 'undefined' || typeof performance === 'undefined') return;
+    if (typeof window === 'undefined' || typeof performance === 'undefined')
+      return;
 
     // Measure page load time
     window.addEventListener('load', () => {
@@ -414,7 +422,8 @@ class PerformanceMonitor {
         body: JSON.stringify({
           timestamp: new Date().toISOString(),
           url: window.location.href,
-          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+          userAgent:
+            typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
           ...report,
         }),
       });
@@ -448,7 +457,7 @@ export function withPerformanceMonitoring<P extends object>(
   Component: React.ComponentType<P>,
   componentName?: string
 ) {
-  return React.memo((props: P) => {
+  const WrappedComponent = React.memo((props: P) => {
     const { recordComponentRender } = usePerformanceMonitor();
     const startTimeRef = React.useRef<number | null>(null);
 
@@ -468,6 +477,9 @@ export function withPerformanceMonitoring<P extends object>(
 
     return React.createElement(Component, props);
   });
+
+  WrappedComponent.displayName = `withPerformanceMonitoring(${componentName || Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 }
 
 // Performance monitoring provider

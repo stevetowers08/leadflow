@@ -1,5 +1,9 @@
 import { getAuthConfig } from '@/config/auth';
+import { Database } from '@/integrations/supabase/types';
+import { User } from '@supabase/supabase-js';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+
+type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 export interface Permission {
   id: string;
@@ -800,8 +804,8 @@ const DEFAULT_ROLES: Role[] = [
 
 interface PermissionsProviderProps {
   children: React.ReactNode;
-  user: any;
-  userProfile: any;
+  user: User | null;
+  userProfile: UserProfile | null;
   authLoading: boolean;
 }
 
@@ -857,7 +861,7 @@ export function PermissionsProvider({
           }
         }
         */
-        
+
         // Fallback: try owner first, then recruiter
         const ownerRole = roles.find(role => role.id === 'owner');
         const defaultRole = roles.find(role => role.id === 'recruiter');
@@ -865,12 +869,12 @@ export function PermissionsProvider({
         const roleToUse = ownerRole || defaultRole;
 
         if (roleToUse) {
-        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-          console.log(
-            'PermissionsContext: Using fallback role:',
-            roleToUse.id
-          );
-        }
+          if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+            console.log(
+              'PermissionsContext: Using fallback role:',
+              roleToUse.id
+            );
+          }
           setUserPermissions({
             userId: user.id,
             roles: [roleToUse],

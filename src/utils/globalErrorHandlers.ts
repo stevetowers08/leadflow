@@ -105,7 +105,10 @@ export function setupGlobalErrorHandlers(): void {
 }
 
 // React Error Boundary integration
-export const logReactError = async (error: Error, errorInfo: any) => {
+export const logReactError = async (
+  error: Error,
+  errorInfo: { componentStack?: string }
+) => {
   await enhancedErrorLogger.logError(
     error,
     ErrorSeverity.HIGH,
@@ -123,60 +126,73 @@ export const logReactError = async (error: Error, errorInfo: any) => {
 
 // Supabase error handler
 export async function handleSupabaseError(
-  error: any,
+  error: unknown,
   context: string
 ): Promise<void> {
+  const supabaseError = error as {
+    code?: string;
+    message?: string;
+    details?: string;
+    hint?: string;
+  };
   await enhancedErrorLogger.logDatabaseError(error, {
     component: 'supabase',
     action: context,
     metadata: {
-      errorCode: error.code,
-      errorMessage: error.message,
-      errorDetails: error.details,
-      errorHint: error.hint,
+      errorCode: supabaseError.code,
+      errorMessage: supabaseError.message,
+      errorDetails: supabaseError.details,
+      errorHint: supabaseError.hint,
     },
   });
 }
 
 // API error handler
 export async function handleApiError(
-  error: any,
+  error: unknown,
   context: string,
   endpoint?: string
 ): Promise<void> {
+  const apiError = error as {
+    message?: string;
+    status?: number;
+    response?: unknown;
+  };
   await enhancedErrorLogger.logNetworkError(error, {
     component: 'api',
     action: context,
     metadata: {
       endpoint,
-      errorMessage: error.message,
-      errorStatus: error.status,
-      errorResponse: error.response,
+      errorMessage: apiError.message,
+      errorStatus: apiError.status,
+      errorResponse: apiError.response,
     },
   });
 }
 
 // Authentication error handler
 export async function handleAuthError(
-  error: any,
+  error: unknown,
   context: string
 ): Promise<void> {
+  const authError = error as { code?: string; message?: string };
   await enhancedErrorLogger.logAuthError(error, {
     component: 'authentication',
     action: context,
     metadata: {
-      errorCode: error.code,
-      errorMessage: error.message,
+      errorCode: authError.code,
+      errorMessage: authError.message,
     },
   });
 }
 
 // Business logic error handler
 export async function handleBusinessError(
-  error: any,
+  error: unknown,
   context: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
+  const businessError = error as { message?: string };
   await enhancedErrorLogger.logError(
     error,
     ErrorSeverity.MEDIUM,
@@ -186,7 +202,7 @@ export async function handleBusinessError(
       action: context,
       metadata: {
         ...metadata,
-        errorMessage: error.message,
+        errorMessage: businessError.message,
       },
     }
   );
@@ -194,9 +210,9 @@ export async function handleBusinessError(
 
 // Critical error handler for system-level issues
 export async function handleCriticalError(
-  error: any,
+  error: unknown,
   context: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   await enhancedErrorLogger.logCriticalError(error, {
     component: 'system',

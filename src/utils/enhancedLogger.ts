@@ -15,7 +15,7 @@ export interface LogContext {
   sessionId?: string;
   componentName?: string;
   action?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp?: Date;
   level?: LogLevel;
   category?: string;
@@ -60,7 +60,8 @@ class EnhancedLogger {
   private constructor() {
     this.sessionId = this.generateSessionId();
     this.config = {
-      level: process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.INFO,
+      level:
+        process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.INFO,
       enableConsole: true,
       enableRemote: process.env.NODE_ENV === 'production',
       enableStorage: true,
@@ -149,7 +150,8 @@ class EnhancedLogger {
             domContentLoaded:
               navigation.domContentLoadedEventEnd -
               navigation.domContentLoadedEventStart,
-            firstPaint: performance.getEntriesByName('first-paint')[0]?.startTime,
+            firstPaint:
+              performance.getEntriesByName('first-paint')[0]?.startTime,
             firstContentfulPaint: performance.getEntriesByName(
               'first-contentful-paint'
             )[0]?.startTime,
@@ -161,7 +163,15 @@ class EnhancedLogger {
     // Log memory usage periodically
     if ('memory' in performance) {
       setInterval(() => {
-        const memory = (performance as any).memory;
+        const memory = (
+          performance as {
+            memory?: {
+              usedJSHeapSize?: number;
+              totalJSHeapSize?: number;
+              jsHeapSizeLimit?: number;
+            };
+          }
+        ).memory;
         this.debug('Memory Usage', {
           componentName: 'Performance',
           action: 'memoryCheck',
@@ -224,7 +234,10 @@ class EnhancedLogger {
   // Console logging with colors and formatting
   private logToConsole(entry: LogEntry): void {
     // Only log in development or if verbose logs enabled
-    if (process.env.NODE_ENV !== 'development' && process.env.NEXT_PUBLIC_VERBOSE_LOGS !== 'true') {
+    if (
+      process.env.NODE_ENV !== 'development' &&
+      process.env.NEXT_PUBLIC_VERBOSE_LOGS !== 'true'
+    ) {
       return;
     }
 
@@ -362,7 +375,7 @@ class EnhancedLogger {
   }
 
   // Table logging
-  table(data: any): void {
+  table(data: unknown): void {
     console.table(data);
   }
 
@@ -411,16 +424,19 @@ export function withLogging<P extends object>(
   Component: React.ComponentType<P>,
   componentName?: string
 ) {
-  return React.memo((props: P) => {
+  const WrappedComponent = React.memo((props: P) => {
     const log = useLogger(componentName || Component.displayName || 'Unknown');
 
     React.useEffect(() => {
       log.info('Component mounted', { action: 'mount' });
       return () => log.info('Component unmounted', { action: 'unmount' });
-    }, []);
+    }, [log]);
 
     return React.createElement(Component, props);
   });
+
+  WrappedComponent.displayName = `withLogging(${componentName || Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 }
 
 // Logging provider
@@ -430,7 +446,10 @@ export const LoggingProvider: React.FC<{ children: React.ReactNode }> = ({
   React.useEffect(() => {
     // Only log on client-side and in development/verbose mode
     // Application started (development only)
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    if (
+      typeof window !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
       logger.info('Application started', {
         componentName: 'App',
         action: 'start',

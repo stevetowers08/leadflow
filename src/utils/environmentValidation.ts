@@ -141,7 +141,7 @@ export function logEnvironmentStatus(): void {
 }
 
 // Error handling utilities
-export function handleSupabaseError(error: any, context: string): void {
+export function handleSupabaseError(error: unknown, context: string): void {
   // Only log in development
   if (process.env.NODE_ENV !== 'development') {
     return;

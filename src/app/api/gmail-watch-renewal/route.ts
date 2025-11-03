@@ -24,7 +24,9 @@ export async function POST(request: NextRequest) {
 
     if (!envCheck.allPresent) {
       return APIErrorHandler.handleError(
-        new Error(`Missing environment variables: ${envCheck.missing.join(', ')}`),
+        new Error(
+          `Missing environment variables: ${envCheck.missing.join(', ')}`
+        ),
         'gmail-watch-renewal'
       );
     }
@@ -63,7 +65,22 @@ export async function POST(request: NextRequest) {
     // Renew watches for each integration
     for (const integration of integrations) {
       try {
-        const { access_token, watch_expiration } = integration.config as any;
+        const config = integration.config as {
+          access_token?: string;
+          watch_expiration?: string;
+          watch_history_id?: string;
+          user_email?: string;
+        };
+
+        const { access_token, watch_expiration } = config;
+
+        if (!access_token || !watch_expiration) {
+          console.error(
+            `Missing required config for integration ${integration.id}`
+          );
+          errorCount++;
+          continue;
+        }
 
         // Check if watch is expiring soon (within 24 hours)
         const expirationDate = new Date(watch_expiration);
@@ -146,5 +163,3 @@ export async function POST(request: NextRequest) {
     return APIErrorHandler.handleError(error, 'gmail-watch-renewal');
   }
 }
-
-
