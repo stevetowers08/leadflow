@@ -100,6 +100,12 @@ function DashboardContent() {
         setLoading(true);
         setError(null);
 
+        // Don't load if clientId is still loading or not available
+        if (clientIdLoading || !clientId) {
+          setLoading(false);
+          return;
+        }
+
         const twoDaysAgo = new Date(
           Date.now() - 48 * 60 * 60 * 1000
         ).toISOString();
