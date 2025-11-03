@@ -37,6 +37,7 @@ interface TopNavigationBarProps {
   onSearch?: (query: string) => void;
   onMenuClick?: () => void;
   className?: string;
+  menuButtonRef?: React.RefObject<HTMLButtonElement>;
 }
 
 export const TopNavigationBar = ({
@@ -45,6 +46,7 @@ export const TopNavigationBar = ({
   onSearch,
   onMenuClick,
   className,
+  menuButtonRef,
 }: TopNavigationBarProps) => {
   const isMobile = useIsMobile();
   const { user, signOut, signInWithGoogle } = useAuth();
@@ -66,10 +68,12 @@ export const TopNavigationBar = ({
           {/* Left Section - Mobile Menu */}
           <div className='flex items-center'>
             <Button
+              ref={menuButtonRef}
               variant='ghost'
               size='icon'
               onClick={onMenuClick}
               className='h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-gray-200 rounded-md'
+              aria-label='Open navigation menu'
             >
               <Menu className='h-4 w-4' />
             </Button>

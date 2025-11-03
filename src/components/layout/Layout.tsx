@@ -14,6 +14,8 @@
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useScreenReaderAnnouncement } from '@/hooks/useScreenReaderAnnouncement';
 import { cn } from '@/lib/utils';
 import {
   ReactNode,
@@ -41,8 +43,30 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   const [isMounted, setIsMounted] = useState(false);
   const isMobile = useIsMobile();
   const mainContentRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const { mediumHaptic } = useHapticFeedback();
   const pathname = usePathname();
+  const announce = useScreenReaderAnnouncement();
+
+  // Focus trap for mobile sidebar
+  const sidebarRef = useFocusTrap({
+    enabled: isMobile && sidebarOpen,
+    returnFocusRef: menuButtonRef,
+  });
+
+  // Track previous state to only announce changes
+  const prevSidebarOpen = useRef(false);
+
+  // Announce sidebar state changes to screen readers
+  useEffect(() => {
+    if (isMobile && sidebarOpen && !prevSidebarOpen.current) {
+      announce('Navigation menu opened', 'polite');
+      prevSidebarOpen.current = true;
+    } else if (isMobile && !sidebarOpen && prevSidebarOpen.current) {
+      announce('Navigation menu closed', 'polite');
+      prevSidebarOpen.current = false;
+    }
+  }, [sidebarOpen, isMobile, announce]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -157,16 +181,18 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && sidebarOpen) {
         setSidebarOpen(false);
-        const menuButton = document.querySelector(
-          '[data-menu-button]'
-        ) as HTMLElement;
-        menuButton?.focus();
+        // Return focus to menu button with small delay for DOM update
+        requestAnimationFrame(() => {
+          menuButtonRef.current?.focus();
+        });
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [sidebarOpen]);
+    if (isMobile && sidebarOpen) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [sidebarOpen, isMobile]);
 
   useEffect(() => {
     if (isMobile && mainContentRef.current) {
@@ -182,6 +208,8 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   const topNavHeight = 49;
   const sidebarWidth = 224;
   const mobileBottomNavHeight = 80;
+  // 2025 mobile sidebar width standard: 280-300px (using 288px for better proportions)
+  const mobileSidebarWidth = 288;
 
   if (!isMounted) {
     return (
@@ -196,8 +224,10 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       {/* Mobile sidebar overlay */}
       {isMobile && sidebarOpen && (
         <div
-          className='fixed inset-0 z-40 bg-black/50'
+          className='fixed inset-0 z-40 bg-black/50 transition-opacity duration-300'
           onClick={() => setSidebarOpen(false)}
+          aria-hidden='true'
+          role='presentation'
         />
       )}
 
@@ -213,17 +243,24 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
 
       {/* Mobile Sidebar */}
       {isMobile && sidebarOpen && (
-        <aside className='fixed top-0 left-0 bottom-0 z-50 w-56 bg-sidebar border-r border-border overflow-y-auto'>
+        <aside
+          ref={sidebarRef as React.RefObject<HTMLElement>}
+          className='fixed top-0 left-0 bottom-0 z-50 bg-sidebar border-r border-border overflow-y-auto safe-area-inset-left'
+          style={{ width: `${mobileSidebarWidth}px`, maxWidth: '85vw' }}
+          aria-label='Navigation menu'
+          role='navigation'
+        >
           <Sidebar onClose={() => setSidebarOpen(false)} />
         </aside>
       )}
 
       {/* Top Navigation - Fixed position */}
       <header
-        className='fixed top-0 right-0 z-40 bg-sidebar'
+        className='fixed top-0 right-0 z-40 bg-sidebar safe-area-inset-top'
         style={{
           height: `${topNavHeight}px`,
           left: isMobile ? 0 : `${sidebarWidth}px`,
+          paddingTop: isMobile ? 'env(safe-area-inset-top, 0px)' : 0,
         }}
       >
         <TopNavigationBar
@@ -231,6 +268,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
           pageSubheading={currentPageSubheading}
           onSearch={onSearch}
           onMenuClick={() => isMobile && setSidebarOpen(true)}
+          menuButtonRef={menuButtonRef}
         />
       </header>
 

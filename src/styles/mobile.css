@@ -201,13 +201,14 @@ button[title*='Favorite'] {
     z-index: 40;
   }
 
-  /* Mobile sidebar */
+  /* Mobile sidebar - 2025 standard width */
   .mobile-sidebar {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 280px;
+    width: 288px; /* 2025 standard: 280-300px, using 288px for better proportions */
+    max-width: 85vw; /* Responsive max width */
     background: white;
     z-index: 50;
     transform: translateX(-100%);
