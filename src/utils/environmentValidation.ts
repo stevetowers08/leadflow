@@ -3,12 +3,20 @@ export interface EnvironmentConfig {
   supabaseUrl: string;
   supabaseAnonKey: string;
   googleClientId?: string;
+  tokenEncryptionKey?: boolean; // Server-side only, check existence
+  gmailPubsubTopic?: boolean; // Server-side only, check existence
   isValid: boolean;
   errors: string[];
+  warnings: string[];
 }
 
+/**
+ * Validate CLIENT-SIDE environment variables only
+ * Server-side variables should be validated in API routes
+ */
 export function validateEnvironment(): EnvironmentConfig {
   const errors: string[] = [];
+  const warnings: string[] = [];
 
   // Safely check for required CLIENT-SIDE environment variables only
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -35,16 +43,16 @@ export function validateEnvironment(): EnvironmentConfig {
     errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY is required');
   }
 
-  // Service role key should NOT be exposed to client-side
-  // It's only used server-side and should not be validated here
-
   // Google client ID is optional
   if (
     googleClientId &&
     !googleClientId.includes('.apps.googleusercontent.com')
   ) {
-    errors.push('NEXT_PUBLIC_GOOGLE_CLIENT_ID appears to be invalid');
+    warnings.push('NEXT_PUBLIC_GOOGLE_CLIENT_ID appears to be invalid');
   }
+
+  // Server-side variables cannot be checked here (process.env access)
+  // They are validated at runtime when used in API routes
 
   return {
     supabaseUrl,
@@ -52,6 +60,49 @@ export function validateEnvironment(): EnvironmentConfig {
     googleClientId,
     isValid: errors.length === 0,
     errors,
+    warnings,
+  };
+}
+
+/**
+ * Validate SERVER-SIDE environment variables
+ * Use this in API routes and server components
+ */
+export function validateServerEnvironment(): {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+} {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // Check required server-side variables
+  const tokenEncryptionKey = process.env.TOKEN_ENCRYPTION_KEY;
+  if (!tokenEncryptionKey) {
+    errors.push(
+      'TOKEN_ENCRYPTION_KEY is required for token encryption (server-side)'
+    );
+  }
+
+  // Gmail Pub/Sub topic is required for Gmail watch functionality
+  const gmailPubsubTopic = process.env.GMAIL_PUBSUB_TOPIC;
+  if (!gmailPubsubTopic) {
+    warnings.push(
+      'GMAIL_PUBSUB_TOPIC is recommended for Gmail watch functionality (server-side)'
+    );
+  }
+
+  // Validate format if set
+  if (gmailPubsubTopic && !gmailPubsubTopic.startsWith('projects/')) {
+    errors.push(
+      'GMAIL_PUBSUB_TOPIC must be in format: projects/{PROJECT_ID}/topics/{TOPIC_NAME}'
+    );
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
   };
 }
 
@@ -63,7 +114,7 @@ export function logEnvironmentStatus(): void {
 
   const config = validateEnvironment();
 
-  console.group('🔧 Environment Configuration');
+  console.group('🔧 Environment Configuration (Client-Side)');
   console.log('Supabase URL:', config.supabaseUrl ? '✅ Set' : '❌ Missing');
   console.log(
     'Supabase Anon Key:',
@@ -73,13 +124,18 @@ export function logEnvironmentStatus(): void {
     'Google Client ID:',
     config.googleClientId ? '✅ Set' : '❌ Missing'
   );
-  console.log('ℹ️ Service Role Key: Not exposed to client-side (server-only)');
+  console.log('ℹ️ Server-side variables: Validated at runtime in API routes');
+
+  if (config.warnings.length > 0) {
+    console.warn('⚠️ Warnings:');
+    config.warnings.forEach(warning => console.warn(`  - ${warning}`));
+  }
 
   if (!config.isValid) {
     console.error('❌ Environment validation failed:');
     config.errors.forEach(error => console.error(`  - ${error}`));
   } else {
-    console.log('✅ All environment variables are valid');
+    console.log('✅ All client-side environment variables are valid');
   }
   console.groupEnd();
 }

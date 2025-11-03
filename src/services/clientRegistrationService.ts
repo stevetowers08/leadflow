@@ -1,14 +1,38 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Client, UserProfile } from '@/types/database';
+import { createClient } from '@supabase/supabase-js';
 
 export interface ClientRegistrationData {
   name: string;
   email: string;
   companyName: string;
-  password: string;
   fullName?: string;
   industry?: string;
   contactPhone?: string;
+  // Password is optional - if not provided, invitation link will be sent
+  password?: string;
+}
+
+// Get admin client for server-side operations (only works in API routes or server components)
+function getAdminClient() {
+  // Only works in server-side context (API routes, server components)
+  if (typeof window !== 'undefined') {
+    throw new Error('Admin client can only be used server-side. Use API route /api/clients/invite instead.');
+  }
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Missing Supabase admin credentials');
+  }
+  
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 }
 
 export interface ClientRegistrationResult {
@@ -35,24 +59,53 @@ export async function registerNewClient(
 ): Promise<ClientRegistrationResult> {
   try {
     // Validate input
-    if (
-      !registrationData.email ||
-      !registrationData.password ||
-      !registrationData.name
-    ) {
+    if (!registrationData.email || !registrationData.name) {
       return {
         success: false,
-        error: 'Missing required fields',
+        error: 'Missing required fields (email and company name)',
       };
     }
 
-    // Step 1: Create auth user
+    const fullName = registrationData.fullName || registrationData.email.split('@')[0];
+
+    // If no password provided, use API route for server-side registration with invitation
+    if (!registrationData.password) {
+      // Use API route to handle server-side registration with invitation link
+      const response = await fetch('/api/clients/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: registrationData.name,
+          email: registrationData.email,
+          companyName: registrationData.companyName,
+          fullName: fullName,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to create client');
+      }
+
+      // Return the result from API route (includes invitation link)
+      return {
+        success: true,
+        client: result.client as Client,
+        userProfile: result.userProfile as UserProfile,
+      };
+    }
+
+    // Password provided: Use regular sign-up flow
+    // Step 1: Create auth user with password
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: registrationData.email,
       password: registrationData.password,
       options: {
         data: {
-          full_name: registrationData.fullName || registrationData.name,
+          full_name: fullName,
           company: registrationData.companyName,
         },
       },
@@ -86,18 +139,14 @@ export async function registerNewClient(
     }
 
     // Step 3: Create client record
+    // NOTE: Actual database schema: id, name, email, company, accounts, created_at, updated_at
     const { data: clientData, error: clientError } = await supabase
       .from('clients')
       .insert({
         name: registrationData.name,
-        company_name: registrationData.companyName,
-        contact_email: registrationData.email,
-        contact_phone: registrationData.contactPhone,
-        industry: registrationData.industry,
-        subscription_tier: 'starter',
-        subscription_status: 'trial',
-        is_active: true,
-        settings: {},
+        email: registrationData.email,
+        company: registrationData.companyName || registrationData.name,
+        accounts: {}, // Store additional data in accounts JSONB if needed
       })
       .select()
       .single();
@@ -130,13 +179,16 @@ export async function registerNewClient(
     }
 
     // Step 5: Create default job filter config (optional)
+    // NOTE: platform field is REQUIRED in actual database
+    // Config is inactive by default - user must configure and activate it
     const { error: configError } = await supabase
       .from('job_filter_configs')
       .insert({
         client_id: clientData.id,
         user_id: userId,
         config_name: 'Default Configuration',
-        is_active: true,
+        platform: 'linkedin', // Required field - default to LinkedIn
+        is_active: false, // Inactive until user configures it
       });
 
     if (configError) {
@@ -225,6 +277,26 @@ export async function registerClientAfterOAuth(
       });
 
     if (clientUserError) throw clientUserError;
+
+    // Step 4: Create default job filter config (inactive by default)
+    // Same as regular registration - user must configure and activate it
+    const { error: configError } = await supabase
+      .from('job_filter_configs')
+      .insert({
+        client_id: clientData.id,
+        user_id: userId,
+        config_name: 'Default Configuration',
+        platform: 'linkedin', // Required field - default to LinkedIn
+        is_active: false, // Inactive until user configures it
+      });
+
+    if (configError) {
+      console.warn(
+        'Warning: Could not create default filter config:',
+        configError
+      );
+      // Don't fail the whole registration for this
+    }
 
     return {
       success: true,

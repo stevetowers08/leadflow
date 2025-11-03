@@ -25,6 +25,7 @@ import { serverAIService } from '@/services/serverAIService';
 import { formatLocation } from '@/utils/locationDisplay';
 import { format } from 'date-fns';
 import { ChevronRight, Sparkles } from 'lucide-react';
+import { logger } from '@/utils/productionLogger';
 import React, {
   useCallback,
   useEffect,
@@ -364,13 +365,7 @@ const JobsContent: React.FC = () => {
   } = useQuery({
     queryKey: ['jobs-page', clientId, refreshTrigger],
     queryFn: async () => {
-      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-        console.log('🔍 Jobs queryFn executing:', {
-          bypassAuth,
-          clientId,
-          clientIdLoading,
-        });
-      }
+      // Jobs query executing
       // Don't fetch if client ID is still loading
       if (clientIdLoading && !bypassAuth) {
         return { jobs: [], sources: [] };
@@ -423,15 +418,7 @@ const JobsContent: React.FC = () => {
 
       let allJobs: Job[] = (jobsResult.data as unknown as Job[]) || [];
 
-      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-        console.log('Jobs query result:', {
-          rawCount: allJobs.length,
-          hasClientId: !!clientId,
-          hasFilterConfig: !!(
-            filterConfigResult.data && !filterConfigResult.error
-          ),
-        });
-      }
+      // Jobs query completed
 
       // Filter client_jobs to only show entries for the current client
       if (clientId) {
@@ -482,9 +469,9 @@ const JobsContent: React.FC = () => {
   const jobs = jobsData?.jobs || [];
   const loading = jobsLoading;
 
-  // Debug logging
-  if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-    console.log('🔍 Jobs data extraction:', {
+  // Jobs data extracted
+  if (process.env.NODE_ENV === 'development') {
+    logger.debug('Jobs data extraction:', {
       hasJobsData: !!jobsData,
       jobsLength: jobs.length,
       jobsDataType: Array.isArray(jobs) ? 'array' : typeof jobs,
@@ -605,9 +592,9 @@ const JobsContent: React.FC = () => {
   const endIndex = startIndex + pageSize;
   const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
 
-  // Debug logging
-  if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-    console.log('🔍 Pagination Debug:', {
+  // Pagination debug (development only)
+  if (process.env.NODE_ENV === 'development') {
+    logger.debug('Pagination Debug:', {
       jobsLength: jobs.length,
       activeTab,
       filteredJobsLength: filteredJobs.length,

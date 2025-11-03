@@ -75,11 +75,17 @@ export async function POST(request: NextRequest) {
           continue; // Not expiring soon, skip
         }
 
+        // Validate Gmail Pub/Sub topic environment variable
+        const pubsubTopic = process.env.GMAIL_PUBSUB_TOPIC;
+        if (!pubsubTopic) {
+          console.error('GMAIL_PUBSUB_TOPIC environment variable is required');
+          errorCount++;
+          continue;
+        }
+
         // Set up new Gmail watch
         const watchRequest = {
-          topicName:
-            process.env.GMAIL_PUBSUB_TOPIC ||
-            'projects/your-project-id/topics/gmail-replies',
+          topicName: pubsubTopic,
           labelIds: ['INBOX'],
         };
 

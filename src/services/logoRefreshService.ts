@@ -4,6 +4,7 @@
  */
 
 import { refreshStaleLogos, getLogoStats } from '@/services/logoService';
+import { logger } from '@/utils/productionLogger';
 
 class LogoRefreshService {
   private intervalId: NodeJS.Timeout | null = null;
@@ -14,13 +15,11 @@ class LogoRefreshService {
    */
   start(intervalMinutes: number = 60): void {
     if (this.intervalId) {
-      console.log('Logo refresh service already running');
+      logger.debug('Logo refresh service already running');
       return;
     }
 
-    console.log(
-      `Starting logo refresh service (every ${intervalMinutes} minutes)`
-    );
+    logger.info(`Starting logo refresh service (every ${intervalMinutes} minutes)`);
 
     // Run immediately
     this.runRefresh();
@@ -41,7 +40,7 @@ class LogoRefreshService {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
-      console.log('Logo refresh service stopped');
+      logger.debug('Logo refresh service stopped');
     }
   }
 
@@ -50,27 +49,27 @@ class LogoRefreshService {
    */
   private async runRefresh(): Promise<void> {
     if (this.isRunning) {
-      console.log('Logo refresh already in progress, skipping...');
+      logger.debug('Logo refresh already in progress, skipping...');
       return;
     }
 
     this.isRunning = true;
 
     try {
-      console.log('🔄 Starting logo refresh...');
+      logger.info('Starting logo refresh...');
 
       // Get stats before refresh
       const statsBefore = await getLogoStats();
-      console.log('📊 Logo stats before refresh:', statsBefore);
+      logger.debug('Logo stats before refresh:', statsBefore);
 
       // Run refresh
       await refreshStaleLogos();
 
       // Get stats after refresh
       const statsAfter = await getLogoStats();
-      console.log('📊 Logo stats after refresh:', statsAfter);
+      logger.debug('Logo stats after refresh:', statsAfter);
 
-      console.log('✅ Logo refresh completed');
+      logger.info('Logo refresh completed');
     } catch (error) {
       console.error('❌ Error during logo refresh:', error);
     } finally {

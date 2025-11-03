@@ -34,11 +34,16 @@ export const useGlobalErrorHandler = () => {
 
       // In production, send to monitoring service
       if (process.env.NODE_ENV === 'production') {
-        // fetch('/api/errors', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(errorReport)
-        // }).catch(console.error);
+        fetch('/api/errors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(errorReport),
+        }).catch((err) => {
+          // Silently fail - don't log error reporting failures
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Failed to report error:', err);
+          }
+        });
       }
     };
 
@@ -56,11 +61,16 @@ export const useGlobalErrorHandler = () => {
 
       // In production, send to monitoring service
       if (process.env.NODE_ENV === 'production') {
-        // fetch('/api/errors', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(errorReport)
-        // }).catch(console.error);
+        fetch('/api/errors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(errorReport),
+        }).catch((err) => {
+          // Silently fail - don't log error reporting failures
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Failed to report error:', err);
+          }
+        });
       }
     };
 
@@ -166,9 +176,10 @@ export const usePerformanceMonitoring = () => {
           });
         } else if (entry.entryType === 'measure') {
           // Only log slow measures (>100ms) in verbose mode, or errors (>500ms) always
-          if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          // Custom measures (development only)
+          if (process.env.NODE_ENV === 'development') {
             if (entry.duration > 100 || entry.name.includes('Page') || entry.name.includes('Load')) {
-              console.log(`Custom Measure: ${entry.name} ${entry.duration.toFixed(2)}ms`);
+              // Log slow measures in development only
             }
           } else if (entry.duration > 500) {
             console.warn(`⚠️ Slow operation: ${entry.name} took ${entry.duration.toFixed(2)}ms`);

@@ -159,3 +159,4 @@ npm run db:schema companies name
 - [Database Queries](queries.md) - Query patterns and best practices
 - [RLS Policies](../../02-architecture/rls-policies.md) - Security policies
 
+

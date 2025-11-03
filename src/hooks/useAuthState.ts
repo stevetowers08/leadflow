@@ -86,6 +86,13 @@ export const useAuthState = () => {
       }
 
       console.log('✅ Sign out successful - state cleared');
+      
+      // Redirect to home page after sign out
+      // The auth guard will show sign-in page if needed
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+      
       return { error: null };
     } catch (error) {
       const authError = error as AuthError;
@@ -99,6 +106,12 @@ export const useAuthState = () => {
       sessionStorage.clear();
 
       console.log('✅ State cleared despite sign out error');
+      
+      // Redirect even on error
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+      
       return { error: null }; // Return success since state is cleared
     }
   }, [user?.email]);

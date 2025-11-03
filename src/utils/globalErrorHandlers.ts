@@ -15,7 +15,7 @@ export async function initializeErrorHandling(
     // Initialize the Supabase error service
     await supabaseErrorService.initialize(adminEmail);
 
-    console.log('✅ Error handling system initialized');
+    // Error handling system initialized
   } catch (error) {
     console.error('❌ Failed to initialize error handling:', error);
   }
@@ -101,7 +101,7 @@ export function setupGlobalErrorHandlers(): void {
     }
   };
 
-  console.log('✅ Global error handlers set up');
+  // Global error handlers set up
 }
 
 // React Error Boundary integration

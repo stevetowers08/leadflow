@@ -48,23 +48,39 @@ const BusinessProfileSettings = () => {
         const { data, error: fetchError } = await supabase
           .from('business_profiles')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('created_by', user.id)
           .single();
 
         if (fetchError && fetchError.code !== 'PGRST116') {
-          // PGRST116 = no rows returned, which is fine
-          console.error('Error loading business profile:', fetchError);
+          // PGRST116 = no rows returned, which is fine (user hasn't created profile yet)
+          // Log other errors with better detail
+          console.error('Error loading business profile:', {
+            code: fetchError.code,
+            message: fetchError.message,
+            details: fetchError.details,
+            hint: fetchError.hint,
+          });
+          setError(null); // Don't set error state for "no rows" - it's expected
           return;
         }
 
         if (data) {
           setCompanyName(data.company_name || '');
           setIndustry(data.industry || '');
-          setTargetAudience(data.target_audience || '');
-          setBusinessGoals(data.business_goals || '');
+          // Map actual database fields to component state
+          // Note: target_audience and business_goals don't exist in DB schema
+          // Using ideal_customer_profile as target_audience fallback
+          setTargetAudience((data.ideal_customer_profile as string) || '');
+          // business_goals field doesn't exist in DB - keeping empty or could use qualification_criteria
+          setBusinessGoals('');
         }
       } catch (err) {
-        console.error('Error loading business profile:', err);
+        console.error('Error loading business profile:', {
+          error: err,
+          message: err instanceof Error ? err.message : 'Unknown error',
+          stack: err instanceof Error ? err.stack : undefined,
+        });
+        setError('Failed to load business profile');
       } finally {
         setInitialLoad(false);
       }
@@ -87,20 +103,25 @@ const BusinessProfileSettings = () => {
     setSuccess(false);
 
     try {
-      // Check if profile exists
+      // Check if profile exists (using created_by, not user_id)
       const { data: existing } = await supabase
         .from('business_profiles')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('created_by', user.id)
         .single();
 
+      // Map component fields to actual database schema
+      // Note: target_audience and business_goals don't exist in DB
+      // Store target_audience in ideal_customer_profile
       const profileData = {
-        user_id: user.id,
+        created_by: user.id, // Use created_by, not user_id
         company_name: companyName,
         industry: industry || null,
-        target_audience: targetAudience || null,
-        business_goals: businessGoals || null,
-        ideal_customer_profile: {},
+        ideal_customer_profile: targetAudience || null, // Store target_audience here
+        // business_goals doesn't exist in schema - could store in qualification_criteria or leave null
+        qualification_criteria: businessGoals 
+          ? { business_goals: businessGoals } 
+          : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -111,14 +132,17 @@ const BusinessProfileSettings = () => {
         const { error: updateError } = await supabase
           .from('business_profiles')
           .update(profileData)
-          .eq('user_id', user.id);
+          .eq('created_by', user.id);
 
         error = updateError;
       } else {
         // Create new profile
         const { error: insertError } = await supabase
           .from('business_profiles')
-          .insert(profileData);
+          .insert({
+            ...profileData,
+            created_at: new Date().toISOString(),
+          });
 
         error = insertError;
       }

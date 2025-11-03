@@ -43,6 +43,7 @@ import {
   X,
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
+import { logger } from '@/utils/productionLogger';
 
 interface FloatingChatWidgetProps {
   className?: string;
@@ -101,36 +102,34 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
       try {
         if (chatMode === 'internal') {
           // Use data-aware Gemini service
-          console.log('Initializing internal data-aware chat service');
+          logger.debug('Initializing internal data-aware chat service');
           setChatService(null); // No ChatService needed for internal mode
           const connected = dataAwareGeminiChatService.isAvailable();
-          console.log('Internal service available:', connected);
+          logger.debug('Internal service available:', connected);
           setIsConnected(connected);
 
           if (connected) {
-            console.log('Data-aware chat service ready');
+            logger.debug('Data-aware chat service ready');
           } else {
-            console.log(
-              'Data-aware chat service not available - check Gemini API key'
-            );
+            logger.warn('Data-aware chat service not available - check Gemini API key');
           }
         } else {
           // Use MCP/webhook service
-          console.log('Initializing MCP chat service with config:', config);
+          logger.debug('Initializing MCP chat service with config:', config);
           const service = new ChatService(config);
           setChatService(service);
-          console.log('Chat service created:', service);
+          logger.debug('Chat service created');
 
           // Test connection
-          console.log('Testing MCP connection...');
+          logger.debug('Testing MCP connection...');
           const connected = await service.testConnection();
-          console.log('MCP connection test result:', connected);
+          logger.debug('MCP connection test result:', connected);
           setIsConnected(connected);
 
           if (connected) {
-            console.log('Chat service connected to MCP webhook');
+            logger.debug('Chat service connected to MCP webhook');
           } else {
-            console.log('Chat service failed to connect to webhook');
+            logger.warn('Chat service failed to connect to webhook');
           }
         }
       } catch (error) {
@@ -234,12 +233,12 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
   };
 
   const handleSendMessage = async (content: string) => {
-    console.log('handleSendMessage called with:', content);
-    console.log('chatMode:', chatMode);
-    console.log('isConnected:', isConnected);
+    logger.debug('handleSendMessage called with:', content);
+    logger.debug('chatMode:', chatMode);
+    logger.debug('isConnected:', isConnected);
 
     if (!content.trim()) {
-      console.log('Early return: content missing');
+      logger.debug('Early return: content missing');
       return;
     }
 
@@ -265,7 +264,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
 
       if (chatMode === 'internal') {
         // Use data-aware Gemini service
-        console.log('Using internal data-aware service...');
+        logger.debug('Using internal data-aware service...');
 
         // Update chat context with new message
         const updatedContext: ChatContext = {
@@ -330,7 +329,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
           throw new Error('MCP chat service not available');
         }
 
-        console.log('Using MCP service...');
+        logger.debug('Using MCP service...');
         let accumulatedContent = '';
 
         await chatService.sendMessageStream(
@@ -344,7 +343,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
             stream: true,
           },
           chunk => {
-            console.log('Received chunk:', chunk);
+            logger.debug('Received chunk:', chunk);
             if (
               chunk.conversationId &&
               chunk.conversationId !== conversationId

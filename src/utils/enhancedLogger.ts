@@ -139,20 +139,23 @@ class EnhancedLogger {
         'navigation'
       )[0] as PerformanceNavigationTiming;
 
-      this.info('Page Load Performance', {
-        componentName: 'Performance',
-        action: 'pageLoad',
-        metadata: {
-          loadTime: navigation.loadEventEnd - navigation.loadEventStart,
-          domContentLoaded:
-            navigation.domContentLoadedEventEnd -
-            navigation.domContentLoadedEventStart,
-          firstPaint: performance.getEntriesByName('first-paint')[0]?.startTime,
-          firstContentfulPaint: performance.getEntriesByName(
-            'first-contentful-paint'
-          )[0]?.startTime,
-        },
-      });
+      // Page Load Performance (development only)
+      if (process.env.NODE_ENV === 'development') {
+        this.info('Page Load Performance', {
+          componentName: 'Performance',
+          action: 'pageLoad',
+          metadata: {
+            loadTime: navigation.loadEventEnd - navigation.loadEventStart,
+            domContentLoaded:
+              navigation.domContentLoadedEventEnd -
+              navigation.domContentLoadedEventStart,
+            firstPaint: performance.getEntriesByName('first-paint')[0]?.startTime,
+            firstContentfulPaint: performance.getEntriesByName(
+              'first-contentful-paint'
+            )[0]?.startTime,
+          },
+        });
+      }
     });
 
     // Log memory usage periodically
@@ -426,7 +429,8 @@ export const LoggingProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   React.useEffect(() => {
     // Only log on client-side and in development/verbose mode
-    if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true')) {
+    // Application started (development only)
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
       logger.info('Application started', {
         componentName: 'App',
         action: 'start',

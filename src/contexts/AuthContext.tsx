@@ -152,14 +152,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
-        console.log('🔐 Initializing authentication...');
+        // Initializing authentication
         authState.setError(null);
 
         const authConfig = getAuthConfig();
 
         // Handle bypass auth mode
         if (authConfig.bypassAuth) {
-          console.log('🔓 Bypass auth enabled - using mock user');
+          // Bypass auth enabled - using mock user
           const mockUser = getMockUser();
           const mockUserProfile = getMockUserProfile();
 

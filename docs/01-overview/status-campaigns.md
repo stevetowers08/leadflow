@@ -174,3 +174,4 @@ CREATE TYPE people_stage_enum AS ENUM (
 - [Product Overview](product-overview.md) - Overall product context
 - [Database Schema](../06-reference/database/schema.md) - Complete schema reference
 
+

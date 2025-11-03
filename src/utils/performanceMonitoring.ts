@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { logger } from './logger';
+import { logger } from './productionLogger';
 
 // Performance metrics interfaces
 export interface PerformanceMetrics {
@@ -80,7 +80,7 @@ class PerformanceMonitor {
     // Monitor custom metrics
     this.observeCustomMetrics();
 
-    logger.info('Performance monitoring initialized');
+    // Performance monitoring initialized
   }
 
   // Stop monitoring

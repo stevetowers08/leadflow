@@ -351,17 +351,7 @@ export function UnifiedTable<T = unknown>({
       );
     }
 
-    // Debug logging
-    if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-      console.log('🔍 UnifiedTable render:', {
-        hasData: !!data,
-        dataLength: Array.isArray(data) ? data.length : 'not array',
-        dataType: typeof data,
-        dataSample: Array.isArray(data) && data.length > 0 ? data[0] : null,
-        loading,
-        columnsCount: columns.length,
-      });
-    }
+    // UnifiedTable render (development only)
 
     if (!data || data.length === 0) {
       return (
@@ -591,17 +581,7 @@ export function UnifiedTable<T = unknown>({
                   );
                 }
 
-                // Debug: Log what path we're taking
-                if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-                  console.log('🔍 TableBody rendering path:', {
-                    grouped,
-                    hasGroups: !!groups && Array.isArray(groups),
-                    groupsLength:
-                      groups && Array.isArray(groups) ? groups.length : 0,
-                    dataIsArray: Array.isArray(data),
-                    dataLength: Array.isArray(data) ? data.length : 'not array',
-                  });
-                }
+                // TableBody rendering path (development only)
 
                 return grouped &&
                   groups &&

@@ -16,7 +16,7 @@
 
 import { ClearbitLogoSync } from '@/components/ClearbitLogo';
 import { FloatingActionBar } from '@/components/people/FloatingActionBar';
-import { StatusDropdown } from '@/components/people/StatusDropdown';
+import { UnifiedStatusDropdown as StatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { ScoreBadge } from '@/components/shared/ScoreBadge';
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';

@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import type { JobFilters } from '@/lib/queryKeys';
+import { logger } from '@/utils/productionLogger';
 
 export type Job = Tables<'jobs'> & {
   company_name?: string;
@@ -23,7 +24,7 @@ export type Job = Tables<'jobs'> & {
 
 export const jobsService = {
   async getJobs(filters: JobFilters = {}): Promise<Job[]> {
-    console.log('🔍 JobsService.getJobs called with filters:', filters);
+    logger.debug('JobsService.getJobs called with filters:', filters);
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -47,12 +48,12 @@ export const jobsService = {
       throw error;
     }
 
-    console.log('✅ JobsService.getJobs success:', data?.length || 0, 'jobs');
+    logger.debug('JobsService.getJobs success:', data?.length || 0, 'jobs');
     return data || [];
   },
 
   async getJob(id: string): Promise<Job> {
-    console.log('🔍 JobsService.getJob called with id:', id);
+    logger.debug('JobsService.getJob called with id:', id);
 
     const { data, error } = await supabase
       .from('jobs')
@@ -65,12 +66,12 @@ export const jobsService = {
       throw error;
     }
 
-    console.log('✅ JobsService.getJob success:', data);
+    logger.debug('JobsService.getJob success:', data);
     return data;
   },
 
   async updateJob(id: string, updates: Partial<Job>): Promise<Job> {
-    console.log('🔍 JobsService.updateJob called:', { id, updates });
+    logger.debug('JobsService.updateJob called:', { id, updates });
 
     const { data, error } = await supabase
       .from('jobs')
@@ -84,12 +85,12 @@ export const jobsService = {
       throw error;
     }
 
-    console.log('✅ JobsService.updateJob success:', data);
+    logger.debug('JobsService.updateJob success:', data);
     return data;
   },
 
   async createJob(job: Omit<Job, 'id' | 'created_at'>): Promise<Job> {
-    console.log('🔍 JobsService.createJob called:', job);
+    logger.debug('JobsService.createJob called:', job);
 
     const { data, error } = await supabase
       .from('jobs')
@@ -102,12 +103,12 @@ export const jobsService = {
       throw error;
     }
 
-    console.log('✅ JobsService.createJob success:', data);
+    logger.debug('JobsService.createJob success:', data);
     return data;
   },
 
   async deleteJob(id: string): Promise<void> {
-    console.log('🔍 JobsService.deleteJob called with id:', id);
+    logger.debug('JobsService.deleteJob called with id:', id);
 
     const { error } = await supabase.from('jobs').delete().eq('id', id);
 
@@ -116,6 +117,6 @@ export const jobsService = {
       throw error;
     }
 
-    console.log('✅ JobsService.deleteJob success');
+    logger.debug('JobsService.deleteJob success');
   },
 };

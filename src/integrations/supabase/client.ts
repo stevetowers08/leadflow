@@ -84,10 +84,7 @@ function getSupabaseClient() {
       }
     );
 
-    // Only log in development
-    if (IS_DEVELOPMENT) {
-      console.log('✅ Supabase client created successfully');
-    }
+    // Supabase client created successfully
 
     // Test connection (async, non-blocking) - only on client
     if (typeof window !== 'undefined') {

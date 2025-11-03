@@ -66,11 +66,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate Gmail Pub/Sub topic environment variable
+    const pubsubTopic = process.env.GMAIL_PUBSUB_TOPIC;
+    if (!pubsubTopic) {
+      return APIErrorHandler.handleError(
+        new Error('GMAIL_PUBSUB_TOPIC environment variable is required'),
+        'gmail-watch-setup'
+      );
+    }
+
     // Set up Gmail watch
     const watchRequest: GmailWatchRequest = {
-      topicName:
-        process.env.GMAIL_PUBSUB_TOPIC ||
-        'projects/your-project-id/topics/gmail-replies',
+      topicName: pubsubTopic,
       labelIds: ['INBOX'],
     };
 

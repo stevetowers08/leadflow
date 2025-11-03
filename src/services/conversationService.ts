@@ -42,13 +42,11 @@ export interface ConversationMessage {
 export class ConversationService {
   async testConnection(): Promise<boolean> {
     try {
-      console.log('Testing Supabase connection...');
       const { data, error } = await supabase
         .from('people')
         .select('id')
         .limit(1);
 
-      console.log('Test result:', { data, error });
       return !error;
     } catch (err) {
       console.error('Test connection error:', err);
@@ -60,7 +58,7 @@ export class ConversationService {
     isRead?: boolean;
     personId?: string;
   }): Promise<Conversation[]> {
-    console.log('getConversations called with filters:', filters);
+    // Get conversations with filters
 
     // Get people who have conversations (messaged, replied, connected stages)
     let query = supabase
@@ -95,8 +93,7 @@ export class ConversationService {
       throw error;
     }
 
-    console.log('Raw data from Supabase:', data);
-    console.log('Data length:', data?.length);
+    // Transform raw data to conversation format
 
     // Transform people data to conversation format
     return (data || []).map(person => ({

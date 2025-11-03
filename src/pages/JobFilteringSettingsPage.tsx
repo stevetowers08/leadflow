@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TabNavigation, TabOption } from '@/components/ui/tab-navigation';
-import { Page } from '@/design-system/components';
 import {
   useCreateJobFilterConfig,
   useJobFilterConfigs,
@@ -25,6 +24,7 @@ import {
 import { Check, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { SettingsSidebar } from '@/components/crm/settings/SettingsSidebar';
 
 // Simple options based on actual database data
 const JOB_TITLES = [
@@ -218,15 +218,20 @@ function JobFilteringSettingsPageContent() {
 
   if (isLoading) {
     return (
-      <Page title='Job Discovery Configuration' hideHeader>
-        <div className='max-w-4xl mx-auto space-y-8'>
-          <div className='animate-pulse space-y-4'>
-            <div className='h-8 bg-gray-200 rounded w-1/3'></div>
-            <div className='h-4 bg-gray-200 rounded w-1/2'></div>
-            <div className='h-32 bg-gray-200 rounded'></div>
+      <div className='flex bg-white h-full overflow-hidden'>
+        <SettingsSidebar activeSection='job-filtering' />
+        <div className='flex-1 overflow-y-auto'>
+          <div className='p-6'>
+            <div className='max-w-4xl mx-auto space-y-8'>
+              <div className='animate-pulse space-y-4'>
+                <div className='h-8 bg-gray-200 rounded w-1/3'></div>
+                <div className='h-4 bg-gray-200 rounded w-1/2'></div>
+                <div className='h-32 bg-gray-200 rounded'></div>
+              </div>
+            </div>
           </div>
         </div>
-      </Page>
+      </div>
     );
   }
 
@@ -248,256 +253,272 @@ function JobFilteringSettingsPageContent() {
   ];
 
   return (
-    <Page title='Job Discovery Configuration' hideHeader>
-      <div className='space-y-6'>
-        {/* Platform Tabs - Using App's TabNavigation */}
-        <TabNavigation
-          tabs={tabs}
-          activeTab={activePlatform}
-          onTabChange={tabId => setActivePlatform(tabId as 'linkedin' | 'seek')}
-        />
+    <div className='flex bg-white h-full overflow-hidden'>
+      {/* Left Sidebar - Settings Navigation */}
+      <SettingsSidebar activeSection='job-filtering' />
 
-        {/* Platform Toggle */}
-        <div className='flex items-center justify-between p-4 border rounded-lg'>
-          <div>
-            <h3 className='font-medium'>
-              {activePlatform.charAt(0).toUpperCase() + activePlatform.slice(1)}{' '}
-              Configuration
-            </h3>
-            <p className='text-sm text-muted-foreground'>
-              {currentConfig?.is_active ? 'Active' : 'Inactive'}
-            </p>
-          </div>
-          <Button
-            variant={currentConfig?.is_active ? 'destructive' : 'default'}
-            onClick={togglePlatform}
-            disabled={!currentConfig}
-          >
-            {currentConfig?.is_active ? 'Off' : 'On'}
-          </Button>
-        </div>
+      {/* Main Content Area */}
+      <div className='flex-1 overflow-y-auto'>
+        <div className='p-6'>
+          <div className='space-y-6'>
+            {/* Page Title */}
+            <div>
+              <h1 className='text-2xl font-bold text-foreground'>Job Discovery Configuration</h1>
+              <p className='text-sm text-muted-foreground mt-1'>
+                Set up automated job posting monitoring
+              </p>
+            </div>
 
-        {/* Configuration Form */}
-        <div className='space-y-4'>
-          {/* Basic Setup */}
-          <div className='space-y-3'>
-            <h2 className='text-lg font-semibold'>Basic Setup</h2>
+            {/* Platform Tabs - Using App's TabNavigation */}
+            <TabNavigation
+              tabs={tabs}
+              activeTab={activePlatform}
+              onTabChange={tabId => setActivePlatform(tabId as 'linkedin' | 'seek')}
+            />
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div className='space-y-2'>
-                <Label htmlFor='config_name'>Configuration Name</Label>
-                <Input
-                  id='config_name'
-                  value={formData.config_name || ''}
-                  onChange={e =>
-                    setFormData(prev => ({
-                      ...prev,
-                      config_name: e.target.value,
-                    }))
-                  }
-                  placeholder='e.g., LinkedIn Software Jobs'
-                />
+            {/* Platform Toggle */}
+            <div className='flex items-center justify-between p-4 border rounded-lg'>
+              <div>
+                <h3 className='font-medium'>
+                  {activePlatform.charAt(0).toUpperCase() + activePlatform.slice(1)}{' '}
+                  Configuration
+                </h3>
+                <p className='text-sm text-muted-foreground'>
+                  {currentConfig?.is_active ? 'Active' : 'Inactive'}
+                </p>
               </div>
-              <div className='space-y-2'>
-                <Label htmlFor='primary_location'>Location</Label>
-                <Select
-                  value={formData.primary_location || ''}
-                  onValueChange={value =>
-                    setFormData(prev => ({
-                      ...prev,
-                      primary_location: value,
-                    }))
-                  }
+              <Button
+                variant={currentConfig?.is_active ? 'destructive' : 'default'}
+                onClick={togglePlatform}
+                disabled={!currentConfig}
+              >
+                {currentConfig?.is_active ? 'Off' : 'On'}
+              </Button>
+            </div>
+
+            {/* Configuration Form */}
+            <div className='space-y-4'>
+              {/* Basic Setup */}
+              <div className='space-y-3'>
+                <h2 className='text-lg font-semibold'>Basic Setup</h2>
+
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                  <div className='space-y-2'>
+                    <Label htmlFor='config_name'>Configuration Name</Label>
+                    <Input
+                      id='config_name'
+                      value={formData.config_name || ''}
+                      onChange={e =>
+                        setFormData(prev => ({
+                          ...prev,
+                          config_name: e.target.value,
+                        }))
+                      }
+                      placeholder='e.g., LinkedIn Software Jobs'
+                    />
+                  </div>
+                  <div className='space-y-2'>
+                    <Label htmlFor='primary_location'>Location</Label>
+                    <Select
+                      value={formData.primary_location || ''}
+                      onValueChange={value =>
+                        setFormData(prev => ({
+                          ...prev,
+                          primary_location: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select location' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LOCATIONS.map(location => (
+                          <SelectItem key={location} value={location}>
+                            {location}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Job Titles */}
+              <div className='space-y-3'>
+                <h2 className='text-lg font-semibold'>Job Titles</h2>
+                <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2'>
+                  {JOB_TITLES.map(title => (
+                    <Button
+                      key={title}
+                      type='button'
+                      variant={
+                        formData.target_job_titles?.includes(title)
+                          ? 'default'
+                          : 'outline'
+                      }
+                      size='sm'
+                      onClick={() =>
+                        toggleArrayItem(
+                          formData.target_job_titles,
+                          title,
+                          'target_job_titles'
+                        )
+                      }
+                      className='justify-start'
+                    >
+                      {formData.target_job_titles?.includes(title) ? (
+                        <X className='h-3 w-3 mr-2' />
+                      ) : (
+                        <span className='mr-2'>+</span>
+                      )}
+                      {title}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Industries */}
+              <div className='space-y-4'>
+                <h2 className='text-lg font-semibold'>Industries</h2>
+                <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2'>
+                  {INDUSTRIES.map(industry => (
+                    <Button
+                      key={industry}
+                      type='button'
+                      variant={
+                        formData.included_industries?.includes(industry)
+                          ? 'default'
+                          : 'outline'
+                      }
+                      size='sm'
+                      onClick={() =>
+                        toggleArrayItem(
+                          formData.included_industries,
+                          industry,
+                          'included_industries'
+                        )
+                      }
+                      className='justify-start'
+                    >
+                      {formData.included_industries?.includes(industry) ? (
+                        <X className='h-3 w-3 mr-2' />
+                      ) : (
+                        <span className='mr-2'>+</span>
+                      )}
+                      {industry}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Work Arrangements */}
+              <div className='space-y-4'>
+                <h2 className='text-lg font-semibold'>Work Arrangements</h2>
+                <div className='flex flex-wrap gap-2'>
+                  {WORK_ARRANGEMENTS.map(arrangement => (
+                    <Button
+                      key={arrangement}
+                      type='button'
+                      variant={
+                        formData.work_arrangements?.includes(arrangement)
+                          ? 'default'
+                          : 'outline'
+                      }
+                      size='sm'
+                      onClick={() =>
+                        toggleArrayItem(
+                          formData.work_arrangements,
+                          arrangement,
+                          'work_arrangements'
+                        )
+                      }
+                    >
+                      {arrangement
+                        .replace('_', ' ')
+                        .replace(/\b\w/g, l => l.toUpperCase())}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Seniority Levels */}
+              <div className='space-y-4'>
+                <h2 className='text-lg font-semibold'>Seniority Levels</h2>
+                <div className='flex flex-wrap gap-2'>
+                  {SENIORITY_LEVELS.map(level => (
+                    <Button
+                      key={level}
+                      type='button'
+                      variant={
+                        formData.seniority_levels?.includes(level)
+                          ? 'default'
+                          : 'outline'
+                      }
+                      size='sm'
+                      onClick={() =>
+                        toggleArrayItem(
+                          formData.seniority_levels,
+                          level,
+                          'seniority_levels'
+                        )
+                      }
+                    >
+                      {level
+                        .replace('-', ' ')
+                        .replace(/\b\w/g, l => l.toUpperCase())}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Company Size */}
+              <div className='space-y-4'>
+                <h2 className='text-lg font-semibold'>Company Size</h2>
+                <div className='flex flex-wrap gap-2'>
+                  {COMPANY_SIZES.map(size => (
+                    <Button
+                      key={size}
+                      type='button'
+                      variant={
+                        formData.company_size_preferences?.includes(size)
+                          ? 'default'
+                          : 'outline'
+                      }
+                      size='sm'
+                      onClick={() =>
+                        toggleArrayItem(
+                          formData.company_size_preferences,
+                          size,
+                          'company_size_preferences'
+                        )
+                      }
+                    >
+                      {size.charAt(0).toUpperCase() + size.slice(1)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className='flex justify-end pt-6 border-t'>
+                <Button
+                  onClick={handleSave}
+                  className='gap-2'
+                  disabled={createConfig.isPending || updateConfig.isPending}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select location' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {LOCATIONS.map(location => (
-                      <SelectItem key={location} value={location}>
-                        {location}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <Check className='h-4 w-4' />
+                  {createConfig.isPending || updateConfig.isPending
+                    ? 'Saving...'
+                    : currentConfig
+                      ? 'Update Configuration'
+                      : 'Create Configuration'}
+                </Button>
               </div>
             </div>
-          </div>
-
-          {/* Job Titles */}
-          <div className='space-y-3'>
-            <h2 className='text-lg font-semibold'>Job Titles</h2>
-            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2'>
-              {JOB_TITLES.map(title => (
-                <Button
-                  key={title}
-                  type='button'
-                  variant={
-                    formData.target_job_titles?.includes(title)
-                      ? 'default'
-                      : 'outline'
-                  }
-                  size='sm'
-                  onClick={() =>
-                    toggleArrayItem(
-                      formData.target_job_titles,
-                      title,
-                      'target_job_titles'
-                    )
-                  }
-                  className='justify-start'
-                >
-                  {formData.target_job_titles?.includes(title) ? (
-                    <X className='h-3 w-3 mr-2' />
-                  ) : (
-                    <span className='mr-2'>+</span>
-                  )}
-                  {title}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Industries */}
-          <div className='space-y-4'>
-            <h2 className='text-lg font-semibold'>Industries</h2>
-            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2'>
-              {INDUSTRIES.map(industry => (
-                <Button
-                  key={industry}
-                  type='button'
-                  variant={
-                    formData.included_industries?.includes(industry)
-                      ? 'default'
-                      : 'outline'
-                  }
-                  size='sm'
-                  onClick={() =>
-                    toggleArrayItem(
-                      formData.included_industries,
-                      industry,
-                      'included_industries'
-                    )
-                  }
-                  className='justify-start'
-                >
-                  {formData.included_industries?.includes(industry) ? (
-                    <X className='h-3 w-3 mr-2' />
-                  ) : (
-                    <span className='mr-2'>+</span>
-                  )}
-                  {industry}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Work Arrangements */}
-          <div className='space-y-4'>
-            <h2 className='text-lg font-semibold'>Work Arrangements</h2>
-            <div className='flex flex-wrap gap-2'>
-              {WORK_ARRANGEMENTS.map(arrangement => (
-                <Button
-                  key={arrangement}
-                  type='button'
-                  variant={
-                    formData.work_arrangements?.includes(arrangement)
-                      ? 'default'
-                      : 'outline'
-                  }
-                  size='sm'
-                  onClick={() =>
-                    toggleArrayItem(
-                      formData.work_arrangements,
-                      arrangement,
-                      'work_arrangements'
-                    )
-                  }
-                >
-                  {arrangement
-                    .replace('_', ' ')
-                    .replace(/\b\w/g, l => l.toUpperCase())}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Seniority Levels */}
-          <div className='space-y-4'>
-            <h2 className='text-lg font-semibold'>Seniority Levels</h2>
-            <div className='flex flex-wrap gap-2'>
-              {SENIORITY_LEVELS.map(level => (
-                <Button
-                  key={level}
-                  type='button'
-                  variant={
-                    formData.seniority_levels?.includes(level)
-                      ? 'default'
-                      : 'outline'
-                  }
-                  size='sm'
-                  onClick={() =>
-                    toggleArrayItem(
-                      formData.seniority_levels,
-                      level,
-                      'seniority_levels'
-                    )
-                  }
-                >
-                  {level
-                    .replace('-', ' ')
-                    .replace(/\b\w/g, l => l.toUpperCase())}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Company Size */}
-          <div className='space-y-4'>
-            <h2 className='text-lg font-semibold'>Company Size</h2>
-            <div className='flex flex-wrap gap-2'>
-              {COMPANY_SIZES.map(size => (
-                <Button
-                  key={size}
-                  type='button'
-                  variant={
-                    formData.company_size_preferences?.includes(size)
-                      ? 'default'
-                      : 'outline'
-                  }
-                  size='sm'
-                  onClick={() =>
-                    toggleArrayItem(
-                      formData.company_size_preferences,
-                      size,
-                      'company_size_preferences'
-                    )
-                  }
-                >
-                  {size.charAt(0).toUpperCase() + size.slice(1)}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Save Button */}
-          <div className='flex justify-end pt-6 border-t'>
-            <Button
-              onClick={handleSave}
-              className='gap-2'
-              disabled={createConfig.isPending || updateConfig.isPending}
-            >
-              <Check className='h-4 w-4' />
-              {createConfig.isPending || updateConfig.isPending
-                ? 'Saving...'
-                : currentConfig
-                  ? 'Update Configuration'
-                  : 'Create Configuration'}
-            </Button>
           </div>
         </div>
       </div>
-    </Page>
+    </div>
   );
 }
 

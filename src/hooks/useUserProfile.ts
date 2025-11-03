@@ -35,8 +35,9 @@ export const useUserProfile = () => {
   const loadUserProfile = useCallback(
     async (userId: string): Promise<UserProfile | null> => {
       try {
-        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-          console.log(`🔍 Loading user profile for: ${userId}`);
+        // Debug logging (development only)
+        if (process.env.NODE_ENV === 'development') {
+          // Use enhanced logger if available, otherwise silent
         }
         setProfileLoading(true);
         setProfileError(null);
@@ -48,28 +49,19 @@ export const useUserProfile = () => {
           .single();
 
         if (error) {
-          if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-            console.log(`ℹ️ No existing profile found for user: ${userId}`);
-          }
+          // Profile not found - will create new one
           return null; // Return null instead of throwing error
         }
 
-        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-          console.log('✅ Profile loaded successfully:', {
-            id: data.id,
-            email: data.email,
-            full_name: data.full_name,
-            role: data.role,
-          });
-        }
+        // Profile loaded successfully
 
         setProfileError(null);
         return data;
       } catch (error) {
-        console.log(
-          `ℹ️ Profile loading failed, will create new profile:`,
-          error
-        );
+        // Profile loading failed - will create new profile
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('Profile loading failed:', error);
+        }
         setProfileError(
           `Profile loading failed: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
@@ -85,7 +77,7 @@ export const useUserProfile = () => {
   const refreshProfile = useCallback(
     async (userId: string) => {
       try {
-        console.log('🔄 Refreshing user profile...');
+        // Refreshing user profile
         setProfileError(null);
 
         const profile = await loadUserProfile(userId);
@@ -129,7 +121,7 @@ export const useUserProfile = () => {
         }
 
         setUserProfile(data);
-        console.log('✅ Profile updated successfully');
+        // Profile updated successfully
         return data;
       } catch (error) {
         console.error('❌ Error updating profile:', error);

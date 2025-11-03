@@ -21,6 +21,7 @@ import {
   shouldBypassAuth,
 } from '@/config/auth';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { AuthPage } from '@/components/auth/AuthPage';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { PermissionsProvider } from '@/contexts/PermissionsContext';
 import { SearchProvider } from '@/contexts/SearchContext';
@@ -73,10 +74,38 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
   const { user, userProfile, loading } = useAuth();
   const bypassAuth = shouldBypassAuth();
 
+  // Show loading state while checking auth (only if not bypassing)
+  if (loading && !bypassAuth) {
+    return (
+      <div className='min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-sidebar-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to sign-in if no user and not bypassing
+  if (!bypassAuth && !user) {
+    return <AuthPage />;
+  }
+
   // Get current user and profile (real or mock)
   const currentUser = user || (bypassAuth ? getMockUser() : null);
   const currentUserProfile =
     userProfile || (bypassAuth ? getMockUserProfile() : null);
+
+  // If we're bypassing auth but still don't have a user, something is wrong
+  if (bypassAuth && !currentUser) {
+    return (
+      <div className='min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <p className='text-destructive'>Authentication configuration error</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <PermissionsProvider

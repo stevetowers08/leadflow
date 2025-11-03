@@ -217,3 +217,4 @@ npm run db:schema people
 - [Database Schema](schema.md) - Complete schema reference
 - [RLS Policies](../../02-architecture/rls-policies.md) - Security policies
 
+

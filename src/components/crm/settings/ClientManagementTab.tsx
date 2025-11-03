@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/types/database';
+import { registerNewClient } from '@/services/clientRegistrationService';
 import { Building2, Loader2, Plus, Search, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
@@ -17,16 +18,14 @@ export const ClientManagementTab: React.FC = () => {
   const { toast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
-    name: '',
-    company_name: '',
-    contact_email: '',
-    contact_phone: '',
-    industry: '',
-    subscription_tier: 'starter' as 'starter' | 'professional' | 'enterprise',
-    monthly_budget: '',
+    companyName: '',
+    email: '',
+    name: '', // User's full name
+    // Password removed - invitation link will be sent instead
   });
 
   useEffect(() => {
@@ -60,53 +59,92 @@ export const ClientManagementTab: React.FC = () => {
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      const { data, error } = await supabase
-        .from('clients')
-        .insert({
-          name: formData.name,
-          company_name: formData.company_name || formData.name,
-          contact_email: formData.contact_email,
-          contact_phone: formData.contact_phone || null,
-          industry: formData.industry || null,
-          subscription_tier: formData.subscription_tier,
-          monthly_budget: formData.monthly_budget
-            ? parseFloat(formData.monthly_budget)
-            : null,
-          subscription_status: 'trial',
-          is_active: true,
-          settings: {},
-        })
-        .select()
-        .single();
+    if (submitting) return;
+    setSubmitting(true);
 
-      if (error) throw error;
+    try {
+      // Validate required fields
+      if (!formData.companyName.trim()) {
+        toast({
+          title: 'Error',
+          description: 'Company name is required',
+          variant: 'destructive',
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      if (!formData.email || !formData.name) {
+        toast({
+          title: 'Error',
+          description: 'Email and owner name are required',
+          variant: 'destructive',
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        toast({
+          title: 'Error',
+          description: 'Please enter a valid email address',
+          variant: 'destructive',
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      // Use registerNewClient service which creates org + user atomically
+      // No password - invitation link will be sent instead
+      const result = await registerNewClient({
+        name: formData.companyName,
+        email: formData.email,
+        companyName: formData.companyName,
+        fullName: formData.name,
+        // No password - invitation link will be generated
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create client and user');
+      }
 
       toast({
         title: 'Success',
-        description: 'Client added successfully',
+        description: 'Client created successfully. Invitation link has been sent to the email address.',
       });
 
       // Reset form and close dialog
       setFormData({
+        companyName: '',
+        email: '',
         name: '',
-        company_name: '',
-        contact_email: '',
-        contact_phone: '',
-        industry: '',
-        subscription_tier: 'starter',
-        monthly_budget: '',
       });
       setShowAddDialog(false);
       fetchClients();
     } catch (error) {
       console.error('Error adding client:', error);
+
+      // Better error messages for common cases
+      let errorMessage = 'Failed to add client';
+      if (error instanceof Error) {
+        if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+          errorMessage = 'This email is already registered. Please use a different email address.';
+        } else if (error.message.includes('password')) {
+          errorMessage = 'Password validation failed. Please ensure password meets requirements.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       toast({
         title: 'Error',
-        description:
-          error instanceof Error ? error.message : 'Failed to add client',
+        description: errorMessage,
         variant: 'destructive',
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -280,121 +318,101 @@ export const ClientManagementTab: React.FC = () => {
 
       {/* Add Client Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+        <DialogContent className='sm:max-w-md'>
           <DialogHeader>
-            <DialogTitle>Add New Client</DialogTitle>
+            <DialogTitle className='text-xl font-semibold'>
+              Add New Client
+            </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleAddClient} className='space-y-4 mt-4'>
-            <div className='grid grid-cols-2 gap-4'>
-              <div className='space-y-2'>
-                <Label htmlFor='name'>
-                  Client Name <span className='text-red-500'>*</span>
-                </Label>
-                <Input
-                  id='name'
-                  value={formData.name}
-                  onChange={e =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='company_name'>Company Name</Label>
-                <Input
-                  id='company_name'
-                  value={formData.company_name}
-                  onChange={e =>
-                    setFormData({ ...formData, company_name: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className='grid grid-cols-2 gap-4'>
-              <div className='space-y-2'>
-                <Label htmlFor='contact_email'>
-                  Contact Email <span className='text-red-500'>*</span>
-                </Label>
-                <Input
-                  id='contact_email'
-                  type='email'
-                  value={formData.contact_email}
-                  onChange={e =>
-                    setFormData({ ...formData, contact_email: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='contact_phone'>Phone</Label>
-                <Input
-                  id='contact_phone'
-                  value={formData.contact_phone}
-                  onChange={e =>
-                    setFormData({ ...formData, contact_phone: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className='grid grid-cols-2 gap-4'>
-              <div className='space-y-2'>
-                <Label htmlFor='industry'>Industry</Label>
-                <Input
-                  id='industry'
-                  value={formData.industry}
-                  onChange={e =>
-                    setFormData({ ...formData, industry: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='subscription_tier'>Subscription Tier</Label>
-                <select
-                  id='subscription_tier'
-                  value={formData.subscription_tier}
-                  onChange={e =>
-                    setFormData({
-                      ...formData,
-                      subscription_tier: e.target.value as any,
-                    })
-                  }
-                  className='w-full h-10 px-3 border border-gray-200 rounded-md'
-                >
-                  <option value='starter'>Starter</option>
-                  <option value='professional'>Professional</option>
-                  <option value='enterprise'>Enterprise</option>
-                </select>
-              </div>
-            </div>
-
+          <form onSubmit={handleAddClient} className='space-y-5 mt-6'>
+            {/* Company Name */}
             <div className='space-y-2'>
-              <Label htmlFor='monthly_budget'>Monthly Budget ($)</Label>
+              <Label htmlFor='companyName' className='text-sm font-medium'>
+                Company Name
+              </Label>
               <Input
-                id='monthly_budget'
-                type='number'
-                value={formData.monthly_budget}
+                id='companyName'
+                value={formData.companyName}
                 onChange={e =>
-                  setFormData({ ...formData, monthly_budget: e.target.value })
+                  setFormData({ ...formData, companyName: e.target.value })
                 }
-                placeholder='0.00'
+                placeholder='Acme Corporation'
+                required
+                className='h-11'
+                autoFocus
               />
             </div>
 
+            {/* User Name */}
+            <div className='space-y-2'>
+              <Label htmlFor='name' className='text-sm font-medium'>
+                Owner Name
+              </Label>
+              <Input
+                id='name'
+                value={formData.name}
+                onChange={e =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                placeholder='John Doe'
+                required
+                className='h-11'
+              />
+            </div>
+
+            {/* Email */}
+            <div className='space-y-2'>
+              <Label htmlFor='email' className='text-sm font-medium'>
+                Email
+              </Label>
+              <Input
+                id='email'
+                type='email'
+                value={formData.email}
+                onChange={e =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                placeholder='user@example.com'
+                required
+                className='h-11'
+              />
+            </div>
+
+            {/* Info Message */}
+            <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
+              <p className='text-sm text-blue-800'>
+                <strong>Invitation will be sent:</strong> The user will receive an email with a link to set their password or sign in with Google.
+              </p>
+            </div>
+
+            {/* Actions */}
             <div className='flex justify-end gap-3 pt-4'>
               <Button
                 type='button'
-                variant='outline'
-                onClick={() => setShowAddDialog(false)}
+                variant='ghost'
+                onClick={() => {
+                  setShowAddDialog(false);
+                  setFormData({
+                    companyName: '',
+                    email: '',
+                    name: '',
+                  });
+                }}
+                disabled={submitting}
               >
                 Cancel
               </Button>
-              <Button type='submit'>Add Client</Button>
+              <Button type='submit' disabled={submitting} className='min-w-[120px]'>
+                {submitting ? (
+                  <>
+                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Client'
+                )}
+              </Button>
             </div>
           </form>
         </DialogContent>

@@ -14,7 +14,7 @@
  */
 
 import { ClearbitLogoSync } from '@/components/ClearbitLogo';
-import { StatusDropdown } from '@/components/people/StatusDropdown';
+import { UnifiedStatusDropdown as StatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { IndustryBadges } from '@/components/shared/IndustryBadge';
 import { PeopleAvatars } from '@/components/shared/PeopleAvatars';

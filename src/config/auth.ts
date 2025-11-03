@@ -21,15 +21,32 @@ export interface AuthConfig {
 
 /**
  * Get authentication configuration based on environment
+ * Supports bypass via:
+ * 1. Environment variable: NEXT_PUBLIC_BYPASS_AUTH=true
+ * 2. URL query parameter: ?bypass=true (stored in localStorage) - FOR FUTURE USE
  */
 export const getAuthConfig = (): AuthConfig => {
   const isDevelopment = process.env.NODE_ENV === 'development';
-  const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
+  const envBypass = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
+  
+  // FUTURE: URL parameter support (currently disabled - will be enabled in future)
+  // Check URL parameter (client-side only)
+  let urlBypass = false;
+  if (typeof window !== 'undefined' && false) { // Disabled for now - set to true in future
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('bypass') === 'true') {
+      urlBypass = true;
+      // Store in localStorage for future sessions
+      localStorage.setItem('bypassAuth', 'true');
+    }
+    
+    // Check localStorage for persisted bypass
+    const storedBypass = localStorage.getItem('bypassAuth') === 'true';
+    urlBypass = urlBypass || storedBypass;
+  }
 
-  // Force bypass in development for now, or when explicitly enabled in production
-  // For demo purposes, always bypass in production
-  const shouldBypass =
-    isDevelopment || bypassAuth || process.env.NODE_ENV === 'production';
+  // Bypass if env var OR URL param/localStorage is set
+  const shouldBypass = envBypass || urlBypass;
 
   // Debug logging removed - only log in verbose mode via NEXT_PUBLIC_VERBOSE_LOGS
 
@@ -40,6 +57,7 @@ export const getAuthConfig = (): AuthConfig => {
         process.env.NEXT_PUBLIC_MOCK_USER_ID ||
         '8fecfbaf-34e3-4106-9dd8-2cadeadea100',
       email: process.env.NEXT_PUBLIC_MOCK_USER_EMAIL || 'test@example.com',
+      // FUTURE: Default to 'admin' when bypassing - currently uses 'owner'
       role: process.env.NEXT_PUBLIC_MOCK_USER_ROLE || 'owner',
       full_name: process.env.NEXT_PUBLIC_MOCK_USER_NAME || 'Test User',
     },
@@ -56,6 +74,17 @@ export const getAuthConfig = (): AuthConfig => {
 export const shouldBypassAuth = (): boolean => {
   const config = getAuthConfig();
   return config.bypassAuth;
+};
+
+/**
+ * Clear bypass auth (useful for testing)
+ */
+export const clearBypassAuth = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('bypassAuth');
+    // Reload to apply changes
+    window.location.href = window.location.pathname;
+  }
 };
 
 /**

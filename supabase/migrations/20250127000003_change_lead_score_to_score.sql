@@ -29,3 +29,4 @@ COMMENT ON COLUMN people.score IS 'Lead score from 1-10 (1=low, 5=medium, 8-10=h
 -- Step 5: Create index for performance
 CREATE INDEX IF NOT EXISTS idx_people_score ON people(score) WHERE score IS NOT NULL;
 
+

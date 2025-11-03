@@ -1,3 +1,4 @@
+import { getAuthConfig } from '@/config/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export interface Permission {
@@ -826,16 +827,7 @@ export function PermissionsProvider({
       // Use role from user profile database record
       const userRole = userProfile.role;
 
-      // Debug logging (verbose mode only)
-      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-        console.log('PermissionsContext Debug:', {
-          userEmail: user.email,
-          userProfileRole: userRole,
-          userMetadataRole: user.user_metadata?.role,
-          userProfileExists: !!userProfile,
-          availableRoles: roles.map(r => r.id),
-        });
-      }
+      // PermissionsContext debug (development only)
 
       const role = roles.find(role => role.id === userRole);
 
@@ -846,7 +838,27 @@ export function PermissionsProvider({
           permissions: role.permissions,
         });
       } else {
-        // If role not found, try owner first for mock users, then default to recruiter
+        // FUTURE: When bypass mode is enabled, automatically grant admin role
+        // For now, fallback to owner/recruiter
+        // TODO: Uncomment below when ready to enable admin bypass mode
+        /*
+        const authConfig = getAuthConfig();
+        if (authConfig.bypassAuth) {
+          // Bypass mode: use admin role for full access
+          const adminRole = roles.find(role => role.id === 'admin');
+          if (adminRole) {
+            setUserPermissions({
+              userId: user.id,
+              roles: [adminRole],
+              permissions: adminRole.permissions,
+            });
+            setLoading(false);
+            return;
+          }
+        }
+        */
+        
+        // Fallback: try owner first, then recruiter
         const ownerRole = roles.find(role => role.id === 'owner');
         const defaultRole = roles.find(role => role.id === 'recruiter');
 
