@@ -83,9 +83,15 @@ export interface GmailTokenResponse {
  * Following Google's best practices for token storage
  */
 class TokenEncryption {
-  private static readonly ENCRYPTION_KEY =
-    process.env.TOKEN_ENCRYPTION_KEY ||
-    'default-key-change-in-production';
+  private static getEncryptionKey(): string {
+    const key = process.env.TOKEN_ENCRYPTION_KEY;
+    if (!key) {
+      throw new Error(
+        'TOKEN_ENCRYPTION_KEY environment variable is required for token encryption'
+      );
+    }
+    return key;
+  }
 
   /**
    * Encrypts sensitive data using AES-GCM encryption
@@ -96,11 +102,10 @@ class TokenEncryption {
       const iv = crypto.getRandomValues(new Uint8Array(12));
 
       // Import the encryption key
+      const keyString = this.getEncryptionKey();
       const key = await crypto.subtle.importKey(
         'raw',
-        new TextEncoder().encode(
-          this.ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)
-        ),
+        new TextEncoder().encode(keyString.padEnd(32, '0').slice(0, 32)),
         { name: 'AES-GCM' },
         false,
         ['encrypt']
@@ -143,11 +148,10 @@ class TokenEncryption {
       const encrypted = combined.slice(12);
 
       // Import the encryption key
+      const keyString = this.getEncryptionKey();
       const key = await crypto.subtle.importKey(
         'raw',
-        new TextEncoder().encode(
-          this.ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)
-        ),
+        new TextEncoder().encode(keyString.padEnd(32, '0').slice(0, 32)),
         { name: 'AES-GCM' },
         false,
         ['decrypt']
@@ -173,16 +177,28 @@ export class SecureGmailService {
   private redirectUri: string;
 
   constructor() {
-    this.clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
-    
+    // Trim whitespace and newlines from client ID
+    this.clientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim();
+
     // Only access window on client-side (Next.js may render on server)
-    const origin = typeof window !== 'undefined' 
-      ? window.location.origin 
-      : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:8086';
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:8086';
     this.redirectUri = `${origin}/auth/gmail-callback`;
 
     if (!this.clientId) {
-      throw new Error('NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is required');
+      throw new Error(
+        'NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is required'
+      );
+    }
+
+    // Validate client ID format
+    if (!this.clientId.includes('.apps.googleusercontent.com')) {
+      throw new Error(
+        `Invalid Google Client ID format. Expected format: *.apps.googleusercontent.com. ` +
+          `Got: ${this.clientId.substring(0, 20)}...`
+      );
     }
   }
 

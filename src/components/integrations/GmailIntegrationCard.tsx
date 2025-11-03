@@ -12,6 +12,7 @@ import { getGmailStatus } from '@/services/gmailIntegrationService';
 import { secureGmailService } from '@/services/secureGmailService';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface GmailIntegrationStatus {
   connected: boolean;
@@ -55,11 +56,25 @@ export function GmailIntegrationCard() {
       await secureGmailService.authenticateWithGmail();
     } catch (error) {
       console.error('Error setting up Gmail:', error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : 'Failed to connect Gmail. Please try again.'
-      );
+
+      let errorMessage = 'Failed to connect Gmail. Please try again.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+
+        // Provide helpful guidance for common errors
+        if (error.message.includes('NEXT_PUBLIC_GOOGLE_CLIENT_ID')) {
+          errorMessage +=
+            '\n\nPlease check your environment variables and ensure the Client ID is correctly configured in Google Cloud Console.';
+        } else if (error.message.includes('Invalid Google Client ID')) {
+          errorMessage +=
+            '\n\nEnsure your Client ID ends with .apps.googleusercontent.com and has no trailing spaces.';
+        }
+      }
+
+      toast.error('Gmail Connection Failed', {
+        description: errorMessage,
+        duration: 8000,
+      });
       setSettingUp(false);
     }
   };

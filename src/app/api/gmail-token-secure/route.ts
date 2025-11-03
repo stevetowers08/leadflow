@@ -27,7 +27,9 @@ export async function POST(request: NextRequest) {
 
     if (!envCheck.allPresent) {
       return APIErrorHandler.handleError(
-        new Error(`Missing environment variables: ${envCheck.missing.join(', ')}`),
+        new Error(
+          `Missing environment variables: ${envCheck.missing.join(', ')}`
+        ),
         'gmail-token-secure'
       );
     }
@@ -42,8 +44,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
-    const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
+    // Trim whitespace to prevent OAuth errors
+    const GOOGLE_CLIENT_ID = (
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
+    ).trim();
+    const GOOGLE_CLIENT_SECRET = (
+      process.env.GOOGLE_CLIENT_SECRET || ''
+    ).trim();
 
     const origin = request.headers.get('origin') || request.headers.get('host');
     const redirectUri = origin
@@ -89,5 +96,3 @@ export async function POST(request: NextRequest) {
     return APIErrorHandler.handleError(error, 'gmail-token-secure');
   }
 }
-
-

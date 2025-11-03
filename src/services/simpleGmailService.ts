@@ -8,15 +8,23 @@ import { GmailApiService } from './gmailApiService';
 
 // Simple encryption using a proven method
 class SimpleTokenEncryption {
-  private static readonly KEY =
-    process.env.TOKEN_ENCRYPTION_KEY || 'default-key-change-me';
+  private static getKey(): string {
+    const key = process.env.TOKEN_ENCRYPTION_KEY;
+    if (!key) {
+      throw new Error(
+        'TOKEN_ENCRYPTION_KEY environment variable is required for token encryption'
+      );
+    }
+    return key;
+  }
 
   static encrypt(text: string): string {
     // Simple XOR encryption (still better than base64)
+    const key = this.getKey();
     let encrypted = '';
     for (let i = 0; i < text.length; i++) {
       encrypted += String.fromCharCode(
-        text.charCodeAt(i) ^ this.KEY.charCodeAt(i % this.KEY.length)
+        text.charCodeAt(i) ^ key.charCodeAt(i % key.length)
       );
     }
     return btoa(encrypted);
@@ -24,11 +32,12 @@ class SimpleTokenEncryption {
 
   static decrypt(encryptedText: string): string {
     try {
+      const key = this.getKey();
       const encrypted = atob(encryptedText);
       let decrypted = '';
       for (let i = 0; i < encrypted.length; i++) {
         decrypted += String.fromCharCode(
-          encrypted.charCodeAt(i) ^ this.KEY.charCodeAt(i % this.KEY.length)
+          encrypted.charCodeAt(i) ^ key.charCodeAt(i % key.length)
         );
       }
       return decrypted;
@@ -43,16 +52,28 @@ export class SimpleGmailService {
   private redirectUri: string;
 
   constructor() {
-    this.clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
-    
+    // Trim whitespace and newlines from client ID
+    this.clientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim();
+
     // Only access window on client-side (Next.js may render on server)
-    const origin = typeof window !== 'undefined' 
-      ? window.location.origin 
-      : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:8086';
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:8086';
     this.redirectUri = `${origin}/auth/gmail-callback`;
 
     if (!this.clientId) {
-      throw new Error('NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is required');
+      throw new Error(
+        'NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is required'
+      );
+    }
+
+    // Validate client ID format
+    if (!this.clientId.includes('.apps.googleusercontent.com')) {
+      throw new Error(
+        `Invalid Google Client ID format. Expected format: *.apps.googleusercontent.com. ` +
+          `Got: ${this.clientId.substring(0, 20)}...`
+      );
     }
   }
 

@@ -22,7 +22,29 @@ export const GmailCallback: React.FC = () => {
       const state = searchParams.get('state');
 
       if (error) {
-        throw new Error(`Gmail authentication failed: ${error}`);
+        // Provide helpful error messages for common OAuth errors
+        let errorMessage = `Gmail authentication failed: ${error}`;
+
+        if (error === 'invalid_client') {
+          errorMessage =
+            'OAuth client not found. Please verify:\n' +
+            '1. Client ID is correct in Google Cloud Console\n' +
+            '2. No trailing spaces in NEXT_PUBLIC_GOOGLE_CLIENT_ID\n' +
+            '3. OAuth client exists and is enabled\n' +
+            '4. Redirect URI matches: ' +
+            window.location.origin +
+            '/auth/gmail-callback';
+        } else if (error === 'redirect_uri_mismatch') {
+          errorMessage =
+            'Redirect URI mismatch. Ensure this URI is registered in Google Cloud Console:\n' +
+            window.location.origin +
+            '/auth/gmail-callback';
+        } else if (error === 'access_denied') {
+          errorMessage =
+            'Gmail access was denied. Please try again and grant permission.';
+        }
+
+        throw new Error(errorMessage);
       }
 
       if (!code) {

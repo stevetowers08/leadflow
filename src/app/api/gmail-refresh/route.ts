@@ -21,8 +21,9 @@ function validateRefreshToken(token: string): boolean {
 }
 
 async function refreshAccessToken(refreshToken: string) {
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  // Trim whitespace to prevent OAuth errors
+  const clientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim();
+  const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
 
   if (!clientId || !clientSecret) {
     throw new Error('Google OAuth credentials not configured');
@@ -63,7 +64,9 @@ export async function POST(request: NextRequest) {
 
     if (!envCheck.allPresent) {
       return APIErrorHandler.handleError(
-        new Error(`Missing environment variables: ${envCheck.missing.join(', ')}`),
+        new Error(
+          `Missing environment variables: ${envCheck.missing.join(', ')}`
+        ),
         'gmail-refresh'
       );
     }
@@ -100,5 +103,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-

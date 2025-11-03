@@ -115,7 +115,7 @@ export class GmailService {
     if (typeof window === 'undefined') {
       return;
     }
-    
+
     const user = supabase.auth.getUser();
     if (user) {
       try {
@@ -167,11 +167,20 @@ export class GmailService {
   }
 
   async authenticateWithGmail(): Promise<string> {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+    // Trim whitespace and newlines from client ID
+    const clientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim();
 
     if (!clientId) {
       throw new Error(
         'Google OAuth is not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable.'
+      );
+    }
+
+    // Validate client ID format
+    if (!clientId.includes('.apps.googleusercontent.com')) {
+      throw new Error(
+        `Invalid Google Client ID format. Expected format: *.apps.googleusercontent.com. ` +
+          `Got: ${clientId.substring(0, 20)}...`
       );
     }
 
@@ -181,7 +190,7 @@ export class GmailService {
       'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
     const authUrl =
       `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${clientId}&` +
+      `client_id=${encodeURIComponent(clientId)}&` +
       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
       `scope=${encodeURIComponent(scope)}&` +
       `response_type=code&` +
