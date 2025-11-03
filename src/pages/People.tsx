@@ -154,8 +154,8 @@ const PeopleContent: React.FC = () => {
       { label: 'Name Z-A', value: 'name_desc' },
       { label: 'Email A-Z', value: 'email_address' },
       { label: 'Company A-Z', value: 'company_name' },
-      { label: 'Score High-Low', value: 'lead_score' },
-      { label: 'Score Low-High', value: 'lead_score_asc' },
+      { label: 'Score High-Low', value: 'score' },
+      { label: 'Score Low-High', value: 'score_asc' },
     ],
     []
   );
@@ -312,13 +312,13 @@ const PeopleContent: React.FC = () => {
           aValue = a.company_name?.toLowerCase() || '';
           bValue = b.company_name?.toLowerCase() || '';
           break;
-        case 'lead_score':
-          aValue = parseFloat(a.lead_score || '0');
-          bValue = parseFloat(b.lead_score || '0');
+        case 'score':
+          aValue = (a.score as number) || 0;
+          bValue = (b.score as number) || 0;
           break;
-        case 'lead_score_asc':
-          aValue = parseFloat(a.lead_score || '0');
-          bValue = parseFloat(b.lead_score || '0');
+        case 'score_asc':
+          aValue = (a.score as number) || 0;
+          bValue = (b.score as number) || 0;
           return (aValue as number) - (bValue as number);
         default:
           return 0;
@@ -844,7 +844,7 @@ const PeopleContent: React.FC = () => {
         ),
       },
       {
-        key: 'lead_score',
+        key: 'score',
         label: (
           <span className='flex items-center gap-1'>
             <Sparkles className='h-3 w-3' /> Score
@@ -854,7 +854,7 @@ const PeopleContent: React.FC = () => {
         cellType: 'regular',
         align: 'center',
         render: (_, person) => (
-          <ScoreBadge score={person.lead_score} variant='compact' />
+          <ScoreBadge score={person.score} variant='compact' />
         ),
       },
       {

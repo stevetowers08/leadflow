@@ -2,7 +2,7 @@
 
 ## 🎯 Project Overview
 
-Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, and Supabase. The focus is on simplicity and clear workflows for managing jobs and people.
+Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, and Supabase. The focus is on simplicity and clear campaigns for managing jobs and people.
 
 ## 🛠️ Tech Stack
 
@@ -94,9 +94,9 @@ src/
     └── auth.ts
 ```
 
-## 🔄 Current Workflows (Updated Oct 2025)
+## 🔄 Current Campaigns (Updated Oct 2025)
 
-### Job Qualification Workflow
+### Job Qualification Campaigns
 
 **Status Enum:** `new | qualify | skip`
 
@@ -106,7 +106,7 @@ src/
 
 **Database Field:** `jobs.qualification_status`
 
-### People Status Workflow
+### People Status Campaigns
 
 **Status Enum:** `new | qualified | proceed | skip`
 
@@ -243,7 +243,7 @@ src/
 
 ## ✅ Do This
 
-1. **Use the new status workflows** - Follow the simplified 3/4-step workflows
+1. **Use the new status campaigns** - Follow the simplified 3/4-step campaigns
 2. **Reference types** - Import from `src/types/database.ts`
 3. **Use status utilities** - Import from `src/utils/statusUtils.ts`
 4. **Follow TypeScript strict mode** - No implicit any, proper null checks
@@ -492,7 +492,7 @@ import { Check, X, Search } from 'lucide-react';
 5. Review TypeScript errors in IDE
 6. Reference [docs/DEBUGGING/DEBUGGING_GUIDE.md](docs/DEBUGGING/DEBUGGING_GUIDE.md)
 
-## 🚀 Development Workflow
+## 🚀 Development Campaigns
 
 ### Running Locally
 

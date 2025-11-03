@@ -25,11 +25,11 @@ const tabsVariants = cva(
       variant: {
         default: 'bg-transparent text-muted-foreground hover:text-foreground',
         active:
-          'bg-white text-foreground shadow-sm border border-gray-300 ring-1 ring-primary/10',
+          'bg-transparent text-primary border-b-2 border-primary',
         glass:
           'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 border border-white/20',
         neumorphism:
-          'bg-gray-100 text-gray-700 shadow-neumorphism-light hover:shadow-lg',
+          'bg-gray-100 text-foreground shadow-neumorphism-light hover:shadow-lg',
       },
       size: {
         default: `${STANDARD_HEIGHT} px-4`,
@@ -98,7 +98,7 @@ const filterVariants = cva(
       variant: {
         default: '',
         glass: 'glass-light text-white hover:bg-white/20 border-white/20',
-        neumorphism: 'neumorphism-light text-gray-700 hover:shadow-lg',
+        neumorphism: 'neumorphism-light text-foreground hover:shadow-lg',
         ghost: 'text-foreground',
       },
       size: {
@@ -143,7 +143,7 @@ FilterButton.displayName = 'FilterButton';
 
 // Modern Search Input Component
 const searchVariants = cva(
-  'w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:text-gray-500 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100',
+  'w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-foreground ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:text-gray-500 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100',
   {
     variants: {
       variant: {
@@ -188,7 +188,7 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         {onClear && (
           <button
             onClick={onClear}
-            className='absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 hover:text-gray-700'
+            className='absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 hover:text-foreground'
           >
             ×
           </button>
@@ -212,7 +212,7 @@ const actionButtonVariants = cva(
         outline: 'border border-gray-300 bg-white',
         ghost: 'text-foreground',
         glass: 'glass-light text-white hover:bg-white/20',
-        neumorphism: 'neumorphism-light text-gray-700 hover:shadow-lg',
+        neumorphism: 'neumorphism-light text-foreground hover:shadow-lg',
       },
       size: {
         default: `${STANDARD_HEIGHT} ${STANDARD_PADDING}`,

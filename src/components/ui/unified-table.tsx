@@ -24,6 +24,7 @@ export interface ColumnConfig<T = unknown> {
   label: string | React.ReactNode;
   width?: string;
   minWidth?: string;
+  maxWidth?: string;
   cellType?: 'status' | 'priority' | 'ai-score' | 'lead-score' | 'regular';
   align?: 'left' | 'center' | 'right';
   sortable?: boolean;
@@ -129,7 +130,7 @@ export const TableCell = React.forwardRef<
         // Status cells: no padding, relative positioning, apply background colors directly
         // Regular cells: reduced padding for 40px row height (py-1 = 4px top + 4px bottom = 8px total, leaving 32px for content)
         cellType === 'status' ? 'p-0 relative' : 'px-4 py-1',
-        'text-sm border-r border-gray-200 last:border-r-0 text-gray-700',
+        'text-sm border-r border-gray-200 last:border-r-0 text-muted-foreground',
         // Don't apply hover text color change to status cells (they have colored backgrounds)
         cellType !== 'status' && 'group-hover:text-gray-600',
         align === 'center' && 'text-center',
@@ -159,7 +160,7 @@ export const TableHead = React.forwardRef<
     <th
       ref={ref}
       className={cn(
-        'px-4 py-1 h-[40px] text-xs font-semibold text-gray-700 uppercase tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
+        'px-4 py-1 h-[40px] text-xs font-semibold text-muted-foreground uppercase tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
         'border-b border-gray-200',
         'transition-colors duration-150',
         isFirst && 'rounded-tl-lg',
@@ -635,7 +636,7 @@ export function UnifiedTable<T = unknown>({
                           >
                             <TableCell
                               colSpan={columns.length}
-                              className='font-semibold text-sm text-gray-900 py-3'
+                              className='font-semibold text-sm text-foreground py-3'
                             >
                               <div className='flex items-center justify-between'>
                                 <span>{group.label}</span>
@@ -682,6 +683,9 @@ export function UnifiedTable<T = unknown>({
                                         // Width driven by <colgroup>; optional minWidth for content
                                         minWidth:
                                           column.minWidth || column.width,
+                                        ...(column.maxWidth && {
+                                          maxWidth: column.maxWidth,
+                                        }),
                                       }}
                                     >
                                       {column.render ? (

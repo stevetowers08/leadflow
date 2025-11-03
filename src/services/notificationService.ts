@@ -1,4 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
+import {
+  generateMockNotifications,
+  shouldUseMockData,
+  type MockNotification,
+} from '@/utils/mockData';
 
 export type NotificationType =
   | 'new_jobs_discovered'
@@ -85,6 +90,23 @@ class NotificationService {
     limit?: number;
     unreadOnly?: boolean;
   }): Promise<Notification[]> {
+    // Use mock data in development if enabled
+    if (shouldUseMockData()) {
+      const { data: user } = await supabase.auth.getUser();
+      const userId = user.user?.id || 'mock_user_1';
+      const mockNotifications = generateMockNotifications(userId);
+      
+      let filtered = mockNotifications;
+      if (options?.unreadOnly) {
+        filtered = filtered.filter(n => !n.is_read);
+      }
+      if (options?.limit) {
+        filtered = filtered.slice(0, options.limit);
+      }
+      
+      return filtered as Notification[];
+    }
+
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('User not authenticated');
 
@@ -134,10 +156,30 @@ class NotificationService {
    * Uses database function for better performance
    */
   async getUnreadCount(): Promise<number> {
+    // Use mock data in development if enabled
+    if (shouldUseMockData()) {
+      const { data: user } = await supabase.auth.getUser();
+      const userId = user.user?.id || 'mock_user_1';
+      const mockNotifications = generateMockNotifications(userId);
+      return mockNotifications.filter(n => !n.is_read).length;
+    }
+
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return 0;
 
     try {
+      // Try direct query first (RPC function might not exist)
+      const { count, error: queryError } = await supabase
+        .from('user_notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.user.id)
+        .eq('is_read', false);
+
+      if (!queryError) {
+        return count || 0;
+      }
+
+      // Try RPC as fallback
       const { data, error } = await supabase.rpc(
         'get_unread_notification_count',
         {}
@@ -145,19 +187,7 @@ class NotificationService {
 
       if (error) {
         console.error('Failed to get unread count via RPC:', error);
-        // Fallback to direct query if RPC fails
-        const { count, error: fallbackError } = await supabase
-          .from('user_notifications')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.user.id)
-          .eq('is_read', false);
-
-        if (fallbackError) {
-          console.error('Failed to get unread count:', fallbackError);
-          return 0;
-        }
-
-        return count || 0;
+        return 0;
       }
 
       return typeof data === 'number' ? data : 0;

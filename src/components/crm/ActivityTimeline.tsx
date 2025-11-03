@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { generateMockActivities, shouldUseMockData } from '@/utils/mockData';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import {
   ChevronDown,
@@ -29,7 +30,9 @@ interface ActivityItem {
     | 'email_message'
     | 'automation_step'
     | 'note'
-    | 'stage_change';
+    | 'stage_change'
+    | 'call'
+    | 'meeting';
   title: string;
   description: string;
   timestamp: string;
@@ -61,6 +64,18 @@ export const ActivityTimeline = ({
     setIsLoading(true);
     try {
       const allActivities: ActivityItem[] = [];
+
+      // Use mock data in development if enabled
+      if (shouldUseMockData()) {
+        const mockActivities = generateMockActivities(
+          entityId,
+          entityName,
+          entityType
+        );
+        setActivities(mockActivities);
+        setIsLoading(false);
+        return;
+      }
 
       // Fetch LinkedIn messages
       const { data: conversations } = await supabase
@@ -250,13 +265,15 @@ export const ActivityTimeline = ({
         label: 'Automation',
         color: 'bg-purple-100 text-purple-800',
       },
-      note: { label: 'Note', color: 'bg-gray-100 text-gray-800' },
+      note: { label: 'Note', color: 'bg-gray-100 text-foreground' },
       stage_change: { label: 'Stage', color: 'bg-orange-100 text-orange-800' },
+      call: { label: 'Call', color: 'bg-purple-100 text-purple-800' },
+      meeting: { label: 'Meeting', color: 'bg-yellow-100 text-yellow-800' },
     };
     return (
       badges[type as keyof typeof badges] || {
         label: 'Activity',
-        color: 'bg-gray-100 text-gray-800',
+        color: 'bg-gray-100 text-foreground',
       }
     );
   };
@@ -310,7 +327,7 @@ export const ActivityTimeline = ({
                     <div className='flex-1 min-w-0'>
                       <div className='flex items-center justify-between'>
                         <div className='flex items-center space-x-2'>
-                          <h4 className='text-sm font-medium text-gray-900'>
+                          <h4 className='text-sm font-medium text-foreground'>
                             {activity.title}
                           </h4>
                           <Badge className={typeBadge.color}>
@@ -342,7 +359,7 @@ export const ActivityTimeline = ({
                       <div className='mt-2'>
                         {isLongContent && !isExpanded ? (
                           <div>
-                            <p className='text-sm text-gray-700'>
+                            <p className='text-sm text-muted-foreground'>
                               {activity.description.substring(0, 100)}...
                             </p>
                             <Button
@@ -357,7 +374,7 @@ export const ActivityTimeline = ({
                           </div>
                         ) : (
                           <div>
-                            <p className='text-sm text-gray-700'>
+                            <p className='text-sm text-muted-foreground'>
                               {activity.description}
                             </p>
                             {isLongContent && (

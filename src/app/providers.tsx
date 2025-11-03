@@ -24,6 +24,7 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { PermissionsProvider } from '@/contexts/PermissionsContext';
 import { SearchProvider } from '@/contexts/SearchContext';
+import { SlidePanelProvider } from '@/contexts/SlidePanelContext';
 import { LoggingProvider } from '@/utils/enhancedLogger';
 import { PerformanceProvider } from '@/utils/performanceMonitoring';
 
@@ -97,12 +98,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <AuthProvider>
               <PermissionsWrapper>
                 <OnboardingProvider>
-                  <SearchProvider>
-                    <AppInitialization>
-                      {children}
-                      <Toaster />
-                    </AppInitialization>
-                  </SearchProvider>
+                  <SlidePanelProvider>
+                    <SearchProvider>
+                      <AppInitialization>
+                        {children}
+                        <Toaster />
+                      </AppInitialization>
+                    </SearchProvider>
+                  </SlidePanelProvider>
                 </OnboardingProvider>
               </PermissionsWrapper>
             </AuthProvider>

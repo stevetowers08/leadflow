@@ -1,16 +1,16 @@
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SmallSlidePanel } from '@/components/ui/SmallSlidePanel';
 import { useClientId } from '@/hooks/useClientId';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  generateMockCompanyNotes,
+  shouldUseMockData,
+} from '@/utils/mockData';
 import { format } from 'date-fns';
 import { Building2, Clock, Loader2, StickyNote, User } from 'lucide-react';
 import React from 'react';
+import { useSlidePanel } from '@/contexts/SlidePanelContext';
 
 interface NoteItem {
   id: string;
@@ -23,14 +23,23 @@ interface NoteItem {
 }
 
 export const AllCompanyNotesButton: React.FC = () => {
-  const [open, setOpen] = React.useState(false);
+  const { openPanel, setOpenPanel, closePanel } = useSlidePanel();
   const [isLoading, setIsLoading] = React.useState(false);
   const [notes, setNotes] = React.useState<NoteItem[]>([]);
   const { data: clientId } = useClientId();
+  const open = openPanel === 'notes';
 
   const loadNotes = React.useCallback(async () => {
     setIsLoading(true);
     try {
+      // Use mock data in development if enabled
+      if (shouldUseMockData()) {
+        const mockNotes = generateMockCompanyNotes();
+        setNotes(mockNotes);
+        setIsLoading(false);
+        return;
+      }
+
       let query = supabase
         .from('notes')
         .select('id, content, author_id, created_at, entity_id')
@@ -87,72 +96,76 @@ export const AllCompanyNotesButton: React.FC = () => {
   }, [open, loadNotes]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
       <Button
         variant='ghost'
         size='icon'
-        className='h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
-        onClick={() => setOpen(true)}
+        className='h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-gray-200 rounded-md'
         aria-label='View all company notes'
+        onClick={() => setOpenPanel(open ? null : 'notes')}
       >
         <StickyNote className='h-4 w-4' />
       </Button>
 
-      <DialogContent className='max-w-2xl max-h-[85vh]'>
-        <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <StickyNote className='h-5 w-5 text-primary' />
-            Company Notes
-          </DialogTitle>
-        </DialogHeader>
-
-        {isLoading ? (
-          <div className='flex items-center justify-center py-12'>
-            <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
-          </div>
-        ) : notes.length === 0 ? (
-          <div className='flex flex-col items-center justify-center py-12 text-center'>
-            <StickyNote className='h-12 w-12 text-muted-foreground mb-3 opacity-50' />
-            <p className='text-sm font-medium'>No company notes</p>
-            <p className='text-xs text-muted-foreground mt-1'>
-              All company notes will appear here
-            </p>
-          </div>
-        ) : (
-          <ScrollArea className='max-h-[60vh]'>
-            <div className='space-y-3 pr-4'>
-              {notes.map(note => (
-                <div
-                  key={note.id}
-                  className='group rounded-lg border border-gray-200 bg-white p-4 hover:border-gray-300 hover:shadow-sm transition-all'
-                >
-                  <div className='flex items-start justify-between mb-2'>
+      <SmallSlidePanel
+        isOpen={open}
+        onClose={closePanel}
+        title='Company Notes'
+      >
+        <div className='flex-1 overflow-hidden -mx-6'>
+          {isLoading ? (
+            <div className='flex items-center justify-center py-16'>
+              <div className='flex flex-col items-center gap-3'>
+                <Loader2 className='h-6 w-6 animate-spin text-blue-500' />
+                <p className='text-sm text-gray-500'>Loading notes...</p>
+              </div>
+            </div>
+          ) : notes.length === 0 ? (
+            <div className='flex flex-col items-center justify-center py-16 px-4'>
+              <div className='h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4'>
+                <StickyNote className='h-8 w-8 text-gray-400' />
+              </div>
+              <p className='text-sm font-medium text-gray-700 mb-1'>No company notes yet</p>
+              <p className='text-xs text-gray-500 text-center'>
+                Notes you add to companies will appear here
+              </p>
+            </div>
+          ) : (
+            <ScrollArea className='h-full'>
+              <div className='py-3'>
+                {notes.map(note => (
+                  <div
+                    key={note.id}
+                    className='px-3 py-3.5 hover:bg-gray-50/80 active:bg-gray-100 transition-all border-b border-gray-100'
+                  >
+                  <div className='flex items-start justify-between mb-2.5'>
                     <div className='flex items-center gap-2'>
-                      <Building2 className='h-4 w-4 text-muted-foreground' />
-                      <span className='text-sm font-medium text-foreground'>
+                      <Building2 className='h-4 w-4 text-blue-600 flex-shrink-0' />
+                      <span className='text-sm font-semibold text-gray-900 line-clamp-1'>
                         {note.company_name}
                       </span>
                     </div>
-                    <div className='flex items-center gap-3 text-xs text-muted-foreground'>
-                      <div className='flex items-center gap-1'>
+                    <div className='flex items-center gap-2.5 text-xs text-gray-500 flex-shrink-0 ml-2'>
+                      <div className='flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-50'>
                         <User className='h-3 w-3' />
-                        {note.author_name}
+                        <span className='font-medium'>{note.author_name}</span>
                       </div>
                       <div className='flex items-center gap-1'>
                         <Clock className='h-3 w-3' />
-                        {format(new Date(note.created_at), 'MMM d, yyyy')}
+                        <span className='font-medium'>{format(new Date(note.created_at), 'MMM d')}</span>
                       </div>
                     </div>
                   </div>
-                  <p className='text-sm text-foreground whitespace-pre-wrap'>
+                  <p className='text-xs text-gray-600 line-clamp-3 whitespace-pre-wrap leading-relaxed'>
                     {note.content}
                   </p>
                 </div>
               ))}
-            </div>
-          </ScrollArea>
-        )}
-      </DialogContent>
-    </Dialog>
+              </div>
+            </ScrollArea>
+          )}
+        </div>
+      </SmallSlidePanel>
+    </>
   );
 };

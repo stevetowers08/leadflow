@@ -24,7 +24,7 @@ export interface LeadWithAssignment {
   email_address: string;
   company_role: string;
   stage: string;
-  lead_score: string;
+  score: number | null;
   owner_id: string | null;
   created_at: string;
   company_name: string | null;

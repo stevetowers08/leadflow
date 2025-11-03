@@ -1,10 +1,29 @@
+import { FavoriteToggle } from '@/components/FavoriteToggle';
 import { NotesSection } from '@/components/NotesSection';
+import { StatusBadge } from '@/components/StatusBadge';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { IndustryBadges } from '@/components/shared/IndustryBadge';
 import { ScoreBadge } from '@/components/shared/ScoreBadge';
 import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
+import { ActionSlideTrigger } from '@/components/ui/ActionSlideTrigger';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { TabNavigation, TabOption } from '@/components/ui/tab-navigation';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,28 +33,20 @@ import {
   bulkFavouritePeople,
   bulkSyncToCRM,
 } from '@/services/bulk/bulkPeopleService';
-import { getCompanyLogoUrlSync } from '@/services/logoService';
 import { Company, Job, Person } from '@/types/database';
-import { getStatusDisplayText } from '@/utils/statusUtils';
 import {
   Building2,
   Calendar,
-  CheckCircle,
-  Copy,
   ExternalLink,
   FileText,
   Globe,
-  Mail,
-  MapPin,
-  RefreshCw,
-  Send,
-  Sparkles,
-  Star,
-  StickyNote,
-  Trash2,
-  User,
   ListPlus,
-  Workflow,
+  Mail,
+  MoreHorizontal,
+  Sparkles,
+  StickyNote,
+  User,
+  X,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
@@ -77,6 +88,10 @@ const CompanyDetailsSlideOutComponent: React.FC<
   const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
   const [notesCount, setNotesCount] = useState<number>(0);
+  const [campaigns, setCampaigns] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+  const [showCampaignSelect, setShowCampaignSelect] = useState(false);
   const { toast } = useToast();
   // When panel opens or company changes, optionally jump to requested initial tab
   useEffect(() => {
@@ -95,7 +110,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
         icon: FileText,
         showCount: false,
       },
-      { id: 'people', label: 'People', count: people.length, icon: User },
+      { id: 'people', label: 'Contacts', count: people.length, icon: User },
       { id: 'jobs', label: 'Jobs', count: jobs.length, icon: Calendar },
       {
         id: 'activity',
@@ -163,14 +178,29 @@ const CompanyDetailsSlideOutComponent: React.FC<
     }
   }, [selectedPeople, toast]);
 
-  const handleAddToCampaign = useCallback(async () => {
+  const handleAddToCampaign = useCallback(
+    async (campaignId: string) => {
+      if (selectedPeople.length === 0) return;
+      const result = await bulkAddToCampaign(selectedPeople, campaignId);
+      toast({
+        title: result.success ? 'Success' : 'Error',
+        description: result.message,
+        variant: result.success ? 'default' : 'destructive',
+      });
+      if (result.success) {
+        setSelectedPeople([]);
+        setShowCampaignSelect(false);
+        onUpdate?.();
+      }
+    },
+    [selectedPeople, toast, onUpdate]
+  );
+
+  const handleBulkSendMessage = useCallback(() => {
     if (selectedPeople.length === 0) return;
-    toast({
-      title: 'Add to Campaign',
-      description: 'Please select a campaign from the dropdown',
-    });
-    // TODO: Implement campaign selection dialog
-  }, [selectedPeople.length, toast]);
+    const toIdsParam = encodeURIComponent(selectedPeople.join(','));
+    router.push(`/conversations?compose=1&toIds=${toIdsParam}`);
+  }, [selectedPeople, router]);
 
   // Individual person action handlers
   const handlePersonSendMessage = useCallback(
@@ -303,94 +333,6 @@ const CompanyDetailsSlideOutComponent: React.FC<
     [onPersonClick]
   );
 
-  const renderPersonCard = useCallback(
-    (person: Person) => (
-      <div
-        key={person.id}
-        onClick={() => handlePersonClick(person.id)}
-        className='group'
-      >
-        <div className='flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all duration-200 cursor-pointer'>
-          {/* Checkbox */}
-          <div onClick={e => e.stopPropagation()}>
-            <Checkbox
-              checked={selectedPeople.includes(person.id)}
-              onCheckedChange={() => togglePersonSelection(person.id)}
-              className='flex-shrink-0'
-            />
-          </div>
-
-          {/* Name & Role (larger, split into 2 lines) */}
-          <div className='flex-1 min-w-0'>
-            <div className='flex items-center gap-3 mb-1'>
-              <h3 className='text-base font-semibold text-gray-700'>
-                {person.name || '-'}
-              </h3>
-              {person.lead_score && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200'>
-                  {person.lead_score}
-                </span>
-              )}
-              {person.people_stage && (
-                <span className='inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20'>
-                  {getStatusDisplayText(person.people_stage)}
-                </span>
-              )}
-            </div>
-            {person.company_role && (
-              <div className='text-sm text-gray-600 font-medium mb-1'>
-                {person.company_role}
-              </div>
-            )}
-            <div className='flex items-center gap-4 text-sm text-gray-500'>
-              {person.email_address && (
-                <div className='flex items-center gap-1.5'>
-                  <Mail className='h-4 w-4 text-gray-400' />
-                  <span>{person.email_address}</span>
-                </div>
-              )}
-              {person.employee_location && (
-                <div className='flex items-center gap-1.5'>
-                  <MapPin className='h-4 w-4 text-gray-400' />
-                  <span>{person.employee_location}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0'>
-            {person.linkedin_url && (
-              <a
-                href={person.linkedin_url}
-                target='_blank'
-                rel='noopener noreferrer'
-                onClick={e => e.stopPropagation()}
-                className='p-2 hover:bg-gray-100 rounded-md text-gray-400 hover:text-gray-600 transition-colors'
-                title='Open LinkedIn'
-              >
-                <ExternalLink className='h-5 w-5' />
-              </a>
-            )}
-            {person.email_address && (
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  copyToClipboard(person.email_address!, 'Email');
-                }}
-                className='p-2 hover:bg-gray-100 rounded-md text-gray-400 hover:text-gray-600 transition-colors'
-                title='Copy Email'
-              >
-                <Copy className='h-5 w-5' />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    ),
-    [handlePersonClick, selectedPeople, togglePersonSelection, copyToClipboard]
-  );
-
   useEffect(() => {
     if (!companyId || !isOpen) return;
 
@@ -402,7 +344,27 @@ const CompanyDetailsSlideOutComponent: React.FC<
         // RLS is disabled in dev, so this should work
         const { data: companyData, error: companyError } = await supabase
           .from('companies')
-          .select('*')
+          .select(
+            [
+              'id',
+              'name',
+              'industry',
+              'company_size',
+              'updated_at',
+              'source',
+              'lead_score',
+              'website',
+              'linkedin_url',
+              'head_office',
+              'is_favourite',
+              'owner_id',
+              'pipeline_stage',
+              'source_job_id',
+              'funding_raised',
+              'estimated_arr',
+              'score_reason',
+            ].join(', ')
+          )
           .eq('id', companyId)
           .maybeSingle();
 
@@ -416,7 +378,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
         const { data: peopleData, error: peopleError } = await supabase
           .from('people')
           .select(
-            'id, name, company_role, people_stage, email_address, linkedin_url, employee_location, lead_score, last_interaction_at, created_at, last_reply_at, last_reply_channel, last_reply_message, confidence_level, reply_type, email_sent'
+            'id, name, company_role, people_stage, email_address, linkedin_url, employee_location, score, last_interaction_at, created_at, last_reply_at, last_reply_channel, last_reply_message, reply_type, email_sent'
           )
           .eq('company_id', companyId)
           .order('created_at', { ascending: false });
@@ -472,22 +434,60 @@ const CompanyDetailsSlideOutComponent: React.FC<
         setInteractions((interactionsData as Interaction[]) || []);
 
         // Fetch notes count
-        if (companyData?.id) {
+        const companyIdForNotes = (companyData as { id?: string })?.id;
+        if (companyIdForNotes) {
           const { count } = await supabase
             .from('notes')
             .select('*', { count: 'exact', head: true })
-            .eq('entity_id', companyData.id)
+            .eq('entity_id', companyIdForNotes)
             .eq('entity_type', 'company');
           setNotesCount(count || 0);
         }
       } catch (error) {
-        console.error('Error fetching company details:', error);
+        // Extract error details for logging
+        const errorDetails: Record<string, unknown> = {
+          timestamp: new Date().toISOString(),
+          companyId,
+        };
+
+        // Handle Supabase PostgrestError
+        if (error && typeof error === 'object' && 'code' in error) {
+          errorDetails.code = (error as { code?: string }).code;
+          errorDetails.message = (error as { message?: string }).message;
+          errorDetails.details = (error as { details?: string }).details;
+          errorDetails.hint = (error as { hint?: string }).hint;
+        } else if (error instanceof Error) {
+          errorDetails.name = error.name;
+          errorDetails.message = error.message;
+          errorDetails.stack = error.stack;
+        } else if (error) {
+          errorDetails.error = error;
+          errorDetails.message = String(error);
+        } else {
+          errorDetails.message = 'Unknown error occurred';
+        }
+
+        // Log with proper serialization
+        console.error(
+          'Error fetching company details:',
+          JSON.stringify(errorDetails, null, 2)
+        );
+        console.error('Raw error object:', error);
+
+        // Determine user-friendly message
+        const userMessage =
+          error && typeof error === 'object' && 'message' in error
+            ? String(
+                (error as { message?: string }).message ||
+                  'Failed to load company details'
+              )
+            : error instanceof Error
+              ? error.message
+              : 'Failed to load company details';
+
         toast({
           title: 'Error',
-          description:
-            error instanceof Error
-              ? error.message
-              : 'Failed to load company details',
+          description: userMessage,
           variant: 'destructive',
         });
         setCompany(null);
@@ -497,7 +497,27 @@ const CompanyDetailsSlideOutComponent: React.FC<
     };
 
     fetchCompanyDetails();
-  }, [companyId, isOpen]);
+  }, [companyId, isOpen, toast]);
+
+  // Fetch campaigns
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('campaign_sequences')
+          .select('id, name')
+          .eq('status', 'active')
+          .order('name', { ascending: true });
+
+        if (error) throw error;
+        setCampaigns(data || []);
+      } catch (error) {
+        console.error('Error fetching campaigns:', error);
+      }
+    };
+
+    fetchCampaigns();
+  }, []);
 
   if (!company) {
     return (
@@ -585,29 +605,11 @@ const CompanyDetailsSlideOutComponent: React.FC<
         <div className='flex items-center justify-between w-full'>
           <div className='flex items-center gap-4'>
             <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200'>
-              {company.website ? (
-                <img
-                  src={
-                    getCompanyLogoUrlSync(company.name, company.website) || ''
-                  }
-                  alt={`${company.name} logo`}
-                  className='w-10 h-10 rounded-lg object-cover'
-                  onError={e => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      'none';
-                    const nextElement = e.currentTarget
-                      .nextElementSibling as HTMLElement;
-                    if (nextElement) {
-                      nextElement.style.display = 'flex';
-                    }
-                  }}
-                />
-              ) : null}
               <Building2 className='h-5 w-5 text-gray-400' />
             </div>
             <div className='flex-1 min-w-0'>
               <div className='flex items-center gap-3'>
-                <h2 className='text-lg font-semibold text-gray-700 truncate'>
+                <h2 className='text-lg font-semibold text-foreground truncate'>
                   {company.name}
                 </h2>
                 {company.website && (
@@ -650,25 +652,26 @@ const CompanyDetailsSlideOutComponent: React.FC<
             </div>
           </div>
           <div className='flex items-center gap-2 flex-shrink-0 ml-4'>
-            <Button
-              size='sm'
-              variant='ghost'
-              onClick={handleToggleFavourite}
-              className={`h-8 w-8 p-0 border border-gray-200 rounded-md hover:border-gray-300 ${
-                company.is_favourite
-                  ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50'
-                  : 'text-gray-500 hover:text-gray-700 bg-white'
-              }`}
+            <div
               title={
                 company.is_favourite
                   ? 'Remove from favorites'
                   : 'Add to favorites'
               }
             >
-              <Star
-                className={`h-4 w-4 ${company.is_favourite ? 'fill-current' : ''}`}
+              <FavoriteToggle
+                entityId={company.id}
+                entityType='company'
+                isFavorite={company.is_favourite ?? false}
+                onToggle={newStatus => {
+                  setCompany(prev =>
+                    prev ? { ...prev, is_favourite: newStatus } : prev
+                  );
+                  onUpdate?.();
+                }}
+                className='h-8 w-8'
               />
-            </Button>
+            </div>
             <IconOnlyAssignmentCell
               ownerId={company.owner_id}
               entityId={company.id}
@@ -703,14 +706,15 @@ const CompanyDetailsSlideOutComponent: React.FC<
         {/* Left Column - Tabs and Content */}
         <section className='flex-1 min-w-0 flex flex-col overflow-hidden m-0 p-0'>
           {/* Tabs for Organization */}
-          <div className='pt-6 pb-6 pl-6 pr-0 flex-shrink-0 overflow-visible'>
+          <div className='pt-3 pb-3 pl-6 pr-0 flex-shrink-0 overflow-visible'>
             <TabNavigation
               tabs={tabOptions.filter(tab =>
                 ['overview', 'people', 'jobs'].includes(tab.id)
               )}
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={tabId => setActiveTab(tabId as typeof activeTab)}
               variant='pill'
+              size='sm'
               className='w-full mr-0 pr-0'
             />
           </div>
@@ -763,7 +767,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                   <div className='mb-4 last:mb-0'>
                     <div className='flex items-center gap-1.5 mb-3'>
                       <Sparkles className='h-4 w-4 text-gray-500' />
-                      <h4 className='text-sm font-semibold text-gray-900'>
+                      <h4 className='text-sm font-semibold text-foreground'>
                         AI Analysis
                       </h4>
                     </div>
@@ -778,138 +782,106 @@ const CompanyDetailsSlideOutComponent: React.FC<
             )}
 
             {activeTab === 'people' && (
-              <div className='flex flex-col px-6 pb-4'>
+              <div className='flex flex-col px-6 pb-4 min-h-full'>
                 {people.length > 0 ? (
-                  <div className='grid grid-cols-1 gap-3'>
+                  <div className='space-y-3'>
                     {people.map(person => (
-                      <div key={person.id} className='group cursor-pointer'>
+                      <div
+                        key={person.id}
+                        onClick={() => handlePersonClick(person.id)}
+                        className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer'
+                      >
                         <div
-                          onClick={() => handlePersonClick(person.id)}
-                          className='bg-white border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors overflow-hidden relative'
+                          onClick={e => e.stopPropagation()}
+                          className='flex-shrink-0'
                         >
-                          <div className='px-4 py-3'>
-                            {/* Top Row: Role/Title (Prominent) */}
-                            <div className='mb-1'>
-                              {person.company_role && (
-                                <h3 className='text-base font-semibold text-gray-900 mb-1.5'>
-                                  {person.company_role}
-                                </h3>
-                              )}
-                              <div className='flex items-center gap-2 flex-wrap'>
-                                <h4 className='text-sm font-medium text-gray-700'>
-                                  {person.name || 'Unknown'}
-                                </h4>
-                                {person.employee_location && (
-                                  <>
-                                    <span className='text-gray-400'>•</span>
-                                    <span className='text-sm text-gray-500'>
-                                      {person.employee_location}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Compact Info Row */}
-                            <div className='flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-2'>
-                              {person.email_address && (
-                                <div className='flex items-center gap-1.5'>
-                                  <Mail className='h-4 w-4 text-gray-400' />
-                                  <span className='truncate max-w-[200px]'>
-                                    {person.email_address}
-                                  </span>
-                                </div>
-                              )}
-                              {person.linkedin_url && (
-                                <a
-                                  href={person.linkedin_url}
-                                  target='_blank'
-                                  rel='noopener noreferrer'
-                                  onClick={e => e.stopPropagation()}
-                                  className='flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors'
-                                >
-                                  <ExternalLink className='h-4 w-4' />
-                                  <span>LinkedIn</span>
-                                </a>
-                              )}
-                            </div>
-
-                            {/* Status Dropdown and Actions at Bottom */}
-                            <div className='pt-3 mt-3 border-t border-gray-200'>
-                              <div className='flex items-center gap-2 justify-between'>
-                                <UnifiedStatusDropdown
-                                  entityId={person.id}
-                                  entityType='people'
-                                  currentStatus={
-                                    person.people_stage || 'new_lead'
-                                  }
-                                  availableStatuses={[
-                                    'new_lead',
-                                    'message_sent',
-                                    'replied',
-                                    'interested',
-                                    'meeting_scheduled',
-                                    'meeting_completed',
-                                    'follow_up',
-                                    'not_interested',
-                                  ]}
-                                  onStatusChange={() => onUpdate?.()}
-                                  variant='button'
-                                />
-                                <div
-                                  className='flex items-center gap-1'
-                                  onClick={e => e.stopPropagation()}
-                                >
-                                  <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-8 w-8 p-0 border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50'
-                                    onClick={() =>
-                                      handlePersonSendMessage(person.id)
-                                    }
-                                    title='Send Message'
-                                  >
-                                    <Send className='h-4 w-4 text-gray-600' />
-                                  </Button>
-                                  <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-8 w-8 p-0 border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50'
-                                    onClick={() =>
-                                      handlePersonSyncCRM(person.id)
-                                    }
-                                    title='Sync to CRM'
-                                  >
-                                    <Workflow className='h-4 w-4 text-gray-600' />
-                                  </Button>
-                                  <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-8 w-8 p-0 border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50'
-                                    onClick={() => {
-                                      // TODO: Open campaign selection dialog
-                                      toast({
-                                        title: 'Add to Campaign',
-                                        description:
-                                          'Campaign selection coming soon',
-                                      });
-                                    }}
-                                    title='Add to Campaign'
-                                  >
-                                    <ListPlus className='h-4 w-4 text-gray-600' />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                          <Checkbox
+                            checked={selectedPeople.includes(person.id)}
+                            onCheckedChange={() =>
+                              togglePersonSelection(person.id)
+                            }
+                          />
                         </div>
+                        <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
+                          <User className='h-5 w-5 text-gray-500' />
+                        </div>
+                        <div className='flex-1 min-w-0'>
+                          <div className='font-medium text-sm text-foreground truncate'>
+                            {person.name || 'Unknown'}
+                          </div>
+                          <div className='text-xs text-gray-500 truncate'>
+                            {person.company_role || 'No role specified'}
+                          </div>
+                          {person.employee_location && (
+                            <div className='text-xs text-gray-500 truncate mt-0.5'>
+                              {person.employee_location}
+                            </div>
+                          )}
+                        </div>
+                        {person.people_stage && (
+                          <StatusBadge status={person.people_stage} size='sm' />
+                        )}
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className='text-center py-12 text-gray-500'>
                     <User className='h-12 w-12 text-gray-300 mx-auto mb-3' />
-                    <p className='text-sm'>No people at this company</p>
+                    <p className='text-sm'>No contacts at this company</p>
+                  </div>
+                )}
+
+                {/* Action Bar - Shows when contacts are selected - at bottom */}
+                {selectedPeople.length > 0 && (
+                  <div className='mt-auto pt-4 animate-in slide-in-from-bottom-2 fade-in duration-200'>
+                    <div className='rounded-xl border bg-background text-foreground'>
+                      <div className='flex items-center gap-3 px-3 py-2'>
+                        {/* Single select actions */}
+                        {selectedPeople.length === 1 && (
+                          <Button
+                            variant='secondary'
+                            size='sm'
+                            onClick={handleBulkSendMessage}
+                            className='gap-2'
+                          >
+                            <Mail className='h-4 w-4' />
+                            Send email
+                          </Button>
+                        )}
+
+                        {/* Campaign (both single and multiple) */}
+                        <Button
+                          variant='secondary'
+                          size='sm'
+                          onClick={() => setShowCampaignSelect(true)}
+                          className='gap-2'
+                        >
+                          <ListPlus className='h-4 w-4' />
+                          Campaign
+                        </Button>
+
+                        {/* More - Only show when multiple selected */}
+                        {selectedPeople.length > 1 && (
+                          <ActionSlideTrigger
+                            actions={[
+                              {
+                                id: 'clear',
+                                label: 'Clear selection',
+                                icon: X,
+                                onClick: () => setSelectedPeople([]),
+                                variant: 'default',
+                              },
+                            ]}
+                            title='Actions'
+                            variant='secondary'
+                            size='sm'
+                          >
+                            More
+                            <MoreHorizontal className='h-4 w-4' />
+                          </ActionSlideTrigger>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -918,114 +890,32 @@ const CompanyDetailsSlideOutComponent: React.FC<
             {activeTab === 'jobs' && (
               <div className='flex flex-col px-6 pb-4'>
                 {jobs.length > 0 ? (
-                  <div className='grid grid-cols-1 gap-3'>
+                  <div className='space-y-3'>
                     {jobs.slice(0, 10).map(job => {
                       const currentJobStatus =
                         job.client_jobs?.[0]?.status || 'new';
                       return (
                         <div
                           key={job.id}
-                          className='bg-white border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors overflow-hidden relative'
+                          className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer'
                         >
-                          <div className='px-4 py-3'>
-                            {/* Top Row: Title (Prominent) */}
-                            <div className='mb-2'>
-                              <div className='flex items-center gap-2 flex-wrap'>
-                                <h3 className='text-base font-semibold text-gray-900'>
-                                  {job.title || 'Untitled Job'}
-                                </h3>
-                                {job.location && (
-                                  <>
-                                    <span className='text-gray-400'>•</span>
-                                    <span className='text-sm text-gray-500'>
-                                      {job.location}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Compact Info Row */}
-                            <div className='flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-2'>
-                              {job.function && (
-                                <div className='flex items-center gap-1.5'>
-                                  <FileText className='h-4 w-4 text-gray-400' />
-                                  <span>{job.function}</span>
-                                </div>
-                              )}
-                              {job.posted_date && (
-                                <div className='flex items-center gap-1.5'>
-                                  <Calendar className='h-4 w-4 text-gray-400' />
-                                  <span>
-                                    {new Date(
-                                      job.posted_date
-                                    ).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      year: 'numeric',
-                                    })}
-                                  </span>
-                                </div>
-                              )}
-                              {job.job_url && (
-                                <a
-                                  href={job.job_url}
-                                  target='_blank'
-                                  rel='noopener noreferrer'
-                                  onClick={e => e.stopPropagation()}
-                                  className='flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors'
-                                >
-                                  <ExternalLink className='h-4 w-4' />
-                                  <span>View Job</span>
-                                </a>
-                              )}
-                            </div>
-
-                            {/* Status Dropdown and Actions at Bottom */}
-                            <div className='pt-3 mt-3 border-t border-gray-200'>
-                              <div className='flex items-center gap-2 justify-between'>
-                                <UnifiedStatusDropdown
-                                  entityId={job.id}
-                                  entityType='jobs'
-                                  currentStatus={currentJobStatus}
-                                  availableStatuses={['new', 'qualify', 'skip']}
-                                  onStatusChange={() => onUpdate?.()}
-                                  variant='button'
-                                />
-                                <div className='flex items-center gap-1'>
-                                  {job.job_url && (
-                                    <Button
-                                      variant='ghost'
-                                      size='sm'
-                                      className='h-8 w-8 p-0 border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50'
-                                      onClick={e => {
-                                        e.stopPropagation();
-                                        window.open(job.job_url, '_blank');
-                                      }}
-                                      title='View Job'
-                                    >
-                                      <ExternalLink className='h-4 w-4 text-gray-600' />
-                                    </Button>
-                                  )}
-                                  <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-8 w-8 p-0 border border-gray-200 rounded-md bg-white hover:border-gray-300 hover:bg-gray-50'
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      toast({
-                                        title: 'Sync to CRM',
-                                        description: 'Job sync coming soon',
-                                      });
-                                    }}
-                                    title='Sync to CRM'
-                                  >
-                                    <Workflow className='h-4 w-4 text-gray-600' />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
+                          <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
+                            <Calendar className='h-5 w-5 text-gray-500' />
                           </div>
+                          <div className='flex-1 min-w-0'>
+                            <div className='font-medium text-sm text-foreground truncate'>
+                              {job.title || 'Untitled Job'}
+                            </div>
+                            <div className='text-xs text-gray-500 truncate'>
+                              {job.function || 'No function specified'}
+                            </div>
+                            {job.location && (
+                              <div className='text-xs text-gray-500 truncate mt-0.5'>
+                                {job.location}
+                              </div>
+                            )}
+                          </div>
+                          <StatusBadge status={currentJobStatus} size='sm' />
                         </div>
                       );
                     })}
@@ -1173,7 +1063,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                                 {formatDate(interaction.occurred_at)}
                               </span>
                             </div>
-                            <div className='text-sm font-medium text-gray-700'>
+                            <div className='text-sm font-medium text-foreground'>
                               {interaction.people?.name || 'Unknown Person'}
                             </div>
                             {interaction.subject && (
@@ -1206,7 +1096,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
           <div className='flex-1 flex flex-col overflow-y-auto'>
             {/* Activity Section */}
             <div className='px-6 pt-6 pb-4'>
-              <h3 className='text-base font-semibold text-gray-900 mb-4'>
+              <h3 className='text-base font-semibold text-foreground mb-4'>
                 <div className='flex items-center gap-1.5'>
                   <Mail className='h-4 w-4 text-gray-500' />
                   <span>Activity</span>
@@ -1245,7 +1135,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                           className={`flex-shrink-0 w-2 h-2 rounded-full ${dotColor} mt-1.5`}
                         />
                         <div className='flex-1 min-w-0'>
-                          <div className='text-xs font-medium text-gray-900'>
+                          <div className='text-xs font-medium text-foreground'>
                             {interactionType}
                           </div>
                           <div className='text-xs text-gray-500 mt-0.5'>
@@ -1278,7 +1168,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
             {/* Notes Section */}
             <div className='flex-1 flex flex-col min-h-0 pt-4 pb-6 select-text'>
               <div className='px-6'>
-                <h3 className='text-base font-semibold text-gray-900 mb-4'>
+                <h3 className='text-base font-semibold text-foreground mb-4'>
                   <div className='flex items-center gap-1.5'>
                     <StickyNote className='h-4 w-4 text-gray-500' />
                     <span>Notes</span>
@@ -1302,6 +1192,42 @@ const CompanyDetailsSlideOutComponent: React.FC<
           </div>
         </div>
       </div>
+
+      {/* Campaign Selection Dialog */}
+      <AlertDialog
+        open={showCampaignSelect}
+        onOpenChange={setShowCampaignSelect}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add to Campaign</AlertDialogTitle>
+            <AlertDialogDescription>
+              Select a campaign to enroll{' '}
+              {selectedPeople.length === 1
+                ? '1 contact'
+                : `${selectedPeople.length} contacts`}
+              .
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className='py-4'>
+            <Select onValueChange={handleAddToCampaign} defaultValue=''>
+              <SelectTrigger>
+                <SelectValue placeholder='Select a campaign' />
+              </SelectTrigger>
+              <SelectContent>
+                {campaigns.map(campaign => (
+                  <SelectItem key={campaign.id} value={campaign.id}>
+                    {campaign.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SlideOutPanel>
   );
 };

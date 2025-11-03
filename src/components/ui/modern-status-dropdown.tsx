@@ -67,7 +67,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
                   getUnifiedStatusClass(selectedOption.value)
                 )}
               />
-              <span className='text-gray-900 font-medium'>
+              <span className='text-foreground font-medium'>
                 {selectedOption.label}
               </span>
               {selectedOption.count !== undefined && (
@@ -140,7 +140,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
                         'font-medium',
                         value === option.value
                           ? 'text-primary'
-                          : 'text-gray-900'
+                          : 'text-foreground'
                       )}
                     >
                       {option.label}
@@ -241,7 +241,7 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
                   getUnifiedStatusClass(selectedOption.value)
                 )}
               />
-              <span className='text-gray-900 font-medium'>
+              <span className='text-foreground font-medium'>
                 {selectedOption.label}
               </span>
               {selectedOption.count !== undefined && (
@@ -318,7 +318,7 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
                             'font-medium',
                             value === option.value
                               ? 'text-blue-900'
-                              : 'text-gray-900'
+                              : 'text-foreground'
                           )}
                         >
                           {option.label}

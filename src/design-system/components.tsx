@@ -291,7 +291,9 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
               onClick={onFavoritesToggle}
               className={cn(
                 tokens.button,
-                showFavoritesOnly ? tokens.buttonActive : tokens.buttonDefault
+                showFavoritesOnly
+                  ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100'
+                  : tokens.buttonDefault
               )}
               aria-label={
                 showFavoritesOnly ? 'Show all items' : 'Show favorites only'
@@ -300,7 +302,7 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
               <Star
                 className={cn(
                   tokens.icon,
-                  showFavoritesOnly && tokens.iconActive
+                  showFavoritesOnly && 'fill-current text-amber-600'
                 )}
               />
             </button>

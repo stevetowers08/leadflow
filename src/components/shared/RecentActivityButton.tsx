@@ -1,13 +1,13 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SmallSlidePanel } from '@/components/ui/SmallSlidePanel';
 import { useClientId } from '@/hooks/useClientId';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  generateMockRecentActivity,
+  shouldUseMockData,
+} from '@/utils/mockData';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Activity,
@@ -20,6 +20,7 @@ import {
   User,
 } from 'lucide-react';
 import React from 'react';
+import { useSlidePanel } from '@/contexts/SlidePanelContext';
 
 interface ActivityItem {
   id: string;
@@ -55,16 +56,25 @@ const ENTITY_ICONS = {
 };
 
 export const RecentActivityButton: React.FC = () => {
-  const [open, setOpen] = React.useState(false);
+  const { openPanel, setOpenPanel, closePanel } = useSlidePanel();
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [activities, setActivities] = React.useState<ActivityItem[]>([]);
   const { data: clientId } = useClientId();
+  const open = openPanel === 'activity';
 
   const loadActivities = React.useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
+      // Use mock data in development if enabled
+      if (shouldUseMockData()) {
+        const mockActivities = generateMockRecentActivity();
+        setActivities(mockActivities);
+        setIsLoading(false);
+        return;
+      }
+
       const items: ActivityItem[] = [];
 
       // Fetch interactions (emails, calls, meetings)
@@ -213,47 +223,59 @@ export const RecentActivityButton: React.FC = () => {
       <Button
         variant='ghost'
         size='icon'
-        className='h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-600 rounded-md relative'
-        onClick={() => setOpen(true)}
+        className='h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-gray-200 rounded-md relative'
         aria-label='View recent activity'
+        onClick={() => setOpenPanel(open ? null : 'activity')}
       >
         <Activity className='h-4 w-4' />
         {activities.length > 0 && (
-          <span className='absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center'>
-            {activities.length > 99 ? '99+' : activities.length}
+          <span className='absolute -top-1 -right-1'>
+            <Badge className='h-4 min-w-[1rem] text-xs px-1 bg-gradient-to-br from-blue-500 to-blue-600 text-white border-none'>
+              {activities.length > 99 ? '99+' : activities.length}
+            </Badge>
           </span>
         )}
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className='sm:max-w-2xl max-h-[80vh]'>
-          <DialogHeader>
-            <DialogTitle className='flex items-center gap-2'>
-              <Activity className='h-5 w-5 text-blue-600' />
-              Recent Activity
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className='text-sm text-muted-foreground mb-4'>
-            {clientId
-              ? 'Filtered to your client workspace'
-              : 'Showing all accessible activity'}
-          </div>
-
+      <SmallSlidePanel
+        isOpen={open}
+        onClose={closePanel}
+        title='Recent Activity'
+        headerActions={
+          clientId ? (
+            <span className='text-xs text-gray-500'>Your workspace</span>
+          ) : undefined
+        }
+      >
+        <div className='flex-1 overflow-hidden -mx-6'>
           {isLoading ? (
-            <div className='flex items-center justify-center py-20 text-gray-500'>
-              <Loader2 className='h-5 w-5 mr-2 animate-spin' /> Loading
-              activity...
+            <div className='flex items-center justify-center py-16'>
+              <div className='flex flex-col items-center gap-3'>
+                <Loader2 className='h-6 w-6 animate-spin text-blue-500' />
+                <p className='text-sm text-gray-500'>Loading activity...</p>
+              </div>
             </div>
           ) : error ? (
-            <div className='text-red-600 text-sm py-10'>{error}</div>
+            <div className='flex flex-col items-center justify-center py-16 px-4'>
+              <div className='h-12 w-12 rounded-full bg-red-50 flex items-center justify-center mb-3'>
+                <Activity className='h-6 w-6 text-red-500' />
+              </div>
+              <p className='text-sm font-medium text-red-700 mb-1'>Error loading activity</p>
+              <p className='text-xs text-red-600 text-center'>{error}</p>
+            </div>
           ) : activities.length === 0 ? (
-            <div className='text-gray-600 text-sm py-10 text-center'>
-              No recent activity found.
+            <div className='flex flex-col items-center justify-center py-16 px-4'>
+              <div className='h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4'>
+                <Activity className='h-8 w-8 text-gray-400' />
+              </div>
+              <p className='text-sm font-medium text-gray-700 mb-1'>No recent activity</p>
+              <p className='text-xs text-gray-500 text-center'>
+                Activity will appear here as things happen
+              </p>
             </div>
           ) : (
-            <ScrollArea className='max-h-[60vh] pr-4'>
-              <div className='space-y-3'>
+            <ScrollArea className='h-full'>
+              <div className='py-3'>
                 {activities.map(activity => {
                   const Icon = ACTIVITY_ICONS[activity.type] || Activity;
                   const EntityIcon =
@@ -265,43 +287,43 @@ export const RecentActivityButton: React.FC = () => {
                   return (
                     <div
                       key={activity.id}
-                      className='flex gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200'
+                      className='flex gap-3 px-3 py-3.5 hover:bg-gray-50/80 active:bg-gray-100 transition-all'
                     >
-                      <div className={`p-2 rounded-lg ${colorClass}`}>
-                        <Icon className='h-4 w-4' />
+                    <div className={`p-2.5 rounded-xl flex-shrink-0 shadow-sm ${colorClass}`}>
+                      <Icon className='h-4 w-4' />
+                    </div>
+
+                    <div className='flex-1 min-w-0'>
+                      <div className='flex items-center gap-2 mb-1.5'>
+                        <EntityIcon className='h-3.5 w-3.5 text-gray-500' />
+                        <span className='text-sm font-semibold text-gray-900 line-clamp-1'>
+                          {activity.entity_name}
+                        </span>
                       </div>
 
-                      <div className='flex-1 min-w-0'>
-                        <div className='flex items-center gap-2 mb-1'>
-                          <EntityIcon className='h-3.5 w-3.5 text-gray-500' />
-                          <span className='text-sm font-medium text-gray-900'>
-                            {activity.entity_name}
-                          </span>
-                          <span className='text-xs text-gray-500'>
-                            {formatDistanceToNow(new Date(activity.timestamp), {
-                              addSuffix: true,
-                            })}
-                          </span>
-                        </div>
+                      <p className='text-xs text-gray-600 line-clamp-2 mb-2 leading-relaxed'>
+                        {activity.description}
+                      </p>
 
-                        <p className='text-sm text-gray-600 line-clamp-2'>
-                          {activity.description}
-                        </p>
-
-                        <div className='flex items-center gap-2 mt-2'>
-                          <span className='text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 capitalize'>
-                            {activity.type}
-                          </span>
-                        </div>
+                      <div className='flex items-center gap-2'>
+                        <span className='text-xs px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 capitalize font-medium'>
+                          {activity.type}
+                        </span>
+                        <span className='text-xs text-gray-500 font-medium'>
+                          {formatDistanceToNow(new Date(activity.timestamp), {
+                            addSuffix: true,
+                          })}
+                        </span>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
               </div>
             </ScrollArea>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+      </SmallSlidePanel>
     </>
   );
 };

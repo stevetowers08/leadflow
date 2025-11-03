@@ -142,7 +142,7 @@ export const bulkExportPeople = async (
         company_role,
         employee_location,
         linkedin_url,
-        lead_score,
+        score,
         stage,
         created_at,
         companies!left(name, website, industry)
@@ -180,7 +180,7 @@ export const bulkExportPeople = async (
           `"${person.company_website || ''}"`,
           `"${(person.companies as Record<string, unknown>)?.industry || ''}"`,
           `"${person.linkedin_url || ''}"`,
-          `"${person.lead_score || ''}"`,
+          `"${person.score || ''}"`,
           `"${person.people_stage || ''}"`,
           `"${person.created_at ? new Date(person.created_at).toLocaleDateString() : ''}"`,
         ].join(',')

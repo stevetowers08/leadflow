@@ -68,10 +68,10 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         subheading:
           'Qualify jobs to get more company info and decision makers using AI',
       },
-      '/people': {
+      '/contacts': {
         title: 'Contacts',
         subheading:
-          'Manage your people and track your outreach to decision makers',
+          'Manage your contacts and track your outreach to decision makers',
       },
       '/companies': {
         title: 'Companies',

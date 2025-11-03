@@ -193,7 +193,7 @@ function ReportingContent() {
           <Card className='max-w-md'>
             <CardContent className='flex flex-col items-center justify-center py-12'>
               <AlertCircle className='h-12 w-12 text-destructive mb-4' />
-              <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+              <h3 className='text-lg font-semibold text-foreground mb-2'>
                 Failed to Load Reporting Data
               </h3>
               <p className='text-gray-600 text-center mb-4'>
@@ -841,7 +841,7 @@ function ReportingContent() {
             <Card className='border-dashed'>
               <CardContent className='flex flex-col items-center justify-center py-12'>
                 <TrendingUp className='h-12 w-12 text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+                <h3 className='text-lg font-semibold text-foreground mb-2'>
                   Advanced Email Analytics Coming Soon
                 </h3>
                 <p className='text-gray-600 text-center max-w-md'>

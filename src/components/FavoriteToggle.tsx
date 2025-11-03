@@ -14,8 +14,7 @@ interface FavoriteToggleProps {
   className?: string;
 }
 
-export const FavoriteToggle = memo(
-  ({
+const FavoriteToggleComponent = ({
     entityId,
     entityType,
     isFavorite,
@@ -88,8 +87,8 @@ export const FavoriteToggle = memo(
         className={cn(
           sizeClasses[size],
           'p-0 hover:bg-transparent',
-          isFavorite && 'text-yellow-500 hover:text-yellow-600',
-          !isFavorite && 'text-muted-foreground hover:text-yellow-500',
+          isFavorite && 'text-amber-600 hover:text-amber-700',
+          !isFavorite && 'text-muted-foreground hover:text-amber-600',
           className
         )}
       >
@@ -102,5 +101,8 @@ export const FavoriteToggle = memo(
         />
       </Button>
     );
-  }
-);
+  };
+
+FavoriteToggleComponent.displayName = 'FavoriteToggle';
+
+export const FavoriteToggle = memo(FavoriteToggleComponent);

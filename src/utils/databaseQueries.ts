@@ -3,7 +3,6 @@
  * Prevents common database query issues and provides consistent patterns
  *
  * 📚 Schema reference: src/types/databaseSchema.ts
- * 📖 Best practices: docs/DATABASE_BEST_PRACTICES.md
  */
 
 import { supabase } from '@/integrations/supabase/client';
@@ -24,15 +23,30 @@ export class DatabaseQueries {
     id: string
   ): Promise<T> {
     try {
+      let selection: string;
+      if (table === 'people') {
+        selection = COMMON_SELECTIONS.people;
+      } else if (table === 'companies') {
+        selection = COMMON_SELECTIONS.companies;
+      } else {
+        selection = COMMON_SELECTIONS.jobs;
+      }
+
       const { data, error } = await supabase
         .from(table)
-        .select(COMMON_SELECTIONS[table])
+        .select(selection)
         .eq('id', id)
         .single();
 
       if (error) {
         console.error(`❌ Error fetching ${table}:`, error);
-        throw new DatabaseError(error.code, error.message, error.details);
+        throw new DatabaseError(
+          error.code || 'UNKNOWN_ERROR',
+          error.message,
+          error.details
+            ? (error.details as unknown as Record<string, unknown>)
+            : undefined
+        );
       }
 
       return data as T;
@@ -196,7 +210,7 @@ export class DatabaseQueries {
    * Safe related entities fetching
    */
   static async getRelatedEntities(
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'contacts' | 'companies' | 'jobs',
     companyId: string,
     excludeId?: string
   ): Promise<{
@@ -211,7 +225,7 @@ export class DatabaseQueries {
           .select(
             `
             id, name, company_id, email_address, employee_location,
-            company_role, stage, lead_score, linkedin_url,
+            company_role, people_stage, score, linkedin_url,
             owner_id, created_at, updated_at
           `
           )

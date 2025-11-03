@@ -6,7 +6,7 @@
 
 ### Always Active (2 rules)
 
-- `project-overview.mdc` - Project overview and workflows
+- `project-overview.mdc` - Project overview and campaigns
 - `tech-stack.mdc` - Dependencies and frameworks
 
 ### Auto-Attached by File Type (3 rules)
@@ -39,7 +39,7 @@ Type `@` in Cursor chat to mention specific rules:
 - `@coding-standards` - Coding standards
 - `@ui-components` - UI guidelines
 - `@project-structure` - Project structure
-- `@workflows` - Workflow commands
+- `@workflows` - Campaigns commands
 
 ## Updating Rules
 

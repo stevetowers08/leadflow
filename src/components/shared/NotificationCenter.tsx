@@ -1,11 +1,8 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { SmallSlidePanel } from '@/components/ui/SmallSlidePanel';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import {
   notificationService,
@@ -17,14 +14,13 @@ import {
   Bell,
   Briefcase,
   Calendar,
-  CheckCheck,
   Loader2,
   Mail,
   User,
-  X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSlidePanel } from '@/contexts/SlidePanelContext';
 
 const NOTIFICATION_ICONS = {
   new_jobs_discovered: Briefcase,
@@ -34,18 +30,12 @@ const NOTIFICATION_ICONS = {
   company_enriched: Briefcase,
 };
 
-const NOTIFICATION_COLORS = {
-  new_jobs_discovered: 'bg-blue-100 text-blue-600',
-  email_response_received: 'bg-green-100 text-green-600',
-  meeting_reminder: 'bg-orange-100 text-orange-600',
-  follow_up_reminder: 'bg-purple-100 text-purple-600',
-  company_enriched: 'bg-emerald-100 text-emerald-700',
-};
-
 export const NotificationCenter: React.FC = () => {
-  const [open, setOpen] = useState(false);
+  const { openPanel, setOpenPanel, closePanel } = useSlidePanel();
+  const [tab, setTab] = useState<'all' | 'unread'>('all');
   const router = useRouter();
   const queryClient = useQueryClient();
+  const open = openPanel === 'notifications';
 
   // Fetch notifications
   const { data: notifications = [], isLoading } = useQuery({
@@ -135,186 +125,134 @@ export const NotificationCenter: React.FC = () => {
     () => notifications.filter(n => !n.is_read),
     [notifications]
   );
-  const readNotifications = useMemo(
-    () => notifications.filter(n => n.is_read),
-    [notifications]
+
+  const filteredNotifications = useMemo(
+    () => (tab === 'unread' ? unreadNotifications : notifications),
+    [tab, unreadNotifications, notifications]
   );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant='ghost'
-          size='icon'
-          className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md relative'
-          aria-label='Notifications'
-        >
-          <Bell className='h-4 w-4' />
-          {unreadCount > 0 && (
-            <span className='absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-medium flex items-center justify-center min-w-[1.25rem] px-1'>
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align='end'
-        sideOffset={8}
-        className='w-[380px] p-0 sm:w-[420px]'
+    <>
+      <Button
+        variant='ghost'
+        size='icon'
+        className='h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-gray-200 rounded-md relative'
+        aria-label='Notifications'
+        onClick={() => setOpenPanel(open ? null : 'notifications')}
       >
-        <div className='flex items-center justify-between px-4 py-3 border-b'>
-          <div className='flex items-center gap-2'>
-            <Bell className='h-4 w-4 text-gray-600' />
-            <h3 className='font-semibold text-sm'>Notifications</h3>
+        <Bell className='h-4 w-4' />
+        {unreadCount > 0 && (
+          <span className='absolute -top-1 -right-1'>
+            <Badge className='h-4 min-w-[1rem] text-xs px-1 bg-gradient-to-br from-red-500 to-red-600 text-white border-none'>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Badge>
+          </span>
+        )}
+      </Button>
+
+      <SmallSlidePanel
+        isOpen={open}
+        onClose={closePanel}
+        title='Notifications'
+        footer={
+          <Button variant='ghost' size='sm' className='w-full'>
+            View all notifications
+          </Button>
+        }
+      >
+        <Tabs value={tab} onValueChange={(v) => setTab(v as 'all' | 'unread')} className='flex flex-col h-full'>
+          <div className='flex items-center justify-between border-b px-3 py-2 -mx-6'>
+            <TabsList className='bg-transparent'>
+              <TabsTrigger value='all' className='text-sm'>All</TabsTrigger>
+              <TabsTrigger value='unread' className='text-sm'>
+                Unread {unreadCount > 0 && <Badge className='ml-1'>{unreadCount}</Badge>}
+              </TabsTrigger>
+            </TabsList>
             {unreadCount > 0 && (
-              <span className='px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-xs font-medium'>
-                {unreadCount} new
-              </span>
+              <button
+                onClick={handleMarkAllRead}
+                className='text-xs font-medium text-muted-foreground hover:underline'
+              >
+                Mark all as read
+              </button>
             )}
           </div>
-          {unreadNotifications.length > 0 && (
-            <Button
-              variant='ghost'
-              size='sm'
-              className='h-7 text-xs'
-              onClick={handleMarkAllRead}
-            >
-              <CheckCheck className='h-3.5 w-3.5 mr-1' />
-              Mark all read
-            </Button>
-          )}
-        </div>
 
-        <ScrollArea className='max-h-[500px]'>
-          {isLoading ? (
-            <div className='flex items-center justify-center py-12'>
-              <Loader2 className='h-5 w-5 animate-spin text-gray-400' />
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className='flex flex-col items-center justify-center py-12 px-4'>
-              <Bell className='h-10 w-10 text-gray-300 mb-3' />
-              <p className='text-sm text-gray-500 text-center'>
-                No notifications yet
-              </p>
-            </div>
-          ) : (
-            <div className='py-2'>
-              {/* Unread notifications */}
-              {unreadNotifications.length > 0 && (
-                <>
-                  {unreadNotifications.map(notification => {
+          <div className='flex-1 overflow-hidden -mx-6'>
+            <ScrollArea className='h-full max-h-[calc(100vh-200px)]'>
+              {isLoading ? (
+                <div className='flex items-center justify-center py-16'>
+                  <div className='flex flex-col items-center gap-3'>
+                    <Loader2 className='h-6 w-6 animate-spin text-blue-500' />
+                    <p className='text-sm text-gray-500'>Loading notifications...</p>
+                  </div>
+                </div>
+              ) : filteredNotifications.length === 0 ? (
+                <div className='px-3 py-6 text-center text-sm text-muted-foreground'>
+                  {tab === 'unread' ? 'No unread notifications' : 'No notifications'}
+                </div>
+              ) : (
+                <div>
+                  {filteredNotifications.map(notification => {
                     const Icon = NOTIFICATION_ICONS[notification.type] || Bell;
-                    const colorClass =
-                      NOTIFICATION_COLORS[notification.type] ||
-                      'bg-gray-100 text-gray-600';
-
                     return (
                       <NotificationItem
                         key={notification.id}
                         notification={notification}
                         Icon={Icon}
-                        colorClass={colorClass}
                         onClick={() => handleNotificationClick(notification)}
-                        onDelete={e =>
-                          handleDeleteNotification(e, notification.id)
-                        }
                       />
                     );
                   })}
-                  {readNotifications.length > 0 && (
-                    <Separator className='my-2' />
-                  )}
-                </>
+                </div>
               )}
-
-              {/* Read notifications */}
-              {readNotifications.map(notification => {
-                const Icon = NOTIFICATION_ICONS[notification.type] || Bell;
-                const colorClass =
-                  NOTIFICATION_COLORS[notification.type] ||
-                  'bg-gray-100 text-gray-600';
-
-                return (
-                  <NotificationItem
-                    key={notification.id}
-                    notification={notification}
-                    Icon={Icon}
-                    colorClass={colorClass}
-                    isRead
-                    onClick={() => handleNotificationClick(notification)}
-                    onDelete={e => handleDeleteNotification(e, notification.id)}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </ScrollArea>
-      </PopoverContent>
-    </Popover>
+            </ScrollArea>
+          </div>
+        </Tabs>
+      </SmallSlidePanel>
+    </>
   );
 };
 
 interface NotificationItemProps {
   notification: Notification;
   Icon: React.ComponentType<{ className?: string }>;
-  colorClass: string;
-  isRead?: boolean;
   onClick: () => void;
-  onDelete: (e: React.MouseEvent) => void;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
   Icon,
-  colorClass,
-  isRead = false,
   onClick,
-  onDelete,
 }) => {
   return (
-    <div
-      className={cn(
-        'flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group relative',
-        !isRead && 'bg-blue-50/50'
-      )}
+    <button
       onClick={onClick}
+      className='flex w-full items-start gap-3 border-b px-3 py-3 text-left hover:bg-accent transition-colors'
     >
-      <div className={cn('p-2 rounded-lg flex-shrink-0', colorClass)}>
-        <Icon className='h-4 w-4' />
+      <div className='mt-1 text-muted-foreground flex-shrink-0'>
+        <Icon size={18} />
       </div>
-
-      <div className='flex-1 min-w-0'>
-        <div className='flex items-start justify-between gap-2 mb-1'>
-          <p
-            className={cn(
-              'text-sm font-medium line-clamp-1',
-              !isRead && 'font-semibold'
-            )}
-          >
-            {notification.title}
-          </p>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0'
-            onClick={onDelete}
-          >
-            <X className='h-3.5 w-3.5 text-gray-400' />
-          </Button>
-        </div>
-        <p className='text-xs text-gray-600 line-clamp-2 mb-1'>
-          {notification.message}
+      <div className='flex-1 space-y-1 min-w-0'>
+        <p
+          className={cn(
+            'text-sm',
+            !notification.is_read
+              ? 'font-semibold text-foreground'
+              : 'text-foreground/80'
+          )}
+        >
+          {notification.title}
         </p>
-        <span className='text-xs text-gray-400'>
+        <p className='text-xs text-muted-foreground'>
           {formatDistanceToNow(new Date(notification.created_at), {
             addSuffix: true,
           })}
-        </span>
+        </p>
       </div>
-
-      {!isRead && (
-        <div className='absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 bg-blue-500 rounded-full' />
+      {!notification.is_read && (
+        <span className='mt-1 inline-block size-2 rounded-full bg-primary flex-shrink-0' />
       )}
-    </div>
+    </button>
   );
 };

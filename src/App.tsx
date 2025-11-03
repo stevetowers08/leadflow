@@ -79,18 +79,7 @@ const AppRoutes = () => {
   const authConfig = getAuthConfig();
   const bypassAuth = shouldBypassAuth();
 
-  // Debug logging (development only)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 Auth Debug:', {
-      user: !!user,
-      userProfile: !!userProfile,
-      loading,
-      authConfig,
-      bypassAuth,
-      nodeEnv: process.env.NODE_ENV,
-      nextPublicBypassAuth: process.env.NEXT_PUBLIC_BYPASS_AUTH,
-    });
-  }
+  // Debug logging removed - only log in verbose mode via NEXT_PUBLIC_VERBOSE_LOGS
 
   if (loading && !bypassAuth) {
     return (

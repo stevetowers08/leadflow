@@ -31,17 +31,7 @@ export const getAuthConfig = (): AuthConfig => {
   const shouldBypass =
     isDevelopment || bypassAuth || process.env.NODE_ENV === 'production';
 
-  // Debug logging (development only) - only log once to avoid spam
-  if (isDevelopment && !(getAuthConfig as any)._logged) {
-    console.log('🔍 Auth Config Debug:', {
-      isDevelopment,
-      bypassAuth,
-      shouldBypass,
-      nodeEnv: process.env.NODE_ENV,
-      nextPublicBypassAuth: process.env.NEXT_PUBLIC_BYPASS_AUTH,
-    });
-    (getAuthConfig as any)._logged = true;
-  }
+  // Debug logging removed - only log in verbose mode via NEXT_PUBLIC_VERBOSE_LOGS
 
   return {
     bypassAuth: shouldBypass,

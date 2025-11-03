@@ -4,7 +4,7 @@
  * Modern floating action bar following NN/g best practices (2025):
  * - Appears at bottom when items are selected
  * - Clear count of selected items
- * - 5 primary actions for CRM workflow
+ * - 5 primary actions for CRM campaigns
  * - Smooth animations
  * - Keyboard accessible
  * - Responsive design
@@ -22,19 +22,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ActionSlideTrigger, type ActionItem } from '@/components/ui/ActionSlideTrigger';
 import {
   Download,
   ListPlus,
@@ -146,7 +140,7 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               Send email
             </Button>
 
-            {/* Run workflow */}
+            {/* Run campaigns */}
             <Button
               variant='secondary'
               size='sm'
@@ -155,33 +149,43 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               className='gap-2'
             >
               <Workflow className='h-4 w-4' />
-              Run workflow
+              Run campaigns
             </Button>
 
-            {/* More */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant='secondary' size='sm' className='gap-2'>
-                  More
-                  <MoreHorizontal className='h-4 w-4' />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align='start'>
-                <DropdownMenuItem
-                  onClick={() => handleAction('export', onExport)}
-                >
-                  <Download className='h-4 w-4 mr-2' /> Export CSV
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setShowDeleteDialog(true)}>
-                  <Trash2 className='h-4 w-4 mr-2' /> Delete
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onClear}>
-                  <X className='h-4 w-4 mr-2' /> Clear selection
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* More Actions Slider */}
+            <ActionSlideTrigger
+              actions={[
+                {
+                  id: 'export',
+                  label: 'Export CSV',
+                  icon: Download,
+                  onClick: () => handleAction('export', onExport),
+                  variant: 'default',
+                },
+                {
+                  id: 'delete',
+                  label: 'Delete',
+                  icon: Trash2,
+                  onClick: () => setShowDeleteDialog(true),
+                  variant: 'destructive',
+                  divider: true,
+                },
+                {
+                  id: 'clear',
+                  label: 'Clear selection',
+                  icon: X,
+                  onClick: onClear,
+                  variant: 'default',
+                  divider: true,
+                },
+              ]}
+              title='More Actions'
+              variant='secondary'
+              size='sm'
+            >
+              More
+              <MoreHorizontal className='h-4 w-4' />
+            </ActionSlideTrigger>
           </div>
 
           {loading && (

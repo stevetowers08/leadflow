@@ -44,14 +44,14 @@ const dashboardItem = {
 };
 
 // Navigation following user flow documentation
-// Primary workflow: Jobs → Companies → People → Conversations
+// Primary campaigns: Jobs → Companies → Contacts → Conversations
 const navigationSections = [
   {
-    // Core Workflow (most common items displayed prominently)
+    // Core Campaigns (most common items displayed prominently)
     items: [
       { name: 'Jobs Feed', href: '/jobs', icon: Briefcase },
       { name: 'Companies', href: '/companies', icon: Building2 },
-      { name: 'Contacts', href: '/people', icon: Users },
+      { name: 'Contacts', href: '/contacts', icon: Users },
       { name: 'Conversations', href: '/conversations', icon: MessageSquare },
     ],
   },
@@ -86,7 +86,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
             <RecruitEdgeLogo size={20} />
             <div className='absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse' />
           </div>
-          <h1 className='text-base font-bold text-gray-900'>RECRUITEDGE</h1>
+          <h1 className='text-base font-bold text-foreground'>RECRUITEDGE</h1>
         </div>
         {onClose && (
           <div className='ml-auto'>
@@ -94,7 +94,7 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
               variant='ghost'
               size='icon'
               onClick={onClose}
-              className='lg:hidden h-9 w-9 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-lg'
+              className='lg:hidden h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-gray-200 rounded-lg'
             >
               <X className='h-5 w-5' />
             </Button>
@@ -120,8 +120,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
                   'transition-all duration-200 ease-in-out',
                   isActive
-                    ? 'bg-gray-200 text-gray-900'
-                    : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900',
+                    ? 'bg-gray-200 text-foreground'
+                    : 'text-foreground hover:bg-gray-200 hover:text-foreground',
                   'group'
                 )}
               >
@@ -129,8 +129,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                   className={cn(
                     'h-4 w-4 transition-all duration-200',
                     isActive
-                      ? 'text-gray-900'
-                      : 'text-gray-600 group-hover:text-gray-900'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
                 <span>{gettingStartedItem.name}</span>
@@ -150,8 +150,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
                   'transition-all duration-200 ease-in-out',
                   isActive
-                    ? 'bg-gray-200 text-gray-900'
-                    : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900',
+                    ? 'bg-gray-200 text-foreground'
+                    : 'text-foreground hover:bg-gray-200 hover:text-foreground',
                   'group'
                 )}
               >
@@ -159,8 +159,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                   className={cn(
                     'h-4 w-4 transition-all duration-200',
                     isActive
-                      ? 'text-gray-900'
-                      : 'text-gray-600 group-hover:text-gray-900'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
                 <span>{dashboardItem.name}</span>
@@ -188,8 +188,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                           'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
                           'transition-all duration-200 ease-in-out',
                           isActive
-                            ? 'bg-gray-200 text-gray-900'
-                            : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900',
+                            ? 'bg-gray-200 text-foreground'
+                            : 'text-foreground hover:bg-gray-200 hover:text-foreground',
                           'group'
                         )}
                       >
@@ -197,8 +197,8 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
                           className={cn(
                             'h-4 w-4 transition-all duration-200',
                             isActive
-                              ? 'text-gray-900'
-                              : 'text-gray-600 group-hover:text-gray-900'
+                              ? 'text-foreground'
+                              : 'text-muted-foreground group-hover:text-foreground'
                           )}
                         />
                         <span>{item.name}</span>

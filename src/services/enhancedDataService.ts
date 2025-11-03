@@ -91,7 +91,7 @@ export function useEnhancedLeadsService(
           employee_location,
           company_role,
           stage,
-          lead_score,
+          score,
           linkedin_url,
           created_at,
           confidence_level,

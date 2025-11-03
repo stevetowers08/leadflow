@@ -79,7 +79,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      'h-10 px-4 text-left align-middle font-medium text-gray-700 [&:has([role=checkbox])]:pr-0',
+      'h-10 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0',
       'text-sm font-semibold tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
       'transition-colors duration-150 overflow-hidden text-ellipsis',
       'min-w-fit',
@@ -101,7 +101,7 @@ const TableCell = React.forwardRef<
     className={cn(
       'px-4 py-2 align-middle [&:has([role=checkbox])]:pr-0 border-r border-gray-200 last:border-r-0',
       'text-sm font-medium leading-relaxed transition-colors duration-150',
-      'group-hover:text-gray-900 overflow-hidden text-ellipsis',
+      'group-hover:text-foreground overflow-hidden text-ellipsis',
       'min-w-fit',
       className
     )}

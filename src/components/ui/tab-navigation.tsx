@@ -15,6 +15,7 @@ export interface TabNavigationProps {
   onTabChange: (tabId: string) => void;
   className?: string;
   variant?: 'default' | 'pill';
+  size?: 'sm' | 'md';
 }
 
 export const TabNavigation: React.FC<TabNavigationProps> = ({
@@ -23,15 +24,19 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
   onTabChange,
   className,
   variant = 'default',
+  size = 'md',
 }) => {
   const isPill = variant === 'pill';
+  const isSmall = size === 'sm';
 
   return (
     <div className={cn('flex-shrink-0 w-full', className)}>
       <nav
         className={cn(
           'flex',
-          isPill ? 'gap-3 w-auto' : 'gap-0 border-b border-gray-200 w-full'
+          isPill
+            ? cn(isSmall ? 'gap-1.5' : 'gap-3', 'w-auto')
+            : 'gap-0 border-b border-gray-200 w-full'
         )}
       >
         {tabs.map(tab => {
@@ -42,33 +47,39 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                'relative flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200',
-                isPill && 'min-w-[80px] max-w-[120px] flex-1',
+                cn(
+                  'relative flex items-center justify-center font-medium transition-all duration-200',
+                  isSmall
+                    ? 'gap-1 px-2 py-1 text-sm'
+                    : 'gap-1.5 px-3 py-1.5 text-sm'
+                ),
+                // For compact pills, size to content (no flex grow / min-width)
+                isPill && (isSmall ? '' : 'min-w-[80px] max-w-[120px] flex-1'),
                 isPill
                   ? cn(
                       'rounded-md',
                       isActive
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-primary text-primary-foreground'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     )
                   : cn(
                       'border-b-2 -mb-[1px]',
                       isActive
-                        ? 'text-gray-900 border-gray-900'
-                        : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
+                        ? 'text-primary border-primary'
+                        : 'text-gray-500 border-transparent hover:text-foreground hover:border-gray-300'
                     )
               )}
             >
               {Icon && (
                 <Icon
                   className={cn(
-                    'h-3.5 w-3.5',
+                    isSmall ? 'h-3.5 w-3.5' : 'h-3.5 w-3.5',
                     isPill
                       ? isActive
-                        ? 'text-white'
+                        ? 'text-primary-foreground'
                         : 'text-gray-600'
                       : isActive
-                        ? 'text-gray-900'
+                        ? 'text-primary'
                         : 'text-gray-400'
                   )}
                 />
@@ -77,9 +88,14 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
               {!isPill && tab.showCount !== false && (
                 <span
                   className={cn(
-                    'inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 text-[10px] font-medium rounded-full',
+                    cn(
+                      'inline-flex items-center justify-center rounded-full',
+                      isSmall
+                        ? 'min-w-[18px] px-1.5 py-0.5 text-[10px]'
+                        : 'min-w-[20px] px-1.5 py-0.5 text-[10px]'
+                    ),
                     isActive
-                      ? 'bg-gray-900 text-white'
+                      ? 'bg-primary/10 text-primary'
                       : 'bg-gray-100 text-gray-500'
                   )}
                 >

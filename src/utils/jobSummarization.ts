@@ -287,9 +287,9 @@ export async function getJobsNeedingSummarization(limit: number = 50): Promise<{
 }
 
 /**
- * Complete workflow: Get jobs needing summarization, summarize them, and update database
+ * Complete campaigns: Get jobs needing summarization, summarize them, and update database
  */
-export async function processJobSummarizationWorkflow(
+export async function processJobSummarizationCampaigns(
   limit: number = 10
 ): Promise<{
   success: boolean;
@@ -367,14 +367,14 @@ export async function processJobSummarizationWorkflow(
       },
     };
   } catch (error) {
-    console.error('Error in job summarization workflow:', error);
+    console.error('Error in job summarization campaigns:', error);
     return {
       success: false,
       processed,
       updated,
       errors: [
         ...errors,
-        `Workflow error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Campaigns error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       ],
       summary: {
         total_jobs: 0,

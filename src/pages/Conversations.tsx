@@ -435,7 +435,7 @@ const ConversationsContent: React.FC = () => {
       <div className='w-80 flex flex-col bg-white flex-shrink-0 border-l border-gray-200'>
         <div className='h-16 border-b border-gray-200 bg-white flex items-center px-4'>
           <div className='flex items-center justify-between w-full'>
-            <h2 className='text-sm font-semibold text-gray-900'>
+            <h2 className='text-sm font-semibold text-foreground'>
               Conversations
             </h2>
             <div className='flex items-center gap-2'>
@@ -484,7 +484,7 @@ const ConversationsContent: React.FC = () => {
                       </div>
                       <div className='flex-1 min-w-0'>
                         <div className='flex items-center justify-between mb-1'>
-                          <span className='font-medium text-gray-900 text-sm truncate'>
+                          <span className='font-medium text-foreground text-sm truncate'>
                             {thread.person_name}
                           </span>
                           <span className='text-xs text-gray-500 flex-shrink-0 ml-2'>
@@ -532,7 +532,7 @@ const ConversationsContent: React.FC = () => {
                       <User className='h-4 w-4 text-white' />
                     </div>
                     <div>
-                      <h2 className='text-base font-semibold text-gray-900'>
+                      <h2 className='text-base font-semibold text-foreground'>
                         {selectedThread.person_name}
                       </h2>
                       <p className='text-xs text-gray-600'>
@@ -617,7 +617,7 @@ const ConversationsContent: React.FC = () => {
                                 message.is_sent && 'flex-row-reverse'
                               )}
                             >
-                              <span className='text-xs font-medium text-gray-900'>
+                              <span className='text-xs font-medium text-foreground'>
                                 {message.is_sent ? 'You' : message.from_email}
                               </span>
                               <span className='text-xs text-gray-400'>
@@ -637,7 +637,7 @@ const ConversationsContent: React.FC = () => {
                               'rounded-2xl px-5 py-3 max-w-[75%] shadow-sm transition-shadow',
                               message.is_sent
                                 ? 'bg-primary text-white shadow-primary/20'
-                                : 'bg-white border border-gray-200 text-gray-900 shadow-gray-200/50 hover:shadow-md'
+                                : 'bg-white border border-gray-200 text-foreground shadow-gray-200/50 hover:shadow-md'
                             )}
                           >
                             <div className='text-sm leading-relaxed break-words'>
@@ -699,7 +699,7 @@ const ConversationsContent: React.FC = () => {
                 value={replyText}
                 onChange={e => setReplyText(e.target.value)}
                 disabled={isSending}
-                className='w-full p-3 border border-gray-300 rounded-lg resize-none bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500'
+                className='w-full p-3 border border-gray-300 rounded-lg resize-none bg-white text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500'
                 rows={4}
               />
               <div className='flex items-center justify-end gap-3 mt-3'>
@@ -763,7 +763,7 @@ john@company.com
           <div className='flex-1 flex flex-col bg-white border-l border-gray-200'>
             <div className='p-4 border-b border-gray-200 bg-gray-50'>
               <div className='flex items-center justify-between'>
-                <h3 className='text-sm font-semibold text-gray-900'>
+                <h3 className='text-sm font-semibold text-foreground'>
                   New Message
                 </h3>
                 <Button
@@ -805,7 +805,7 @@ john@company.com
                         >
                           <User className='h-4 w-4 text-gray-400' />
                           <div>
-                            <p className='text-sm font-medium text-gray-900'>
+                            <p className='text-sm font-medium text-foreground'>
                               {person.name}
                             </p>
                             <p className='text-xs text-gray-500'>
@@ -865,7 +865,7 @@ john@company.com
           <div className='flex-1 flex items-center justify-center bg-gray-50'>
             <div className='text-center'>
               <Mail className='h-16 w-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-semibold text-gray-900 mb-1'>
+              <h3 className='text-lg font-semibold text-foreground mb-1'>
                 Select a Conversation
               </h3>
               <p className='text-sm text-gray-600'>

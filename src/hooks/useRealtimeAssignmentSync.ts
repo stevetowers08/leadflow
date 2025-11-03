@@ -123,7 +123,9 @@ export const useRealtimeAssignmentSync = (
         )
         .subscribe(status => {
           if (status === 'SUBSCRIBED') {
-            console.log(`✅ Real-time subscription active for ${entityType}`);
+            if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+              console.log(`✅ Real-time subscription active for ${entityType}`);
+            }
           } else if (status === 'CHANNEL_ERROR') {
             console.error(`❌ Real-time subscription error for ${entityType}`);
           }

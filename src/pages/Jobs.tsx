@@ -354,13 +354,7 @@ const JobsContent: React.FC = () => {
   const queryEnabled =
     bypassAuth || (!authLoading && !clientIdLoading && !!user);
   if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-    console.log('🔍 Jobs query enabled check:', {
-      bypassAuth,
-      authLoading,
-      clientIdLoading,
-      hasUser: !!user,
-      queryEnabled,
-    });
+      // Debug log removed - only log in verbose mode
   }
   const {
     data: jobsData,
@@ -370,11 +364,13 @@ const JobsContent: React.FC = () => {
   } = useQuery({
     queryKey: ['jobs-page', clientId, refreshTrigger],
     queryFn: async () => {
-      console.log('🔍 Jobs queryFn executing:', {
-        bypassAuth,
-        clientId,
-        clientIdLoading,
-      });
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+        console.log('🔍 Jobs queryFn executing:', {
+          bypassAuth,
+          clientId,
+          clientIdLoading,
+        });
+      }
       // Don't fetch if client ID is still loading
       if (clientIdLoading && !bypassAuth) {
         return { jobs: [], sources: [] };

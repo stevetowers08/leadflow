@@ -86,7 +86,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
             <p className='text-xs font-medium text-gray-500 uppercase tracking-wide'>
               {title}
             </p>
-            <p className='text-xl font-semibold text-gray-900 mt-0.5'>
+            <p className='text-xl font-semibold text-foreground mt-0.5'>
               {value}
             </p>
           </div>
@@ -137,7 +137,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({
         </div>
 
         <div className='flex-1'>
-          <h3 className='font-medium text-gray-900 mb-1'>{title}</h3>
+          <h3 className='font-medium text-foreground mb-1'>{title}</h3>
           <p className='text-sm text-gray-500'>{description}</p>
         </div>
 
@@ -196,7 +196,7 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
       case 'closed_lost':
         return 'bg-red-50/80 text-red-700 border-red-100/60';
       default:
-        return 'bg-gray-50/80 text-gray-700 border-gray-100/60';
+        return 'bg-gray-50/80 text-foreground border-gray-100/60';
     }
   };
 
@@ -242,7 +242,7 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
 
         {/* Company Info */}
         <div className='flex-1 min-w-0'>
-          <h3 className='font-medium text-gray-900 truncate'>{company.name}</h3>
+          <h3 className='font-medium text-foreground truncate'>{company.name}</h3>
           <p className='text-sm text-gray-500 truncate'>{company.industry}</p>
 
           {/* Minimal Badges */}
@@ -270,15 +270,15 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
           </div>
         </div>
 
-        {/* Employee Count */}
+        {/* Contact Count */}
         {company.employee_count && (
           <div className='text-right'>
-            <div className='text-sm font-medium text-gray-900'>
+            <div className='text-sm font-medium text-foreground'>
               {company.employee_count < 1000
                 ? company.employee_count.toString()
                 : `${(company.employee_count / 1000).toFixed(1)}K`}
             </div>
-            <div className='text-xs text-gray-400'>employees</div>
+            <div className='text-xs text-gray-400'>contacts</div>
           </div>
         )}
       </div>
@@ -344,7 +344,7 @@ export const ListCard: React.FC<ListCardProps> = ({
         ) : null}
 
         <div className='flex-1 min-w-0'>
-          <h4 className='font-medium text-gray-900 truncate text-sm'>
+          <h4 className='font-medium text-foreground truncate text-sm'>
             {title}
           </h4>
           {subtitle && (

@@ -38,7 +38,7 @@ export const SecondaryNavigation = ({
     >
       {/* Header */}
       <div className='px-4 py-4 border-b border-gray-200'>
-        <h2 className='text-lg font-semibold text-gray-900'>{title}</h2>
+        <h2 className='text-lg font-semibold text-foreground'>{title}</h2>
       </div>
 
       {/* Navigation */}
@@ -57,7 +57,7 @@ export const SecondaryNavigation = ({
                   'transition-all duration-150 ease-in-out',
                   isActive
                     ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
+                    : 'text-foreground hover:bg-gray-50 hover:text-foreground',
                   'group'
                 )}
               >
@@ -67,7 +67,7 @@ export const SecondaryNavigation = ({
                       'h-4 w-4 transition-all duration-150',
                       isActive
                         ? 'text-blue-600'
-                        : 'text-gray-500 group-hover:text-gray-700'
+                        : 'text-gray-500 group-hover:text-foreground'
                     )}
                   />
                 )}

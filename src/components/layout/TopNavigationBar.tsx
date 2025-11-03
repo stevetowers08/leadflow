@@ -69,7 +69,7 @@ export const TopNavigationBar = ({
               variant='ghost'
               size='icon'
               onClick={onMenuClick}
-              className='h-8 w-8 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
+              className='h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-gray-200 rounded-md'
             >
               <Menu className='h-4 w-4' />
             </Button>
@@ -88,14 +88,14 @@ export const TopNavigationBar = ({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant='ghost'
-                    className='h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
+                    className='h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-gray-200 rounded-md'
                   >
                     <Avatar className='h-7 w-7'>
                       <AvatarImage
                         src={user.user_metadata?.avatar_url || ''}
                         alt={user.user_metadata?.full_name || 'User'}
                       />
-                      <AvatarFallback className='bg-gray-100 text-gray-600 text-xs'>
+                      <AvatarFallback className='bg-gray-100 text-muted-foreground text-xs'>
                         {user.user_metadata?.full_name
                           ?.charAt(0)
                           .toUpperCase() || 'U'}
@@ -103,7 +103,7 @@ export const TopNavigationBar = ({
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className='w-56 bg-white text-gray-900 border border-gray-200 shadow-lg shadow-gray-300/10 rounded-xl p-1'>
+                <DropdownMenuContent className='w-56 bg-white text-foreground border border-gray-200 shadow-lg shadow-gray-300/10 rounded-xl p-1'>
                   <DropdownMenuItem
                     onClick={() => signOut()}
                     className='flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50/80 hover:text-red-700 rounded-lg cursor-pointer'
@@ -149,7 +149,7 @@ export const TopNavigationBar = ({
                   <TooltipContent
                     side='bottom'
                     align='start'
-                    className='bg-white text-gray-900 border border-gray-200 shadow-lg'
+                    className='bg-white text-foreground border border-gray-200 shadow-lg'
                   >
                     <p className='text-sm max-w-xs'>{pageSubheading}</p>
                   </TooltipContent>
@@ -174,14 +174,14 @@ export const TopNavigationBar = ({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant='ghost'
-                    className='h-7 w-7 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-md'
+                    className='h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-gray-200 rounded-md'
                   >
                     <Avatar className='h-7 w-7'>
                       <AvatarImage
                         src={user.user_metadata?.avatar_url || ''}
                         alt={user.user_metadata?.full_name || 'User'}
                       />
-                      <AvatarFallback className='bg-gray-100 text-gray-600 text-xs'>
+                      <AvatarFallback className='bg-gray-100 text-muted-foreground text-xs'>
                         {user.user_metadata?.full_name
                           ?.charAt(0)
                           .toUpperCase() || 'U'}
@@ -189,7 +189,7 @@ export const TopNavigationBar = ({
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className='w-56 bg-white text-gray-900 border border-gray-200 shadow-lg shadow-gray-300/10 rounded-xl p-1'>
+                <DropdownMenuContent className='w-56 bg-white text-foreground border border-gray-200 shadow-lg shadow-gray-300/10 rounded-xl p-1'>
                   <DropdownMenuItem
                     onClick={() => signOut()}
                     className='flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50/80 hover:text-red-700 rounded-lg cursor-pointer'

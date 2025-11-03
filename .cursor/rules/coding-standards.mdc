@@ -69,7 +69,7 @@ const HeavyComponent = lazy(() => import('./HeavyComponent'));
 
 ## ✅ Do This
 
-1. **Use the new status workflows** - Follow the simplified 3/4-step workflows
+1. **Use the new status campaigns** - Follow the simplified 3/4-step campaigns
 2. **Reference types** - Import from `src/types/database.ts`
 3. **Use status utilities** - Import from `src/utils/statusUtils.ts`
 4. **Follow TypeScript strict mode** - No implicit any, proper null checks

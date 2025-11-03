@@ -80,7 +80,7 @@ export const useGlobalErrorHandler = () => {
           type: 'resource',
         };
 
-        console.warn('Resource Load Error:', errorReport);
+        console.warn('Resource Load Error:', JSON.stringify(errorReport, null, 2));
       }
     };
 
@@ -134,7 +134,10 @@ export const usePerformanceMonitoring = () => {
                 ?.startTime || 0,
           };
 
-          console.log('Performance Metrics:', metrics);
+          // Only log full metrics in verbose mode
+          if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+            console.log('Performance Metrics:', metrics);
+          }
 
           // Performance thresholds
           const thresholds = {
@@ -162,9 +165,13 @@ export const usePerformanceMonitoring = () => {
             }
           });
         } else if (entry.entryType === 'measure') {
-          // Only log slow measures (>50ms) or important metrics, not every component mount
-          if (entry.duration > 50 || entry.name.includes('Page') || entry.name.includes('Load')) {
-            console.log('Custom Measure:', entry.name, entry.duration);
+          // Only log slow measures (>100ms) in verbose mode, or errors (>500ms) always
+          if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+            if (entry.duration > 100 || entry.name.includes('Page') || entry.name.includes('Load')) {
+              console.log(`Custom Measure: ${entry.name} ${entry.duration.toFixed(2)}ms`);
+            }
+          } else if (entry.duration > 500) {
+            console.warn(`⚠️ Slow operation: ${entry.name} took ${entry.duration.toFixed(2)}ms`);
           }
         }
       });

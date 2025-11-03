@@ -49,12 +49,12 @@ interface MobileSidebarProps {
 
 /**
  * Sidebar items following user flow document structure:
- * 1. Core Workflow - Primary user journey (Jobs → Companies → Pipeline → People → Conversations)
+ * 1. Core Campaigns - Primary user journey (Jobs → Companies → Pipeline → People → Conversations)
  * 2. Advanced Features - Phase 2 features (Campaigns, Analytics)
  * 3. Settings - Configuration
  */
 const sidebarItems: SidebarItem[] = [
-  // Core Workflow - Most common items displayed prominently
+  // Core Campaigns - Most common items displayed prominently
   {
     to: '/',
     label: 'Dashboard',
@@ -315,11 +315,11 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
 
           {/* Navigation Content */}
           <div className='flex-1 overflow-y-auto mobile-smooth-scroll p-4'>
-            {/* Core Workflow */}
+            {/* Core Campaigns */}
             {groupedItems.main && (
               <div className='mb-6'>
                 <h3 className='mobile-supporting-sm font-semibold uppercase tracking-wide mb-3'>
-                  Core Workflow
+                  Core Campaigns
                 </h3>
                 <nav className='space-y-1'>
                   {groupedItems.main.map(item => (

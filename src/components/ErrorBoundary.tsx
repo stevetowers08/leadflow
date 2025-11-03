@@ -362,7 +362,7 @@ export class BaseErrorBoundary extends Component<
                 const errorInfo = this.getErrorMessage(this.state.error);
                 return (
                   <>
-                    <h2 className='text-lg font-semibold text-gray-900 text-center mb-2'>
+                    <h2 className='text-lg font-semibold text-foreground text-center mb-2'>
                       {errorInfo.title}
                     </h2>
                     <p className='text-sm text-gray-600 text-center mb-3'>
@@ -377,7 +377,7 @@ export class BaseErrorBoundary extends Component<
 
             {this.props.showDetails && this.state.error && (
               <details className='mb-6'>
-                <summary className='text-sm font-medium text-gray-700 cursor-pointer'>
+                <summary className='text-sm font-medium text-foreground cursor-pointer'>
                   Error Details
                 </summary>
                 <div className='mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-600 overflow-auto max-h-32'>
@@ -563,7 +563,7 @@ export class CriticalErrorBoundary extends Component<
                 const errorInfo = this.getErrorMessage(this.state.error);
                 return (
                   <>
-                    <h1 className='text-xl font-semibold text-gray-900 mb-2'>
+                    <h1 className='text-xl font-semibold text-foreground mb-2'>
                       {errorInfo.title}
                     </h1>
                     <p className='text-gray-600 mb-2'>
@@ -654,12 +654,12 @@ export class NetworkErrorBoundary extends Component<
               </svg>
             </div>
 
-            <h2 className='text-lg font-semibold text-gray-900 mb-2'>
+            <h2 className='text-lg font-semibold text-foreground mb-2'>
               Connection Lost
             </h2>
 
             <p className='text-sm text-gray-600 mb-6'>
-              You're currently offline. Please check your internet connection
+              You&apos;re currently offline. Please check your internet connection
               and try again.
             </p>
 

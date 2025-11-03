@@ -254,14 +254,14 @@ export interface Job {
   total_leads?: number | null;
 }
 
-export interface Person {
+export interface Contact {
   id: string;
   name: string;
   company_id: string | null;
   email_address: string | null;
   employee_location: string | null;
   company_role: string | null;
-  lead_score: string | null;
+  score: number | null;
   last_reply_at: string | null;
   last_reply_channel: string | null;
   last_reply_message: string | null;
@@ -294,10 +294,13 @@ export interface Person {
   company_website?: string | null;
 }
 
+// Legacy alias for backward compatibility during migration
+export type Person = Contact;
+
 // Analytics Types
 export interface ReplyAnalytics {
   people_stage: string;
-  total_people: number;
+  total_contacts: number;
   total_replies: number;
   reply_rate_percent: number;
   interested_count: number;
@@ -313,14 +316,14 @@ export interface ReplyIntentBreakdown {
 
 export interface StageReplyAnalytics {
   stage: string;
-  total_people: number;
+  total_contacts: number;
   total_replies: number;
   reply_rate_percent: number;
   intent_breakdown: ReplyIntentBreakdown[];
 }
 
 export interface OverallReplyMetrics {
-  total_people: number;
+  total_contacts: number;
   total_replies: number;
   overall_reply_rate: number;
   interested_count: number;
@@ -339,7 +342,7 @@ export interface ReplyTrendData {
   maybe_count: number;
 }
 
-export interface PersonReplyAnalytics {
+export interface ContactReplyAnalytics {
   total_replies: number;
   last_reply_at: string | null;
   last_reply_type: string | null;
@@ -349,6 +352,9 @@ export interface PersonReplyAnalytics {
     reply_message: string;
   }>;
 }
+
+// Legacy alias for backward compatibility during migration
+export type PersonReplyAnalytics = ContactReplyAnalytics;
 
 export interface ReplyAnalyticsSummary {
   overall: OverallReplyMetrics;
@@ -360,7 +366,7 @@ export interface ReplyAnalyticsSummary {
 export interface EmailReply {
   id: string;
   interaction_id: string | null;
-  person_id: string | null;
+  contact_id: string | null;
   company_id: string | null;
   gmail_message_id: string;
   gmail_thread_id: string;
@@ -385,7 +391,7 @@ export interface EmailReply {
 
 export interface Interaction {
   id: string;
-  person_id: string;
+  contact_id: string;
   interaction_type:
     | 'email_sent'
     | 'email_reply'
@@ -474,7 +480,7 @@ export interface Campaign {
 export interface CampaignParticipant {
   id: string;
   campaign_id: string;
-  person_id: string;
+  contact_id: string;
   joined_at: string | null;
   completed_at: string | null;
 }
@@ -511,7 +517,7 @@ export interface Integration {
 export interface Note {
   id: string;
   entity_id: string;
-  entity_type: 'lead' | 'company' | 'job' | 'person';
+  entity_type: 'lead' | 'company' | 'job' | 'contact';
   content: string;
   author_id: string;
   created_at: string;
@@ -531,7 +537,7 @@ export interface Tag {
 export interface EntityTag {
   id: string;
   entity_id: string;
-  entity_type: 'company' | 'person' | 'job';
+  entity_type: 'company' | 'contact' | 'job';
   tag_id: string;
   created_at: string | null;
 }
@@ -564,7 +570,7 @@ export interface Campaign {
 export interface CampaignParticipant {
   id: string;
   campaign_id: string;
-  person_id: string;
+  contact_id: string;
   status:
     | 'pending'
     | 'sent'

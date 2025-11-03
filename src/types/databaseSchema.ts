@@ -5,7 +5,6 @@
  * Always reference this file when writing database queries to ensure field names
  * and types are correct.
  *
- * 📚 Full documentation: docs/DATABASE_BEST_PRACTICES.md
  * 🔧 Query utilities: src/utils/databaseQueries.ts
  */
 
@@ -40,7 +39,7 @@ export const DATABASE_SCHEMA = {
       linkedin_url: 'text',
       employee_location: 'text',
       company_role: 'text',
-      lead_score: 'text',
+      score: 'smallint', // 1-10 numeric score
       stage: 'people_stage_enum',
       last_interaction_at: 'timestamptz',
       last_activity: 'timestamptz',
@@ -69,7 +68,10 @@ export const DATABASE_SCHEMA = {
       lead_score: 'text',
       score_reason: 'text',
       is_favourite: 'boolean',
-      ai_info: 'jsonb',
+      ai_company_intelligence: 'jsonb',
+      ai_marketi_info: 'jsonb',
+      ai_funding: 'jsonb',
+      ai_new_location: 'jsonb',
       key_info_raw: 'jsonb',
       loxo_company_id: 'text',
       created_at: 'timestamptz',
@@ -151,18 +153,18 @@ export const DATABASE_SCHEMA = {
 
   // Foreign key relationships
   FOREIGN_KEYS: {
-    'people.company_id': 'companies.id',
-    'people.owner_id': 'user_profiles.id',
+    'contacts.company_id': 'companies.id',
+    'contacts.owner_id': 'user_profiles.id',
     'companies.owner_id': 'user_profiles.id',
     'jobs.company_id': 'companies.id',
     'jobs.owner_id': 'user_profiles.id',
-    'interactions.person_id': 'people.id',
+    'interactions.contact_id': 'contacts.id',
     'interactions.owner_id': 'user_profiles.id',
     'notes.author_id': 'user_profiles.id',
     'entity_tags.tag_id': 'tags.id',
     'campaigns.created_by': 'auth.users.id',
     'campaign_participants.campaign_id': 'campaigns.id',
-    'campaign_participants.person_id': 'people.id',
+    'campaign_participants.contact_id': 'contacts.id',
     'campaign_messages.campaign_id': 'campaigns.id',
     'business_profiles.created_by': 'auth.users.id',
     'invitations.accepted_by': 'user_profiles.id',
@@ -198,10 +200,10 @@ export const isValidField = <T extends TableName>(
 // Common field selections for queries
 export const COMMON_SELECTIONS = {
   people:
-    'id, name, company_id, email_address, linkedin_url, employee_location, company_role, lead_score, people_stage, last_interaction_at, last_activity, owner_id, created_at, updated_at, confidence_level, email_draft, is_favourite, lead_source, source_details, source_date',
+    'id, name, company_id, email_address, linkedin_url, employee_location, company_role, score, people_stage, last_interaction_at, last_activity, owner_id, created_at, updated_at, confidence_level, email_draft, is_favourite, lead_source, source_details, source_date',
 
   companies:
-    'id, name, website, linkedin_url, head_office, industry_id, industry, company_size, confidence_level, lead_score, score_reason, is_favourite, ai_info, key_info_raw, loxo_company_id, created_at, updated_at, priority, logo_url, logo_cached_at, owner_id, lead_source, source_details, source_date, pipeline_stage, last_activity, funding_raised, estimated_arr',
+    'id, name, website, linkedin_url, head_office, industry_id, industry, company_size, confidence_level, lead_score, score_reason, is_favourite, ai_company_intelligence, ai_marketi_info, ai_funding, ai_new_location, key_info_raw, loxo_company_id, created_at, updated_at, priority, logo_url, logo_cached_at, owner_id, lead_source, source_details, source_date, pipeline_stage, last_activity, funding_raised, estimated_arr',
 
   jobs: 'id, title, company_id, job_url, posted_date, valid_through, location, description, summary, employment_type, seniority_level, linkedin_job_id, created_at, updated_at, priority, lead_score_job, salary, function, logo_url, owner_id',
 

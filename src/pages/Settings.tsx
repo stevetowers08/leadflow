@@ -156,7 +156,7 @@ const SettingsContent: React.FC = () => {
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors',
                       'hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
-                      'text-gray-700 hover:text-gray-900'
+                      'text-foreground hover:text-foreground'
                     )}
                   >
                     <Icon className='h-4 w-4 flex-shrink-0' />
@@ -174,7 +174,7 @@ const SettingsContent: React.FC = () => {
                     'hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
                     isActive
                       ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'text-gray-700 hover:text-gray-900'
+                      : 'text-foreground hover:text-foreground'
                   )}
                 >
                   <Icon className='h-4 w-4 flex-shrink-0' />

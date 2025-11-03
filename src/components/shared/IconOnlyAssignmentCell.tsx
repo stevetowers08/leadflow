@@ -4,8 +4,8 @@ import { usePermissions } from '@/contexts/PermissionsContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
-import { User, UserX } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { User, UserX, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface IconOnlyAssignmentCellProps {
   ownerId: string | null;
@@ -36,6 +36,8 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   const { user } = useAuth();
   const { hasRole } = usePermissions();
   const { toast } = useToast();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Check if user can assign
   const canAssign = hasRole('admin') || hasRole('owner');
@@ -89,6 +91,37 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
     }
   }, [canAssign, teamMembers.length]);
 
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showUserList &&
+        dropdownRef.current &&
+        buttonRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setShowUserList(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showUserList) {
+        setShowUserList(false);
+      }
+    };
+
+    if (showUserList) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [showUserList]);
+
   // Fetch team members for assignment
   const fetchTeamMembers = async () => {
     try {
@@ -139,12 +172,15 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
       setShowUserList(false);
     } catch (error) {
       console.error('Error assigning entity:', error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error !== null && 'message' in error
+            ? String(error.message)
+            : 'An unexpected error occurred';
       toast({
         title: 'Assignment Failed',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -180,12 +216,15 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
       setShowUserList(false);
     } catch (error) {
       console.error('Error unassigning entity:', error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error !== null && 'message' in error
+            ? String(error.message)
+            : 'An unexpected error occurred';
       toast({
         title: 'Assignment Failed',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -241,17 +280,13 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
     <div className={cn('relative flex items-center justify-center', className)}>
       {/* Assignment Display - Icon Only */}
       <button
+        ref={buttonRef}
         type='button'
         className={cn(
           'cursor-pointer transition-colors rounded-md p-1 hover:bg-gray-50 relative z-10',
           isUpdating && 'opacity-50 pointer-events-none'
         )}
         onClick={handleClick}
-        onMouseDown={e => {
-          e.preventDefault();
-          e.stopPropagation();
-          e.nativeEvent.stopImmediatePropagation();
-        }}
         title={currentOwner ? currentOwner.full_name : 'Unassigned'}
       >
         {currentOwner ? (
@@ -273,23 +308,46 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
 
       {/* User Selection Dropdown */}
       {showUserList && (
-        <div className='absolute top-full left-1/2 transform -translate-x-1/2 mt-1 w-64 z-50'>
-          <div className='relative z-50 max-h-96 min-w-[16rem] overflow-hidden rounded-md border bg-white text-gray-900 shadow-lg'>
+        <div
+          ref={dropdownRef}
+          className='absolute top-full left-1/2 transform -translate-x-1/2 mt-1 w-64 z-50'
+        >
+          <div className='relative z-50 max-h-96 min-w-[16rem] overflow-hidden rounded-md border bg-white text-foreground shadow-lg'>
             {/* Header */}
             <div className='p-3 border-b border-gray-200'>
               <div className='flex items-center justify-between'>
                 <h3 className='text-sm font-semibold'>Assign to User</h3>
-                {currentOwner && (
+                <div className='flex items-center gap-1'>
+                  {currentOwner && (
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleUnassign();
+                      }}
+                      disabled={isUpdating}
+                      className='h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
+                      title='Unassign'
+                    >
+                      <UserX className='w-3 h-3' />
+                    </Button>
+                  )}
                   <Button
                     variant='ghost'
                     size='sm'
-                    onClick={handleUnassign}
-                    disabled={isUpdating}
-                    className='h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowUserList(false);
+                    }}
+                    className='h-6 w-6 p-0 text-gray-500 hover:text-foreground hover:bg-gray-100'
+                    title='Close'
                   >
-                    <UserX className='w-3 h-3' />
+                    <X className='w-3 h-3' />
                   </Button>
-                )}
+                </div>
               </div>
             </div>
 
@@ -303,7 +361,11 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
                 teamMembers.map(member => (
                   <button
                     key={member.id}
-                    onClick={() => handleAssign(member.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleAssign(member.id);
+                    }}
                     disabled={isUpdating}
                     className={cn(
                       'relative flex w-full cursor-default select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm outline-none transition-colors',

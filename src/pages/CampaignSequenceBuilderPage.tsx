@@ -68,7 +68,7 @@ function CampaignSequenceBuilderContent() {
     return (
       <div className='min-h-screen flex items-center justify-center'>
         <div className='text-center'>
-          <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+          <h2 className='text-xl font-semibold text-foreground mb-2'>
             Sequence Not Found
           </h2>
           <p className='text-gray-600 mb-4'>

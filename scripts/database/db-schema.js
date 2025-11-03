@@ -34,7 +34,6 @@ Examples:
 
 Available tables: ${Object.keys(DATABASE_SCHEMA.FIELDS).join(', ')}
 
-📚 Full documentation: docs/DATABASE_BEST_PRACTICES.md
 🔧 Query utilities: src/utils/databaseQueries.ts
 `);
 }

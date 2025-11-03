@@ -40,8 +40,8 @@ export interface StatusColorScheme {
   // Lead Scores
   leadScores: Record<string, ColorScheme>;
 
-  // Workflow Steps
-  workflowSteps: Record<string, ColorScheme>;
+  // Campaigns Steps
+  campaignsSteps: Record<string, ColorScheme>;
 }
 
 /**
@@ -777,7 +777,7 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
     },
   },
 
-  workflowSteps: {
+  campaignsSteps: {
     trigger: {
       background: 'bg-info-solid',
       text: 'text-white',
@@ -832,7 +832,7 @@ export function getUnifiedStatusColors(status: string): ColorScheme {
     UNIFIED_COLOR_SCHEME.employmentTypes,
     UNIFIED_COLOR_SCHEME.automationStatuses,
     UNIFIED_COLOR_SCHEME.leadScores,
-    UNIFIED_COLOR_SCHEME.workflowSteps,
+    UNIFIED_COLOR_SCHEME.campaignsSteps,
   ];
 
   for (const category of categories) {

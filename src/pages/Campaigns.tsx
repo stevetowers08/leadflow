@@ -52,7 +52,7 @@ const Campaigns: React.FC = () => {
 };
 
 const STATUS_COLORS = {
-  draft: 'bg-gray-100 text-gray-800',
+  draft: 'bg-gray-100 text-foreground',
   active: 'bg-green-100 text-green-800',
   paused: 'bg-yellow-100 text-yellow-800',
   completed: 'bg-blue-100 text-blue-800',
@@ -270,10 +270,10 @@ function CampaignsContent() {
             {/* Campaign Details and Report Header */}
             <div className='bg-gray-50 border-b border-gray-300 px-6 py-3'>
               <div className='flex justify-between items-center'>
-                <h3 className='text-lg font-semibold text-gray-900'>
+                <h3 className='text-lg font-semibold text-foreground'>
                   Campaign Details
                 </h3>
-                <h3 className='text-lg font-semibold text-gray-900'>Report</h3>
+                <h3 className='text-lg font-semibold text-foreground'>Report</h3>
               </div>
             </div>
 
@@ -283,7 +283,7 @@ function CampaignsContent() {
                 const statusColor =
                   STATUS_COLORS[
                     sequence.status as keyof typeof STATUS_COLORS
-                  ] || 'bg-gray-100 text-gray-800';
+                  ] || 'bg-gray-100 text-foreground';
 
                 return (
                   <div

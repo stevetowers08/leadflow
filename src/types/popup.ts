@@ -7,12 +7,15 @@ import { Tables } from '@/integrations/supabase/types';
 
 // Base types from Supabase
 export type Company = Tables<'companies'>;
-export type Person = Tables<'people'>;
+export type Contact = Tables<'contacts'>;
 export type Job = Tables<'jobs'>;
 export type Interaction = Tables<'interactions'>;
 
+// Legacy alias for backward compatibility during migration
+export type Person = Contact;
+
 // Popup-specific types
-export interface PopupLead extends Person {
+export interface PopupLead extends Contact {
   company?: Company;
   interactions?: Interaction[];
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface GridItem {
-  label: string;
+  label: React.ReactNode;
   value: React.ReactNode;
 }
 
@@ -15,7 +15,7 @@ export const SlideOutGrid: React.FC<SlideOutGridProps> = ({ items }) => {
       {items.map((item, index) => (
         <div key={index} className='text-sm'>
           <span className='text-xs text-gray-500 block mb-1'>{item.label}</span>
-          <div className='font-medium text-gray-900 break-words'>
+          <div className='font-medium text-foreground break-words'>
             {item.value}
           </div>
         </div>

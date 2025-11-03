@@ -197,6 +197,7 @@ const CompaniesContent: React.FC = () => {
     data: companiesData,
     isLoading: companiesLoading,
     error: companiesError,
+    refetch: refetchCompanies,
   } = useQuery({
     queryKey: ['companies-page', currentClientId],
     queryFn: async () => {
@@ -430,7 +431,7 @@ const CompaniesContent: React.FC = () => {
     });
   }, [toast]);
 
-  const handleCompaniesWorkflow = useCallback(async () => {
+  const handleCompaniesCampaigns = useCallback(async () => {
     const ids = bulkSelection.getSelectedIds(filteredCompanies.map(c => c.id));
     if (ids.length === 0) return;
     const { error } = await supabase
@@ -442,29 +443,19 @@ const CompaniesContent: React.FC = () => {
       .in('id', ids);
     if (error) {
       toast({
-        title: 'Workflow failed',
+        title: 'Campaigns failed',
         description: error.message,
         variant: 'destructive',
       });
     } else {
       toast({
-        title: 'Workflow ran',
+        title: 'Campaigns ran',
         description: `Updated ${ids.length} compan${ids.length === 1 ? 'y' : 'ies'}.`,
       });
-      // Reflect locally
-      setCompanies(prev =>
-        prev.map(c =>
-          ids.includes(c.id)
-            ? {
-                ...c,
-                pipeline_stage: 'qualified',
-                updated_at: new Date().toISOString() as string,
-              }
-            : c
-        )
-      );
+      // Refetch data to reflect changes
+      refetchCompanies();
     }
-  }, [toast]);
+  }, [toast, refetchCompanies, bulkSelection, filteredCompanies]);
 
   const handleCompaniesDelete = useCallback(async () => {
     const ids = bulkSelection.getSelectedIds(filteredCompanies.map(c => c.id));
@@ -481,10 +472,11 @@ const CompaniesContent: React.FC = () => {
         title: 'Deleted',
         description: `Removed ${ids.length} compan${ids.length === 1 ? 'y' : 'ies'}.`,
       });
-      setCompanies(prev => prev.filter(c => !ids.includes(c.id)));
+      // Refetch data to reflect changes
+      refetchCompanies();
       bulkSelection.deselectAll();
     }
-  }, [toast, bulkSelection, filteredCompanies]);
+  }, [toast, bulkSelection, filteredCompanies, refetchCompanies]);
 
   const handleCompaniesSendEmail = useCallback(async () => {
     // Collect people under selected companies and route to Conversations compose
@@ -535,28 +527,9 @@ const CompaniesContent: React.FC = () => {
 
   // Handle company update
   const handleCompanyUpdate = useCallback(() => {
-    // Refresh the companies data
-    const fetchData = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('companies')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        setCompanies((data as unknown as Company[]) || []);
-      } catch (err) {
-        console.error('Error refreshing companies:', err);
-        toast({
-          title: 'Error',
-          description: 'Failed to refresh companies data',
-          variant: 'destructive',
-        });
-      }
-    };
-    fetchData();
-  }, [toast]);
+    // Refetch companies data using React Query
+    refetchCompanies();
+  }, [refetchCompanies]);
 
   // Handle search - memoized for performance
   const handleSearch = useCallback((value: string) => {
@@ -642,23 +615,8 @@ const CompaniesContent: React.FC = () => {
               availableStatuses={COMPANY_STATUS_OPTIONS}
               variant='cell'
               onStatusChange={() => {
-                // Trigger refetch of companies data
-                const fetchData = async () => {
-                  try {
-                    const { data, error } = await supabase
-                      .from('companies')
-                      .select(
-                        'id, name, website, linkedin_url, head_office, industry_id, confidence_level, lead_score, score_reason, automation_active, automation_started_at, is_favourite, ai_info, key_info_raw, pipeline_stage, source, logo_url, company_size, normalized_company_size, industry, priority, owner_id, created_at, updated_at, funding_raised, estimated_arr'
-                      )
-                      .order('created_at', { ascending: false });
-
-                    if (error) throw error;
-                    setCompanies((data as unknown as Company[]) || []);
-                  } catch (err) {
-                    console.error('Error refreshing companies:', err);
-                  }
-                };
-                fetchData();
+                // Refetch companies data using React Query
+                refetchCompanies();
               }}
             />
           );
@@ -705,21 +663,8 @@ const CompaniesContent: React.FC = () => {
               entityId={company.id}
               entityType='companies'
               onAssignmentChange={() => {
-                // Refresh the companies data
-                const fetchData = async () => {
-                  try {
-                    const { data, error } = await supabase
-                      .from('companies')
-                      .select('*')
-                      .order('created_at', { ascending: false });
-
-                    if (error) throw error;
-                    setCompanies((data as unknown as Company[]) || []);
-                  } catch (err) {
-                    console.error('Error refreshing companies:', err);
-                  }
-                };
-                fetchData();
+                // Refetch companies data using React Query
+                refetchCompanies();
               }}
             />
           </div>
@@ -1014,7 +959,7 @@ const CompaniesContent: React.FC = () => {
             <div className='bg-white rounded-lg border border-gray-300 overflow-hidden'>
               <div className='flex flex-col items-center justify-center py-16 px-4'>
                 <Building2 className='h-16 w-16 text-muted-foreground mb-4' />
-                <h3 className='text-xl font-semibold mb-2 text-gray-900'>
+                <h3 className='text-xl font-semibold mb-2 text-foreground'>
                   No companies found
                 </h3>
                 <p className='text-muted-foreground text-center max-w-md mb-6'>
@@ -1096,17 +1041,8 @@ const CompaniesContent: React.FC = () => {
           setSelectedPersonId(null);
         }}
         onUpdate={() => {
-          // Refresh people data
-          const fetchPeople = async () => {
-            const { data } = await supabase
-              .from('people')
-              .select('*')
-              .order('created_at', { ascending: false });
-            if (data) {
-              setPeople(data as Person[]);
-            }
-          };
-          fetchPeople();
+          // Refetch data to refresh people
+          refetchCompanies();
         }}
       />
 
@@ -1117,7 +1053,7 @@ const CompaniesContent: React.FC = () => {
         onDelete={handleCompaniesDelete}
         onFavourite={async () => {}}
         onExport={handleCompaniesExport}
-        onSyncCRM={handleCompaniesWorkflow}
+        onSyncCRM={handleCompaniesCampaigns}
         onSendEmail={handleCompaniesSendEmail}
         onAddToCampaign={async () => {}}
         onClear={bulkSelection.deselectAll}

@@ -94,7 +94,7 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
                     </span>
                   </div>
                   <div className='min-w-0 flex-1'>
-                    <h4 className='font-medium text-sm text-gray-900 truncate'>
+                    <h4 className='font-medium text-sm text-foreground truncate'>
                       {person.name || 'Unnamed'}
                     </h4>
                     {person.company_role && (
@@ -108,13 +108,13 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
                 {/* Details */}
                 <div className='space-y-2'>
                   {person.email_address && (
-                    <div className='flex items-center gap-2 text-xs text-gray-600'>
+                    <div className='flex items-center gap-2 text-xs text-muted-foreground'>
                       <Mail className='h-3 w-3 flex-shrink-0' />
                       <span className='truncate'>{person.email_address}</span>
                     </div>
                   )}
                   {person.employee_location && (
-                    <div className='flex items-center gap-2 text-xs text-gray-600'>
+                    <div className='flex items-center gap-2 text-xs text-muted-foreground'>
                       <MapPin className='h-3 w-3 flex-shrink-0' />
                       <span className='truncate'>
                         {person.employee_location}
@@ -122,7 +122,7 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
                     </div>
                   )}
                   {person.linkedin_url && (
-                    <div className='flex items-center gap-2 text-xs text-gray-600'>
+                    <div className='flex items-center gap-2 text-xs text-muted-foreground'>
                       <ExternalLink className='h-3 w-3 flex-shrink-0' />
                       <span className='truncate'>LinkedIn</span>
                     </div>
@@ -130,7 +130,7 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
                   {person.people_stage && (
                     <div className='flex items-center gap-2 text-xs text-gray-600 pt-2 border-t border-gray-100'>
                       <span className='font-medium'>Status:</span>
-                      <span className='text-gray-900'>
+                      <span className='text-foreground'>
                         {getStatusDisplayText(person.people_stage)}
                       </span>
                     </div>
@@ -144,7 +144,7 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
                       e.stopPropagation();
                       onPersonClick(person.id);
                     }}
-                    className='w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-xs font-medium rounded-md transition-colors'
+                    className='w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-foreground text-xs font-medium rounded-md transition-colors'
                   >
                     <ExternalLink className='h-3 w-3' />
                     View Details

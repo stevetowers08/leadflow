@@ -29,7 +29,9 @@ export const useAssignmentRefresh = () => {
         queryKey: ['entity-data', entityType, entityId],
       });
 
-      console.log(`🔄 Refreshed ${entityType} entity ${entityId}`);
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+        console.log(`🔄 Refreshed ${entityType} entity ${entityId}`);
+      }
     },
     [queryClient]
   );

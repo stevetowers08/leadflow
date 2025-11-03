@@ -1,9 +1,9 @@
 'use client';
 
-import People from '@/pages/People';
+import Contacts from '@/pages/Contacts';
 
-export default function PeoplePage() {
-  return <People />;
+export default function ContactsPage() {
+  return <Contacts />;
 }
 
 

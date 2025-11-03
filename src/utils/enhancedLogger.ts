@@ -220,6 +220,11 @@ class EnhancedLogger {
 
   // Console logging with colors and formatting
   private logToConsole(entry: LogEntry): void {
+    // Only log in development or if verbose logs enabled
+    if (process.env.NODE_ENV !== 'development' && process.env.NEXT_PUBLIC_VERBOSE_LOGS !== 'true') {
+      return;
+    }
+
     const { message, level, context } = entry;
     const timestamp = entry.timestamp.toISOString();
     const levelName = LogLevel[level];
@@ -233,7 +238,9 @@ class EnhancedLogger {
 
     switch (level) {
       case LogLevel.DEBUG:
-        console.debug(`🐛 [${levelName}] ${message}`, logData);
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.debug(`🐛 [${levelName}] ${message}`, logData);
+        }
         break;
       case LogLevel.INFO:
         console.info(`ℹ️ [${levelName}] ${message}`, logData);
@@ -418,8 +425,8 @@ export const LoggingProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   React.useEffect(() => {
-    // Only log on client-side
-    if (typeof window !== 'undefined') {
+    // Only log on client-side and in development/verbose mode
+    if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true')) {
       logger.info('Application started', {
         componentName: 'App',
         action: 'start',

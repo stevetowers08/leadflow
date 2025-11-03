@@ -56,11 +56,11 @@ export const useUnifiedState = (): UnifiedState & UnifiedActions => {
     setError(error);
   }, []);
 
-  const setAssignmentLoading = useCallback((loading: boolean) => {
+  const setAssignmentLoadingCallback = useCallback((loading: boolean) => {
     setAssignmentLoading(loading);
   }, []);
 
-  const setAssignmentError = useCallback((error: string | null) => {
+  const setAssignmentErrorCallback = useCallback((error: string | null) => {
     setAssignmentError(error);
   }, []);
 
@@ -86,7 +86,9 @@ export const useUnifiedState = (): UnifiedState & UnifiedActions => {
         queryKey: ['entity-data', entityType, entityId],
       });
 
-      console.log(`🔄 Refreshed ${entityType} entity ${entityId}`);
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+        console.log(`🔄 Refreshed ${entityType} entity ${entityId}`);
+      }
     },
     [queryClient]
   );
@@ -106,8 +108,8 @@ export const useUnifiedState = (): UnifiedState & UnifiedActions => {
     () => ({
       setLoading,
       setError: setErrorMessage,
-      setAssignmentLoading,
-      setAssignmentError,
+      setAssignmentLoading: setAssignmentLoadingCallback,
+      setAssignmentError: setAssignmentErrorCallback,
       triggerRefresh,
       refreshAssignmentLists,
       refreshSpecificEntity,
@@ -115,8 +117,8 @@ export const useUnifiedState = (): UnifiedState & UnifiedActions => {
     [
       setLoading,
       setErrorMessage,
-      setAssignmentLoading,
-      setAssignmentError,
+      setAssignmentLoadingCallback,
+      setAssignmentErrorCallback,
       triggerRefresh,
       refreshAssignmentLists,
       refreshSpecificEntity,

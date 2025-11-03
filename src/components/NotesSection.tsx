@@ -4,6 +4,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import {
+  generateMockNotes,
+  shouldUseMockData,
+  type MockNote,
+} from '@/utils/mockData';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { Edit3, Plus, StickyNote, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -33,6 +38,7 @@ export const NotesSection = ({
   defaultExpanded = true,
 }: NotesSectionProps) => {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [mockNotes, setMockNotes] = useState<MockNote[]>([]);
   const [newNoteContent, setNewNoteContent] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
@@ -44,11 +50,39 @@ export const NotesSection = ({
   const [noteCount, setNoteCount] = useState<number | null>(null);
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
+  const isMockMode = shouldUseMockData();
 
   // Load notes data - optimized to combine count and data queries
   useEffect(() => {
     const fetchNotes = async () => {
       if (!entityId) return;
+
+      // Use mock data in development if enabled
+      if (isMockMode) {
+        if (!isExpanded) {
+          const mockNotesData = generateMockNotes(
+            entityId,
+            user?.id || 'mock_user_1',
+            userProfile?.full_name || 'You'
+          );
+          setNoteCount(mockNotesData.length);
+          return;
+        }
+
+        if (hasLoaded && mockNotes.length > 0) return;
+
+        setIsLoading(true);
+        const mockNotesData = generateMockNotes(
+          entityId,
+          user?.id || 'mock_user_1',
+          userProfile?.full_name || 'You'
+        );
+        setMockNotes(mockNotesData);
+        setNoteCount(mockNotesData.length);
+        setIsLoading(false);
+        setHasLoaded(true);
+        return;
+      }
 
       // If not expanded, just get count
       if (!isExpanded) {
@@ -137,21 +171,52 @@ export const NotesSection = ({
     };
 
     fetchNotes();
-  }, [entityId, entityType, isExpanded, hasLoaded, toast]);
+  }, [
+    entityId,
+    entityType,
+    isExpanded,
+    hasLoaded,
+    toast,
+    isMockMode,
+    user?.id,
+    userProfile?.full_name,
+    mockNotes.length,
+  ]);
 
   const addNote = async () => {
-    if (!newNoteContent.trim() || !user) {
-      console.error('Cannot add note:', {
-        hasContent: !!newNoteContent.trim(),
-        hasUser: !!user,
+    if (!newNoteContent.trim()) {
+      return;
+    }
+
+    // Mock mode: add to local state
+    if (isMockMode) {
+      const newMockNote: MockNote = {
+        id: `mock_note_${Date.now()}_${entityId}`,
+        content: newNoteContent.trim(),
+        author_id: user?.id || 'mock_user_1',
+        author_name: userProfile?.full_name || 'You',
+        created_at: new Date().toISOString(),
+      };
+
+      setMockNotes(prev => [newMockNote, ...prev]);
+      setNoteCount(prev => (prev || 0) + 1);
+      setNewNoteContent('');
+      setIsAdding(false);
+
+      toast({
+        title: 'Note Added',
+        description: `Note added to ${entityName || entityType}`,
       });
-      if (!user) {
-        toast({
-          title: 'Authentication Error',
-          description: 'You must be logged in to add notes',
-          variant: 'destructive',
-        });
-      }
+      return;
+    }
+
+    // Real mode: save to database
+    if (!user) {
+      toast({
+        title: 'Authentication Error',
+        description: 'You must be logged in to add notes',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -225,6 +290,28 @@ export const NotesSection = ({
 
     setIsSaving(true);
     try {
+      // Mock mode: update local state
+      if (isMockMode) {
+        setMockNotes(prev =>
+          prev.map(note =>
+            note.id === noteId
+              ? { ...note, content: editingContent.trim(), updated_at: new Date().toISOString() }
+              : note
+          )
+        );
+
+        setEditingNoteId(null);
+        setEditingContent('');
+
+        toast({
+          title: 'Note Updated',
+          description: 'Note has been updated successfully',
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      // Real mode: update in database
       const { data, error } = await supabase
         .from('notes')
         .update({ content: editingContent.trim() })
@@ -278,11 +365,25 @@ export const NotesSection = ({
   const deleteNote = async (noteId: string) => {
     setIsSaving(true);
     try {
+      // Mock mode: remove from local state
+      if (isMockMode) {
+        setMockNotes(prev => prev.filter(note => note.id !== noteId));
+        setNoteCount(prev => Math.max(0, (prev || 1) - 1));
+        setIsSaving(false);
+        toast({
+          title: 'Note Deleted',
+          description: 'Note has been deleted successfully',
+        });
+        return;
+      }
+
+      // Real mode: delete from database
       const { error } = await supabase.from('notes').delete().eq('id', noteId);
 
       if (error) throw error;
 
       setNotes(prev => prev.filter(note => note.id !== noteId));
+      setNoteCount(prev => Math.max(0, (prev || 1) - 1));
 
       toast({
         title: 'Note Deleted',
@@ -328,7 +429,7 @@ export const NotesSection = ({
       <div className={className}>
         <button
           onClick={() => setIsExpanded(true)}
-          className='flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors'
+          className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors'
           title={`${noteCount || 0} notes - Click to view`}
         >
           <StickyNote className='h-3 w-3' />
@@ -410,16 +511,28 @@ export const NotesSection = ({
           <div className='text-sm text-gray-500 text-center py-8'>
             Loading...
           </div>
-        ) : notes.length === 0 ? (
+        ) : (isMockMode ? mockNotes : notes).length === 0 ? (
           <div className='text-sm text-gray-500 text-center py-8'>
             No notes yet
           </div>
         ) : (
           <>
-            {notes.map(note => {
-              const isEditing = editingNoteId === note.id;
-              const dateInfo = formatNoteDate(note.created_at);
-              const canEdit = canEditNote(note);
+            {(isMockMode ? mockNotes : notes).map(note => {
+              const displayNote: Note = isMockMode
+                ? {
+                    id: note.id,
+                    content: note.content,
+                    author_id: note.author_id,
+                    author_name: note.author_name,
+                    created_at: note.created_at,
+                    updated_at: note.updated_at,
+                  }
+                : note;
+              const isEditing = editingNoteId === displayNote.id;
+              const dateInfo = formatNoteDate(displayNote.created_at);
+              const canEdit = isMockMode
+                ? displayNote.author_id === (user?.id || 'mock_user_1')
+                : canEditNote(displayNote);
 
               return (
                 <div
@@ -456,7 +569,7 @@ export const NotesSection = ({
                     <>
                       <div className='flex items-start justify-between gap-2 mb-2'>
                         <div className='flex items-center gap-2'>
-                          <span className='text-xs font-medium text-gray-700'>
+                          <span className='text-xs font-medium text-foreground'>
                             {note.author_name}
                           </span>
                           <span className='text-xs text-gray-500'>
@@ -469,7 +582,7 @@ export const NotesSection = ({
                               variant='ghost'
                               size='sm'
                               onClick={() => startEditing(note)}
-                              className='h-6 px-2 text-gray-500 hover:text-gray-700'
+                              className='h-6 px-2 text-muted-foreground hover:text-foreground'
                             >
                               <Edit3 className='h-3 w-3' />
                             </Button>
@@ -484,7 +597,7 @@ export const NotesSection = ({
                           </div>
                         )}
                       </div>
-                      <div className='text-sm text-gray-900 whitespace-pre-wrap leading-relaxed'>
+                      <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed'>
                         {note.content}
                       </div>
                     </>

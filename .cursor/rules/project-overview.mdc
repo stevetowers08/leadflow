@@ -6,11 +6,11 @@ alwaysApply: true
 
 # Project Overview
 
-Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, and Supabase. The focus is on simplicity and clear workflows for managing jobs and people.
+Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, and Supabase. The focus is on simplicity and clear campaigns for managing jobs and people.
 
-## Current Workflows (Updated Oct 2025)
+## Current Campaigns (Updated Oct 2025)
 
-### Job Qualification Workflow
+### Job Qualification Campaigns
 
 **Status Enum:** `new | qualify | skip`
 
@@ -20,7 +20,7 @@ Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, a
 
 **Database Field:** `jobs.qualification_status`
 
-### People Status Workflow
+### People Status Campaigns
 
 **Status Enum:** `new | qualified | proceed | skip`
 

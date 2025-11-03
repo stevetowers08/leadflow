@@ -115,7 +115,7 @@ export class GlobalSearchService {
       metadata: {
         email: person.email_address,
         stage: person.people_stage,
-        leadScore: person.lead_score,
+        leadScore: person.score,
         companyId: person.companies?.id,
         companyName: person.companies?.name,
         industry: person.companies?.industry,

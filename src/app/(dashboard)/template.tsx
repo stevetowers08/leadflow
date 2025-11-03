@@ -9,3 +9,5 @@ export default function DashboardTemplate({
 }) {
   return <PageTransition>{children}</PageTransition>;
 }
+
+

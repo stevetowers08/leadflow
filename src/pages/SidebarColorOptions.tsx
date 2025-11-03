@@ -220,7 +220,7 @@ const SidebarColorOptions = () => {
             </Button>
           </Link>
 
-          <h1 className='text-3xl font-bold text-gray-900 mb-2'>
+          <h1 className='text-3xl font-bold text-foreground mb-2'>
             Sidebar Color Options
           </h1>
           <p className='text-gray-600'>
@@ -303,7 +303,7 @@ const SidebarColorOptions = () => {
           <h2 className='text-xl font-semibold mb-4'>Implementation Notes</h2>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600'>
             <div>
-              <h3 className='font-medium text-gray-900 mb-2'>
+              <h3 className='font-medium text-foreground mb-2'>
                 Glassmorphism Effects
               </h3>
               <ul className='space-y-1'>
@@ -314,7 +314,7 @@ const SidebarColorOptions = () => {
               </ul>
             </div>
             <div>
-              <h3 className='font-medium text-gray-900 mb-2'>
+              <h3 className='font-medium text-foreground mb-2'>
                 2025 Design Trends
               </h3>
               <ul className='space-y-1'>

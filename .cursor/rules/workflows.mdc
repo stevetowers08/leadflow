@@ -1,10 +1,10 @@
 ---
-description: Common development tasks, workflows, and commands
+description: Common development tasks, campaigns, and commands
 globs: []
 alwaysApply: false
 ---
 
-# Common Tasks and Workflows
+# Common Tasks and Campaigns
 
 ## Adding a New Status
 
@@ -30,7 +30,7 @@ alwaysApply: false
 4. Follow naming conventions (PascalCase)
 5. Export from index if shared component
 
-## Development Workflow
+## Development Campaigns
 
 ### Running Locally
 

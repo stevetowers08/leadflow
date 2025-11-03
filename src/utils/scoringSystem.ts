@@ -4,8 +4,9 @@
  * COMPLETE DATABASE STRUCTURE:
  *
  * 1. PEOPLE TABLE (Leads):
- *    - lead_score: 'High' | 'Medium' | 'Low' (text)
+ *    - score: 1-10 (integer, numeric)
  *    - Display: "AI SCORE" with colored badges
+ *    - Mapping: 1-3=Low, 4-6=Medium, 7-10=High
  *
  * 2. COMPANIES TABLE:
  *    - lead_score: '0' | '36' | '50' | '82' | '100' etc. (text, 0-100 scale)
@@ -18,8 +19,8 @@
  *    - Display: "PRIORITY" with colored priority badges
  *
  * SCORING SYSTEM RULES:
+ * - AI Score for people is numeric 1-10 (stored in `score` column)
  * - AI Score is ALWAYS for companies (0-100 numeric)
- * - AI Score for people is High/Medium/Low (text levels)
  * - Priority is for jobs and companies (VERY HIGH/HIGH/MEDIUM/LOW)
  * - Job scores are separate numeric values (0-100)
  */
@@ -31,7 +32,8 @@ export type ScoringType =
   | 'job_score';
 
 export type PriorityLevel = 'VERY HIGH' | 'HIGH' | 'MEDIUM' | 'LOW';
-export type LeadScoreLevel = 'High' | 'Medium' | 'Low'; // Actual DB values
+export type LeadScoreLevel = 'High' | 'Medium' | 'Low'; // Legacy, for backward compatibility
+export type PeopleScoreLevel = number; // 1-10 numeric score
 export type CompanyScoreLevel = string; // "50", "60", "82" etc.
 export type JobScoreLevel = number; // 0-100
 
@@ -73,7 +75,7 @@ export const PRIORITY_LEVELS: Record<PriorityLevel, ScoringInfo> = {
 };
 
 /**
- * Lead Score levels (for people) - Actual DB values
+ * Lead Score levels (for people) - Legacy, kept for backward compatibility
  */
 export const LEAD_SCORE_LEVELS: Record<LeadScoreLevel, ScoringInfo> = {
   High: {
@@ -94,6 +96,37 @@ export const LEAD_SCORE_LEVELS: Record<LeadScoreLevel, ScoringInfo> = {
     color: 'bg-green-100 text-green-800 border-green-200',
     value: 'Low',
   },
+};
+
+/**
+ * People Score levels (1-10 scale) - Current DB values
+ */
+export const getPeopleScoreInfo = (score: number | null | undefined): ScoringInfo => {
+  if (score === null || score === undefined) {
+    return {
+      label: 'AI SCORE',
+      badge: '-',
+      color: 'bg-gray-100 text-gray-800 border-gray-200',
+      value: 0,
+    };
+  }
+
+  // Determine color based on score ranges
+  let color: string;
+  if (score >= 8) {
+    color = 'bg-red-100 text-red-800 border-red-200'; // High (8-10)
+  } else if (score >= 5) {
+    color = 'bg-yellow-100 text-yellow-800 border-yellow-200'; // Medium (5-7)
+  } else {
+    color = 'bg-green-100 text-green-800 border-green-200'; // Low (1-4)
+  }
+
+  return {
+    label: 'AI SCORE',
+    badge: `${score}`,
+    color,
+    value: score,
+  };
 };
 
 /**
@@ -128,7 +161,7 @@ export const getJobScoreInfo = (score: number): ScoringInfo => {
  */
 export const getScoringInfo = (
   type: ScoringType,
-  value: string | number
+  value: string | number | null | undefined
 ): ScoringInfo => {
   switch (type) {
     case 'priority':
@@ -137,17 +170,26 @@ export const getScoringInfo = (
       );
 
     case 'lead_score':
-      return (
-        LEAD_SCORE_LEVELS[value as LeadScoreLevel] ||
-        LEAD_SCORE_LEVELS['Medium']
-      );
+      // Handle numeric scores (1-10) - new format
+      if (typeof value === 'number') {
+        return getPeopleScoreInfo(value);
+      }
+      // Handle legacy text values (for backward compatibility)
+      if (typeof value === 'string' && ['High', 'Medium', 'Low'].includes(value)) {
+        return (
+          LEAD_SCORE_LEVELS[value as LeadScoreLevel] ||
+          LEAD_SCORE_LEVELS['Medium']
+        );
+      }
+      // Default to null score if invalid
+      return getPeopleScoreInfo(null);
 
     case 'company_score':
-      return getCompanyScoreInfo(value);
+      return getCompanyScoreInfo(value as string | number);
 
     case 'job_score':
       return getJobScoreInfo(
-        typeof value === 'number' ? value : parseInt(value.toString()) || 0
+        typeof value === 'number' ? value : parseInt(value?.toString() || '0') || 0
       );
 
     default:

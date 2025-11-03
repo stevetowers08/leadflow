@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { ActionSlideTrigger, type ActionItem } from '@/components/ui/ActionSlideTrigger';
 import { useToast } from '@/hooks/use-toast';
 import { useBulkActionConfirmation } from '@/contexts/ConfirmationContext';
 import {
@@ -161,35 +155,24 @@ export function BulkActions<T extends { id: string }>({
             </Button>
           ))}
 
-          {/* More Actions Dropdown */}
+          {/* More Actions Slider */}
           {actions.length > 3 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  disabled={isExecuting}
-                  className='h-8'
-                >
-                  <MoreHorizontal className='h-3 w-3 mr-1' />
-                  More
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align='start'>
-                {actions.slice(3).map(action => (
-                  <DropdownMenuItem
-                    key={action.id}
-                    onClick={() => handleActionClick(action)}
-                    className={
-                      action.variant === 'destructive' ? 'text-destructive' : ''
-                    }
-                  >
-                    <action.icon className='h-3 w-3 mr-2' />
-                    {action.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ActionSlideTrigger
+              actions={actions.slice(3).map(action => ({
+                id: action.id,
+                label: action.label,
+                icon: action.icon,
+                onClick: () => handleActionClick(action),
+                variant: action.variant || 'default',
+                disabled: isExecuting,
+              }))}
+              title='More Actions'
+              variant='outline'
+              size='sm'
+            >
+              <MoreHorizontal className='h-3 w-3 mr-1' />
+              <span className='hidden sm:inline'>More</span>
+            </ActionSlideTrigger>
           )}
 
           {/* Clear Selection */}

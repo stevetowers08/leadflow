@@ -5,14 +5,14 @@
 
 /**
  * Normalizes a people stage value to a consistent format
- * Maps to the conversation-based workflow: new_lead | message_sent | replied | interested | meeting_scheduled | meeting_completed | follow_up | not_interested
+ * Maps to the conversation-based campaigns: new_lead | message_sent | replied | interested | meeting_scheduled | meeting_completed | follow_up | not_interested
  */
 export function normalizePeopleStage(stage: string | null): string {
   if (!stage) {
     return 'new_lead'; // Default fallback
   }
 
-  // Map old statuses to new conversation-based workflow
+  // Map old statuses to new conversation-based campaigns
   const statusMapping: Record<string, string> = {
     // New conversation-based stages
     new_lead: 'new_lead',
@@ -24,7 +24,7 @@ export function normalizePeopleStage(stage: string | null): string {
     follow_up: 'follow_up',
     not_interested: 'not_interested',
 
-    // Map old statuses to new workflow
+    // Map old statuses to new campaigns
     new: 'new_lead',
     NEW: 'new_lead',
     'NEW LEAD': 'new_lead',
@@ -64,14 +64,14 @@ export function normalizePeopleStage(stage: string | null): string {
 
 /**
  * Normalizes a company pipeline stage value to a consistent format
- * Maps to the business pipeline workflow: new_lead | message_sent | replied | meeting_scheduled | proposal_sent | negotiation | closed_won | closed_lost | on_hold
+ * Maps to the business pipeline campaigns: new_lead | message_sent | replied | meeting_scheduled | proposal_sent | negotiation | closed_won | closed_lost | on_hold
  */
 export function normalizeCompanyStage(stage: string | null): string {
   if (!stage) {
     return 'new_lead'; // Default fallback
   }
 
-  // Map old statuses to new business pipeline workflow
+  // Map old statuses to new business pipeline campaigns
   const statusMapping: Record<string, string> = {
     // New business pipeline stages
     new_lead: 'new_lead',
@@ -85,7 +85,7 @@ export function normalizeCompanyStage(stage: string | null): string {
     closed_lost: 'closed_lost',
     on_hold: 'on_hold',
 
-    // Map old statuses to new workflow
+    // Map old statuses to new campaigns
     new: 'new_lead',
     NEW: 'new_lead',
     'NEW LEAD': 'new_lead',
@@ -123,14 +123,14 @@ export function normalizeCompanyStage(stage: string | null): string {
 
 /**
  * Normalizes a status value to a consistent format (legacy function for backward compatibility)
- * Maps to the simplified workflow: new | qualified | proceed | skip
+ * Maps to the simplified campaigns: new | qualified | proceed | skip
  */
 export function normalizeStatus(stage: string | null): string {
   if (!stage) {
     return 'new'; // Default fallback
   }
 
-  // Map old statuses to new simplified workflow
+  // Map old statuses to new simplified campaigns
   const statusMapping: Record<string, string> = {
     // New statuses (no change needed)
     new: 'new',
@@ -138,7 +138,7 @@ export function normalizeStatus(stage: string | null): string {
     proceed: 'proceed',
     skip: 'skip',
 
-    // Map old statuses to new workflow
+    // Map old statuses to new campaigns
     'NEW LEAD': 'new',
     'new lead': 'new',
     NEW: 'new',
@@ -173,14 +173,14 @@ export function normalizeStatus(stage: string | null): string {
 
 /**
  * Gets the display text for a status value
- * Uses the simplified workflow display names
+ * Uses the simplified campaigns display names
  */
 export function getStatusDisplayText(status: string): string {
   if (!status) return '';
 
-  // Simplified workflow display mapping
+  // Simplified campaigns display mapping
   const displayMapping: Record<string, string> = {
-    // People stages - conversation-based workflow
+    // People stages - conversation-based campaigns
     new_lead: 'New Lead',
     message_sent: 'Message Sent',
     replied: 'Replied',
@@ -190,7 +190,7 @@ export function getStatusDisplayText(status: string): string {
     follow_up: 'Follow-up',
     not_interested: 'Not Interested',
 
-    // Legacy people stages - simplified workflow
+    // Legacy people stages - simplified campaigns
     new: 'New',
     proceed: 'Proceed',
     skip: 'Skip',
@@ -199,7 +199,7 @@ export function getStatusDisplayText(status: string): string {
     qualify: 'Qualified',
     QUALIFY: 'Qualified',
 
-    // Company pipeline stages - business pipeline workflow
+    // Company pipeline stages - business pipeline campaigns
     NEW_LEAD: 'New Lead',
     qualified: 'Qualified',
     QUALIFIED: 'Qualified',

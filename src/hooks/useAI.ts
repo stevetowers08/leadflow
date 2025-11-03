@@ -10,7 +10,7 @@ import { geminiService } from '../services/geminiService';
 import {
   batchSummarizeJobsFromSupabase,
   getJobsNeedingSummarization as getJobsNeedingSummarizationUtil,
-  processJobSummarizationWorkflow,
+  processJobSummarizationCampaigns,
   summarizeJobFromSupabase,
   type JobSummaryUpdate,
 } from '../utils/jobSummarization';
@@ -128,7 +128,7 @@ export interface UseAISupabaseJobSummaryOptions {
 export interface UseAISupabaseJobSummaryResult {
   summarizeJob: (jobId: string) => Promise<JobSummaryUpdate | null>;
   batchSummarizeJobs: (jobIds: string[]) => Promise<JobSummaryUpdate[]>;
-  processWorkflow: (limit?: number) => Promise<{
+  processCampaigns: (limit?: number) => Promise<{
     processed: number;
     updated: number;
     errors: string[];
@@ -170,9 +170,9 @@ export function useAISupabaseJobSummary(
   } = useAsyncOperation<JobSummaryUpdate[]>();
 
   const {
-    execute: executeWorkflow,
-    isLoading: isLoadingWorkflow,
-    error: workflowError,
+    execute: executeCampaigns,
+    isLoading: isLoadingCampaigns,
+    error: campaignsError,
   } = useAsyncOperation<{
     processed: number;
     updated: number;
@@ -223,10 +223,10 @@ export function useAISupabaseJobSummary(
     [executeBatchSummarize]
   );
 
-  const processWorkflow = useCallback(
+  const processCampaigns = useCallback(
     async (limit: number = 10) => {
-      return await executeWorkflow(async () => {
-        const result = await processJobSummarizationWorkflow(limit);
+      return await executeCampaigns(async () => {
+        const result = await processJobSummarizationCampaigns(limit);
         return {
           processed: result.processed,
           updated: result.updated,
@@ -234,7 +234,7 @@ export function useAISupabaseJobSummary(
         };
       });
     },
-    [executeWorkflow]
+    [executeCampaigns]
   );
 
   const getJobsNeedingSummarization = useCallback(
@@ -251,13 +251,13 @@ export function useAISupabaseJobSummary(
   );
 
   const isLoading =
-    isLoadingJob || isLoadingBatch || isLoadingWorkflow || isLoadingJobs;
-  const error = jobError || batchError || workflowError || jobsError;
+    isLoadingJob || isLoadingBatch || isLoadingCampaigns || isLoadingJobs;
+  const error = jobError || batchError || campaignsError || jobsError;
 
   return {
     summarizeJob,
     batchSummarizeJobs,
-    processWorkflow,
+    processCampaigns,
     getJobsNeedingSummarization,
     isLoading,
     error,

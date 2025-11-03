@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import {
   Brain,
+  ChevronRight,
   Info,
   Target,
   TrendingDown,
@@ -24,7 +25,8 @@ interface LeadScoreData {
   company?: string;
   role?: string;
   location?: string;
-  lead_score: string | number;
+  score?: number | null; // New field for people (1-10)
+  lead_score?: string | number | null; // Legacy field, for backward compatibility
   priority?: string;
   last_activity?: string;
   automation_active?: boolean;
@@ -48,7 +50,8 @@ interface ScoreRange {
   borderColor: string;
 }
 
-const scoreRanges: ScoreRange[] = [
+// Score ranges for 0-100 scale (companies)
+const scoreRanges100: ScoreRange[] = [
   {
     min: 80,
     max: 100,
@@ -87,6 +90,46 @@ const scoreRanges: ScoreRange[] = [
   },
 ];
 
+// Score ranges for 1-10 scale (people)
+const scoreRanges10: ScoreRange[] = [
+  {
+    min: 8,
+    max: 10,
+    label: 'High',
+    color: 'bg-red-500',
+    textColor: 'text-red-700',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
+  },
+  {
+    min: 5,
+    max: 7,
+    label: 'Medium',
+    color: 'bg-yellow-500',
+    textColor: 'text-yellow-700',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-200',
+  },
+  {
+    min: 2,
+    max: 4,
+    label: 'Low',
+    color: 'bg-green-500',
+    textColor: 'text-green-700',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-200',
+  },
+  {
+    min: 1,
+    max: 1,
+    label: 'Very Low',
+    color: 'bg-gray-500',
+    textColor: 'text-gray-700',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-200',
+  },
+];
+
 const priorityOrder = {
   'VERY HIGH': 4,
   HIGH: 3,
@@ -110,14 +153,24 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
 
   // Process and categorize leads
   const processedLeads = useMemo(() => {
+    // Detect score scale based on data - if max score > 10, use 0-100 ranges
+    const maxScore = leads.reduce((max, lead) => {
+      const scoreValue = lead.score ?? 
+        (typeof lead.lead_score === 'string' ? parseInt(lead.lead_score) : (lead.lead_score as number) || 0);
+      return Math.max(max, scoreValue);
+    }, 0);
+    
+    const use10Scale = maxScore <= 10;
+    const scoreRanges = use10Scale ? scoreRanges10 : scoreRanges100;
+    
     return leads.map(lead => {
-      const score =
-        typeof lead.lead_score === 'string'
-          ? parseInt(lead.lead_score)
-          : lead.lead_score;
+      const score = lead.score ?? 
+        (typeof lead.lead_score === 'string' 
+          ? parseInt(lead.lead_score) 
+          : (lead.lead_score as number) || 0);
       const range =
         scoreRanges.find(r => score >= r.min && score <= r.max) ||
-        scoreRanges[3];
+        scoreRanges[scoreRanges.length - 1];
 
       return {
         ...lead,

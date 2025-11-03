@@ -26,15 +26,6 @@
     "lint:api": "next lint --dir src/app/api",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest --watch",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:headed": "playwright test --headed",
     "db:schema": "node scripts/db-schema.js",
     "db:help": "node scripts/db-schema.js",
     "security:scan": "./scripts/semgrep-scan.sh security",
@@ -97,9 +88,6 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
-    "@playwright/test": "^1.56.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
     "@types/chart.js": "^2.9.41",
     "@types/node": "^24.9.2",
     "@types/swagger-jsdoc": "^6.0.4",
@@ -117,7 +105,6 @@
     "glob": "^11.0.3",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
-    "jsdom": "^27.0.1",
     "lint-staged": "^16.2.4",
     "prettier": "^3.6.2",
     "swagger-jsdoc": "^6.2.8",
@@ -125,8 +112,7 @@
     "tailwindcss": "^3.4.18",
     "terser": "^5.44.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.1",
-    "vitest": "^4.0.2"
+    "typescript-eslint": "^8.46.1"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

@@ -145,12 +145,12 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
           <input
             ref={inputRef}
             type='text'
-            placeholder='Search people, companies, jobs...'
+            placeholder='Search contacts, companies, jobs...'
             value={searchQuery}
             onChange={handleInputChange}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            className='w-full h-8 rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:border-gray-400 focus:border-primary search-input-light'
+            className='w-full h-8 rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:border-gray-400 focus:border-primary search-input-light'
           />
 
           {/* Search Icon */}
@@ -189,7 +189,7 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className='w-full text-left px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors'
+                    className='w-full text-left px-2 py-2 text-sm text-foreground hover:bg-gray-50 rounded-md transition-colors'
                   >
                     {suggestion}
                   </button>
@@ -257,10 +257,10 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
   if (!isMounted) {
     return (
       <div className={cn('relative w-full', className)}>
-        <div className='w-full h-8 rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm text-gray-900 opacity-50 pointer-events-none'>
+        <div className='w-full h-8 rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm text-foreground opacity-50 pointer-events-none'>
           <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400' />
           <span className='absolute left-10 top-1/2 -translate-y-1/2 text-gray-400'>
-            Search people, companies, jobs...
+            Search contacts, companies, jobs...
           </span>
         </div>
       </div>

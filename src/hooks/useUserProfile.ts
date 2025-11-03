@@ -35,7 +35,9 @@ export const useUserProfile = () => {
   const loadUserProfile = useCallback(
     async (userId: string): Promise<UserProfile | null> => {
       try {
-        console.log(`🔍 Loading user profile for: ${userId}`);
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.log(`🔍 Loading user profile for: ${userId}`);
+        }
         setProfileLoading(true);
         setProfileError(null);
 
@@ -46,16 +48,20 @@ export const useUserProfile = () => {
           .single();
 
         if (error) {
-          console.log(`ℹ️ No existing profile found for user: ${userId}`);
+          if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+            console.log(`ℹ️ No existing profile found for user: ${userId}`);
+          }
           return null; // Return null instead of throwing error
         }
 
-        console.log('✅ Profile loaded successfully:', {
-          id: data.id,
-          email: data.email,
-          full_name: data.full_name,
-          role: data.role,
-        });
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.log('✅ Profile loaded successfully:', {
+            id: data.id,
+            email: data.email,
+            full_name: data.full_name,
+            role: data.role,
+          });
+        }
 
         setProfileError(null);
         return data;

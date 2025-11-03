@@ -14,6 +14,7 @@ interface SlideOutPanelProps {
   footer?: React.ReactNode;
   width?: 'default' | 'medium' | 'wide';
   customHeader?: React.ReactNode;
+  className?: string;
 }
 
 export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
@@ -25,6 +26,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
   footer,
   width = 'default',
   customHeader,
+  className,
 }) => {
   // Calculate width classes based on width prop
   const widthClasses =
@@ -94,7 +96,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
               <div className='flex-1 min-w-0'>
                 {customHeader || (
                   <>
-                    <h2 className='text-lg font-semibold text-gray-900 truncate'>
+                    <h2 className='text-lg font-semibold text-foreground truncate'>
                       {title}
                     </h2>
                     {subtitle && (
@@ -115,7 +117,12 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
             </div>
 
             {/* Content */}
-            <div className='flex-1 overflow-y-auto px-6 pb-6 slide-out-scroll'>
+            <div
+              className={cn(
+                'flex-1 overflow-y-auto px-6 pb-6 slide-out-scroll',
+                className
+              )}
+            >
               {children}
             </div>
 

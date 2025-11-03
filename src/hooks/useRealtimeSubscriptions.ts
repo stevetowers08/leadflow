@@ -79,7 +79,9 @@ export function useRealtimeSubscription(
   // Handle real-time events
   const handleRealtimeEvent = useCallback(
     (eventType: string, payload: any) => {
-      console.log(`🔄 Real-time ${eventType} event for ${table}:`, payload);
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+        console.log(`🔄 Real-time ${eventType} event for ${table}:`, payload);
+      }
 
       setLastEvent({ eventType, payload, timestamp: new Date() });
 
@@ -130,11 +132,15 @@ export function useRealtimeSubscription(
         }
       )
       .subscribe(status => {
-        console.log(`📡 Real-time subscription status for ${table}:`, status);
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.log(`📡 Real-time subscription status for ${table}:`, status);
+        }
         setIsConnected(status === 'SUBSCRIBED');
 
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Successfully subscribed to ${table} changes`);
+          if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+            console.log(`✅ Successfully subscribed to ${table} changes`);
+          }
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to ${table} changes`);
           toast({
@@ -149,7 +155,9 @@ export function useRealtimeSubscription(
 
     return () => {
       if (channelRef.current) {
-        console.log(`🔌 Unsubscribing from ${table} changes`);
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.log(`🔌 Unsubscribing from ${table} changes`);
+        }
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
         setIsConnected(false);
@@ -334,7 +342,9 @@ export function useRealtimePresence(
         }
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log(`👤 User joined: ${key}`);
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.log(`👤 User joined: ${key}`);
+        }
         if (onJoin) onJoin(key, newPresences);
 
         toast({
@@ -343,7 +353,9 @@ export function useRealtimePresence(
         });
       })
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log(`👋 User left: ${key}`);
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.log(`👋 User left: ${key}`);
+        }
         if (onLeave) onLeave(key, leftPresences);
 
         toast({

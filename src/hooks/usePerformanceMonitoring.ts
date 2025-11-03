@@ -91,7 +91,7 @@ export const usePerformanceMonitoring = (
       const renderTime = performance.now() - startTimeRef.current;
       logPerformance(renderTime);
     };
-  });
+  }, [mergedConfig.enabled, logPerformance]);
 
   return {
     startTiming: () => {
@@ -127,7 +127,9 @@ export const useOperationTiming = (operationName: string) => {
     const duration = performance.now() - startTimeRef.current;
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`⏱️ ${operationName}: ${duration.toFixed(2)}ms`);
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+        console.log(`⏱️ ${operationName}: ${duration.toFixed(2)}ms`);
+      }
     }
 
     return duration;

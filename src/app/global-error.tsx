@@ -24,7 +24,7 @@ export default function GlobalError({
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
               <AlertCircle className="h-6 w-6 text-red-600" />
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">
+            <h1 className="text-xl font-semibold text-foreground mb-2">
               Critical Error
             </h1>
             <p className="text-sm text-gray-600 mb-4">
@@ -50,4 +50,6 @@ export default function GlobalError({
     </html>
   );
 }
+
+
 
