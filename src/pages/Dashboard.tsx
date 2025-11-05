@@ -128,7 +128,7 @@ function DashboardContent() {
           supabase
             .from('jobs')
             .select(
-              'id, title, qualification_status, created_at, companies!jobs_company_id_fkey(id, name, website, head_office, industry, logo_url)'
+              'id, title, qualification_status, created_at, companies!left(id, name, website, head_office, industry, logo_url)'
             )
             .eq('qualification_status', 'new')
             .gte('created_at', twoDaysAgo)
@@ -185,25 +185,50 @@ function DashboardContent() {
             .lt('created_at', oneWeekAgo.toISOString()),
         ]);
 
-        // Only log errors in development
-        if (
-          jobsRes.error ||
-          threadsRes.error ||
-          leadsTodayRes.error ||
-          companiesTodayRes.error
-        ) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error('Dashboard errors:', {
-              jobs: jobsRes.error,
-              threads: threadsRes.error,
-              leads: leadsTodayRes.error,
-              companies: companiesTodayRes.error,
-            });
-          }
-          throw new Error('Failed to load dashboard data');
+        // Check for errors and log them, but continue with partial data
+        const errors: string[] = [];
+        if (jobsRes.error) {
+          console.error('Jobs query error:', jobsRes.error);
+          errors.push(
+            `Jobs: ${jobsRes.error.message || jobsRes.error.code || 'Unknown error'}`
+          );
+        }
+        if (threadsRes.error) {
+          console.error('Threads query error:', threadsRes.error);
+          errors.push(
+            `Email threads: ${threadsRes.error.message || threadsRes.error.code || 'Unknown error'}`
+          );
+        }
+        if (leadsTodayRes.error) {
+          console.error('Leads today query error:', leadsTodayRes.error);
+          errors.push(
+            `Leads: ${leadsTodayRes.error.message || leadsTodayRes.error.code || 'Unknown error'}`
+          );
+        }
+        if (companiesTodayRes.error) {
+          console.error(
+            'Companies today query error:',
+            companiesTodayRes.error
+          );
+          errors.push(
+            `Companies: ${companiesTodayRes.error.message || companiesTodayRes.error.code || 'Unknown error'}`
+          );
+        }
+
+        // Log all errors for debugging
+        if (errors.length > 0) {
+          console.error('Dashboard load errors:', {
+            jobs: jobsRes.error,
+            threads: threadsRes.error,
+            leads: leadsTodayRes.error,
+            companies: companiesTodayRes.error,
+          });
+          // Set error message but don't throw - allow partial data to display
+          setError(`Some data failed to load: ${errors.join('; ')}`);
         }
 
         // Transform the jobs data to flatten the companies array if present
+        // Handle case where jobs query failed - use empty array
         const transformedJobs = (jobsRes.data || []).map(
           (job: {
             companies?:
@@ -224,10 +249,15 @@ function DashboardContent() {
               : job.companies,
           })
         );
-        setJobsToReview((transformedJobs as Job[]) || []);
-        setEmailReplies((threadsRes.data as EmailThread[]) || []);
-        setNewLeadsToday(leadsTodayRes.data?.length || 0);
-        setNewCompaniesToday(companiesTodayRes.data?.length || 0);
+        // Set data, using empty arrays/0 if queries failed
+        setJobsToReview(transformedJobs as Job[]);
+        setEmailReplies((threadsRes.data || []) as EmailThread[]);
+        setNewLeadsToday(
+          leadsTodayRes.error ? 0 : leadsTodayRes.data?.length || 0
+        );
+        setNewCompaniesToday(
+          companiesTodayRes.error ? 0 : companiesTodayRes.data?.length || 0
+        );
 
         // Past week metrics are optional; default to 0 on error
         setNewJobsPastWeek(jobsWeekRes.error ? 0 : jobsWeekRes.count || 0);
@@ -250,7 +280,9 @@ function DashboardContent() {
         );
       } catch (e) {
         console.error('Dashboard load error:', e);
-        setError('Failed to load dashboard data');
+        const errorMessage =
+          e instanceof Error ? e.message : 'Failed to load dashboard data';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -271,14 +303,6 @@ function DashboardContent() {
     },
     [router]
   );
-
-  // Dynamic greeting based on time of day
-  const greeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
 
   // Calculate trend percentage
   const calculateTrend = (current: number, previous: number): string => {
