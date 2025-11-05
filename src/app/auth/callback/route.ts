@@ -16,11 +16,38 @@ export async function GET(request: NextRequest) {
   }
 
   // Check if we already have a message param - this means we've already processed the error
-  // and should let the page component render it (avoid redirect loop)
+  // Render error page HTML directly
   const existingMessage = searchParams.get('message');
   if (existingMessage && !code) {
-    // Already processed - return empty response to let page component handle it
-    return new NextResponse(null, { status: 200 });
+    // Render error page HTML
+    return new NextResponse(
+      `<!DOCTYPE html>
+<html>
+<head>
+  <title>Authentication Failed</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <div style="min-height: 100vh; display: flex; align-items: center; justify-center; background: #f9fafb; font-family: system-ui, -apple-system, sans-serif;">
+    <div style="text-align: center; max-width: 28rem; margin: 0 auto; padding: 1.5rem;">
+      <div style="margin-bottom: 1rem;">
+        <svg style="margin: 0 auto; height: 3rem; width: 3rem; color: #ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </div>
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">Authentication Failed</h2>
+      <p style="color: #4b5563; font-size: 0.875rem; margin-bottom: 1.5rem;">${existingMessage}</p>
+      <button onclick="window.location.href='/'" style="padding: 0.5rem 1rem; background: #2563eb; color: white; border-radius: 0.375rem; border: none; cursor: pointer; font-size: 0.875rem;">Return to Home</button>
+    </div>
+  </div>
+</body>
+</html>`,
+      {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' },
+      }
+    );
   }
 
   // Handle OAuth errors from Supabase
