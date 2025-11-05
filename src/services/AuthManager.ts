@@ -1,14 +1,17 @@
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 import {
   validateEnvironment,
   logEnvironmentStatus,
   safeSupabaseOperation,
 } from '@/utils/environmentValidation';
 
+type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
+
 export interface AuthState {
   user: User | null;
-  userProfile: any | null;
+  userProfile: UserProfile | null;
   session: Session | null;
   loading: boolean;
   error: string | null;
@@ -119,7 +122,7 @@ export class AuthManager {
     });
   }
 
-  private async fetchUserProfile(userId: string): Promise<any> {
+  private async fetchUserProfile(userId: string): Promise<UserProfile | null> {
     return await safeSupabaseOperation(async () => {
       // Try admin client first
       if (supabaseAdmin) {
@@ -180,7 +183,7 @@ export class AuthManager {
     return { ...this.state };
   }
 
-  async signOut(): Promise<{ error: any }> {
+  async signOut(): Promise<{ error: AuthError | null }> {
     try {
       const { error } = await supabase.auth.signOut();
       this.setState({ user: null, userProfile: null, session: null });
@@ -191,12 +194,17 @@ export class AuthManager {
     }
   }
 
-  async signInWithGoogle(): Promise<{ error: any }> {
+  async signInWithGoogle(): Promise<{ error: AuthError | null }> {
     try {
+      // Get redirect URL - prefer environment variable, fallback to window.location.origin
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const redirectTo = `${siteUrl}/auth/callback`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
         },
       });
       return { error };
