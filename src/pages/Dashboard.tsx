@@ -128,7 +128,7 @@ function DashboardContent() {
           supabase
             .from('jobs')
             .select(
-              'id, title, qualification_status, created_at, companies!left(id, name, website, head_office, industry, logo_url)'
+              'id, title, qualification_status, created_at, companies!jobs_company_id_fkey(id, name, website, head_office, industry, logo_url)'
             )
             .eq('qualification_status', 'new')
             .gte('created_at', twoDaysAgo)

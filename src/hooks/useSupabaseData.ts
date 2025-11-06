@@ -155,7 +155,7 @@ export const useJobs = (
           company_id,
           created_at,
           qualification_status,
-          companies!inner(
+          companies!jobs_company_id_fkey(
             id,
             name,
             website,

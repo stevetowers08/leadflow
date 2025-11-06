@@ -191,7 +191,7 @@ export class GlobalSearchService {
         valid_through,
         lead_score_job,
         automation_active,
-        companies!inner(
+        companies!jobs_company_id_fkey(
           id,
           name,
           industry
