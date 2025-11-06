@@ -579,17 +579,18 @@ const JobsContent: React.FC = () => {
   const filteredJobs = useMemo(() => {
     let filtered = jobs;
 
-    // Qualification status filter (from tabs) - Use client-specific status
+    // Qualification status filter (from tabs) - Use jobs.qualification_status directly
+    // Jobs don't have client assignments, so use the job's qualification_status field
     // Note: Tab filter takes precedence over status filter to avoid conflicts
     if (activeTab !== 'all') {
       filtered = filtered.filter(job => {
-        const qualStatus = job.client_jobs?.[0]?.status || 'new';
+        const qualStatus = job.qualification_status || 'new';
         return qualStatus === activeTab;
       });
     } else if (statusFilter !== 'all') {
       // Only apply status filter if tab is 'all'
       filtered = filtered.filter(job => {
-        const qualStatus = job.client_jobs?.[0]?.status || 'new';
+        const qualStatus = job.qualification_status || 'new';
         return qualStatus === statusFilter;
       });
     }
@@ -649,17 +650,15 @@ const JobsContent: React.FC = () => {
     sortBy,
   ]);
 
-  // Update tab counts - memoized to prevent re-renders (use client-specific status)
+  // Update tab counts - memoized to prevent re-renders (use jobs.qualification_status)
   const tabCounts = useMemo(() => {
     const counts = {
       all: jobs.length,
-      new: jobs.filter(
-        job =>
-          !job.client_jobs?.[0]?.status || job.client_jobs[0].status === 'new'
-      ).length,
-      qualify: jobs.filter(job => job.client_jobs?.[0]?.status === 'qualify')
+      new: jobs.filter(job => (job.qualification_status || 'new') === 'new')
         .length,
-      skip: jobs.filter(job => job.client_jobs?.[0]?.status === 'skip').length,
+      qualify: jobs.filter(job => job.qualification_status === 'qualify')
+        .length,
+      skip: jobs.filter(job => job.qualification_status === 'skip').length,
     };
 
     return tabOptions.map(tab => ({
