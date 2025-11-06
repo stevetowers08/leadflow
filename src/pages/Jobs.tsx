@@ -414,11 +414,12 @@ const JobsContent: React.FC = () => {
 
   // Fetch data with React Query for caching and better loading states
   const bypassAuth = shouldBypassAuth();
-  const queryEnabled =
-    bypassAuth || (!authLoading && !clientIdLoading && !!user);
-  if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-    // Debug log removed - only log in verbose mode
-  }
+  // Query should be enabled when:
+  // 1. Bypass auth is enabled, OR
+  // 2. Auth has finished loading AND user exists
+  // Note: We don't require clientId for jobs (jobs are shared across clients)
+  // So we don't wait for clientIdLoading to complete
+  const queryEnabled = bypassAuth || (!authLoading && !!user);
   const {
     data: jobsData,
     isLoading: jobsLoading,
