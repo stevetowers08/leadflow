@@ -33,15 +33,19 @@ import { Page } from '@/design-system/components';
 import { CollapsibleFilterControls } from '@/components/shared/CollapsibleFilterControls';
 import { useToast } from '@/hooks/use-toast';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
+import { useClientId } from '@/hooks/useClientId';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Company, Person, UserProfile } from '@/types/database';
 import { formatLastActivity } from '@/utils/relativeTime';
 import { getStatusDisplayText } from '@/utils/statusUtils';
+import { isCompanyEnriched } from '@/utils/companyEnrichmentUtils';
+import { useViewedCompanies } from '@/hooks/useViewedCompanies';
 import { Building2, CheckCircle, Sparkles, Target, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CellLoadingSpinner } from '@/components/ui/cell-loading-spinner';
 
 // Define status arrays as constants to prevent recreation on every render
 const COMPANY_STATUS_OPTIONS: string[] = [
@@ -83,7 +87,8 @@ const CompaniesContent: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [currentClientId, setCurrentClientId] = useState<string | null>(null);
+  const { data: currentClientId, isLoading: clientIdLoading } = useClientId();
+  const { isViewed, markAsViewed } = useViewedCompanies();
 
   // State management
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -151,46 +156,7 @@ const CompaniesContent: React.FC = () => {
     []
   );
 
-  // Fetch current client ID
-  useEffect(() => {
-    const fetchClientId = async () => {
-      if (!user?.id) return;
-
-      try {
-        const { data: clientUser, error } = await supabase
-          .from('client_users')
-          .select('client_id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (error && error.code !== 'PGRST116') {
-          if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-            console.error('Error fetching client ID:', error);
-          }
-          return;
-        }
-
-        setCurrentClientId(clientUser?.client_id || null);
-      } catch (err) {
-        console.error('Error fetching client ID:', err);
-      }
-    };
-
-    fetchClientId();
-  }, [user?.id]);
-
-  // Get client ID for dev mode fallback
-  useEffect(() => {
-    if (
-      !currentClientId &&
-      (process.env.NODE_ENV === 'development' ||
-        process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true')
-    ) {
-      const devClientId = '720ab0e4-0c24-4b71-b906-f1928e44712f';
-      // Development mode: using known client_id
-      setCurrentClientId(devClientId);
-    }
-  }, [currentClientId]);
+  // Client ID is now fetched via useClientId hook above
 
   // Fetch data with React Query for caching and better loading states
   const {
@@ -201,43 +167,47 @@ const CompaniesContent: React.FC = () => {
   } = useQuery({
     queryKey: ['companies-page', currentClientId],
     queryFn: async () => {
-      // If we don't have a client ID, return empty data
+      // Fetch users for assignment dropdowns - handle errors gracefully
+      // to prevent blocking the main companies query
+      let usersResult = { data: [], error: null };
+      try {
+        const result = await supabase
+          .from('user_profiles')
+          .select('id, full_name')
+          .order('full_name');
+        usersResult = result;
+      } catch (err) {
+        // Log error but don't block companies query
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to fetch user profiles:', err);
+        }
+      }
+
+      // clientId is required for multi-tenant isolation (industry best practice)
+      // Return empty data gracefully if clientId is missing (should be prevented by enabled check)
       if (!currentClientId) {
         return {
           companies: [],
           people: [],
-          users: [],
+          users: usersResult.data || [],
+          jobs: [],
         };
       }
 
-      // Fetch only companies this client has qualified
-      // IMPORTANT: Due to RLS, we need to query client_companies first, then get company details
-      const [clientCompaniesResult, peopleResult, usersResult] =
-        await Promise.all([
-          supabase
-            .from('client_companies')
-            .select(
-              `
+      // Companies are client-specific - only show companies assigned to this client
+      // Fetch companies from client_companies (multi-tenant pattern)
+      const clientCompaniesResult = await supabase
+        .from('client_companies')
+        .select(
+          `
               *,
               companies!inner(*)
             `
-            )
-            .eq('client_id', currentClientId)
-            .limit(1000), // Limit to prevent loading all records
-          supabase
-            .from('people')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(500), // Limit people for context
-          supabase
-            .from('user_profiles')
-            .select('id, full_name')
-            .order('full_name'),
-        ]);
+        )
+        .eq('client_id', currentClientId)
+        .limit(1000); // Limit to prevent loading all records
 
       if (clientCompaniesResult.error) throw clientCompaniesResult.error;
-      if (peopleResult.error) throw peopleResult.error;
-      if (usersResult.error) throw usersResult.error;
 
       // Transform the data: client_companies has nested companies object
       const transformedCompanies =
@@ -252,24 +222,56 @@ const CompaniesContent: React.FC = () => {
           };
         }) || [];
 
-      // Debug: Companies fetched and transformed
-      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-        console.log('🔍 Companies Debug:', {
-          rawData: clientCompaniesResult.data,
-          transformedCount: transformedCompanies.length,
-          transformedCompanies,
-          currentClientId,
-        });
+      // Get company IDs to filter people and jobs
+      const companyIds = transformedCompanies.map(c => c.id);
+
+      // Fetch people and jobs for companies in client_companies
+      // People and jobs link to companies via company_id, so we fetch all that match
+      let peopleData: Person[] = [];
+      let jobsData: { id: string; company_id: string }[] = [];
+
+      if (companyIds.length > 0) {
+        const [peopleResult, jobsResult] = await Promise.all([
+          supabase
+            .from('people')
+            .select('id, name, company_id')
+            .in('company_id', companyIds),
+          supabase
+            .from('jobs')
+            .select('id, company_id')
+            .in('company_id', companyIds),
+        ]);
+
+        if (peopleResult.error) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error fetching people:', peopleResult.error);
+          }
+        } else {
+          peopleData = (peopleResult.data || []) as Person[];
+        }
+
+        if (jobsResult.error) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error fetching jobs:', jobsResult.error);
+          }
+        } else {
+          jobsData = (jobsResult.data || []) as {
+            id: string;
+            company_id: string;
+          }[];
+        }
       }
 
       return {
         companies: transformedCompanies as Company[],
-        people: (peopleResult.data as unknown as Person[]) || [],
+        people: peopleData,
         users: usersResult.data || [],
+        jobs: jobsData,
       };
     },
     enabled:
-      shouldBypassAuth() || (!authLoading && !!user && !!currentClientId),
+      shouldBypassAuth() ||
+      (!authLoading && !clientIdLoading && !!user && !!currentClientId),
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
     refetchOnWindowFocus: false,
@@ -278,6 +280,25 @@ const CompaniesContent: React.FC = () => {
   // Extract data from query result
   const companies = companiesData?.companies || [];
   const people = companiesData?.people || [];
+  const jobs = companiesData?.jobs || [];
+
+  // Debug: Log what we have
+  if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+    console.log('🔍 Extracted Data:', {
+      companiesCount: companies.length,
+      peopleCount: people.length,
+      jobsCount: jobs.length,
+      companyIds: companies.slice(0, 3).map(c => c.id),
+      peopleWithCompanies: people
+        .filter(p => p.company_id)
+        .slice(0, 3)
+        .map(p => ({
+          id: p.id,
+          name: p.name,
+          company_id: p.company_id,
+        })),
+    });
+  }
   const loading = companiesLoading;
   const error = companiesError
     ? companiesError instanceof Error
@@ -293,6 +314,7 @@ const CompaniesContent: React.FC = () => {
   }, [companiesData?.users]);
 
   // Show error toast if query fails
+  // Note: Missing clientId is handled by ClientGuard (signs out user)
   useEffect(() => {
     if (companiesError) {
       toast({
@@ -513,11 +535,15 @@ const CompaniesContent: React.FC = () => {
     [users, user]
   );
 
-  // Handle row click - open slide-out panel
-  const handleRowClick = useCallback((company: Company) => {
-    setSelectedCompanyId(company.id);
-    setIsSlideOutOpen(true);
-  }, []);
+  // Handle row click - open slide-out panel and mark as viewed
+  const handleRowClick = useCallback(
+    (company: Company) => {
+      markAsViewed(company.id);
+      setSelectedCompanyId(company.id);
+      setIsSlideOutOpen(true);
+    },
+    [markAsViewed]
+  );
 
   // Handle person click - open person slider
   const handlePersonClick = useCallback((personId: string) => {
@@ -530,6 +556,28 @@ const CompaniesContent: React.FC = () => {
     // Refetch companies data using React Query
     refetchCompanies();
   }, [refetchCompanies]);
+
+  // Determine row props for animation (enriched but not viewed)
+  const getRowProps = useCallback(
+    (company: Company) => {
+      const enriched = isCompanyEnriched(company);
+      const viewed = isViewed(company.id);
+      // Only animate if enriched and not viewed
+      const shouldAnimate = enriched && !viewed;
+
+      // Debug logging (remove in production)
+      if (process.env.NODE_ENV === 'development' && enriched) {
+        console.log(
+          `Company ${company.name}: enriched=${enriched}, viewed=${viewed}, animate=${shouldAnimate}`
+        );
+      }
+
+      return {
+        isEnriched: shouldAnimate,
+      };
+    },
+    [isViewed]
+  );
 
   // Handle search - memoized for performance
   const handleSearch = useCallback((value: string) => {
@@ -627,18 +675,30 @@ const CompaniesContent: React.FC = () => {
         label: 'Company',
         width: '300px',
         cellType: 'regular',
-        render: (_, company) => (
-          <div className='flex items-center gap-2 min-w-0'>
-            <ClearbitLogoSync
-              companyName={company.name}
-              website={company.website}
-              size='sm'
-            />
-            <div className='font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
-              {company.name || '-'}
+        render: (_, company) => {
+          const enriched = isCompanyEnriched(company);
+          const viewed = isViewed(company.id);
+          const showIndicator = enriched && !viewed;
+
+          return (
+            <div className='flex items-center gap-2 min-w-0'>
+              <ClearbitLogoSync
+                companyName={company.name}
+                website={company.website}
+                size='sm'
+              />
+              <div className='font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
+                {company.name || '-'}
+              </div>
+              {showIndicator && (
+                <div className='relative flex-shrink-0 ml-1.5'>
+                  <div className='h-1.5 w-1.5 rounded-full bg-blue-500 animate-indicator-pulse' />
+                  <div className='absolute inset-0 h-1.5 w-1.5 rounded-full bg-blue-400/50 animate-ping' />
+                </div>
+              )}
             </div>
-          </div>
-        ),
+          );
+        },
       },
       {
         key: 'assigned_icon',
@@ -648,14 +708,8 @@ const CompaniesContent: React.FC = () => {
         align: 'center',
         render: (_, company) => (
           <div
-            onClick={e => {
-              e.stopPropagation();
-              e.preventDefault();
-            }}
-            onMouseDown={e => {
-              e.stopPropagation();
-              e.preventDefault();
-            }}
+            onClick={e => e.stopPropagation()}
+            onMouseDown={e => e.stopPropagation()}
             className='flex items-center justify-center w-full overflow-hidden'
           >
             <IconOnlyAssignmentCell
@@ -785,9 +839,19 @@ const CompaniesContent: React.FC = () => {
         width: '100px',
         cellType: 'regular',
         align: 'center',
-        render: (_, company) => (
-          <ScoreBadge score={company.lead_score} variant='compact' />
-        ),
+        render: (_, company) => {
+          // TODO: Update this to use actual webhook loading state instead of checking for "-"
+          // When webhook is sent, show loading spinner. When webhook returns, hide spinner.
+          // Track loading state per company: const isLoading = webhookLoadingStates[company.id]
+          // Create Linear issue: "Implement webhook loading state tracking for company enrichment"
+          const showLoading = !company.lead_score || company.lead_score === '-';
+
+          if (showLoading) {
+            return <CellLoadingSpinner size='sm' />;
+          }
+
+          return <ScoreBadge score={company.lead_score} variant='compact' />;
+        },
       },
       {
         key: 'funding_raised',
@@ -841,8 +905,9 @@ const CompaniesContent: React.FC = () => {
         cellType: 'lead-score',
         align: 'center',
         render: (_, company) => {
-          // Calculate jobs count from the jobs array we fetch separately
-          const jobsCount = 0; // We'll need to fetch this separately or calculate it differently
+          const jobsCount = jobs.filter(
+            j => j.company_id === company.id
+          ).length;
           return <span>{jobsCount}</span>;
         },
       },
@@ -883,7 +948,15 @@ const CompaniesContent: React.FC = () => {
         ),
       },
     ],
-    [people, paginatedCompanies, bulkSelection]
+    [
+      people,
+      jobs,
+      paginatedCompanies,
+      bulkSelection,
+      handlePersonClick,
+      isViewed,
+      refetchCompanies,
+    ]
   );
 
   // Stats for Companies page
@@ -989,6 +1062,7 @@ const CompaniesContent: React.FC = () => {
               onRowClick={handleRowClick}
               loading={loading}
               emptyMessage='No companies found'
+              getRowProps={getRowProps}
             />
           )}
         </div>
