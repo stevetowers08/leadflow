@@ -413,12 +413,12 @@ const JobsContent: React.FC = () => {
   );
 
   // Fetch data with React Query for caching and better loading states
+  // Best practice: Only enable query when dependencies are ready
   const bypassAuth = shouldBypassAuth();
   // Query should be enabled when:
   // 1. Bypass auth is enabled, OR
   // 2. Auth has finished loading AND user exists
   // Note: We don't require clientId for jobs (jobs are shared across clients)
-  // So we don't wait for clientIdLoading to complete
   const queryEnabled = bypassAuth || (!authLoading && !!user);
   const {
     data: jobsData,
@@ -428,12 +428,6 @@ const JobsContent: React.FC = () => {
   } = useQuery({
     queryKey: ['jobs-page', clientId, refreshTrigger],
     queryFn: async () => {
-      // Jobs query executing
-      // Don't fetch if client ID is still loading
-      if (clientIdLoading && !bypassAuth) {
-        return { jobs: [], sources: [] };
-      }
-
       // Get ALL jobs (with or without client ID) - use limit for initial load
       const today = new Date().toISOString().split('T')[0];
 
@@ -651,16 +645,22 @@ const JobsContent: React.FC = () => {
     sortBy,
   ]);
 
-  // Update tab counts - memoized to prevent re-renders (use jobs.qualification_status)
+  // Update tab counts - memoized to prevent re-renders (optimized single pass)
   const tabCounts = useMemo(() => {
+    // Single pass through jobs to count all statuses efficiently
     const counts = {
       all: jobs.length,
-      new: jobs.filter(job => (job.qualification_status || 'new') === 'new')
-        .length,
-      qualify: jobs.filter(job => job.qualification_status === 'qualify')
-        .length,
-      skip: jobs.filter(job => job.qualification_status === 'skip').length,
+      new: 0,
+      qualify: 0,
+      skip: 0,
     };
+
+    for (const job of jobs) {
+      const status = job.qualification_status || 'new';
+      if (status === 'new') counts.new++;
+      else if (status === 'qualify') counts.qualify++;
+      else if (status === 'skip') counts.skip++;
+    }
 
     return tabOptions.map(tab => ({
       ...tab,
