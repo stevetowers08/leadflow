@@ -41,11 +41,17 @@ const ProfileSettings = () => {
         setEmail(authEmail);
 
         // Also try to fetch from user_profiles table
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('full_name, email')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
+
+        // Handle profile fetch - 406 or missing profile is OK, use auth data
+        if (profileError && profileError.code !== 'PGRST116') {
+          // PGRST116 = no rows returned, which is fine
+          console.warn('Profile fetch warning:', profileError);
+        }
 
         if (profile) {
           setFullName(profile.full_name || authName);
@@ -108,7 +114,7 @@ const ProfileSettings = () => {
   if (initialLoad) {
     return (
       <div className='flex items-center justify-center p-8'>
-        <Loader2 className='h-6 w-6 animate-spin text-gray-400' />
+        <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
       </div>
     );
   }
@@ -116,10 +122,10 @@ const ProfileSettings = () => {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+        <h2 className='text-xl font-semibold text-foreground mb-2'>
           Your Profile
         </h2>
-        <p className='text-sm text-gray-600'>
+        <p className='text-sm text-muted-foreground'>
           Manage your personal information and account details
         </p>
       </div>
@@ -132,9 +138,9 @@ const ProfileSettings = () => {
       )}
 
       {success && (
-        <Alert className='border-green-500 bg-green-50'>
-          <CheckCircle2 className='h-4 w-4 text-green-600' />
-          <AlertDescription className='text-green-700'>
+        <Alert className='border-green-500 bg-success/10'>
+          <CheckCircle2 className='h-4 w-4 text-success' />
+          <AlertDescription className='text-success'>
             Profile updated successfully
           </AlertDescription>
         </Alert>
@@ -165,7 +171,7 @@ const ProfileSettings = () => {
               type='email'
               value={email}
               disabled
-              className='bg-gray-50'
+              className='bg-muted'
               placeholder='Email address'
             />
             <p className='text-xs text-muted-foreground'>
