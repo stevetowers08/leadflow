@@ -56,9 +56,19 @@ class SupabaseErrorService {
    */
   private async loadNotificationSettings(): Promise<void> {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Safely get user - prevent errors during initialization
+      let user = null;
+      try {
+        const authResponse = await supabase.auth.getUser();
+        // Defensive check: ensure authResponse and data exist before accessing
+        if (authResponse?.data && authResponse.data.user) {
+          user = authResponse.data.user;
+        }
+      } catch (authError) {
+        // Auth might fail during initialization - just return without settings
+        return;
+      }
+
       if (!user) return;
 
       const { data: settings, error } = await supabase
@@ -88,11 +98,13 @@ class SupabaseErrorService {
 
       if (settings) {
         this.notificationSettings = {
-          emailNotifications: settings.email_notifications,
-          notificationSeverity: settings.notification_severity as ErrorSeverity,
-          notificationEmail: settings.notification_email,
-          slackWebhookUrl: settings.slack_webhook_url,
-          webhookUrl: settings.webhook_url,
+          emailNotifications: settings.email_notifications ?? true,
+          notificationSeverity:
+            (settings.notification_severity as ErrorSeverity) ??
+            ErrorSeverity.HIGH,
+          notificationEmail: settings.notification_email ?? undefined,
+          slackWebhookUrl: settings.slack_webhook_url ?? undefined,
+          webhookUrl: settings.webhook_url ?? undefined,
         };
       }
     } catch (error) {
@@ -123,9 +135,19 @@ class SupabaseErrorService {
     context: ErrorContext = {}
   ): Promise<string> {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Safely get user - handle case where auth might fail during error logging
+      let user = null;
+      try {
+        const authResponse = await supabase.auth.getUser();
+        // Defensive check: ensure authResponse and data exist before accessing
+        if (authResponse?.data && authResponse.data.user) {
+          user = authResponse.data.user;
+        }
+      } catch (authError) {
+        // Silently fail auth check during error logging to prevent cascading errors
+        // Don't log to prevent infinite loops
+      }
+
       const errorId = this.generateErrorId();
       const timestamp = new Date().toISOString();
 
@@ -164,16 +186,43 @@ class SupabaseErrorService {
         .single();
 
       if (insertError) {
-        console.error('Failed to insert error log:', insertError);
+        // Silently fail error logging to prevent cascading errors
+        // Don't use console.error as it may be filtered and cause recursion
+        // RLS blocking (42501) or auth.uid() NULL errors are expected in bypass auth mode
+        // Only log unexpected errors in development
+        if (
+          process.env.NODE_ENV === 'development' &&
+          insertError.code !== '42501' && // Permission denied (RLS blocking)
+          insertError.code !== 'PGRST301' && // JWT error (auth.uid() NULL)
+          !insertError.message?.includes('auth.uid()')
+        ) {
+          // Use try-catch to prevent any logging errors
+          try {
+            // Direct console access without going through filter
+            const originalError = console.error.bind(console);
+            originalError('Failed to insert error log:', insertError);
+          } catch {
+            // Silently fail if even console logging fails
+          }
+        }
         return errorId;
       }
 
       // Check if we should send notifications
-      await this.checkAndSendNotifications(data, severity);
+      // Wrap in try-catch to prevent notification errors from breaking error logging
+      if (data) {
+        try {
+          await this.checkAndSendNotifications(data, severity);
+        } catch (notificationError) {
+          // Silently fail notifications - don't let notification errors break error logging
+        }
+      }
 
       return errorId;
     } catch (error) {
-      console.error('Failed to log error to Supabase:', error);
+      // Prevent error logging from causing cascading errors
+      // Never log errors that occur during error logging - this prevents infinite loops
+      // Silently return an error ID so the calling code can continue
       return this.generateErrorId();
     }
   }
@@ -511,9 +560,8 @@ class SupabaseErrorService {
     resolved?: boolean
   ): Promise<{ data: SupabaseErrorLog[]; count: number }> {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const authResponse = await supabase.auth.getUser();
+      const user = authResponse?.data?.user ?? null;
       if (!user) return { data: [], count: 0 };
 
       let query = supabase
@@ -546,9 +594,8 @@ class SupabaseErrorService {
    */
   async resolveError(errorId: string): Promise<boolean> {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const authResponse = await supabase.auth.getUser();
+      const user = authResponse?.data?.user ?? null;
       if (!user) return false;
 
       const { error } = await supabase
@@ -575,9 +622,8 @@ class SupabaseErrorService {
     settings: Partial<ErrorNotificationSettings>
   ): Promise<boolean> {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const authResponse = await supabase.auth.getUser();
+      const user = authResponse?.data?.user ?? null;
       if (!user) return false;
 
       const { error } = await supabase.from('error_settings').upsert({
@@ -623,6 +669,7 @@ export const supabaseErrorService = new SupabaseErrorService();
 export class EnhancedErrorLogger {
   /**
    * Log error with Supabase integration
+   * Wrapped in try-catch to prevent error logging from causing cascading errors
    */
   async logError(
     error: Error | string,
@@ -630,23 +677,34 @@ export class EnhancedErrorLogger {
     category: ErrorCategory = ErrorCategory.UNKNOWN,
     context: ErrorContext = {}
   ): Promise<string> {
-    // Log to local error logger
-    const localErrorId = errorLogger.logError(
-      error,
-      severity,
-      category,
-      context
-    );
+    try {
+      // Log to local error logger (always succeeds)
+      const localErrorId = errorLogger.logError(
+        error,
+        severity,
+        category,
+        context
+      );
 
-    // Log to Supabase
-    const supabaseErrorId = await supabaseErrorService.logErrorToSupabase(
-      error,
-      severity,
-      category,
-      context
-    );
-
-    return supabaseErrorId || localErrorId;
+      // Log to Supabase (may fail silently to prevent cascading errors)
+      try {
+        const supabaseErrorId = await supabaseErrorService.logErrorToSupabase(
+          error,
+          severity,
+          category,
+          context
+        );
+        return supabaseErrorId || localErrorId;
+      } catch (supabaseError) {
+        // If Supabase logging fails, just return local error ID
+        // Don't log this error to prevent infinite loops
+        return localErrorId;
+      }
+    } catch (error) {
+      // Last resort - just generate an ID and return
+      // This should never happen, but if it does, we need to prevent infinite loops
+      return `error-${Date.now()}`;
+    }
   }
 
   /**

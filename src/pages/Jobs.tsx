@@ -24,8 +24,7 @@ import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
 import { serverAIService } from '@/services/serverAIService';
 import { formatLocation } from '@/utils/locationDisplay';
 import { format } from 'date-fns';
-import { ChevronRight, Sparkles, X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { logger } from '@/utils/productionLogger';
 import React, {
@@ -297,26 +296,6 @@ const JobsContent: React.FC = () => {
     localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
   }, [activeTab, statusFilter, selectedSource, searchTerm, sortBy, pageSize]);
 
-  // Calculate active filter count
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (activeTab !== 'all') count++;
-    if (statusFilter !== 'all') count++;
-    if (selectedSource !== 'all') count++;
-    if (debouncedSearchTerm) count++;
-    return count;
-  }, [activeTab, statusFilter, selectedSource, debouncedSearchTerm]);
-
-  // Clear all filters handler
-  const handleClearFilters = useCallback(() => {
-    setActiveTab('all');
-    setStatusFilter('all');
-    setSelectedSource('all');
-    setSearchTerm('');
-    setSortBy('created_at');
-    setCurrentPage(1);
-  }, []);
-
   // AI summary generation state per job
   const [generatingSummaryById, setGeneratingSummaryById] = useState<
     Record<string, boolean>
@@ -328,11 +307,24 @@ const JobsContent: React.FC = () => {
 
   const triggerGenerateSummary = useCallback(
     async (job: Job) => {
-      if (!job.id || generatingSummaryById[job.id]) return;
-      if (!job.description || job.summary) return;
-      if (processedSummaryIdsRef.current.has(job.id)) return;
+      if (!job.id) return;
 
-      setGeneratingSummaryById(prev => ({ ...prev, [job.id]: true }));
+      // Use functional updates to avoid dependency on generatingSummaryById
+      setGeneratingSummaryById(prev => {
+        if (prev[job.id]) return prev;
+        return { ...prev, [job.id]: true };
+      });
+
+      if (!job.description || job.summary) {
+        setGeneratingSummaryById(prev => ({ ...prev, [job.id]: false }));
+        return;
+      }
+
+      if (processedSummaryIdsRef.current.has(job.id)) {
+        setGeneratingSummaryById(prev => ({ ...prev, [job.id]: false }));
+        return;
+      }
+
       try {
         const response = await serverAIService.generateJobSummary({
           id: job.id,
@@ -381,7 +373,7 @@ const JobsContent: React.FC = () => {
         setGeneratingSummaryById(prev => ({ ...prev, [job.id]: false }));
       }
     },
-    [generatingSummaryById, queryClient, clientId, refreshTrigger]
+    [queryClient, clientId, refreshTrigger]
   );
 
   // (moved below after paginatedJobs definition)
@@ -999,63 +991,6 @@ const JobsContent: React.FC = () => {
               onSearchToggle={handleSearchToggle}
             />
           </div>
-          {/* Active Filter Chips */}
-          {activeFilterCount > 0 && (
-            <div className='flex items-center gap-2 flex-wrap'>
-              <span className='text-sm text-muted-foreground'>Filters:</span>
-              {activeTab !== 'all' && (
-                <Badge
-                  variant='secondary'
-                  className='flex items-center gap-1 cursor-pointer'
-                  onClick={() => setActiveTab('all')}
-                >
-                  Tab:{' '}
-                  {tabOptions.find(t => t.id === activeTab)?.label || activeTab}
-                  <X className='h-3 w-3' />
-                </Badge>
-              )}
-              {statusFilter !== 'all' && activeTab === 'all' && (
-                <Badge
-                  variant='secondary'
-                  className='flex items-center gap-1 cursor-pointer'
-                  onClick={() => setStatusFilter('all')}
-                >
-                  Status:{' '}
-                  {statusOptions.find(s => s.value === statusFilter)?.label ||
-                    statusFilter}
-                  <X className='h-3 w-3' />
-                </Badge>
-              )}
-              {selectedSource !== 'all' && (
-                <Badge
-                  variant='secondary'
-                  className='flex items-center gap-1 cursor-pointer'
-                  onClick={() => setSelectedSource('all')}
-                >
-                  Source: {selectedSource}
-                  <X className='h-3 w-3' />
-                </Badge>
-              )}
-              {debouncedSearchTerm && (
-                <Badge
-                  variant='secondary'
-                  className='flex items-center gap-1 cursor-pointer'
-                  onClick={() => setSearchTerm('')}
-                >
-                  Search: {debouncedSearchTerm}
-                  <X className='h-3 w-3' />
-                </Badge>
-              )}
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={handleClearFilters}
-                className='h-6 text-xs text-muted-foreground hover:text-foreground'
-              >
-                Clear all ({activeFilterCount})
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Table - Scrollable middle */}
