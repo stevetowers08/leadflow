@@ -24,7 +24,9 @@ import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
 import { serverAIService } from '@/services/serverAIService';
 import { formatLocation } from '@/utils/locationDisplay';
 import { format } from 'date-fns';
-import { ChevronRight, Sparkles } from 'lucide-react';
+import { ChevronRight, Sparkles, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { logger } from '@/utils/productionLogger';
 import React, {
   useCallback,
@@ -188,10 +190,24 @@ function checkLocationMatch(
 ): boolean {
   if (!jobLocation) return false;
 
-  const jobCity = jobLocation.toLowerCase().split(',')[0].trim();
-  const targetCity = targetLocation.toLowerCase().split(',')[0].trim();
+  const normalize = (loc: string) =>
+    loc.toLowerCase().replace(/\s+/g, ' ').trim();
 
-  return jobCity.includes(targetCity) || targetCity.includes(jobCity);
+  const jobLoc = normalize(jobLocation);
+  const targetLoc = normalize(targetLocation);
+
+  if (jobLoc === targetLoc) return true;
+
+  const jobCity = jobLoc.split(',')[0].trim();
+  const targetCity = targetLoc.split(',')[0].trim();
+
+  if (jobCity === targetCity) return true;
+
+  if (radius > 0) {
+    return jobCity.includes(targetCity) || targetCity.includes(jobCity);
+  }
+
+  return false;
 }
 
 // Client-side mount guard wrapper
@@ -235,6 +251,9 @@ const JobsContent: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>('created_at');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
+  // Filter persistence
+  const FILTER_STORAGE_KEY = 'jobs-filters';
+
   // Slide-out state
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
@@ -246,6 +265,57 @@ const JobsContent: React.FC = () => {
 
   // Debounced search term for better performance
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // Load saved filters on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(FILTER_STORAGE_KEY);
+    if (saved) {
+      try {
+        const filters = JSON.parse(saved);
+        if (filters.activeTab) setActiveTab(filters.activeTab);
+        if (filters.statusFilter) setStatusFilter(filters.statusFilter);
+        if (filters.selectedSource) setSelectedSource(filters.selectedSource);
+        if (filters.searchTerm) setSearchTerm(filters.searchTerm);
+        if (filters.sortBy) setSortBy(filters.sortBy);
+        if (filters.pageSize) setPageSize(filters.pageSize);
+      } catch (e) {
+        console.warn('Failed to load saved filters:', e);
+      }
+    }
+  }, []);
+
+  // Save filters on change
+  useEffect(() => {
+    const filters = {
+      activeTab,
+      statusFilter,
+      selectedSource,
+      searchTerm,
+      sortBy,
+      pageSize,
+    };
+    localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
+  }, [activeTab, statusFilter, selectedSource, searchTerm, sortBy, pageSize]);
+
+  // Calculate active filter count
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (activeTab !== 'all') count++;
+    if (statusFilter !== 'all') count++;
+    if (selectedSource !== 'all') count++;
+    if (debouncedSearchTerm) count++;
+    return count;
+  }, [activeTab, statusFilter, selectedSource, debouncedSearchTerm]);
+
+  // Clear all filters handler
+  const handleClearFilters = useCallback(() => {
+    setActiveTab('all');
+    setStatusFilter('all');
+    setSelectedSource('all');
+    setSearchTerm('');
+    setSortBy('created_at');
+    setCurrentPage(1);
+  }, []);
 
   // AI summary generation state per job
   const [generatingSummaryById, setGeneratingSummaryById] = useState<
@@ -355,7 +425,7 @@ const JobsContent: React.FC = () => {
   const queryEnabled =
     bypassAuth || (!authLoading && !clientIdLoading && !!user);
   if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-      // Debug log removed - only log in verbose mode
+    // Debug log removed - only log in verbose mode
   }
   const {
     data: jobsData,
@@ -420,7 +490,8 @@ const JobsContent: React.FC = () => {
 
       // Jobs query completed
 
-      // Filter client_jobs to only show entries for the current client
+      // Jobs are shared across all clients - filter client_jobs array for display only
+      // but don't filter out jobs that don't have client_jobs entries
       if (clientId) {
         allJobs = allJobs.map(job => {
           const filteredClientJobs = Array.isArray(job.client_jobs)
@@ -434,19 +505,20 @@ const JobsContent: React.FC = () => {
         });
       }
 
-      // Apply client's job filter config if available
-      if (filterConfigResult.data && !filterConfigResult.error) {
-        const filterConfig = filterConfigResult.data;
-        const jobsBeforeFilter = allJobs.length;
-        allJobs = allJobs.filter(job => applyJobFilters(job, filterConfig));
-        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-          console.log('Job filter applied:', {
-            jobsBeforeFilter,
-            jobsAfterFilter: allJobs.length,
-            filterConfig: filterConfig,
-          });
-        }
-      }
+      // Skip applying job filter configs for now (as per user request)
+      // Job filter configs should be organization-wide but are disabled temporarily
+      // if (filterConfigResult.data && !filterConfigResult.error) {
+      //   const filterConfig = filterConfigResult.data;
+      //   const jobsBeforeFilter = allJobs.length;
+      //   allJobs = allJobs.filter(job => applyJobFilters(job, filterConfig));
+      //   if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+      //     console.log('Job filter applied:', {
+      //       jobsBeforeFilter,
+      //       jobsAfterFilter: allJobs.length,
+      //       filterConfig: filterConfig,
+      //     });
+      //   }
+      // }
 
       // Extract unique sources from jobs
       const uniqueSources = Array.from(
@@ -516,15 +588,14 @@ const JobsContent: React.FC = () => {
     let filtered = jobs;
 
     // Qualification status filter (from tabs) - Use client-specific status
+    // Note: Tab filter takes precedence over status filter to avoid conflicts
     if (activeTab !== 'all') {
       filtered = filtered.filter(job => {
         const qualStatus = job.client_jobs?.[0]?.status || 'new';
         return qualStatus === activeTab;
       });
-    }
-
-    // Status filter - Use client-specific status
-    if (statusFilter !== 'all') {
+    } else if (statusFilter !== 'all') {
+      // Only apply status filter if tab is 'all'
       filtered = filtered.filter(job => {
         const qualStatus = job.client_jobs?.[0]?.status || 'new';
         return qualStatus === statusFilter;
@@ -586,6 +657,25 @@ const JobsContent: React.FC = () => {
     sortBy,
   ]);
 
+  // Update tab counts - memoized to prevent re-renders (use client-specific status)
+  const tabCounts = useMemo(() => {
+    const counts = {
+      all: jobs.length,
+      new: jobs.filter(
+        job =>
+          !job.client_jobs?.[0]?.status || job.client_jobs[0].status === 'new'
+      ).length,
+      qualify: jobs.filter(job => job.client_jobs?.[0]?.status === 'qualify')
+        .length,
+      skip: jobs.filter(job => job.client_jobs?.[0]?.status === 'skip').length,
+    };
+
+    return tabOptions.map(tab => ({
+      ...tab,
+      count: counts[tab.id as keyof typeof counts] || 0,
+    }));
+  }, [jobs, tabOptions]);
+
   // Pagination
   const totalPages = Math.ceil(filteredJobs.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
@@ -622,25 +712,6 @@ const JobsContent: React.FC = () => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paginatedJobs]);
-
-  // Update tab counts - memoized to prevent re-renders (use client-specific status)
-  const tabCounts = useMemo(() => {
-    const counts = {
-      all: jobs.length,
-      new: jobs.filter(
-        job =>
-          !job.client_jobs?.[0]?.status || job.client_jobs[0].status === 'new'
-      ).length,
-      qualify: jobs.filter(job => job.client_jobs?.[0]?.status === 'qualify')
-        .length,
-      skip: jobs.filter(job => job.client_jobs?.[0]?.status === 'skip').length,
-    };
-
-    return tabOptions.map(tab => ({
-      ...tab,
-      count: counts[tab.id as keyof typeof counts] || 0,
-    }));
-  }, [jobs, tabOptions]);
 
   // Column configuration
   const columns: ColumnConfig<Job>[] = [
@@ -928,6 +999,63 @@ const JobsContent: React.FC = () => {
               onSearchToggle={handleSearchToggle}
             />
           </div>
+          {/* Active Filter Chips */}
+          {activeFilterCount > 0 && (
+            <div className='flex items-center gap-2 flex-wrap'>
+              <span className='text-sm text-muted-foreground'>Filters:</span>
+              {activeTab !== 'all' && (
+                <Badge
+                  variant='secondary'
+                  className='flex items-center gap-1 cursor-pointer'
+                  onClick={() => setActiveTab('all')}
+                >
+                  Tab:{' '}
+                  {tabOptions.find(t => t.id === activeTab)?.label || activeTab}
+                  <X className='h-3 w-3' />
+                </Badge>
+              )}
+              {statusFilter !== 'all' && activeTab === 'all' && (
+                <Badge
+                  variant='secondary'
+                  className='flex items-center gap-1 cursor-pointer'
+                  onClick={() => setStatusFilter('all')}
+                >
+                  Status:{' '}
+                  {statusOptions.find(s => s.value === statusFilter)?.label ||
+                    statusFilter}
+                  <X className='h-3 w-3' />
+                </Badge>
+              )}
+              {selectedSource !== 'all' && (
+                <Badge
+                  variant='secondary'
+                  className='flex items-center gap-1 cursor-pointer'
+                  onClick={() => setSelectedSource('all')}
+                >
+                  Source: {selectedSource}
+                  <X className='h-3 w-3' />
+                </Badge>
+              )}
+              {debouncedSearchTerm && (
+                <Badge
+                  variant='secondary'
+                  className='flex items-center gap-1 cursor-pointer'
+                  onClick={() => setSearchTerm('')}
+                >
+                  Search: {debouncedSearchTerm}
+                  <X className='h-3 w-3' />
+                </Badge>
+              )}
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={handleClearFilters}
+                className='h-6 text-xs text-muted-foreground hover:text-foreground'
+              >
+                Clear all ({activeFilterCount})
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Table - Scrollable middle */}
