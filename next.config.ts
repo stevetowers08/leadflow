@@ -50,6 +50,7 @@ const nextConfig: NextConfig = {
     // Run type checking separately (npm run type-check)
     // Don't block builds - faster CI/CD
     ignoreBuildErrors: false, // Changed to see actual errors
+    tsconfigPath: './tsconfig.next.json',
   },
 
   // Compiler options for better performance

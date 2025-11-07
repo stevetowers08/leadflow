@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -16,13 +16,11 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "incremental": true,
-
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
-
     /* Next.js Specific */
     "plugins": [
       {
@@ -37,6 +35,8 @@
     "src/components/**/*.ts",
     "src/components/**/*.tsx",
     "src/page-components/**/*.tsx",
+    "src/pages/**/*.ts",
+    "src/pages/**/*.tsx",
     "src/hooks/**/*.ts",
     "src/hooks/**/*.tsx",
     "src/lib/**/*.ts",
@@ -45,7 +45,8 @@
     "src/contexts/**/*.ts",
     "src/contexts/**/*.tsx",
     "src/types/**/*.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -56,4 +57,3 @@
     ".next"
   ]
 }
-

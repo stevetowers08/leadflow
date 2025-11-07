@@ -3,20 +3,55 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-import nextConfig from 'eslint-config-next';
+import nextPlugin from '@next/eslint-plugin-next';
 
 export default tseslint.config(
-  { ignores: ['dist', '.next', 'node_modules', 'tests'] },
-  // Next.js config for app directory
-  ...nextConfig,
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ['**/*.{ts,tsx}'],
+    ignores: [
+      'dist',
+      '.next',
+      'node_modules',
+      'tests',
+      'out',
+      'build',
+      'api/**/*',
+      'scripts/**/*',
+      'public/**/*',
+      'eslint-rules/**/*',
+      'supabase/**/*',
+      '*.config.js',
+      '*.config.ts',
+      'src/ai/**/*',
+      'src/api/**/*',
+    ],
+  },
+  // Base recommended configs
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  // Next.js core web vitals config
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    plugins: {
+      '@next/next': nextPlugin,
+    },
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+      '@next/next/no-html-link-for-pages': 'off',
+    },
+  },
+  // TypeScript-specific config
+  {
+    files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: {
         ...globals.browser,
         ...globals.node,
+      },
+      parserOptions: {
+        project: './tsconfig.next.json',
+        tsconfigRootDir: import.meta.dirname || process.cwd(),
       },
     },
     plugins: {
@@ -30,9 +65,7 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       '@typescript-eslint/no-unused-vars': 'off',
-      'react-hooks/set-state-in-effect': 'off', // Allow async state updates in effects
-      // Next.js specific
-      '@next/next/no-html-link-for-pages': 'off', // Allow HTML links if needed
+      'react-hooks/set-state-in-effect': 'off',
     },
   }
 );
