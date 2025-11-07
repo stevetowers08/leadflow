@@ -51,7 +51,7 @@ export const ListItem: React.FC<ListItemProps> = ({
           {subtitle && (
             <div
               id={`${id}-subtitle`}
-              className='text-xs text-gray-500 truncate'
+              className='text-xs text-muted-foreground truncate'
             >
               {subtitle}
             </div>

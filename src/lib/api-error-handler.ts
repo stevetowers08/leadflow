@@ -16,7 +16,10 @@ export class APIErrorHandler {
    * Handle and format errors for API responses
    */
   static handleError(error: unknown, context?: string): NextResponse<APIError> {
-    console.error(`API Error${context ? ` in ${context}` : ''}:`, error);
+    // Only log errors in development or if they're unexpected
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`API Error${context ? ` in ${context}` : ''}:`, error);
+    }
 
     // Known error types
     if (error instanceof Error) {

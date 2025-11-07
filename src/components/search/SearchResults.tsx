@@ -38,13 +38,13 @@ const getTypeIcon = (type: SearchResult['type']) => {
 const getTypeColor = (type: SearchResult['type']) => {
   switch (type) {
     case 'person':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
+      return 'bg-blue-100 text-primary border-primary/20';
     case 'company':
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'bg-green-100 text-success border-green-200';
     case 'job':
       return 'bg-purple-100 text-purple-800 border-purple-200';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-gray-100 text-foreground border-border';
   }
 };
 
@@ -95,7 +95,7 @@ const SearchResultItem: React.FC<{
     <Card
       className={cn(
         'cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/50',
-        'border border-gray-200 bg-white'
+        'border border-border bg-white'
       )}
       onClick={handleClick}
     >
@@ -117,7 +117,7 @@ const SearchResultItem: React.FC<{
           <div className='flex-1 min-w-0'>
             {/* Title and Type Badge */}
             <div className='flex items-start justify-between gap-2 mb-2'>
-              <h3 className='font-semibold text-gray-900 truncate'>
+              <h3 className='font-semibold text-foreground truncate'>
                 {result.title}
               </h3>
               <Badge variant='outline' className={cn('text-xs', typeColor)}>
@@ -127,20 +127,20 @@ const SearchResultItem: React.FC<{
 
             {/* Subtitle */}
             {result.subtitle && (
-              <p className='text-sm text-gray-600 mb-2 truncate'>
+              <p className='text-sm text-muted-foreground mb-2 truncate'>
                 {result.subtitle}
               </p>
             )}
 
             {/* Description */}
             {result.description && (
-              <p className='text-sm text-gray-500 mb-3 line-clamp-2'>
+              <p className='text-sm text-muted-foreground mb-3 line-clamp-2'>
                 {result.description}
               </p>
             )}
 
             {/* Metadata */}
-            <div className='flex items-center gap-4 text-xs text-gray-500'>
+            <div className='flex items-center gap-4 text-xs text-muted-foreground'>
               {/* Email for people */}
               {result.type === 'person' && result.metadata?.email && (
                 <div className='flex items-center gap-1'>
@@ -187,7 +187,7 @@ const SearchResultItem: React.FC<{
 
               {/* Automation status */}
               {result.metadata?.automationActive && (
-                <div className='flex items-center gap-1 text-green-600'>
+                <div className='flex items-center gap-1 text-success'>
                   <Zap className='w-3 h-3' />
                   <span>Automated</span>
                 </div>
@@ -201,10 +201,10 @@ const SearchResultItem: React.FC<{
                     'text-xs',
                     result.metadata.priority === 'high' ||
                       result.metadata.priority === 'urgent'
-                      ? 'bg-red-100 text-red-800 border-red-200'
+                      ? 'bg-red-100 text-destructive border-red-200'
                       : result.metadata.priority === 'medium'
                         ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                        : 'bg-gray-100 text-gray-800 border-gray-200'
+                        : 'bg-gray-100 text-foreground border-border'
                   )}
                 >
                   {result.metadata.priority}
@@ -214,7 +214,7 @@ const SearchResultItem: React.FC<{
           </div>
 
           {/* External link indicator */}
-          <ExternalLink className='w-4 h-4 text-gray-400 flex-shrink-0' />
+          <ExternalLink className='w-4 h-4 text-muted-foreground flex-shrink-0' />
         </div>
       </CardContent>
     </Card>
@@ -231,7 +231,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     return (
       <div className={cn('space-y-3', className)}>
         {Array.from({ length: 3 }).map((_, index) => (
-          <Card key={index} className='border border-gray-200 bg-white'>
+          <Card key={index} className='border border-border bg-white'>
             <CardContent className='p-4'>
               <div className='flex items-start gap-3'>
                 <div className='w-10 h-10 bg-gray-200 rounded-lg animate-pulse' />
@@ -251,8 +251,8 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   if (results.length === 0) {
     return (
       <div className={cn('text-center py-8', className)}>
-        <div className='text-gray-500'>
-          <User className='w-12 h-12 mx-auto mb-4 text-gray-300' />
+        <div className='text-muted-foreground'>
+          <User className='w-12 h-12 mx-auto mb-4 text-muted-foreground' />
           <p className='text-lg font-medium mb-2'>No results found</p>
           <p className='text-sm'>
             Try adjusting your search terms or check your spelling.

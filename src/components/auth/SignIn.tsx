@@ -92,10 +92,10 @@ export const SignIn: React.FC = () => {
           <CardContent className='p-8'>
             {/* Login Title */}
             <div className='text-center mb-8'>
-              <h1 className='text-3xl font-bold text-gray-900 mb-2'>
+              <h1 className='text-3xl font-bold text-foreground mb-2'>
                 Welcome back
               </h1>
-              <p className='text-gray-600'>
+              <p className='text-muted-foreground'>
                 Sign in to your professional dashboard
               </p>
             </div>
@@ -104,9 +104,9 @@ export const SignIn: React.FC = () => {
             {error && (
               <Alert
                 variant='destructive'
-                className='mb-6 border-red-200 bg-red-50'
+                className='mb-6 border-red-200 bg-destructive/10'
               >
-                <AlertDescription className='text-red-800'>
+                <AlertDescription className='text-destructive'>
                   {error}
                 </AlertDescription>
               </Alert>
@@ -118,7 +118,7 @@ export const SignIn: React.FC = () => {
               <Button
                 onClick={handleGoogleSignIn}
                 variant='outline'
-                className='w-full h-12 font-medium text-gray-700 hover:bg-gray-50 border-gray-200 rounded-lg flex items-center justify-center'
+                className='w-full h-12 font-medium text-foreground hover:bg-muted border-border rounded-lg flex items-center justify-center'
                 disabled={loading !== null}
               >
                 {loading === 'google' ? (
@@ -155,10 +155,10 @@ export const SignIn: React.FC = () => {
             {/* Divider */}
             <div className='relative my-6'>
               <div className='absolute inset-0 flex items-center'>
-                <div className='w-full border-t border-gray-200'></div>
+                <div className='w-full border-t border-border'></div>
               </div>
               <div className='relative flex justify-center text-sm'>
-                <span className='px-2 bg-white text-gray-500'>or</span>
+                <span className='px-2 bg-white text-muted-foreground'>or</span>
               </div>
             </div>
 
@@ -167,7 +167,7 @@ export const SignIn: React.FC = () => {
               <div className='space-y-2'>
                 <Label
                   htmlFor='email'
-                  className='text-sm font-medium text-gray-700'
+                  className='text-sm font-medium text-foreground'
                 >
                   Email address
                 </Label>
@@ -177,7 +177,7 @@ export const SignIn: React.FC = () => {
                   placeholder='Enter your email'
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className='h-12 border-gray-200 focus:border-sidebar-primary focus:ring-sidebar-primary rounded-lg'
+                  className='h-12 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-lg'
                   disabled={loading !== null}
                   required
                 />
@@ -186,7 +186,7 @@ export const SignIn: React.FC = () => {
               <div className='space-y-2'>
                 <Label
                   htmlFor='password'
-                  className='text-sm font-medium text-gray-700'
+                  className='text-sm font-medium text-foreground'
                 >
                   Password
                 </Label>
@@ -197,14 +197,14 @@ export const SignIn: React.FC = () => {
                     placeholder='Enter your password'
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className='h-12 pr-12 border-gray-200 focus:border-sidebar-primary focus:ring-sidebar-primary rounded-lg'
+                    className='h-12 pr-12 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-lg'
                     disabled={loading !== null}
                     required
                   />
                   <button
                     type='button'
                     onClick={() => setShowPassword(!showPassword)}
-                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
+                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground'
                     disabled={loading !== null}
                   >
                     {showPassword ? (
@@ -245,7 +245,7 @@ export const SignIn: React.FC = () => {
             {/* Additional Links */}
             <div className='mt-8 space-y-3 text-center'>
               <button className='block w-full text-sm text-sidebar-primary hover:text-sidebar-primary/80 font-medium'>
-                Can't Access Your Account?
+                Can&apos;t Access Your Account?
               </button>
             </div>
           </CardContent>

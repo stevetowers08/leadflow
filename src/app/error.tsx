@@ -34,19 +34,19 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted px-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-          <AlertTriangle className="h-6 w-6 text-red-600" />
+          <AlertTriangle className="h-6 w-6 text-destructive" />
         </div>
         <h1 className="text-xl font-semibold text-foreground mb-2">
           Something went wrong!
         </h1>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-muted-foreground mb-4">
           An unexpected error occurred. Please try again.
         </p>
         {error.digest && (
-          <p className="text-xs text-gray-500 mb-4">Error ID: {error.digest}</p>
+          <p className="text-xs text-muted-foreground mb-4">Error ID: {error.digest}</p>
         )}
         <div className="flex gap-2 justify-center">
           <Button onClick={reset} variant="default">

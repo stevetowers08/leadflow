@@ -218,3 +218,8 @@ npm run db:schema people
 - [RLS Policies](../../02-architecture/rls-policies.md) - Security policies
 
 
+
+
+
+
+

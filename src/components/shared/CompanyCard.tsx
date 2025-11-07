@@ -36,14 +36,14 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
   return (
     <div
       className={cn(
-        'px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group',
+        'px-4 py-2 border border-border rounded-lg hover:bg-muted hover:border-border/60 transition-all duration-200 cursor-pointer group',
         className
       )}
       onClick={onClick}
     >
       <div className='flex items-center gap-3'>
         {/* Company Logo */}
-        <div className='flex-shrink-0 w-8 h-8 rounded-md border border-gray-200 bg-white flex items-center justify-center'>
+        <div className='flex-shrink-0 w-8 h-8 rounded-md border border-border bg-white flex items-center justify-center'>
           {logo ? (
             <img
               src={logo}
@@ -54,7 +54,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
               }}
             />
           ) : (
-            <div className='w-full h-full rounded-md bg-gray-100 text-gray-400 flex items-center justify-center'>
+            <div className='w-full h-full rounded-md bg-gray-100 text-muted-foreground flex items-center justify-center'>
               <Building2 className='h-4 w-4' />
             </div>
           )}
@@ -64,7 +64,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
         <div className='flex-1 min-w-0 cursor-pointer'>
           <div className='font-semibold text-sm truncate'>{company.name}</div>
           {company.head_office && (
-            <div className='text-xs text-gray-500 truncate'>
+            <div className='text-xs text-muted-foreground truncate'>
               {company.head_office}
             </div>
           )}
@@ -80,12 +80,12 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
             className={cn(
               'inline-flex items-center justify-center h-8 px-3 rounded-md text-xs font-medium border',
               company.lead_score === 'High' &&
-                'bg-green-50 text-green-700 border-green-200',
+                'bg-success/10 text-success border-green-200',
               company.lead_score === 'Medium' &&
-                'bg-yellow-50 text-yellow-700 border-yellow-200',
+                'bg-warning/10 text-warning border-yellow-200',
               company.lead_score === 'Low' &&
-                'bg-red-50 text-red-700 border-red-200',
-              !company.lead_score && 'bg-gray-50 text-gray-700 border-gray-200'
+                'bg-destructive/10 text-destructive border-red-200',
+              !company.lead_score && 'bg-muted text-foreground border-border'
             )}
           >
             {company.lead_score || '-'}

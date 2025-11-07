@@ -115,22 +115,22 @@ export const AssignmentAnalytics: React.FC<AssignmentAnalyticsProps> = ({
   const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
     switch (trend) {
       case 'up':
-        return <TrendingUp className='h-4 w-4 text-green-600' />;
+        return <TrendingUp className='h-4 w-4 text-success' />;
       case 'down':
-        return <TrendingUp className='h-4 w-4 text-red-600 rotate-180' />;
+        return <TrendingUp className='h-4 w-4 text-destructive rotate-180' />;
       default:
-        return <BarChart3 className='h-4 w-4 text-blue-600' />;
+        return <BarChart3 className='h-4 w-4 text-primary' />;
     }
   };
 
   const getTrendColor = (trend: 'up' | 'down' | 'stable') => {
     switch (trend) {
       case 'up':
-        return 'text-green-600';
+        return 'text-success';
       case 'down':
-        return 'text-red-600';
+        return 'text-destructive';
       default:
-        return 'text-blue-600';
+        return 'text-primary';
     }
   };
 
@@ -207,19 +207,19 @@ export const AssignmentAnalytics: React.FC<AssignmentAnalyticsProps> = ({
             </div>
           </div>
           <div className='text-center'>
-            <div className='text-2xl font-bold text-green-600'>
+            <div className='text-2xl font-bold text-success'>
               {metrics.assignmentsThisWeek}
             </div>
             <div className='text-xs text-muted-foreground'>This Week</div>
           </div>
           <div className='text-center'>
-            <div className='text-2xl font-bold text-orange-600'>
+            <div className='text-2xl font-bold text-warning'>
               {metrics.unassignedCount}
             </div>
             <div className='text-xs text-muted-foreground'>Unassigned</div>
           </div>
           <div className='text-center'>
-            <div className='text-2xl font-bold text-blue-600'>
+            <div className='text-2xl font-bold text-primary'>
               {metrics.averageAssignmentTime}m
             </div>
             <div className='text-xs text-muted-foreground'>Avg Time</div>

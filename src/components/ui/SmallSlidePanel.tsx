@@ -77,13 +77,13 @@ export const SmallSlidePanel: React.FC<SmallSlidePanelProps> = ({
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className='flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0'>
+            <div className='flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0'>
               <h2 className='text-lg font-semibold text-foreground'>{title}</h2>
               <div className='flex items-center gap-2'>
                 {headerActions}
                 <button
                   onClick={onClose}
-                  className='ml-2 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
+                  className='ml-2 p-2 text-muted-foreground hover:text-muted-foreground hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
                   aria-label='Close panel'
                 >
                   <X className='h-5 w-5' />
@@ -98,7 +98,7 @@ export const SmallSlidePanel: React.FC<SmallSlidePanelProps> = ({
 
             {/* Footer */}
             {footer && (
-              <div className='px-6 py-4 border-t border-gray-200 bg-gray-50 flex-shrink-0'>
+              <div className='px-6 py-4 border-t border-border bg-muted flex-shrink-0'>
                 {footer}
               </div>
             )}

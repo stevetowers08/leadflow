@@ -18,7 +18,7 @@ export default function ConditionStepEditor({ step, onUpdate }: Props) {
   return (
     <div className='h-full flex flex-col'>
       {/* Header */}
-      <div className='px-8 py-6 border-b border-gray-200'>
+      <div className='px-8 py-6 border-b border-border'>
         <Input
           type='text'
           value={step.name}
@@ -33,12 +33,12 @@ export default function ConditionStepEditor({ step, onUpdate }: Props) {
         <div className='max-w-2xl space-y-6'>
           {/* Condition Type */}
           <div className='space-y-4'>
-            <h3 className='text-lg font-semibold text-gray-900'>
+            <h3 className='text-lg font-semibold text-foreground'>
               Condition Type
             </h3>
 
             <div>
-              <Label className='block text-sm font-medium text-gray-700 mb-2'>
+              <Label className='block text-sm font-medium text-foreground mb-2'>
                 What should trigger this condition?
               </Label>
               <Select
@@ -66,12 +66,12 @@ export default function ConditionStepEditor({ step, onUpdate }: Props) {
 
           {/* Wait Duration */}
           <div className='space-y-4'>
-            <h3 className='text-lg font-semibold text-gray-900'>
+            <h3 className='text-lg font-semibold text-foreground'>
               Wait Settings
             </h3>
 
             <div>
-              <Label className='block text-sm font-medium text-gray-700 mb-2'>
+              <Label className='block text-sm font-medium text-foreground mb-2'>
                 Wait Duration (hours)
               </Label>
               <Input
@@ -84,7 +84,7 @@ export default function ConditionStepEditor({ step, onUpdate }: Props) {
                 }
                 placeholder='24'
               />
-              <p className='mt-1 text-xs text-gray-500'>
+              <p className='mt-1 text-xs text-muted-foreground'>
                 How long to wait before checking this condition (0-168 hours)
               </p>
             </div>
@@ -92,13 +92,13 @@ export default function ConditionStepEditor({ step, onUpdate }: Props) {
 
           {/* Branch Settings */}
           <div className='space-y-4'>
-            <h3 className='text-lg font-semibold text-gray-900'>
+            <h3 className='text-lg font-semibold text-foreground'>
               Branch Settings
             </h3>
 
             <div className='grid grid-cols-2 gap-4'>
               <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label className='block text-sm font-medium text-foreground mb-2'>
                   If condition is TRUE, go to step:
                 </Label>
                 <Select
@@ -120,7 +120,7 @@ export default function ConditionStepEditor({ step, onUpdate }: Props) {
               </div>
 
               <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label className='block text-sm font-medium text-foreground mb-2'>
                   If condition is FALSE, go to step:
                 </Label>
                 <Select
@@ -144,11 +144,11 @@ export default function ConditionStepEditor({ step, onUpdate }: Props) {
           </div>
 
           {/* Preview */}
-          <div className='border border-gray-200 rounded-lg p-4 bg-gray-50'>
-            <h4 className='text-sm font-semibold text-gray-900 mb-2'>
+          <div className='border border-border rounded-lg p-4 bg-muted'>
+            <h4 className='text-sm font-semibold text-foreground mb-2'>
               Preview
             </h4>
-            <p className='text-sm text-gray-600'>
+            <p className='text-sm text-muted-foreground'>
               After waiting{' '}
               <span className='font-semibold'>
                 {step.wait_duration || 24} hours

@@ -23,9 +23,10 @@ const JobQualificationTableDropdownComponent: React.FC<
   const [showCelebration, setShowCelebration] = useState(false);
 
   // Get current status from job data (no local state needed)
+  // Prefer client_jobs.status if available, otherwise use jobs.qualification_status
   const currentStatus = useMemo(() => {
-    return job.client_jobs?.[0]?.status || 'new';
-  }, [job.client_jobs]);
+    return job.client_jobs?.[0]?.status || job.qualification_status || 'new';
+  }, [job.client_jobs, job.qualification_status]);
 
   const handleStatusChange = () => {
     // Track onboarding progress when qualifying

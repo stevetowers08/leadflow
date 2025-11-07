@@ -36,7 +36,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [headline, setHeadline] = useState('');
   const [role, setRole] = useState<'mentor' | 'mentee' | 'both'>('both');
 
-  const { signInWithGoogle, signInWithLinkedIn } = useAuth();
+  const { signInWithGoogle, signInWithLinkedIn, signInWithPassword } = useAuth();
 
   const handleGoogleSignIn = async () => {
     setLoading('google');
@@ -117,9 +117,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     try {
-      // TODO: Implement email/password authentication
-      setError('Email/password authentication not yet implemented');
-      setLoading(null);
+      const { error } = await signInWithPassword(email, password);
+
+      if (error) {
+        setError(error.message);
+        setLoading(null);
+      } else {
+        // Success - close modal
+        onClose();
+        setEmail('');
+        setPassword('');
+        setLoading(null);
+      }
     } catch (err) {
       console.error('Email sign-in error:', err);
       setError('An unexpected error occurred. Please try again.');
@@ -190,10 +199,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sidebar-primary/10'>
               <Shield className='h-6 w-6 text-sidebar-primary' />
             </div>
-            <CardTitle className='text-lg font-semibold text-gray-900'>
+            <CardTitle className='text-lg font-semibold text-foreground'>
               {title}
             </CardTitle>
-            <CardDescription className='text-gray-600'>
+            <CardDescription className='text-muted-foreground'>
               {description}
             </CardDescription>
           </CardHeader>
@@ -203,9 +212,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             {error && (
               <Alert
                 variant='destructive'
-                className='mb-6 border-red-200 bg-red-50'
+                className='mb-6 border-red-200 bg-destructive/10'
               >
-                <AlertDescription className='text-red-800'>
+                <AlertDescription className='text-destructive'>
                   {error}
                 </AlertDescription>
               </Alert>
@@ -224,7 +233,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <Button
                     onClick={handleGoogleSignIn}
                     variant='outline'
-                    className='w-full h-10 font-medium text-gray-700 hover:bg-gray-50 border-gray-200 rounded-md flex items-center justify-center'
+                    className='w-full h-10 font-medium text-foreground hover:bg-muted border-border rounded-md flex items-center justify-center'
                     disabled={loading !== null}
                   >
                     {loading === 'google' ? (
@@ -286,10 +295,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {/* Divider */}
                 <div className='relative'>
                   <div className='absolute inset-0 flex items-center'>
-                    <div className='w-full border-t border-gray-200'></div>
+                    <div className='w-full border-t border-border'></div>
                   </div>
                   <div className='relative flex justify-center text-sm'>
-                    <span className='px-2 bg-white text-gray-500'>or</span>
+                    <span className='px-2 bg-white text-muted-foreground'>or</span>
                   </div>
                 </div>
 
@@ -298,7 +307,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className='space-y-2'>
                     <Label
                       htmlFor='signin-email'
-                      className='text-sm font-medium text-gray-700'
+                      className='text-sm font-medium text-foreground'
                     >
                       Email address
                     </Label>
@@ -308,7 +317,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       placeholder='Enter your email'
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className='h-10 border-gray-200 focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
+                      className='h-10 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
                       disabled={loading !== null}
                       required
                     />
@@ -317,7 +326,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className='space-y-2'>
                     <Label
                       htmlFor='signin-password'
-                      className='text-sm font-medium text-gray-700'
+                      className='text-sm font-medium text-foreground'
                     >
                       Password
                     </Label>
@@ -328,14 +337,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         placeholder='Enter your password'
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        className='h-10 pr-12 border-gray-200 focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
+                        className='h-10 pr-12 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
                         disabled={loading !== null}
                         required
                       />
                       <button
                         type='button'
                         onClick={() => setShowPassword(!showPassword)}
-                        className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
+                        className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground'
                         disabled={loading !== null}
                       >
                         {showPassword ? (
@@ -381,7 +390,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <Button
                     onClick={handleGoogleSignIn}
                     variant='outline'
-                    className='w-full h-10 font-medium text-gray-700 hover:bg-gray-50 border-gray-200 rounded-md flex items-center justify-center'
+                    className='w-full h-10 font-medium text-foreground hover:bg-muted border-border rounded-md flex items-center justify-center'
                     disabled={loading !== null}
                   >
                     {loading === 'google' ? (
@@ -443,10 +452,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {/* Divider */}
                 <div className='relative'>
                   <div className='absolute inset-0 flex items-center'>
-                    <div className='w-full border-t border-gray-200'></div>
+                    <div className='w-full border-t border-border'></div>
                   </div>
                   <div className='relative flex justify-center text-sm'>
-                    <span className='px-2 bg-white text-gray-500'>or</span>
+                    <span className='px-2 bg-white text-muted-foreground'>or</span>
                   </div>
                 </div>
 
@@ -455,7 +464,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className='space-y-2'>
                     <Label
                       htmlFor='signup-name'
-                      className='text-sm font-medium text-gray-700'
+                      className='text-sm font-medium text-foreground'
                     >
                       Full Name *
                     </Label>
@@ -465,7 +474,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       placeholder='Enter your full name'
                       value={fullName}
                       onChange={e => setFullName(e.target.value)}
-                      className='h-10 border-gray-200 focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
+                      className='h-10 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
                       disabled={loading !== null}
                       required
                     />
@@ -474,7 +483,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className='space-y-2'>
                     <Label
                       htmlFor='signup-email'
-                      className='text-sm font-medium text-gray-700'
+                      className='text-sm font-medium text-foreground'
                     >
                       Email Address *
                     </Label>
@@ -484,7 +493,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       placeholder='Enter your email'
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className='h-10 border-gray-200 focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
+                      className='h-10 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
                       disabled={loading !== null}
                       required
                     />
@@ -493,7 +502,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className='space-y-2'>
                     <Label
                       htmlFor='signup-headline'
-                      className='text-sm font-medium text-gray-700'
+                      className='text-sm font-medium text-foreground'
                     >
                       Professional Headline
                     </Label>
@@ -503,7 +512,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       placeholder='e.g., Senior Software Engineer'
                       value={headline}
                       onChange={e => setHeadline(e.target.value)}
-                      className='h-10 border-gray-200 focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
+                      className='h-10 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
                       disabled={loading !== null}
                     />
                   </div>
@@ -511,7 +520,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className='space-y-2'>
                     <Label
                       htmlFor='signup-role'
-                      className='text-sm font-medium text-gray-700'
+                      className='text-sm font-medium text-foreground'
                     >
                       Role
                     </Label>
@@ -521,7 +530,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       onChange={e =>
                         setRole(e.target.value as 'mentor' | 'mentee' | 'both')
                       }
-                      className='w-full h-10 px-3 border border-gray-200 rounded-md focus:border-sidebar-primary focus:ring-sidebar-primary'
+                      className='w-full h-10 px-3 border border-border rounded-md focus:border-sidebar-primary focus:ring-sidebar-primary'
                       disabled={loading !== null}
                     >
                       <option value='both'>Both Mentor &amp; Mentee</option>
@@ -533,7 +542,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className='space-y-2'>
                     <Label
                       htmlFor='signup-password'
-                      className='text-sm font-medium text-gray-700'
+                      className='text-sm font-medium text-foreground'
                     >
                       Password *
                     </Label>
@@ -544,14 +553,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         placeholder='Create a password'
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        className='h-10 pr-12 border-gray-200 focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
+                        className='h-10 pr-12 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
                         disabled={loading !== null}
                         required
                       />
                       <button
                         type='button'
                         onClick={() => setShowPassword(!showPassword)}
-                        className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
+                        className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground'
                         disabled={loading !== null}
                       >
                         {showPassword ? (

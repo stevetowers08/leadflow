@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Enhanced Mobile Sidebar Component
  * Implements mobile sidebar best practices based on 2024 research
@@ -29,7 +31,8 @@ import {
   X,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface SidebarItem {
   to: string;
@@ -133,7 +136,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
   onToggle,
 }) => {
   const isMobile = useIsMobile();
-  const location = useLocation();
+  const pathname = usePathname();
   const { lightHaptic, mediumHaptic } = useHapticFeedback();
   const { canView } = usePermissions();
   const { user, userProfile, signOut } = useAuth();
@@ -322,13 +325,14 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                   Core Campaigns
                 </h3>
                 <nav className='space-y-1'>
-                  {groupedItems.main.map(item => (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      onClick={handleItemClick}
-                      className={({ isActive }) =>
-                        cn(
+                  {groupedItems.main.map(item => {
+                    const isActive = pathname === item.to;
+                    return (
+                      <Link
+                        key={item.to}
+                        href={item.to}
+                        onClick={handleItemClick}
+                        className={cn(
                           'flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                           'mobile-touch-target mobile-text-enhanced',
                           'hover:bg-accent/50 active:bg-accent',
@@ -337,12 +341,9 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                           isActive
                             ? 'bg-primary/10 text-primary border-primary/20 shadow-sm'
                             : 'text-foreground'
-                        )
-                      }
-                      aria-current={
-                        location.pathname === item.to ? 'page' : undefined
-                      }
-                    >
+                        )}
+                        aria-current={isActive ? 'page' : undefined}
+                      >
                       <div className='flex-shrink-0'>{item.icon}</div>
                       <span className='mobile-body-sm font-medium flex-1'>
                         {item.label}
@@ -352,8 +353,9 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                           {item.badge}
                         </Badge>
                       )}
-                    </NavLink>
-                  ))}
+                    </Link>
+                    );
+                  })}
                 </nav>
               </div>
             )}
@@ -365,13 +367,14 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                   Advanced Features
                 </h3>
                 <nav className='space-y-1'>
-                  {groupedItems.secondary.map(item => (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      onClick={handleItemClick}
-                      className={({ isActive }) =>
-                        cn(
+                  {groupedItems.secondary.map(item => {
+                    const isActive = pathname === item.to;
+                    return (
+                      <Link
+                        key={item.to}
+                        href={item.to}
+                        onClick={handleItemClick}
+                        className={cn(
                           'flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                           'mobile-touch-target mobile-text-enhanced',
                           'hover:bg-accent/50 active:bg-accent',
@@ -380,12 +383,9 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                           isActive
                             ? 'bg-primary/10 text-primary border-primary/20 shadow-sm'
                             : 'text-foreground'
-                        )
-                      }
-                      aria-current={
-                        location.pathname === item.to ? 'page' : undefined
-                      }
-                    >
+                        )}
+                        aria-current={isActive ? 'page' : undefined}
+                      >
                       <div className='flex-shrink-0'>{item.icon}</div>
                       <span className='mobile-body-sm font-medium flex-1'>
                         {item.label}
@@ -395,8 +395,9 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                           {item.badge}
                         </Badge>
                       )}
-                    </NavLink>
-                  ))}
+                    </Link>
+                    );
+                  })}
                 </nav>
               </div>
             )}
@@ -408,13 +409,14 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                   Settings
                 </h3>
                 <nav className='space-y-1'>
-                  {groupedItems.tools.map(item => (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      onClick={handleItemClick}
-                      className={({ isActive }) =>
-                        cn(
+                  {groupedItems.tools.map(item => {
+                    const isActive = pathname === item.to;
+                    return (
+                      <Link
+                        key={item.to}
+                        href={item.to}
+                        onClick={handleItemClick}
+                        className={cn(
                           'flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                           'mobile-touch-target mobile-text-enhanced',
                           'hover:bg-accent/50 active:bg-accent',
@@ -423,12 +425,9 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                           isActive
                             ? 'bg-primary/10 text-primary border-primary/20 shadow-sm'
                             : 'text-foreground'
-                        )
-                      }
-                      aria-current={
-                        location.pathname === item.to ? 'page' : undefined
-                      }
-                    >
+                        )}
+                        aria-current={isActive ? 'page' : undefined}
+                      >
                       <div className='flex-shrink-0'>{item.icon}</div>
                       <span className='mobile-body-sm font-medium flex-1'>
                         {item.label}
@@ -438,8 +437,9 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                           {item.badge}
                         </Badge>
                       )}
-                    </NavLink>
-                  ))}
+                    </Link>
+                    );
+                  })}
                 </nav>
               </div>
             )}

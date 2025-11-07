@@ -51,6 +51,25 @@ export const TopNavigationBar = ({
   const isMobile = useIsMobile();
   const { user, signOut, signInWithGoogle } = useAuth();
 
+  // Helper function to get user initials for avatar fallback
+  const getUserInitial = (user: typeof user) => {
+    if (!user) return 'U';
+    
+    // Try full_name first
+    const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
+    if (fullName) {
+      return fullName.charAt(0).toUpperCase();
+    }
+    
+    // Fallback to email username (part before @)
+    if (user.email) {
+      const emailUsername = user.email.split('@')[0];
+      return emailUsername.charAt(0).toUpperCase();
+    }
+    
+    return 'U';
+  };
+
   return (
     <header
       className={cn(
@@ -97,20 +116,18 @@ export const TopNavigationBar = ({
                     <Avatar className='h-7 w-7'>
                       <AvatarImage
                         src={user.user_metadata?.avatar_url || ''}
-                        alt={user.user_metadata?.full_name || 'User'}
+                        alt={user.user_metadata?.full_name || user.email || 'User'}
                       />
                       <AvatarFallback className='bg-gray-100 text-muted-foreground text-xs'>
-                        {user.user_metadata?.full_name
-                          ?.charAt(0)
-                          .toUpperCase() || 'U'}
+                        {getUserInitial(user)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className='w-56 bg-white text-foreground border border-gray-200 shadow-lg shadow-gray-300/10 rounded-xl p-1'>
+                <DropdownMenuContent className='w-56 bg-white text-foreground border border-border shadow-lg shadow-gray-300/10 rounded-xl p-1'>
                   <DropdownMenuItem
                     onClick={() => signOut()}
-                    className='flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50/80 hover:text-red-700 rounded-lg cursor-pointer'
+                    className='flex items-center px-3 py-2 text-sm text-destructive hover:bg-destructive/10/80 hover:text-destructive rounded-lg cursor-pointer'
                   >
                     <LogOut className='h-4 w-4 mr-2' />
                     Log Out
@@ -122,7 +139,7 @@ export const TopNavigationBar = ({
                 onClick={() => signInWithGoogle()}
                 variant='ghost'
                 size='sm'
-                className='h-8 px-3 text-sm text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+                className='h-8 px-3 text-sm text-muted-foreground hover:text-white hover:bg-gray-600 rounded-md'
               >
                 <LogIn className='h-4 w-4 mr-2' />
                 Sign In
@@ -147,13 +164,13 @@ export const TopNavigationBar = ({
                       className='rounded-full hover:bg-gray-100 transition-colors p-0.5'
                       aria-label='More information'
                     >
-                      <Info className='h-4 w-4 text-gray-400' />
+                      <Info className='h-4 w-4 text-muted-foreground' />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent
                     side='bottom'
                     align='start'
-                    className='bg-white text-foreground border border-gray-200 shadow-lg'
+                    className='bg-white text-foreground border border-border shadow-lg'
                   >
                     <p className='text-sm max-w-xs'>{pageSubheading}</p>
                   </TooltipContent>
@@ -183,20 +200,18 @@ export const TopNavigationBar = ({
                     <Avatar className='h-7 w-7'>
                       <AvatarImage
                         src={user.user_metadata?.avatar_url || ''}
-                        alt={user.user_metadata?.full_name || 'User'}
+                        alt={user.user_metadata?.full_name || user.email || 'User'}
                       />
                       <AvatarFallback className='bg-gray-100 text-muted-foreground text-xs'>
-                        {user.user_metadata?.full_name
-                          ?.charAt(0)
-                          .toUpperCase() || 'U'}
+                        {getUserInitial(user)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className='w-56 bg-white text-foreground border border-gray-200 shadow-lg shadow-gray-300/10 rounded-xl p-1'>
+                <DropdownMenuContent className='w-56 bg-white text-foreground border border-border shadow-lg shadow-gray-300/10 rounded-xl p-1'>
                   <DropdownMenuItem
                     onClick={() => signOut()}
-                    className='flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50/80 hover:text-red-700 rounded-lg cursor-pointer'
+                    className='flex items-center px-3 py-2 text-sm text-destructive hover:bg-destructive/10/80 hover:text-destructive rounded-lg cursor-pointer'
                   >
                     <LogOut className='h-4 w-4 mr-2' />
                     Log Out
@@ -208,7 +223,7 @@ export const TopNavigationBar = ({
                 onClick={() => signInWithGoogle()}
                 variant='ghost'
                 size='sm'
-                className='h-8 px-3 text-sm text-gray-300 hover:text-white hover:bg-gray-600 rounded-md'
+                className='h-8 px-3 text-sm text-muted-foreground hover:text-white hover:bg-gray-600 rounded-md'
               >
                 <LogIn className='h-4 w-4 mr-2' />
                 Sign In

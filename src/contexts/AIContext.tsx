@@ -152,8 +152,8 @@ export function AIStatusIndicator() {
 
   if (!isAvailable) {
     return (
-      <div className='flex items-center gap-2 text-sm text-red-600'>
-        <div className='w-2 h-2 bg-red-500 rounded-full'></div>
+      <div className='flex items-center gap-2 text-sm text-destructive'>
+        <div className='w-2 h-2 bg-destructive/100 rounded-full'></div>
         <span>AI Service Unavailable</span>
       </div>
     );
@@ -165,13 +165,13 @@ export function AIStatusIndicator() {
         <div
           className={`w-2 h-2 rounded-full ${
             activeProvider === 'gemini'
-              ? 'bg-green-500'
+              ? 'bg-success/100'
               : activeProvider === 'openai'
-                ? 'bg-blue-500'
-                : 'bg-gray-500'
+                ? 'bg-primary/100'
+                : 'bg-muted0'
           }`}
         ></div>
-        <span className='text-gray-600'>
+        <span className='text-muted-foreground'>
           AI:{' '}
           {activeProvider === 'gemini'
             ? 'Gemini (Free)'
@@ -182,13 +182,13 @@ export function AIStatusIndicator() {
       </div>
 
       {usage.totalRequests > 0 && (
-        <div className='text-gray-500'>
+        <div className='text-muted-foreground'>
           {usage.successfulRequests}/{usage.totalRequests} requests
         </div>
       )}
 
       {lastError && (
-        <div className='text-red-500 text-xs' title={lastError}>
+        <div className='text-destructive text-xs' title={lastError}>
           ⚠️ Error
         </div>
       )}
@@ -231,26 +231,26 @@ export function AIConfigurationPanel() {
         </div>
 
         <div className='grid grid-cols-2 gap-4 text-sm'>
-          <div className='p-3 bg-gray-50 rounded'>
+          <div className='p-3 bg-muted rounded'>
             <div className='font-medium'>Gemini Status</div>
             <div
-              className={`text-sm ${providers.gemini.available ? 'text-green-600' : 'text-red-600'}`}
+              className={`text-sm ${providers.gemini.available ? 'text-success' : 'text-destructive'}`}
             >
               {providers.gemini.available ? 'Available' : 'Not Available'}
             </div>
-            <div className='text-xs text-gray-500'>
+            <div className='text-xs text-muted-foreground'>
               Model: {providers.gemini.model}
             </div>
           </div>
 
-          <div className='p-3 bg-gray-50 rounded'>
+          <div className='p-3 bg-muted rounded'>
             <div className='font-medium'>OpenAI Status</div>
             <div
-              className={`text-sm ${providers.openai.available ? 'text-green-600' : 'text-red-600'}`}
+              className={`text-sm ${providers.openai.available ? 'text-success' : 'text-destructive'}`}
             >
               {providers.openai.available ? 'Available' : 'Not Available'}
             </div>
-            <div className='text-xs text-gray-500'>
+            <div className='text-xs text-muted-foreground'>
               Model: {providers.openai.model}
             </div>
           </div>

@@ -44,7 +44,7 @@ export const EmailBulkActions: React.FC<EmailBulkActionsProps> = ({
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-3'>
               <div className='flex items-center gap-2'>
-                <Users className='h-4 w-4 text-blue-600' />
+                <Users className='h-4 w-4 text-primary' />
                 <span className='font-medium'>
                   {selectedLeads.length} lead
                   {selectedLeads.length !== 1 ? 's' : ''} selected

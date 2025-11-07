@@ -11,15 +11,16 @@ export function useClientId() {
   return useQuery({
     queryKey: ['client-id', user?.id],
     queryFn: async () => {
-      if (!user?.id && !bypassAuth) return null;
-
-      // In bypass auth mode, return null (client operations can work without clientId)
-      if (bypassAuth) return null;
+      // Always use the actual user ID from auth context (even in bypassAuth mode)
+      // The auth context now checks for actual session first in bypassAuth mode
+      const userId = user?.id;
+      
+      if (!userId) return null;
 
       const { data: clientUser, error } = await supabase
         .from('client_users')
         .select('client_id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (error) {

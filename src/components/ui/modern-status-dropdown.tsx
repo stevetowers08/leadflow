@@ -50,8 +50,8 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
         disabled={disabled}
         className={cn(
           'flex items-center justify-between w-full px-3 py-2 text-sm',
-          'bg-white border border-gray-200 rounded-lg',
-          'hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+          'bg-white border border-border rounded-md',
+          'hover:border-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
           'transition-all duration-200 ease-in-out',
           'min-h-[36px]',
           disabled && 'opacity-50 cursor-not-allowed'
@@ -71,20 +71,20 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
                 {selectedOption.label}
               </span>
               {selectedOption.count !== undefined && (
-                <span className='text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full'>
+                <span className='text-xs text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full'>
                   {selectedOption.count}
                 </span>
               )}
             </>
           )}
           {!selectedOption && (
-            <span className='text-gray-500'>{placeholder}</span>
+            <span className='text-muted-foreground'>{placeholder}</span>
           )}
         </div>
 
         <ChevronDown
           className={cn(
-            'h-4 w-4 text-gray-400 transition-transform duration-200',
+            'h-4 w-4 text-muted-foreground transition-transform duration-200',
             isOpen && 'rotate-180'
           )}
         />
@@ -100,7 +100,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
           />
 
           {/* Menu */}
-          <div className='absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-hidden'>
+          <div className='absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-border rounded-md shadow-lg max-h-64 overflow-hidden'>
             {/* Search Input */}
             <div className='p-2 border-b border-gray-100'>
               <input
@@ -108,7 +108,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
                 placeholder='Search statuses...'
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className='w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                className='w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                 autoFocus
               />
             </div>
@@ -147,7 +147,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
                     </span>
 
                     {option.count !== undefined && (
-                      <span className='text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full'>
+                      <span className='text-xs text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full'>
                         {option.count}
                       </span>
                     )}
@@ -160,7 +160,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
               ))}
 
               {filteredOptions.length === 0 && (
-                <div className='px-3 py-2 text-sm text-gray-500 text-center'>
+                <div className='px-3 py-2 text-sm text-muted-foreground text-center'>
                   No statuses found
                 </div>
               )}
@@ -225,8 +225,8 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
         disabled={disabled}
         className={cn(
           'flex items-center justify-between w-full px-3 py-2 text-sm',
-          'bg-white border border-gray-200 rounded-lg',
-          'hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+          'bg-white border border-border rounded-md',
+          'hover:border-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
           'transition-all duration-200 ease-in-out',
           'min-h-[36px]',
           disabled && 'opacity-50 cursor-not-allowed'
@@ -245,20 +245,20 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
                 {selectedOption.label}
               </span>
               {selectedOption.count !== undefined && (
-                <span className='text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full'>
+                <span className='text-xs text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full'>
                   {selectedOption.count}
                 </span>
               )}
             </>
           )}
           {!selectedOption && (
-            <span className='text-gray-500'>{placeholder}</span>
+            <span className='text-muted-foreground'>{placeholder}</span>
           )}
         </div>
 
         <ChevronDown
           className={cn(
-            'h-4 w-4 text-gray-400 transition-transform duration-200',
+            'h-4 w-4 text-muted-foreground transition-transform duration-200',
             isOpen && 'rotate-180'
           )}
         />
@@ -272,7 +272,7 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
             onClick={() => setIsOpen(false)}
           />
 
-          <div className='absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-hidden'>
+          <div className='absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-border rounded-md shadow-lg max-h-64 overflow-hidden'>
             {/* Search Input */}
             <div className='p-2 border-b border-gray-100'>
               <input
@@ -280,7 +280,7 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
                 placeholder='Search statuses...'
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className='w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                className='w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                 autoFocus
               />
             </div>
@@ -290,7 +290,7 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
               {filteredGroups.map((group, groupIndex) => (
                 <div key={group.group}>
                   {/* Group Header */}
-                  <div className='px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide bg-gray-50 border-b border-gray-100'>
+                  <div className='px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide bg-muted border-b border-gray-100'>
                     {group.group}
                   </div>
 
@@ -324,14 +324,14 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
                           {option.label}
                         </span>
                         {option.count !== undefined && (
-                          <span className='text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full'>
+                          <span className='text-xs text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full'>
                             {option.count}
                           </span>
                         )}
                       </div>
 
                       {value === option.value && (
-                        <Check className='h-4 w-4 text-blue-600' />
+                        <Check className='h-4 w-4 text-primary' />
                       )}
                     </button>
                   ))}
@@ -339,7 +339,7 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
               ))}
 
               {filteredGroups.length === 0 && (
-                <div className='px-3 py-2 text-sm text-gray-500 text-center'>
+                <div className='px-3 py-2 text-sm text-muted-foreground text-center'>
                   No statuses found
                 </div>
               )}

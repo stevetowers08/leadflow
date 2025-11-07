@@ -256,7 +256,7 @@ export function JobFilteringFormHubSpot({
       <CardHeader>
         <CardTitle className='flex items-center justify-between'>
           <span>{config?.id ? 'Edit Job Filter' : 'Create Job Filter'}</span>
-          <div className='flex items-center gap-2 text-sm text-gray-500'>
+          <div className='flex items-center gap-2 text-sm text-muted-foreground'>
             Step {currentStep} of {totalSteps}
           </div>
         </CardTitle>
@@ -272,7 +272,7 @@ export function JobFilteringFormHubSpot({
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     i + 1 <= currentStep
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-500'
+                      : 'bg-gray-200 text-muted-foreground'
                   }`}
                 >
                   {i + 1 < currentStep ? <Check className='h-4 w-4' /> : i + 1}
@@ -295,7 +295,7 @@ export function JobFilteringFormHubSpot({
             <div className='space-y-6'>
               <div>
                 <h3 className='text-lg font-semibold mb-4'>Basic Setup</h3>
-                <p className='text-gray-600 mb-6'>
+                <p className='text-muted-foreground mb-6'>
                   Let's start with the essentials. What should we call this job
                   filter?
                 </p>
@@ -368,7 +368,7 @@ export function JobFilteringFormHubSpot({
             <div className='space-y-6'>
               <div>
                 <h3 className='text-lg font-semibold mb-4'>Job Targeting</h3>
-                <p className='text-gray-600 mb-6'>
+                <p className='text-muted-foreground mb-6'>
                   What types of jobs are you looking for? We'll help you find
                   the right matches.
                 </p>
@@ -378,7 +378,7 @@ export function JobFilteringFormHubSpot({
                 {/* Job Titles */}
                 <div>
                   <Label>Job Titles *</Label>
-                  <p className='text-sm text-gray-600 mb-3'>
+                  <p className='text-sm text-muted-foreground mb-3'>
                     Select the job titles you want to target
                   </p>
 
@@ -443,7 +443,7 @@ export function JobFilteringFormHubSpot({
                 {/* Location */}
                 <div>
                   <Label htmlFor='primary_location'>Location *</Label>
-                  <p className='text-sm text-gray-600 mb-3'>
+                  <p className='text-sm text-muted-foreground mb-3'>
                     Where should we look for jobs?
                   </p>
 
@@ -480,7 +480,7 @@ export function JobFilteringFormHubSpot({
                 {/* Industries */}
                 <div>
                   <Label>Industries (Optional)</Label>
-                  <p className='text-sm text-gray-600 mb-3'>
+                  <p className='text-sm text-muted-foreground mb-3'>
                     Focus on specific industries
                   </p>
 
@@ -535,7 +535,7 @@ export function JobFilteringFormHubSpot({
             <div className='space-y-6'>
               <div>
                 <h3 className='text-lg font-semibold mb-4'>Advanced Options</h3>
-                <p className='text-gray-600 mb-6'>
+                <p className='text-muted-foreground mb-6'>
                   Fine-tune your search with these optional settings.
                 </p>
               </div>
@@ -622,13 +622,13 @@ export function JobFilteringFormHubSpot({
                 {/* Keywords */}
                 <div>
                   <Label>Keywords</Label>
-                  <p className='text-sm text-gray-600 mb-3'>
+                  <p className='text-sm text-muted-foreground mb-3'>
                     Add required or excluded keywords
                   </p>
 
                   <div className='space-y-3'>
                     <div>
-                      <Label className='text-sm text-green-700'>
+                      <Label className='text-sm text-success'>
                         Required Keywords
                       </Label>
                       <div className='flex gap-2 mt-1'>
@@ -655,7 +655,7 @@ export function JobFilteringFormHubSpot({
                               <Badge
                                 key={keyword}
                                 variant='secondary'
-                                className='bg-green-100 text-green-800'
+                                className='bg-green-100 text-success'
                               >
                                 {keyword}
                                 <button
@@ -672,7 +672,7 @@ export function JobFilteringFormHubSpot({
                     </div>
 
                     <div>
-                      <Label className='text-sm text-red-700'>
+                      <Label className='text-sm text-destructive'>
                         Excluded Keywords
                       </Label>
                       <div className='flex gap-2 mt-1'>
@@ -699,7 +699,7 @@ export function JobFilteringFormHubSpot({
                               <Badge
                                 key={keyword}
                                 variant='secondary'
-                                className='bg-red-100 text-red-800'
+                                className='bg-red-100 text-destructive'
                               >
                                 {keyword}
                                 <button

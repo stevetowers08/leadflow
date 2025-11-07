@@ -38,15 +38,15 @@ export const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
   return (
     <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
       <div className='bg-white rounded-lg p-6 max-w-md w-full mx-4'>
-        <h3 className='text-lg font-semibold text-gray-900 mb-4'>
+        <h3 className='text-lg font-semibold text-foreground mb-4'>
           Account Management
         </h3>
 
         <div className='mb-4'>
-          <p className='text-sm text-gray-600 mb-2'>Currently signed in as:</p>
-          <div className='bg-gray-50 rounded-md p-3'>
-            <p className='font-medium text-gray-900'>{user?.email}</p>
-            <p className='text-sm text-gray-500'>
+          <p className='text-sm text-muted-foreground mb-2'>Currently signed in as:</p>
+          <div className='bg-muted rounded-md p-3'>
+            <p className='font-medium text-foreground'>{user?.email}</p>
+            <p className='text-sm text-muted-foreground'>
               {user?.user_metadata?.full_name || 'No name available'}
             </p>
           </div>
@@ -70,7 +70,7 @@ export const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
 
           <button
             onClick={onClose}
-            className='w-full px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors'
+            className='w-full px-4 py-2 bg-gray-200 text-foreground rounded-md hover:bg-gray-300 transition-colors'
           >
             Cancel
           </button>

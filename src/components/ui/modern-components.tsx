@@ -130,7 +130,7 @@ const buttonVariants = cva(
           'bg-primary text-primary-foreground hover:bg-primary-hover shadow-lg hover:shadow-xl',
         glass: 'glass-light text-white hover:bg-white/20 hover:border-white/30',
         neumorphism:
-          'neumorphism-light text-gray-700 hover:shadow-lg active:shadow-neumorphism-pressed',
+          'neumorphism-light text-foreground hover:shadow-lg active:shadow-neumorphism-pressed',
         ghost: 'text-primary hover:bg-primary-light',
         outline:
           'border border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground',
@@ -179,7 +179,7 @@ const inputVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border-gray-300 focus:border-primary focus:ring-primary',
+        default: 'border-border/60 focus:border-primary focus:ring-primary',
         glass:
           'glass-light text-white placeholder:text-white/70 focus:border-white/40 focus:ring-white/20',
         neumorphism: 'neumorphism-light focus:shadow-lg focus:bg-white',
@@ -221,10 +221,10 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-white border-gray-200 hover:shadow-md',
+        default: 'bg-white border-border hover:shadow-md',
         glass: 'glass-light hover:bg-white/20',
         neumorphism: 'neumorphism-light hover:shadow-lg',
-        elevated: 'bg-white border-gray-200 shadow-lg hover:shadow-xl',
+        elevated: 'bg-white border-border shadow-lg hover:shadow-xl',
       },
     },
     defaultVariants: {
@@ -323,7 +323,7 @@ const badgeVariants = cva(
           'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
         outline: 'text-foreground',
         glass: 'glass-light text-white',
-        neumorphism: 'neumorphism-light text-gray-700',
+        neumorphism: 'neumorphism-light text-foreground',
       },
     },
     defaultVariants: {

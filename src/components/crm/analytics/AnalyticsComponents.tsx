@@ -72,11 +72,11 @@ export const AnalyticsDashboard: React.FC = () => {
           <div className='space-y-2'>
             <div className='text-sm'>
               <span className='font-medium'>Current Path:</span>
-              <div className='text-gray-600'>{window.location.pathname}</div>
+              <div className='text-muted-foreground'>{window.location.pathname}</div>
             </div>
             <div className='text-sm'>
               <span className='font-medium'>Session ID:</span>
-              <div className='text-gray-600 font-mono text-xs'>-</div>
+              <div className='text-muted-foreground font-mono text-xs'>-</div>
             </div>
           </div>
         </div>
@@ -158,7 +158,7 @@ export const AnalyticsPopup: React.FC<{
           <h2 className='text-lg font-semibold'>Analytics Popup</h2>
           <button
             onClick={onClose}
-            className='text-gray-500 hover:text-gray-700'
+            className='text-muted-foreground hover:text-foreground'
           >
             ✕
           </button>
@@ -208,7 +208,7 @@ export const AnalyticsSearch: React.FC<{
         type='search'
         name='search'
         placeholder={placeholder}
-        className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+        className='w-full px-4 py-2 border border-border/60 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
       />
     </form>
   );
@@ -241,7 +241,7 @@ export const AnalyticsNavigation: React.FC<{
             <a
               href={item.href}
               onClick={() => handleNavigation(item)}
-              className='text-blue-600 hover:text-blue-800'
+              className='text-primary hover:text-primary'
             >
               {item.name}
             </a>

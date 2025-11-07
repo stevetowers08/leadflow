@@ -170,7 +170,7 @@ export const JobQualificationCardButtons: React.FC<
       <Button
         size={buttonSize}
         variant='outline'
-        className='h-6 px-2 text-xs text-green-600 border-green-200 hover:bg-green-50 hover:border-green-300'
+        className='h-6 px-2 text-xs text-success border-green-200 hover:bg-success/10 hover:border-green-300'
         onClick={e => {
           e.stopPropagation(); // Prevent card click
           handleQualification('qualify');
@@ -187,7 +187,7 @@ export const JobQualificationCardButtons: React.FC<
       <Button
         size={buttonSize}
         variant='outline'
-        className='h-6 px-2 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300'
+        className='h-6 px-2 text-xs text-destructive border-red-200 hover:bg-destructive/10 hover:border-red-300'
         onClick={e => {
           e.stopPropagation(); // Prevent card click
           handleQualification('skip');

@@ -24,7 +24,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   <div className='mb-3'>
     <div className='flex items-center justify-between'>
       <div>
-        <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
+        <h1 className='text-2xl font-bold tracking-tight text-foreground'>
           {title}
         </h1>
         {count !== undefined && (
@@ -151,7 +151,7 @@ export const Page: React.FC<PageProps> = ({
             isLargePadding ? 'pt-12' : 'pt-6'
           )}
         >
-          <h1 className='text-2xl font-bold tracking-tight text-gray-700'>
+          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
             {title}
           </h1>
           {stats && (
@@ -186,7 +186,9 @@ export const Page: React.FC<PageProps> = ({
         {/* Content wrapper with padding for visual spacing */}
         <div
           className={cn(
-            hideHeader ? verticalPadding : isLargePadding ? 'pb-6' : 'pb-3',
+            hideHeader 
+              ? isLargePadding ? 'pt-12' : 'pt-6' // Only top padding when hideHeader
+              : isLargePadding ? 'pb-6' : 'pb-3', // Keep bottom padding when header shown
             'h-full flex flex-col'
           )}
           style={{ minHeight: 0 }}
@@ -326,7 +328,7 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
               value={searchTerm}
               onChange={e => onSearchChange(e.target.value)}
               placeholder='Search...'
-              className='h-8 px-3 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 min-w-48'
+              className='h-8 px-3 text-sm border border-border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 min-w-48'
               autoFocus
             />
           ) : (

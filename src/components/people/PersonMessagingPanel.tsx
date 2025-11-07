@@ -305,14 +305,14 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
   if (loading) {
     return (
       <div className='flex items-center justify-center py-8'>
-        <Loader2 className='h-6 w-6 animate-spin text-gray-400' />
+        <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
       </div>
     );
   }
 
   if (conversations.length === 0) {
     return (
-      <div className='text-center py-8 text-gray-500'>
+      <div className='text-center py-8 text-muted-foreground'>
         <MessageCircle className='h-12 w-12 mx-auto mb-3 opacity-50' />
         <p className='text-sm'>No conversations yet</p>
       </div>
@@ -325,17 +325,17 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
       {conversations.map(conv => (
         <div
           key={conv.id}
-          className='bg-white border border-gray-200 rounded-lg p-4'
+          className='bg-white border border-border rounded-lg p-4'
         >
           <div className='flex items-center justify-between mb-3'>
             <div className='flex items-center gap-2'>
               {conv.conversation_type === 'linkedin' ? (
-                <Linkedin className='h-4 w-4 text-blue-600' />
+                <Linkedin className='h-4 w-4 text-primary' />
               ) : (
-                <Mail className='h-4 w-4 text-green-600' />
+                <Mail className='h-4 w-4 text-success' />
               )}
               <span className='text-sm font-medium'>{conv.subject}</span>
-              <span className='text-xs text-gray-500'>
+              <span className='text-xs text-muted-foreground'>
                 {formatDistanceToNow(new Date(conv.last_message_at), {
                   addSuffix: true,
                 })}
@@ -347,18 +347,18 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
             {conv.messages.map(message => (
               <div
                 key={message.id}
-                className='flex items-start gap-2 p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors'
+                className='flex items-start gap-2 p-2 bg-muted rounded hover:bg-gray-100 transition-colors'
               >
                 <div className='flex-1'>
                   <div className='flex items-center gap-2 mb-1'>
-                    <span className='text-xs font-medium text-gray-700'>
+                    <span className='text-xs font-medium text-foreground'>
                       {message.sender_name || 'You'}
                     </span>
-                    <span className='text-xs text-gray-500'>
+                    <span className='text-xs text-muted-foreground'>
                       {format(new Date(message.sent_at), 'MMM d, h:mm a')}
                     </span>
                   </div>
-                  <p className='text-sm text-gray-800 line-clamp-2'>
+                  <p className='text-sm text-foreground line-clamp-2'>
                     {message.content ||
                       message.body_text ||
                       message.subject ||
@@ -373,9 +373,9 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
                     className='h-8 w-8 p-0'
                   >
                     {copiedId === message.id ? (
-                      <Check className='h-4 w-4 text-green-600' />
+                      <Check className='h-4 w-4 text-success' />
                     ) : (
-                      <Copy className='h-4 w-4 text-gray-500' />
+                      <Copy className='h-4 w-4 text-muted-foreground' />
                     )}
                   </Button>
                   <Button
@@ -384,7 +384,7 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
                     onClick={() => handleSend(message, 'copy')}
                     className='h-8 w-8 p-0'
                   >
-                    <Send className='h-4 w-4 text-gray-500' />
+                    <Send className='h-4 w-4 text-muted-foreground' />
                   </Button>
                 </div>
               </div>
@@ -447,7 +447,7 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
                   type='text'
                   value={emailSubject}
                   onChange={e => setEmailSubject(e.target.value)}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md text-sm'
+                  className='w-full px-3 py-2 border border-border/60 rounded-md text-sm'
                   placeholder='Email subject'
                 />
               </div>
@@ -464,8 +464,8 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
           )}
 
           {sendMode === 'copy' && selectedMessage && (
-            <div className='p-4 bg-gray-50 rounded border border-gray-200'>
-              <p className='text-sm text-gray-800'>
+            <div className='p-4 bg-muted rounded border border-border'>
+              <p className='text-sm text-foreground'>
                 {selectedMessage.content ||
                   selectedMessage.body_text ||
                   'No content'}

@@ -67,11 +67,11 @@ export const AssignmentHistoryModal: React.FC<AssignmentHistoryModalProps> = ({
 
   const getAssignmentIcon = (entry: AssignmentHistoryEntry) => {
     if (entry.old_owner_id && entry.new_owner_id) {
-      return <RefreshCw className='h-4 w-4 text-blue-600' />;
+      return <RefreshCw className='h-4 w-4 text-primary' />;
     } else if (entry.new_owner_id) {
-      return <UserCheck className='h-4 w-4 text-green-600' />;
+      return <UserCheck className='h-4 w-4 text-success' />;
     } else {
-      return <UserX className='h-4 w-4 text-orange-600' />;
+      return <UserX className='h-4 w-4 text-warning' />;
     }
   };
 
@@ -149,7 +149,7 @@ export const AssignmentHistoryModal: React.FC<AssignmentHistoryModalProps> = ({
                             })}
                           </div>
                         </div>
-                        <p className='text-sm font-medium text-gray-900 mb-1'>
+                        <p className='text-sm font-medium text-foreground mb-1'>
                           {getAssignmentDescription(entry)}
                         </p>
                         {entry.assigned_by_user && (

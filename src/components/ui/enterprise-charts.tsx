@@ -529,7 +529,7 @@ const KPICard = ({
                 color === 'primary' && 'text-primary',
                 color === 'success' && 'text-success',
                 color === 'warning' && 'text-warning',
-                color === 'info' && 'text-blue-600'
+                color === 'info' && 'text-primary'
               )}
             />
           </div>

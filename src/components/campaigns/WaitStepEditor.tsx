@@ -18,7 +18,7 @@ export default function WaitStepEditor({ step, onUpdate }: Props) {
   return (
     <div className='h-full flex flex-col'>
       {/* Header */}
-      <div className='px-8 py-6 border-b border-gray-200'>
+      <div className='px-8 py-6 border-b border-border'>
         <Input
           type='text'
           value={step.name}
@@ -33,13 +33,13 @@ export default function WaitStepEditor({ step, onUpdate }: Props) {
         <div className='max-w-2xl space-y-6'>
           {/* Duration Settings */}
           <div className='space-y-4'>
-            <h3 className='text-lg font-semibold text-gray-900'>
+            <h3 className='text-lg font-semibold text-foreground'>
               Wait Duration
             </h3>
 
             <div className='grid grid-cols-2 gap-4'>
               <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label className='block text-sm font-medium text-foreground mb-2'>
                   Duration Value
                 </Label>
                 <Input
@@ -54,7 +54,7 @@ export default function WaitStepEditor({ step, onUpdate }: Props) {
               </div>
 
               <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label className='block text-sm font-medium text-foreground mb-2'>
                   Duration Unit
                 </Label>
                 <Select
@@ -78,7 +78,7 @@ export default function WaitStepEditor({ step, onUpdate }: Props) {
 
           {/* Business Hours Settings */}
           <div className='space-y-4'>
-            <h3 className='text-lg font-semibold text-gray-900'>
+            <h3 className='text-lg font-semibold text-foreground'>
               Timing Settings
             </h3>
 
@@ -90,16 +90,16 @@ export default function WaitStepEditor({ step, onUpdate }: Props) {
                   onChange={e =>
                     onUpdate({ business_hours_only: e.target.checked })
                   }
-                  className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                  className='rounded border-border/60 text-primary focus:ring-blue-500'
                 />
-                <span className='text-sm text-gray-700'>
+                <span className='text-sm text-foreground'>
                   Only count business hours (9 AM - 5 PM, Monday-Friday)
                 </span>
               </label>
             </div>
 
             <div>
-              <Label className='block text-sm font-medium text-gray-700 mb-2'>
+              <Label className='block text-sm font-medium text-foreground mb-2'>
                 Timezone
               </Label>
               <Select
@@ -127,11 +127,11 @@ export default function WaitStepEditor({ step, onUpdate }: Props) {
           </div>
 
           {/* Preview */}
-          <div className='border border-gray-200 rounded-lg p-4 bg-gray-50'>
-            <h4 className='text-sm font-semibold text-gray-900 mb-2'>
+          <div className='border border-border rounded-lg p-4 bg-muted'>
+            <h4 className='text-sm font-semibold text-foreground mb-2'>
               Preview
             </h4>
-            <p className='text-sm text-gray-600'>
+            <p className='text-sm text-muted-foreground'>
               This step will wait for{' '}
               <span className='font-semibold'>
                 {step.duration_value || 1} {step.duration_unit || 'days'}

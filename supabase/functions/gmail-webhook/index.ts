@@ -302,7 +302,7 @@ function extractEmail(fromHeader: string): string {
 
 async function analyzeSentiment(text: string): Promise<SentimentAnalysis> {
   try {
-    const geminiApiKey = Deno.env.get('VITE_GEMINI_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiApiKey) {
       throw new Error('Gemini API key not configured');
     }

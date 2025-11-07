@@ -130,14 +130,14 @@ export function JobFilteringForm({
               </div>
               <h3 className='text-lg font-semibold'>Basic Configuration</h3>
             </div>
-            <p className='text-sm text-gray-600 mb-6'>
+            <p className='text-sm text-muted-foreground mb-6'>
               Platform selection, naming, and activation settings for this
               monitoring setup.
             </p>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               <div>
                 <Label htmlFor='config_name'>Configuration Name *</Label>
-                <p className='text-sm text-gray-600 mb-2'>
+                <p className='text-sm text-muted-foreground mb-2'>
                   Choose a descriptive name that identifies the platform,
                   location, and focus. Examples: 'Albany Executive Jobs -
                   LinkedIn', 'Boston Tech Leadership - Indeed', 'NYC Finance
@@ -159,7 +159,7 @@ export function JobFilteringForm({
 
               <div>
                 <Label htmlFor='platform'>Platform *</Label>
-                <p className='text-sm text-gray-600 mb-2'>
+                <p className='text-sm text-muted-foreground mb-2'>
                   Job board platform for this configuration. Each platform
                   requires specific query format and AI enrichment
                   configuration. Supports multi-platform strategies with
@@ -205,7 +205,7 @@ export function JobFilteringForm({
                 Targeting &amp; Location
               </h3>
             </div>
-            <p className='text-sm text-gray-600 mb-6'>
+            <p className='text-sm text-muted-foreground mb-6'>
               Define geographic scope, job titles, experience levels, and role
               requirements.
             </p>

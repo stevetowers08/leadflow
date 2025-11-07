@@ -135,33 +135,33 @@ export default function SimplifiedCampaignSequenceBuilder({
   const getStepColor = (stepType: string) => {
     switch (stepType) {
       case 'email':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-primary';
       case 'wait':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-warning';
       case 'condition':
         return 'bg-purple-100 text-purple-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-foreground';
     }
   };
 
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className='min-h-screen bg-muted'>
       {/* Header */}
-      <div className='bg-white border-b border-gray-200 px-6 py-4'>
+      <div className='bg-white border-b border-border px-6 py-4'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-4'>
             <Button
               variant='ghost'
               size='sm'
               onClick={onClose}
-              className='text-gray-600 hover:text-gray-900'
+              className='text-muted-foreground hover:text-foreground'
             >
               <ArrowLeft className='w-4 h-4 mr-2' />
               Back to Campaigns
             </Button>
             <div className='h-8 w-px bg-gray-300' />
-            <h1 className='text-xl font-semibold text-gray-900'>
+            <h1 className='text-xl font-semibold text-foreground'>
               {sequence.name}
             </h1>
             <Badge variant='secondary' className='capitalize'>
@@ -243,7 +243,7 @@ export default function SimplifiedCampaignSequenceBuilder({
                     className={`cursor-pointer transition-all ${
                       selectedStepId === step.id
                         ? 'ring-2 ring-blue-500 border-blue-500'
-                        : 'hover:border-gray-300'
+                        : 'hover:border-border/60'
                     }`}
                     onClick={() => setSelectedStepId(step.id)}
                   >
@@ -257,31 +257,31 @@ export default function SimplifiedCampaignSequenceBuilder({
                           </div>
                           <div className='flex-1 min-w-0'>
                             <div className='flex items-center gap-2 mb-1'>
-                              <span className='text-sm font-medium text-gray-900'>
+                              <span className='text-sm font-medium text-foreground'>
                                 Step {index + 1}
                               </span>
                               <Badge variant='outline' className='text-xs'>
                                 {step.step_type}
                               </Badge>
                             </div>
-                            <h3 className='text-sm font-medium text-gray-900 mb-1'>
+                            <h3 className='text-sm font-medium text-foreground mb-1'>
                               {step.name}
                             </h3>
 
                             {step.step_type === 'email' && (
-                              <p className='text-xs text-gray-500'>
+                              <p className='text-xs text-muted-foreground'>
                                 Subject: {step.email_subject || 'No subject'}
                               </p>
                             )}
 
                             {step.step_type === 'wait' && (
-                              <p className='text-xs text-gray-500'>
+                              <p className='text-xs text-muted-foreground'>
                                 Wait {step.wait_duration} {step.wait_unit}
                               </p>
                             )}
 
                             {step.step_type === 'condition' && (
-                              <p className='text-xs text-gray-500'>
+                              <p className='text-xs text-muted-foreground'>
                                 If {step.condition_type}
                               </p>
                             )}
@@ -320,7 +320,7 @@ export default function SimplifiedCampaignSequenceBuilder({
                               e.stopPropagation();
                               handleDeleteStep(step.id);
                             }}
-                            className='p-1 h-6 w-6 text-red-500 hover:text-red-700'
+                            className='p-1 h-6 w-6 text-destructive hover:text-destructive'
                           >
                             <Trash2 className='w-3 h-3' />
                           </Button>
@@ -331,7 +331,7 @@ export default function SimplifiedCampaignSequenceBuilder({
                 ))}
 
                 {steps.length === 0 && (
-                  <div className='text-center py-8 text-gray-500'>
+                  <div className='text-center py-8 text-muted-foreground'>
                     <p className='text-sm'>No steps yet</p>
                     <p className='text-xs'>
                       Add your first step to get started
@@ -550,7 +550,7 @@ export default function SimplifiedCampaignSequenceBuilder({
           ) : (
             <Card>
               <CardContent className='flex items-center justify-center h-96'>
-                <div className='text-center text-gray-500'>
+                <div className='text-center text-muted-foreground'>
                   <p className='text-lg mb-2'>No step selected</p>
                   <p className='text-sm'>
                     Select a step from the left to edit it

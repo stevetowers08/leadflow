@@ -57,7 +57,7 @@ export const DealsTableExample: React.FC<{
       align: 'center',
       render: (_, row) => (
         <div className='flex items-center justify-center'>
-          <span className='px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium'>
+          <span className='px-2 py-1 bg-green-100 text-success rounded-full text-sm font-medium'>
             {row.matchScore}%
           </span>
         </div>

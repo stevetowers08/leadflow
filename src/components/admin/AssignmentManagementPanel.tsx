@@ -26,6 +26,14 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UnifiedTable, ColumnConfig } from '@/components/ui/unified-table';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
   Users,
   AlertTriangle,
   CheckCircle,
@@ -62,6 +70,7 @@ export const AssignmentManagementPanel: React.FC = () => {
     if (canManageAssignments) {
       loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canManageAssignments]);
 
   const loadData = async () => {
@@ -148,7 +157,7 @@ export const AssignmentManagementPanel: React.FC = () => {
       <Alert>
         <AlertTriangle className='h-4 w-4' />
         <AlertDescription>
-          You don't have permission to manage assignments. Only administrators
+          You don&apos;t have permission to manage assignments. Only administrators
           and owners can access this panel.
         </AlertDescription>
       </Alert>
@@ -206,7 +215,7 @@ export const AssignmentManagementPanel: React.FC = () => {
             <XCircle className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold text-orange-600'>
+            <div className='text-2xl font-bold text-warning'>
               {stats?.unassigned || 0}
             </div>
             <p className='text-xs text-muted-foreground'>Need assignment</p>

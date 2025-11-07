@@ -44,7 +44,7 @@ export function PersonReplyAnalytics({
     return (
       <Card>
         <CardContent className='pt-6'>
-          <div className='text-center text-red-600 text-sm'>
+          <div className='text-center text-destructive text-sm'>
             Error loading reply analytics
           </div>
         </CardContent>
@@ -72,16 +72,16 @@ export function PersonReplyAnalytics({
       <CardContent className='space-y-3'>
         {/* Quick Stats */}
         <div className='grid grid-cols-2 gap-3'>
-          <div className='text-center p-2 bg-blue-50 rounded-lg'>
-            <div className='text-lg font-bold text-blue-600'>
+          <div className='text-center p-2 bg-primary/10 rounded-lg'>
+            <div className='text-lg font-bold text-primary'>
               {analytics.total_replies}
             </div>
-            <div className='text-xs text-blue-600'>Total Replies</div>
+            <div className='text-xs text-primary'>Total Replies</div>
           </div>
 
           {analytics.last_reply_type && (
-            <div className='text-center p-2 bg-green-50 rounded-lg'>
-              <div className='flex items-center justify-center gap-1 text-green-600'>
+            <div className='text-center p-2 bg-success/10 rounded-lg'>
+              <div className='flex items-center justify-center gap-1 text-success'>
                 {analytics.last_reply_type === 'interested' && (
                   <CheckCircle className='h-4 w-4' />
                 )}
@@ -95,7 +95,7 @@ export function PersonReplyAnalytics({
                   {getStatusDisplayText(analytics.last_reply_type)}
                 </span>
               </div>
-              <div className='text-xs text-green-600'>Last Intent</div>
+              <div className='text-xs text-success'>Last Intent</div>
             </div>
           )}
         </div>
@@ -147,7 +147,7 @@ export function PersonReplyAnalytics({
               <div className='text-sm font-medium'>Reply History</div>
               <div className='space-y-2 max-h-32 overflow-y-auto'>
                 {analytics.reply_history.map((reply, index) => (
-                  <div key={index} className='p-2 bg-gray-50 rounded text-xs'>
+                  <div key={index} className='p-2 bg-muted rounded text-xs'>
                     <div className='flex items-center justify-between mb-1'>
                       <Badge
                         variant={
@@ -259,15 +259,15 @@ export function PeopleReplySummary({
       <CardContent className='space-y-4'>
         {/* Overall Stats */}
         <div className='grid grid-cols-2 gap-3'>
-          <div className='text-center p-3 bg-blue-50 rounded-lg'>
-            <div className='text-lg font-bold text-blue-600'>{totalPeople}</div>
-            <div className='text-xs text-blue-600'>Total People</div>
+          <div className='text-center p-3 bg-primary/10 rounded-lg'>
+            <div className='text-lg font-bold text-primary'>{totalPeople}</div>
+            <div className='text-xs text-primary'>Total People</div>
           </div>
-          <div className='text-center p-3 bg-green-50 rounded-lg'>
-            <div className='text-lg font-bold text-green-600'>
+          <div className='text-center p-3 bg-success/10 rounded-lg'>
+            <div className='text-lg font-bold text-success'>
               {replyRate.toFixed(1)}%
             </div>
-            <div className='text-xs text-green-600'>Reply Rate</div>
+            <div className='text-xs text-success'>Reply Rate</div>
           </div>
         </div>
 
@@ -275,26 +275,26 @@ export function PeopleReplySummary({
         <div className='space-y-2'>
           <div className='text-sm font-medium'>Reply Intent</div>
           <div className='grid grid-cols-3 gap-2'>
-            <div className='text-center p-2 bg-green-50 rounded'>
-              <div className='flex items-center justify-center gap-1 text-green-600 mb-1'>
+            <div className='text-center p-2 bg-success/10 rounded'>
+              <div className='flex items-center justify-center gap-1 text-success mb-1'>
                 <CheckCircle className='h-3 w-3' />
                 <span className='text-sm font-bold'>{interestedCount}</span>
               </div>
-              <div className='text-xs text-green-600'>Interested</div>
+              <div className='text-xs text-success'>Interested</div>
             </div>
-            <div className='text-center p-2 bg-red-50 rounded'>
-              <div className='flex items-center justify-center gap-1 text-red-600 mb-1'>
+            <div className='text-center p-2 bg-destructive/10 rounded'>
+              <div className='flex items-center justify-center gap-1 text-destructive mb-1'>
                 <XCircle className='h-3 w-3' />
                 <span className='text-sm font-bold'>{notInterestedCount}</span>
               </div>
-              <div className='text-xs text-red-600'>Not Interested</div>
+              <div className='text-xs text-destructive'>Not Interested</div>
             </div>
-            <div className='text-center p-2 bg-yellow-50 rounded'>
-              <div className='flex items-center justify-center gap-1 text-yellow-600 mb-1'>
+            <div className='text-center p-2 bg-warning/10 rounded'>
+              <div className='flex items-center justify-center gap-1 text-warning mb-1'>
                 <HelpCircle className='h-3 w-3' />
                 <span className='text-sm font-bold'>{maybeCount}</span>
               </div>
-              <div className='text-xs text-yellow-600'>Maybe</div>
+              <div className='text-xs text-warning'>Maybe</div>
             </div>
           </div>
         </div>
@@ -307,7 +307,7 @@ export function PeopleReplySummary({
               {Object.entries(stageBreakdown).map(([stage, stats]) => (
                 <div
                   key={stage}
-                  className='flex items-center justify-between text-xs p-2 bg-gray-50 rounded'
+                  className='flex items-center justify-between text-xs p-2 bg-muted rounded'
                 >
                   <div className='flex items-center gap-2'>
                     <Badge variant='outline' className='text-xs'>

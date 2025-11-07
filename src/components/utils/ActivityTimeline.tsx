@@ -85,7 +85,7 @@ export const ActivityTimeline = ({
           description: `${leadName || 'Lead'} was added to the system`,
           date: lead.created_at,
           icon: Users,
-          color: 'bg-blue-100 text-blue-700',
+          color: 'bg-blue-100 text-primary',
         });
       }
 
@@ -112,7 +112,7 @@ export const ActivityTimeline = ({
           description: 'LinkedIn connection request was accepted',
           date: lead['Connection Accepted Date'],
           icon: UserCheck,
-          color: 'bg-green-100 text-green-700',
+          color: 'bg-green-100 text-success',
         });
       }
 
@@ -140,7 +140,7 @@ export const ActivityTimeline = ({
           description: lead['Email Sent'] || 'Email sent to prospect',
           date: lead['Email Sent Date'],
           icon: Mail,
-          color: 'bg-orange-100 text-orange-700',
+          color: 'bg-orange-100 text-warning',
         });
       }
 
@@ -153,7 +153,7 @@ export const ActivityTimeline = ({
           description: lead['Email Reply'] || 'Prospect replied to email',
           date: lead['Email Reply Date'],
           icon: Mail,
-          color: 'bg-green-100 text-green-700',
+          color: 'bg-green-100 text-success',
         });
       }
 
@@ -166,7 +166,7 @@ export const ActivityTimeline = ({
           description: lead['Last Message'] || 'Message sent to prospect',
           date: lead['Message Sent Date'],
           icon: MessageCircle,
-          color: 'bg-blue-100 text-blue-700',
+          color: 'bg-blue-100 text-primary',
         });
       }
 
@@ -179,7 +179,7 @@ export const ActivityTimeline = ({
           description: 'Prospect responded to outreach',
           date: lead['Response Date'],
           icon: MessageCircle,
-          color: 'bg-green-100 text-green-700',
+          color: 'bg-green-100 text-success',
         });
       }
 
@@ -208,7 +208,7 @@ export const ActivityTimeline = ({
           description: `Lead stage changed to: ${lead['Stage'] || 'Unknown'}`,
           date: lead['Stage Updated'],
           icon: FileText,
-          color: 'bg-gray-100 text-gray-700',
+          color: 'bg-gray-100 text-foreground',
         });
       }
 

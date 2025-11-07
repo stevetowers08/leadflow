@@ -114,7 +114,7 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
       case 'us':
         return <Send className='h-4 w-4 text-green-500' />;
       case 'them':
-        return <User className='h-4 w-4 text-blue-500' />;
+        return <User className='h-4 w-4 text-primary' />;
       case 'system':
         return <AlertCircle className='h-4 w-4 text-orange-500' />;
       default:
@@ -164,7 +164,7 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
                 <span>Email replies</span>
               </div>
               <div className='flex items-center gap-1'>
-                <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
+                <div className='w-2 h-2 bg-primary/100 rounded-full'></div>
                 <span>LinkedIn messages</span>
               </div>
             </div>
@@ -257,13 +257,13 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
         <ScrollArea ref={scrollAreaRef} className='h-full'>
           {loading ? (
             <div className='flex items-center justify-center h-32'>
-              <div className='animate-spin rounded-full h-8 w-8 border-2 border-blue-200 border-t-blue-600' />
+              <div className='animate-spin rounded-full h-8 w-8 border-2 border-primary/20 border-t-blue-600' />
             </div>
           ) : messages.length === 0 ? (
-            <div className='flex flex-col items-center justify-center h-32 text-gray-500'>
+            <div className='flex flex-col items-center justify-center h-32 text-muted-foreground'>
               <MessageSquare className='h-12 w-12 mb-3 opacity-30' />
               <p className='text-sm font-medium'>No messages found</p>
-              <p className='text-xs text-gray-400'>Messages will appear here</p>
+              <p className='text-xs text-muted-foreground'>Messages will appear here</p>
             </div>
           ) : (
             <div className='p-6 space-y-8'>

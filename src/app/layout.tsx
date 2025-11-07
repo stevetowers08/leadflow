@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
+import { LayoutWrapper } from './LayoutWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,7 +30,9 @@ export default function RootLayout({
         className={`${inter.className} h-full overflow-hidden`}
         style={{ height: '100%', margin: 0, padding: 0 }}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </Providers>
       </body>
     </html>
   );

@@ -8,9 +8,17 @@ import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSli
 import { Badge } from '@/components/ui/badge';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { TabNavigation } from '@/components/ui/tab-navigation';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
 import { FilterControls, Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
+import { useClientId } from '@/hooks/useClientId';
+import { shouldBypassAuth } from '@/config/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { getCompanyLogoUrlSync } from '@/services/logoService';
@@ -87,10 +95,10 @@ const Pipeline: React.FC = () => {
 
   if (!isMounted) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-muted'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading pipeline...</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Loading pipeline...</p>
         </div>
       </div>
     );
@@ -103,6 +111,8 @@ const PipelineContent = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { data: currentClientId, isLoading: clientIdLoading } = useClientId();
+  const bypassAuth = shouldBypassAuth();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [hoveredCompanyId, setHoveredCompanyId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -164,18 +174,58 @@ const PipelineContent = () => {
     isLoading: companiesLoading,
     refetch: refetchCompanies,
   } = useQuery<Company[]>({
-    queryKey: ['pipeline-companies'],
+    queryKey: ['pipeline-companies', currentClientId],
     queryFn: async () => {
+      // Don't fetch if client ID is still loading (unless bypass auth)
+      if (clientIdLoading && !bypassAuth) {
+        return [];
+      }
+
+      // Return empty if no client ID (unless bypass auth)
+      if (!currentClientId && !bypassAuth) {
+        return [];
+      }
+
+      // Fetch companies from client_companies (multi-tenant pattern)
+      // Only show companies qualified by this client AND in engaged pipeline stages
+      const engagedStages = [
+        'qualified',
+        'message_sent',
+        'replied',
+        'interested',
+        'meeting_scheduled',
+        'proposal_sent',
+        'negotiation',
+        'closed_won',
+        'closed_lost',
+        'on_hold',
+      ];
+
       // Use Promise.all to fetch all data in parallel
       const [
-        { data: companiesData, error: companiesError },
+        { data: clientCompaniesData, error: companiesError },
         { data: peopleCounts, error: peopleError },
         { data: jobsCounts, error: jobsError },
       ] = await Promise.all([
-        supabase
-          .from('companies')
-          .select('*')
-          .order('created_at', { ascending: false }),
+        currentClientId
+          ? supabase
+              .from('client_companies')
+              .select(
+                `
+                  *,
+                  companies!inner(*)
+                `
+              )
+              .eq('client_id', currentClientId)
+              .eq('qualification_status', 'qualify')
+              .order('qualified_at', { ascending: false })
+          : bypassAuth
+            ? supabase
+                .from('companies')
+                .select('*')
+                .in('pipeline_stage', engagedStages)
+                .order('created_at', { ascending: false })
+            : Promise.resolve({ data: [], error: null }),
         supabase
           .from('people')
           .select('company_id')
@@ -190,6 +240,34 @@ const PipelineContent = () => {
       if (companiesError) throw companiesError;
       if (peopleError) throw peopleError;
       if (jobsError) throw jobsError;
+
+      // Transform client_companies data: extract nested company objects
+      // Filter to only show companies in engaged pipeline stages
+      let companiesData: Company[] = [];
+      
+      if (currentClientId && clientCompaniesData) {
+        // Extract companies from client_companies join
+        companiesData = clientCompaniesData
+          .map((item: { companies: Company }) => ({
+            ...item.companies, // Extract nested company data
+            qualification_status: (item as { qualification_status?: string }).qualification_status,
+            qualified_at: (item as { qualified_at?: string }).qualified_at,
+            qualified_by: (item as { qualified_by?: string }).qualified_by,
+            client_priority: (item as { priority?: string }).priority,
+          }))
+          .filter(
+            company =>
+              company.pipeline_stage &&
+              engagedStages.includes(company.pipeline_stage as string)
+          );
+      } else if (bypassAuth && clientCompaniesData) {
+        // In bypass auth mode, clientCompaniesData contains companies directly
+        companiesData = (clientCompaniesData as Company[]).filter(
+          company =>
+            company.pipeline_stage &&
+            engagedStages.includes(company.pipeline_stage as string)
+        );
+      }
 
       // Count people per company
       const companyPeopleCount: Record<string, number> = {};
@@ -260,6 +338,7 @@ const PipelineContent = () => {
         },
       }));
     },
+    enabled: !!currentClientId || bypassAuth || !clientIdLoading,
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -318,7 +397,7 @@ const PipelineContent = () => {
       {
         key: 'qualified',
         label: 'Qualified',
-        color: 'bg-gray-100 text-gray-700 border-gray-200',
+        color: 'bg-gray-100 text-foreground border-border',
       },
       {
         key: 'message_sent',
@@ -468,7 +547,9 @@ const PipelineContent = () => {
           description: `Company moved to ${pipelineStages.find(stage => stage.key === newStage)?.label}`,
         });
       } catch (error) {
-        console.error('Error updating company stage:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error updating company stage:', error);
+        }
 
         // Revert optimistic update on error
         refetchCompanies();
@@ -806,6 +887,18 @@ const PipelineContent = () => {
     [companies.length, filteredCompanies.length]
   );
 
+  // Memoize people lookup by company_id for performance
+  const peopleByCompanyId = useMemo(() => {
+    const map = new Map<string, Person[]>();
+    people.forEach(person => {
+      if (person.company_id) {
+        const existing = map.get(person.company_id) || [];
+        map.set(person.company_id, [...existing, person]);
+      }
+    });
+    return map;
+  }, [people]);
+
   // Table columns
   const tableColumns: ColumnConfig<Company>[] = useMemo(
     () => [
@@ -816,7 +909,7 @@ const PipelineContent = () => {
         minWidth: '280px',
         render: (_, company) => (
           <div className='min-w-0 cursor-pointer hover:bg-muted rounded-md p-1 -m-1 transition-colors duration-150'>
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 min-w-0'>
               <div className='w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0'>
                 {company.website ? (
                   <img
@@ -838,9 +931,18 @@ const PipelineContent = () => {
                 ) : null}
                 <Building2 className='h-3 w-3 text-muted-foreground' />
               </div>
-              <div className='text-sm font-medium text-foreground truncate'>
-                {company.name}
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className='text-sm font-medium text-foreground truncate min-w-0 flex-1'>
+                    {company.name || '-'}
+                  </div>
+                </TooltipTrigger>
+                {company.name && (
+                  <TooltipContent>
+                    <p>{company.name}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
             </div>
           </div>
         ),
@@ -854,6 +956,7 @@ const PipelineContent = () => {
         render: (_, company) => (
           <div
             onClick={e => e.stopPropagation()}
+            onMouseDown={e => e.stopPropagation()}
             className='flex items-center justify-center'
           >
             <IconOnlyAssignmentCell
@@ -872,40 +975,62 @@ const PipelineContent = () => {
         label: 'Contact',
         width: '180px',
         minWidth: '180px',
-        render: (_, company) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm'>
-            {company.head_office || '-'}
-          </div>
-        ),
+        render: (_, company) => {
+          const headOffice = company.head_office || '-';
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm truncate min-w-0'>
+                  {headOffice}
+                </div>
+              </TooltipTrigger>
+              {headOffice !== '-' && (
+                <TooltipContent>
+                  <p>{headOffice}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          );
+        },
       },
       {
         key: 'account',
         label: 'Account',
         width: '200px',
         minWidth: '200px',
-        render: (_, company) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm'>
-            {company.name}
-          </div>
-        ),
+        render: (_, company) => {
+          const accountName = company.name || '-';
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='whitespace-nowrap overflow-hidden text-ellipsis text-sm truncate min-w-0'>
+                  {accountName}
+                </div>
+              </TooltipTrigger>
+              {accountName !== '-' && (
+                <TooltipContent>
+                  <p>{accountName}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          );
+        },
       },
       {
         key: 'people',
-        label: 'People',
+        label: 'CONTACTS',
         width: '120px',
         minWidth: '120px',
         cellType: 'regular',
-        align: 'center',
+        align: 'left',
         render: (_, company) => {
-          const companyPeople = people.filter(p => p.company_id === company.id);
+          const companyPeople = peopleByCompanyId.get(company.id) || [];
           return (
-            <div onClick={e => e.stopPropagation()}>
-              <PeopleAvatars
-                people={companyPeople}
-                onPersonClick={personId => router.push(`/people/${personId}`)}
-                maxVisible={3}
-              />
-            </div>
+            <PeopleAvatars
+              people={companyPeople}
+              onPersonClick={personId => router.push(`/people/${personId}`)}
+              maxVisible={3}
+            />
           );
         },
       },
@@ -944,7 +1069,7 @@ const PipelineContent = () => {
         align: 'center',
         render: (_, company) => {
           if (!company.reply_stats || company.reply_stats.total === 0) {
-            return <span className='text-xs text-gray-400'>—</span>;
+            return <span className='text-xs text-muted-foreground'>—</span>;
           }
           const dominantIntent: ReplyIntent =
             company.reply_stats.interested > company.reply_stats.not_interested
@@ -1008,7 +1133,7 @@ const PipelineContent = () => {
         style={style}
         {...attributes}
         {...listeners}
-        className={`w-full relative bg-white rounded-lg border border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer group ${
+        className={`w-full relative bg-white rounded-lg border border-border shadow-sm hover:border-border/60 hover:shadow-md transition-all duration-200 cursor-pointer group ${
           isDraggable
             ? 'hover:shadow-lg cursor-grab active:cursor-grabbing'
             : 'cursor-pointer'
@@ -1038,7 +1163,7 @@ const PipelineContent = () => {
           {/* Company Logo and Name */}
           <div className='flex items-start gap-2'>
             {/* Company Logo */}
-            <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden'>
+            <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-muted border border-gray-100 flex items-center justify-center overflow-hidden'>
               {company.website ? (
                 <img
                   src={
@@ -1082,7 +1207,7 @@ const PipelineContent = () => {
               </h3>
               {/* Head Office - Below company name, smaller */}
               {company.head_office && (
-                <div className='flex items-center gap-1 text-xs text-gray-500 mt-0.5'>
+                <div className='flex items-center gap-1 text-xs text-muted-foreground mt-0.5'>
                   <MapPin className='h-3 w-3' />
                   <span className='truncate'>{company.head_office}</span>
                 </div>
@@ -1096,7 +1221,7 @@ const PipelineContent = () => {
           {/* Industry - On its own line */}
           {company.industry && (
             <div className='mb-2'>
-              <span className='inline-block bg-gray-50 px-2 py-0.5 rounded-md text-xs text-gray-600'>
+              <span className='inline-block bg-muted px-2 py-0.5 rounded-md text-xs text-muted-foreground'>
                 {company.industry}
               </span>
             </div>
@@ -1129,20 +1254,20 @@ const PipelineContent = () => {
                 </span>
               )}
               {company.automation_active && (
-                <span className='inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-700'>
+                <span className='inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-success/10 text-success'>
                   <Zap className='h-3 w-3 mr-0.5' />
                   Auto
                 </span>
               )}
               {isCurrentlyUpdating && (
-                <span className='inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-yellow-50 text-yellow-700'>
+                <span className='inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-warning/10 text-warning'>
                   <div className='animate-spin rounded-full h-3 w-3 border border-yellow-300 border-t-yellow-600 mr-0.5' />
                   Moving
                 </span>
               )}
 
               {/* People Count */}
-              <div className='inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-gray-50 text-gray-700'>
+              <div className='inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-muted text-foreground'>
                 <Users className='h-3 w-3 mr-0.5' />
                 <span className='font-medium'>{company.people_count || 0}</span>
               </div>
@@ -1171,7 +1296,7 @@ const PipelineContent = () => {
           {/* Assignment */}
           <div className='mt-2 pt-2 border-t border-gray-100'>
             <div className='flex items-center gap-1.5'>
-              <span className='text-xs text-gray-500'>Assigned to:</span>
+              <span className='text-xs text-muted-foreground'>Assigned to:</span>
               <OwnerDisplay
                 ownerId={company.owner_id}
                 size='sm'
@@ -1228,7 +1353,7 @@ const PipelineContent = () => {
       return (
         <div key={stage.key} className='flex-shrink-0 w-72'>
           {/* Stage Header Card */}
-          <div className='mb-3 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden'>
+          <div className='mb-3 bg-white rounded-lg border border-border shadow-sm overflow-hidden'>
             {/* Colored Top Bar */}
             <div className={cn('h-1.5', stage.color)} />
 
@@ -1239,7 +1364,7 @@ const PipelineContent = () => {
                 </h3>
                 <Badge
                   variant='secondary'
-                  className='bg-gray-100 text-gray-700 border-none text-xs h-5'
+                  className='bg-gray-100 text-foreground border-none text-xs h-5'
                 >
                   {stageCompanies.length}
                 </Badge>
@@ -1267,8 +1392,8 @@ const PipelineContent = () => {
             className={`space-y-2 min-h-[200px] rounded-lg transition-all duration-200 border-2 border-transparent ${
               isActiveDropTarget
                 ? canAcceptDrop
-                  ? 'border-green-400 bg-green-50/50'
-                  : 'border-red-400 bg-red-50/50'
+                  ? 'border-green-400 bg-success/10/50'
+                  : 'border-red-400 bg-destructive/10/50'
                 : ''
             }`}
             style={{
@@ -1288,8 +1413,8 @@ const PipelineContent = () => {
               <div
                 className={`text-center text-sm py-2 rounded mb-2 ${
                   canAcceptDrop
-                    ? 'text-green-700 bg-green-100'
-                    : 'text-red-700 bg-red-100'
+                    ? 'text-success bg-green-100'
+                    : 'text-destructive bg-red-100'
                 }`}
               >
                 {canAcceptDrop ? (
@@ -1397,7 +1522,7 @@ const PipelineContent = () => {
                   'h-8 px-3 rounded-md border flex items-center gap-2 transition-colors',
                   groupByStage
                     ? 'bg-primary-50 text-primary-700 border-primary-200'
-                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                    : 'bg-white text-muted-foreground border-border/60 hover:bg-muted'
                 )}
                 title={groupByStage ? 'Ungroup' : 'Group by stage'}
               >
@@ -1412,20 +1537,22 @@ const PipelineContent = () => {
         {activeTab === 'table' ? (
           <>
             <div className='flex-1 min-h-0'>
-              <UnifiedTable
-                data={paginatedData}
-                columns={tableColumns}
-                pagination={false}
-                stickyHeaders={true}
-                scrollable={true}
-                onRowClick={handleCompanyClick}
-                loading={loading}
-                emptyMessage='No deals found'
-                grouped={groupByStage}
-                groups={groupedData}
-                expandedGroups={expandedGroups}
-                onToggleGroup={handleToggleGroup}
-              />
+              <TooltipProvider>
+                <UnifiedTable
+                  data={paginatedData}
+                  columns={tableColumns}
+                  pagination={false}
+                  stickyHeaders={true}
+                  scrollable={true}
+                  onRowClick={handleCompanyClick}
+                  loading={loading}
+                  emptyMessage='No deals found'
+                  grouped={groupByStage}
+                  groups={groupedData}
+                  expandedGroups={expandedGroups}
+                  onToggleGroup={handleToggleGroup}
+                />
+              </TooltipProvider>
             </div>
             {!groupByStage && (
               <div className='flex-shrink-0 pt-1'>
@@ -1548,7 +1675,7 @@ const PipelineContent = () => {
                                 <h3 className='font-semibold text-foreground text-base'>
                                   {activeCompany.name}
                                 </h3>
-                                <p className='text-xs text-gray-500'>
+                                <p className='text-xs text-muted-foreground'>
                                   {
                                     pipelineStages.find(
                                       stage =>

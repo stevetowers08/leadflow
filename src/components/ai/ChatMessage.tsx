@@ -36,7 +36,7 @@ export const ChatMessageComponent: React.FC<ChatMessageProps> = ({
             'text-xs font-semibold',
             isUser
               ? 'bg-gradient-to-br from-primary to-primary/80 text-white'
-              : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'
+              : 'bg-gradient-to-br from-gray-100 to-gray-200 text-foreground'
           )}
         >
           {isUser ? <User className='h-4 w-4' /> : <Bot className='h-4 w-4' />}
@@ -55,8 +55,8 @@ export const ChatMessageComponent: React.FC<ChatMessageProps> = ({
             isUser
               ? 'bg-gradient-to-br from-primary to-primary/80 text-white rounded-2xl rounded-br-md'
               : message.error
-                ? 'bg-red-50 text-red-800 rounded-2xl rounded-bl-md border border-red-200'
-                : 'bg-white text-gray-900 rounded-2xl rounded-bl-md border border-gray-100'
+                ? 'bg-destructive/10 text-destructive rounded-2xl rounded-bl-md border border-red-200'
+                : 'bg-white text-foreground rounded-2xl rounded-bl-md border border-gray-100'
           )}
         >
           {message.isLoading ? (
@@ -93,7 +93,7 @@ export const ChatMessageComponent: React.FC<ChatMessageProps> = ({
 
         <div
           className={cn(
-            'text-xs text-gray-500 px-2 font-medium',
+            'text-xs text-muted-foreground px-2 font-medium',
             isUser ? 'text-right' : 'text-left'
           )}
         >

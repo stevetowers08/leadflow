@@ -31,13 +31,13 @@ export const SecondaryNavigation = ({
   return (
     <aside
       className={cn(
-        'w-64 bg-white border-r border-gray-200 h-screen fixed left-56 z-20',
+        'w-64 bg-white border-r border-border h-screen fixed left-56 z-20',
         'flex flex-col',
         className
       )}
     >
       {/* Header */}
-      <div className='px-4 py-4 border-b border-gray-200'>
+      <div className='px-4 py-4 border-b border-border'>
         <h2 className='text-lg font-semibold text-foreground'>{title}</h2>
       </div>
 
@@ -56,8 +56,8 @@ export const SecondaryNavigation = ({
                   'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium',
                   'transition-all duration-150 ease-in-out',
                   isActive
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-foreground hover:bg-gray-50 hover:text-foreground',
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-foreground hover:bg-muted hover:text-foreground',
                   'group'
                 )}
               >
@@ -66,8 +66,8 @@ export const SecondaryNavigation = ({
                     className={cn(
                       'h-4 w-4 transition-all duration-150',
                       isActive
-                        ? 'text-blue-600'
-                        : 'text-gray-500 group-hover:text-foreground'
+                        ? 'text-primary'
+                        : 'text-muted-foreground group-hover:text-foreground'
                     )}
                   />
                 )}

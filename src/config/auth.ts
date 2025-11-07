@@ -1,8 +1,9 @@
 /**
  * Authentication Configuration
  *
- * Centralized configuration for authentication behavior
- * Easy to switch between authenticated and bypass modes
+ * Centralized configuration for authentication behavior.
+ * Security: Bypass is ONLY allowed in development mode by default.
+ * Hardcoded user credentials below are DEV-ONLY fallbacks.
  */
 
 export interface AuthConfig {
@@ -21,53 +22,56 @@ export interface AuthConfig {
 
 /**
  * Get authentication configuration based on environment
- * Supports bypass via:
- * 1. Environment variable: NEXT_PUBLIC_BYPASS_AUTH=true
- * 2. URL query parameter: ?bypass=true (stored in localStorage) - FOR FUTURE USE
+ * 
+ * Development: Bypass enabled by default (unless NEXT_PUBLIC_BYPASS_AUTH=false)
+ * Production/Unknown: Bypass DISABLED for security (env vars ignored)
+ * 
+ * Security: Unknown environments (test, staging, etc.) default to production-like behavior
  */
 export const getAuthConfig = (): AuthConfig => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const envBypass = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
+  const nodeEnv = process.env.NODE_ENV;
+  const isDevelopment = nodeEnv === 'development';
+  const isProduction = nodeEnv === 'production';
+  const envDisableBypass = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'false';
 
-  // FUTURE: URL parameter support (currently disabled - will be enabled in future)
-  // Check URL parameter (client-side only)
-  let urlBypass = false;
-  // Disabled for now - uncomment to enable URL parameter bypass
-  // if (typeof window !== 'undefined') {
-  //   const urlParams = new URLSearchParams(window.location.search);
-  //   if (urlParams.get('bypass') === 'true') {
-  //     urlBypass = true;
-  //     // Store in localStorage for future sessions
-  //     localStorage.setItem('bypassAuth', 'true');
-  //   }
-  // }
-
-  // Check localStorage for persisted bypass
-  let storedBypass = false;
-  if (typeof window !== 'undefined') {
-    storedBypass = localStorage.getItem('bypassAuth') === 'true';
-    urlBypass = urlBypass || storedBypass;
+  // Security: Default to production mode for unknown environments (test, staging, etc.)
+  // This prevents bypass in non-development environments
+  if (!isDevelopment) {
+    return {
+      bypassAuth: false,
+      mockUser: {
+        // Empty strings are safe - mock user should never be used in production
+        id: process.env.NEXT_PUBLIC_MOCK_USER_ID || '',
+        email: process.env.NEXT_PUBLIC_MOCK_USER_EMAIL || '',
+        role: process.env.NEXT_PUBLIC_MOCK_USER_ROLE || 'admin',
+        full_name: process.env.NEXT_PUBLIC_MOCK_USER_NAME || '',
+      },
+      environments: {
+        development: false,
+        production: isProduction,
+      },
+    };
   }
 
-  // Bypass if env var OR URL param/localStorage is set
-  const shouldBypass = envBypass || urlBypass;
-
-  // Debug logging removed - only log in verbose mode via NEXT_PUBLIC_VERBOSE_LOGS
+  // Development mode: bypass by default unless explicitly disabled
+  const shouldBypass = !envDisableBypass;
 
   return {
     bypassAuth: shouldBypass,
     mockUser: {
+      // DEV-ONLY: Hardcoded fallbacks for development convenience
+      // Override via env vars: NEXT_PUBLIC_MOCK_USER_*
       id:
         process.env.NEXT_PUBLIC_MOCK_USER_ID ||
-        '8fecfbaf-34e3-4106-9dd8-2cadeadea100',
-      email: process.env.NEXT_PUBLIC_MOCK_USER_EMAIL || 'test@example.com',
-      // FUTURE: Default to 'admin' when bypassing - currently uses 'owner'
-      role: process.env.NEXT_PUBLIC_MOCK_USER_ROLE || 'owner',
-      full_name: process.env.NEXT_PUBLIC_MOCK_USER_NAME || 'Test User',
+        '339cf49e-5cd9-4692-b4bf-26b9eee3a44c', // steve@polarislabs.io
+      email:
+        process.env.NEXT_PUBLIC_MOCK_USER_EMAIL || 'steve@polarislabs.io',
+      role: process.env.NEXT_PUBLIC_MOCK_USER_ROLE || 'admin',
+      full_name: process.env.NEXT_PUBLIC_MOCK_USER_NAME || 'Steve Towers',
     },
     environments: {
-      development: isDevelopment,
-      production: process.env.NODE_ENV === 'production',
+      development: true,
+      production: false,
     },
   };
 };
@@ -81,21 +85,54 @@ export const shouldBypassAuth = (): boolean => {
 };
 
 /**
- * Clear bypass auth (useful for testing)
+ * Clear bypass auth (development only)
+ * Note: localStorage bypass was removed for security
  */
 export const clearBypassAuth = (): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('bypassAuth');
-    // Reload to apply changes
-    window.location.href = window.location.pathname;
-  }
+  // No-op: localStorage bypass removed for security
+  // Use NEXT_PUBLIC_BYPASS_AUTH=false instead
 };
 
 /**
  * Get mock user data
+ * 
+ * Note: Should only be called when bypassAuth is true (development mode)
+ * Returns empty/invalid user if called in production for safety
  */
 export const getMockUser = () => {
   const config = getAuthConfig();
+  
+  // Safety check: if bypass is disabled, return invalid user to prevent misuse
+  if (!config.bypassAuth) {
+    console.warn('getMockUser() called but bypassAuth is disabled. This should not happen in production.');
+    return {
+      id: '',
+      email: '',
+      user_metadata: {},
+      app_metadata: {},
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      email_confirmed_at: null,
+      phone: '',
+      confirmed_at: null,
+      last_sign_in_at: null,
+      role: 'authenticated',
+      factors: [],
+      identities: [],
+      recovery_sent_at: null,
+      new_email: null,
+      invited_at: null,
+      action_link: null,
+      email_change_sent_at: null,
+      new_phone: null,
+      phone_change_sent_at: null,
+      reauthentication_sent_at: null,
+      reauthentication_token: null,
+      is_anonymous: false,
+    };
+  }
+
   return {
     id: config.mockUser.id,
     email: config.mockUser.email,
@@ -126,9 +163,28 @@ export const getMockUser = () => {
 
 /**
  * Get mock user profile data
+ * 
+ * Note: Should only be called when bypassAuth is true (development mode)
+ * Returns empty/invalid profile if called in production for safety
  */
 export const getMockUserProfile = () => {
   const config = getAuthConfig();
+  
+  // Safety check: if bypass is disabled, return invalid profile to prevent misuse
+  if (!config.bypassAuth) {
+    console.warn('getMockUserProfile() called but bypassAuth is disabled. This should not happen in production.');
+    return {
+      id: '',
+      email: '',
+      full_name: '',
+      role: 'admin',
+      user_limit: 0,
+      is_active: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  }
+
   return {
     id: config.mockUser.id,
     email: config.mockUser.email,

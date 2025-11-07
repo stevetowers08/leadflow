@@ -189,9 +189,9 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
   // Show status if already decided
   if (dealStatus === 'approved') {
     return (
-      <Card className='border-green-200 bg-green-50'>
+      <Card className='border-green-200 bg-success/10'>
         <CardContent className='pt-4'>
-          <div className='flex items-center gap-2 text-green-800'>
+          <div className='flex items-center gap-2 text-success'>
             <CheckCircle className='h-5 w-5' />
             <p className='text-sm font-medium'>This job is in your pipeline</p>
           </div>
@@ -202,9 +202,9 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
 
   if (dealStatus === 'rejected') {
     return (
-      <Card className='border-gray-200 bg-gray-50'>
+      <Card className='border-border bg-muted'>
         <CardContent className='pt-4'>
-          <div className='flex items-center gap-2 text-gray-600'>
+          <div className='flex items-center gap-2 text-muted-foreground'>
             <XCircle className='h-5 w-5' />
             <p className='text-sm font-medium'>
               You previously passed on this deal
@@ -218,15 +218,15 @@ export const JobApprovalActions: React.FC<JobApprovalActionsProps> = ({
   // Show decline form if requested
   if (showDeclineForm) {
     return (
-      <Card className='border-orange-200 bg-orange-50'>
+      <Card className='border-orange-200 bg-warning/10'>
         <CardContent className='pt-4 space-y-4'>
           <div className='flex items-start gap-2'>
-            <AlertCircle className='h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0' />
+            <AlertCircle className='h-5 w-5 text-warning mt-0.5 flex-shrink-0' />
             <div className='flex-1'>
               <p className='text-sm font-medium text-orange-900 mb-1'>
                 Why is this deal not a fit?
               </p>
-              <p className='text-xs text-orange-700'>
+              <p className='text-xs text-warning'>
                 This helps improve future job recommendations
               </p>
             </div>

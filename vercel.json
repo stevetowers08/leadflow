@@ -6,15 +6,6 @@
       "schedule": "0 0 * * *"
     }
   ],
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "framework": "nextjs",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/"
-    }
-  ],
   "headers": [
     {
       "source": "/_next/static/(.*)",

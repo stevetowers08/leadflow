@@ -36,7 +36,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
           'flex',
           isPill
             ? cn(isSmall ? 'gap-1.5' : 'gap-3', 'w-auto')
-            : 'gap-0 border-b border-gray-200 w-full'
+            : 'gap-0 border-b border-border w-full'
         )}
       >
         {tabs.map(tab => {
@@ -45,8 +45,17 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
           return (
             <button
               key={tab.id}
-              onClick={() => onTabChange(tab.id)}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`tabpanel-${tab.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onTabChange(tab.id);
+              }}
               className={cn(
+                'cursor-pointer',
                 cn(
                   'relative flex items-center justify-center font-medium transition-all duration-200',
                   isSmall
@@ -60,13 +69,13 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                       'rounded-md',
                       isActive
                         ? 'bg-primary text-primary-foreground'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        : 'bg-gray-100 text-muted-foreground hover:bg-gray-200'
                     )
                   : cn(
                       'border-b-2 -mb-[1px]',
                       isActive
                         ? 'text-primary border-primary'
-                        : 'text-gray-500 border-transparent hover:text-foreground hover:border-gray-300'
+                        : 'text-muted-foreground border-transparent hover:text-foreground hover:border-border/60'
                     )
               )}
             >
@@ -77,10 +86,10 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                     isPill
                       ? isActive
                         ? 'text-primary-foreground'
-                        : 'text-gray-600'
+                        : 'text-muted-foreground'
                       : isActive
                         ? 'text-primary'
-                        : 'text-gray-400'
+                        : 'text-muted-foreground'
                   )}
                 />
               )}
@@ -96,7 +105,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                     ),
                     isActive
                       ? 'bg-primary/10 text-primary'
-                      : 'bg-gray-100 text-gray-500'
+                      : 'bg-gray-100 text-muted-foreground'
                   )}
                 >
                   {tab.count ?? 0}

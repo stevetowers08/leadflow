@@ -23,10 +23,10 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   const baseClasses = 'rounded-lg transition-all duration-300 ease-out';
 
   const variantClasses = {
-    default: 'bg-white border border-gray-200 shadow-sm',
-    elevated: 'bg-white border border-gray-200 shadow-lg shadow-gray-300/20',
-    glass: 'bg-white border border-gray-200 shadow-xl shadow-gray-400/10',
-    minimal: 'bg-white border border-gray-200 shadow-sm hover:shadow-md',
+    default: 'bg-white border border-border shadow-sm',
+    elevated: 'bg-white border border-border shadow-lg shadow-gray-300/20',
+    glass: 'bg-white border border-border shadow-xl shadow-gray-400/10',
+    minimal: 'bg-white border border-border shadow-sm hover:shadow-md',
   };
 
   const hoverClasses = hover
@@ -70,8 +70,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 }) => {
   const trendColors = {
     up: 'text-emerald-600 bg-emerald-50/60',
-    down: 'text-red-500 bg-red-50/60',
-    neutral: 'text-gray-500 bg-gray-50/60',
+    down: 'text-destructive bg-destructive/10/60',
+    neutral: 'text-muted-foreground bg-muted/60',
   };
 
   return (
@@ -79,11 +79,11 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-3'>
           {/* Ultra-minimal Icon Container */}
-          <div className='p-2 rounded-lg bg-gray-50/80 border border-gray-200'>
-            <Icon className='h-4 w-4 text-gray-600' />
+          <div className='p-2 rounded-lg bg-muted/80 border border-border'>
+            <Icon className='h-4 w-4 text-muted-foreground' />
           </div>
           <div>
-            <p className='text-xs font-medium text-gray-500 uppercase tracking-wide'>
+            <p className='text-xs font-medium text-muted-foreground uppercase tracking-wide'>
               {title}
             </p>
             <p className='text-xl font-semibold text-foreground mt-0.5'>
@@ -132,19 +132,19 @@ export const ActionCard: React.FC<ActionCardProps> = ({
     >
       <div className='flex items-start gap-3'>
         {/* Minimal Icon with subtle background */}
-        <div className='p-2.5 rounded-lg bg-gray-50 border border-gray-200 group-hover:bg-gray-100 transition-all duration-200'>
-          <Icon className='h-4 w-4 text-gray-600' />
+        <div className='p-2.5 rounded-lg bg-muted border border-border group-hover:bg-gray-100 transition-all duration-200'>
+          <Icon className='h-4 w-4 text-muted-foreground' />
         </div>
 
         <div className='flex-1'>
           <h3 className='font-medium text-foreground mb-1'>{title}</h3>
-          <p className='text-sm text-gray-500'>{description}</p>
+          <p className='text-sm text-muted-foreground'>{description}</p>
         </div>
 
         {/* Subtle Arrow */}
         <div className='opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
           <svg
-            className='h-4 w-4 text-gray-400'
+            className='h-4 w-4 text-muted-foreground'
             fill='none'
             stroke='currentColor'
             viewBox='0 0 24 24'
@@ -186,17 +186,17 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
   const getStageColor = (stage?: string) => {
     switch (stage?.toLowerCase()) {
       case 'new_lead':
-        return 'bg-blue-50/80 text-blue-700 border-blue-100/60';
+        return 'bg-primary/10/80 text-primary border-blue-100/60';
       case 'automated':
         return 'bg-emerald-50/80 text-emerald-700 border-emerald-100/60';
       case 'meeting_scheduled':
-        return 'bg-orange-50/80 text-orange-700 border-orange-100/60';
+        return 'bg-warning/10/80 text-warning border-orange-100/60';
       case 'closed_won':
-        return 'bg-green-50/80 text-green-700 border-green-100/60';
+        return 'bg-success/10/80 text-success border-green-100/60';
       case 'closed_lost':
-        return 'bg-red-50/80 text-red-700 border-red-100/60';
+        return 'bg-destructive/10/80 text-destructive border-red-100/60';
       default:
-        return 'bg-gray-50/80 text-foreground border-gray-100/60';
+        return 'bg-muted/80 text-foreground border-gray-100/60';
     }
   };
 
@@ -209,7 +209,7 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
       case 'low':
         return 'bg-orange-100 text-orange-800 border-orange-200';
       default:
-        return 'bg-gray-100 text-gray-500 border-gray-200';
+        return 'bg-gray-100 text-muted-foreground border-border';
     }
   };
 
@@ -221,7 +221,7 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
     >
       <div className='flex items-center gap-3'>
         {/* Minimal Logo Container */}
-        <div className='flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-50/80 border border-gray-200 flex items-center justify-center'>
+        <div className='flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-muted/80 border border-border flex items-center justify-center'>
           {company.logo ? (
             <img
               src={company.logo}
@@ -233,7 +233,7 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
               }}
             />
           ) : null}
-          <div className='hidden w-6 h-6 text-gray-400'>
+          <div className='hidden w-6 h-6 text-muted-foreground'>
             <svg fill='currentColor' viewBox='0 0 24 24'>
               <path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' />
             </svg>
@@ -243,7 +243,7 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
         {/* Company Info */}
         <div className='flex-1 min-w-0'>
           <h3 className='font-medium text-foreground truncate'>{company.name}</h3>
-          <p className='text-sm text-gray-500 truncate'>{company.industry}</p>
+          <p className='text-sm text-muted-foreground truncate'>{company.industry}</p>
 
           {/* Minimal Badges */}
           <div className='flex items-center gap-1.5 mt-1.5'>
@@ -278,7 +278,7 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
                 ? company.employee_count.toString()
                 : `${(company.employee_count / 1000).toFixed(1)}K`}
             </div>
-            <div className='text-xs text-gray-400'>contacts</div>
+            <div className='text-xs text-muted-foreground'>contacts</div>
           </div>
         )}
       </div>
@@ -321,7 +321,7 @@ export const ListCard: React.FC<ListCardProps> = ({
       <div className='flex items-center gap-3'>
         {/* Logo or Icon */}
         {logo ? (
-          <div className='flex-shrink-0 w-8 h-8 rounded-lg overflow-hidden bg-gray-50 border border-gray-200 flex items-center justify-center'>
+          <div className='flex-shrink-0 w-8 h-8 rounded-lg overflow-hidden bg-muted border border-border flex items-center justify-center'>
             <img
               src={logo}
               alt={title}
@@ -331,15 +331,15 @@ export const ListCard: React.FC<ListCardProps> = ({
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');
               }}
             />
-            <div className='hidden w-4 h-4 text-gray-400'>
+            <div className='hidden w-4 h-4 text-muted-foreground'>
               <svg fill='currentColor' viewBox='0 0 24 24'>
                 <path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' />
               </svg>
             </div>
           </div>
         ) : Icon ? (
-          <div className='p-1.5 rounded-lg bg-gray-50 border border-gray-200'>
-            <Icon className='h-3.5 w-3.5 text-gray-500' />
+          <div className='p-1.5 rounded-lg bg-muted border border-border'>
+            <Icon className='h-3.5 w-3.5 text-muted-foreground' />
           </div>
         ) : null}
 
@@ -348,7 +348,7 @@ export const ListCard: React.FC<ListCardProps> = ({
             {title}
           </h4>
           {subtitle && (
-            <p className='text-xs text-gray-500 truncate'>{subtitle}</p>
+            <p className='text-xs text-muted-foreground truncate'>{subtitle}</p>
           )}
         </div>
 

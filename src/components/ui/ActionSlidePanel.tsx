@@ -84,11 +84,11 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
             onClick={e => e.stopPropagation()}
           >
             {/* Minimal Header */}
-            <div className='flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0'>
+            <div className='flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0'>
               <h2 className='text-lg font-semibold text-foreground'>{title}</h2>
               <button
                 onClick={onClose}
-                className='ml-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
+                className='ml-4 p-2 text-muted-foreground hover:text-muted-foreground hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
                 aria-label='Close actions'
               >
                 <X className='h-5 w-5' />
@@ -105,7 +105,7 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
                 return (
                   <React.Fragment key={action.id}>
                     {action.divider && index > 0 && (
-                      <div className='my-3 border-t border-gray-200' />
+                      <div className='my-3 border-t border-border' />
                     )}
                     <button
                       onClick={() => {
@@ -117,19 +117,19 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
                       disabled={action.disabled}
                       className={cn(
                         'w-full flex items-center gap-3 px-4 py-3 text-sm rounded-lg transition-all',
-                        'hover:bg-gray-50 active:bg-gray-100',
+                        'hover:bg-muted active:bg-gray-100',
                         'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
                         'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent',
-                        isDestructive && 'text-red-600 hover:bg-red-50 hover:text-red-700',
-                        isSecondary && 'text-gray-600',
-                        !isDestructive && !isSecondary && 'text-gray-900'
+                        isDestructive && 'text-destructive hover:bg-destructive/10 hover:text-destructive',
+                        isSecondary && 'text-muted-foreground',
+                        !isDestructive && !isSecondary && 'text-foreground'
                       )}
                     >
                       <Icon
                         className={cn(
                           'h-5 w-5 flex-shrink-0',
-                          isDestructive && 'text-red-600',
-                          !isDestructive && !isSecondary && 'text-gray-500'
+                          isDestructive && 'text-destructive',
+                          !isDestructive && !isSecondary && 'text-muted-foreground'
                         )}
                       />
                       <span className='flex-1 text-left font-medium'>{action.label}</span>

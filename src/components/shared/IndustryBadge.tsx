@@ -4,6 +4,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
@@ -33,87 +34,87 @@ export interface IndustryBadgesProps {
  */
 const industryColors: Record<string, string> = {
   // Technology & IT
-  technology: 'bg-blue-100 text-blue-800 border-blue-200',
-  'information technology': 'bg-blue-100 text-blue-800 border-blue-200',
-  'computer software': 'bg-blue-100 text-blue-800 border-blue-200',
-  telecommunications: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  internet: 'bg-purple-100 text-purple-800 border-purple-200',
+  technology: 'bg-primary/10 text-primary border-primary/20',
+  'information technology': 'bg-primary/10 text-primary border-primary/20',
+  'computer software': 'bg-primary/10 text-primary border-primary/20',
+  telecommunications: 'bg-primary/10 text-primary border-primary/20',
+  internet: 'bg-primary/10 text-primary border-primary/20',
 
   // Healthcare
-  healthcare: 'bg-green-100 text-green-800 border-green-200',
-  'health care': 'bg-green-100 text-green-800 border-green-200',
-  medical: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  pharmaceuticals: 'bg-teal-100 text-teal-800 border-teal-200',
-  biotechnology: 'bg-lime-100 text-lime-800 border-lime-200',
+  healthcare: 'bg-success/10 text-success border-success/20',
+  'health care': 'bg-success/10 text-success border-success/20',
+  medical: 'bg-success/10 text-success border-success/20',
+  pharmaceuticals: 'bg-success/10 text-success border-success/20',
+  biotechnology: 'bg-success/10 text-success border-success/20',
 
   // Finance
-  finance: 'bg-amber-100 text-amber-800 border-amber-200',
-  banking: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  'financial services': 'bg-amber-100 text-amber-800 border-amber-200',
-  insurance: 'bg-orange-100 text-orange-800 border-orange-200',
-  accounting: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  finance: 'bg-warning/10 text-warning border-warning/20',
+  banking: 'bg-warning/10 text-warning border-warning/20',
+  'financial services': 'bg-warning/10 text-warning border-warning/20',
+  insurance: 'bg-warning/10 text-warning border-warning/20',
+  accounting: 'bg-warning/10 text-warning border-warning/20',
 
   // Education
-  education: 'bg-sky-100 text-sky-800 border-sky-200',
-  'higher education': 'bg-sky-100 text-sky-800 border-sky-200',
-  'e-learning': 'bg-cyan-100 text-cyan-800 border-cyan-200',
+  education: 'bg-primary/10 text-primary border-primary/20',
+  'higher education': 'bg-primary/10 text-primary border-primary/20',
+  'e-learning': 'bg-primary/10 text-primary border-primary/20',
 
   // Manufacturing & Industrial
-  manufacturing: 'bg-gray-100 text-gray-800 border-gray-200',
-  automotive: 'bg-slate-100 text-slate-800 border-slate-200',
-  aerospace: 'bg-zinc-100 text-zinc-800 border-zinc-200',
-  construction: 'bg-stone-100 text-stone-800 border-stone-200',
+  manufacturing: 'bg-muted text-foreground border-border',
+  automotive: 'bg-muted text-foreground border-border',
+  aerospace: 'bg-muted text-foreground border-border',
+  construction: 'bg-muted text-foreground border-border',
 
   // Retail & Consumer
-  retail: 'bg-pink-100 text-pink-800 border-pink-200',
-  'consumer goods': 'bg-rose-100 text-rose-800 border-rose-200',
-  ecommerce: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
+  retail: 'bg-warning/10 text-warning border-warning/20',
+  'consumer goods': 'bg-warning/10 text-warning border-warning/20',
+  ecommerce: 'bg-primary/10 text-primary border-primary/20',
 
   // Professional Services
-  consulting: 'bg-violet-100 text-violet-800 border-violet-200',
-  legal: 'bg-slate-100 text-slate-800 border-slate-200',
+  consulting: 'bg-primary/10 text-primary border-primary/20',
+  legal: 'bg-muted text-foreground border-border',
 
   // Marketing & Advertising
-  marketing: 'bg-purple-100 text-purple-800 border-purple-200',
-  advertising: 'bg-pink-100 text-pink-800 border-pink-200',
-  'public relations': 'bg-rose-100 text-rose-800 border-rose-200',
+  marketing: 'bg-primary/10 text-primary border-primary/20',
+  advertising: 'bg-warning/10 text-warning border-warning/20',
+  'public relations': 'bg-warning/10 text-warning border-warning/20',
 
   // Real Estate
-  'real estate': 'bg-cyan-100 text-cyan-800 border-cyan-200',
-  'property management': 'bg-sky-100 text-sky-800 border-sky-200',
+  'real estate': 'bg-primary/10 text-primary border-primary/20',
+  'property management': 'bg-primary/10 text-primary border-primary/20',
 
   // Non-profit
-  'non-profit': 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  'non profit': 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  nonprofit: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  'non-profit': 'bg-success/10 text-success border-success/20',
+  'non profit': 'bg-success/10 text-success border-success/20',
+  nonprofit: 'bg-success/10 text-success border-success/20',
 
   // Energy & Utilities
-  energy: 'bg-amber-100 text-amber-800 border-amber-200',
-  utilities: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  'oil & gas': 'bg-orange-100 text-orange-800 border-orange-200',
+  energy: 'bg-warning/10 text-warning border-warning/20',
+  utilities: 'bg-warning/10 text-warning border-warning/20',
+  'oil & gas': 'bg-warning/10 text-warning border-warning/20',
 
   // Hospitality & Tourism
-  hospitality: 'bg-pink-100 text-pink-800 border-pink-200',
-  tourism: 'bg-rose-100 text-rose-800 border-rose-200',
-  'food & beverage': 'bg-red-100 text-red-800 border-red-200',
+  hospitality: 'bg-warning/10 text-warning border-warning/20',
+  tourism: 'bg-warning/10 text-warning border-warning/20',
+  'food & beverage': 'bg-destructive/10 text-destructive border-destructive/20',
 
   // Media & Entertainment
-  media: 'bg-purple-100 text-purple-800 border-purple-200',
-  entertainment: 'bg-pink-100 text-pink-800 border-pink-200',
-  'broadcast media': 'bg-violet-100 text-violet-800 border-violet-200',
+  media: 'bg-primary/10 text-primary border-primary/20',
+  entertainment: 'bg-warning/10 text-warning border-warning/20',
+  'broadcast media': 'bg-primary/10 text-primary border-primary/20',
 
   // Transportation & Logistics
-  transportation: 'bg-blue-100 text-blue-800 border-blue-200',
-  logistics: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-  shipping: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+  transportation: 'bg-primary/10 text-primary border-primary/20',
+  logistics: 'bg-primary/10 text-primary border-primary/20',
+  shipping: 'bg-primary/10 text-primary border-primary/20',
 
   // Government & Public Sector
-  government: 'bg-slate-100 text-slate-800 border-slate-200',
-  'public sector': 'bg-gray-100 text-gray-800 border-gray-200',
+  government: 'bg-muted text-foreground border-border',
+  'public sector': 'bg-muted text-foreground border-border',
 
   // Agriculture
-  agriculture: 'bg-lime-100 text-lime-800 border-lime-200',
-  'agriculture & forestry': 'bg-green-100 text-green-800 border-green-200',
+  agriculture: 'bg-success/10 text-success border-success/20',
+  'agriculture & forestry': 'bg-success/10 text-success border-success/20',
 };
 
 /**
@@ -121,12 +122,12 @@ const industryColors: Record<string, string> = {
  */
 function getIndustryColor(industry: string | null | undefined): string {
   if (!industry) {
-    return 'bg-gray-100 text-gray-500 border-gray-200';
+    return 'bg-muted text-muted-foreground border-border';
   }
 
   const normalized = industry.toLowerCase().trim();
   return (
-    industryColors[normalized] || 'bg-gray-100 text-gray-700 border-gray-200'
+    industryColors[normalized] || 'bg-muted text-foreground border-border'
   );
 }
 
@@ -194,47 +195,45 @@ export function IndustryBadges({
   const overflow = items.length - visible.length;
 
   return (
-    <div
-      className={cn(
-        'flex items-center gap-1',
-        noWrap ? 'flex-nowrap overflow-hidden' : 'flex-wrap',
-        className
-      )}
-    >
-      {/* Always visible badges */}
-      {visible.map(item => (
-        <IndustryBadge
-          key={item}
-          industry={item}
-          variant={badgeVariant}
-          className={cn('shrink-0', badgeClassName)}
-        />
-      ))}
-
-      {/* Overflow indicator */}
-      {showTruncate && (
-        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-          <PopoverTrigger asChild>
-            <button
-              className={cn(
-                'px-2 py-0.5 text-xs rounded-md border',
-                'bg-gray-100 text-gray-700 border-gray-200',
-                'hover:bg-gray-200 transition-colors',
-                'cursor-pointer whitespace-nowrap shrink-0'
-              )}
-              onClick={e => {
-                e.stopPropagation();
-                setIsPopoverOpen(true);
-              }}
-            >
-              +{overflow} more
-            </button>
-          </PopoverTrigger>
+    <TooltipProvider>
+      <div
+        className={cn(
+          'flex items-center gap-1',
+          noWrap ? 'flex-nowrap overflow-hidden' : 'flex-wrap',
+          className
+        )}
+      >
+        {visible.map(item => (
+          <IndustryBadge
+            key={item}
+            industry={item}
+            variant={badgeVariant}
+            className={cn('flex-shrink-0', badgeClassName)}
+          />
+        ))}
+        {showTruncate && (
+          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className={cn(
+                  'px-1.5 py-0.5 text-xs rounded-md border',
+                  'bg-muted text-foreground border-border',
+                  'hover:bg-gray-200 transition-colors',
+                  'cursor-pointer whitespace-nowrap shrink-0'
+                )}
+                onClick={e => {
+                  e.stopPropagation();
+                  setIsPopoverOpen(true);
+                }}
+              >
+                +{overflow}
+              </button>
+            </PopoverTrigger>
           <PopoverContent
             className='w-auto p-3 max-w-sm'
             onClick={e => e.stopPropagation()}
           >
-            <div className='font-medium text-sm mb-2 text-gray-700'>
+            <div className='font-medium text-sm mb-2 text-foreground'>
               All Industries ({items.length})
             </div>
             <div className='flex flex-wrap gap-1.5'>
@@ -249,6 +248,7 @@ export function IndustryBadges({
           </PopoverContent>
         </Popover>
       )}
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

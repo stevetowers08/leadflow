@@ -431,7 +431,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
           value: person?.email_address ? (
             <a
               href={`mailto:${person.email_address}`}
-              className='text-blue-600 hover:text-blue-800 flex items-center gap-1'
+              className='text-primary hover:text-primary flex items-center gap-1'
             >
               <Mail className='h-3 w-3' />
               {person.email_address}
@@ -456,7 +456,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               href={person.linkedin_url}
               target='_blank'
               rel='noopener noreferrer'
-              className='text-blue-600 hover:text-blue-800 flex items-center gap-1'
+              className='text-primary hover:text-primary flex items-center gap-1'
             >
               Profile <ExternalLink className='h-3 w-3' />
             </a>
@@ -530,7 +530,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                     href={company.website}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-blue-600 hover:text-blue-800 flex items-center gap-1'
+                    className='text-primary hover:text-primary flex items-center gap-1'
                   >
                     Visit <ExternalLink className='h-3 w-3' />
                   </a>
@@ -545,7 +545,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                     href={company.linkedin_url}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-blue-600 hover:text-blue-800 flex items-center gap-1'
+                    className='text-primary hover:text-primary flex items-center gap-1'
                   >
                     Company Page <ExternalLink className='h-3 w-3' />
                   </a>
@@ -606,8 +606,8 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
         customHeader={
           <div className='flex items-center justify-between w-full'>
             <div className='flex items-center gap-4'>
-              <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200'>
-                <User className='h-5 w-5 text-gray-400' />
+              <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-border'>
+                <User className='h-5 w-5 text-muted-foreground' />
               </div>
               <div className='flex-1 min-w-0'>
                 <div className='flex items-center gap-3'>
@@ -619,7 +619,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                       href={person.linkedin_url}
                       target='_blank'
                       rel='noopener noreferrer'
-                      className='text-gray-400 hover:text-blue-600 transition-colors'
+                      className='text-muted-foreground hover:text-primary transition-colors'
                       title='View LinkedIn Profile'
                     >
                       <svg
@@ -633,7 +633,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                     </a>
                   )}
                 </div>
-                <p className='text-sm text-gray-500 truncate'>
+                <p className='text-sm text-muted-foreground truncate'>
                   {person.company_role || 'Contact Information'}
                 </p>
               </div>
@@ -648,7 +648,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   e.stopPropagation();
                   handleSendMessage();
                 }}
-                className='h-8 w-8 p-0 border border-gray-200 rounded-md hover:border-gray-300 text-muted-foreground hover:text-foreground bg-white'
+                className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-white'
                 title='Send message'
               >
                 <Mail className='h-4 w-4' />
@@ -662,7 +662,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                     e.stopPropagation();
                     setShowCampaignSelect(true);
                   }}
-                  className='h-8 w-8 p-0 border border-gray-200 rounded-md hover:border-gray-300 text-muted-foreground hover:text-foreground bg-white'
+                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-white'
                   title='Add to campaign'
                 >
                   <ListPlus className='h-4 w-4' />
@@ -720,7 +720,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               {activeTab === 'overview' && (
               <div className='space-y-4 px-6 pb-8'>
                   {/* Divider */}
-                  <div className='w-full border-t border-gray-200'></div>
+                  <div className='w-full border-t border-border'></div>
 
                 {/* Person Details moved to sidebar */}
 
@@ -732,10 +732,10 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                           {enrolledCampaigns.map(campaign => (
                             <div
                               key={campaign.id}
-                              className='flex items-center gap-2 p-2 bg-gray-50 rounded-md border border-gray-200'
+                              className='flex items-center gap-2 p-2 bg-muted rounded-md border border-border'
                             >
-                              <ListPlus className='h-4 w-4 text-gray-500' />
-                              <span className='text-sm text-gray-900 flex-1'>
+                              <ListPlus className='h-4 w-4 text-muted-foreground' />
+                              <span className='text-sm text-foreground flex-1'>
                                 {campaign.name}
                               </span>
                               <StatusBadge
@@ -758,11 +758,11 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   {/* Source Tracking Section */}
                   {(person?.lead_source || person?.source_details) && (
                     <div className='mt-8 mb-24'>
-                      <div className='p-4 bg-blue-50 rounded-lg border border-blue-200'>
+                      <div className='p-4 bg-primary/10 rounded-lg border border-primary/20'>
                         <div className='flex items-start gap-2'>
-                          <Target className='h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0' />
+                          <Target className='h-4 w-4 text-primary mt-0.5 flex-shrink-0' />
                           <div className='flex-1'>
-                            <div className='text-xs font-semibold text-blue-700 mb-1 flex items-center gap-1'>
+                            <div className='text-xs font-semibold text-primary mb-1 flex items-center gap-1'>
                               {person?.lead_source
                                 ?.replace(/_/g, ' ')
                                 .replace(/\b\w/g, l => l.toUpperCase()) ||
@@ -778,7 +778,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                               )}
                             </div>
                             {person?.source_details && (
-                              <p className='text-sm text-blue-800'>
+                              <p className='text-sm text-primary'>
                                 {person.source_details}
                               </p>
                             )}
@@ -797,11 +797,11 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                         </div>
                         {company.score_reason && (
                           <div className='mt-6'>
-                            <div className='p-4 bg-blue-50 rounded-lg border border-blue-200'>
+                            <div className='p-4 bg-primary/10 rounded-lg border border-primary/20'>
                               <h5 className='text-sm font-semibold text-blue-900 mb-2'>
                                 Company Analysis
                               </h5>
-                              <p className='text-sm text-blue-800 leading-relaxed'>
+                              <p className='text-sm text-primary leading-relaxed'>
                                 {company.score_reason}
                               </p>
                             </div>
@@ -815,20 +815,20 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                                   <div
                                     key={otherPerson.id}
                                     onClick={() => handlePersonClick(otherPerson.id)}
-                                    className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer'
+                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-gray-100 transition-colors cursor-pointer'
                                   >
                                     <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
-                                      <User className='h-5 w-5 text-gray-500' />
+                                      <User className='h-5 w-5 text-muted-foreground' />
                                     </div>
                                     <div className='flex-1 min-w-0'>
                                       <div className='font-medium text-sm text-foreground truncate'>
                                         {otherPerson.name}
                                       </div>
-                                      <div className='text-xs text-gray-500 truncate'>
+                                      <div className='text-xs text-muted-foreground truncate'>
                                         {otherPerson.company_role || 'No role specified'}
                                       </div>
                                       {otherPerson.employee_location && (
-                                        <div className='text-xs text-gray-500 truncate mt-0.5'>
+                                        <div className='text-xs text-muted-foreground truncate mt-0.5'>
                                           {otherPerson.employee_location}
                                         </div>
                                       )}
@@ -860,20 +860,20 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                               <div
                                 key={job.id}
                                 onClick={() => handleJobClick(job.id)}
-                                className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer'
+                                className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-gray-100 transition-colors cursor-pointer'
                               >
                                 <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
-                                  <Calendar className='h-5 w-5 text-gray-500' />
+                                  <Calendar className='h-5 w-5 text-muted-foreground' />
                                 </div>
                                 <div className='flex-1 min-w-0'>
                                   <div className='font-medium text-sm text-foreground truncate'>
                                     {job.title || 'Untitled Job'}
                                   </div>
-                                  <div className='text-xs text-gray-500 truncate'>
+                                  <div className='text-xs text-muted-foreground truncate'>
                                     {job.function || 'No function specified'}
                                   </div>
                                   {job.location && (
-                                    <div className='text-xs text-gray-500 truncate mt-0.5'>
+                                    <div className='text-xs text-muted-foreground truncate mt-0.5'>
                                       {job.location}
                                     </div>
                                   )}
@@ -884,8 +884,8 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                           })}
                         </div>
                       ) : (
-                        <div className='text-center py-6 text-gray-500'>
-                          <Calendar className='h-8 w-8 text-gray-300 mx-auto mb-2' />
+                        <div className='text-center py-6 text-muted-foreground'>
+                          <Calendar className='h-8 w-8 text-muted-foreground mx-auto mb-2' />
                           <p className='text-sm'>No jobs available</p>
                         </div>
                       )}
@@ -904,7 +904,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                             const interactionType = getInteractionTypeDisplay(
                               interaction.interaction_type
                             );
-                            let dotColor = 'bg-blue-500';
+                            let dotColor = 'bg-primary/100';
                             if (
                               interaction.interaction_type?.includes('reply') ||
                               interaction.interaction_type?.includes('positive')
@@ -914,13 +914,13 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                               interaction.interaction_type?.includes('decline') ||
                               interaction.interaction_type?.includes('negative')
                             ) {
-                              dotColor = 'bg-red-500';
+                              dotColor = 'bg-destructive/100';
                             }
 
                             return (
                               <div
                                 key={interaction.id}
-                                className='flex gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200 select-text'
+                                className='flex gap-3 p-3 rounded-lg hover:bg-muted transition-colors border border-transparent hover:border-border select-text'
                               >
                                 <div
                                   className={`flex-shrink-0 w-2 h-2 rounded-full ${dotColor} mt-1.5`}
@@ -930,11 +930,11 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                                     {interactionType}
                                   </div>
                                   {interaction.subject && (
-                                    <div className='text-xs text-gray-500 mt-0.5'>
+                                    <div className='text-xs text-muted-foreground mt-0.5'>
                                       {interaction.subject}
                                     </div>
                                   )}
-                                  <div className='text-xs text-gray-400 mt-1'>
+                                  <div className='text-xs text-muted-foreground mt-1'>
                                     {formatDate(interaction.occurred_at)}
                                   </div>
                                 </div>
@@ -942,7 +942,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                             );
                           })
                         ) : (
-                          <div className='text-center py-8 text-gray-500 text-sm'>
+                          <div className='text-center py-8 text-muted-foreground text-sm'>
                             No activity yet
                           </div>
                         )}
@@ -974,11 +974,11 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                       }
                     >
                       {person?.email_ai_message ? (
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-gray-50 border border-gray-200 rounded-md p-3'>
+                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
                           {person.email_ai_message}
                         </div>
                       ) : (
-                        <div className='text-sm text-gray-500'>No email AI message</div>
+                        <div className='text-sm text-muted-foreground'>No email AI message</div>
                       )}
                     </SlideOutSection>
                   </div>
@@ -992,11 +992,11 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                       }
                     >
                       {person?.linkedin_ai_message ? (
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-gray-50 border border-gray-200 rounded-md p-3'>
+                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
                           {person.linkedin_ai_message}
                         </div>
                       ) : (
-                        <div className='text-sm text-gray-500'>No LinkedIn AI message</div>
+                        <div className='text-sm text-muted-foreground'>No LinkedIn AI message</div>
                       )}
                     </SlideOutSection>
                   </div>
@@ -1010,11 +1010,11 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                       }
                     >
                       {person?.ai_user_message ? (
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-gray-50 border border-gray-200 rounded-md p-3'>
+                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
                           {person.ai_user_message}
                         </div>
                       ) : (
-                        <div className='text-sm text-gray-500'>No user AI message</div>
+                        <div className='text-sm text-muted-foreground'>No user AI message</div>
                       )}
                     </SlideOutSection>
                   </div>
@@ -1024,13 +1024,13 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
           </section>
 
           {/* Right Column - Sidebar */}
-          <div className='w-80 flex-shrink-0 border-l border-gray-200 flex flex-col h-full overflow-hidden ml-0'>
+          <div className='w-80 flex-shrink-0 border-l border-border flex flex-col h-full overflow-hidden ml-0'>
             <div className='flex-1 flex flex-col overflow-y-auto'>
               {/* Contact Details Section */}
               <div className='px-6 pt-6'>
                 <div className='mb-4'>
                   <button className='flex items-center gap-2 w-full text-left'>
-                    <ChevronDown className='h-4 w-4 text-gray-500' />
+                    <ChevronDown className='h-4 w-4 text-muted-foreground' />
                     <h3 className='text-base font-semibold text-foreground'>
                       Record Details
                     </h3>
@@ -1039,9 +1039,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                 <div className='space-y-3'>
                   {/* Name */}
                   <div className='flex items-center gap-3'>
-                    <User className='h-4 w-4 text-gray-500 flex-shrink-0' />
+                    <User className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-gray-600'>Name</span>
+                      <span className='text-xs text-muted-foreground'>Name</span>
                       <span className='text-sm text-foreground font-medium text-right'>
                         {person?.name || '-'}
                       </span>
@@ -1050,9 +1050,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
                   {/* Company */}
                   <div className='flex items-center gap-3'>
-                    <Building2 className='h-4 w-4 text-gray-500 flex-shrink-0' />
+                    <Building2 className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-gray-600'>Company</span>
+                      <span className='text-xs text-muted-foreground'>Company</span>
                       <button
                         onClick={() => company?.id && handleCompanyClick(company.id)}
                         className='flex items-center gap-2 text-right hover:underline'
@@ -1067,10 +1067,10 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                               ) || ''
                             }
                             alt={company.name}
-                            className='w-4 h-4 rounded-sm border border-gray-200'
+                            className='w-4 h-4 rounded-sm border border-border'
                           />
                         ) : (
-                          <Building2 className='h-4 w-4 text-gray-500' />
+                          <Building2 className='h-4 w-4 text-muted-foreground' />
                         )}
                         <span className='text-sm text-foreground'>
                           {company?.name || '-'}
@@ -1081,27 +1081,27 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
                   {/* Email */}
                   <div className='flex items-center gap-3'>
-                    <Mail className='h-4 w-4 text-gray-500 flex-shrink-0' />
+                    <Mail className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-gray-600'>Email</span>
+                      <span className='text-xs text-muted-foreground'>Email</span>
                       {person?.email_address ? (
                         <a
                           href={`mailto:${person.email_address}`}
-                          className='text-sm text-blue-600 hover:text-blue-800 underline text-right'
+                          className='text-sm text-primary hover:text-primary underline text-right'
                         >
                           {person.email_address}
                         </a>
                       ) : (
-                        <span className='text-sm text-gray-400 text-right'>-</span>
+                        <span className='text-sm text-muted-foreground text-right'>-</span>
                       )}
                     </div>
                   </div>
 
                   {/* Location */}
                   <div className='flex items-center gap-3'>
-                    <MapPin className='h-4 w-4 text-gray-500 flex-shrink-0' />
+                    <MapPin className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-gray-600'>Location</span>
+                      <span className='text-xs text-muted-foreground'>Location</span>
                       <span className='text-sm text-foreground text-right'>
                         {person?.employee_location
                           ? person.employee_location
@@ -1115,34 +1115,34 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
                   {/* LinkedIn */}
                   <div className='flex items-center gap-3'>
-                    <Link2 className='h-4 w-4 text-gray-500 flex-shrink-0' />
+                    <Link2 className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-gray-600'>LinkedIn</span>
+                      <span className='text-xs text-muted-foreground'>LinkedIn</span>
                       {person?.linkedin_url ? (
                         <a
                           href={person.linkedin_url}
                           target='_blank'
                           rel='noopener noreferrer'
-                          className='text-sm text-blue-600 hover:text-blue-800 underline text-right'
+                          className='text-sm text-primary hover:text-primary underline text-right'
                         >
                           Profile
                         </a>
                       ) : (
-                        <span className='text-sm text-gray-400 text-right'>-</span>
+                        <span className='text-sm text-muted-foreground text-right'>-</span>
                       )}
                     </div>
                   </div>
 
                   {/* Match Score */}
                   <div className='flex items-center gap-3'>
-                    <Sparkles className='h-4 w-4 text-gray-500 flex-shrink-0' />
+                    <Sparkles className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-gray-600'>Match Score</span>
+                      <span className='text-xs text-muted-foreground'>Match Score</span>
                       <div className='text-right'>
                         {person?.lead_score ? (
                           <ScoreBadge score={person.lead_score} variant='compact' />
                         ) : (
-                          <span className='text-sm text-gray-400'>-</span>
+                          <span className='text-sm text-muted-foreground'>-</span>
                         )}
                       </div>
                     </div>
@@ -1150,9 +1150,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
                   {/* Last Interaction */}
                   <div className='flex items-center gap-3'>
-                    <Mail className='h-4 w-4 text-gray-500 flex-shrink-0' />
+                    <Mail className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-gray-600'>
+                      <span className='text-xs text-muted-foreground'>
                         Last Interaction
                       </span>
                       <span className='text-sm text-foreground text-right'>
@@ -1170,9 +1170,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
                   {/* Added */}
                   <div className='flex items-center gap-3'>
-                    <Calendar className='h-4 w-4 text-gray-500 flex-shrink-0' />
+                    <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-gray-600'>Added</span>
+                      <span className='text-xs text-muted-foreground'>Added</span>
                       <span className='text-sm text-foreground text-right'>
                         {person?.created_at
                           ? formatDistanceToNow(new Date(person.created_at), {
@@ -1185,16 +1185,16 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
                   {/* Jobs */}
                   <div className='flex items-center gap-3'>
-                    <Calendar className='h-4 w-4 text-gray-500 flex-shrink-0' />
+                    <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-gray-600'>Jobs</span>
+                      <span className='text-xs text-muted-foreground'>Jobs</span>
                       <button
                         onClick={() => {
                           setActiveTab('overview');
                           const el = document.getElementById('jobs-section');
                           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }}
-                        className='text-sm text-blue-600 hover:text-blue-800 underline text-right'
+                        className='text-sm text-primary hover:text-primary underline text-right'
                       >
                         {jobs.length}
                       </button>

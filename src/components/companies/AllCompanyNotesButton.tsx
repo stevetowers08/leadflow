@@ -116,17 +116,17 @@ export const AllCompanyNotesButton: React.FC = () => {
           {isLoading ? (
             <div className='flex items-center justify-center py-16'>
               <div className='flex flex-col items-center gap-3'>
-                <Loader2 className='h-6 w-6 animate-spin text-blue-500' />
-                <p className='text-sm text-gray-500'>Loading notes...</p>
+                <Loader2 className='h-6 w-6 animate-spin text-primary' />
+                <p className='text-sm text-muted-foreground'>Loading notes...</p>
               </div>
             </div>
           ) : notes.length === 0 ? (
             <div className='flex flex-col items-center justify-center py-16 px-4'>
               <div className='h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4'>
-                <StickyNote className='h-8 w-8 text-gray-400' />
+                <StickyNote className='h-8 w-8 text-muted-foreground' />
               </div>
-              <p className='text-sm font-medium text-gray-700 mb-1'>No company notes yet</p>
-              <p className='text-xs text-gray-500 text-center'>
+              <p className='text-sm font-medium text-foreground mb-1'>No company notes yet</p>
+              <p className='text-xs text-muted-foreground text-center'>
                 Notes you add to companies will appear here
               </p>
             </div>
@@ -136,17 +136,17 @@ export const AllCompanyNotesButton: React.FC = () => {
                 {notes.map(note => (
                   <div
                     key={note.id}
-                    className='px-3 py-3.5 hover:bg-gray-50/80 active:bg-gray-100 transition-all border-b border-gray-100'
+                    className='px-3 py-3.5 hover:bg-muted/80 active:bg-gray-100 transition-all border-b border-gray-100'
                   >
                   <div className='flex items-start justify-between mb-2.5'>
                     <div className='flex items-center gap-2'>
-                      <Building2 className='h-4 w-4 text-blue-600 flex-shrink-0' />
-                      <span className='text-sm font-semibold text-gray-900 line-clamp-1'>
+                      <Building2 className='h-4 w-4 text-primary flex-shrink-0' />
+                      <span className='text-sm font-semibold text-foreground line-clamp-1'>
                         {note.company_name}
                       </span>
                     </div>
-                    <div className='flex items-center gap-2.5 text-xs text-gray-500 flex-shrink-0 ml-2'>
-                      <div className='flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-50'>
+                    <div className='flex items-center gap-2.5 text-xs text-muted-foreground flex-shrink-0 ml-2'>
+                      <div className='flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted'>
                         <User className='h-3 w-3' />
                         <span className='font-medium'>{note.author_name}</span>
                       </div>
@@ -156,7 +156,7 @@ export const AllCompanyNotesButton: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <p className='text-xs text-gray-600 line-clamp-3 whitespace-pre-wrap leading-relaxed'>
+                  <p className='text-xs text-muted-foreground line-clamp-3 whitespace-pre-wrap leading-relaxed'>
                     {note.content}
                   </p>
                 </div>

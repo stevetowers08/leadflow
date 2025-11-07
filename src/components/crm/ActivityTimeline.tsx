@@ -114,7 +114,7 @@ export const ActivityTimeline = ({
               leadName: conv.people?.name,
               leadId: conv.person_id,
               icon: Linkedin,
-              color: 'bg-blue-100 text-blue-600',
+              color: 'bg-blue-100 text-primary',
               metadata: { conversationId: conv.id, messageId: message.id },
             });
           }
@@ -157,7 +157,7 @@ export const ActivityTimeline = ({
               leadName: thread.people?.name,
               leadId: thread.person_id,
               icon: EmailIcon,
-              color: 'bg-green-100 text-green-600',
+              color: 'bg-green-100 text-success',
               metadata: { threadId: thread.id, emailId: email.id },
             });
           }
@@ -183,7 +183,7 @@ export const ActivityTimeline = ({
             leadName: personData.name,
             leadId: entityId,
             icon: User,
-            color: 'bg-orange-100 text-orange-600',
+            color: 'bg-orange-100 text-warning',
             metadata: { newStage: personData.stage },
           });
         }
@@ -217,7 +217,7 @@ export const ActivityTimeline = ({
             leadName: entityName,
             leadId: entityId,
             icon: FileText,
-            color: 'bg-gray-100 text-gray-600',
+            color: 'bg-gray-100 text-muted-foreground',
             metadata: { noteId: note.id },
           });
         }
@@ -258,9 +258,9 @@ export const ActivityTimeline = ({
     const badges = {
       linkedin_message: {
         label: 'LinkedIn',
-        color: 'bg-blue-100 text-blue-800',
+        color: 'bg-blue-100 text-primary',
       },
-      email_message: { label: 'Email', color: 'bg-green-100 text-green-800' },
+      email_message: { label: 'Email', color: 'bg-green-100 text-success' },
       automation_step: {
         label: 'Automation',
         color: 'bg-purple-100 text-purple-800',
@@ -268,7 +268,7 @@ export const ActivityTimeline = ({
       note: { label: 'Note', color: 'bg-gray-100 text-foreground' },
       stage_change: { label: 'Stage', color: 'bg-orange-100 text-orange-800' },
       call: { label: 'Call', color: 'bg-purple-100 text-purple-800' },
-      meeting: { label: 'Meeting', color: 'bg-yellow-100 text-yellow-800' },
+      meeting: { label: 'Meeting', color: 'bg-yellow-100 text-warning' },
     };
     return (
       badges[type as keyof typeof badges] || {
@@ -281,7 +281,7 @@ export const ActivityTimeline = ({
   if (isLoading) {
     return (
       <div className='flex items-center justify-center p-8'>
-        <div className='text-gray-500'>Loading activities...</div>
+        <div className='text-muted-foreground'>Loading activities...</div>
       </div>
     );
   }
@@ -290,7 +290,7 @@ export const ActivityTimeline = ({
     <div className='space-y-4'>
       {/* Search Bar */}
       <div className='relative'>
-        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
+        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4' />
         <Input
           placeholder='Search events...'
           value={searchTerm}
@@ -302,7 +302,7 @@ export const ActivityTimeline = ({
       {/* Activities List */}
       <div className='space-y-3'>
         {filteredActivities.length === 0 ? (
-          <div className='text-center py-8 text-gray-500'>
+          <div className='text-center py-8 text-muted-foreground'>
             No activities found
           </div>
         ) : (
@@ -334,7 +334,7 @@ export const ActivityTimeline = ({
                             {typeBadge.label}
                           </Badge>
                         </div>
-                        <div className='text-xs text-gray-500'>
+                        <div className='text-xs text-muted-foreground'>
                           {formatDistanceToNow(parseISO(activity.timestamp), {
                             addSuffix: true,
                           })}
@@ -343,14 +343,14 @@ export const ActivityTimeline = ({
 
                       {/* Lead Name */}
                       {activity.leadName && (
-                        <div className='text-xs text-blue-600 font-medium mt-1'>
+                        <div className='text-xs text-primary font-medium mt-1'>
                           Lead: {activity.leadName}
                         </div>
                       )}
 
                       {/* Author */}
                       {activity.author && (
-                        <div className='text-xs text-gray-500 mt-1'>
+                        <div className='text-xs text-muted-foreground mt-1'>
                           by {activity.author}
                         </div>
                       )}
@@ -366,7 +366,7 @@ export const ActivityTimeline = ({
                               variant='ghost'
                               size='sm'
                               onClick={() => toggleExpanded(activity.id)}
-                              className='mt-1 p-0 h-auto text-blue-600 hover:text-blue-800'
+                              className='mt-1 p-0 h-auto text-primary hover:text-primary'
                             >
                               Show more
                               <ChevronDown className='w-3 h-3 ml-1' />
@@ -382,7 +382,7 @@ export const ActivityTimeline = ({
                                 variant='ghost'
                                 size='sm'
                                 onClick={() => toggleExpanded(activity.id)}
-                                className='mt-1 p-0 h-auto text-blue-600 hover:text-blue-800'
+                                className='mt-1 p-0 h-auto text-primary hover:text-primary'
                               >
                                 Show less
                                 <ChevronUp className='w-3 h-3 ml-1' />
@@ -393,7 +393,7 @@ export const ActivityTimeline = ({
                       </div>
 
                       {/* Timestamp */}
-                      <div className='text-xs text-gray-400 mt-2'>
+                      <div className='text-xs text-muted-foreground mt-2'>
                         {format(
                           parseISO(activity.timestamp),
                           "MMM d, yyyy 'at' h:mm a"

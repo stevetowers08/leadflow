@@ -44,9 +44,9 @@ export const CompactStats: React.FC<CompactStatsProps> = ({
     {
       title: 'Companies',
       value: stats.totalCompanies,
-      icon: <Building2 className='h-4 w-4 text-green-600' />,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      icon: <Building2 className='h-4 w-4 text-success' />,
+      color: 'text-success',
+      bgColor: 'bg-success/10',
     },
     {
       title: 'Jobs',
@@ -58,9 +58,9 @@ export const CompactStats: React.FC<CompactStatsProps> = ({
     {
       title: 'New Today',
       value: stats.newJobsToday,
-      icon: <Calendar className='h-4 w-4 text-orange-600' />,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
+      icon: <Calendar className='h-4 w-4 text-warning' />,
+      color: 'text-warning',
+      bgColor: 'bg-warning/10',
     },
   ];
 
@@ -141,11 +141,11 @@ export const UltraCompactStats: React.FC<UltraCompactStatsProps> = ({
         <div className='text-lg font-bold text-primary'>{stats.totalLeads}</div>
         <div className='text-xs text-primary'>Leads</div>
       </div>
-      <div className='text-center p-2 bg-green-50 rounded-lg'>
-        <div className='text-lg font-bold text-green-600'>
+      <div className='text-center p-2 bg-success/10 rounded-lg'>
+        <div className='text-lg font-bold text-success'>
           {stats.totalCompanies}
         </div>
-        <div className='text-xs text-green-600'>Companies</div>
+        <div className='text-xs text-success'>Companies</div>
       </div>
       <div className='text-center p-2 bg-secondary/10 rounded-lg'>
         <div className='text-lg font-bold text-secondary'>
@@ -153,11 +153,11 @@ export const UltraCompactStats: React.FC<UltraCompactStatsProps> = ({
         </div>
         <div className='text-xs text-secondary'>Jobs</div>
       </div>
-      <div className='text-center p-2 bg-orange-50 rounded-lg'>
-        <div className='text-lg font-bold text-orange-600'>
+      <div className='text-center p-2 bg-warning/10 rounded-lg'>
+        <div className='text-lg font-bold text-warning'>
           {stats.newJobsToday}
         </div>
-        <div className='text-xs text-orange-600'>New</div>
+        <div className='text-xs text-warning'>New</div>
       </div>
     </div>
   );
@@ -227,9 +227,9 @@ export const StatsWithTrends: React.FC<StatsWithTrendsProps> = ({
                   className={cn(
                     'p-1.5 lg:p-2 rounded-md lg:rounded-lg',
                     item.color === 'blue' && 'bg-accent/20 text-accent',
-                    item.color === 'green' && 'bg-green-50 text-green-600',
+                    item.color === 'green' && 'bg-success/10 text-success',
                     item.color === 'purple' && 'bg-secondary/10 text-secondary',
-                    item.color === 'orange' && 'bg-orange-50 text-orange-600'
+                    item.color === 'orange' && 'bg-warning/10 text-warning'
                   )}
                 >
                   {item.icon}
@@ -246,14 +246,14 @@ export const StatsWithTrends: React.FC<StatsWithTrendsProps> = ({
               {item.trend && (
                 <div className='flex items-center gap-1 text-xs'>
                   {item.trend.isPositive ? (
-                    <TrendingUp className='h-3 w-3 text-green-600' />
+                    <TrendingUp className='h-3 w-3 text-success' />
                   ) : (
-                    <TrendingDown className='h-3 w-3 text-red-600' />
+                    <TrendingDown className='h-3 w-3 text-destructive' />
                   )}
                   <span
                     className={cn(
                       'font-medium',
-                      item.trend.isPositive ? 'text-green-600' : 'text-red-600'
+                      item.trend.isPositive ? 'text-success' : 'text-destructive'
                     )}
                   >
                     {Math.abs(item.trend.value)}%

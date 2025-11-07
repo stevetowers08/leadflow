@@ -204,7 +204,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
   if (!canAssign) {
     if (!currentOwner) {
       return (
-        <div className={cn('flex items-center gap-2 text-gray-400', className)}>
+        <div className={cn('flex items-center gap-2 text-muted-foreground', className)}>
           <User className='w-4 h-4' />
           <span className='text-sm'>Unassigned</span>
         </div>
@@ -222,7 +222,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
               .toUpperCase()}
           </span>
         </div>
-        <span className='text-sm font-medium text-gray-700'>
+        <span className='text-sm font-medium text-foreground'>
           {currentOwner.full_name}
         </span>
       </div>
@@ -234,7 +234,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
       {/* Assignment Display */}
       <div
         className={cn(
-          'flex items-center gap-2 cursor-pointer transition-colors rounded-md px-2 py-1 hover:bg-gray-50',
+          'flex items-center gap-2 cursor-pointer transition-colors rounded-md px-2 py-1 hover:bg-muted',
           isUpdating && 'opacity-50 pointer-events-none'
         )}
         onClick={handleClick}
@@ -250,16 +250,16 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
                   .toUpperCase()}
               </span>
             </div>
-            <span className='text-sm font-medium text-gray-700'>
+            <span className='text-sm font-medium text-foreground'>
               {currentOwner.full_name}
             </span>
           </>
         ) : (
           <>
             <div className='w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center'>
-              <User className='w-3 h-3 text-gray-400' />
+              <User className='w-3 h-3 text-muted-foreground' />
             </div>
-            <span className='text-sm text-gray-500'>Unassigned</span>
+            <span className='text-sm text-muted-foreground'>Unassigned</span>
           </>
         )}
       </div>
@@ -267,9 +267,9 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
       {/* User Selection Dropdown */}
       {showUserList && (
         <div className='absolute top-full left-0 mt-1 w-64 z-50'>
-          <div className='relative z-50 max-h-96 min-w-[16rem] overflow-hidden rounded-md border bg-white text-gray-900 shadow-lg'>
+          <div className='relative z-50 max-h-96 min-w-[16rem] overflow-hidden rounded-md border bg-white text-foreground shadow-lg'>
             {/* Header */}
-            <div className='p-3 border-b border-gray-200'>
+            <div className='p-3 border-b border-border'>
               <div className='flex items-center justify-between'>
                 <h3 className='text-sm font-semibold'>Assign to User</h3>
                 {currentOwner && (
@@ -278,7 +278,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
                     size='sm'
                     onClick={handleUnassign}
                     disabled={isUpdating}
-                    className='h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
+                    className='h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10'
                   >
                     <UserX className='w-3 h-3' />
                   </Button>
@@ -289,7 +289,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
             {/* User List */}
             <div className='p-1 max-h-64 overflow-y-auto'>
               {teamMembers.length === 0 ? (
-                <div className='p-3 text-center text-sm text-gray-500'>
+                <div className='p-3 text-center text-sm text-muted-foreground'>
                   Loading team members...
                 </div>
               ) : (
@@ -302,7 +302,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
                       'relative flex w-full cursor-default select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm outline-none transition-colors',
                       'hover:bg-gray-100 focus:bg-gray-100',
                       currentOwner?.id === member.id &&
-                        'bg-blue-50 text-blue-900',
+                        'bg-primary/10 text-blue-900',
                       isUpdating && 'opacity-50 pointer-events-none'
                     )}
                   >
@@ -327,7 +327,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
                       <div className='font-medium truncate'>
                         {member.full_name}
                       </div>
-                      <div className='text-xs text-gray-500 truncate'>
+                      <div className='text-xs text-muted-foreground truncate'>
                         {member.role}
                       </div>
                     </div>

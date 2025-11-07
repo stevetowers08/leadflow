@@ -44,7 +44,10 @@ export const jobsService = {
       });
 
     if (error) {
-      console.error('❌ JobsService.getJobs error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ JobsService.getJobs error:', error);
+      }
+      logger.error('JobsService.getJobs error:', error);
       throw error;
     }
 
@@ -62,7 +65,10 @@ export const jobsService = {
       .single();
 
     if (error) {
-      console.error('❌ JobsService.getJob error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ JobsService.getJob error:', error);
+      }
+      logger.error('JobsService.getJob error:', error);
       throw error;
     }
 
@@ -81,7 +87,10 @@ export const jobsService = {
       .single();
 
     if (error) {
-      console.error('❌ JobsService.updateJob error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ JobsService.updateJob error:', error);
+      }
+      logger.error('JobsService.updateJob error:', error);
       throw error;
     }
 
@@ -99,7 +108,10 @@ export const jobsService = {
       .single();
 
     if (error) {
-      console.error('❌ JobsService.createJob error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ JobsService.createJob error:', error);
+      }
+      logger.error('JobsService.createJob error:', error);
       throw error;
     }
 
@@ -113,7 +125,10 @@ export const jobsService = {
     const { error } = await supabase.from('jobs').delete().eq('id', id);
 
     if (error) {
-      console.error('❌ JobsService.deleteJob error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ JobsService.deleteJob error:', error);
+      }
+      logger.error('JobsService.deleteJob error:', error);
       throw error;
     }
 

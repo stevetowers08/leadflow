@@ -110,10 +110,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         subheading:
           'View and manage all email conversations with your contacts',
       },
-      '/crm/communications': {
-        title: 'Communications',
-        subheading: 'Manage email campaigns and communication history',
-      },
       '/campaigns': {
         title: 'Campaigns',
         subheading: 'Create and manage email campaigns for outreach',
@@ -125,10 +121,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       '/settings': {
         title: 'Settings',
         subheading: 'Configure your account settings and preferences',
-      },
-      '/tab-designs': {
-        title: 'Tab Designs',
-        subheading: 'Customize the design and layout of your tabs',
       },
     };
 

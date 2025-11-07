@@ -92,7 +92,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
             }}
           >
             {/* Header */}
-            <div className='flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0'>
+            <div className='flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0'>
               <div className='flex-1 min-w-0'>
                 {customHeader || (
                   <>
@@ -100,7 +100,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
                       {title}
                     </h2>
                     {subtitle && (
-                      <p className='text-sm text-gray-500 mt-0.5 truncate'>
+                      <p className='text-sm text-muted-foreground mt-0.5 truncate'>
                         {subtitle}
                       </p>
                     )}
@@ -109,7 +109,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
               </div>
               <button
                 onClick={onClose}
-                className='ml-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
+                className='ml-4 p-2 text-muted-foreground hover:text-muted-foreground hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
                 aria-label='Close panel'
               >
                 <X className='h-5 w-5' />
@@ -128,7 +128,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
 
             {/* Footer */}
             {footer && (
-              <div className='px-6 py-4 border-t border-gray-200 bg-gray-50 flex-shrink-0'>
+              <div className='px-6 py-4 border-t border-border bg-muted flex-shrink-0'>
                 {footer}
               </div>
             )}

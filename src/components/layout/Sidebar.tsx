@@ -29,6 +29,9 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { RecruitEdgeLogo } from '../RecruitEdgeLogo';
+import { useClientId } from '@/hooks/useClientId';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 // Getting Started & Dashboard (always at top)
 const gettingStartedItem = {
@@ -76,6 +79,29 @@ interface SidebarProps {
 export const Sidebar = ({ onClose }: SidebarProps) => {
   const pathname = usePathname();
   const isMobile = useIsMobile();
+  const { data: clientId } = useClientId();
+
+  const { data: clientName } = useQuery({
+    queryKey: ['client-name', clientId],
+    queryFn: async () => {
+      if (!clientId) return null;
+      
+      const { data, error } = await supabase
+        .from('clients')
+        .select('name')
+        .eq('id', clientId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching client name:', error);
+        return null;
+      }
+
+      return data?.name || null;
+    },
+    enabled: !!clientId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   return (
     <div className='flex flex-col h-full w-full overflow-hidden bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm'>
@@ -216,6 +242,15 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
           ))}
         </div>
       </nav>
+
+      {/* Client Name at Bottom */}
+      {clientName && (
+        <div className='flex-shrink-0 px-4 py-3 border-t border-sidebar-border/30'>
+          <div className='text-sm font-medium text-foreground truncate'>
+            {clientName}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

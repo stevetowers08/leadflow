@@ -20,9 +20,9 @@ const metricCardVariants = cva(
   {
     variants: {
       variant: {
-        glass: 'bg-white border border-gray-200',
-        neumorphism: 'bg-white border border-gray-200',
-        elevated: 'bg-white border border-gray-200',
+        glass: 'bg-white border border-border',
+        neumorphism: 'bg-white border border-border',
+        elevated: 'bg-white border border-border',
         gradient:
           'bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/15',
       },
@@ -158,8 +158,8 @@ const activityCardVariants = cva(
       variant: {
         glass:
           'bg-white/40 backdrop-blur-sm border border-white/20 hover:bg-white/50',
-        neumorphism: 'bg-[#f0f0f3] border border-gray-200',
-        elevated: 'bg-white border border-gray-200',
+        neumorphism: 'bg-[#f0f0f3] border border-border',
+        elevated: 'bg-white border border-border',
       },
       size: {
         sm: 'p-4 rounded-lg',
@@ -251,8 +251,8 @@ const ActivityCard = forwardRef<HTMLDivElement, ActivityCardProps>(
                     activity.status === 'new' && 'text-primary',
                     activity.status === 'success' && 'text-success',
                     activity.status === 'warning' && 'text-warning',
-                    activity.status === 'info' && 'text-blue-600',
-                    !activity.status && 'text-gray-600'
+                    activity.status === 'info' && 'text-primary',
+                    !activity.status && 'text-muted-foreground'
                   )}
                 />
               </div>
@@ -278,7 +278,7 @@ const ActivityCard = forwardRef<HTMLDivElement, ActivityCardProps>(
                         activity.status === 'warning' &&
                           'bg-warning/10 text-warning',
                         activity.status === 'info' &&
-                          'bg-blue-100 text-blue-600'
+                          'bg-blue-100 text-primary'
                       )}
                     >
                       {activity.status}
@@ -303,8 +303,8 @@ const chartCardVariants = cva(
       variant: {
         glass:
           'bg-white/40 backdrop-blur-sm border border-white/20 hover:bg-white/50',
-        neumorphism: 'bg-[#f0f0f3] border border-gray-200',
-        elevated: 'bg-white border border-gray-200',
+        neumorphism: 'bg-[#f0f0f3] border border-border',
+        elevated: 'bg-white border border-border',
       },
       size: {
         sm: 'p-4 rounded-lg',
@@ -383,7 +383,7 @@ const quickActionsCardVariants = cva(
       variant: {
         glass: 'glass-light hover:bg-white/20',
         neumorphism: 'neumorphism-light hover:shadow-lg',
-        elevated: 'bg-white border border-gray-200 shadow-lg hover:shadow-xl',
+        elevated: 'bg-white border border-border shadow-lg hover:shadow-xl',
       },
       size: {
         sm: 'p-4 rounded-lg',
@@ -431,7 +431,7 @@ const QuickActionsCard = forwardRef<HTMLDivElement, QuickActionsCardProps>(
                   'bg-primary text-primary-foreground hover:bg-primary/90',
                 action.variant === 'secondary' &&
                   'bg-secondary text-secondary-foreground hover:bg-secondary/90',
-                !action.variant && 'bg-white/50 hover:bg-white/70 text-gray-700'
+                !action.variant && 'bg-white/50 hover:bg-white/70 text-foreground'
               )}
             >
               <action.icon className='h-4 w-4' />
@@ -453,7 +453,7 @@ const performanceCardVariants = cva(
       variant: {
         glass: 'glass-light hover:bg-white/20',
         neumorphism: 'neumorphism-light hover:shadow-lg',
-        elevated: 'bg-white border border-gray-200 shadow-lg hover:shadow-xl',
+        elevated: 'bg-white border border-border shadow-lg hover:shadow-xl',
       },
       size: {
         sm: 'p-4 rounded-lg',

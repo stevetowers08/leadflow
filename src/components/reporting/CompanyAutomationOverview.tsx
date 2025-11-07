@@ -58,61 +58,61 @@ const CompanyAutomationOverview: React.FC<CompanyAutomationOverviewProps> = ({
         <div className='space-y-6'>
           {/* Summary Stats */}
           <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-            <div className='text-center p-4 bg-blue-50 rounded-lg'>
-              <Building2 className='h-8 w-8 text-blue-600 mx-auto mb-2' />
+            <div className='text-center p-4 bg-primary/10 rounded-lg'>
+              <Building2 className='h-8 w-8 text-primary mx-auto mb-2' />
               <div className='text-2xl font-bold text-blue-900'>
                 {totalCompanies}
               </div>
-              <div className='text-sm text-blue-700'>Total Companies</div>
+              <div className='text-sm text-primary'>Total Companies</div>
             </div>
-            <div className='text-center p-4 bg-green-50 rounded-lg'>
-              <Users className='h-8 w-8 text-green-600 mx-auto mb-2' />
+            <div className='text-center p-4 bg-success/10 rounded-lg'>
+              <Users className='h-8 w-8 text-success mx-auto mb-2' />
               <div className='text-2xl font-bold text-green-900'>
                 {totalPeople}
               </div>
-              <div className='text-sm text-green-700'>Total People</div>
+              <div className='text-sm text-success'>Total People</div>
             </div>
             <div className='text-center p-4 bg-purple-50 rounded-lg'>
-              <Bot className='h-8 w-8 text-purple-600 mx-auto mb-2' />
+              <Bot className='h-8 w-8 text-primary mx-auto mb-2' />
               <div className='text-2xl font-bold text-purple-900'>
                 {totalInteractions}
               </div>
               <div className='text-sm text-purple-700'>Total Interactions</div>
             </div>
-            <div className='text-center p-4 bg-orange-50 rounded-lg'>
-              <TrendingUp className='h-8 w-8 text-orange-600 mx-auto mb-2' />
+            <div className='text-center p-4 bg-warning/10 rounded-lg'>
+              <TrendingUp className='h-8 w-8 text-warning mx-auto mb-2' />
               <div className='text-2xl font-bold text-orange-900'>
                 {avgAutomationRate}%
               </div>
-              <div className='text-sm text-orange-700'>Avg Automation Rate</div>
+              <div className='text-sm text-warning'>Avg Automation Rate</div>
             </div>
           </div>
 
           {/* Top Companies Table */}
           <div>
-            <h4 className='font-semibold text-gray-900 mb-4'>
+            <h4 className='font-semibold text-foreground mb-4'>
               Top Performing Companies
             </h4>
             <div className='overflow-x-auto'>
               <table className='w-full'>
                 <thead>
-                  <tr className='border-b border-gray-200'>
-                    <th className='text-left py-3 px-4 font-medium text-gray-700'>
+                  <tr className='border-b border-border'>
+                    <th className='text-left py-3 px-4 font-medium text-foreground'>
                       Company
                     </th>
-                    <th className='text-left py-3 px-4 font-medium text-gray-700'>
+                    <th className='text-left py-3 px-4 font-medium text-foreground'>
                       Industry
                     </th>
-                    <th className='text-center py-3 px-4 font-medium text-gray-700'>
+                    <th className='text-center py-3 px-4 font-medium text-foreground'>
                       People
                     </th>
-                    <th className='text-center py-3 px-4 font-medium text-gray-700'>
+                    <th className='text-center py-3 px-4 font-medium text-foreground'>
                       Interactions
                     </th>
-                    <th className='text-center py-3 px-4 font-medium text-gray-700'>
+                    <th className='text-center py-3 px-4 font-medium text-foreground'>
                       Automation Rate
                     </th>
-                    <th className='text-center py-3 px-4 font-medium text-gray-700'>
+                    <th className='text-center py-3 px-4 font-medium text-foreground'>
                       Performance
                     </th>
                   </tr>
@@ -121,28 +121,28 @@ const CompanyAutomationOverview: React.FC<CompanyAutomationOverviewProps> = ({
                   {companiesWithMetrics.slice(0, 10).map((company, index) => (
                     <tr
                       key={company.id}
-                      className='border-b border-gray-100 hover:bg-gray-50'
+                      className='border-b border-gray-100 hover:bg-muted'
                     >
                       <td className='py-3 px-4'>
                         <div className='flex items-center gap-2'>
                           <div className='w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center'>
-                            <Building2 className='h-4 w-4 text-blue-600' />
+                            <Building2 className='h-4 w-4 text-primary' />
                           </div>
-                          <span className='font-medium text-gray-900'>
+                          <span className='font-medium text-foreground'>
                             {company.name}
                           </span>
                         </div>
                       </td>
-                      <td className='py-3 px-4 text-gray-600'>
+                      <td className='py-3 px-4 text-muted-foreground'>
                         {company.industry}
                       </td>
                       <td className='py-3 px-4 text-center'>
-                        <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800'>
+                        <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-primary'>
                           {company.people_count}
                         </span>
                       </td>
                       <td className='py-3 px-4 text-center'>
-                        <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800'>
+                        <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-success'>
                           {company.interactions_count}
                         </span>
                       </td>
@@ -150,10 +150,10 @@ const CompanyAutomationOverview: React.FC<CompanyAutomationOverviewProps> = ({
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             company.automationRate >= 80
-                              ? 'bg-green-100 text-green-800'
+                              ? 'bg-green-100 text-success'
                               : company.automationRate >= 60
                                 ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-red-100 text-red-800'
+                                : 'bg-red-100 text-destructive'
                           }`}
                         >
                           {company.automationRate}%
@@ -164,13 +164,13 @@ const CompanyAutomationOverview: React.FC<CompanyAutomationOverviewProps> = ({
                           <div
                             className={`w-2 h-2 rounded-full ${
                               company.automationRate >= 80
-                                ? 'bg-green-500'
+                                ? 'bg-success/100'
                                 : company.automationRate >= 60
-                                  ? 'bg-yellow-500'
-                                  : 'bg-red-500'
+                                  ? 'bg-warning/100'
+                                  : 'bg-destructive/100'
                             }`}
                           />
-                          <span className='text-xs text-gray-500'>
+                          <span className='text-xs text-muted-foreground'>
                             {company.automationRate >= 80
                               ? 'Excellent'
                               : company.automationRate >= 60
@@ -188,7 +188,7 @@ const CompanyAutomationOverview: React.FC<CompanyAutomationOverviewProps> = ({
 
           {/* Industry Breakdown */}
           <div>
-            <h4 className='font-semibold text-gray-900 mb-4'>
+            <h4 className='font-semibold text-foreground mb-4'>
               Industry Performance
             </h4>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -214,29 +214,29 @@ const CompanyAutomationOverview: React.FC<CompanyAutomationOverviewProps> = ({
                       : 0;
 
                   return (
-                    <div key={industry} className='p-4 bg-gray-50 rounded-lg'>
+                    <div key={industry} className='p-4 bg-muted rounded-lg'>
                       <div className='flex items-center justify-between mb-2'>
-                        <span className='font-medium text-gray-900'>
+                        <span className='font-medium text-foreground'>
                           {industry}
                         </span>
-                        <span className='text-sm text-gray-500'>
+                        <span className='text-sm text-muted-foreground'>
                           {industryCompanies.length} companies
                         </span>
                       </div>
                       <div className='flex items-center justify-between text-sm'>
-                        <span className='text-gray-600'>
+                        <span className='text-muted-foreground'>
                           {industryPeople} people
                         </span>
-                        <span className='text-gray-600'>
+                        <span className='text-muted-foreground'>
                           {industryInteractions} interactions
                         </span>
                         <span
                           className={`font-medium ${
                             industryRate >= 80
-                              ? 'text-green-600'
+                              ? 'text-success'
                               : industryRate >= 60
                                 ? 'text-yellow-600'
-                                : 'text-red-600'
+                                : 'text-destructive'
                           }`}
                         >
                           {industryRate}%

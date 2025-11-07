@@ -26,6 +26,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
@@ -71,10 +77,10 @@ const Companies: React.FC = () => {
 
   if (!isMounted) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-muted'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading companies...</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Loading companies...</p>
         </div>
       </div>
     );
@@ -280,6 +286,18 @@ const CompaniesContent: React.FC = () => {
   // Extract data from query result
   const companies = companiesData?.companies || [];
   const people = companiesData?.people || [];
+
+  // Memoize people lookup by company_id for performance
+  const peopleByCompanyId = useMemo(() => {
+    const map = new Map<string, Person[]>();
+    people.forEach(person => {
+      if (person.company_id) {
+        const existing = map.get(person.company_id) || [];
+        map.set(person.company_id, [...existing, person]);
+      }
+    });
+    return map;
+  }, [people]);
   const jobs = companiesData?.jobs || [];
 
   // Debug: Log what we have
@@ -565,12 +583,7 @@ const CompaniesContent: React.FC = () => {
       // Only animate if enriched and not viewed
       const shouldAnimate = enriched && !viewed;
 
-      // Debug logging (remove in production)
-      if (process.env.NODE_ENV === 'development' && enriched) {
-        console.log(
-          `Company ${company.name}: enriched=${enriched}, viewed=${viewed}, animate=${shouldAnimate}`
-        );
-      }
+      // Debug logging removed to reduce console noise
 
       return {
         isEnriched: shouldAnimate,
@@ -680,6 +693,7 @@ const CompaniesContent: React.FC = () => {
           const viewed = isViewed(company.id);
           const showIndicator = enriched && !viewed;
 
+          const companyName = company.name || '-';
           return (
             <div className='flex items-center gap-2 min-w-0'>
               <ClearbitLogoSync
@@ -687,12 +701,21 @@ const CompaniesContent: React.FC = () => {
                 website={company.website}
                 size='sm'
               />
-              <div className='font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0'>
-                {company.name || '-'}
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className='font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis min-w-0 flex-1 truncate'>
+                    {companyName}
+                  </div>
+                </TooltipTrigger>
+                {companyName !== '-' && (
+                  <TooltipContent>
+                    <p>{companyName}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
               {showIndicator && (
                 <div className='relative flex-shrink-0 ml-1.5'>
-                  <div className='h-1.5 w-1.5 rounded-full bg-blue-500 animate-indicator-pulse' />
+                  <div className='h-1.5 w-1.5 rounded-full bg-primary/100 animate-indicator-pulse' />
                   <div className='absolute inset-0 h-1.5 w-1.5 rounded-full bg-blue-400/50 animate-ping' />
                 </div>
               )}
@@ -729,24 +752,37 @@ const CompaniesContent: React.FC = () => {
         label: 'Head Office',
         width: '200px',
         cellType: 'regular',
-        render: (_, company) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {company.head_office || '-'}
-          </div>
-        ),
+        render: (_, company) => {
+          const headOffice = company.head_office || '-';
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='whitespace-nowrap overflow-hidden text-ellipsis truncate min-w-0'>
+                  {headOffice}
+                </div>
+              </TooltipTrigger>
+              {headOffice !== '-' && (
+                <TooltipContent>
+                  <p>{headOffice}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          );
+        },
       },
       {
         key: 'industry',
         label: 'Industry',
-        width: '280px',
+        width: '450px',
+        minWidth: '400px',
         cellType: 'regular',
         render: (_, company) => (
           <IndustryBadges
             industries={company.industry}
             badgeVariant='compact'
             maxVisible={3}
-            noWrap
-            showOverflowIndicator={false}
+            noWrap={true}
+            showOverflowIndicator={true}
           />
         ),
       },
@@ -766,21 +802,30 @@ const CompaniesContent: React.FC = () => {
               : `https://${raw}`
             : '';
           return (
-            <div className='truncate'>
-              {pretty ? (
-                <a
-                  href={href}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='text-primary hover:underline'
-                  onClick={e => e.stopPropagation()}
-                >
-                  {pretty}
-                </a>
-              ) : (
-                '-'
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='truncate min-w-0'>
+                  {pretty ? (
+                    <a
+                      href={href}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='text-primary hover:underline truncate block'
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {pretty}
+                    </a>
+                  ) : (
+                    '-'
+                  )}
+                </div>
+              </TooltipTrigger>
+              {pretty && (
+                <TooltipContent>
+                  <p>{pretty}</p>
+                </TooltipContent>
               )}
-            </div>
+            </Tooltip>
           );
         },
       },
@@ -800,21 +845,30 @@ const CompaniesContent: React.FC = () => {
               : `https://${raw}`
             : '';
           return (
-            <div className='truncate'>
-              {pretty ? (
-                <a
-                  href={href}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='text-primary hover:underline'
-                  onClick={e => e.stopPropagation()}
-                >
-                  {pretty}
-                </a>
-              ) : (
-                '-'
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='truncate min-w-0'>
+                  {pretty ? (
+                    <a
+                      href={href}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='text-primary hover:underline truncate block'
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {pretty}
+                    </a>
+                  ) : (
+                    '-'
+                  )}
+                </div>
+              </TooltipTrigger>
+              {pretty && (
+                <TooltipContent>
+                  <p>{pretty}</p>
+                </TooltipContent>
               )}
-            </div>
+            </Tooltip>
           );
         },
       },
@@ -823,11 +877,23 @@ const CompaniesContent: React.FC = () => {
         label: 'Size',
         width: '120px',
         cellType: 'regular',
-        render: (_, company) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {company.company_size || '-'}
-          </div>
-        ),
+        render: (_, company) => {
+          const companySize = company.company_size || '-';
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='whitespace-nowrap overflow-hidden text-ellipsis truncate min-w-0'>
+                  {companySize}
+                </div>
+              </TooltipTrigger>
+              {companySize !== '-' && (
+                <TooltipContent>
+                  <p>{companySize}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          );
+        },
       },
       {
         key: 'lead_score',
@@ -858,43 +924,67 @@ const CompaniesContent: React.FC = () => {
         label: 'Funding',
         width: '140px',
         cellType: 'regular',
-        render: (_, company) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {company.funding_raised != null
+        render: (_, company) => {
+          const funding =
+            company.funding_raised != null
               ? `$${Number(company.funding_raised).toLocaleString()}`
-              : '-'}
-          </div>
-        ),
+              : '-';
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='whitespace-nowrap overflow-hidden text-ellipsis truncate min-w-0'>
+                  {funding}
+                </div>
+              </TooltipTrigger>
+              {funding !== '-' && (
+                <TooltipContent>
+                  <p>{funding}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          );
+        },
       },
       {
         key: 'estimated_arr',
         label: 'ARR',
         width: '140px',
         cellType: 'regular',
-        render: (_, company) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {company.estimated_arr != null
+        render: (_, company) => {
+          const arr =
+            company.estimated_arr != null
               ? `$${Number(company.estimated_arr).toLocaleString()}`
-              : '-'}
-          </div>
-        ),
+              : '-';
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='whitespace-nowrap overflow-hidden text-ellipsis truncate min-w-0'>
+                  {arr}
+                </div>
+              </TooltipTrigger>
+              {arr !== '-' && (
+                <TooltipContent>
+                  <p>{arr}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          );
+        },
       },
       {
         key: 'people_count',
-        label: 'People',
+        label: 'CONTACTS',
         width: '120px',
         cellType: 'regular',
-        align: 'center',
+        align: 'left',
         render: (_, company) => {
-          const companyPeople = people.filter(p => p.company_id === company.id);
+          const companyPeople = peopleByCompanyId.get(company.id) || [];
           return (
-            <div className='flex justify-center items-center overflow-hidden w-full'>
-              <PeopleAvatars
-                people={companyPeople}
-                onPersonClick={handlePersonClick}
-                maxVisible={3}
-              />
-            </div>
+            <PeopleAvatars
+              people={companyPeople}
+              onPersonClick={handlePersonClick}
+              maxVisible={3}
+            />
           );
         },
       },
@@ -924,13 +1014,22 @@ const CompaniesContent: React.FC = () => {
             !company.last_activity || activityText === 'No contact';
 
           return (
-            <div
-              className={`whitespace-nowrap overflow-hidden text-ellipsis ${
-                isNoContact ? 'text-gray-400' : 'text-foreground'
-              }`}
-            >
-              {activityText}
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`whitespace-nowrap overflow-hidden text-ellipsis truncate min-w-0 ${
+                    isNoContact ? 'text-muted-foreground' : 'text-foreground'
+                  }`}
+                >
+                  {activityText}
+                </div>
+              </TooltipTrigger>
+              {activityText !== 'No contact' && (
+                <TooltipContent>
+                  <p>{activityText}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
           );
         },
       },
@@ -939,13 +1038,25 @@ const CompaniesContent: React.FC = () => {
         label: 'Created',
         width: '120px',
         cellType: 'regular',
-        render: (_, company) => (
-          <div className='whitespace-nowrap overflow-hidden text-ellipsis'>
-            {company.created_at
-              ? new Date(company.created_at).toLocaleDateString()
-              : '-'}
-          </div>
-        ),
+        render: (_, company) => {
+          const createdDate = company.created_at
+            ? new Date(company.created_at).toLocaleDateString()
+            : '-';
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='whitespace-nowrap overflow-hidden text-ellipsis truncate min-w-0'>
+                  {createdDate}
+                </div>
+              </TooltipTrigger>
+              {createdDate !== '-' && (
+                <TooltipContent>
+                  <p>{createdDate}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          );
+        },
       },
     ],
     [
@@ -990,97 +1101,100 @@ const CompaniesContent: React.FC = () => {
   // Error state
   if (error) {
     return (
-      <Page stats={stats} title='Companies' hideHeader>
-        <div className='flex items-center justify-center h-64'>
-          <div className='text-destructive'>Error: {error}</div>
-        </div>
-      </Page>
+      <TooltipProvider>
+        <Page stats={stats} title='Companies' hideHeader>
+          <div className='flex items-center justify-center h-64'>
+            <div className='text-destructive'>Error: {error}</div>
+          </div>
+        </Page>
+      </TooltipProvider>
     );
   }
 
   return (
-    <Page stats={stats} title='Companies' hideHeader>
-      {/* Container for table layout - fills available height */}
-      <div className='flex flex-col' style={{ height: '100%', minHeight: 0 }}>
-        {/* Filters - Fixed at top */}
-        <div className='flex-shrink-0 pb-4'>
-          <CollapsibleFilterControls
-            statusOptions={statusOptions}
-            userOptions={userOptions}
-            sortOptions={sortOptions}
-            statusFilter={statusFilter}
-            selectedUser={selectedUser}
-            sortBy={sortBy}
-            showFavoritesOnly={showFavoritesOnly}
-            searchTerm={searchTerm}
-            isSearchActive={isSearchActive}
-            onStatusChange={() => {}}
-            onMultiSelectStatusChange={setStatusFilter}
-            onUserChange={setSelectedUser}
-            onSortChange={setSortBy}
-            onFavoritesToggle={handleFavoritesToggle}
-            onSearchChange={handleSearchChange}
-            onSearchToggle={handleSearchToggle}
-            useMultiSelectStatus={true}
-            className='[&_select]:max-w-[160px] [&_button]:max-w-[160px] [&>div>select]:max-w-[160px] [&>div>button]:max-w-[160px]'
-          />
-        </div>
-
-        {/* Table - Scrollable middle */}
-        <div className='flex-1 min-h-0 flex flex-col overflow-hidden'>
-          {!loading && filteredCompanies.length === 0 ? (
-            <div className='bg-white rounded-lg border border-gray-300 overflow-hidden'>
-              <div className='flex flex-col items-center justify-center py-16 px-4'>
-                <Building2 className='h-16 w-16 text-muted-foreground mb-4' />
-                <h3 className='text-xl font-semibold mb-2 text-foreground'>
-                  No companies found
-                </h3>
-                <p className='text-muted-foreground text-center max-w-md mb-6'>
-                  {searchTerm
-                    ? 'No companies match your search criteria.'
-                    : 'Start qualifying jobs to add companies to your list. When you qualify a job, the company automatically appears here.'}
-                </p>
-                {!searchTerm && (
-                  <Button
-                    onClick={() => router.push('/jobs')}
-                    className='inline-flex items-center gap-2'
-                  >
-                    <Target className='h-4 w-4' />
-                    Go to Jobs Feed
-                  </Button>
-                )}
-              </div>
-            </div>
-          ) : (
-            <UnifiedTable
-              data={paginatedCompanies}
-              columns={columns}
-              tableId='companies'
-              pagination={false} // We handle pagination externally
-              stickyHeaders={true}
-              scrollable={true}
-              onRowClick={handleRowClick}
-              loading={loading}
-              emptyMessage='No companies found'
-              getRowProps={getRowProps}
+    <TooltipProvider>
+      <Page stats={stats} title='Companies' hideHeader>
+        {/* Container for table layout - fills available height */}
+        <div className='flex flex-col' style={{ height: '100%', minHeight: 0 }}>
+          {/* Filters - Fixed at top */}
+          <div className='flex-shrink-0 pb-4'>
+            <CollapsibleFilterControls
+              statusOptions={statusOptions}
+              userOptions={userOptions}
+              sortOptions={sortOptions}
+              statusFilter={statusFilter}
+              selectedUser={selectedUser}
+              sortBy={sortBy}
+              showFavoritesOnly={showFavoritesOnly}
+              searchTerm={searchTerm}
+              isSearchActive={isSearchActive}
+              onStatusChange={() => {}}
+              onMultiSelectStatusChange={setStatusFilter}
+              onUserChange={setSelectedUser}
+              onSortChange={setSortBy}
+              onFavoritesToggle={handleFavoritesToggle}
+              onSearchChange={handleSearchChange}
+              onSearchToggle={handleSearchToggle}
+              useMultiSelectStatus={true}
+              className='[&_select]:max-w-[160px] [&_button]:max-w-[160px] [&>div>select]:max-w-[160px] [&>div>button]:max-w-[160px]'
             />
-          )}
-        </div>
+          </div>
 
-        {/* Pagination - Fixed at bottom */}
-        <div className='flex-shrink-0 pt-4'>
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            pageSize={pageSize}
-            totalItems={filteredCompanies.length}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={setPageSize}
-            pageSizeOptions={[10, 25, 50, 100]}
-            className='mt-0'
-          />
+          {/* Table - Scrollable middle */}
+          <div className='flex-1 min-h-0 flex flex-col overflow-hidden'>
+            {!loading && filteredCompanies.length === 0 ? (
+              <div className='bg-white rounded-lg border border-border/60 overflow-hidden'>
+                <div className='flex flex-col items-center justify-center py-16 px-4'>
+                  <Building2 className='h-16 w-16 text-muted-foreground mb-4' />
+                  <h3 className='text-xl font-semibold mb-2 text-foreground'>
+                    No companies found
+                  </h3>
+                  <p className='text-muted-foreground text-center max-w-md mb-6'>
+                    {searchTerm
+                      ? 'No companies match your search criteria.'
+                      : 'Start qualifying jobs to add companies to your list. When you qualify a job, the company automatically appears here.'}
+                  </p>
+                  {!searchTerm && (
+                    <Button
+                      onClick={() => router.push('/jobs')}
+                      className='inline-flex items-center gap-2'
+                    >
+                      <Target className='h-4 w-4' />
+                      Go to Jobs Feed
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <UnifiedTable
+                data={paginatedCompanies}
+                columns={columns}
+                tableId='companies'
+                pagination={false} // We handle pagination externally
+                stickyHeaders={true}
+                scrollable={true}
+                onRowClick={handleRowClick}
+                loading={loading}
+                emptyMessage='No companies found'
+                getRowProps={getRowProps}
+              />
+            )}
+          </div>
+
+          {/* Pagination - Fixed at bottom */}
+          <div className='flex-shrink-0 pt-4'>
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={filteredCompanies.length}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              pageSizeOptions={[10, 25, 50, 100]}
+              className='mt-0'
+            />
+          </div>
         </div>
-      </div>
 
       {/* Search Modal */}
       <SearchModal
@@ -1133,7 +1247,8 @@ const CompaniesContent: React.FC = () => {
         onClear={bulkSelection.deselectAll}
         campaigns={[]}
       />
-    </Page>
+      </Page>
+    </TooltipProvider>
   );
 };
 

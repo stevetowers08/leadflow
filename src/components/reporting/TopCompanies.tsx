@@ -58,7 +58,7 @@ export const TopCompanies: React.FC<TopCompaniesProps> = ({ topCompanies }) => {
                 }}
               ></div>
             </div>
-            <span className='text-sm text-gray-600'>{activityScore}</span>
+            <span className='text-sm text-muted-foreground'>{activityScore}</span>
           </div>
         );
       },

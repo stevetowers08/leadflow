@@ -347,7 +347,7 @@ function getUnifiedStatusClass(status: string): string {
       'completed',
     ].includes(statusLower)
   ) {
-    return 'bg-green-100 text-green-800 border-green-200';
+    return 'bg-success/10 text-success border-success/20';
   }
 
   // Warning/Neutral states
@@ -356,14 +356,14 @@ function getUnifiedStatusClass(status: string): string {
       statusLower
     )
   ) {
-    return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    return 'bg-warning/10 text-warning border-warning/20';
   }
 
   // Error/Negative states
   if (
     ['not_interested', 'skip', 'closed_lost', 'failed'].includes(statusLower)
   ) {
-    return 'bg-red-100 text-red-800 border-red-200';
+    return 'bg-destructive/10 text-destructive border-destructive/20';
   }
 
   // Info/Default states
@@ -377,9 +377,9 @@ function getUnifiedStatusClass(status: string): string {
       'automated',
     ].includes(statusLower)
   ) {
-    return 'bg-blue-100 text-blue-800 border-blue-200';
+    return 'bg-primary/10 text-primary border-primary/20';
   }
 
   // Default fallback
-  return 'bg-gray-100 text-gray-800 border-gray-200';
+  return 'bg-muted text-foreground border-border';
 }

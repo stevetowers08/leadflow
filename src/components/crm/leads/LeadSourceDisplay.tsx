@@ -34,9 +34,9 @@ export const LeadSourceDisplay = ({
   const getSourceColor = (source: string) => {
     const sourceLower = source.toLowerCase();
     if (sourceLower.includes('linkedin'))
-      return 'bg-blue-100 text-blue-800 border-blue-200';
+      return 'bg-blue-100 text-primary border-primary/20';
     if (sourceLower.includes('website'))
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'bg-green-100 text-success border-green-200';
     if (sourceLower.includes('referral'))
       return 'bg-purple-100 text-purple-800 border-purple-200';
     if (sourceLower.includes('email'))
@@ -46,8 +46,8 @@ export const LeadSourceDisplay = ({
     if (sourceLower.includes('social'))
       return 'bg-indigo-100 text-indigo-800 border-indigo-200';
     if (sourceLower.includes('google'))
-      return 'bg-red-100 text-red-800 border-red-200';
-    return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-red-100 text-destructive border-red-200';
+    return 'bg-gray-100 text-foreground border-border';
   };
 
   const formatDate = (dateString: string) => {

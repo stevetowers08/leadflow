@@ -19,14 +19,14 @@ export const JobQualificationBadge: React.FC<JobQualificationBadgeProps> = ({
           label: 'Qualify',
           variant: 'success' as const,
           icon: CheckCircle2,
-          className: 'bg-green-50 text-green-700 border-green-200',
+          className: 'bg-success/10 text-success border-green-200',
         };
       case 'skip':
         return {
           label: 'Skip',
           variant: 'destructive' as const,
           icon: X,
-          className: 'bg-red-50 text-red-700 border-red-200',
+          className: 'bg-destructive/10 text-destructive border-red-200',
         };
       case 'new':
       default:
@@ -34,7 +34,7 @@ export const JobQualificationBadge: React.FC<JobQualificationBadgeProps> = ({
           label: 'New',
           variant: 'secondary' as const,
           icon: Clock,
-          className: 'bg-blue-50 text-blue-700 border-blue-200',
+          className: 'bg-primary/10 text-primary border-primary/20',
         };
     }
   };

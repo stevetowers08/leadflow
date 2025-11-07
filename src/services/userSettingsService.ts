@@ -2,7 +2,6 @@ import { shouldBypassAuth } from '@/config/auth';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface TablePreferences {
-  columnSizing?: Record<string, number>;
   columnOrder?: string[];
 }
 

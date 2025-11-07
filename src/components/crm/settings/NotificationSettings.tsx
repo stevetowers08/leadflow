@@ -42,10 +42,10 @@ const NotificationSettings = () => {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+        <h2 className='text-xl font-semibold text-foreground mb-2'>
           Notifications
         </h2>
-        <p className='text-sm text-gray-600'>
+        <p className='text-sm text-muted-foreground'>
           Configure how and when you receive notifications
         </p>
       </div>

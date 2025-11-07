@@ -44,7 +44,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
       <div className='min-h-screen flex items-center justify-center p-4'>
         <div className='text-center'>
           <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-sidebar-primary mx-auto mb-4'></div>
-          <p className='text-sm text-gray-600'>Loading...</p>
+          <p className='text-sm text-muted-foreground'>Loading...</p>
         </div>
       </div>
     );
@@ -59,17 +59,17 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
               <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sidebar-primary/10'>
                 <Lock className='h-6 w-6 text-sidebar-primary' />
               </div>
-              <CardTitle className='text-xl font-semibold text-gray-900'>
+              <CardTitle className='text-xl font-semibold text-foreground'>
                 {title}
               </CardTitle>
-              <CardDescription className='text-gray-600'>
+              <CardDescription className='text-muted-foreground'>
                 {description}
               </CardDescription>
             </CardHeader>
             <CardContent className='px-8 pb-8'>
               <div className='space-y-4'>
                 <div className='text-center'>
-                  <p className='text-sm text-gray-500 mb-6'>
+                  <p className='text-sm text-muted-foreground mb-6'>
                     Sign in to access your professional recruitment dashboard
                     and manage your leads, jobs, and companies.
                   </p>
@@ -83,7 +83,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
                 </Button>
 
                 <div className='text-center'>
-                  <p className='text-xs text-gray-500'>
+                  <p className='text-xs text-muted-foreground'>
                     By signing in, you agree to our terms of service and privacy
                     policy.
                   </p>

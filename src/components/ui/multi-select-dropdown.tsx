@@ -47,7 +47,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          'h-8 px-3 text-sm border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-100 transition-colors flex items-center justify-between max-w-[180px] bg-white',
+          'h-8 px-3 text-sm border border-border rounded-md hover:border-border hover:bg-gray-100 transition-colors flex items-center justify-between max-w-[180px] bg-white',
           className
         )}
       >
@@ -55,7 +55,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         <ChevronDown className='h-4 w-4 ml-2 flex-shrink-0' />
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className='bg-white border border-gray-300 shadow-lg'
+        className='bg-white border border-border shadow-lg rounded-md'
         align='start'
       >
         {options.map(option => {

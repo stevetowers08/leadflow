@@ -42,18 +42,18 @@ const AutomationFunnel: React.FC<AutomationFunnelProps> = ({
       name: 'New Leads',
       count: newPeople,
       percentage: 100,
-      color: 'bg-blue-500',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-700',
+      color: 'bg-primary/100',
+      bgColor: 'bg-primary/10',
+      textColor: 'text-primary',
       icon: Users,
     },
     {
       name: 'Connected',
       count: connectedPeople,
       percentage: newPeople > 0 ? (connectedPeople / newPeople) * 100 : 0,
-      color: 'bg-green-500',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-700',
+      color: 'bg-success/100',
+      bgColor: 'bg-success/10',
+      textColor: 'text-success',
       icon: Target,
     },
     {
@@ -71,9 +71,9 @@ const AutomationFunnel: React.FC<AutomationFunnelProps> = ({
       count: repliedPeople,
       percentage:
         messagedPeople > 0 ? (repliedPeople / messagedPeople) * 100 : 0,
-      color: 'bg-orange-500',
-      bgColor: 'bg-orange-50',
-      textColor: 'text-orange-700',
+      color: 'bg-warning/100',
+      bgColor: 'bg-warning/10',
+      textColor: 'text-warning',
       icon: PieChart,
     },
     {
@@ -116,15 +116,15 @@ const AutomationFunnel: React.FC<AutomationFunnelProps> = ({
                           className={`h-4 w-4 ${step.textColor}`}
                         />
                       </div>
-                      <span className='font-medium text-gray-900'>
+                      <span className='font-medium text-foreground'>
                         {step.name}
                       </span>
                     </div>
                     <div className='text-right'>
-                      <div className='text-lg font-bold text-gray-900'>
+                      <div className='text-lg font-bold text-foreground'>
                         {step.count}
                       </div>
-                      <div className='text-sm text-gray-500'>
+                      <div className='text-sm text-muted-foreground'>
                         {step.percentage.toFixed(1)}%
                       </div>
                     </div>
@@ -153,19 +153,19 @@ const AutomationFunnel: React.FC<AutomationFunnelProps> = ({
 
           {/* Conversion Rates Summary */}
           <div className='pt-6 border-t'>
-            <h4 className='font-semibold text-gray-900 mb-4'>
+            <h4 className='font-semibold text-foreground mb-4'>
               Conversion Rates
             </h4>
             <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
               {funnelSteps.slice(1).map((step, index) => (
                 <div
                   key={step.name}
-                  className='text-center p-3 bg-gray-50 rounded-lg'
+                  className='text-center p-3 bg-muted rounded-lg'
                 >
                   <div className={`text-2xl font-bold ${step.textColor}`}>
                     {step.percentage.toFixed(1)}%
                   </div>
-                  <div className='text-sm text-gray-600'>
+                  <div className='text-sm text-muted-foreground'>
                     {funnelSteps[index].name} → {step.name}
                   </div>
                 </div>
@@ -176,20 +176,20 @@ const AutomationFunnel: React.FC<AutomationFunnelProps> = ({
           {/* Overall Performance */}
           <div className='pt-6 border-t'>
             <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-              <div className='text-center p-4 bg-blue-50 rounded-lg'>
-                <div className='text-2xl font-bold text-blue-600'>
+              <div className='text-center p-4 bg-primary/10 rounded-lg'>
+                <div className='text-2xl font-bold text-primary'>
                   {totalPeople}
                 </div>
-                <div className='text-sm text-blue-700'>Total People</div>
+                <div className='text-sm text-primary'>Total People</div>
               </div>
-              <div className='text-center p-4 bg-green-50 rounded-lg'>
-                <div className='text-2xl font-bold text-green-600'>
+              <div className='text-center p-4 bg-success/10 rounded-lg'>
+                <div className='text-2xl font-bold text-success'>
                   {totalCompanies}
                 </div>
-                <div className='text-sm text-green-700'>Total Companies</div>
+                <div className='text-sm text-success'>Total Companies</div>
               </div>
               <div className='text-center p-4 bg-purple-50 rounded-lg'>
-                <div className='text-2xl font-bold text-purple-600'>
+                <div className='text-2xl font-bold text-primary'>
                   {newPeople > 0
                     ? ((meetingBookedPeople / newPeople) * 100).toFixed(1)
                     : 0}

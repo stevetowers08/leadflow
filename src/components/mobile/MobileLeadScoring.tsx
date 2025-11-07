@@ -56,37 +56,37 @@ const scoreRanges100: ScoreRange[] = [
     min: 80,
     max: 100,
     label: 'Hot',
-    color: 'bg-red-500',
-    textColor: 'text-red-700',
-    bgColor: 'bg-red-50',
+    color: 'bg-destructive/100',
+    textColor: 'text-destructive',
+    bgColor: 'bg-destructive/10',
     borderColor: 'border-red-200',
   },
   {
     min: 60,
     max: 79,
     label: 'Warm',
-    color: 'bg-orange-500',
-    textColor: 'text-orange-700',
-    bgColor: 'bg-orange-50',
+    color: 'bg-warning/100',
+    textColor: 'text-warning',
+    bgColor: 'bg-warning/10',
     borderColor: 'border-orange-200',
   },
   {
     min: 40,
     max: 59,
     label: 'Cool',
-    color: 'bg-blue-500',
-    textColor: 'text-blue-700',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
+    color: 'bg-primary/100',
+    textColor: 'text-primary',
+    bgColor: 'bg-primary/10',
+    borderColor: 'border-primary/20',
   },
   {
     min: 0,
     max: 39,
     label: 'Cold',
-    color: 'bg-gray-500',
-    textColor: 'text-gray-700',
-    bgColor: 'bg-gray-50',
-    borderColor: 'border-gray-200',
+    color: 'bg-muted0',
+    textColor: 'text-foreground',
+    bgColor: 'bg-muted',
+    borderColor: 'border-border',
   },
 ];
 
@@ -96,37 +96,37 @@ const scoreRanges10: ScoreRange[] = [
     min: 8,
     max: 10,
     label: 'High',
-    color: 'bg-red-500',
-    textColor: 'text-red-700',
-    bgColor: 'bg-red-50',
+    color: 'bg-destructive/100',
+    textColor: 'text-destructive',
+    bgColor: 'bg-destructive/10',
     borderColor: 'border-red-200',
   },
   {
     min: 5,
     max: 7,
     label: 'Medium',
-    color: 'bg-yellow-500',
-    textColor: 'text-yellow-700',
-    bgColor: 'bg-yellow-50',
+    color: 'bg-warning/100',
+    textColor: 'text-warning',
+    bgColor: 'bg-warning/10',
     borderColor: 'border-yellow-200',
   },
   {
     min: 2,
     max: 4,
     label: 'Low',
-    color: 'bg-green-500',
-    textColor: 'text-green-700',
-    bgColor: 'bg-green-50',
+    color: 'bg-success/100',
+    textColor: 'text-success',
+    bgColor: 'bg-success/10',
     borderColor: 'border-green-200',
   },
   {
     min: 1,
     max: 1,
     label: 'Very Low',
-    color: 'bg-gray-500',
-    textColor: 'text-gray-700',
-    bgColor: 'bg-gray-50',
-    borderColor: 'border-gray-200',
+    color: 'bg-muted0',
+    textColor: 'text-foreground',
+    bgColor: 'bg-muted',
+    borderColor: 'border-border',
   },
 ];
 
@@ -277,11 +277,11 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
           <Card className='p-3'>
             <div className='flex items-center gap-2'>
               <div className='w-8 h-8 rounded-full bg-red-100 flex items-center justify-center'>
-                <Target className='h-4 w-4 text-red-600' />
+                <Target className='h-4 w-4 text-destructive' />
               </div>
               <div>
-                <p className='text-xs text-gray-500'>Hot Leads</p>
-                <p className='text-lg font-semibold text-gray-900'>
+                <p className='text-xs text-muted-foreground'>Hot Leads</p>
+                <p className='text-lg font-semibold text-foreground'>
                   {insights.hotLeads}
                 </p>
               </div>
@@ -291,11 +291,11 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
           <Card className='p-3'>
             <div className='flex items-center gap-2'>
               <div className='w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center'>
-                <Brain className='h-4 w-4 text-blue-600' />
+                <Brain className='h-4 w-4 text-primary' />
               </div>
               <div>
-                <p className='text-xs text-gray-500'>Avg Score</p>
-                <p className='text-lg font-semibold text-gray-900'>
+                <p className='text-xs text-muted-foreground'>Avg Score</p>
+                <p className='text-lg font-semibold text-foreground'>
                   {insights.avgScore}
                 </p>
               </div>
@@ -339,24 +339,24 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
           <Card className='mt-3 p-3'>
             <div className='space-y-2'>
               <div className='flex justify-between text-sm'>
-                <span className='text-gray-600'>Total Leads:</span>
+                <span className='text-muted-foreground'>Total Leads:</span>
                 <span className='font-medium'>{insights.total}</span>
               </div>
               <div className='flex justify-between text-sm'>
-                <span className='text-gray-600'>Hot Lead %:</span>
-                <span className='font-medium text-red-600'>
+                <span className='text-muted-foreground'>Hot Lead %:</span>
+                <span className='font-medium text-destructive'>
                   {insights.hotPercentage}%
                 </span>
               </div>
               <div className='flex justify-between text-sm'>
-                <span className='text-gray-600'>Warm Lead %:</span>
-                <span className='font-medium text-orange-600'>
+                <span className='text-muted-foreground'>Warm Lead %:</span>
+                <span className='font-medium text-warning'>
                   {insights.warmPercentage}%
                 </span>
               </div>
               <div className='flex justify-between text-sm'>
-                <span className='text-gray-600'>Automation Active:</span>
-                <span className='font-medium text-green-600'>
+                <span className='text-muted-foreground'>Automation Active:</span>
+                <span className='font-medium text-success'>
                   {insights.automationActive}
                 </span>
               </div>
@@ -413,7 +413,7 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
               return (
                 <div key={range.label} className='space-y-2'>
                   <div className='flex items-center justify-between'>
-                    <h3 className='font-semibold text-sm text-gray-900 flex items-center gap-2'>
+                    <h3 className='font-semibold text-sm text-foreground flex items-center gap-2'>
                       <div
                         className={cn('w-2 h-2 rounded-full', range.color)}
                       ></div>
@@ -423,7 +423,7 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
                       variant='ghost'
                       size='sm'
                       onClick={() => handleScoreRangeSelect(range.label)}
-                      className='text-xs text-gray-500'
+                      className='text-xs text-muted-foreground'
                     >
                       View All
                       <ChevronRight className='h-3 w-3 ml-1' />
@@ -447,11 +447,11 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
       {/* Empty State */}
       {processedLeads.length === 0 && (
         <div className='text-center py-12'>
-          <Brain className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-          <h3 className='text-lg font-medium text-gray-900 mb-2'>
+          <Brain className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
+          <h3 className='text-lg font-medium text-foreground mb-2'>
             No leads found
           </h3>
-          <p className='text-gray-500 text-sm'>
+          <p className='text-muted-foreground text-sm'>
             No leads available for scoring
           </p>
         </div>
@@ -509,7 +509,7 @@ const MobileLeadCard: React.FC<MobileLeadCardProps> = ({
               <TrendingUp className='h-3 w-3 text-green-500 mt-1' />
             )}
             {trend === 'down' && (
-              <TrendingDown className='h-3 w-3 text-red-500 mt-1' />
+              <TrendingDown className='h-3 w-3 text-destructive mt-1' />
             )}
           </div>
 
@@ -517,16 +517,16 @@ const MobileLeadCard: React.FC<MobileLeadCardProps> = ({
           <div className='flex-1 min-w-0'>
             <div className='flex items-start justify-between'>
               <div className='min-w-0 flex-1'>
-                <h3 className='font-semibold text-gray-900 text-sm truncate'>
+                <h3 className='font-semibold text-foreground text-sm truncate'>
                   {lead.name}
                 </h3>
                 {lead.company && (
-                  <p className='text-xs text-gray-500 mt-1 truncate'>
+                  <p className='text-xs text-muted-foreground mt-1 truncate'>
                     {lead.company}
                   </p>
                 )}
                 {lead.role && (
-                  <p className='text-xs text-gray-400 mt-1 truncate'>
+                  <p className='text-xs text-muted-foreground mt-1 truncate'>
                     {lead.role}
                   </p>
                 )}
@@ -568,7 +568,7 @@ const MobileLeadCard: React.FC<MobileLeadCardProps> = ({
 
             {/* Activity Info */}
             {lead.last_activity && (
-              <div className='flex items-center gap-1 mt-2 text-xs text-gray-500'>
+              <div className='flex items-center gap-1 mt-2 text-xs text-muted-foreground'>
                 <span>
                   Last activity:{' '}
                   {new Date(lead.last_activity).toLocaleDateString()}

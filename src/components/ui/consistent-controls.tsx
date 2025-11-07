@@ -82,7 +82,7 @@ const TabsList = forwardRef<
   <div
     ref={ref}
     className={cn(
-      'inline-flex items-center justify-center rounded-md p-1 bg-white gap-1 border border-gray-300 shadow-sm',
+      'inline-flex items-center justify-center rounded-md p-1 bg-white gap-1 border border-border/60 shadow-sm',
       className
     )}
     {...props}
@@ -92,7 +92,7 @@ TabsList.displayName = 'TabsList';
 
 // Modern Filter Dropdown Component
 const filterVariants = cva(
-  'inline-flex items-center justify-between whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 bg-white border border-gray-300 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:border-gray-400 hover:bg-gray-100',
+  'inline-flex items-center justify-between whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 bg-white border border-border/60 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:border-gray-400 hover:bg-gray-100',
   {
     variants: {
       variant: {
@@ -143,7 +143,7 @@ FilterButton.displayName = 'FilterButton';
 
 // Modern Search Input Component
 const searchVariants = cva(
-  'w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-foreground ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:text-gray-500 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100',
+  'w-full rounded-md border border-border bg-white px-3 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:text-muted-foreground transition-all duration-200 hover:border-border hover:bg-gray-100',
   {
     variants: {
       variant: {
@@ -175,7 +175,7 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   ({ className, variant, size, onClear, ...props }, ref) => {
     return (
       <div className='relative'>
-        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500' />
+        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
         <input
           className={cn(
             searchVariants({ variant, size }),
@@ -188,7 +188,7 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         {onClear && (
           <button
             onClick={onClear}
-            className='absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 hover:text-foreground'
+            className='absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground'
           >
             ×
           </button>
@@ -209,7 +209,7 @@ const actionButtonVariants = cva(
           'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/90',
-        outline: 'border border-gray-300 bg-white',
+        outline: 'border border-border/60 bg-white',
         ghost: 'text-foreground',
         glass: 'glass-light text-white hover:bg-white/20',
         neumorphism: 'neumorphism-light text-foreground hover:shadow-lg',

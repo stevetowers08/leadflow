@@ -21,3 +21,4 @@ export function isCompanyEnriched(company: Company): boolean {
     hasConfidenceLevel
   );
 }
+

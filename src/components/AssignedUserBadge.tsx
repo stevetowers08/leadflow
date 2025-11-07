@@ -62,7 +62,7 @@ export const AssignedUserBadge: React.FC<AssignedUserBadgeProps> = ({
     <span
       className={cn(
         'inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium border',
-        'bg-blue-50 text-blue-700 border-blue-200',
+        'bg-primary/10 text-primary border-primary/20',
         className
       )}
     >

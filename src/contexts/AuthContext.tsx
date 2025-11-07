@@ -157,26 +157,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         const authConfig = getAuthConfig();
 
-        // Handle bypass auth mode
-        if (authConfig.bypassAuth) {
-          // Bypass auth enabled - using mock user
-          const mockUser = getMockUser();
-          const mockUserProfile = getMockUserProfile();
+        // Check if supabase client is properly initialized
+        if (!supabase || !supabase.auth) {
+          throw new Error(
+            'Supabase client not properly initialized. Check environment variables.'
+          );
+        }
 
-          if (isMountedRef.current) {
-            authState.setUser(mockUser);
-            authState.setSession({
-              user: mockUser,
-              access_token: 'mock-token',
-              refresh_token: 'mock-refresh-token',
-              expires_in: 3600,
-              expires_at: Date.now() + 3600000,
-              token_type: 'bearer',
-            });
-            userProfile.setUserProfile(mockUserProfile);
-            authState.setLoading(false);
+        // Handle bypass auth mode - but check for actual session first
+        if (authConfig.bypassAuth) {
+          // Try to get actual session first, even in bypass mode
+          const {
+            data: { session },
+            error: sessionError,
+          } = await supabase.auth.getSession();
+
+          if (session?.user) {
+            // Use actual authenticated user from Supabase
+            console.log('🔐 BypassAuth: Using actual authenticated user:', session.user.email);
+            if (isMountedRef.current) {
+              authState.setUser(session.user);
+              authState.setSession(session);
+            }
+            // Continue with normal auth flow to set up user profile
+            // Don't set loading to false here - let the normal flow handle it
+          } else {
+            // No actual session - fall back to mock user
+            console.log('🔐 BypassAuth: No session found, using mock user');
+            const mockUser = getMockUser();
+            const mockUserProfile = getMockUserProfile();
+
+            if (isMountedRef.current) {
+              authState.setUser(mockUser);
+              authState.setSession({
+                user: mockUser,
+                access_token: 'mock-token',
+                refresh_token: 'mock-refresh-token',
+                expires_in: 3600,
+                expires_at: Date.now() + 3600000,
+                token_type: 'bearer',
+              });
+              userProfile.setUserProfile(mockUserProfile);
+              authState.setLoading(false);
+            }
+            return;
           }
-          return;
         }
 
         // Set a timeout to force loading to complete after 5 seconds
@@ -189,22 +214,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }, 5000);
 
-        // Check if supabase client is properly initialized
-        if (!supabase || !supabase.auth) {
-          throw new Error(
-            'Supabase client not properly initialized. Check environment variables.'
-          );
+        // Get initial session (if not already retrieved in bypassAuth mode)
+        let session = authState.session;
+        let error;
+        
+        // If we already have a session from bypassAuth check, use it
+        // Otherwise, get the session normally
+        if (!session && (!authConfig.bypassAuth || !authState.user)) {
+          const sessionResult = await supabase.auth.getSession();
+          session = sessionResult.data?.session;
+          error = sessionResult.error;
+
+          if (error) {
+            console.error('❌ Error getting initial session:', error);
+            throw error;
+          }
         }
-
-        // Get initial session
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error('❌ Error getting initial session:', error);
-          throw error;
+        
+        // If we have a session from bypassAuth mode, make sure it's set
+        if (session && !authState.session) {
+          authState.setSession(session);
         }
 
         console.log('📋 Initial session:', {

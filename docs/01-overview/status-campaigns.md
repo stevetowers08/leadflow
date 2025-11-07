@@ -175,3 +175,8 @@ CREATE TYPE people_stage_enum AS ENUM (
 - [Database Schema](../06-reference/database/schema.md) - Complete schema reference
 
 
+
+
+
+
+

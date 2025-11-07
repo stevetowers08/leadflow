@@ -85,12 +85,12 @@ export default function StepEditor({ step, onUpdate }: StepEditorProps) {
   return (
     <div className='h-full flex flex-col'>
       {/* Header */}
-      <div className='border-b border-gray-200 px-6 py-4'>
+      <div className='border-b border-border px-6 py-4'>
         <div className='flex items-center justify-between'>
-          <h2 className='text-lg font-semibold text-gray-900'>
+          <h2 className='text-lg font-semibold text-foreground'>
             Stage {getStepNumber()}: {getStepTitle()}
           </h2>
-          <span className='text-sm text-gray-500 capitalize'>
+          <span className='text-sm text-muted-foreground capitalize'>
             {step.step_type}
           </span>
         </div>
@@ -102,7 +102,7 @@ export default function StepEditor({ step, onUpdate }: StepEditorProps) {
         <div className='space-y-2'>
           <Label
             htmlFor='step-title'
-            className='text-sm font-medium text-gray-700'
+            className='text-sm font-medium text-foreground'
           >
             Title
           </Label>
@@ -118,13 +118,13 @@ export default function StepEditor({ step, onUpdate }: StepEditorProps) {
         <div className='space-y-2'>
           <Label
             htmlFor='task-description'
-            className='text-sm font-medium text-gray-700'
+            className='text-sm font-medium text-foreground'
           >
             Task Description
           </Label>
 
           {/* Rich Text Editor Toolbar */}
-          <div className='border border-gray-300 rounded-t-lg bg-gray-50 px-3 py-2 flex items-center gap-2'>
+          <div className='border border-border/60 rounded-t-lg bg-muted px-3 py-2 flex items-center gap-2'>
             <Button variant='ghost' size='sm' className='p-1.5'>
               <Bold className='w-4 h-4' />
             </Button>
@@ -219,9 +219,9 @@ export default function StepEditor({ step, onUpdate }: StepEditorProps) {
       </div>
 
       {/* Footer */}
-      <div className='border-t border-gray-200 px-6 py-4 bg-gray-50'>
+      <div className='border-t border-border px-6 py-4 bg-muted'>
         <div className='flex items-center justify-between'>
-          <div className='text-sm text-gray-500'>
+          <div className='text-sm text-muted-foreground'>
             {isEditing ? (
               <>Save Changes (Auto-saving in {autoSaveCountdown}s)</>
             ) : (

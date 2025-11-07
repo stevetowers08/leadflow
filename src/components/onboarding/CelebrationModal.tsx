@@ -38,7 +38,7 @@ export function CelebrationModal({
       <DialogContent className='sm:max-w-md'>
         <DialogHeader className='text-center'>
           <div className='mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100'>
-            <Sparkles className='h-8 w-8 text-green-600' />
+            <Sparkles className='h-8 w-8 text-success' />
           </div>
           <DialogTitle className='text-2xl'>{title}</DialogTitle>
           <DialogDescription className='text-base'>
@@ -55,7 +55,7 @@ export function CelebrationModal({
                   key={index}
                   className='flex items-start gap-2 text-sm text-muted-foreground'
                 >
-                  <CheckCircle className='h-4 w-4 text-green-600 mt-0.5' />
+                  <CheckCircle className='h-4 w-4 text-success mt-0.5' />
                   <span>{step}</span>
                 </li>
               ))}

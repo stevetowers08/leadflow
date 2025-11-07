@@ -44,7 +44,7 @@ class GeminiService {
         return {
           success: false,
           error:
-            'Gemini API key not configured. Please add VITE_GEMINI_API_KEY to your environment variables.',
+            'Gemini API key not configured. Please add GEMINI_API_KEY to your environment variables.',
         };
       }
 

@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
 import { RecruitEdgeLogo } from '../RecruitEdgeLogo';
+import { Loader2 } from 'lucide-react';
 
 export const FallbackAuth: React.FC = () => {
   const [loading, setLoading] = useState<string | null>(null);
@@ -54,7 +55,7 @@ export const FallbackAuth: React.FC = () => {
 
   return (
     <div className='flex flex-col h-screen'>
-      <div className='h-20 border-b border-gray-200 flex items-center justify-center'>
+      <div className='h-20 border-b border-border flex items-center justify-center'>
         <div className='flex items-center gap-3'>
           <RecruitEdgeLogo size={32} />
           <div>

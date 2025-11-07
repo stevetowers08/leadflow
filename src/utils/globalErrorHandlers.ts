@@ -70,8 +70,10 @@ export function setupGlobalErrorHandlers(): void {
     try {
       const response = await originalFetch(...args);
 
-      // Log failed requests
+      // Log failed requests to error tracking service
+      // HTTP 5xx errors are handled gracefully by the application and won't spam console
       if (!response.ok) {
+        // Always log to error tracking service for monitoring
         await enhancedErrorLogger.logNetworkError(
           `HTTP ${response.status}: ${response.statusText}`,
           {
@@ -89,6 +91,7 @@ export function setupGlobalErrorHandlers(): void {
 
       return response;
     } catch (error) {
+      // Network errors (connection failures) should always be logged
       await enhancedErrorLogger.logNetworkError(error as Error, {
         component: 'fetch',
         action: 'network_error',

@@ -211,7 +211,7 @@ export const AssignmentPerformanceMonitor: React.FC = () => {
       </Card>
 
       {/* Performance Alerts */}
-      <Card className='border-orange-200 bg-orange-50'>
+      <Card className='border-orange-200 bg-warning/10'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2 text-orange-800'>
             <AlertTriangle className='h-5 w-5' />
@@ -221,20 +221,20 @@ export const AssignmentPerformanceMonitor: React.FC = () => {
         <CardContent>
           <div className='space-y-2 text-orange-800'>
             <div className='flex items-center gap-2'>
-              <div className='w-2 h-2 bg-orange-500 rounded-full'></div>
+              <div className='w-2 h-2 bg-warning/100 rounded-full'></div>
               <span>
                 Monitor bulk assignment performance with large datasets
               </span>
             </div>
             <div className='flex items-center gap-2'>
-              <div className='w-2 h-2 bg-orange-500 rounded-full'></div>
+              <div className='w-2 h-2 bg-warning/100 rounded-full'></div>
               <span>
                 Consider implementing assignment queues for high-volume
                 operations
               </span>
             </div>
             <div className='flex items-center gap-2'>
-              <div className='w-2 h-2 bg-orange-500 rounded-full'></div>
+              <div className='w-2 h-2 bg-warning/100 rounded-full'></div>
               <span>
                 Set up monitoring alerts for assignment failure rates above 5%
               </span>

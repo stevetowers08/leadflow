@@ -49,7 +49,7 @@ const DEFAULT_ROLES: Role[] = [
   {
     id: 'owner',
     name: 'Owner',
-    description: 'Full system control including user limits and billing',
+    description: 'Full system control. Can create organisations, set user limits, manage billing, and promote users to admin',
     isDefault: false,
     permissions: [
       {
@@ -309,7 +309,7 @@ const DEFAULT_ROLES: Role[] = [
   {
     id: 'admin',
     name: 'Administrator',
-    description: 'Manage users and organization settings (limited by owner)',
+    description: 'Main person for an organisation. Can invite users to their organisation based on limits set by owner',
     isDefault: false,
     permissions: [
       {
@@ -687,9 +687,9 @@ const DEFAULT_ROLES: Role[] = [
     ],
   },
   {
-    id: 'recruiter',
-    name: 'Recruiter',
-    description: 'Manage leads and jobs',
+    id: 'user',
+    name: 'User',
+    description: 'Standard user with full data access (cannot invite users or create organisations)',
     isDefault: true,
     permissions: [
       {
@@ -707,11 +707,25 @@ const DEFAULT_ROLES: Role[] = [
         action: 'edit',
       },
       {
+        id: 'leads_delete',
+        name: 'Delete Leads',
+        description: 'Delete leads',
+        resource: 'leads',
+        action: 'delete',
+      },
+      {
         id: 'leads_export',
         name: 'Export Leads',
         description: 'Export leads data',
         resource: 'leads',
         action: 'export',
+      },
+      {
+        id: 'leads_bulk',
+        name: 'Bulk Actions',
+        description: 'Perform bulk actions on leads',
+        resource: 'leads',
+        action: 'bulk',
       },
       {
         id: 'companies_view',
@@ -728,6 +742,27 @@ const DEFAULT_ROLES: Role[] = [
         action: 'edit',
       },
       {
+        id: 'companies_delete',
+        name: 'Delete Companies',
+        description: 'Delete companies',
+        resource: 'companies',
+        action: 'delete',
+      },
+      {
+        id: 'companies_export',
+        name: 'Export Companies',
+        description: 'Export companies data',
+        resource: 'companies',
+        action: 'export',
+      },
+      {
+        id: 'companies_bulk',
+        name: 'Bulk Actions',
+        description: 'Perform bulk actions on companies',
+        resource: 'companies',
+        action: 'bulk',
+      },
+      {
         id: 'jobs_view',
         name: 'View Jobs',
         description: 'View jobs data',
@@ -742,47 +777,25 @@ const DEFAULT_ROLES: Role[] = [
         action: 'edit',
       },
       {
-        id: 'campaigns_view',
-        name: 'View Campaigns',
-        description: 'View campaigns data',
-        resource: 'campaigns',
-        action: 'view',
-      },
-      {
-        id: 'reports_view',
-        name: 'View Reports',
-        description: 'View reports and analytics',
-        resource: 'reports',
-        action: 'view',
-      },
-    ],
-  },
-  {
-    id: 'viewer',
-    name: 'Viewer',
-    description: 'Read-only access to data',
-    isDefault: false,
-    permissions: [
-      {
-        id: 'leads_view',
-        name: 'View Leads',
-        description: 'View leads data',
-        resource: 'leads',
-        action: 'view',
-      },
-      {
-        id: 'companies_view',
-        name: 'View Companies',
-        description: 'View companies data',
-        resource: 'companies',
-        action: 'view',
-      },
-      {
-        id: 'jobs_view',
-        name: 'View Jobs',
-        description: 'View jobs data',
+        id: 'jobs_delete',
+        name: 'Delete Jobs',
+        description: 'Delete jobs',
         resource: 'jobs',
-        action: 'view',
+        action: 'delete',
+      },
+      {
+        id: 'jobs_export',
+        name: 'Export Jobs',
+        description: 'Export jobs data',
+        resource: 'jobs',
+        action: 'export',
+      },
+      {
+        id: 'jobs_bulk',
+        name: 'Bulk Actions',
+        description: 'Perform bulk actions on jobs',
+        resource: 'jobs',
+        action: 'bulk',
       },
       {
         id: 'campaigns_view',
@@ -792,11 +805,53 @@ const DEFAULT_ROLES: Role[] = [
         action: 'view',
       },
       {
+        id: 'campaigns_edit',
+        name: 'Edit Campaigns',
+        description: 'Edit campaigns data',
+        resource: 'campaigns',
+        action: 'edit',
+      },
+      {
+        id: 'campaigns_delete',
+        name: 'Delete Campaigns',
+        description: 'Delete campaigns',
+        resource: 'campaigns',
+        action: 'delete',
+      },
+      {
+        id: 'campaigns_export',
+        name: 'Export Campaigns',
+        description: 'Export campaigns data',
+        resource: 'campaigns',
+        action: 'export',
+      },
+      {
+        id: 'campaigns_bulk',
+        name: 'Bulk Actions',
+        description: 'Perform bulk actions on campaigns',
+        resource: 'campaigns',
+        action: 'bulk',
+      },
+      {
+        id: 'campaigns_execute',
+        name: 'Execute Campaigns',
+        description: 'Execute campaigns',
+        resource: 'campaigns',
+        action: 'execute',
+      },
+      {
         id: 'reports_view',
         name: 'View Reports',
         description: 'View reports and analytics',
         resource: 'reports',
         action: 'view',
+      },
+      {
+        id: 'reports_export',
+        name: 'Export Reports',
+        description: 'Export reports',
+        resource: 'reports',
+        action: 'export',
       },
     ],
   },
@@ -842,10 +897,7 @@ export function PermissionsProvider({
           permissions: role.permissions,
         });
       } else {
-        // FUTURE: When bypass mode is enabled, automatically grant admin role
-        // For now, fallback to owner/recruiter
-        // TODO: Uncomment below when ready to enable admin bypass mode
-        /*
+        // When bypass mode is enabled, automatically grant admin role
         const authConfig = getAuthConfig();
         if (authConfig.bypassAuth) {
           // Bypass mode: use admin role for full access
@@ -860,11 +912,10 @@ export function PermissionsProvider({
             return;
           }
         }
-        */
 
-        // Fallback: try owner first, then recruiter
+        // Fallback: try owner first, then user
         const ownerRole = roles.find(role => role.id === 'owner');
-        const defaultRole = roles.find(role => role.id === 'recruiter');
+        const defaultRole = roles.find(role => role.id === 'user');
 
         const roleToUse = ownerRole || defaultRole;
 
@@ -901,8 +952,8 @@ export function PermissionsProvider({
             permissions: role.permissions,
           });
         } else {
-          // Default to recruiter if metadata role not found
-          const defaultRole = roles.find(role => role.id === 'recruiter');
+          // Default to user if metadata role not found
+          const defaultRole = roles.find(role => role.id === 'user');
           if (defaultRole) {
             setUserPermissions({
               userId: user.id,

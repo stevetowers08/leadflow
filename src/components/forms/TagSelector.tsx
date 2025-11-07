@@ -291,7 +291,7 @@ export const TagSelector = ({
                         'w-6 h-6 rounded border-2',
                         newTagColor === color
                           ? 'border-gray-400'
-                          : 'border-gray-200'
+                          : 'border-border'
                       )}
                       style={{ backgroundColor: color }}
                       onClick={() => setNewTagColor(color)}

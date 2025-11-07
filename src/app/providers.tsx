@@ -1,7 +1,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Toaster } from 'sonner';
 import {
   useGlobalErrorHandler,
@@ -28,6 +28,7 @@ import { SearchProvider } from '@/contexts/SearchContext';
 import { SlidePanelProvider } from '@/contexts/SlidePanelContext';
 import { LoggingProvider } from '@/utils/enhancedLogger';
 import { PerformanceProvider } from '@/utils/performanceMonitoring';
+import { useClientId } from '@/hooks/useClientId';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +66,98 @@ function AppInitialization({ children }: { children: React.ReactNode }) {
 
     initErrorHandling();
   }, []);
+
+  return <>{children}</>;
+}
+
+// Client Guard: Ensures authenticated users have a client_id (multi-tenant requirement)
+// Following industry best practices: redirect to sign-in when tenant context is missing
+// Account setup must be done by owner/admin before user can access the app
+function ClientGuard({ children }: { children: React.ReactNode }) {
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { data: clientId, isLoading: clientIdLoading } = useClientId();
+  const bypassAuth = shouldBypassAuth();
+
+  // If no client_id and auth is complete, automatically sign out and redirect to sign-in
+  // Industry best practice: Missing tenant context requires re-authentication
+  // (Similar to Salesforce/HubSpot: organization context is required)
+  // User must be set up by admin/owner first
+  const hasTriggeredSignOut = React.useRef(false);
+
+  useEffect(() => {
+    // Prevent multiple sign-out calls
+    if (hasTriggeredSignOut.current) return;
+
+    if (
+      !bypassAuth &&
+      !authLoading &&
+      !clientIdLoading &&
+      user &&
+      !clientId
+    ) {
+      // User authenticated but missing client_id - sign out automatically
+      // Admin/owner must set up the account first
+      hasTriggeredSignOut.current = true;
+      console.warn(
+        'User authenticated but missing client_id. Redirecting to sign-in.'
+      );
+      signOut();
+    }
+  }, [user, clientId, authLoading, clientIdLoading, bypassAuth, signOut]);
+
+  // Reset sign-out flag if user gets a clientId or user changes
+  useEffect(() => {
+    if (clientId || !user) {
+      hasTriggeredSignOut.current = false;
+    }
+  }, [clientId, user]);
+
+  // Show loading while checking client_id (must be after all hooks)
+  if (!bypassAuth && user && (authLoading || clientIdLoading)) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-muted'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-sidebar-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Verifying account setup...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message while signing out (must be after all hooks)
+  if (!bypassAuth && user && !clientId && !authLoading && !clientIdLoading) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-muted px-4'>
+        <div className='text-center max-w-md w-full'>
+          <div className='bg-white rounded-lg shadow-lg p-8'>
+            <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sidebar-primary/10'>
+              <svg
+                className='h-6 w-6 text-sidebar-primary'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'
+                />
+              </svg>
+            </div>
+            <h2 className='text-xl font-semibold text-foreground mb-2'>
+              Account Setup Required
+            </h2>
+            <p className='text-muted-foreground text-sm'>
+              Your account needs to be linked to an organization by an admin
+              before you can access the application. Please contact your account
+              administrator.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }
@@ -113,7 +206,7 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
       userProfile={currentUserProfile}
       authLoading={loading && !bypassAuth}
     >
-      {children}
+      <ClientGuard>{children}</ClientGuard>
     </PermissionsProvider>
   );
 }

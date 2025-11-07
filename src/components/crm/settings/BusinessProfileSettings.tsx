@@ -167,7 +167,7 @@ const BusinessProfileSettings = () => {
   if (initialLoad) {
     return (
       <div className='flex items-center justify-center p-8'>
-        <Loader2 className='h-6 w-6 animate-spin text-gray-400' />
+        <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
       </div>
     );
   }
@@ -175,10 +175,10 @@ const BusinessProfileSettings = () => {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+        <h2 className='text-xl font-semibold text-foreground mb-2'>
           Business Profile
         </h2>
-        <p className='text-sm text-gray-600'>
+        <p className='text-sm text-muted-foreground'>
           Configure your business profile and targeting criteria for better lead
           qualification
         </p>
@@ -192,9 +192,9 @@ const BusinessProfileSettings = () => {
       )}
 
       {success && (
-        <Alert className='border-green-500 bg-green-50'>
-          <CheckCircle2 className='h-4 w-4 text-green-600' />
-          <AlertDescription className='text-green-700'>
+        <Alert className='border-green-500 bg-success/10'>
+          <CheckCircle2 className='h-4 w-4 text-success' />
+          <AlertDescription className='text-success'>
             Business profile updated successfully
           </AlertDescription>
         </Alert>

@@ -44,16 +44,16 @@ export function validateProviderSetup(): ProviderValidationResult {
         error: 'QueryClientProvider missing - React Query hooks will fail',
       },
       {
-        name: 'BrowserRouter',
+        name: 'Next.js Router',
         check: () => {
           try {
-            const { BrowserRouter } = require('react-router-dom');
+            const { useRouter } = require('next/navigation');
             return true;
           } catch {
             return false;
           }
         },
-        error: 'BrowserRouter missing - routing hooks will fail',
+        error: 'Next.js Router missing - routing hooks will fail',
       },
       {
         name: 'AuthProvider',
@@ -169,7 +169,7 @@ export function getProviderErrorSuggestions(error: Error): string[] {
   }
   if (error.message.includes(PROVIDER_ERROR_PATTERNS.ROUTER)) {
     suggestions.push(
-      'Wrap components using routing hooks with <BrowserRouter>'
+      'Use Next.js navigation hooks (useRouter, usePathname) from next/navigation'
     );
   }
 

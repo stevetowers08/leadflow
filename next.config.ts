@@ -3,7 +3,10 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  
+
+  // Removed pageExtensions - it conflicts with App Router page detection
+  // Next.js App Router automatically detects page.tsx files
+
   // Disable Turbopack for build stability (can enable later)
   // Turbopack is enabled by default in Next.js 16, but can cause issues
   // experimental: {
@@ -46,14 +49,17 @@ const nextConfig: NextConfig = {
   typescript: {
     // Run type checking separately (npm run type-check)
     // Don't block builds - faster CI/CD
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false, // Changed to see actual errors
   },
 
   // Compiler options for better performance
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'], // Keep errors and warnings
-    } : false,
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn'], // Keep errors and warnings
+          }
+        : false,
   },
 
   // Turbopack configuration (Next.js 16 default)
@@ -65,4 +71,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

@@ -60,7 +60,7 @@ export const useAssignmentState = (options: AssignmentOptions) => {
       canAssign,
       hasAdminRole: hasRole('admin'),
       hasOwnerRole: hasRole('owner'),
-      hasRecruiterRole: hasRole('recruiter'),
+      hasUserRole: hasRole('user'),
       userEmail: user?.email,
       allUserRoles: user?.user_metadata?.role || 'no role metadata',
     });

@@ -71,13 +71,13 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
   const getPriorityColor = (priority?: string | null) => {
     switch (priority?.toLowerCase()) {
       case 'high':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-100 text-destructive border-red-200';
       case 'medium':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'low':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-success border-green-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-foreground border-border';
     }
   };
 
@@ -96,7 +96,7 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
     >
       <div className='flex items-center gap-3'>
         {/* Company Logo Only */}
-        <div className='flex-shrink-0 w-8 h-8 rounded-md border border-gray-200 bg-white flex items-center justify-center'>
+        <div className='flex-shrink-0 w-8 h-8 rounded-md border border-border bg-white flex items-center justify-center'>
           {getCompanyLogo(job) && (
             <img
               src={getCompanyLogo(job)!}
@@ -113,7 +113,7 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
         {/* Job Info */}
         <div className='flex-1 min-w-0'>
           <div className='font-semibold text-sm truncate'>{job.title}</div>
-          <div className='text-xs text-gray-500 truncate'>
+          <div className='text-xs text-muted-foreground truncate'>
             {job.company_name && job.location
               ? `${job.company_name} • ${job.location}`
               : job.company_name || job.location || 'No company'}
@@ -123,7 +123,7 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
         {/* People Count, Priority, Notes and Qualification Buttons */}
         <div className='flex items-center gap-2 flex-shrink-0'>
           {job.people_count && job.people_count > 0 && (
-            <div className='flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full'>
+            <div className='flex items-center gap-1 text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded-full'>
               <Users className='h-3 w-3' />
               <span>{job.people_count}</span>
             </div>
@@ -137,7 +137,7 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
             </Badge>
           )}
           {job.notes_count > 0 && (
-            <div className='flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full'>
+            <div className='flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full'>
               <StickyNote className='h-3 w-3' />
               <span>{job.notes_count}</span>
             </div>
@@ -152,7 +152,7 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
       return (
         <div className='space-y-3'>
           {[...Array(3)].map((_, i) => (
-            <div key={i} className='p-4 bg-gray-50 rounded-lg animate-pulse'>
+            <div key={i} className='p-4 bg-muted rounded-lg animate-pulse'>
               <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
               <div className='h-3 bg-gray-200 rounded w-1/2 mb-1'></div>
               <div className='h-3 bg-gray-200 rounded w-2/3'></div>
@@ -164,7 +164,7 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
 
     if (jobsList.length === 0) {
       return (
-        <div className='text-center py-8 text-gray-500'>
+        <div className='text-center py-8 text-muted-foreground'>
           <Briefcase className='h-8 w-8 mx-auto mb-2 opacity-50' />
           <p className='text-sm'>{emptyMessage}</p>
         </div>
@@ -189,7 +189,7 @@ export const RecentJobsTabs: React.FC<RecentJobsTabsProps> = ({
         )}
       >
         <CardHeader className='pb-4'>
-          <CardTitle className='flex items-center gap-2 text-base font-medium text-gray-900'>
+          <CardTitle className='flex items-center gap-2 text-base font-medium text-foreground'>
             <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-secondary/5 border border-secondary/10'>
               <Briefcase className='h-4 w-4 text-secondary' />
             </div>

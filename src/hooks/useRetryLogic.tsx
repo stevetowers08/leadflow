@@ -293,11 +293,11 @@ export const RetryIndicator: React.FC<RetryIndicatorProps> = ({
 
   return (
     <div
-      className={`p-4 bg-yellow-50 border border-yellow-200 rounded-lg ${className}`}
+      className={`p-4 bg-warning/10 border border-yellow-200 rounded-lg ${className}`}
     >
       <div className='flex items-center justify-between'>
         <div className='flex items-center space-x-2'>
-          <div className='w-2 h-2 bg-yellow-500 rounded-full animate-pulse' />
+          <div className='w-2 h-2 bg-warning/100 rounded-full animate-pulse' />
           <span className='text-sm text-yellow-800'>
             {isRetrying
               ? `Retrying... (${retryCount}/3)${timeLeft ? ` in ${timeLeft}s` : ''}`
@@ -326,7 +326,7 @@ export const RetryIndicator: React.FC<RetryIndicatorProps> = ({
       </div>
 
       {lastError && (
-        <div className='mt-2 text-xs text-yellow-700'>{lastError.message}</div>
+        <div className='mt-2 text-xs text-warning'>{lastError.message}</div>
       )}
     </div>
   );

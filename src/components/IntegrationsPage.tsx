@@ -79,15 +79,15 @@ const IntegrationsPage = () => {
   const getCategoryColor = (category: Integration['category']) => {
     switch (category) {
       case 'email':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-blue-100 text-primary';
       case 'messaging':
-        return 'bg-green-100 text-green-700';
+        return 'bg-green-100 text-success';
       case 'calendar':
         return 'bg-purple-100 text-purple-700';
       case 'data':
-        return 'bg-orange-100 text-orange-700';
+        return 'bg-orange-100 text-warning';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-100 text-foreground';
     }
   };
 
@@ -140,14 +140,14 @@ const IntegrationsPage = () => {
     switch (status) {
       case 'connected':
         return (
-          <Badge variant='outline' className='border-green-500 text-green-700'>
+          <Badge variant='outline' className='border-green-500 text-success'>
             <CheckCircle2 className='h-3 w-3 mr-1' />
             Connected
           </Badge>
         );
       case 'disconnected':
         return (
-          <Badge variant='outline' className='border-gray-300 text-gray-600'>
+          <Badge variant='outline' className='border-border/60 text-muted-foreground'>
             <XCircle className='h-3 w-3 mr-1' />
             Disconnected
           </Badge>
@@ -156,7 +156,7 @@ const IntegrationsPage = () => {
         return (
           <Badge
             variant='outline'
-            className='border-yellow-300 text-yellow-600'
+            className='border-yellow-300 text-warning'
           >
             Pending
           </Badge>
@@ -167,10 +167,10 @@ const IntegrationsPage = () => {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+        <h2 className='text-xl font-semibold text-foreground mb-2'>
           Integrations
         </h2>
-        <p className='text-sm text-gray-600'>
+        <p className='text-sm text-muted-foreground'>
           Connect external services to enhance your CRM functionality
         </p>
       </div>

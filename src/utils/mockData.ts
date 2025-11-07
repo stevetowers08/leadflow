@@ -57,7 +57,7 @@ export const generateMockActivities = (
         'Discussed project requirements and timeline.',
       ],
       icon: Linkedin,
-      color: 'bg-blue-100 text-blue-600',
+      color: 'bg-blue-100 text-primary',
     },
     {
       type: 'email_message' as const,
@@ -68,7 +68,7 @@ export const generateMockActivities = (
         'Shared relevant case studies and portfolio.',
       ],
       icon: EmailIcon,
-      color: 'bg-green-100 text-green-600',
+      color: 'bg-green-100 text-success',
     },
   ];
 
@@ -82,7 +82,7 @@ export const generateMockActivities = (
         'Quick response time. Very engaged during initial conversation.',
       ],
       icon: FileText,
-      color: 'bg-gray-100 text-gray-600',
+      color: 'bg-gray-100 text-muted-foreground',
     },
     {
       type: 'stage_change' as const,
@@ -93,7 +93,7 @@ export const generateMockActivities = (
         `Status updated to new`,
       ],
       icon: User,
-      color: 'bg-orange-100 text-orange-600',
+      color: 'bg-orange-100 text-warning',
     },
     {
       type: 'call' as const,
@@ -104,7 +104,7 @@ export const generateMockActivities = (
         'Quick check-in call to confirm interest.',
       ],
       icon: Phone,
-      color: 'bg-purple-100 text-purple-600',
+      color: 'bg-purple-100 text-primary',
     },
     {
       type: 'meeting' as const,
@@ -532,5 +532,245 @@ export const shouldUseMockData = (): boolean => {
     process.env.NODE_ENV === 'development' ||
     process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true'
   );
+};
+
+// Dashboard Mock Data - matches database schema
+export interface MockJob {
+  id: string;
+  title: string;
+  qualification_status: string;
+  created_at: string;
+  companies?: {
+    id: string;
+    name: string;
+    website?: string;
+    head_office?: string;
+    industry?: string;
+    logo_url?: string;
+  };
+}
+
+export interface MockEmailThread {
+  id: string;
+  gmail_thread_id: string;
+  subject: string | null;
+  last_message_at: string | null;
+  is_read: boolean | null;
+  person_id: string | null;
+  participants: unknown;
+}
+
+export interface MockPerson {
+  id: string;
+  name: string;
+  email_address?: string;
+  company_id?: string;
+  created_at: string;
+}
+
+export interface MockCompany {
+  id: string;
+  name: string;
+  website?: string;
+  head_office?: string;
+  industry?: string;
+  logo_url?: string;
+  created_at: string;
+}
+
+export const generateMockJobs = (count: number = 10): MockJob[] => {
+  const jobs: MockJob[] = [];
+  const now = new Date();
+
+  const jobTitles = [
+    'Senior Software Engineer',
+    'Product Manager',
+    'Engineering Manager',
+    'Senior Frontend Developer',
+    'DevOps Engineer',
+    'Full Stack Developer',
+    'Technical Lead',
+    'Senior Backend Engineer',
+    'Solutions Architect',
+    'Engineering Director',
+    'VP of Engineering',
+    'CTO',
+  ];
+
+  const companies = [
+    { name: 'TechCorp Inc', industry: 'Technology', website: 'https://techcorp.com', head_office: 'San Francisco, CA' },
+    { name: 'DataFlow Systems', industry: 'Data Analytics', website: 'https://dataflow.io', head_office: 'New York, NY' },
+    { name: 'CloudScale Solutions', industry: 'Cloud Computing', website: 'https://cloudscale.com', head_office: 'Seattle, WA' },
+    { name: 'AI Innovations', industry: 'Artificial Intelligence', website: 'https://aiinnovations.com', head_office: 'Boston, MA' },
+    { name: 'SecureNet Technologies', industry: 'Cybersecurity', website: 'https://securenet.io', head_office: 'Austin, TX' },
+    { name: 'FinTech Global', industry: 'Financial Technology', website: 'https://fintechglobal.com', head_office: 'London, UK' },
+    { name: 'HealthTech Solutions', industry: 'Healthcare Technology', website: 'https://healthtech.com', head_office: 'Chicago, IL' },
+    { name: 'E-Commerce Pro', industry: 'E-Commerce', website: 'https://ecommercepro.com', head_office: 'Los Angeles, CA' },
+  ];
+
+  for (let i = 0; i < count; i++) {
+    const hoursAgo = i * 2 + Math.floor(Math.random() * 5);
+    const createdDate = new Date(now);
+    createdDate.setHours(createdDate.getHours() - hoursAgo);
+
+    const company = companies[i % companies.length];
+    const companyId = `company_${i + 1}`;
+
+    jobs.push({
+      id: `job_${i + 1}`,
+      title: jobTitles[i % jobTitles.length],
+      qualification_status: 'new',
+      created_at: createdDate.toISOString(),
+      companies: {
+        id: companyId,
+        name: company.name,
+        website: company.website,
+        head_office: company.head_office,
+        industry: company.industry,
+        logo_url: undefined,
+      },
+    });
+  }
+
+  return jobs.sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+};
+
+export const generateMockEmailThreads = (count: number = 10): MockEmailThread[] => {
+  const threads: MockEmailThread[] = [];
+  const now = new Date();
+
+  const subjects = [
+    'Re: Follow-up on our conversation',
+    'Re: Job opportunity discussion',
+    'Re: Thank you for your interest',
+    'Re: Next steps in the process',
+    'Re: Quick question about the role',
+    'Re: Interview scheduling',
+    'Re: Your application status',
+    'Re: Opportunity to connect',
+    'Re: Discussion about the position',
+    'Re: Following up on our call',
+  ];
+
+  for (let i = 0; i < count; i++) {
+    const hoursAgo = i * 3 + Math.floor(Math.random() * 8);
+    const lastMessageDate = new Date(now);
+    lastMessageDate.setHours(lastMessageDate.getHours() - hoursAgo);
+
+    threads.push({
+      id: `thread_${i + 1}`,
+      gmail_thread_id: `gmail_thread_${i + 1}`,
+      subject: subjects[i % subjects.length],
+      last_message_at: lastMessageDate.toISOString(),
+      is_read: false,
+      person_id: `person_${i + 1}`,
+      participants: [],
+    });
+  }
+
+  return threads.sort(
+    (a, b) =>
+      new Date(b.last_message_at || 0).getTime() -
+      new Date(a.last_message_at || 0).getTime()
+  );
+};
+
+export const generateMockPeople = (count: number = 10): MockPerson[] => {
+  const people: MockPerson[] = [];
+  const now = new Date();
+
+  const firstNames = ['John', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'Robert', 'Amanda', 'James', 'Lisa'];
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
+
+  for (let i = 0; i < count; i++) {
+    const daysAgo = Math.floor(Math.random() * 7);
+    const createdDate = new Date(now);
+    createdDate.setDate(createdDate.getDate() - daysAgo);
+    createdDate.setHours(0, 0, 0, 0);
+
+    const firstName = firstNames[i % firstNames.length];
+    const lastName = lastNames[i % lastNames.length];
+    const name = `${firstName} ${lastName}`;
+    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
+
+    people.push({
+      id: `person_${i + 1}`,
+      name,
+      email_address: email,
+      company_id: `company_${(i % 8) + 1}`,
+      created_at: createdDate.toISOString(),
+    });
+  }
+
+  return people;
+};
+
+export const generateMockCompanies = (count: number = 10): MockCompany[] => {
+  const companies: MockCompany[] = [];
+  const now = new Date();
+
+  const companyNames = [
+    'TechCorp Inc',
+    'DataFlow Systems',
+    'CloudScale Solutions',
+    'AI Innovations',
+    'SecureNet Technologies',
+    'FinTech Global',
+    'HealthTech Solutions',
+    'E-Commerce Pro',
+    'MobileFirst Apps',
+    'Blockchain Ventures',
+  ];
+
+  const industries = [
+    'Technology',
+    'Data Analytics',
+    'Cloud Computing',
+    'Artificial Intelligence',
+    'Cybersecurity',
+    'Financial Technology',
+    'Healthcare Technology',
+    'E-Commerce',
+    'Mobile Development',
+    'Blockchain',
+  ];
+
+  const locations = [
+    'San Francisco, CA',
+    'New York, NY',
+    'Seattle, WA',
+    'Boston, MA',
+    'Austin, TX',
+    'London, UK',
+    'Chicago, IL',
+    'Los Angeles, CA',
+    'Denver, CO',
+    'Toronto, ON',
+  ];
+
+  for (let i = 0; i < count; i++) {
+    const daysAgo = Math.floor(Math.random() * 7);
+    const createdDate = new Date(now);
+    createdDate.setDate(createdDate.getDate() - daysAgo);
+    createdDate.setHours(0, 0, 0, 0);
+
+    const name = companyNames[i % companyNames.length];
+    const domain = name.toLowerCase().replace(/\s+/g, '').replace(/inc|systems|solutions|technologies|global|ventures|apps/gi, '');
+    const website = `https://${domain}.com`;
+
+    companies.push({
+      id: `company_${i + 1}`,
+      name,
+      website,
+      head_office: locations[i % locations.length],
+      industry: industries[i % industries.length],
+      logo_url: undefined,
+      created_at: createdDate.toISOString(),
+    });
+  }
+
+  return companies;
 };
 

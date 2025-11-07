@@ -62,10 +62,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled || isLoading}
-          className='min-h-[48px] max-h-[120px] resize-none pr-12 rounded-2xl border-gray-200 focus:border-sidebar-primary focus:ring-1 focus:ring-sidebar-primary bg-gray-50/50'
+          className='min-h-[48px] max-h-[120px] resize-none pr-12 rounded-2xl border-border focus:border-sidebar-primary focus:ring-1 focus:ring-sidebar-primary bg-muted/50'
           rows={1}
         />
-        <div className='absolute bottom-3 right-3 text-xs text-gray-400 font-medium'>
+        <div className='absolute bottom-3 right-3 text-xs text-muted-foreground font-medium'>
           {message.length > 0 && `${message.length}`}
         </div>
       </div>

@@ -85,7 +85,14 @@ class ErrorLogger {
     }
 
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    // Skip console logging for handled HTTP 5xx errors (they're logged to tracking service)
+    // These are expected server errors that the application handles gracefully
+    const isHandledNetworkError =
+      category === ErrorCategory.NETWORK &&
+      (loggedError.message?.includes('HTTP 5') ||
+        loggedError.message?.match(/HTTP\s+5\d{2}/));
+
+    if (process.env.NODE_ENV === 'development' && !isHandledNetworkError) {
       console.group(`🚨 Error [${severity.toUpperCase()}] - ${category}`);
       console.error('Message:', loggedError.message);
       console.error('Context:', loggedError.context);

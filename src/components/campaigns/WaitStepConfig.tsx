@@ -68,7 +68,7 @@ export default function WaitStepConfig({ config, onChange }: Props) {
     <div className='space-y-6'>
       {/* Quick Presets */}
       <div>
-        <Label className='text-sm font-medium text-gray-700 mb-3 block'>
+        <Label className='text-sm font-medium text-foreground mb-3 block'>
           Quick Presets
         </Label>
         <div className='flex flex-wrap gap-2'>
@@ -83,8 +83,8 @@ export default function WaitStepConfig({ config, onChange }: Props) {
                 ${
                   config.duration === preset.duration &&
                   config.unit === preset.unit
-                    ? 'bg-blue-50 border-blue-200 text-blue-700'
-                    : 'hover:bg-gray-50'
+                    ? 'bg-primary/10 border-primary/20 text-primary'
+                    : 'hover:bg-muted'
                 }
               `}
             >
@@ -146,17 +146,17 @@ export default function WaitStepConfig({ config, onChange }: Props) {
           </div>
 
           {/* Business Hours Toggle */}
-          <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+          <div className='flex items-center justify-between p-3 bg-muted rounded-lg'>
             <div className='flex items-center gap-3'>
               <div className='flex items-center gap-2'>
                 <Sun className='w-4 h-4 text-yellow-500' />
-                <Moon className='w-4 h-4 text-blue-500' />
+                <Moon className='w-4 h-4 text-primary' />
               </div>
               <div>
                 <Label htmlFor='business-hours' className='text-sm font-medium'>
                   Business Hours Only
                 </Label>
-                <p className='text-xs text-gray-600'>
+                <p className='text-xs text-muted-foreground'>
                   Only count business hours (9 AM - 5 PM)
                 </p>
               </div>
@@ -171,12 +171,12 @@ export default function WaitStepConfig({ config, onChange }: Props) {
           </div>
 
           {/* Preview */}
-          <div className='p-3 bg-blue-50 rounded-lg border border-blue-200'>
-            <div className='flex items-center gap-2 text-sm text-blue-800'>
+          <div className='p-3 bg-primary/10 rounded-lg border border-primary/20'>
+            <div className='flex items-center gap-2 text-sm text-primary'>
               <Info className='w-4 h-4' />
               <span className='font-medium'>Wait Configuration:</span>
             </div>
-            <p className='text-sm text-blue-700 mt-1'>{getWaitDescription()}</p>
+            <p className='text-sm text-primary mt-1'>{getWaitDescription()}</p>
           </div>
         </CardContent>
       </Card>

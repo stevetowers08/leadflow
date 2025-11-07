@@ -339,11 +339,11 @@ export class BaseErrorBoundary extends Component<
 
       // Default error UI
       return (
-        <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='min-h-screen flex items-center justify-center bg-muted'>
           <div className='max-w-md w-full bg-white shadow-lg rounded-lg p-6'>
             <div className='flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4'>
               <svg
-                className='w-6 h-6 text-red-600'
+                className='w-6 h-6 text-destructive'
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
@@ -365,10 +365,10 @@ export class BaseErrorBoundary extends Component<
                     <h2 className='text-lg font-semibold text-foreground text-center mb-2'>
                       {errorInfo.title}
                     </h2>
-                    <p className='text-sm text-gray-600 text-center mb-3'>
+                    <p className='text-sm text-muted-foreground text-center mb-3'>
                       {errorInfo.description}
                     </p>
-                    <p className='text-xs text-gray-500 text-center mb-6 italic'>
+                    <p className='text-xs text-muted-foreground text-center mb-6 italic'>
                       {errorInfo.action}
                     </p>
                   </>
@@ -380,7 +380,7 @@ export class BaseErrorBoundary extends Component<
                 <summary className='text-sm font-medium text-foreground cursor-pointer'>
                   Error Details
                 </summary>
-                <div className='mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-600 overflow-auto max-h-32'>
+                <div className='mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-muted-foreground overflow-auto max-h-32'>
                   <div className='mb-2'>
                     <strong>Error:</strong> {this.state.error.message}
                   </div>
@@ -420,7 +420,7 @@ export class BaseErrorBoundary extends Component<
             </div>
 
             {this.state.retryCount > 0 && (
-              <p className='text-xs text-gray-500 text-center mt-4'>
+              <p className='text-xs text-muted-foreground text-center mt-4'>
                 Retry attempt {this.state.retryCount} of{' '}
                 {this.props.maxRetries || 3}
               </p>
@@ -555,9 +555,9 @@ export class CriticalErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className='min-h-screen flex items-center justify-center bg-gray-50 px-4'>
+        <div className='min-h-screen flex items-center justify-center bg-muted px-4'>
           <div className='max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center'>
-            <div className='text-red-500 text-6xl mb-4'>⚠️</div>
+            <div className='text-destructive text-6xl mb-4'>⚠️</div>
             {this.state.error &&
               (() => {
                 const errorInfo = this.getErrorMessage(this.state.error);
@@ -566,10 +566,10 @@ export class CriticalErrorBoundary extends Component<
                     <h1 className='text-xl font-semibold text-foreground mb-2'>
                       {errorInfo.title}
                     </h1>
-                    <p className='text-gray-600 mb-2'>
+                    <p className='text-muted-foreground mb-2'>
                       {errorInfo.description}
                     </p>
-                    <p className='text-sm text-gray-500 mb-4 italic'>
+                    <p className='text-sm text-muted-foreground mb-4 italic'>
                       {errorInfo.action}
                     </p>
                   </>
@@ -636,11 +636,11 @@ export class NetworkErrorBoundary extends Component<
   render(): ReactNode {
     if (this.state.hasNetworkError) {
       return (
-        <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='min-h-screen flex items-center justify-center bg-muted'>
           <div className='max-w-md w-full bg-white shadow-lg rounded-lg p-6 text-center'>
             <div className='flex items-center justify-center w-12 h-12 mx-auto bg-yellow-100 rounded-full mb-4'>
               <svg
-                className='w-6 h-6 text-yellow-600'
+                className='w-6 h-6 text-warning'
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
@@ -658,7 +658,7 @@ export class NetworkErrorBoundary extends Component<
               Connection Lost
             </h2>
 
-            <p className='text-sm text-gray-600 mb-6'>
+            <p className='text-sm text-muted-foreground mb-6'>
               You&apos;re currently offline. Please check your internet connection
               and try again.
             </p>

@@ -59,9 +59,9 @@ export default function VariablePicker({
       </Button>
 
       {isOpen && (
-        <div className='absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50'>
+        <div className='absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-border z-50'>
           {/* Search */}
-          <div className='p-2 border-b border-gray-200'>
+          <div className='p-2 border-b border-border'>
             <Input
               type='text'
               value={search}
@@ -76,7 +76,7 @@ export default function VariablePicker({
           <div className='max-h-80 overflow-y-auto py-2'>
             {contactVars.length > 0 && (
               <>
-                <div className='px-3 py-1 text-xs font-semibold text-gray-500 uppercase'>
+                <div className='px-3 py-1 text-xs font-semibold text-muted-foreground uppercase'>
                   Contact Fields
                 </div>
                 {contactVars.map(variable => (
@@ -84,17 +84,17 @@ export default function VariablePicker({
                     key={variable.key}
                     variant='ghost'
                     onClick={() => handleSelect(variable.key)}
-                    className='w-full justify-between px-3 py-2 text-left hover:bg-gray-50 h-auto'
+                    className='w-full justify-between px-3 py-2 text-left hover:bg-muted h-auto'
                   >
                     <div>
-                      <div className='text-sm font-medium text-gray-900'>
+                      <div className='text-sm font-medium text-foreground'>
                         {variable.label}
                       </div>
-                      <div className='text-xs text-gray-500 font-mono'>
+                      <div className='text-xs text-muted-foreground font-mono'>
                         {`{{${variable.key}}}`}
                       </div>
                     </div>
-                    <div className='text-xs text-gray-400'>
+                    <div className='text-xs text-muted-foreground'>
                       {variable.example}
                     </div>
                   </Button>
@@ -104,7 +104,7 @@ export default function VariablePicker({
 
             {companyVars.length > 0 && (
               <>
-                <div className='px-3 py-1 text-xs font-semibold text-gray-500 uppercase mt-2'>
+                <div className='px-3 py-1 text-xs font-semibold text-muted-foreground uppercase mt-2'>
                   Company Fields
                 </div>
                 {companyVars.map(variable => (
@@ -112,17 +112,17 @@ export default function VariablePicker({
                     key={variable.key}
                     variant='ghost'
                     onClick={() => handleSelect(variable.key)}
-                    className='w-full justify-between px-3 py-2 text-left hover:bg-gray-50 h-auto'
+                    className='w-full justify-between px-3 py-2 text-left hover:bg-muted h-auto'
                   >
                     <div>
-                      <div className='text-sm font-medium text-gray-900'>
+                      <div className='text-sm font-medium text-foreground'>
                         {variable.label}
                       </div>
-                      <div className='text-xs text-gray-500 font-mono'>
+                      <div className='text-xs text-muted-foreground font-mono'>
                         {`{{${variable.key}}}`}
                       </div>
                     </div>
-                    <div className='text-xs text-gray-400'>
+                    <div className='text-xs text-muted-foreground'>
                       {variable.example}
                     </div>
                   </Button>
@@ -131,7 +131,7 @@ export default function VariablePicker({
             )}
 
             {filteredVariables.length === 0 && (
-              <div className='px-3 py-8 text-center text-sm text-gray-500'>
+              <div className='px-3 py-8 text-center text-sm text-muted-foreground'>
                 No variables found
               </div>
             )}

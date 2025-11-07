@@ -198,7 +198,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
     // Read-only view
     if (isLoading) {
       return (
-        <div className={cn('flex items-center gap-2 text-gray-400', className)}>
+        <div className={cn('flex items-center gap-2 text-muted-foreground', className)}>
           <User className='w-4 h-4 animate-pulse' />
           <span className='text-sm'>Loading...</span>
         </div>
@@ -207,7 +207,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
 
     if (!currentOwnerId) {
       return (
-        <div className={cn('flex items-center gap-2 text-gray-400', className)}>
+        <div className={cn('flex items-center gap-2 text-muted-foreground', className)}>
           <User className='w-4 h-4' />
           <span className='text-sm'>Unassigned</span>
         </div>
@@ -217,9 +217,9 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
     return (
       <div className={cn('flex items-center gap-2', className)}>
         <div className='w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center'>
-          <User className='w-3 h-3 text-blue-600' />
+          <User className='w-3 h-3 text-primary' />
         </div>
-        <span className='text-sm font-medium text-gray-700'>
+        <span className='text-sm font-medium text-foreground'>
           {currentOwnerName || 'Loading...'}
         </span>
       </div>
@@ -233,8 +233,8 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
         className={cn(
           'px-2 py-1 rounded-md text-xs font-medium h-8 flex items-center justify-center cursor-pointer transition-colors border',
           currentOwnerId
-            ? 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-800'
-            : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-600',
+            ? 'bg-primary/10 border-primary/20 hover:bg-blue-100 text-primary'
+            : 'bg-muted border-border hover:bg-gray-100 text-muted-foreground',
           isUpdating && 'opacity-50 pointer-events-none'
         )}
         onClick={e => {
@@ -276,7 +276,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
                     variant='ghost'
                     size='sm'
                     onClick={() => setShowHistoryModal(true)}
-                    className='h-6 w-6 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                    className='h-6 w-6 p-0 text-primary hover:text-primary hover:bg-primary/10'
                     title='View assignment history'
                   >
                     <History className='w-3 h-3' />
@@ -287,7 +287,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
                       size='sm'
                       onClick={handleUnassign}
                       disabled={isUpdating}
-                      className='h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
+                      className='h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10'
                     >
                       <UserX className='w-3 h-3' />
                     </Button>

@@ -69,9 +69,22 @@ export async function POST(request: NextRequest) {
     const geminiResponse = await callGeminiAPI(geminiApiKey, jobData);
 
     if (!geminiResponse.success) {
+      // Return appropriate status code based on error type
+      const statusCode = 
+        geminiResponse.error?.includes('Missing environment variables') ||
+        geminiResponse.error?.includes('GEMINI_API_KEY')
+          ? 503 // Service Unavailable
+          : geminiResponse.error?.includes('rate limit') ||
+            geminiResponse.error?.includes('429')
+          ? 429 // Too Many Requests
+          : 500; // Internal Server Error
+      
       return NextResponse.json(
-        { error: geminiResponse.error },
-        { status: 500 }
+        { 
+          error: geminiResponse.error || 'Failed to generate job summary',
+          success: false 
+        },
+        { status: statusCode }
       );
     }
 

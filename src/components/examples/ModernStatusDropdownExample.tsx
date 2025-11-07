@@ -42,7 +42,7 @@ export const ExampleGroupedStatusUsage: React.FC = () => {
 
       {/* Grouped Status Dropdown */}
       <div>
-        <label className='block text-sm font-medium text-gray-700 mb-2'>
+        <label className='block text-sm font-medium text-foreground mb-2'>
           Grouped Status Dropdown (HubSpot Style)
         </label>
         <GroupedStatusDropdown
@@ -56,8 +56,8 @@ export const ExampleGroupedStatusUsage: React.FC = () => {
 
       {/* Selected Value Display */}
       {selectedStatus && (
-        <div className='p-3 bg-gray-50 rounded-lg'>
-          <p className='text-sm text-gray-600'>
+        <div className='p-3 bg-muted rounded-lg'>
+          <p className='text-sm text-muted-foreground'>
             Selected Status:{' '}
             <span className='font-medium'>{selectedStatus}</span>
           </p>

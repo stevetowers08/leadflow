@@ -159,7 +159,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
   const getStatusIcon = (conversation: Conversation) => {
     if (!conversation.is_read) {
-      return <MessageSquare className='h-4 w-4 text-blue-500' />;
+      return <MessageSquare className='h-4 w-4 text-primary' />;
     }
     return <MessageSquareText className='h-4 w-4 text-muted-foreground' />;
   };
@@ -213,7 +213,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                 <Button
                   variant='outline'
                   size='sm'
-                  className='h-8 bg-white border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                  className='h-8 bg-white border-border/60 hover:border-gray-400 hover:bg-muted'
                 >
                   <Filter className='h-4 w-4 mr-2' />
                   {filter === 'all'
@@ -261,13 +261,13 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         <ScrollArea className='h-full'>
           {loading ? (
             <div className='flex items-center justify-center h-32'>
-              <div className='animate-spin rounded-full h-8 w-8 border-2 border-blue-200 border-t-blue-600' />
+              <div className='animate-spin rounded-full h-8 w-8 border-2 border-primary/20 border-t-blue-600' />
             </div>
           ) : filteredConversations.length === 0 ? (
-            <div className='flex flex-col items-center justify-center h-32 text-gray-500'>
+            <div className='flex flex-col items-center justify-center h-32 text-muted-foreground'>
               <MessageSquare className='h-12 w-12 mb-3 opacity-30' />
               <p className='text-sm font-medium'>No conversations found</p>
-              <p className='text-xs text-gray-400'>
+              <p className='text-xs text-muted-foreground'>
                 LinkedIn messages will appear here
               </p>
             </div>
@@ -277,7 +277,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                 <div
                   key={conversation.id}
                   className={cn(
-                    'px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer group',
+                    'px-4 py-2 border border-border rounded-lg hover:bg-muted hover:border-border/60 transition-all duration-200 cursor-pointer group',
                     selectedConversationId === conversation.id &&
                       'bg-sidebar-primary/10',
                     !conversation.is_read && 'bg-sidebar-primary/5'
@@ -291,7 +291,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                         <Mail className='h-4 w-4 text-emerald-600' />
                       ) : (
                         <svg
-                          className='h-4 w-4 text-blue-600'
+                          className='h-4 w-4 text-primary'
                           viewBox='0 0 24 24'
                           fill='currentColor'
                         >
@@ -305,7 +305,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                       <div className='font-semibold text-sm truncate'>
                         {conversation.person_name || 'Unknown Person'}
                       </div>
-                      <div className='text-xs text-gray-500 truncate'>
+                      <div className='text-xs text-muted-foreground truncate'>
                         {conversation.person_job_title &&
                           `${conversation.person_job_title} • `}
                         {conversation.person_company || 'No company'}
@@ -314,7 +314,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
                     {/* Time and Badge */}
                     <div className='flex items-center gap-2'>
-                      <div className='text-xs text-gray-500'>
+                      <div className='text-xs text-muted-foreground'>
                         {formatDate(conversation.last_message_at)}
                       </div>
                       {!conversation.is_read && (

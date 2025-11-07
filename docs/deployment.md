@@ -64,6 +64,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 NEXT_PUBLIC_GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET
+GEMINI_API_KEY  # Required for AI features (job summarization, chat, etc.)
 ```
 
 ### Mark as Sensitive

@@ -68,7 +68,7 @@ export const VirtualizedList: React.FC<VirtualizedListProps> = memo(
   ({ items, height = 400, itemHeight = 60, onItemClick, type }) => {
     if (!items || items.length === 0) {
       return (
-        <div className='text-center text-gray-500 py-8'>
+        <div className='text-center text-muted-foreground py-8'>
           No items to display
         </div>
       );

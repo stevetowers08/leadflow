@@ -179,34 +179,58 @@ class SupabaseErrorService {
         timestamp: timestamp,
       };
 
-      const { data, error: insertError } = await supabase
-        .from('error_logs')
-        .insert(errorData)
-        .select()
-        .single();
+      // Use API route instead of direct Supabase insert to avoid RLS issues
+      try {
+        // Map ErrorCategory to API route's expected type
+        const categoryToTypeMap: Record<ErrorCategory, 'unhandled' | 'promise' | 'resource' | 'validation' | 'permission' | 'data' | 'unknown'> = {
+          [ErrorCategory.AUTHENTICATION]: 'permission',
+          [ErrorCategory.DATABASE]: 'data',
+          [ErrorCategory.NETWORK]: 'resource',
+          [ErrorCategory.VALIDATION]: 'validation',
+          [ErrorCategory.UI]: 'unhandled',
+          [ErrorCategory.BUSINESS_LOGIC]: 'data',
+          [ErrorCategory.UNKNOWN]: 'unknown',
+        };
 
-      if (insertError) {
-        // Silently fail error logging to prevent cascading errors
-        // Don't use console.error as it may be filtered and cause recursion
-        // RLS blocking (42501) or auth.uid() NULL errors are expected in bypass auth mode
-        // Only log unexpected errors in development
-        if (
-          process.env.NODE_ENV === 'development' &&
-          insertError.code !== '42501' && // Permission denied (RLS blocking)
-          insertError.code !== 'PGRST301' && // JWT error (auth.uid() NULL)
-          !insertError.message?.includes('auth.uid()')
-        ) {
-          // Use try-catch to prevent any logging errors
-          try {
-            // Direct console access without going through filter
-            const originalError = console.error.bind(console);
-            originalError('Failed to insert error log:', insertError);
-          } catch {
-            // Silently fail if even console logging fails
-          }
+        const response = await fetch('/api/errors', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: errorData.message,
+            stack: errorData.stack,
+            timestamp: errorData.timestamp,
+            userAgent: errorData.user_agent || (typeof window !== 'undefined' ? window.navigator.userAgent : ''),
+            url: errorData.url || (typeof window !== 'undefined' ? window.location.href : ''),
+            type: categoryToTypeMap[category] || 'unknown',
+            componentName: errorData.component_name,
+            userId: errorData.user_id,
+            sessionId: errorData.session_id,
+            metadata: errorData.metadata,
+          }),
+        });
+
+        if (!response.ok) {
+          // Silently fail - don't let error logging cause cascading errors
+          return errorId;
         }
+
+        const result = await response.json().catch(() => null);
+        if (result?.id) {
+          // Use the returned ID from API
+          errorData.id = result.id;
+        }
+      } catch (fetchError) {
+        // Silently fail error logging to prevent cascading errors
         return errorId;
       }
+
+      // For notification purposes, create a mock data object
+      const data = {
+        id: errorId,
+        ...errorData,
+      };
 
       // Check if we should send notifications
       // Wrap in try-catch to prevent notification errors from breaking error logging

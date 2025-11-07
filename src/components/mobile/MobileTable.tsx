@@ -198,7 +198,7 @@ export function MobileStatsGrid({ stats, className }: MobileStatsGridProps) {
               <div
                 className={cn(
                   'text-xs font-medium mt-1',
-                  stat.trend.isPositive ? 'text-green-600' : 'text-red-600'
+                  stat.trend.isPositive ? 'text-success' : 'text-destructive'
                 )}
               >
                 {stat.trend.isPositive ? '+' : ''}

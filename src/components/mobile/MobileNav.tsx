@@ -358,7 +358,7 @@ export const CompactStatsCard: React.FC<CompactStatsCardProps> = ({
           <div
             className={cn(
               'mobile-supporting-sm font-medium flex-shrink-0',
-              trend.isPositive ? 'text-green-600' : 'text-red-600'
+              trend.isPositive ? 'text-success' : 'text-destructive'
             )}
           >
             {trend.isPositive ? '+' : ''}

@@ -57,7 +57,7 @@ const AdminSettingsTab = () => {
 
   const handleUpdateRole = async (
     memberId: string,
-    newRole: 'owner' | 'admin' | 'recruiter' | 'viewer'
+    newRole: 'owner' | 'admin' | 'user'
   ) => {
     setActionLoading(memberId);
     try {
@@ -118,13 +118,11 @@ const AdminSettingsTab = () => {
       case 'owner':
         return 'bg-purple-100 text-purple-700';
       case 'admin':
-        return 'bg-blue-100 text-blue-700';
-      case 'recruiter':
-        return 'bg-green-100 text-green-700';
-      case 'viewer':
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-blue-100 text-primary';
+      case 'user':
+        return 'bg-green-100 text-success';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-100 text-foreground';
     }
   };
 
@@ -141,7 +139,7 @@ const AdminSettingsTab = () => {
   if (loading) {
     return (
       <div className='flex items-center justify-center p-8'>
-        <Loader2 className='h-6 w-6 animate-spin text-gray-400' />
+        <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
       </div>
     );
   }
@@ -163,10 +161,10 @@ const AdminSettingsTab = () => {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+        <h2 className='text-xl font-semibold text-foreground mb-2'>
           Team Members
         </h2>
-        <p className='text-sm text-gray-600'>
+        <p className='text-sm text-muted-foreground'>
           Manage team members and their permissions
         </p>
       </div>
@@ -190,11 +188,11 @@ const AdminSettingsTab = () => {
               return (
                 <div
                   key={member.id}
-                  className='flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50'
+                  className='flex items-center justify-between p-3 border rounded-lg hover:bg-muted'
                 >
                   <div className='flex items-center gap-3'>
                     <div className='flex items-center justify-center w-10 h-10 rounded-full bg-gray-100'>
-                      <UserIcon className='h-5 w-5 text-gray-600' />
+                      <UserIcon className='h-5 w-5 text-muted-foreground' />
                     </div>
                     <div>
                       <div className='flex items-center gap-2'>
@@ -207,7 +205,7 @@ const AdminSettingsTab = () => {
                           </Badge>
                         )}
                       </div>
-                      <div className='flex items-center gap-2 text-sm text-gray-500'>
+                      <div className='flex items-center gap-2 text-sm text-muted-foreground'>
                         <Mail className='h-3 w-3' />
                         <span>{member.email}</span>
                       </div>
@@ -231,12 +229,11 @@ const AdminSettingsTab = () => {
                           className='px-2 py-1 text-sm border rounded'
                           value={member.role || ''}
                           onChange={e =>
-                            handleUpdateRole(member.id, e.target.value)
+                            handleUpdateRole(member.id, e.target.value as 'owner' | 'admin' | 'user')
                           }
                           disabled={isActionLoading}
                         >
-                          <option value='viewer'>Viewer</option>
-                          <option value='recruiter'>Recruiter</option>
+                          <option value='user'>User</option>
                           <option value='admin'>Admin</option>
                         </select>
 

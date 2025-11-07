@@ -113,19 +113,19 @@ export const JobQualificationModal: React.FC<JobQualificationModalProps> = ({
       value: 'new',
       label: 'New',
       description: 'New job awaiting review',
-      dotColor: 'bg-blue-500',
+      dotColor: 'bg-primary/100',
     },
     {
       value: 'qualify',
       label: 'Qualify',
       description: 'This job meets our criteria',
-      dotColor: 'bg-green-500',
+      dotColor: 'bg-success/100',
     },
     {
       value: 'skip',
       label: 'Skip',
       description: 'Skip this job for now',
-      dotColor: 'bg-red-500',
+      dotColor: 'bg-destructive/100',
     },
   ];
 
@@ -145,13 +145,13 @@ export const JobQualificationModal: React.FC<JobQualificationModalProps> = ({
 
         <div className='space-y-4 py-4'>
           {/* Job Info */}
-          <div className='rounded-lg bg-gray-50 p-4 space-y-2'>
-            <h4 className='font-semibold text-gray-900'>{job.title}</h4>
-            <p className='text-sm text-gray-600'>
+          <div className='rounded-lg bg-muted p-4 space-y-2'>
+            <h4 className='font-semibold text-foreground'>{job.title}</h4>
+            <p className='text-sm text-muted-foreground'>
               {job.companies?.name || 'Unknown Company'}
             </p>
             {job.location && (
-              <p className='text-sm text-gray-500'>📍 {job.location}</p>
+              <p className='text-sm text-muted-foreground'>📍 {job.location}</p>
             )}
           </div>
 
@@ -171,10 +171,10 @@ export const JobQualificationModal: React.FC<JobQualificationModalProps> = ({
                           className={`w-2 h-2 rounded-full ${option.dotColor}`}
                         ></div>
                         <div>
-                          <div className='text-xs font-medium text-gray-900'>
+                          <div className='text-xs font-medium text-foreground'>
                             {option.label}
                           </div>
-                          <div className='text-xs text-gray-500'>
+                          <div className='text-xs text-muted-foreground'>
                             {option.description}
                           </div>
                         </div>
@@ -185,7 +185,7 @@ export const JobQualificationModal: React.FC<JobQualificationModalProps> = ({
               </SelectContent>
             </Select>
             {selectedOption && (
-              <p className='text-sm text-gray-500 flex items-center gap-1'>
+              <p className='text-sm text-muted-foreground flex items-center gap-1'>
                 <div
                   className={`w-2 h-2 rounded-full ${selectedOption.dotColor}`}
                 ></div>
@@ -205,7 +205,7 @@ export const JobQualificationModal: React.FC<JobQualificationModalProps> = ({
               rows={4}
               className='resize-none'
             />
-            <p className='text-xs text-gray-500'>
+            <p className='text-xs text-muted-foreground'>
               These notes will be saved with the qualification
             </p>
           </div>

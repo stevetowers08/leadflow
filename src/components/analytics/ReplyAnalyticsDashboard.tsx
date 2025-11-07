@@ -122,19 +122,19 @@ function StageAnalyticsTable({ data }: StageAnalyticsTableProps) {
 
               <div className='grid grid-cols-4 gap-4 text-sm'>
                 <div className='flex items-center gap-1'>
-                  <CheckCircle className='h-4 w-4 text-green-600' />
+                  <CheckCircle className='h-4 w-4 text-success' />
                   <span>{stage.interested_count} interested</span>
                 </div>
                 <div className='flex items-center gap-1'>
-                  <XCircle className='h-4 w-4 text-red-600' />
+                  <XCircle className='h-4 w-4 text-destructive' />
                   <span>{stage.not_interested_count} not interested</span>
                 </div>
                 <div className='flex items-center gap-1'>
-                  <HelpCircle className='h-4 w-4 text-yellow-600' />
+                  <HelpCircle className='h-4 w-4 text-warning' />
                   <span>{stage.maybe_count} maybe</span>
                 </div>
                 <div className='flex items-center gap-1'>
-                  <MessageSquare className='h-4 w-4 text-blue-600' />
+                  <MessageSquare className='h-4 w-4 text-primary' />
                   <span>{stage.total_replies} total replies</span>
                 </div>
               </div>
@@ -186,7 +186,7 @@ function ReplyIntentBreakdown({ data }: ReplyIntentBreakdownProps) {
           <div className='space-y-2'>
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-2'>
-                <CheckCircle className='h-4 w-4 text-green-600' />
+                <CheckCircle className='h-4 w-4 text-success' />
                 <span className='text-sm font-medium'>Interested</span>
               </div>
               <div className='text-sm font-bold'>
@@ -199,7 +199,7 @@ function ReplyIntentBreakdown({ data }: ReplyIntentBreakdownProps) {
           <div className='space-y-2'>
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-2'>
-                <XCircle className='h-4 w-4 text-red-600' />
+                <XCircle className='h-4 w-4 text-destructive' />
                 <span className='text-sm font-medium'>Not Interested</span>
               </div>
               <div className='text-sm font-bold'>
@@ -213,7 +213,7 @@ function ReplyIntentBreakdown({ data }: ReplyIntentBreakdownProps) {
           <div className='space-y-2'>
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-2'>
-                <HelpCircle className='h-4 w-4 text-yellow-600' />
+                <HelpCircle className='h-4 w-4 text-warning' />
                 <span className='text-sm font-medium'>Maybe</span>
               </div>
               <div className='text-sm font-bold'>
@@ -255,7 +255,7 @@ export function ReplyAnalyticsDashboard() {
     return (
       <Card>
         <CardContent className='pt-6'>
-          <div className='text-center text-red-600'>
+          <div className='text-center text-destructive'>
             Error loading reply analytics: {error.message}
           </div>
         </CardContent>
@@ -370,7 +370,7 @@ export function ReplyAnalyticsDashboard() {
                     </div>
                   </div>
                   <div className='text-right'>
-                    <div className='font-bold text-green-600'>
+                    <div className='font-bold text-success'>
                       {stage.reply_rate_percent.toFixed(1)}%
                     </div>
                     <div className='text-sm text-muted-foreground'>

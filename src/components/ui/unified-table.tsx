@@ -5,7 +5,6 @@ import { getUnifiedStatusClass } from '@/utils/colorScheme';
 import React from 'react';
 import {
   ColumnOrderState,
-  ColumnSizingState,
   getCoreRowModel,
   useReactTable,
   type ColumnDef,
@@ -55,6 +54,8 @@ export interface UnifiedTableProps<T = unknown> {
   expandedGroups?: Set<string>;
   onToggleGroup?: (groupLabel: string) => void;
   tableId?: string; // used to persist per-table preferences
+  getRowClassName?: (row: T, index: number) => string; // Custom row className
+  getRowProps?: (row: T, index: number) => { isEnriched?: boolean; className?: string }; // Row-specific props
 }
 
 // Compound Component Pattern - Table Sub-components
@@ -62,7 +63,7 @@ export const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn('bg-gray-50', className)} {...props} />
+  <thead ref={ref} className={cn('bg-muted', className)} {...props} />
 ));
 TableHeader.displayName = 'TableHeader';
 
@@ -72,7 +73,7 @@ export const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={cn('[&_tr_td]:border-b [&_tr_td]:border-gray-200', className)}
+    className={cn('[&_tr_td]:border-b [&_tr_td]:border-border', className)}
     {...props}
   />
 ));
@@ -83,25 +84,40 @@ export const TableRow = React.forwardRef<
   React.HTMLAttributes<HTMLTableRowElement> & {
     onClick?: () => void;
     index?: number;
+    isEnriched?: boolean;
   }
->(({ className, onClick, index, children, ...props }, ref) => (
-  <tr
-    ref={ref}
-    className={cn(
-      'cursor-pointer group h-[40px]',
-      'hover:bg-gray-100 border-l-2 border-transparent hover:border-l-2 hover:border-primary-400',
-      onClick && 'cursor-pointer',
-      className
-    )}
-    role='row'
-    tabIndex={onClick ? 0 : undefined}
-    aria-label={onClick ? `Row ${(index || 0) + 1}` : undefined}
-    onClick={onClick}
-    {...props}
-  >
-    {children}
-  </tr>
-));
+>(({ className, onClick, index, isEnriched, children, ...props }, ref) => {
+  const handleClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('button') ||
+      target.closest('[role="button"]') ||
+      target.closest('td.p-0.relative')
+    ) {
+      return;
+    }
+    onClick?.();
+  };
+
+  return (
+    <tr
+      ref={ref}
+      className={cn(
+        'cursor-pointer group h-[40px]',
+        'hover:bg-muted',
+        onClick && 'cursor-pointer',
+        className
+      )}
+      role='row'
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `Row ${(index || 0) + 1}` : undefined}
+      onClick={handleClick}
+      {...props}
+    >
+      {children}
+    </tr>
+  );
+});
 TableRow.displayName = 'TableRow';
 
 export const TableCell = React.forwardRef<
@@ -130,15 +146,20 @@ export const TableCell = React.forwardRef<
         // Status cells: no padding, relative positioning, apply background colors directly
         // Regular cells: reduced padding for 40px row height (py-1 = 4px top + 4px bottom = 8px total, leaving 32px for content)
         cellType === 'status' ? 'p-0 relative' : 'px-4 py-1',
-        'text-sm border-r border-gray-200 last:border-r-0 text-muted-foreground',
+        'text-sm text-muted-foreground',
+        'border-r border-border last:border-r-0',
         // Don't apply hover text color change to status cells (they have colored backgrounds)
-        cellType !== 'status' && 'group-hover:text-gray-600',
+        cellType !== 'status' && 'group-hover:text-muted-foreground',
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
         // Apply unified status colors for full-cell backgrounds on the td
         statusClasses,
         className
       )}
+      style={{
+        boxSizing: 'border-box',
+        ...props.style,
+      }}
       {...props}
     />
   );
@@ -151,28 +172,33 @@ export const TableHead = React.forwardRef<
     align?: ColumnConfig['align'];
     isFirst?: boolean;
     isLast?: boolean;
+    isSticky?: boolean;
   }
 >(
   (
-    { className, align = 'left', isFirst = false, isLast = false, ...props },
+    { className, align = 'left', isFirst = false, isLast = false, isSticky = false, ...props },
     ref
   ) => (
     <th
       ref={ref}
       className={cn(
-        'px-4 py-1 h-[40px] text-xs font-semibold text-muted-foreground uppercase tracking-wide border-r border-gray-200 last:border-r-0 whitespace-nowrap',
-        'border-b border-gray-200',
+        'px-4 py-1 h-[40px] text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap',
+        'border-b border-border border-r border-border last:border-r-0',
         'transition-colors duration-150',
-        isFirst && 'rounded-tl-lg',
-        isLast && 'rounded-tr-lg',
-        // Apply alignment classes - remove text-left default, use align-specific
+        // Only apply rounded corners when NOT sticky (sticky headers don't need rounded corners)
+        !isSticky && isFirst && 'rounded-tl-md',
+        !isSticky && isLast && 'rounded-tr-md',
+        // Apply alignment classes
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
         align === 'left' && 'text-left',
-        !align && 'text-left', // Default fallback
+        !align && 'text-left',
         className
       )}
-      style={props.style}
+      style={{
+        boxSizing: 'border-box',
+        ...props.style,
+      }}
       {...props}
     />
   )
@@ -196,19 +222,17 @@ export function UnifiedTable<T = unknown>({
   expandedGroups,
   onToggleGroup,
   tableId,
+  getRowClassName,
+  getRowProps,
 }: UnifiedTableProps<T>) {
-  // ----- Column sizing & order (TanStack Table headless) -----
-  const initialSizing = React.useRef<ColumnSizingState>({});
+  // ----- Column order (TanStack Table headless) -----
   const initialOrder = React.useRef<ColumnOrderState>([]);
 
-  const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>(
-    () => initialSizing.current
-  );
   const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(
     () => initialOrder.current
   );
 
-  // Build lightweight column defs for TanStack to manage sizing/order
+  // Build lightweight column defs for TanStack to manage order
   const tsColumns = React.useMemo<ColumnDef<T, unknown>[]>(
     () =>
       columns.map(col => ({
@@ -217,7 +241,6 @@ export function UnifiedTable<T = unknown>({
         // We render cells ourselves, so cell isn't needed here
         size: col.width ? Number.parseInt(col.width) : undefined,
         minSize: col.minWidth ? Number.parseInt(col.minWidth) : undefined,
-        enableResizing: true,
       })),
     [columns]
   );
@@ -226,15 +249,7 @@ export function UnifiedTable<T = unknown>({
     data, // provide real data (unused for rendering, but harmless)
     columns: tsColumns,
     getCoreRowModel: getCoreRowModel(),
-    state: { columnSizing, columnOrder },
-    onColumnSizingChange: updater => {
-      setColumnSizing(prev => {
-        const next = typeof updater === 'function' ? updater(prev) : updater;
-        if (tableId)
-          persistLocalTablePreferences(tableId, { columnSizing: next });
-        return next;
-      });
-    },
+    state: { columnOrder },
     onColumnOrderChange: updater => {
       setColumnOrder(prev => {
         const next = typeof updater === 'function' ? updater(prev) : updater;
@@ -243,11 +258,7 @@ export function UnifiedTable<T = unknown>({
         return next;
       });
     },
-    columnResizeMode: 'onEnd',
   });
-
-  // Improve UX while resizing (disable text selection)
-  const [isResizing, setIsResizing] = React.useState(false);
 
   // Load preferences (local first, then Supabase)
   React.useEffect(() => {
@@ -255,12 +266,10 @@ export function UnifiedTable<T = unknown>({
     if (!tableId) return;
     const local = loadLocalTablePreferences(tableId);
     if (local) {
-      if (local.columnSizing && active) setColumnSizing(local.columnSizing);
       if (local.columnOrder && active) setColumnOrder(local.columnOrder);
     }
     getUserTablePreferences(tableId).then(remote => {
       if (!active || !remote) return;
-      if (remote.columnSizing) setColumnSizing(remote.columnSizing);
       if (remote.columnOrder)
         setColumnOrder(remote.columnOrder as ColumnOrderState);
     });
@@ -281,11 +290,6 @@ export function UnifiedTable<T = unknown>({
     },
     [tableId]
   );
-
-  React.useEffect(() => {
-    if (!tableId) return;
-    queueSave({ columnSizing });
-  }, [columnSizing, queueSave, tableId]);
 
   React.useEffect(() => {
     if (!tableId) return;
@@ -320,7 +324,7 @@ export function UnifiedTable<T = unknown>({
   const tableStructure = React.useMemo(() => {
     if (loading) {
       return (
-        <div className='bg-card rounded-lg border shadow-sm w-full overflow-hidden'>
+        <div className='bg-card rounded-md border shadow-sm w-full overflow-hidden'>
           <div className='border-b bg-muted/30 p-4'>
             <div className='flex gap-4'>
               {Array.from({ length: columns.length || 6 }).map((_, i) => (
@@ -351,12 +355,10 @@ export function UnifiedTable<T = unknown>({
       );
     }
 
-    // UnifiedTable render (development only)
-
     if (!data || data.length === 0) {
       return (
-        <div className='bg-card rounded-lg border shadow-sm w-full overflow-hidden'>
-          <div className='flex items-center justify-center h-32 text-gray-500'>
+        <div className='bg-card rounded-md border shadow-sm w-full overflow-hidden'>
+          <div className='flex items-center justify-center h-32 text-muted-foreground'>
             {emptyMessage}
           </div>
         </div>
@@ -376,10 +378,22 @@ export function UnifiedTable<T = unknown>({
           })
         : columns;
 
+    // Calculate total table width from column widths (for table-layout: fixed)
+    // Round values to prevent sub-pixel rendering issues that cause wobble
+    const totalTableWidth = orderedColumns.reduce((sum, col) => {
+      const colWidth = col.width || col.minWidth || '150px';
+      // Parse width value - handle 'px', '%', 'rem', etc.
+      const widthStr = colWidth.toString().trim();
+      const widthMatch = widthStr.match(/^(\d+(?:\.\d+)?)/);
+      const widthNum = widthMatch ? Number.parseFloat(widthMatch[1]) : 150;
+      // Round to prevent sub-pixel issues
+      return sum + Math.round(widthNum);
+    }, 0);
+
     return (
       <div
         className={cn(
-          'bg-card rounded-lg border shadow-sm w-full',
+          'bg-card border shadow-sm w-full rounded-md',
           scrollable && 'flex flex-col flex-1 min-h-0 overflow-hidden',
           !scrollable && 'overflow-hidden overflow-x-auto scrollbar-modern',
           className
@@ -395,35 +409,81 @@ export function UnifiedTable<T = unknown>({
               'flex-1 min-h-0 overflow-y-auto overflow-x-auto scrollbar-thin',
             !scrollable && 'w-full'
           )}
+          style={
+            scrollable
+              ? {
+                  // Prevent sub-pixel rendering issues
+                  willChange: 'scroll-position',
+                }
+              : undefined
+          }
         >
           <table
-            className={cn(
-              'w-full border-separate border-spacing-0',
-              isResizing && 'select-none'
-            )}
             style={{
               tableLayout: 'fixed',
-              width: '100%',
+              width: `${Math.round(totalTableWidth)}px`,
+              minWidth: `${Math.round(totalTableWidth)}px`,
+              maxWidth: `${Math.round(totalTableWidth)}px`,
+              borderCollapse: 'collapse',
+              borderSpacing: 0,
             }}
           >
             {/* Colgroup to enforce exact column widths across header and body */}
+            {/* With table-layout: fixed, colgroup widths are the single source of truth */}
             <colgroup>
               {orderedColumns.map(column => {
-                const size = table.getColumn(column.key)?.getSize();
-                const widthPx = size ? `${size}px` : column.width;
-                return <col key={column.key} style={{ width: widthPx }} />;
+                // Handle 'auto' width for dynamic sizing
+                const widthPx = column.width === 'auto' 
+                  ? column.minWidth || '150px'
+                  : column.width || column.minWidth || '150px';
+                const isAuto = column.width === 'auto';
+                
+                if (isAuto) {
+                  return (
+                    <col
+                      key={column.key}
+                      style={{
+                        width: 'auto',
+                        minWidth: column.minWidth || '150px',
+                      }}
+                    />
+                  );
+                }
+                
+                // Round pixel values to prevent sub-pixel rendering issues
+                const widthStr = widthPx.toString().trim();
+                const widthMatch = widthStr.match(/^(\d+(?:\.\d+)?)/);
+                const widthNum = widthMatch ? Math.round(Number.parseFloat(widthMatch[1])) : 150;
+                const roundedWidth = `${widthNum}px`;
+                
+                return (
+                  <col
+                    key={column.key}
+                    style={{
+                      width: roundedWidth,
+                      minWidth: roundedWidth,
+                      maxWidth: roundedWidth,
+                    }}
+                  />
+                );
               })}
             </colgroup>
             <TableHeader
               className={cn(
-                scrollable && 'sticky top-0 z-30 bg-gray-50',
-                !scrollable && 'bg-gray-50',
-                isScrolled &&
-                  scrollable &&
-                  'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
+                'bg-muted',
+                isScrolled && scrollable && 'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
               )}
+              style={
+                scrollable && stickyHeaders
+                  ? {
+                      position: 'sticky',
+                      top: 0,
+                      zIndex: 30,
+                    }
+                  : undefined
+              }
             >
-              <tr>
+              <tr className='border-b border-border'>
                 {orderedColumns.map((column, index) => {
                   // Handle different label types
                   const labelContent = React.isValidElement(column.label)
@@ -432,12 +492,6 @@ export function UnifiedTable<T = unknown>({
                       ? column.label
                       : '';
 
-                  const tsCol = table.getColumn(column.key);
-                  const widthPx =
-                    tsCol && tsCol.getSize()
-                      ? `${tsCol.getSize()}px`
-                      : column.width;
-
                   return (
                     <TableHead
                       key={column.key}
@@ -445,12 +499,11 @@ export function UnifiedTable<T = unknown>({
                       align={column.align}
                       isFirst={index === 0}
                       isLast={index === orderedColumns.length - 1}
-                      style={{ minWidth: column.minWidth || widthPx }}
-                      className='relative'
+                      isSticky={scrollable && stickyHeaders}
                     >
                       <div
                         className={cn(
-                          'relative w-full h-full select-none',
+                          'w-full h-full select-none',
                           'flex items-center',
                           column.align === 'center' && 'justify-center',
                           column.align === 'right' && 'justify-end',
@@ -460,100 +513,6 @@ export function UnifiedTable<T = unknown>({
                       >
                         {labelContent}
                       </div>
-                      {tsCol && index !== orderedColumns.length - 1 && (
-                        <div
-                          onMouseDown={e => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const handle = e.currentTarget;
-                            handle.style.backgroundColor =
-                              'rgba(59, 130, 246, 0.6)';
-                            const startX = e.clientX;
-                            const colId = column.key;
-                            const startSize =
-                              table.getColumn(colId)?.getSize() || 0;
-                            const prevCursor = document.body.style.cursor;
-                            const prevUserSelect =
-                              document.body.style.userSelect;
-                            document.body.style.cursor = 'col-resize';
-                            document.body.style.userSelect = 'none';
-                            try {
-                              window.getSelection()?.removeAllRanges();
-                            } catch {
-                              // Ignore selection errors during resize
-                            }
-                            const onMove = (ev: MouseEvent) => {
-                              ev.preventDefault();
-                              const delta = ev.clientX - startX;
-                              const next = Math.max(40, startSize + delta);
-                              setColumnSizing(prev => ({
-                                ...prev,
-                                [colId]: next,
-                              }));
-                            };
-                            const onUp = () => {
-                              window.removeEventListener('mousemove', onMove);
-                              window.removeEventListener('mouseup', onUp);
-                              setIsResizing(false);
-                              document.body.style.cursor = prevCursor;
-                              document.body.style.userSelect = prevUserSelect;
-                              handle.style.backgroundColor = 'transparent';
-                            };
-                            setIsResizing(true);
-                            window.addEventListener('mousemove', onMove);
-                            window.addEventListener('mouseup', onUp);
-                          }}
-                          onTouchStart={e => {
-                            e.preventDefault();
-                            const touch = e.touches[0];
-                            if (!touch) return;
-                            const startX = touch.clientX;
-                            const colId = column.key;
-                            const startSize =
-                              table.getColumn(colId)?.getSize() || 0;
-                            const onMove = (ev: TouchEvent) => {
-                              ev.preventDefault();
-                              const t = ev.touches[0];
-                              if (!t) return;
-                              const delta = t.clientX - startX;
-                              const next = Math.max(40, startSize + delta);
-                              setColumnSizing(prev => ({
-                                ...prev,
-                                [colId]: next,
-                              }));
-                            };
-                            const onUp = () => {
-                              window.removeEventListener('touchmove', onMove);
-                              window.removeEventListener('touchend', onUp);
-                              setIsResizing(false);
-                            };
-                            setIsResizing(true);
-                            window.addEventListener('touchmove', onMove, {
-                              passive: false,
-                            });
-                            window.addEventListener('touchend', onUp);
-                          }}
-                          role='separator'
-                          aria-label={`Resize ${typeof column.label === 'string' ? column.label : 'column'}`}
-                          aria-orientation='vertical'
-                          className='absolute top-0 h-full cursor-col-resize z-20'
-                          style={{
-                            right: '-6px',
-                            width: '12px',
-                            backgroundColor: 'transparent',
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.backgroundColor =
-                              'rgba(59, 130, 246, 0.4)';
-                          }}
-                          onMouseLeave={e => {
-                            if (!isResizing) {
-                              e.currentTarget.style.backgroundColor =
-                                'transparent';
-                            }
-                          }}
-                        />
-                      )}
                     </TableHead>
                   );
                 })}
@@ -575,7 +534,7 @@ export function UnifiedTable<T = unknown>({
                         colSpan={columns.length}
                         className='text-center py-8'
                       >
-                        <div className='text-gray-500'>{emptyMessage}</div>
+                        <div className='text-muted-foreground'>{emptyMessage}</div>
                       </TableCell>
                     </TableRow>
                   );
@@ -611,7 +570,7 @@ export function UnifiedTable<T = unknown>({
 
                           {/* Group Header Row */}
                           <TableRow
-                            className='bg-gray-100 hover:bg-gray-200 border-l-4 border-l-primary cursor-pointer'
+                            className='bg-gray-100 hover:bg-gray-200 cursor-pointer'
                             onClick={() => onToggleGroup?.(group.label)}
                           >
                             <TableCell
@@ -621,7 +580,7 @@ export function UnifiedTable<T = unknown>({
                               <div className='flex items-center justify-between'>
                                 <span>{group.label}</span>
                                 <div className='flex items-center gap-3'>
-                                  <span className='text-xs font-normal text-gray-600'>
+                                  <span className='text-xs font-normal text-muted-foreground'>
                                     {group.count}
                                   </span>
                                   <span className='text-xs'>
@@ -634,12 +593,16 @@ export function UnifiedTable<T = unknown>({
 
                           {/* Group Rows */}
                           {isExpanded &&
-                            group.data.map((row, index) => (
+                            group.data.map((row, index) => {
+                              const rowProps = getRowProps?.(row, index) || {};
+                              const customClassName = getRowClassName?.(row, index);
+                              return (
                               <TableRow
                                 key={`${group.label}-${index}`}
                                 index={index}
                                 onClick={() => onRowClick?.(row, index)}
-                                className='bg-white'
+                                className={cn('bg-white', rowProps.className, customClassName)}
+                                isEnriched={rowProps.isEnriched}
                               >
                                 {orderedColumns.map((column, colIndex) => {
                                   const statusValue =
@@ -653,40 +616,45 @@ export function UnifiedTable<T = unknown>({
                                     row as Record<string, unknown>
                                   )[column.key];
 
-                                  return (
-                                    <TableCell
-                                      key={`${group.label}-${index}-${colIndex}`}
-                                      cellType={column.cellType}
-                                      align={column.align}
-                                      statusValue={statusValue}
-                                      style={{
-                                        // Width driven by <colgroup>; optional minWidth for content
-                                        minWidth:
-                                          column.minWidth || column.width,
-                                        ...(column.maxWidth && {
-                                          maxWidth: column.maxWidth,
-                                        }),
-                                      }}
-                                    >
-                                      {column.render ? (
-                                        column.render(value, row, index)
-                                      ) : (
-                                        <span>{value || '-'}</span>
-                                      )}
-                                    </TableCell>
-                                  );
+                          return (
+                            <TableCell
+                              key={`${group.label}-${index}-${colIndex}`}
+                              cellType={column.cellType}
+                              align={column.align}
+                              statusValue={statusValue}
+                              style={{
+                                ...(column.maxWidth && { maxWidth: column.maxWidth }),
+                              }}
+                            >
+                              {column.render ? (
+                                column.render(value, row, index)
+                              ) : (
+                                <span>{value || '-'}</span>
+                              )}
+                            </TableCell>
+                          );
                                 })}
                               </TableRow>
-                            ))}
+                              );
+                            })}
                         </React.Fragment>
                       );
                     })
                   : // Render ungrouped data
-                    data.map((row, index) => (
+                    data.map((row, index) => {
+                      const rowProps = getRowProps?.(row, index) || {};
+                      const customClassName = getRowClassName?.(row, index);
+                      const rowId = (row as Record<string, unknown>)?.id as string | undefined;
+                      const handleRowClick = onRowClick
+                        ? () => onRowClick(row, index)
+                        : undefined;
+                      return (
                       <TableRow
-                        key={`row-${index}-${(row as Record<string, unknown>)?.id || index}`}
+                        key={rowId ? `row-${rowId}` : `row-${index}`}
                         index={index}
-                        onClick={() => onRowClick?.(row, index)}
+                        onClick={handleRowClick}
+                        className={cn(rowProps.className, customClassName)}
+                        isEnriched={rowProps.isEnriched}
                       >
                         {orderedColumns.map((column, colIndex) => {
                           // Get status value for status and ai-score cells
@@ -709,8 +677,7 @@ export function UnifiedTable<T = unknown>({
                               align={column.align}
                               statusValue={statusValue}
                               style={{
-                                // Width driven by <colgroup>; optional minWidth for content
-                                minWidth: column.minWidth || column.width,
+                                ...(column.maxWidth && { maxWidth: column.maxWidth }),
                               }}
                             >
                               {column.render ? (
@@ -722,7 +689,8 @@ export function UnifiedTable<T = unknown>({
                           );
                         })}
                       </TableRow>
-                    ));
+                      );
+                    });
               })()}
             </TableBody>
           </table>

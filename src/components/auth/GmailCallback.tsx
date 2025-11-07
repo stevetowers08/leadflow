@@ -60,9 +60,9 @@ export const GmailCallback: React.FC = () => {
       setStatus('success');
       setMessage('Gmail connected successfully!');
 
-      // Redirect to email dashboard after 2 seconds
+      // Redirect to conversations page after 2 seconds
       setTimeout(() => {
-        router.push('/crm/communications');
+        router.push('/conversations');
       }, 2000);
     } catch (error) {
       console.error('Gmail callback error:', error);
@@ -78,33 +78,33 @@ export const GmailCallback: React.FC = () => {
   }, [handleGmailCallback]);
 
   const handleRetry = () => {
-    router.push('/crm/communications');
+    router.push('/conversations');
   };
 
   const getStatusIcon = () => {
     switch (status) {
       case 'loading':
-        return <Loader2 className='h-8 w-8 animate-spin text-blue-500' />;
+        return <Loader2 className='h-8 w-8 animate-spin text-primary' />;
       case 'success':
         return <CheckCircle className='h-8 w-8 text-green-500' />;
       case 'error':
-        return <XCircle className='h-8 w-8 text-red-500' />;
+        return <XCircle className='h-8 w-8 text-destructive' />;
     }
   };
 
   const getStatusColor = () => {
     switch (status) {
       case 'loading':
-        return 'text-blue-600';
+        return 'text-primary';
       case 'success':
-        return 'text-green-600';
+        return 'text-success';
       case 'error':
-        return 'text-red-600';
+        return 'text-destructive';
     }
   };
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+    <div className='min-h-screen flex items-center justify-center bg-muted'>
       <Card className='w-full max-w-md'>
         <CardContent className='p-8 text-center'>
           <div className='mb-6'>{getStatusIcon()}</div>

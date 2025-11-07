@@ -61,9 +61,9 @@ const PersonSubRow: React.FC<{
   };
 
   return (
-    <tr className='bg-gray-50 hover:bg-gray-100 transition-colors border-b border-gray-200 last:border-b-0'>
+    <tr className='bg-muted hover:bg-gray-100 transition-colors border-b border-border last:border-b-0'>
       {/* Expand/Collapse Cell - Empty for sub-rows */}
-      <td className='px-4 py-2 border-r border-gray-200 border-b border-gray-200'>
+      <td className='px-4 py-2 border-r border-border border-b border-border'>
         <div className='w-6 h-6 flex items-center justify-center'>
           {/* Empty space to align with parent row */}
         </div>
@@ -72,7 +72,7 @@ const PersonSubRow: React.FC<{
       {/* Person Info Cell - Spans multiple columns */}
       <td
         colSpan={columns.length - 1}
-        className='px-4 py-2 border-r border-gray-200 border-b border-gray-200'
+        className='px-4 py-2 border-r border-border border-b border-border'
       >
         <div className='flex items-center gap-4 pl-6'>
           {/* Avatar */}
@@ -174,7 +174,7 @@ export const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
       {/* Parent Row */}
       <tr
         className={cn(
-          'data-[state=selected]:bg-gray-50 border-b border-gray-200 hover:bg-gray-50 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group cursor-pointer relative min-h-[48px]',
+          'data-[state=selected]:bg-muted border-b border-border hover:bg-muted hover:shadow-sm hover:border-border transition-colors duration-200 group cursor-pointer relative min-h-[48px]',
           className
         )}
         role='row'
@@ -190,7 +190,7 @@ export const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
             <td
               key={column.key}
               className={cn(
-                'align-middle px-4 border-r border-gray-200 border-b border-gray-200 last:border-r-0 group-hover:border-r-gray-200 group-hover:last:border-r-0 min-h-[44px]',
+                'align-middle px-4 border-r border-border border-b border-border last:border-r-0 group-hover:border-r-gray-200 group-hover:last:border-r-0 min-h-[44px]',
                 column.align === 'center' && 'text-center',
                 column.align === 'right' && 'text-right'
               )}

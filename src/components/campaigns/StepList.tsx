@@ -28,7 +28,7 @@ export default function StepList({
 
   if (steps.length === 0) {
     return (
-      <div className='text-center py-8 text-gray-500'>
+      <div className='text-center py-8 text-muted-foreground'>
         <p className='text-sm mb-2'>No steps yet</p>
         <p className='text-xs'>Add your first step to get started</p>
       </div>

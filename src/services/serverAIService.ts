@@ -70,9 +70,20 @@ class ServerAIService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          `Server AI error: ${response.status} - ${errorData.error || response.statusText}`
-        );
+        const errorMessage = errorData.error || response.statusText;
+        
+        // Provide user-friendly message for missing API key
+        if (errorMessage.includes('GEMINI_API_KEY') || errorMessage.includes('Missing environment variables')) {
+          return {
+            success: false,
+            error: 'AI service is not configured. Please contact your administrator to set up the Gemini API key.',
+          };
+        }
+        
+        return {
+          success: false,
+          error: `Server AI error: ${response.status} - ${errorMessage}`,
+        };
       }
 
       const result = await response.json();

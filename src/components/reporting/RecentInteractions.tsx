@@ -27,11 +27,11 @@ export const RecentInteractions: React.FC<RecentInteractionsProps> = ({
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      email: 'bg-blue-100 text-blue-800',
-      call: 'bg-green-100 text-green-800',
+      email: 'bg-blue-100 text-primary',
+      call: 'bg-green-100 text-success',
       meeting: 'bg-purple-100 text-purple-800',
       linkedin: 'bg-indigo-100 text-indigo-800',
-      other: 'bg-gray-100 text-gray-800',
+      other: 'bg-gray-100 text-foreground',
     };
     return colors[type.toLowerCase()] || colors.other;
   };

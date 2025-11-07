@@ -144,11 +144,11 @@ export class EnhancedErrorBoundary extends Component<
 
       // Default error UI
       return (
-        <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='min-h-screen flex items-center justify-center bg-muted'>
           <div className='max-w-md w-full bg-white shadow-lg rounded-lg p-6'>
             <div className='flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4'>
               <svg
-                className='w-6 h-6 text-red-600'
+                className='w-6 h-6 text-destructive'
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
@@ -162,13 +162,13 @@ export class EnhancedErrorBoundary extends Component<
               </svg>
             </div>
 
-            <h2 className='text-lg font-semibold text-gray-900 text-center mb-2'>
+            <h2 className='text-lg font-semibold text-foreground text-center mb-2'>
               {error?.severity === ErrorSeverity.CRITICAL
                 ? 'Critical Error'
                 : 'Something went wrong'}
             </h2>
 
-            <p className='text-sm text-gray-600 text-center mb-6'>
+            <p className='text-sm text-muted-foreground text-center mb-6'>
               {error?.userMessage ||
                 (recoverable
                   ? "We're sorry, but something unexpected happened. You can try again or reload the page."
@@ -177,10 +177,10 @@ export class EnhancedErrorBoundary extends Component<
 
             {showDetails && error && (
               <details className='mb-6'>
-                <summary className='text-sm font-medium text-gray-700 cursor-pointer'>
+                <summary className='text-sm font-medium text-foreground cursor-pointer'>
                   Error Details
                 </summary>
-                <div className='mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-600 overflow-auto max-h-32'>
+                <div className='mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-muted-foreground overflow-auto max-h-32'>
                   <div className='mb-2'>
                     <strong>Type:</strong> {error.type}
                   </div>
@@ -227,7 +227,7 @@ export class EnhancedErrorBoundary extends Component<
             </div>
 
             {this.state.retryCount > 0 && (
-              <p className='text-xs text-gray-500 text-center mt-4'>
+              <p className='text-xs text-muted-foreground text-center mt-4'>
                 Retry attempt {this.state.retryCount} of {maxRetries}
               </p>
             )}
@@ -252,8 +252,8 @@ export const FeatureErrorBoundary: React.FC<{
       severity={ErrorSeverity.MEDIUM}
       fallback={
         fallback || (
-          <div className='p-4 border border-red-200 rounded-lg bg-red-50'>
-            <div className='flex items-center gap-2 text-red-800'>
+          <div className='p-4 border border-red-200 rounded-lg bg-destructive/10'>
+            <div className='flex items-center gap-2 text-destructive'>
               <svg
                 className='h-4 w-4'
                 fill='none'
@@ -269,7 +269,7 @@ export const FeatureErrorBoundary: React.FC<{
               </svg>
               <span className='text-sm font-medium'>{feature} Error</span>
             </div>
-            <p className='text-sm text-red-700 mt-1'>
+            <p className='text-sm text-destructive mt-1'>
               There was an issue with the {feature.toLowerCase()} feature.
               Please try again.
             </p>
@@ -353,11 +353,11 @@ export class NetworkErrorBoundary extends Component<
   render(): ReactNode {
     if (this.state.hasNetworkError) {
       return (
-        <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='min-h-screen flex items-center justify-center bg-muted'>
           <div className='max-w-md w-full bg-white shadow-lg rounded-lg p-6 text-center'>
             <div className='flex items-center justify-center w-12 h-12 mx-auto bg-yellow-100 rounded-full mb-4'>
               <svg
-                className='w-6 h-6 text-yellow-600'
+                className='w-6 h-6 text-warning'
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
@@ -371,11 +371,11 @@ export class NetworkErrorBoundary extends Component<
               </svg>
             </div>
 
-            <h2 className='text-lg font-semibold text-gray-900 mb-2'>
+            <h2 className='text-lg font-semibold text-foreground mb-2'>
               Connection Lost
             </h2>
 
-            <p className='text-sm text-gray-600 mb-6'>
+            <p className='text-sm text-muted-foreground mb-6'>
               {this.state.error?.userMessage ||
                 "You're currently offline. Please check your internet connection and try again."}
             </p>

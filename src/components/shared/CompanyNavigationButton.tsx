@@ -105,7 +105,7 @@ export const CompanyNavigationGhost: React.FC<
     <button
       onClick={onClick}
       className={cn(
-        'inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-md transition-all duration-200',
+        'inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-all duration-200',
         className
       )}
       title={`View ${companyName} details`}
@@ -124,7 +124,7 @@ export const CompanyNavigationText: React.FC<
     <button
       onClick={onClick}
       className={cn(
-        'text-gray-600 hover:text-gray-900 transition-colors duration-200 text-sm font-medium',
+        'text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm font-medium',
         className
       )}
       title={`View ${companyName} details`}
@@ -142,7 +142,7 @@ export const CompanyNavigationPill: React.FC<
     <button
       onClick={onClick}
       className={cn(
-        'inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200',
+        'inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-muted-foreground bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200',
         className
       )}
       title={`View ${companyName} details`}

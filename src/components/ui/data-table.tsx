@@ -70,7 +70,7 @@ export const DataTable = React.memo(<TData, TValue>({
           </div>
         </div>
       )}
-      <div className='rounded-md border'>
+      <div className='rounded-md border bg-card text-card-foreground shadow-sm'>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => (

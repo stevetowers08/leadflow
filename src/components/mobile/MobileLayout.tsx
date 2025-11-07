@@ -39,7 +39,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   return (
     <div
       className={cn(
-        'min-h-screen bg-gray-50',
+        'min-h-screen bg-muted',
         paddingClasses[padding],
         spacingClasses[spacing],
         className
@@ -166,11 +166,11 @@ export const MobileCard: React.FC<MobileCardProps> = ({
   return (
     <div
       className={cn(
-        'bg-white rounded-lg border border-gray-200',
+        'bg-white rounded-lg border border-border',
         paddingClasses[padding],
         shadowClasses[shadow],
         interactive && 'cursor-pointer hover:shadow-md transition-shadow',
-        onClick && 'cursor-pointer hover:bg-gray-50 transition-colors',
+        onClick && 'cursor-pointer hover:bg-muted transition-colors',
         className
       )}
       onClick={onClick}
@@ -204,8 +204,8 @@ export const MobileButton: React.FC<MobileButtonProps> = ({
   const variantClasses = {
     primary: 'bg-blue-600 text-white hover:bg-blue-700',
     secondary: 'bg-gray-600 text-white hover:bg-gray-700',
-    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
-    ghost: 'text-gray-700 hover:bg-gray-100',
+    outline: 'border border-border/60 text-foreground hover:bg-muted',
+    ghost: 'text-foreground hover:bg-gray-100',
   };
 
   const sizeClasses = {
@@ -262,7 +262,7 @@ export const MobileInput: React.FC<MobileInputProps> = ({
       placeholder={placeholder}
       disabled={disabled}
       className={cn(
-        'w-full rounded-lg border border-gray-300 px-3 py-3 text-base', // 16px font-size to prevent zoom
+        'w-full rounded-lg border border-border/60 px-3 py-3 text-base', // 16px font-size to prevent zoom
         'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
         'disabled:bg-gray-100 disabled:cursor-not-allowed',
         error && 'border-red-300 focus:ring-red-500 focus:border-red-500',
@@ -302,7 +302,7 @@ export const MobileTextarea: React.FC<MobileTextareaProps> = ({
       rows={rows}
       disabled={disabled}
       className={cn(
-        'w-full rounded-lg border border-gray-300 px-3 py-3 text-base resize-vertical',
+        'w-full rounded-lg border border-border/60 px-3 py-3 text-base resize-vertical',
         'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
         'disabled:bg-gray-100 disabled:cursor-not-allowed',
         error && 'border-red-300 focus:ring-red-500 focus:border-red-500',
@@ -340,7 +340,7 @@ export const MobileSelect: React.FC<MobileSelectProps> = ({
       onChange={e => onChange(e.target.value)}
       disabled={disabled}
       className={cn(
-        'w-full rounded-lg border border-gray-300 px-3 py-3 text-base bg-white',
+        'w-full rounded-lg border border-border/60 px-3 py-3 text-base bg-white',
         'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
         'disabled:bg-gray-100 disabled:cursor-not-allowed',
         error && 'border-red-300 focus:ring-red-500 focus:border-red-500',

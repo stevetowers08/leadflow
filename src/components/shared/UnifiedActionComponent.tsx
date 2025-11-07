@@ -292,7 +292,7 @@ export const UnifiedActionComponent: React.FC<UnifiedActionProps> = ({
                             </Badge>
                           </div>
                           {campaign.description && (
-                            <span className='text-xs text-gray-500 ml-6'>
+                            <span className='text-xs text-muted-foreground ml-6'>
                               {campaign.description}
                             </span>
                           )}

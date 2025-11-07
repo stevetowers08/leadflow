@@ -160,3 +160,8 @@ npm run db:schema companies name
 - [RLS Policies](../../02-architecture/rls-policies.md) - Security policies
 
 
+
+
+
+
+

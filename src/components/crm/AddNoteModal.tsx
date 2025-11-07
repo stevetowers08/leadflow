@@ -123,19 +123,19 @@ export function AddNoteModal({
       {/* Modal */}
       <div className='relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4'>
         {/* Header */}
-        <div className='flex items-center justify-between p-6 border-b border-gray-200'>
+        <div className='flex items-center justify-between p-6 border-b border-border'>
           <div className='flex items-center gap-3'>
             <div className='w-8 h-8 bg-sidebar-primary/10 rounded-lg flex items-center justify-center'>
               <Plus className='w-4 h-4 text-sidebar-primary' />
             </div>
             <div>
-              <h2 className='text-lg font-semibold text-gray-900'>Add Note</h2>
-              <p className='text-sm text-gray-500'>{entityName}</p>
+              <h2 className='text-lg font-semibold text-foreground'>Add Note</h2>
+              <p className='text-sm text-muted-foreground'>{entityName}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className='text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100'
+            className='text-muted-foreground hover:text-muted-foreground transition-colors p-1 rounded-lg hover:bg-gray-100'
           >
             <X className='w-5 h-5' />
           </button>
@@ -146,7 +146,7 @@ export function AddNoteModal({
           {/* Lead Selection (only for companies) */}
           {entityType === 'company' && (
             <div className='space-y-2'>
-              <label className='text-sm font-medium text-gray-700'>
+              <label className='text-sm font-medium text-foreground'>
                 Related Lead (Optional)
               </label>
               <DropdownSelect
@@ -162,7 +162,7 @@ export function AddNoteModal({
 
           {/* Note Text */}
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-gray-700'>
+            <label className='text-sm font-medium text-foreground'>
               Note Content
             </label>
             <Textarea
@@ -177,7 +177,7 @@ export function AddNoteModal({
         </div>
 
         {/* Footer */}
-        <div className='flex items-center justify-end gap-3 p-6 border-t border-gray-200'>
+        <div className='flex items-center justify-end gap-3 p-6 border-t border-border'>
           <Button variant='outline' onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>

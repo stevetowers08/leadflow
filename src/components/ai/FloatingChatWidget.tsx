@@ -420,10 +420,10 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
           <div className='w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-sidebar-primary/15 to-sidebar-primary/25 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-4 sm:mb-6 shadow-lg ring-1 ring-sidebar-primary/10'>
             <Bot className='w-8 h-8 sm:w-10 sm:h-10 text-sidebar-primary' />
           </div>
-          <h3 className='text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 tracking-tight'>
+          <h3 className='text-lg sm:text-xl font-semibold text-foreground mb-2 sm:mb-3 tracking-tight'>
             Talk to your data
           </h3>
-          <p className='text-xs sm:text-sm text-gray-600 max-w-xs sm:max-w-sm leading-relaxed mb-4 sm:mb-6'>
+          <p className='text-xs sm:text-sm text-muted-foreground max-w-xs sm:max-w-sm leading-relaxed mb-4 sm:mb-6'>
             {isConnected
               ? chatMode === 'internal'
                 ? 'Ask me anything about your CRM data, leads, companies, or jobs. I can help you analyze trends, find insights, and answer questions about your recruitment pipeline.'
@@ -479,18 +479,18 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                     <div
                       className={cn(
                         'absolute -bottom-1 -right-1 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border-2 border-white shadow-sm',
-                        isConnected ? 'bg-emerald-500' : 'bg-red-500'
+                        isConnected ? 'bg-emerald-500' : 'bg-destructive/100'
                       )}
                     />
                   </div>
                   <div>
-                    <CardTitle className='text-base sm:text-lg font-semibold text-gray-900 tracking-tight'>
+                    <CardTitle className='text-base sm:text-lg font-semibold text-foreground tracking-tight'>
                       AI Assistant
-                      <span className='ml-2 text-xs font-medium text-gray-500'>
+                      <span className='ml-2 text-xs font-medium text-muted-foreground'>
                         ({chatMode === 'internal' ? 'Data-Aware' : 'MCP'})
                       </span>
                     </CardTitle>
-                    <p className='text-xs sm:text-sm text-gray-600 font-medium'>
+                    <p className='text-xs sm:text-sm text-muted-foreground font-medium'>
                       {isConnected
                         ? 'Ready to help'
                         : chatMode === 'internal'
@@ -508,7 +508,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                         size='sm'
                         className='h-9 w-9 p-0 hover:bg-white/60 rounded-xl transition-all duration-200'
                       >
-                        <Settings className='h-4 w-4 text-gray-600' />
+                        <Settings className='h-4 w-4 text-muted-foreground' />
                       </Button>
                     </DialogTrigger>
                     <DialogContent className='sm:max-w-md'>
@@ -621,8 +621,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
 
                         {/* Internal Mode Info */}
                         {chatMode === 'internal' && (
-                          <div className='p-3 bg-blue-50 border border-blue-200 rounded-lg'>
-                            <div className='text-xs font-semibold text-blue-700 mb-1'>
+                          <div className='p-3 bg-primary/10 border border-primary/20 rounded-lg'>
+                            <div className='text-xs font-semibold text-primary mb-1'>
                               Internal Data-Aware Chat
                             </div>
                             <div className='text-xs text-blue-900'>
@@ -671,13 +671,13 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                     className='h-9 w-9 p-0 hover:bg-white/60 rounded-xl transition-all duration-200'
                     onClick={() => setIsMinimized(true)}
                   >
-                    <Minimize2 className='h-4 w-4 text-gray-600' />
+                    <Minimize2 className='h-4 w-4 text-muted-foreground' />
                   </Button>
 
                   <Button
                     variant='ghost'
                     size='sm'
-                    className='h-9 w-9 p-0 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all duration-200'
+                    className='h-9 w-9 p-0 hover:bg-destructive/10 hover:text-destructive rounded-xl transition-all duration-200'
                     onClick={() => setIsOpen(false)}
                   >
                     <X className='h-4 w-4' />
@@ -715,8 +715,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
 
               {/* Error Display */}
               {error && (
-                <div className='p-3 sm:p-4 bg-red-50/80 border-t border-red-200/50 backdrop-blur-sm'>
-                  <p className='text-xs sm:text-sm text-red-700 font-medium'>
+                <div className='p-3 sm:p-4 bg-destructive/10/80 border-t border-red-200/50 backdrop-blur-sm'>
+                  <p className='text-xs sm:text-sm text-destructive font-medium'>
                     Error: {error}
                   </p>
                 </div>
@@ -735,11 +735,11 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                   <div
                     className={cn(
                       'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-white shadow-sm',
-                      isConnected ? 'bg-emerald-500' : 'bg-red-500'
+                      isConnected ? 'bg-emerald-500' : 'bg-destructive/100'
                     )}
                   />
                 </div>
-                <span className='text-sm font-semibold text-gray-900'>
+                <span className='text-sm font-semibold text-foreground'>
                   AI Assistant
                 </span>
                 {messages.length > 0 && (
@@ -757,7 +757,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                 className='h-8 w-8 p-0 hover:bg-white/60 rounded-xl transition-all duration-200'
                 onClick={() => setIsMinimized(false)}
               >
-                <Maximize2 className='h-4 w-4 text-gray-600' />
+                <Maximize2 className='h-4 w-4 text-muted-foreground' />
               </Button>
             </div>
           )}

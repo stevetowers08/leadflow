@@ -30,8 +30,8 @@ const STEP_TYPES: StepType[] = [
     name: 'Email',
     description: 'Send personalised email to prospects',
     icon: <Mail className='w-5 h-5' />,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
     popular: true,
   },
   {
@@ -39,15 +39,15 @@ const STEP_TYPES: StepType[] = [
     name: 'Wait',
     description: 'Pause sequence for specified duration',
     icon: <Clock className='w-5 h-5' />,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
+    color: 'text-warning',
+    bgColor: 'bg-warning/10',
   },
   {
     id: 'condition',
     name: 'If/Then',
     description: 'Add conditional logic to your sequence',
     icon: <GitBranch className='w-5 h-5' />,
-    color: 'text-purple-600',
+    color: 'text-primary',
     bgColor: 'bg-purple-50',
   },
 ];
@@ -73,7 +73,7 @@ export default function StepCreationModal({
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
-            <Sparkles className='w-5 h-5 text-blue-600' />
+            <Sparkles className='w-5 h-5 text-primary' />
             Add New Step
           </DialogTitle>
           <DialogDescription>
@@ -88,7 +88,7 @@ export default function StepCreationModal({
               className={`
                 relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
                 hover:shadow-md group
-                ${step.bgColor} border-transparent hover:border-gray-200
+                ${step.bgColor} border-transparent hover:border-border
               `}
               onClick={() => handleStepSelect(step.id)}
             >
@@ -107,17 +107,17 @@ export default function StepCreationModal({
                   {step.icon}
                 </div>
                 <div className='flex-1 min-w-0'>
-                  <h3 className='font-semibold text-gray-900 group-hover:text-gray-700'>
+                  <h3 className='font-semibold text-foreground group-hover:text-foreground'>
                     {step.name}
                   </h3>
-                  <p className='text-sm text-gray-600 mt-1'>
+                  <p className='text-sm text-muted-foreground mt-1'>
                     {step.description}
                   </p>
                 </div>
               </div>
 
               <div className='mt-3 flex items-center justify-between'>
-                <div className='flex items-center gap-2 text-xs text-gray-500'>
+                <div className='flex items-center gap-2 text-xs text-muted-foreground'>
                   <Calendar className='w-3 h-3' />
                   <span>Adds to timeline</span>
                 </div>

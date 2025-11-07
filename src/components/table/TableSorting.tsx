@@ -46,7 +46,7 @@ export const TableSorting: React.FC<TableSortingProps> = ({
           <th
             key={column.key}
             className={cn(
-              'h-10 px-6 text-sm font-semibold text-gray-700 uppercase tracking-wider border-r border-b-2 border-gray-200 last:border-r-0 whitespace-nowrap',
+              'h-10 px-6 text-sm font-semibold text-foreground uppercase tracking-wider border-r border-b-2 border-border last:border-r-0 whitespace-nowrap',
               'transition-all duration-150 ease-out',
               column.sortable &&
                 'cursor-pointer hover:bg-gray-100/60 hover:shadow-sm',

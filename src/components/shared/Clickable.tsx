@@ -59,9 +59,9 @@ const Clickable = forwardRef<HTMLDivElement, ClickableProps>(
       'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2';
 
     const variantClasses = {
-      default: 'cursor-pointer hover:bg-gray-50 transition-colors duration-200',
+      default: 'cursor-pointer hover:bg-muted transition-colors duration-200',
       subtle: 'cursor-pointer hover:bg-gray-25 transition-colors duration-200',
-      card: 'cursor-pointer hover:bg-gray-50 hover:shadow-sm transition-all duration-200 rounded-lg border border-gray-200 hover:border-gray-300',
+      card: 'cursor-pointer hover:bg-muted hover:shadow-sm transition-all duration-200 rounded-lg border border-border hover:border-border/60',
     };
 
     const sizeClasses = {

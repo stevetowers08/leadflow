@@ -8,6 +8,9 @@ import { PaginationControls } from '@/components/ui/pagination-controls';
 import { SearchModal } from '@/components/ui/search-modal';
 import { TabNavigation } from '@/components/ui/tab-navigation';
 import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
+import {
+  TooltipProvider,
+} from '@/components/ui/tooltip';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
 import { Page } from '@/design-system/components';
@@ -219,10 +222,10 @@ const Jobs: React.FC = () => {
 
   if (!isMounted) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-muted'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading jobs...</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Loading jobs...</p>
         </div>
       </div>
     );
@@ -368,7 +371,21 @@ const JobsContent: React.FC = () => {
           setFailedSummaryById(prev => ({ ...prev, [job.id]: true }));
         }
       } catch (e) {
+        // Silently handle errors - don't spam console with expected API failures
         setFailedSummaryById(prev => ({ ...prev, [job.id]: true }));
+        // Only log unexpected errors in development
+        if (process.env.NODE_ENV === 'development' && e instanceof Error) {
+          // Check if it's a known/expected error (missing API key, rate limit, etc.)
+          const isExpectedError = 
+            e.message.includes('GEMINI_API_KEY') ||
+            e.message.includes('Missing environment variables') ||
+            e.message.includes('rate limit') ||
+            e.message.includes('429');
+          
+          if (!isExpectedError) {
+            logger.debug('AI summary generation error:', e.message);
+          }
+        }
       } finally {
         setGeneratingSummaryById(prev => ({ ...prev, [job.id]: false }));
       }
@@ -527,25 +544,6 @@ const JobsContent: React.FC = () => {
   // Extract jobs and sources from query result
   const jobs = jobsData?.jobs || [];
   const loading = jobsLoading;
-
-  // Jobs data extracted
-  if (process.env.NODE_ENV === 'development') {
-    logger.debug('Jobs data extraction:', {
-      hasJobsData: !!jobsData,
-      jobsLength: jobs.length,
-      jobsDataType: Array.isArray(jobs) ? 'array' : typeof jobs,
-      firstJobSample: jobs[0]
-        ? {
-            id: jobs[0].id,
-            title: jobs[0].title,
-            client_jobs: jobs[0].client_jobs,
-            hasClientJobs: !!jobs[0].client_jobs?.length,
-          }
-        : null,
-      jobsLoading,
-      jobsError: jobsError?.message,
-    });
-  }
   const error = jobsError
     ? jobsError instanceof Error
       ? jobsError.message
@@ -570,23 +568,35 @@ const JobsContent: React.FC = () => {
     }
   }, [jobsError, toast]);
 
+  // Helper function to get effective qualification status
+  // Priority: client_jobs.status (client-specific) > jobs.qualification_status (job-level)
+  const getEffectiveStatus = useCallback((job: Job): string => {
+    // Check client_jobs status first (client-specific qualification)
+    const clientJobStatus = job.client_jobs?.[0]?.status;
+    if (clientJobStatus) {
+      return clientJobStatus;
+    }
+    // Fall back to job-level qualification_status
+    return job.qualification_status || 'new';
+  }, []);
+
   // Filter and sort jobs
   const filteredJobs = useMemo(() => {
     let filtered = jobs;
 
-    // Qualification status filter (from tabs) - Use jobs.qualification_status directly
-    // Jobs don't have client assignments, so use the job's qualification_status field
+    // Qualification status filter (from tabs) - Check both client_jobs.status and jobs.qualification_status
+    // Priority: client_jobs.status (client-specific) > jobs.qualification_status (job-level)
     // Note: Tab filter takes precedence over status filter to avoid conflicts
     if (activeTab !== 'all') {
       filtered = filtered.filter(job => {
-        const qualStatus = job.qualification_status || 'new';
-        return qualStatus === activeTab;
+        const effectiveStatus = getEffectiveStatus(job);
+        return effectiveStatus === activeTab;
       });
     } else if (statusFilter !== 'all') {
       // Only apply status filter if tab is 'all'
       filtered = filtered.filter(job => {
-        const qualStatus = job.qualification_status || 'new';
-        return qualStatus === statusFilter;
+        const effectiveStatus = getEffectiveStatus(job);
+        return effectiveStatus === statusFilter;
       });
     }
 
@@ -643,9 +653,11 @@ const JobsContent: React.FC = () => {
     selectedSource,
     debouncedSearchTerm,
     sortBy,
+    getEffectiveStatus,
   ]);
 
   // Update tab counts - memoized to prevent re-renders (optimized single pass)
+  // Counts based on effective status (client_jobs.status takes precedence)
   const tabCounts = useMemo(() => {
     // Single pass through jobs to count all statuses efficiently
     const counts = {
@@ -656,7 +668,7 @@ const JobsContent: React.FC = () => {
     };
 
     for (const job of jobs) {
-      const status = job.qualification_status || 'new';
+      const status = getEffectiveStatus(job);
       if (status === 'new') counts.new++;
       else if (status === 'qualify') counts.qualify++;
       else if (status === 'skip') counts.skip++;
@@ -666,7 +678,7 @@ const JobsContent: React.FC = () => {
       ...tab,
       count: counts[tab.id as keyof typeof counts] || 0,
     }));
-  }, [jobs, tabOptions]);
+  }, [jobs, tabOptions, getEffectiveStatus]);
 
   // Pagination
   const totalPages = Math.ceil(filteredJobs.length / pageSize);
@@ -674,26 +686,7 @@ const JobsContent: React.FC = () => {
   const endIndex = startIndex + pageSize;
   const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
 
-  // Pagination debug (development only)
-  if (process.env.NODE_ENV === 'development') {
-    logger.debug('Pagination Debug:', {
-      jobsLength: jobs.length,
-      activeTab,
-      filteredJobsLength: filteredJobs.length,
-      paginatedJobsLength: paginatedJobs.length,
-      currentPage,
-      pageSize,
-      startIndex,
-      endIndex,
-      firstPaginatedJob: paginatedJobs[0]
-        ? {
-            id: paginatedJobs[0].id,
-            title: paginatedJobs[0].title,
-            client_jobs_status: paginatedJobs[0].client_jobs?.[0]?.status,
-          }
-        : null,
-    });
-  }
+  // Pagination debug removed to reduce console noise
 
   // Auto-generate AI summaries for visible jobs on load/page change
   useEffect(() => {
@@ -706,7 +699,7 @@ const JobsContent: React.FC = () => {
   }, [paginatedJobs]);
 
   // Column configuration
-  const columns: ColumnConfig<Job>[] = [
+  const columns: ColumnConfig<Job>[] = useMemo(() => [
     {
       key: 'status',
       label: 'STATUS',
@@ -715,8 +708,8 @@ const JobsContent: React.FC = () => {
       cellType: 'status',
       align: 'center',
       getStatusValue: job => {
-        const s = job.client_jobs?.[0]?.status || 'new';
-        return s ? `job-${s}` : 'job-new';
+        const effectiveStatus = getEffectiveStatus(job);
+        return `job-${effectiveStatus}`;
       },
       render: (_, job) => {
         return (
@@ -763,15 +756,16 @@ const JobsContent: React.FC = () => {
     {
       key: 'industry',
       label: 'Industry',
-      width: '280px',
+      width: '450px',
+      minWidth: '400px',
       cellType: 'regular',
       render: (_, job) => (
         <IndustryBadges
           industries={job.companies?.industry}
           badgeVariant='compact'
           maxVisible={3}
-          noWrap
-          showOverflowIndicator={false}
+          noWrap={true}
+          showOverflowIndicator={true}
         />
       ),
     },
@@ -893,7 +887,7 @@ const JobsContent: React.FC = () => {
         </div>
       ),
     },
-  ];
+  ], [getEffectiveStatus, generatingSummaryById, failedSummaryById, setRefreshTrigger]);
 
   // Handle row click - open slide-out panel
   const handleRowClick = useCallback((job: Job) => {
@@ -909,10 +903,13 @@ const JobsContent: React.FC = () => {
 
   // Handle tab change - memoized for performance
   const handleTabChange = useCallback((tabId: string) => {
+    if (process.env.NODE_ENV === 'development') {
+      logger.debug('Tab changed:', { tabId, previousTab: activeTab });
+    }
     setActiveTab(tabId);
     setStatusFilter(tabId);
     setCurrentPage(1); // Reset to first page when changing tabs
-  }, []);
+  }, [activeTab]);
 
   // Handle search toggle - memoized for performance
   const handleSearchToggle = useCallback(() => {
@@ -995,34 +992,33 @@ const JobsContent: React.FC = () => {
 
         {/* Table - Scrollable middle */}
         <div className='flex-1 min-h-0 flex flex-col overflow-hidden'>
-          <UnifiedTable
-            data={paginatedJobs}
-            columns={columns}
-            tableId='jobs'
-            pagination={false} // We handle pagination externally
-            stickyHeaders={true}
-            scrollable={true}
-            onRowClick={handleRowClick}
-            loading={showLoadingState}
-            emptyMessage='No jobs found'
-          />
+          <TooltipProvider>
+            <UnifiedTable
+              data={paginatedJobs}
+              columns={columns}
+              tableId='jobs'
+              pagination={false} // We handle pagination externally
+              stickyHeaders={true}
+              scrollable={true}
+              onRowClick={handleRowClick}
+              loading={showLoadingState}
+              emptyMessage='No jobs found'
+            />
+          </TooltipProvider>
         </div>
 
         {/* Pagination - Fixed at bottom */}
-        <div className='flex-shrink-0 pt-4'>
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            pageSize={pageSize}
-            totalItems={filteredJobs.length}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={size => {
-              setPageSize(size);
-              setCurrentPage(1);
-            }}
-            className='mt-0'
-          />
-        </div>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={filteredJobs.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={size => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+        />
 
         {/* Search Modal */}
         <SearchModal

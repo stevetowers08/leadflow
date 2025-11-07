@@ -149,7 +149,7 @@ export function HubSpotIntegrationCard() {
         </div>
 
         {status.connected && (
-          <div className='text-sm text-gray-600'>
+          <div className='text-sm text-muted-foreground'>
             <p>✅ Contact synchronization</p>
             <p>✅ Company synchronization</p>
             <p>✅ Deal synchronization</p>

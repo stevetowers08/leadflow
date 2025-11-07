@@ -202,19 +202,19 @@ export const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
             <Alert
               className={
                 assignmentResult.success
-                  ? 'border-green-200 bg-green-50'
-                  : 'border-red-200 bg-red-50'
+                  ? 'border-green-200 bg-success/10'
+                  : 'border-red-200 bg-destructive/10'
               }
             >
               <div className='flex items-center gap-2'>
                 {assignmentResult.success ? (
-                  <CheckCircle className='h-4 w-4 text-green-600' />
+                  <CheckCircle className='h-4 w-4 text-success' />
                 ) : (
-                  <XCircle className='h-4 w-4 text-red-600' />
+                  <XCircle className='h-4 w-4 text-destructive' />
                 )}
                 <AlertDescription
                   className={
-                    assignmentResult.success ? 'text-green-800' : 'text-red-800'
+                    assignmentResult.success ? 'text-success' : 'text-destructive'
                   }
                 >
                   {assignmentResult.success ? (

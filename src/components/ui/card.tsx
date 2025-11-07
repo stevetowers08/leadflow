@@ -16,7 +16,7 @@ const Card = React.forwardRef<
     interactive !== undefined ? interactive : hasClickHandler;
 
   const baseStyles =
-    'rounded-lg border border-gray-200 transition-all duration-200 ease-out';
+    'rounded-lg border border-border transition-all duration-200 ease-out';
   const interactiveStyles = isInteractive
     ? 'cursor-pointer hover:shadow-md'
     : 'hover:shadow-md';

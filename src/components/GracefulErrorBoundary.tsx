@@ -98,13 +98,13 @@ export class GracefulErrorBoundary extends Component<
 
       // Minimal fallback - just show nothing or a small placeholder
       return (
-        <div className='p-4 border border-red-200 rounded-lg bg-red-50'>
-          <p className='text-sm text-red-700'>
+        <div className='p-4 border border-red-200 rounded-lg bg-destructive/10'>
+          <p className='text-sm text-destructive'>
             {this.state.error && this.getErrorMessage(this.state.error)}
           </p>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
-            className='mt-2 text-xs text-red-600 underline hover:text-red-800'
+            className='mt-2 text-xs text-destructive underline hover:text-destructive'
           >
             Try Again
           </button>

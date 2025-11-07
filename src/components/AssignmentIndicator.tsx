@@ -68,7 +68,7 @@ export const AssignmentIndicator = ({
 
   return (
     <div className={cn('flex items-center gap-1', className)}>
-      <div className='w-4 h-4 rounded-full bg-green-500 flex items-center justify-center'>
+      <div className='w-4 h-4 rounded-full bg-success/100 flex items-center justify-center'>
         <User className='w-2.5 h-2.5 text-white' />
       </div>
       <Badge variant='secondary' className='text-xs px-2 py-0.5'>

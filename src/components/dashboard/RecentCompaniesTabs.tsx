@@ -73,17 +73,17 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
   const getStageColor = (stage?: string | null) => {
     switch (stage?.toLowerCase()) {
       case 'new_lead':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-100 text-primary border-primary/20';
       case 'automated':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-success border-green-200';
       case 'meeting_scheduled':
         return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'closed_won':
         return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       case 'closed_lost':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-100 text-destructive border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-foreground border-border';
     }
   };
 
@@ -102,7 +102,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
     >
       <div className='flex items-center gap-3'>
         {/* Company Logo Only */}
-        <div className='flex-shrink-0 w-8 h-8 rounded-md border border-gray-200 bg-white flex items-center justify-center'>
+        <div className='flex-shrink-0 w-8 h-8 rounded-md border border-border bg-white flex items-center justify-center'>
           {getCompanyLogo(company) ? (
             <img
               src={getCompanyLogo(company)!}
@@ -114,14 +114,14 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
               }}
             />
           ) : (
-            <Building2 className='h-4 w-4 text-gray-400' />
+            <Building2 className='h-4 w-4 text-muted-foreground' />
           )}
         </div>
 
         {/* Company Info */}
         <div className='flex-1 min-w-0'>
           <div className='font-semibold text-sm truncate'>{company.name}</div>
-          <div className='text-xs text-gray-500 truncate'>
+          <div className='text-xs text-muted-foreground truncate'>
             {company.industry && company.head_office
               ? `${company.industry} • ${company.head_office}`
               : company.industry || company.head_office || 'No industry'}
@@ -131,7 +131,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
         {/* Stage, Employee Count and Notes */}
         <div className='flex items-center gap-2 flex-shrink-0'>
           {company.employee_count && (
-            <div className='flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full'>
+            <div className='flex items-center gap-1 text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded-full'>
               <Users className='h-3 w-3' />
               <span>{formatEmployeeCount(company.employee_count)}</span>
             </div>
@@ -147,7 +147,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
             </Badge>
           )}
           {company.notes_count && company.notes_count > 0 && (
-            <div className='flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full'>
+            <div className='flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full'>
               <StickyNote className='h-3 w-3' />
               <span>{company.notes_count}</span>
             </div>
@@ -165,7 +165,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
       return (
         <div className='space-y-3'>
           {[...Array(3)].map((_, i) => (
-            <div key={i} className='p-4 bg-gray-50 rounded-lg animate-pulse'>
+            <div key={i} className='p-4 bg-muted rounded-lg animate-pulse'>
               <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
               <div className='h-3 bg-gray-200 rounded w-1/2 mb-1'></div>
               <div className='h-3 bg-gray-200 rounded w-2/3'></div>
@@ -177,7 +177,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
 
     if (companiesList.length === 0) {
       return (
-        <div className='text-center py-8 text-gray-500'>
+        <div className='text-center py-8 text-muted-foreground'>
           <Building2 className='h-8 w-8 mx-auto mb-2 opacity-50' />
           <p className='text-sm'>{emptyMessage}</p>
         </div>
@@ -202,7 +202,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
         )}
       >
         <CardHeader className='pb-4'>
-          <CardTitle className='flex items-center gap-2 text-base font-medium text-gray-900'>
+          <CardTitle className='flex items-center gap-2 text-base font-medium text-foreground'>
             <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-success/5 border border-success/10'>
               <Building2 className='h-4 w-4 text-success' />
             </div>

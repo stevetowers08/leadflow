@@ -111,16 +111,16 @@ export const EmailThreadViewer: React.FC<EmailThreadViewerProps> = ({
                 key={message.id}
                 className={`p-4 rounded-lg border ${
                   message.is_sent
-                    ? 'bg-blue-50 border-blue-200 ml-8'
-                    : 'bg-gray-50 border-gray-200 mr-8'
+                    ? 'bg-primary/10 border-primary/20 ml-8'
+                    : 'bg-muted border-border mr-8'
                 }`}
               >
                 <div className='flex items-start justify-between mb-2'>
                   <div className='flex items-center gap-2'>
                     {message.is_sent ? (
-                      <Mail className='h-4 w-4 text-blue-600' />
+                      <Mail className='h-4 w-4 text-primary' />
                     ) : (
-                      <MailOpen className='h-4 w-4 text-gray-600' />
+                      <MailOpen className='h-4 w-4 text-muted-foreground' />
                     )}
                     <span className='font-medium'>
                       {message.is_sent ? 'You' : message.from_email}

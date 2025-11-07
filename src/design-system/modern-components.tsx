@@ -44,11 +44,11 @@ export const ModernChartContainer: React.FC<ModernChartContainerProps> = ({
       <CardHeader className='pb-4'>
         <div className='flex items-center justify-between'>
           <div>
-            <CardTitle className='text-lg font-semibold text-gray-900'>
+            <CardTitle className='text-lg font-semibold text-foreground'>
               {title}
             </CardTitle>
             {subtitle && (
-              <p className='text-sm text-gray-500 mt-1'>{subtitle}</p>
+              <p className='text-sm text-muted-foreground mt-1'>{subtitle}</p>
             )}
           </div>
           {actions && (
@@ -58,8 +58,8 @@ export const ModernChartContainer: React.FC<ModernChartContainerProps> = ({
       </CardHeader>
       <CardContent className='pt-0'>
         {loading ? (
-          <div className='flex items-center justify-center h-64 bg-gray-50 rounded-lg'>
-            <div className='flex items-center space-x-2 text-gray-500'>
+          <div className='flex items-center justify-center h-64 bg-muted rounded-lg'>
+            <div className='flex items-center space-x-2 text-muted-foreground'>
               <Loader2 className='h-5 w-5 animate-spin' />
               <span>Loading chart...</span>
             </div>
@@ -86,9 +86,9 @@ export const ModernLoadingState: React.FC<ModernLoadingStateProps> = ({
     <div className='flex flex-col items-center justify-center min-h-64 space-y-4'>
       <div className='flex items-center space-x-3'>
         <Loader2 className='h-6 w-6 animate-spin text-primary' />
-        <h3 className='text-lg font-semibold text-gray-900'>{title}</h3>
+        <h3 className='text-lg font-semibold text-foreground'>{title}</h3>
       </div>
-      <p className='text-sm text-gray-500'>{message}</p>
+      <p className='text-sm text-muted-foreground'>{message}</p>
     </div>
   );
 };
@@ -116,22 +116,22 @@ export const ModernMetricCard: React.FC<ModernMetricCardProps> = ({
   const getTrendIcon = () => {
     switch (changeType) {
       case 'increase':
-        return <TrendingUp className='h-4 w-4 text-green-600' />;
+        return <TrendingUp className='h-4 w-4 text-success' />;
       case 'decrease':
-        return <TrendingDown className='h-4 w-4 text-red-600' />;
+        return <TrendingDown className='h-4 w-4 text-destructive' />;
       default:
-        return <Minus className='h-4 w-4 text-gray-400' />;
+        return <Minus className='h-4 w-4 text-muted-foreground' />;
     }
   };
 
   const getTrendColor = () => {
     switch (changeType) {
       case 'increase':
-        return 'text-green-600';
+        return 'text-success';
       case 'decrease':
-        return 'text-red-600';
+        return 'text-destructive';
       default:
-        return 'text-gray-500';
+        return 'text-muted-foreground';
     }
   };
 
@@ -149,12 +149,12 @@ export const ModernMetricCard: React.FC<ModernMetricCardProps> = ({
       <CardContent className='p-6'>
         {loading ? (
           <div className='flex items-center justify-center h-24'>
-            <Loader2 className='h-6 w-6 animate-spin text-gray-400' />
+            <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
           </div>
         ) : (
           <>
             <div className='flex items-center justify-between'>
-              <p className='text-sm font-medium text-gray-600'>{title}</p>
+              <p className='text-sm font-medium text-muted-foreground'>{title}</p>
               {change !== undefined && (
                 <div
                   className={`flex items-center space-x-1 text-sm ${getTrendColor()}`}
@@ -165,9 +165,9 @@ export const ModernMetricCard: React.FC<ModernMetricCardProps> = ({
               )}
             </div>
             <div className='mt-2'>
-              <p className='text-2xl font-bold text-gray-900'>{value}</p>
+              <p className='text-2xl font-bold text-foreground'>{value}</p>
               {subtitle && (
-                <p className='text-xs text-gray-500 mt-1'>{subtitle}</p>
+                <p className='text-xs text-muted-foreground mt-1'>{subtitle}</p>
               )}
             </div>
           </>
@@ -192,8 +192,8 @@ export const ModernSectionHeader: React.FC<ModernSectionHeaderProps> = ({
   return (
     <div className='flex items-center justify-between mb-6'>
       <div>
-        <h2 className='text-xl font-semibold text-gray-900'>{title}</h2>
-        {subtitle && <p className='text-sm text-gray-500 mt-1'>{subtitle}</p>}
+        <h2 className='text-xl font-semibold text-foreground'>{title}</h2>
+        {subtitle && <p className='text-sm text-muted-foreground mt-1'>{subtitle}</p>}
       </div>
       {actions && <div className='flex items-center space-x-2'>{actions}</div>}
     </div>
@@ -223,19 +223,19 @@ export const DataTable: React.FC<DataTableProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className='bg-white rounded-lg border border-gray-200 overflow-hidden'>
+      <div className='bg-white rounded-lg border border-border overflow-hidden'>
         <div className='flex items-center justify-center h-32'>
-          <Loader2 className='h-6 w-6 animate-spin text-gray-400' />
+          <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
         </div>
       </div>
     );
   }
 
   return (
-    <div className='bg-white rounded-lg border border-gray-200'>
+    <div className='bg-white rounded-lg border border-border'>
       <EnhancedTable dualScrollbars={false} stickyHeader={true}>
         <EnhancedTableHeader>
-          <EnhancedTableRow className='transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-gray-200 bg-gray-50/50'>
+          <EnhancedTableRow className='transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-border bg-muted/50'>
             {columns.map(column => (
               <EnhancedTableHead
                 key={column.key}
@@ -274,7 +274,7 @@ export const DataTable: React.FC<DataTableProps> = ({
             <EnhancedTableRow
               key={index}
               className={cn(
-                'data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-gray-50/80 hover:shadow-sm hover:border-gray-200 transition-colors duration-200 group',
+                'data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-muted/80 hover:shadow-sm hover:border-border transition-colors duration-200 group',
                 onRowClick ? 'cursor-pointer relative' : ''
               )}
               role='row'

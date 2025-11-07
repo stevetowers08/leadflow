@@ -78,7 +78,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             <div
               className={cn(
                 'w-2 h-2 rounded-full',
-                state.isConnected ? 'bg-green-500' : 'bg-red-500'
+                state.isConnected ? 'bg-success/100' : 'bg-destructive/100'
               )}
             />
             <h2 className='font-medium'>AI Chat</h2>

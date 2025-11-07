@@ -50,13 +50,13 @@ const AutomationTrends: React.FC<AutomationTrendsProps> = ({
                 <div className='w-full flex flex-col gap-1'>
                   {/* People */}
                   <div
-                    className='bg-blue-500 rounded-t'
+                    className='bg-primary/100 rounded-t'
                     style={{ height: `${(data.people / maxValue) * 120}px` }}
                     title={`People: ${data.people}`}
                   />
                   {/* Automations */}
                   <div
-                    className='bg-green-500'
+                    className='bg-success/100'
                     style={{
                       height: `${(data.automations / maxValue) * 120}px`,
                     }}
@@ -64,7 +64,7 @@ const AutomationTrends: React.FC<AutomationTrendsProps> = ({
                   />
                   {/* Responses */}
                   <div
-                    className='bg-orange-500'
+                    className='bg-warning/100'
                     style={{ height: `${(data.responses / maxValue) * 120}px` }}
                     title={`Responses: ${data.responses}`}
                   />
@@ -75,7 +75,7 @@ const AutomationTrends: React.FC<AutomationTrendsProps> = ({
                     title={`Meetings: ${data.meetings}`}
                   />
                 </div>
-                <span className='text-xs text-gray-500 mt-2'>
+                <span className='text-xs text-muted-foreground mt-2'>
                   {new Date(data.month).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -88,36 +88,36 @@ const AutomationTrends: React.FC<AutomationTrendsProps> = ({
           {/* Legend */}
           <div className='flex flex-wrap gap-4 justify-center'>
             <div className='flex items-center gap-2'>
-              <div className='w-3 h-3 bg-blue-500 rounded'></div>
-              <span className='text-sm text-gray-600'>People</span>
+              <div className='w-3 h-3 bg-primary/100 rounded'></div>
+              <span className='text-sm text-muted-foreground'>People</span>
             </div>
             <div className='flex items-center gap-2'>
-              <div className='w-3 h-3 bg-green-500 rounded'></div>
-              <span className='text-sm text-gray-600'>Automations</span>
+              <div className='w-3 h-3 bg-success/100 rounded'></div>
+              <span className='text-sm text-muted-foreground'>Automations</span>
             </div>
             <div className='flex items-center gap-2'>
-              <div className='w-3 h-3 bg-orange-500 rounded'></div>
-              <span className='text-sm text-gray-600'>Responses</span>
+              <div className='w-3 h-3 bg-warning/100 rounded'></div>
+              <span className='text-sm text-muted-foreground'>Responses</span>
             </div>
             <div className='flex items-center gap-2'>
               <div className='w-3 h-3 bg-emerald-500 rounded'></div>
-              <span className='text-sm text-gray-600'>Meetings</span>
+              <span className='text-sm text-muted-foreground'>Meetings</span>
             </div>
           </div>
 
           {/* Summary Stats */}
           <div className='grid grid-cols-2 gap-4 pt-4 border-t'>
             <div className='text-center'>
-              <div className='text-2xl font-bold text-green-600'>
+              <div className='text-2xl font-bold text-success'>
                 {processedData.reduce((sum, d) => sum + d.automations, 0)}
               </div>
-              <div className='text-sm text-gray-600'>Total Automations</div>
+              <div className='text-sm text-muted-foreground'>Total Automations</div>
             </div>
             <div className='text-center'>
-              <div className='text-2xl font-bold text-orange-600'>
+              <div className='text-2xl font-bold text-warning'>
                 {processedData.reduce((sum, d) => sum + d.responses, 0)}
               </div>
-              <div className='text-sm text-gray-600'>Total Responses</div>
+              <div className='text-sm text-muted-foreground'>Total Responses</div>
             </div>
           </div>
         </div>

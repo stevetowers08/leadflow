@@ -51,25 +51,25 @@ export const PRIORITY_LEVELS: Record<PriorityLevel, ScoringInfo> = {
   'VERY HIGH': {
     label: 'Very High',
     badge: 'Very High',
-    color: 'bg-red-100 text-red-800 border-red-200',
+    color: 'bg-destructive/10 text-destructive border-destructive/20',
     value: 'VERY HIGH',
   },
   HIGH: {
     label: 'High',
     badge: 'High',
-    color: 'bg-orange-100 text-orange-800 border-orange-200',
+    color: 'bg-warning/10 text-warning border-warning/20',
     value: 'HIGH',
   },
   MEDIUM: {
     label: 'Medium',
     badge: 'Medium',
-    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    color: 'bg-warning/10 text-warning border-warning/20',
     value: 'MEDIUM',
   },
   LOW: {
     label: 'Low',
     badge: 'Low',
-    color: 'bg-green-100 text-green-800 border-green-200',
+    color: 'bg-success/10 text-success border-success/20',
     value: 'LOW',
   },
 };
@@ -81,19 +81,19 @@ export const LEAD_SCORE_LEVELS: Record<LeadScoreLevel, ScoringInfo> = {
   High: {
     label: 'High',
     badge: 'High',
-    color: 'bg-red-100 text-red-800 border-red-200',
+    color: 'bg-destructive/10 text-destructive border-destructive/20',
     value: 'High',
   },
   Medium: {
     label: 'Medium',
     badge: 'Medium',
-    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    color: 'bg-warning/10 text-warning border-warning/20',
     value: 'Medium',
   },
   Low: {
     label: 'Low',
     badge: 'Low',
-    color: 'bg-green-100 text-green-800 border-green-200',
+    color: 'bg-success/10 text-success border-success/20',
     value: 'Low',
   },
 };
@@ -106,7 +106,7 @@ export const getPeopleScoreInfo = (score: number | null | undefined): ScoringInf
     return {
       label: 'AI SCORE',
       badge: '-',
-      color: 'bg-gray-100 text-gray-800 border-gray-200',
+      color: 'bg-gray-100 text-foreground border-border',
       value: 0,
     };
   }
@@ -118,7 +118,7 @@ export const getPeopleScoreInfo = (score: number | null | undefined): ScoringInf
   } else if (score >= 5) {
     color = 'bg-yellow-100 text-yellow-800 border-yellow-200'; // Medium (5-7)
   } else {
-    color = 'bg-green-100 text-green-800 border-green-200'; // Low (1-4)
+    color = 'bg-green-100 text-success border-green-200'; // Low (1-4)
   }
 
   return {
@@ -138,7 +138,7 @@ export const getCompanyScoreInfo = (score: string | number): ScoringInfo => {
   return {
     label: 'AI SCORE',
     badge: `${numScore}`,
-    color: 'text-gray-900 font-bold', // Simple numeric styling - no badge colors
+    color: 'text-foreground font-bold', // Simple numeric styling - no badge colors
     value: numScore,
   };
 };
@@ -151,7 +151,7 @@ export const getJobScoreInfo = (score: number): ScoringInfo => {
   return {
     label: 'AI SCORE',
     badge: `${score}`,
-    color: 'text-gray-900 font-bold', // Simple numeric styling - no badge colors
+    color: 'text-foreground font-bold', // Simple numeric styling - no badge colors
     value: score,
   };
 };

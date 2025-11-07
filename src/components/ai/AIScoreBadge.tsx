@@ -71,16 +71,16 @@ export function AIScoreBadge({
   const getScoreColor = (scoreValue: number) => {
     if (scoreValue >= 85)
       return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    if (scoreValue >= 70) return 'bg-blue-100 text-blue-800 border-blue-200';
+    if (scoreValue >= 70) return 'bg-blue-100 text-primary border-primary/20';
     if (scoreValue >= 50)
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      return 'bg-yellow-100 text-warning border-yellow-200';
     return 'bg-orange-100 text-orange-800 border-orange-200';
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'text-green-600';
-    if (confidence >= 0.6) return 'text-yellow-600';
-    return 'text-red-600';
+    if (confidence >= 0.8) return 'text-success';
+    if (confidence >= 0.6) return 'text-warning';
+    return 'text-destructive';
   };
 
   if (error) {

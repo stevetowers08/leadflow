@@ -479,7 +479,7 @@ export const NotesSection = ({
             autoFocus
           />
           <div className='flex items-center justify-between mt-2'>
-            <span className='text-xs text-gray-500'>
+            <span className='text-xs text-muted-foreground'>
               Press Cmd/Ctrl + Enter to save
             </span>
             <div className='flex gap-2'>
@@ -508,11 +508,11 @@ export const NotesSection = ({
       {/* Notes List */}
       <div className='space-y-3 flex-1 overflow-y-auto'>
         {isLoading ? (
-          <div className='text-sm text-gray-500 text-center py-8'>
+          <div className='text-sm text-muted-foreground text-center py-8'>
             Loading...
           </div>
         ) : (isMockMode ? mockNotes : notes).length === 0 ? (
-          <div className='text-sm text-gray-500 text-center py-8'>
+          <div className='text-sm text-muted-foreground text-center py-8'>
             No notes yet
           </div>
         ) : (
@@ -537,7 +537,7 @@ export const NotesSection = ({
               return (
                 <div
                   key={note.id}
-                  className='group relative p-3 bg-gray-50 rounded-md border border-gray-200'
+                  className='group relative p-3 bg-muted rounded-md border border-border'
                 >
                   {isEditing ? (
                     <div className='space-y-2'>
@@ -572,7 +572,7 @@ export const NotesSection = ({
                           <span className='text-xs font-medium text-foreground'>
                             {note.author_name}
                           </span>
-                          <span className='text-xs text-gray-500'>
+                          <span className='text-xs text-muted-foreground'>
                             {dateInfo.relative}
                           </span>
                         </div>
@@ -590,7 +590,7 @@ export const NotesSection = ({
                               variant='ghost'
                               size='sm'
                               onClick={() => deleteNote(note.id)}
-                              className='h-6 px-2 text-gray-500 hover:text-red-600'
+                              className='h-6 px-2 text-muted-foreground hover:text-destructive'
                             >
                               <Trash2 className='h-3 w-3' />
                             </Button>

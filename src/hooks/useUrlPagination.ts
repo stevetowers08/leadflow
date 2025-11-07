@@ -1,5 +1,7 @@
+'use client';
+
 import { useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
 interface UrlPaginationOptions {
   defaultPageSize?: number;
@@ -16,7 +18,9 @@ export const useUrlPagination = (options: UrlPaginationOptions = {}) => {
     pageSizeParam = 'pageSize',
   } = options;
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const currentPage = parseInt(
     searchParams.get(pageParam) || defaultPage.toString()
@@ -27,37 +31,37 @@ export const useUrlPagination = (options: UrlPaginationOptions = {}) => {
 
   const updateUrl = useCallback(
     (page: number, size: number) => {
-      setSearchParams(prev => {
-        const newParams = new URLSearchParams(prev);
-        newParams.set(pageParam, page.toString());
-        newParams.set(pageSizeParam, size.toString());
-        return newParams;
-      });
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.set(pageParam, page.toString());
+      newParams.set(pageSizeParam, size.toString());
+      const queryString = newParams.toString();
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(newUrl);
     },
-    [setSearchParams, pageParam, pageSizeParam]
+    [searchParams, pathname, pageParam, pageSizeParam, router]
   );
 
   const updatePage = useCallback(
     (page: number) => {
-      setSearchParams(prev => {
-        const newParams = new URLSearchParams(prev);
-        newParams.set(pageParam, page.toString());
-        return newParams;
-      });
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.set(pageParam, page.toString());
+      const queryString = newParams.toString();
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(newUrl);
     },
-    [setSearchParams, pageParam]
+    [searchParams, pathname, pageParam, router]
   );
 
   const updatePageSize = useCallback(
     (size: number) => {
-      setSearchParams(prev => {
-        const newParams = new URLSearchParams(prev);
-        newParams.set(pageSizeParam, size.toString());
-        newParams.set(pageParam, '1'); // Reset to first page when changing page size
-        return newParams;
-      });
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.set(pageSizeParam, size.toString());
+      newParams.set(pageParam, '1'); // Reset to first page when changing page size
+      const queryString = newParams.toString();
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(newUrl);
     },
-    [setSearchParams, pageParam, pageSizeParam]
+    [searchParams, pathname, pageParam, pageSizeParam, router]
   );
 
   return {

@@ -524,9 +524,9 @@ const CompanyDetailsSlideOutComponent: React.FC<
       <SlideOutPanel isOpen={isOpen} onClose={onClose} title='Company Details'>
         <div className='flex items-center justify-center py-6'>
           {loading ? (
-            <div className='text-gray-500'>Loading...</div>
+            <div className='text-muted-foreground'>Loading...</div>
           ) : (
-            <div className='text-gray-500'>Company not found</div>
+            <div className='text-muted-foreground'>Company not found</div>
           )}
         </div>
       </SlideOutPanel>
@@ -585,7 +585,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
       value: (
         <a
           href={`/jobs/${sourceJobId}`}
-          className='text-blue-600 hover:text-blue-800 flex items-center gap-1'
+          className='text-primary hover:text-primary flex items-center gap-1'
         >
           <FileText className='h-3 w-3' />
           View Source Job
@@ -604,8 +604,8 @@ const CompanyDetailsSlideOutComponent: React.FC<
       customHeader={
         <div className='flex items-center justify-between w-full'>
           <div className='flex items-center gap-4'>
-            <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200'>
-              <Building2 className='h-5 w-5 text-gray-400' />
+            <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-border'>
+              <Building2 className='h-5 w-5 text-muted-foreground' />
             </div>
             <div className='flex-1 min-w-0'>
               <div className='flex items-center gap-3'>
@@ -621,7 +621,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                     }
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-gray-400 hover:text-gray-600 transition-colors'
+                    className='text-muted-foreground hover:text-muted-foreground transition-colors'
                     title='Visit Website'
                   >
                     <Globe className='h-4 w-4' />
@@ -632,7 +632,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                     href={company.linkedin_url}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-gray-400 hover:text-blue-600 transition-colors'
+                    className='text-muted-foreground hover:text-primary transition-colors'
                     title='View LinkedIn Profile'
                   >
                     <svg
@@ -646,7 +646,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                   </a>
                 )}
               </div>
-              <p className='text-sm text-gray-500 truncate'>
+              <p className='text-sm text-muted-foreground truncate'>
                 {company.head_office || 'Company Information'}
               </p>
             </div>
@@ -724,7 +724,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
             {activeTab === 'overview' && (
               <div className='space-y-4 px-6 pb-4'>
                 {/* Divider */}
-                <div className='w-full border-t border-gray-200'></div>
+                <div className='w-full border-t border-border'></div>
 
                 {/* Company Details Section */}
                 <div className='mb-6'>
@@ -759,14 +759,14 @@ const CompanyDetailsSlideOutComponent: React.FC<
 
                 {/* Divider */}
                 {company.score_reason && (
-                  <div className='w-full border-t border-gray-200 my-8'></div>
+                  <div className='w-full border-t border-border my-8'></div>
                 )}
 
                 {/* AI Analysis Section */}
                 {company.score_reason && (
                   <div className='mb-4 last:mb-0'>
                     <div className='flex items-center gap-1.5 mb-3'>
-                      <Sparkles className='h-4 w-4 text-gray-500' />
+                      <Sparkles className='h-4 w-4 text-muted-foreground' />
                       <h4 className='text-sm font-semibold text-foreground'>
                         AI Analysis
                       </h4>
@@ -789,7 +789,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                       <div
                         key={person.id}
                         onClick={() => handlePersonClick(person.id)}
-                        className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer'
+                        className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-gray-100 transition-colors cursor-pointer'
                       >
                         <div
                           onClick={e => e.stopPropagation()}
@@ -803,17 +803,17 @@ const CompanyDetailsSlideOutComponent: React.FC<
                           />
                         </div>
                         <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
-                          <User className='h-5 w-5 text-gray-500' />
+                          <User className='h-5 w-5 text-muted-foreground' />
                         </div>
                         <div className='flex-1 min-w-0'>
                           <div className='font-medium text-sm text-foreground truncate'>
                             {person.name || 'Unknown'}
                           </div>
-                          <div className='text-xs text-gray-500 truncate'>
+                          <div className='text-xs text-muted-foreground truncate'>
                             {person.company_role || 'No role specified'}
                           </div>
                           {person.employee_location && (
-                            <div className='text-xs text-gray-500 truncate mt-0.5'>
+                            <div className='text-xs text-muted-foreground truncate mt-0.5'>
                               {person.employee_location}
                             </div>
                           )}
@@ -825,8 +825,8 @@ const CompanyDetailsSlideOutComponent: React.FC<
                     ))}
                   </div>
                 ) : (
-                  <div className='text-center py-12 text-gray-500'>
-                    <User className='h-12 w-12 text-gray-300 mx-auto mb-3' />
+                  <div className='text-center py-12 text-muted-foreground'>
+                    <User className='h-12 w-12 text-muted-foreground mx-auto mb-3' />
                     <p className='text-sm'>No contacts at this company</p>
                   </div>
                 )}
@@ -897,20 +897,20 @@ const CompanyDetailsSlideOutComponent: React.FC<
                       return (
                         <div
                           key={job.id}
-                          className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer'
+                          className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-gray-100 transition-colors cursor-pointer'
                         >
                           <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
-                            <Calendar className='h-5 w-5 text-gray-500' />
+                            <Calendar className='h-5 w-5 text-muted-foreground' />
                           </div>
                           <div className='flex-1 min-w-0'>
                             <div className='font-medium text-sm text-foreground truncate'>
                               {job.title || 'Untitled Job'}
                             </div>
-                            <div className='text-xs text-gray-500 truncate'>
+                            <div className='text-xs text-muted-foreground truncate'>
                               {job.function || 'No function specified'}
                             </div>
                             {job.location && (
-                              <div className='text-xs text-gray-500 truncate mt-0.5'>
+                              <div className='text-xs text-muted-foreground truncate mt-0.5'>
                                 {job.location}
                               </div>
                             )}
@@ -923,7 +923,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                       <div className='text-center pt-4'>
                         <a
                           href={`/jobs?company=${companyId}`}
-                          className='text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1.5'
+                          className='text-sm text-primary hover:text-primary font-medium inline-flex items-center gap-1.5'
                         >
                           View all {jobs.length} jobs
                           <ExternalLink className='h-3.5 w-3.5' />
@@ -932,8 +932,8 @@ const CompanyDetailsSlideOutComponent: React.FC<
                     )}
                   </div>
                 ) : (
-                  <div className='text-center py-12 text-gray-500'>
-                    <Calendar className='h-12 w-12 text-gray-300 mx-auto mb-3' />
+                  <div className='text-center py-12 text-muted-foreground'>
+                    <Calendar className='h-12 w-12 text-muted-foreground mx-auto mb-3' />
                     <p className='text-sm'>No jobs at this company</p>
                   </div>
                 )}
@@ -944,7 +944,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
               <div className='space-y-4 px-6 pb-4'>
                 {/* Recent Alerts Card - Notification Style */}
                 {interactions.length > 0 && (
-                  <div className='bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden'>
+                  <div className='bg-white border border-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden'>
                     <div className='p-6'>
                       <div className='flex items-center justify-between mb-4'>
                         <h3 className='font-semibold text-foreground'>
@@ -953,7 +953,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                         <div className='flex items-center gap-2'>
                           <span className='relative flex h-3 w-3'>
                             <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75' />
-                            <span className='relative inline-flex rounded-full h-3 w-3 bg-red-500' />
+                            <span className='relative inline-flex rounded-full h-3 w-3 bg-destructive/100' />
                           </span>
                           <span className='text-xs font-medium text-muted-foreground'>
                             {interactions.length} New
@@ -967,17 +967,17 @@ const CompanyDetailsSlideOutComponent: React.FC<
                             interaction.interaction_type
                           );
                           // Determine color based on interaction type
-                          let bgColor = 'bg-blue-50';
+                          let bgColor = 'bg-primary/10';
                           let borderColor = 'border-blue-100';
-                          let dotColor = 'bg-blue-500';
-                          let textColor = 'text-blue-600';
+                          let dotColor = 'bg-primary/100';
+                          let textColor = 'text-primary';
                           let hoverColor = 'hover:bg-blue-100';
 
                           if (interaction.interaction_type?.includes('email')) {
-                            bgColor = 'bg-blue-50';
+                            bgColor = 'bg-primary/10';
                             borderColor = 'border-blue-100';
-                            dotColor = 'bg-blue-500';
-                            textColor = 'text-blue-600';
+                            dotColor = 'bg-primary/100';
+                            textColor = 'text-primary';
                             hoverColor = 'hover:bg-blue-100';
                           } else if (
                             interaction.interaction_type?.includes('reply') ||
@@ -992,10 +992,10 @@ const CompanyDetailsSlideOutComponent: React.FC<
                             interaction.interaction_type?.includes('decline') ||
                             interaction.interaction_type?.includes('negative')
                           ) {
-                            bgColor = 'bg-red-50';
+                            bgColor = 'bg-destructive/10';
                             borderColor = 'border-red-100';
-                            dotColor = 'bg-red-500';
-                            textColor = 'text-red-600';
+                            dotColor = 'bg-destructive/100';
+                            textColor = 'text-destructive';
                             hoverColor = 'hover:bg-red-100';
                           }
 
@@ -1031,7 +1031,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                       </div>
 
                       {interactions.length > 3 && (
-                        <button className='mt-4 w-full text-xs font-medium text-center text-blue-600 hover:text-blue-700 py-2 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors'>
+                        <button className='mt-4 w-full text-xs font-medium text-center text-primary hover:text-primary py-2 border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors'>
                           View All Alerts ({interactions.length})
                         </button>
                       )}
@@ -1049,17 +1049,17 @@ const CompanyDetailsSlideOutComponent: React.FC<
                       {interactions.map(interaction => (
                         <div
                           key={interaction.id}
-                          className='flex gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+                          className='flex gap-3 p-3 bg-muted rounded-lg hover:bg-gray-100 transition-colors'
                         >
-                          <div className='flex-shrink-0 w-1 bg-blue-500 rounded-full' />
+                          <div className='flex-shrink-0 w-1 bg-primary/100 rounded-full' />
                           <div className='flex-1 min-w-0'>
                             <div className='flex items-center gap-2 mb-1'>
-                              <span className='text-xs font-medium text-blue-600'>
+                              <span className='text-xs font-medium text-primary'>
                                 {getInteractionTypeDisplay(
                                   interaction.interaction_type
                                 )}
                               </span>
-                              <span className='text-xs text-gray-500'>
+                              <span className='text-xs text-muted-foreground'>
                                 {formatDate(interaction.occurred_at)}
                               </span>
                             </div>
@@ -1067,12 +1067,12 @@ const CompanyDetailsSlideOutComponent: React.FC<
                               {interaction.people?.name || 'Unknown Person'}
                             </div>
                             {interaction.subject && (
-                              <div className='text-xs text-gray-600 mt-1 truncate'>
+                              <div className='text-xs text-muted-foreground mt-1 truncate'>
                                 {interaction.subject}
                               </div>
                             )}
                             {interaction.content && (
-                              <div className='text-xs text-gray-500 mt-1 line-clamp-2'>
+                              <div className='text-xs text-muted-foreground mt-1 line-clamp-2'>
                                 {interaction.content}
                               </div>
                             )}
@@ -1081,7 +1081,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                       ))}
                     </div>
                   ) : (
-                    <div className='text-center py-8 text-gray-500'>
+                    <div className='text-center py-8 text-muted-foreground'>
                       No activity yet
                     </div>
                   )}
@@ -1092,16 +1092,16 @@ const CompanyDetailsSlideOutComponent: React.FC<
         </section>
 
         {/* Right Column - Sidebar */}
-        <div className='w-80 flex-shrink-0 border-l border-gray-200 flex flex-col h-full overflow-hidden ml-0'>
+        <div className='w-80 flex-shrink-0 border-l border-border flex flex-col h-full overflow-hidden ml-0'>
           <div className='flex-1 flex flex-col overflow-y-auto'>
             {/* Activity Section */}
             <div className='px-6 pt-6 pb-4'>
               <h3 className='text-base font-semibold text-foreground mb-4'>
                 <div className='flex items-center gap-1.5'>
-                  <Mail className='h-4 w-4 text-gray-500' />
+                  <Mail className='h-4 w-4 text-muted-foreground' />
                   <span>Activity</span>
                   {interactions.length > 0 && (
-                    <span className='ml-1.5 text-gray-500 font-normal'>
+                    <span className='ml-1.5 text-muted-foreground font-normal'>
                       ({interactions.length})
                     </span>
                   )}
@@ -1113,7 +1113,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                     const interactionType = getInteractionTypeDisplay(
                       interaction.interaction_type
                     );
-                    let dotColor = 'bg-blue-500';
+                    let dotColor = 'bg-primary/100';
                     if (
                       interaction.interaction_type?.includes('reply') ||
                       interaction.interaction_type?.includes('positive')
@@ -1123,13 +1123,13 @@ const CompanyDetailsSlideOutComponent: React.FC<
                       interaction.interaction_type?.includes('decline') ||
                       interaction.interaction_type?.includes('negative')
                     ) {
-                      dotColor = 'bg-red-500';
+                      dotColor = 'bg-destructive/100';
                     }
 
                     return (
                       <div
                         key={interaction.id}
-                        className='flex gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200 select-text'
+                        className='flex gap-3 p-3 rounded-lg hover:bg-muted transition-colors border border-transparent hover:border-border select-text'
                       >
                         <div
                           className={`flex-shrink-0 w-2 h-2 rounded-full ${dotColor} mt-1.5`}
@@ -1138,10 +1138,10 @@ const CompanyDetailsSlideOutComponent: React.FC<
                           <div className='text-xs font-medium text-foreground'>
                             {interactionType}
                           </div>
-                          <div className='text-xs text-gray-500 mt-0.5'>
+                          <div className='text-xs text-muted-foreground mt-0.5'>
                             {interaction.people?.name || 'Unknown'}
                           </div>
-                          <div className='text-xs text-gray-400 mt-1'>
+                          <div className='text-xs text-muted-foreground mt-1'>
                             {formatDate(interaction.occurred_at)}
                           </div>
                         </div>
@@ -1149,12 +1149,12 @@ const CompanyDetailsSlideOutComponent: React.FC<
                     );
                   })
                 ) : (
-                  <p className='text-sm text-gray-400 py-2'>No activity</p>
+                  <p className='text-sm text-muted-foreground py-2'>No activity</p>
                 )}
                 {interactions.length > 5 && (
                   <button
                     onClick={() => setActiveTab('activity')}
-                    className='text-xs text-blue-600 hover:text-blue-700 w-full text-left py-2 font-medium'
+                    className='text-xs text-primary hover:text-primary w-full text-left py-2 font-medium'
                   >
                     View all {interactions.length} activities →
                   </button>
@@ -1163,17 +1163,17 @@ const CompanyDetailsSlideOutComponent: React.FC<
             </div>
 
             {/* Divider - Full Width */}
-            <div className='w-full border-t border-gray-200'></div>
+            <div className='w-full border-t border-border'></div>
 
             {/* Notes Section */}
             <div className='flex-1 flex flex-col min-h-0 pt-4 pb-6 select-text'>
               <div className='px-6'>
                 <h3 className='text-base font-semibold text-foreground mb-4'>
                   <div className='flex items-center gap-1.5'>
-                    <StickyNote className='h-4 w-4 text-gray-500' />
+                    <StickyNote className='h-4 w-4 text-muted-foreground' />
                     <span>Notes</span>
                     {notesCount > 0 && (
-                      <span className='ml-1.5 text-gray-500 font-normal'>
+                      <span className='ml-1.5 text-muted-foreground font-normal'>
                         ({notesCount})
                       </span>
                     )}

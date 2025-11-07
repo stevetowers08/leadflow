@@ -24,7 +24,7 @@ export const useUserProfile = () => {
       email: user.email,
       full_name:
         user.user_metadata?.full_name || user.user_metadata?.name || 'User',
-      role: 'recruiter',
+      role: 'user',
       user_limit: 100,
       is_active: true,
       created_at: new Date().toISOString(),

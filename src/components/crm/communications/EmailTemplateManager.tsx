@@ -92,11 +92,11 @@ export const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      outreach: 'bg-blue-100 text-blue-800',
-      follow_up: 'bg-green-100 text-green-800',
+      outreach: 'bg-blue-100 text-primary',
+      follow_up: 'bg-green-100 text-success',
       meeting: 'bg-purple-100 text-purple-800',
       proposal: 'bg-orange-100 text-orange-800',
-      other: 'bg-gray-100 text-gray-800',
+      other: 'bg-gray-100 text-foreground',
     };
     return colors[category as keyof typeof colors] || colors.other;
   };

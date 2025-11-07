@@ -162,9 +162,9 @@
 }
 
 .text-secondary {
-  @apply text-sm text-gray-600 font-medium;
+  @apply text-sm text-muted-foreground font-medium;
 }
 
 .text-tertiary {
-  @apply text-xs text-gray-500 font-medium;
+  @apply text-xs text-muted-foreground font-medium;
 }

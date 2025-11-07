@@ -152,25 +152,25 @@ export const InlineFeedback: React.FC<InlineFeedbackProps> = ({
       case 'success':
         return {
           icon: CheckCircle,
-          bgColor: 'bg-green-50',
+          bgColor: 'bg-success/10',
           borderColor: 'border-green-200',
           iconColor: 'text-green-500',
-          textColor: 'text-green-800',
+          textColor: 'text-success',
           titleColor: 'text-green-900',
         };
       case 'error':
         return {
           icon: XCircle,
-          bgColor: 'bg-red-50',
+          bgColor: 'bg-destructive/10',
           borderColor: 'border-red-200',
-          iconColor: 'text-red-500',
+          iconColor: 'text-destructive',
           textColor: 'text-red-800',
           titleColor: 'text-red-900',
         };
       case 'warning':
         return {
           icon: AlertCircle,
-          bgColor: 'bg-yellow-50',
+          bgColor: 'bg-warning/10',
           borderColor: 'border-yellow-200',
           iconColor: 'text-yellow-500',
           textColor: 'text-yellow-800',
@@ -179,10 +179,10 @@ export const InlineFeedback: React.FC<InlineFeedbackProps> = ({
       case 'info':
         return {
           icon: Info,
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200',
-          iconColor: 'text-blue-500',
-          textColor: 'text-blue-800',
+          bgColor: 'bg-primary/10',
+          borderColor: 'border-primary/20',
+          iconColor: 'text-primary',
+          textColor: 'text-primary',
           titleColor: 'text-blue-900',
         };
     }
@@ -229,7 +229,7 @@ export const InlineFeedback: React.FC<InlineFeedbackProps> = ({
           <button
             onClick={onDismiss}
             className={cn(
-              'text-gray-400 hover:text-gray-600 transition-colors',
+              'text-muted-foreground hover:text-muted-foreground transition-colors',
               config.textColor
             )}
           >
@@ -292,7 +292,7 @@ export const FloatingFeedback: React.FC<FloatingFeedbackProps> = ({
           bgColor: 'bg-white',
           borderColor: 'border-green-200',
           iconColor: 'text-green-500',
-          textColor: 'text-gray-900',
+          textColor: 'text-foreground',
           shadowColor: 'shadow-green-100',
         };
       case 'error':
@@ -300,8 +300,8 @@ export const FloatingFeedback: React.FC<FloatingFeedbackProps> = ({
           icon: XCircle,
           bgColor: 'bg-white',
           borderColor: 'border-red-200',
-          iconColor: 'text-red-500',
-          textColor: 'text-gray-900',
+          iconColor: 'text-destructive',
+          textColor: 'text-foreground',
           shadowColor: 'shadow-red-100',
         };
       case 'warning':
@@ -310,16 +310,16 @@ export const FloatingFeedback: React.FC<FloatingFeedbackProps> = ({
           bgColor: 'bg-white',
           borderColor: 'border-yellow-200',
           iconColor: 'text-yellow-500',
-          textColor: 'text-gray-900',
+          textColor: 'text-foreground',
           shadowColor: 'shadow-yellow-100',
         };
       case 'info':
         return {
           icon: Info,
           bgColor: 'bg-white',
-          borderColor: 'border-blue-200',
-          iconColor: 'text-blue-500',
-          textColor: 'text-gray-900',
+          borderColor: 'border-primary/20',
+          iconColor: 'text-primary',
+          textColor: 'text-foreground',
           shadowColor: 'shadow-blue-100',
         };
     }
@@ -352,14 +352,14 @@ export const FloatingFeedback: React.FC<FloatingFeedbackProps> = ({
             <h4 className={cn('text-sm font-medium', config.textColor)}>
               {feedback.title}
             </h4>
-            <p className={cn('text-sm mt-1 text-gray-600')}>
+            <p className={cn('text-sm mt-1 text-muted-foreground')}>
               {feedback.message}
             </p>
 
             {feedback.action && (
               <button
                 onClick={feedback.action.onClick}
-                className='mt-2 text-sm font-medium text-blue-600 hover:text-blue-800 underline hover:no-underline'
+                className='mt-2 text-sm font-medium text-primary hover:text-primary underline hover:no-underline'
               >
                 {feedback.action.label}
               </button>
@@ -369,7 +369,7 @@ export const FloatingFeedback: React.FC<FloatingFeedbackProps> = ({
           {feedback.dismissible && onDismiss && (
             <button
               onClick={onDismiss}
-              className='text-gray-400 hover:text-gray-600 transition-colors'
+              className='text-muted-foreground hover:text-muted-foreground transition-colors'
             >
               <X className='h-4 w-4' />
             </button>

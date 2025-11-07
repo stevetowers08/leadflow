@@ -65,7 +65,7 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
   return (
     <div className='h-full flex flex-col'>
       {/* Header */}
-      <div className='px-8 py-6 border-b border-gray-200'>
+      <div className='px-8 py-6 border-b border-border'>
         <div className='flex items-center justify-between mb-4'>
           <Input
             type='text'
@@ -92,7 +92,7 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
           <div className='max-w-3xl'>
             {/* Subject Line */}
             <div className='mb-6'>
-              <Label className='block text-sm font-medium text-gray-700 mb-2'>
+              <Label className='block text-sm font-medium text-foreground mb-2'>
                 Subject Line
               </Label>
               <div className='flex gap-2'>
@@ -108,7 +108,7 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
                   onSelect={variable => insertVariable(variable, 'subject')}
                 />
               </div>
-              <p className='mt-1 text-xs text-gray-500'>
+              <p className='mt-1 text-xs text-muted-foreground'>
                 Use {'{{'} and {'}}'} for personalization (e.g.,{' '}
                 {'{{first_name}}'})
               </p>
@@ -117,7 +117,7 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
             {/* Email Body */}
             <div className='mb-6'>
               <div className='flex items-center justify-between mb-2'>
-                <Label className='block text-sm font-medium text-gray-700'>
+                <Label className='block text-sm font-medium text-foreground'>
                   Email Body
                 </Label>
                 <Button
@@ -131,7 +131,7 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
               </div>
 
               {/* Rich Text Editor Toolbar */}
-              <div className='border border-gray-300 rounded-t-md bg-gray-50 p-2 flex items-center gap-1'>
+              <div className='border border-border/60 rounded-t-md bg-muted p-2 flex items-center gap-1'>
                 <Button
                   variant='ghost'
                   size='sm'
@@ -178,8 +178,8 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
             </div>
 
             {/* Send Settings */}
-            <div className='border border-gray-200 rounded-lg p-4'>
-              <h3 className='text-sm font-semibold text-gray-900 mb-3'>
+            <div className='border border-border rounded-lg p-4'>
+              <h3 className='text-sm font-semibold text-foreground mb-3'>
                 Send Settings
               </h3>
               <label className='flex items-center gap-2'>
@@ -193,9 +193,9 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
                         : 'immediate',
                     })
                   }
-                  className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                  className='rounded border-border/60 text-primary focus:ring-blue-500'
                 />
-                <span className='text-sm text-gray-700'>
+                <span className='text-sm text-foreground'>
                   Only send during business hours (9 AM - 5 PM)
                 </span>
               </label>
@@ -204,11 +204,11 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
         ) : (
           /* Email Preview */
           <div className='max-w-3xl'>
-            <div className='border border-gray-200 rounded-lg overflow-hidden'>
+            <div className='border border-border rounded-lg overflow-hidden'>
               {/* Preview Header */}
-              <div className='bg-gray-50 px-4 py-3 border-b border-gray-200'>
-                <div className='text-xs text-gray-600 mb-1'>Subject:</div>
-                <div className='font-semibold text-gray-900'>
+              <div className='bg-muted px-4 py-3 border-b border-border'>
+                <div className='text-xs text-muted-foreground mb-1'>Subject:</div>
+                <div className='font-semibold text-foreground'>
                   {replaceVariablesWithExamples(subject)}
                 </div>
               </div>
@@ -225,7 +225,7 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
               </div>
             </div>
 
-            <div className='mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md'>
+            <div className='mt-4 p-3 bg-primary/10 border border-primary/20 rounded-md'>
               <p className='text-sm text-blue-900'>
                 📝 This is a preview with example data. Actual emails will use
                 real contact information.

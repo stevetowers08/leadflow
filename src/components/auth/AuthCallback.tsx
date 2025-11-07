@@ -25,19 +25,68 @@ const AuthCallback: React.FC = () => {
         const urlParams = new URLSearchParams(window.location.search);
         const error = urlParams.get('error');
         const errorDescription = urlParams.get('error_description');
+        const errorCode = urlParams.get('error_code');
 
         if (error) {
           if (isDev) {
-            console.error('❌ Auth error in URL:', error, errorDescription);
+            console.error('❌ Auth error in URL:', error, errorCode, errorDescription);
           }
-          setErrorMessage(
-            errorDescription || error || 'Authentication failed'
-          );
+
+          // Handle specific error cases
+          if (errorCode === 'bad_oauth_state') {
+            // Clear any stale auth state and prompt user to retry
+            await supabase.auth.signOut();
+            localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
+            sessionStorage.clear();
+            
+            setErrorMessage(
+              'Authentication session expired or invalid. Please try signing in again.'
+            );
+          } else {
+            setErrorMessage(
+              errorDescription || error || 'Authentication failed'
+            );
+          }
           setStatus('error');
           return;
         }
 
-        // Get the session from the hash fragment
+        // PKCE Flow: Check for code in query parameters (Next.js/SSR flow)
+        // Note: This is a fallback - the route handler should handle this first
+        const code = urlParams.get('code');
+        if (code) {
+          if (isDev) {
+            console.log('⚠️ Authorization code found in client component - route handler should have handled this');
+            console.log('🔄 Falling back to client-side code exchange...');
+          }
+
+          // Exchange code for session (PKCE flow) - fallback only
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+          if (exchangeError) {
+            console.error('❌ Error exchanging code for session:', exchangeError);
+            setErrorMessage(exchangeError.message);
+            setStatus('error');
+            return;
+          }
+
+          if (data.session) {
+            console.log('✅ Session created successfully');
+            setStatus('success');
+
+            // Refresh user profile
+            await refreshProfile();
+
+            // Small delay to ensure auth context is updated
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Redirect to dashboard
+            router.push('/');
+            return;
+          }
+        }
+
+        // Implicit Flow: Check for tokens in hash fragment (client-only flow)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
@@ -72,28 +121,25 @@ const AuthCallback: React.FC = () => {
 
             // Redirect to dashboard
             router.push('/');
-          } else {
-            console.log('⚠️ No session found');
-            setErrorMessage('No session found after OAuth callback');
-            setStatus('error');
+            return;
           }
-        } else {
-          // Try to get session from Supabase (might already be set)
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
+        }
 
-          if (session) {
-            console.log('✅ Session already exists');
-            setStatus('success');
-            await refreshProfile();
-            await new Promise(resolve => setTimeout(resolve, 500));
-            router.push('/');
-          } else {
-            console.log('⚠️ No session found');
-            setErrorMessage('No session found after OAuth callback');
-            setStatus('error');
-          }
+        // Try to get session from Supabase (might already be set)
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session) {
+          console.log('✅ Session already exists');
+          setStatus('success');
+          await refreshProfile();
+          await new Promise(resolve => setTimeout(resolve, 500));
+          router.push('/');
+        } else {
+          console.log('⚠️ No session found');
+          setErrorMessage('No session found after OAuth callback. Please try signing in again.');
+          setStatus('error');
         }
       } catch (error) {
         console.error('❌ Unexpected error in auth callback:', error);
@@ -109,10 +155,10 @@ const AuthCallback: React.FC = () => {
 
   if (status === 'loading') {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-muted'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Completing authentication...</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Completing authentication...</p>
         </div>
       </div>
     );
@@ -120,7 +166,7 @@ const AuthCallback: React.FC = () => {
 
   if (status === 'success') {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-muted'>
         <div className='text-center'>
           <div className='mb-4'>
             <svg
@@ -137,21 +183,21 @@ const AuthCallback: React.FC = () => {
               />
             </svg>
           </div>
-          <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+          <h2 className='text-2xl font-bold text-foreground mb-2'>
             Authentication Successful
           </h2>
-          <p className='text-gray-600 mb-6'>Redirecting to dashboard...</p>
+          <p className='text-muted-foreground mb-6'>Redirecting to dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+    <div className='min-h-screen flex items-center justify-center bg-muted'>
       <div className='text-center max-w-md mx-auto p-6'>
         <div className='mb-4'>
           <svg
-            className='mx-auto h-12 w-12 text-red-500'
+            className='mx-auto h-12 w-12 text-destructive'
             fill='none'
             stroke='currentColor'
             viewBox='0 0 24 24'
@@ -164,16 +210,29 @@ const AuthCallback: React.FC = () => {
             />
           </svg>
         </div>
-        <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+        <h2 className='text-2xl font-bold text-foreground mb-2'>
           Authentication Failed
         </h2>
-        <p className='text-gray-600 text-sm mb-6'>{errorMessage}</p>
-        <button
-          onClick={() => router.push('/')}
-          className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'
-        >
-          Return to Dashboard
-        </button>
+        <p className='text-muted-foreground text-sm mb-6'>{errorMessage}</p>
+        <div className='flex gap-3 justify-center'>
+          <button
+            onClick={() => {
+              // Clear auth state and redirect to home to retry
+              supabase.auth.signOut().then(() => {
+                router.push('/');
+              });
+            }}
+            className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'
+          >
+            Try Again
+          </button>
+          <button
+            onClick={() => router.push('/')}
+            className='px-4 py-2 bg-gray-200 text-foreground rounded-md hover:bg-gray-300 transition-colors'
+          >
+            Return to Dashboard
+          </button>
+        </div>
       </div>
     </div>
   );

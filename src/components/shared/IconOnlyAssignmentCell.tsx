@@ -255,7 +255,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
       return (
         <div className={cn('flex items-center justify-center overflow-hidden', className)}>
           <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0'>
-            <User className='w-3 h-3 text-gray-400' />
+            <User className='w-3 h-3 text-muted-foreground' />
           </div>
         </div>
       );
@@ -283,7 +283,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
         ref={buttonRef}
         type='button'
         className={cn(
-          'cursor-pointer transition-colors rounded-md p-1 hover:bg-gray-50 relative z-10',
+          'cursor-pointer transition-colors rounded-md p-1 hover:bg-muted relative z-10',
           isUpdating && 'opacity-50 pointer-events-none'
         )}
         onClick={handleClick}
@@ -301,7 +301,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
           </div>
         ) : (
           <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center'>
-            <User className='w-3 h-3 text-gray-400' />
+            <User className='w-3 h-3 text-muted-foreground' />
           </div>
         )}
       </button>
@@ -314,7 +314,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
         >
           <div className='relative z-50 max-h-96 min-w-[16rem] overflow-hidden rounded-md border bg-white text-foreground shadow-lg'>
             {/* Header */}
-            <div className='p-3 border-b border-gray-200'>
+            <div className='p-3 border-b border-border'>
               <div className='flex items-center justify-between'>
                 <h3 className='text-sm font-semibold'>Assign to User</h3>
                 <div className='flex items-center gap-1'>
@@ -328,7 +328,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
                         handleUnassign();
                       }}
                       disabled={isUpdating}
-                      className='h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
+                      className='h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10'
                       title='Unassign'
                     >
                       <UserX className='w-3 h-3' />
@@ -342,7 +342,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
                       e.stopPropagation();
                       setShowUserList(false);
                     }}
-                    className='h-6 w-6 p-0 text-gray-500 hover:text-foreground hover:bg-gray-100'
+                    className='h-6 w-6 p-0 text-muted-foreground hover:text-foreground hover:bg-gray-100'
                     title='Close'
                   >
                     <X className='w-3 h-3' />
@@ -354,7 +354,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
             {/* User List */}
             <div className='p-1 max-h-64 overflow-y-auto'>
               {teamMembers.length === 0 ? (
-                <div className='p-3 text-center text-sm text-gray-500'>
+                <div className='p-3 text-center text-sm text-muted-foreground'>
                   Loading team members...
                 </div>
               ) : (
@@ -371,7 +371,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
                       'relative flex w-full cursor-default select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm outline-none transition-colors',
                       'hover:bg-gray-100 focus:bg-gray-100',
                       currentOwner?.id === member.id &&
-                        'bg-blue-50 text-blue-900',
+                        'bg-primary/10 text-blue-900',
                       isUpdating && 'opacity-50 pointer-events-none'
                     )}
                   >
@@ -396,7 +396,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
                       <div className='font-medium truncate'>
                         {member.full_name}
                       </div>
-                      <div className='text-xs text-gray-500 truncate'>
+                      <div className='text-xs text-muted-foreground truncate'>
                         {member.role}
                       </div>
                     </div>

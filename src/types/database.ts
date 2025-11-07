@@ -59,7 +59,7 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'owner' | 'admin' | 'recruiter' | 'viewer';
+  role: 'owner' | 'admin' | 'user';
   user_limit: number | null;
   is_active: boolean | null;
   default_client_id: string | null; // Multi-client: user's default/current client
@@ -166,7 +166,7 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'owner' | 'admin' | 'recruiter' | 'viewer';
+  role: 'owner' | 'admin' | 'user';
   user_limit: number | null;
   is_active: boolean | null;
   created_at: string | null;
@@ -699,7 +699,7 @@ export interface LeadSource {
 export interface Invitation {
   id: string;
   email: string;
-  role: 'admin' | 'manager' | 'recruiter' | 'viewer';
+  role: 'admin' | 'user';
   invited_by: string;
   invited_at: string | null;
   expires_at: string | null;
@@ -738,7 +738,7 @@ export interface ClientUser {
   id: string;
   client_id: string;
   user_id: string;
-  role: 'owner' | 'admin' | 'recruiter' | 'viewer';
+  role: 'owner' | 'admin' | 'user';
   is_primary_contact: boolean | null;
   joined_at: string | null;
 }

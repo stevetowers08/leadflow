@@ -150,15 +150,15 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
             onChange={handleInputChange}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            className='w-full h-8 rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:border-gray-400 focus:border-primary search-input-light'
+            className='w-full h-8 rounded-md border border-border/60 bg-white pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:border-gray-400 focus:border-primary search-input-light'
           />
 
           {/* Search Icon */}
           <div className='absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none'>
             {isSearching ? (
-              <Loader2 className='w-4 h-4 text-gray-400 animate-spin' />
+              <Loader2 className='w-4 h-4 text-muted-foreground animate-spin' />
             ) : (
-              <Search className='w-4 h-4 text-gray-400' />
+              <Search className='w-4 h-4 text-muted-foreground' />
             )}
           </div>
 
@@ -167,7 +167,7 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
             <button
               type='button'
               onClick={handleClearSearch}
-              className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors'
+              className='absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground transition-colors'
             >
               <X className='w-4 h-4' />
             </button>
@@ -177,11 +177,11 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
 
       {/* Dropdown */}
       {(shouldShowDropdown || shouldShowSuggestions) && (
-        <div className='absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden'>
+        <div className='absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-hidden'>
           {/* Suggestions */}
           {shouldShowSuggestions && (
             <div className='p-2 border-b border-gray-100'>
-              <div className='text-xs font-medium text-gray-500 mb-2 px-2'>
+              <div className='text-xs font-medium text-muted-foreground mb-2 px-2'>
                 Suggestions
               </div>
               <div className='space-y-1'>
@@ -189,7 +189,7 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className='w-full text-left px-2 py-2 text-sm text-foreground hover:bg-gray-50 rounded-md transition-colors'
+                    className='w-full text-left px-2 py-2 text-sm text-foreground hover:bg-muted rounded-md transition-colors'
                   >
                     {suggestion}
                   </button>
@@ -202,7 +202,7 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
           {shouldShowDropdown && (
             <div className='p-2'>
               {searchError ? (
-                <div className='text-center py-4 text-red-600 text-sm'>
+                <div className='text-center py-4 text-destructive text-sm'>
                   {searchError}
                 </div>
               ) : (
@@ -257,9 +257,9 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
   if (!isMounted) {
     return (
       <div className={cn('relative w-full', className)}>
-        <div className='w-full h-8 rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm text-foreground opacity-50 pointer-events-none'>
-          <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400' />
-          <span className='absolute left-10 top-1/2 -translate-y-1/2 text-gray-400'>
+        <div className='w-full h-8 rounded-md border border-border/60 bg-white pl-10 pr-10 text-sm text-foreground opacity-50 pointer-events-none'>
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+          <span className='absolute left-10 top-1/2 -translate-y-1/2 text-muted-foreground'>
             Search contacts, companies, jobs...
           </span>
         </div>

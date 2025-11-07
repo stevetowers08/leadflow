@@ -72,7 +72,7 @@ export const SearchModal = ({
       {/* Modal */}
       <div
         className={cn(
-          'relative bg-white rounded-lg shadow-xl border border-gray-300 w-full max-w-md mx-4',
+          'relative bg-white rounded-lg shadow-xl border border-border/60 w-full max-w-md mx-4',
           className
         )}
       >
@@ -152,7 +152,7 @@ export const SearchIconButton = ({
       )}
       title='Search'
     >
-      <Search className='h-5 w-5 text-gray-600' />
+      <Search className='h-5 w-5 text-muted-foreground' />
     </button>
   );
 };

@@ -53,11 +53,11 @@ export class PopupErrorBoundary extends Component<Props, State> {
 
       return (
         <div className='flex flex-col items-center justify-center p-8 text-center'>
-          <AlertTriangle className='h-12 w-12 text-red-500 mb-4' />
-          <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+          <AlertTriangle className='h-12 w-12 text-destructive mb-4' />
+          <h3 className='text-lg font-semibold text-foreground mb-2'>
             Something went wrong
           </h3>
-          <p className='text-gray-600 mb-4'>
+          <p className='text-muted-foreground mb-4'>
             The popup encountered an unexpected error. This might be a temporary
             issue.
           </p>
@@ -76,7 +76,7 @@ export class PopupErrorBoundary extends Component<Props, State> {
           </div>
           {process.env.NODE_ENV === 'development' && this.state.error && (
             <details className='mt-4 text-left'>
-              <summary className='cursor-pointer text-sm text-gray-500'>
+              <summary className='cursor-pointer text-sm text-muted-foreground'>
                 Error Details (Development)
               </summary>
               <pre className='mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto'>

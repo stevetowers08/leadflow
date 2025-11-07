@@ -229,7 +229,7 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
               href={company.website}
               target='_blank'
               rel='noopener noreferrer'
-              className='text-blue-600 hover:text-blue-800 flex items-center gap-1'
+              className='text-primary hover:text-primary flex items-center gap-1'
             >
               Visit <ExternalLink className='h-3 w-3' />
             </a>
@@ -244,7 +244,7 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
               href={company.linkedin_url}
               target='_blank'
               rel='noopener noreferrer'
-              className='text-blue-600 hover:text-blue-800 flex items-center gap-1'
+              className='text-primary hover:text-primary flex items-center gap-1'
             >
               Profile <ExternalLink className='h-3 w-3' />
             </a>
@@ -301,7 +301,7 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
       }
     >
       {loading ? (
-        <div className='text-center py-6 text-gray-500'>Loading...</div>
+        <div className='text-center py-6 text-muted-foreground'>Loading...</div>
       ) : (
         <>
           {/* Job Details Section */}
@@ -316,11 +316,11 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
 
               {/* AI Analysis if available */}
               {company.score_reason && (
-                <div className='mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+                <div className='mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20'>
                   <h5 className='text-sm font-semibold text-blue-900 mb-2'>
                     AI Analysis
                   </h5>
-                  <p className='text-sm text-blue-800 leading-relaxed'>
+                  <p className='text-sm text-primary leading-relaxed'>
                     {company.score_reason}
                   </p>
                 </div>
@@ -332,14 +332,14 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
           {(job.summary || job.description) && (
             <SlideOutSection title='Summary'>
               {job.summary ? (
-                <div className='p-4 bg-gray-50 rounded-lg'>
-                  <p className='text-sm text-gray-600 leading-relaxed'>
+                <div className='p-4 bg-muted rounded-lg'>
+                  <p className='text-sm text-muted-foreground leading-relaxed'>
                     {job.summary}
                   </p>
                 </div>
               ) : job.description ? (
                 <div className='flex flex-col gap-3'>
-                  <div className='text-sm text-gray-400 italic'>
+                  <div className='text-sm text-muted-foreground italic'>
                     No AI summary available. Generate one to get a concise
                     overview of this job.
                   </div>
@@ -366,7 +366,7 @@ export const JobDetailsSlideOut: React.FC<JobDetailsSlideOutProps> = ({
                 href={job.job_url}
                 target='_blank'
                 rel='noopener noreferrer'
-                className='text-blue-600 hover:text-blue-800 text-sm flex items-center gap-2'
+                className='text-primary hover:text-primary text-sm flex items-center gap-2'
               >
                 View Original Job Posting <ExternalLink className='h-4 w-4' />
               </a>

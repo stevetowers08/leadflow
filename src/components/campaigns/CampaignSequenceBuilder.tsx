@@ -70,32 +70,32 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
   const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-success';
       case 'paused':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-warning';
       case 'completed':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-primary';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-foreground';
     }
   }, []);
 
   return (
     <div className='min-h-screen bg-white flex flex-col'>
       {/* Header Bar */}
-      <div className='h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6'>
+      <div className='h-16 bg-white border-b border-border flex items-center justify-between px-6'>
         <div className='flex items-center gap-4'>
           <Button
             variant='ghost'
             size='sm'
             onClick={onClose}
-            className='text-gray-600 hover:text-gray-900'
+            className='text-muted-foreground hover:text-foreground'
           >
             <ArrowLeft className='w-4 h-4 mr-2' />
             Back to Campaigns
           </Button>
           <div className='h-8 w-px bg-gray-300' />
-          <h1 className='text-lg font-semibold text-gray-900'>
+          <h1 className='text-lg font-semibold text-foreground'>
             {sequence.name}
           </h1>
           <span
@@ -135,10 +135,10 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
       {/* Main Content Area */}
       <div className='flex flex-1 overflow-hidden'>
         {/* Left Sidebar - Step List */}
-        <div className='w-80 bg-gray-50 border-r border-gray-200 overflow-y-auto'>
+        <div className='w-80 bg-muted border-r border-border overflow-y-auto'>
           <div className='p-4'>
             <div className='flex items-center justify-between mb-4'>
-              <h2 className='text-sm font-semibold text-gray-900'>
+              <h2 className='text-sm font-semibold text-foreground'>
                 Sequence Steps
               </h2>
               <div className='relative group'>
@@ -147,25 +147,25 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
                 </Button>
 
                 {/* Add Step Dropdown */}
-                <div className='absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20'>
+                <div className='absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20'>
                   <Button
                     variant='ghost'
                     onClick={() => handleAddStep('email')}
-                    className='w-full justify-start px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2'
+                    className='w-full justify-start px-4 py-2 text-sm hover:bg-muted flex items-center gap-2'
                   >
                     📧 Email Step
                   </Button>
                   <Button
                     variant='ghost'
                     onClick={() => handleAddStep('wait')}
-                    className='w-full justify-start px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2'
+                    className='w-full justify-start px-4 py-2 text-sm hover:bg-muted flex items-center gap-2'
                   >
                     ⏱️ Wait Step
                   </Button>
                   <Button
                     variant='ghost'
                     onClick={() => handleAddStep('condition')}
-                    className='w-full justify-start px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2'
+                    className='w-full justify-start px-4 py-2 text-sm hover:bg-muted flex items-center gap-2'
                   >
                     🔀 Condition Step
                   </Button>
@@ -189,7 +189,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
                         className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all ${
                           selectedStepId === step.id
                             ? 'border-purple-500 shadow-md'
-                            : 'border-gray-200 hover:border-gray-300'
+                            : 'border-border hover:border-border/60'
                         }`}
                         onClick={() => setSelectedStepId(step.id)}
                       >
@@ -198,19 +198,19 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
                             {/* Step Icon */}
                             <div className='w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0'>
                               {step.step_type === 'email' && (
-                                <Mail className='w-4 h-4 text-purple-600' />
+                                <Mail className='w-4 h-4 text-primary' />
                               )}
                               {step.step_type === 'wait' && (
-                                <Clock className='w-4 h-4 text-purple-600' />
+                                <Clock className='w-4 h-4 text-primary' />
                               )}
                               {step.step_type === 'condition' && (
-                                <GitBranch className='w-4 h-4 text-purple-600' />
+                                <GitBranch className='w-4 h-4 text-primary' />
                               )}
                             </div>
 
                             {/* Step Content */}
                             <div className='flex-1 min-w-0'>
-                              <h3 className='text-sm font-medium text-gray-900 mb-1'>
+                              <h3 className='text-sm font-medium text-foreground mb-1'>
                                 Step {index + 1}:{' '}
                                 {step.step_type === 'email'
                                   ? 'Email follow up'
@@ -220,7 +220,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
                               </h3>
 
                               {step.step_type === 'email' && (
-                                <div className='bg-gray-50 rounded p-2 text-xs text-gray-600'>
+                                <div className='bg-muted rounded p-2 text-xs text-muted-foreground'>
                                   <div>Email</div>
                                   <div>
                                     Subject: {step.email_subject || '----'}
@@ -229,7 +229,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
                               )}
 
                               {step.step_type === 'wait' && (
-                                <div className='bg-gray-50 rounded p-2 text-xs text-gray-600'>
+                                <div className='bg-muted rounded p-2 text-xs text-muted-foreground'>
                                   <div>
                                     Wait for {step.wait_duration || 1}{' '}
                                     {step.wait_unit || 'day'} then
@@ -238,7 +238,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
                               )}
 
                               {step.step_type === 'condition' && (
-                                <div className='bg-gray-50 rounded p-2 text-xs text-gray-600'>
+                                <div className='bg-muted rounded p-2 text-xs text-muted-foreground'>
                                   <div>
                                     If {step.condition_type || 'opened'}
                                   </div>
@@ -246,7 +246,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
                               )}
 
                               {step.step_type === 'email' && (
-                                <button className='text-blue-600 text-xs mt-1 hover:underline'>
+                                <button className='text-primary text-xs mt-1 hover:underline'>
                                   + Add Variant
                                 </button>
                               )}
@@ -261,7 +261,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
                               e.stopPropagation();
                               deleteStep.mutate(step.id);
                             }}
-                            className='text-gray-400 hover:text-red-600 p-1'
+                            className='text-muted-foreground hover:text-destructive p-1'
                           >
                             <Trash2 className='w-3 h-3' />
                           </Button>
@@ -276,7 +276,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
                   ))}
 
                   {steps.length === 0 && (
-                    <div className='text-center py-8 text-gray-500'>
+                    <div className='text-center py-8 text-muted-foreground'>
                       <p className='text-sm'>No steps yet</p>
                       <p className='text-xs'>
                         Add your first step to get started
@@ -294,7 +294,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
           {selectedStep ? (
             <StepEditor step={selectedStep} onUpdate={updateStep.mutateAsync} />
           ) : (
-            <div className='h-full flex items-center justify-center text-gray-500'>
+            <div className='h-full flex items-center justify-center text-muted-foreground'>
               <div className='text-center'>
                 <p className='text-lg mb-2'>No step selected</p>
                 <p className='text-sm'>

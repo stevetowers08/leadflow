@@ -12,9 +12,9 @@ export const InfoField: React.FC<InfoFieldProps> = ({
   className = '',
 }) => (
   <div className={`space-y-1 ${className}`}>
-    <div className='text-xs font-medium text-gray-400 uppercase tracking-wide'>
+    <div className='text-xs font-medium text-muted-foreground uppercase tracking-wide'>
       {label}
     </div>
-    <div className='text-sm text-gray-900 font-medium'>{value || '-'}</div>
+    <div className='text-sm text-foreground font-medium'>{value || '-'}</div>
   </div>
 );

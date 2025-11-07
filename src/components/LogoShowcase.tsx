@@ -7,9 +7,9 @@ import {
 
 export const LogoShowcase: React.FC = () => {
   return (
-    <div className='p-8 space-y-8 bg-gray-50 min-h-screen'>
+    <div className='p-8 space-y-8 bg-muted min-h-screen'>
       <div className='max-w-4xl mx-auto'>
-        <h1 className='text-3xl font-bold text-gray-900 mb-8'>
+        <h1 className='text-3xl font-bold text-foreground mb-8'>
           RECRUITEDGE Logo Showcase
         </h1>
 
@@ -56,7 +56,7 @@ export const LogoShowcase: React.FC = () => {
         {/* Usage Examples */}
         <div className='bg-white p-6 rounded-lg shadow-sm border'>
           <h2 className='text-xl font-semibold mb-4'>Usage Examples</h2>
-          <div className='space-y-4 text-sm text-gray-600'>
+          <div className='space-y-4 text-sm text-muted-foreground'>
             <div>
               <code className='bg-gray-100 px-2 py-1 rounded'>
                 {'<RecruitEdgeLogo size={32} />'}

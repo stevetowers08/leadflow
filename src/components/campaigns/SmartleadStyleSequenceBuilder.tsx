@@ -84,8 +84,8 @@ export default function SmartleadStyleSequenceBuilder({
     return (
       <div className='flex items-center justify-center h-64'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading campaign steps...</p>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Loading campaign steps...</p>
         </div>
       </div>
     );
@@ -216,20 +216,20 @@ export default function SmartleadStyleSequenceBuilder({
   return (
     <div className='min-h-screen bg-white'>
       {/* Header */}
-      <div className='bg-white border-b border-gray-200 px-6 py-4'>
+      <div className='bg-white border-b border-border px-6 py-4'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-4'>
             <Button
               variant='ghost'
               size='sm'
               onClick={onClose}
-              className='text-gray-600 hover:text-gray-900'
+              className='text-muted-foreground hover:text-foreground'
             >
               <ArrowLeft className='w-4 h-4 mr-2' />
               Back to Campaigns
             </Button>
             <div className='h-8 w-px bg-gray-300' />
-            <h1 className='text-xl font-semibold text-gray-900'>
+            <h1 className='text-xl font-semibold text-foreground'>
               {sequence.name}
             </h1>
             <Badge variant='secondary' className='capitalize'>
@@ -264,10 +264,10 @@ export default function SmartleadStyleSequenceBuilder({
         </div>
 
         {/* Settings Row */}
-        <div className='px-6 py-2 bg-gray-50 border-b border-gray-200'>
+        <div className='px-6 py-2 bg-muted border-b border-border'>
           <div className='flex items-center justify-between max-w-7xl mx-auto'>
             <div className='flex items-center gap-8'>
-              <Label className='text-sm font-medium text-gray-700'>
+              <Label className='text-sm font-medium text-foreground'>
                 Campaign Settings
               </Label>
               <div className='flex items-center gap-3'>
@@ -279,12 +279,12 @@ export default function SmartleadStyleSequenceBuilder({
                   />
                   <Label
                     htmlFor='pause-on-reply'
-                    className='text-sm text-gray-600 cursor-pointer'
+                    className='text-sm text-muted-foreground cursor-pointer'
                   >
                     Auto-pause on reply
                   </Label>
                 </div>
-                <div className='text-xs text-gray-500'>
+                <div className='text-xs text-muted-foreground'>
                   {pauseOnReply
                     ? 'Sequence will pause when someone replies'
                     : 'Sequence will continue even after replies'}
@@ -297,7 +297,7 @@ export default function SmartleadStyleSequenceBuilder({
 
       <div className='flex flex-1'>
         {/* Left Panel - Vertical Timeline */}
-        <div className='w-80 bg-gray-50 border-r border-gray-200 p-6'>
+        <div className='w-80 bg-muted border-r border-border p-6'>
           <div className='space-y-6'>
             {/* Add Step Button */}
             <div className='flex justify-center'>
@@ -341,16 +341,16 @@ export default function SmartleadStyleSequenceBuilder({
                           className={`bg-white rounded-lg border-2 p-4 ${
                             selectedStepId === step.id
                               ? 'border-purple-500 shadow-md'
-                              : 'border-gray-200 hover:border-gray-300'
+                              : 'border-border hover:border-border/60'
                           }`}
                         >
                           <div className='flex items-start justify-between'>
                             <div className='flex-1'>
-                              <h3 className='text-sm font-medium text-gray-900 mb-2'>
+                              <h3 className='text-sm font-medium text-foreground mb-2'>
                                 {getStepTitle(step, index)}
                               </h3>
 
-                              <div className='bg-gray-50 rounded p-3 text-xs text-gray-600'>
+                              <div className='bg-muted rounded p-3 text-xs text-muted-foreground'>
                                 <div className='font-medium'>
                                   {description.type}
                                 </div>
@@ -359,7 +359,7 @@ export default function SmartleadStyleSequenceBuilder({
 
                               {/* Add Variant Button for Email Steps */}
                               {step.step_type === 'email' && (
-                                <button className='text-blue-600 text-xs mt-2 hover:underline flex items-center gap-1'>
+                                <button className='text-primary text-xs mt-2 hover:underline flex items-center gap-1'>
                                   <Plus className='w-3 h-3' />
                                   Add Variant
                                 </button>
@@ -399,7 +399,7 @@ export default function SmartleadStyleSequenceBuilder({
                                   e.stopPropagation();
                                   handleDeleteStep(step.id);
                                 }}
-                                className='p-1 h-6 w-6 text-red-500 hover:text-red-700'
+                                className='p-1 h-6 w-6 text-destructive hover:text-destructive'
                               >
                                 <Trash2 className='w-3 h-3' />
                               </Button>
@@ -419,13 +419,13 @@ export default function SmartleadStyleSequenceBuilder({
                 {/* Add Step Button */}
                 <div className='relative'>
                   <div className='absolute left-4 top-4 w-4 h-4 bg-purple-100 border-2 border-purple-500 rounded-full flex items-center justify-center z-10'>
-                    <Plus className='w-3 h-3 text-purple-600' />
+                    <Plus className='w-3 h-3 text-primary' />
                   </div>
                   <div className='ml-12'>
                     <Button
                       variant='ghost'
                       onClick={() => setShowStepModal(true)}
-                      className='text-gray-500 hover:text-gray-700 hover:bg-purple-50 transition-colors'
+                      className='text-muted-foreground hover:text-foreground hover:bg-purple-50 transition-colors'
                     >
                       Add step
                     </Button>
@@ -433,7 +433,7 @@ export default function SmartleadStyleSequenceBuilder({
                 </div>
 
                 {steps.length === 0 && (
-                  <div className='text-center py-8 text-gray-500'>
+                  <div className='text-center py-8 text-muted-foreground'>
                     <p className='text-sm'>No steps yet</p>
                     <p className='text-xs'>
                       Add your first step to get started
@@ -450,9 +450,9 @@ export default function SmartleadStyleSequenceBuilder({
           {selectedStep ? (
             <div className='h-full flex flex-col'>
               {/* Editor Header */}
-              <div className='border-b border-gray-200 px-6 py-4'>
+              <div className='border-b border-border px-6 py-4'>
                 <div className='flex items-center justify-between'>
-                  <h2 className='text-lg font-semibold text-gray-900'>
+                  <h2 className='text-lg font-semibold text-foreground'>
                     {getStepTitle(
                       selectedStep,
                       steps.findIndex(s => s.id === selectedStep.id)
@@ -633,9 +633,9 @@ export default function SmartleadStyleSequenceBuilder({
               </div>
 
               {/* Editor Footer */}
-              <div className='border-t border-gray-200 px-6 py-4 bg-gray-50'>
+              <div className='border-t border-border px-6 py-4 bg-muted'>
                 <div className='flex items-center justify-between'>
-                  <div className='text-sm text-gray-500'>All changes saved</div>
+                  <div className='text-sm text-muted-foreground'>All changes saved</div>
                   <Button className='bg-purple-600 hover:bg-purple-700 text-white'>
                     Save & Next
                   </Button>
@@ -643,7 +643,7 @@ export default function SmartleadStyleSequenceBuilder({
               </div>
             </div>
           ) : (
-            <div className='h-full flex items-center justify-center text-gray-500'>
+            <div className='h-full flex items-center justify-center text-muted-foreground'>
               <div className='text-center'>
                 <p className='text-lg mb-2'>No step selected</p>
                 <p className='text-sm'>

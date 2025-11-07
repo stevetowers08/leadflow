@@ -183,8 +183,8 @@ export const NotificationCenter: React.FC = () => {
               {isLoading ? (
                 <div className='flex items-center justify-center py-16'>
                   <div className='flex flex-col items-center gap-3'>
-                    <Loader2 className='h-6 w-6 animate-spin text-blue-500' />
-                    <p className='text-sm text-gray-500'>Loading notifications...</p>
+                    <Loader2 className='h-6 w-6 animate-spin text-primary' />
+                    <p className='text-sm text-muted-foreground'>Loading notifications...</p>
                   </div>
                 </div>
               ) : filteredNotifications.length === 0 ? (

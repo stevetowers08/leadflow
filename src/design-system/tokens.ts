@@ -151,6 +151,18 @@ export const designTokens = {
       skip: 'text-muted-foreground bg-muted',
       new: 'text-warning bg-warning/10',
     },
+    // Extended palette for specialized components (IndustryBadge, etc.)
+    // Uses semantic mapping where possible, falls back to muted for neutral industries
+    extended: {
+      // Technology/IT - Use primary/info
+      tech: 'bg-primary/10 text-primary border-primary/20',
+      // Healthcare - Use success
+      healthcare: 'bg-success/10 text-success border-success/20',
+      // Finance - Use warning
+      finance: 'bg-warning/10 text-warning border-warning/20',
+      // Neutral/Industrial - Use muted
+      neutral: 'bg-muted text-foreground border-border',
+    },
   },
 
   // Shadows - Professional elevation system (2025 Best Practices)
@@ -235,7 +247,7 @@ export const designTokens = {
 
     // Dropdown styling - cleaner borders and larger sizes
     dropdown:
-      'bg-white h-8 px-3 text-sm border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors',
+      'bg-white h-8 px-3 text-sm border border-border rounded-md hover:border-border hover:bg-muted transition-colors',
     dropdownSmall: 'min-w-28',
     dropdownMedium: 'min-w-32',
     dropdownLarge: 'min-w-40',
@@ -244,7 +256,7 @@ export const designTokens = {
     button:
       'h-8 w-8 rounded-md border flex items-center justify-center transition-colors flex-shrink-0',
     buttonDefault:
-      'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+      'bg-white text-muted-foreground border-border hover:border-border hover:bg-muted',
     buttonActive:
       'bg-primary-50 text-primary-700 border-primary-200 hover:bg-primary-100',
 

@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
 import { getStatusDisplayText } from '@/utils/statusUtils';
+import { shouldBypassAuth } from '@/config/auth';
 import { Check, ChevronDown } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -45,7 +46,8 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
   variant = 'button',
 }) => {
   const { user } = useAuth();
-  const { data: clientId } = useClientId(); // Use cached client_id
+  const { data: clientId, isLoading: clientIdLoading } = useClientId(); // Use cached client_id
+  const bypassAuth = shouldBypassAuth();
   const { toast } = useToast();
   const [localStatus, setLocalStatus] = useState(currentStatus);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -65,15 +67,80 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
       setIsUpdating(true);
 
       try {
-        // Jobs use client_jobs table
+        // Jobs require client_id for proper multi-tenant isolation (industry best practice)
         if (entityType === 'jobs') {
-          if (!user?.id) throw new Error('No user found');
-          if (!clientId) throw new Error('No client found');
+          if (!user?.id) {
+            throw new Error('No user found');
+          }
 
-          // Optimized: Use cached client_id instead of fetching
+          // In bypassAuth mode, allow operations even if clientId is not yet loaded
+          // The clientId will be fetched in the background
+          if (!bypassAuth) {
+            // Wait for clientId to load if still loading (only in non-bypass mode)
+            if (clientIdLoading) {
+              throw new Error('Please wait, loading client information...');
+            }
+
+            // clientId is required for all operations (following Salesforce/HubSpot pattern)
+            if (!clientId) {
+              throw new Error(
+                'Client organization required. Please contact support to set up your account.'
+              );
+            }
+          } else if (!clientId && !clientIdLoading) {
+            // In bypassAuth mode, if clientId is still null after loading, try to fetch it
+            // This handles the case where the mock user might not have a client_id yet
+            console.warn('BypassAuth mode: clientId not found, attempting to fetch...');
+          }
+
+          // Use client_jobs table for multi-tenant isolation
+          // In bypassAuth mode, if clientId is missing, we'll try to get it or use a fallback
+          let finalClientId = clientId;
+          
+          if (!finalClientId && bypassAuth) {
+            // Try to fetch clientId one more time
+            const { data: clientUser } = await supabase
+              .from('client_users')
+              .select('client_id')
+              .eq('user_id', user.id)
+              .maybeSingle();
+            
+            finalClientId = clientUser?.client_id || null;
+            
+            if (!finalClientId) {
+              // In bypassAuth dev mode, if no client_id exists, we can't update client_jobs
+              // Fall back to updating jobs.qualification_status directly (dev-only)
+              console.warn('BypassAuth: No client_id found, updating jobs table directly');
+              const { error: jobsError } = await supabase
+                .from('jobs')
+                .update({
+                  qualification_status: newStatus,
+                  qualified_at: newStatus === 'qualify' ? new Date().toISOString() : null,
+                  qualified_by: newStatus === 'qualify' ? user.id : null,
+                })
+                .eq('id', entityId);
+              
+              if (jobsError) throw jobsError;
+              // Skip webhook and return early since we used fallback update
+              onStatusChange?.();
+              toast({
+                title: 'Status updated',
+                description: `Changed to ${getStatusDisplayText(newStatus)}`,
+              });
+              setIsUpdating(false);
+              return;
+            }
+          }
+          
+          if (!finalClientId) {
+            throw new Error(
+              'Client organization required. Please contact support to set up your account.'
+            );
+          }
+
           const { error } = await supabase.from('client_jobs').upsert(
             {
-              client_id: clientId,
+              client_id: finalClientId,
               job_id: entityId,
               status: newStatus,
               priority_level: 'medium',
@@ -99,11 +166,11 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
                   .eq('id', entityId)
                   .maybeSingle();
 
-                if (jobData?.company_id) {
+                if (jobData?.company_id && finalClientId) {
                   const webhookPayload = {
                     job_id: entityId,
                     company_id: jobData.company_id,
-                    client_id: clientId,
+                    client_id: finalClientId,
                     user_id: user.id,
                   };
 
@@ -183,6 +250,8 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
       entityType,
       user,
       clientId,
+      clientIdLoading,
+      bypassAuth,
       toast,
       onStatusChange,
     ]
@@ -207,39 +276,48 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
   // Choose variant styling
   const isCellVariant = variant === 'cell';
 
+  // Disable dropdown if disabled, updating, or clientId is loading
+  // clientId is required for jobs (multi-tenant isolation)
+  // In bypassAuth mode, allow operations even if clientId is still loading
+  const isDisabled =
+    disabled ||
+    isUpdating ||
+    (entityType === 'jobs' && !bypassAuth && (clientIdLoading || !clientId));
+
   // For cell variant, the entire cell should be the trigger with background color
   // Use w-full h-full to fill the cell naturally
   const triggerStyles = isCellVariant
     ? cn(
         'w-full h-full flex items-center justify-center gap-1.5',
         'transition-opacity duration-150',
-        disabled || isUpdating
+        isDisabled
           ? 'opacity-50 cursor-not-allowed'
           : 'hover:opacity-90 cursor-pointer'
       )
     : cn(
         'flex items-center gap-2 px-3 text-sm',
-        'bg-white border border-gray-200 rounded-md',
-        'hover:border-gray-300 hover:bg-gray-50',
+        'bg-white border border-border rounded-md',
+        'hover:border-border hover:bg-muted',
         'focus:outline-none focus:ring-2 focus:ring-blue-500',
         'transition-colors',
         'h-8',
         'min-w-[140px]',
-        disabled || isUpdating
+        isDisabled
           ? 'opacity-50 cursor-not-allowed'
           : 'cursor-pointer'
       );
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        disabled={disabled || isUpdating}
+    <div>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+        disabled={isDisabled}
         className={triggerStyles}
       >
         {isCellVariant ? (
           <>
             <span className='text-xs font-medium'>{displayText}</span>
-            {!disabled && !isUpdating && (
+            {!isDisabled && (
               <ChevronDown className='h-3 w-3 flex-shrink-0' />
             )}
           </>
@@ -252,12 +330,12 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
                   statusIndicatorClass
                 )}
               />
-              <span className='text-gray-700 font-medium text-sm'>
+              <span className='text-foreground font-medium text-sm'>
                 {displayText}
               </span>
             </div>
-            {!disabled && !isUpdating && (
-              <ChevronDown className='h-4 w-4 text-gray-400 flex-shrink-0' />
+            {!isDisabled && (
+              <ChevronDown className='h-4 w-4 text-muted-foreground flex-shrink-0' />
             )}
           </>
         )}
@@ -268,7 +346,6 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
         side='bottom'
         sideOffset={4}
         className='w-[180px] p-1'
-        onClick={e => e.stopPropagation()}
       >
         {availableStatuses.map(status => {
           const isSelected = status === localStatus;
@@ -282,8 +359,8 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
               disabled={isSelected}
               className={cn(
                 'flex items-center justify-between gap-2 cursor-pointer px-2.5 py-1.5 rounded-md text-sm',
-                'transition-colors text-gray-700',
-                isSelected ? 'bg-blue-50 font-medium' : 'hover:bg-gray-50'
+                'transition-colors text-foreground',
+                isSelected ? 'bg-primary/10 font-medium' : 'hover:bg-muted'
               )}
             >
               <div className='flex items-center gap-2 flex-1 min-w-0'>
@@ -293,13 +370,14 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
                 <span className='truncate'>{getStatusDisplayText(status)}</span>
               </div>
               {isSelected && (
-                <Check className='h-4 w-4 text-blue-600 flex-shrink-0' />
+                <Check className='h-4 w-4 text-primary flex-shrink-0' />
               )}
             </DropdownMenuItem>
           );
         })}
       </DropdownMenuContent>
     </DropdownMenu>
+    </div>
   );
 };
 

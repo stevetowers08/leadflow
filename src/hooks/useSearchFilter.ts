@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 
 export interface FilterState {
   searchTerm: string;
@@ -22,7 +24,9 @@ export const useSearchFilter = (
     storageKey = 'search-filters',
   } = options;
 
-  const location = useLocation();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] =
     useState<Record<string, string>>(initialFilters);
@@ -40,11 +44,10 @@ export const useSearchFilter = (
   // Load state from URL or localStorage
   useEffect(() => {
     if (persistInUrl) {
-      const urlParams = new URLSearchParams(location.search);
-      const urlSearchTerm = urlParams.get('search') || '';
+      const urlSearchTerm = searchParams.get('search') || '';
       const urlFilters: Record<string, string> = {};
 
-      urlParams.forEach((value, key) => {
+      searchParams.forEach((value, key) => {
         if (key !== 'search') {
           urlFilters[key] = value;
         }
@@ -69,25 +72,30 @@ export const useSearchFilter = (
         }
       }
     }
-  }, [location.search, persistInUrl, storageKey, initialFilters]);
+  }, [searchParams, persistInUrl, storageKey, initialFilters]);
 
   // Save state to URL or localStorage
   const saveState = useCallback(() => {
     if (persistInUrl) {
-      const urlParams = new URLSearchParams();
+      const urlParams = new URLSearchParams(searchParams.toString());
 
       if (debouncedSearchTerm) {
         urlParams.set('search', debouncedSearchTerm);
+      } else {
+        urlParams.delete('search');
       }
 
       Object.entries(filters).forEach(([key, value]) => {
         if (value) {
           urlParams.set(key, value);
+        } else {
+          urlParams.delete(key);
         }
       });
 
-      const newUrl = `${location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
-      window.history.replaceState({}, '', newUrl);
+      const queryString = urlParams.toString();
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      router.replace(newUrl);
     } else {
       // Save to localStorage
       try {
@@ -105,7 +113,9 @@ export const useSearchFilter = (
     filters,
     persistInUrl,
     storageKey,
-    location.pathname,
+    pathname,
+    searchParams,
+    router,
   ]);
 
   // Save state when it changes

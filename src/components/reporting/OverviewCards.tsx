@@ -17,29 +17,29 @@ export const OverviewCards = memo<OverviewCardsProps>(({ data }) => {
       title: 'Total People',
       value: data.totalPeople,
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
     },
     {
       title: 'Total Companies',
       value: data.totalCompanies,
       icon: Building2,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      color: 'text-success',
+      bgColor: 'bg-success/10',
     },
     {
       title: 'Total Jobs',
       value: data.totalJobs,
       icon: Briefcase,
-      color: 'text-purple-600',
+      color: 'text-primary',
       bgColor: 'bg-purple-50',
     },
     {
       title: 'Total Interactions',
       value: data.totalInteractions,
       icon: Activity,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
+      color: 'text-warning',
+      bgColor: 'bg-warning/10',
     },
   ];
 
@@ -50,7 +50,7 @@ export const OverviewCards = memo<OverviewCardsProps>(({ data }) => {
         return (
           <Card key={card.title} className='hover:shadow-lg transition-shadow'>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium text-gray-600'>
+              <CardTitle className='text-sm font-medium text-muted-foreground'>
                 {card.title}
               </CardTitle>
               <div className={`p-2 rounded-lg ${card.bgColor}`}>

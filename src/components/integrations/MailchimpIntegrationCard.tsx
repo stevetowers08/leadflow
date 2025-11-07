@@ -184,7 +184,7 @@ export function MailchimpIntegrationCard() {
           </div>
 
           {status.connected && (
-            <div className='text-sm text-gray-600'>
+            <div className='text-sm text-muted-foreground'>
               <p>✅ Subscriber synchronization</p>
               <p>✅ Campaign management</p>
               <p>✅ Tag management</p>
@@ -235,7 +235,7 @@ export function MailchimpIntegrationCard() {
                       value={dataCenter}
                       onChange={e => setDataCenter(e.target.value)}
                     />
-                    <p className='text-xs text-gray-500'>
+                    <p className='text-xs text-muted-foreground'>
                       Find this in your Mailchimp account URL or API keys page
                     </p>
                   </div>

@@ -53,15 +53,15 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
           className
         )}
       >
-        <AlertCircle className={cn('text-red-500', iconSizes[size])} />
-        <p className={cn('text-red-600 text-center', sizeClasses[size])}>
+        <AlertCircle className={cn('text-destructive', iconSizes[size])} />
+        <p className={cn('text-destructive text-center', sizeClasses[size])}>
           {errorText}
         </p>
         {onRetry && (
           <button
             onClick={onRetry}
             className={cn(
-              'flex items-center space-x-1 px-3 py-1 text-xs bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors',
+              'flex items-center space-x-1 px-3 py-1 text-xs bg-destructive/10 text-destructive rounded-md hover:bg-red-100 transition-colors',
               sizeClasses[size]
             )}
           >
@@ -111,7 +111,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
                 iconSizes[size]
               )}
             />
-            <span className={cn('text-gray-600', sizeClasses[size])}>
+            <span className={cn('text-muted-foreground', sizeClasses[size])}>
               {loadingText}
             </span>
           </div>
@@ -121,9 +121,9 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
         return (
           <div className='flex items-center space-x-2'>
             <Loader2
-              className={cn('animate-spin text-gray-500', iconSizes[size])}
+              className={cn('animate-spin text-muted-foreground', iconSizes[size])}
             />
-            <span className={cn('text-gray-600', sizeClasses[size])}>
+            <span className={cn('text-muted-foreground', sizeClasses[size])}>
               {isRetrying ? `Retrying... (${retryCount})` : loadingText}
             </span>
           </div>
@@ -179,8 +179,8 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
       {isLoading && (
         <div className='absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10'>
           <div className='flex flex-col items-center space-y-2'>
-            <Loader2 className='h-6 w-6 animate-spin text-blue-600' />
-            <p className='text-sm text-gray-600'>{loadingText}</p>
+            <Loader2 className='h-6 w-6 animate-spin text-primary' />
+            <p className='text-sm text-muted-foreground'>{loadingText}</p>
           </div>
         </div>
       )}
@@ -218,9 +218,9 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
     <div className={cn('space-y-2', className)}>
       {(label || showPercentage) && (
         <div className='flex justify-between items-center text-sm'>
-          {label && <span className='text-gray-600'>{label}</span>}
+          {label && <span className='text-muted-foreground'>{label}</span>}
           {showPercentage && (
-            <span className='text-gray-500'>{percentage}%</span>
+            <span className='text-muted-foreground'>{percentage}%</span>
           )}
         </div>
       )}
@@ -238,7 +238,7 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
           style={{ width: `${percentage}%` }}
         />
       </div>
-      <div className='flex justify-between text-xs text-gray-500'>
+      <div className='flex justify-between text-xs text-muted-foreground'>
         <span>{current}</span>
         <span>{total}</span>
       </div>
@@ -271,36 +271,36 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
       case 'loading':
         return {
           icon: Loader2,
-          color: 'text-blue-500',
-          bgColor: 'bg-blue-50',
+          color: 'text-primary',
+          bgColor: 'bg-primary/10',
           animate: 'animate-spin',
         };
       case 'success':
         return {
           icon: CheckCircle,
           color: 'text-green-500',
-          bgColor: 'bg-green-50',
+          bgColor: 'bg-success/10',
           animate: '',
         };
       case 'error':
         return {
           icon: AlertCircle,
-          color: 'text-red-500',
-          bgColor: 'bg-red-50',
+          color: 'text-destructive',
+          bgColor: 'bg-destructive/10',
           animate: '',
         };
       case 'retrying':
         return {
           icon: RefreshCw,
           color: 'text-yellow-500',
-          bgColor: 'bg-yellow-50',
+          bgColor: 'bg-warning/10',
           animate: 'animate-spin',
         };
       default:
         return {
           icon: Clock,
-          color: 'text-gray-500',
-          bgColor: 'bg-gray-50',
+          color: 'text-muted-foreground',
+          bgColor: 'bg-muted',
           animate: '',
         };
     }

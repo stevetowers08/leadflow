@@ -322,8 +322,8 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
     },
     prospect: {
       background: 'bg-gray-100',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
+      text: 'text-foreground',
+      border: 'border-border',
     },
     // Company pipeline stages - Modern Dark Colors
     new_lead: {
@@ -710,70 +710,70 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
 
   leadScores: {
     'very high': {
-      background: 'bg-red-100',
-      text: 'text-red-800',
-      border: 'border-red-200',
+      background: 'bg-destructive/10',
+      text: 'text-destructive',
+      border: 'border-destructive/20',
     },
     'VERY HIGH': {
-      background: 'bg-red-100',
-      text: 'text-red-800',
-      border: 'border-red-200',
+      background: 'bg-destructive/10',
+      text: 'text-destructive',
+      border: 'border-destructive/20',
     },
     high: {
-      background: 'bg-emerald-100',
-      text: 'text-emerald-800',
-      border: 'border-emerald-200',
+      background: 'bg-success/10',
+      text: 'text-success',
+      border: 'border-success/20',
     },
     High: {
-      background: 'bg-emerald-100',
-      text: 'text-emerald-800',
-      border: 'border-emerald-200',
+      background: 'bg-success/10',
+      text: 'text-success',
+      border: 'border-success/20',
     },
     medium: {
-      background: 'bg-yellow-100',
-      text: 'text-yellow-800',
-      border: 'border-yellow-200',
+      background: 'bg-warning/10',
+      text: 'text-warning',
+      border: 'border-warning/20',
     },
     Medium: {
-      background: 'bg-yellow-100',
-      text: 'text-yellow-800',
-      border: 'border-yellow-200',
+      background: 'bg-warning/10',
+      text: 'text-warning',
+      border: 'border-warning/20',
     },
     low: {
-      background: 'bg-orange-100',
-      text: 'text-orange-800',
-      border: 'border-orange-200',
+      background: 'bg-warning/10',
+      text: 'text-warning',
+      border: 'border-warning/20',
     },
     Low: {
-      background: 'bg-orange-100',
-      text: 'text-orange-800',
-      border: 'border-orange-200',
+      background: 'bg-warning/10',
+      text: 'text-warning',
+      border: 'border-warning/20',
     },
     // Numeric score ranges for AI scores
     'score-high': {
-      background: 'bg-emerald-100',
-      text: 'text-emerald-800',
-      border: 'border-emerald-200',
+      background: 'bg-success/10',
+      text: 'text-success',
+      border: 'border-success/20',
     },
     'score-medium-high': {
-      background: 'bg-blue-100',
-      text: 'text-blue-800',
-      border: 'border-blue-200',
+      background: 'bg-primary/10',
+      text: 'text-primary',
+      border: 'border-primary/20',
     },
     'score-medium': {
-      background: 'bg-yellow-100',
-      text: 'text-yellow-800',
-      border: 'border-yellow-200',
+      background: 'bg-warning/10',
+      text: 'text-warning',
+      border: 'border-warning/20',
     },
     'score-low': {
-      background: 'bg-orange-100',
-      text: 'text-orange-800',
-      border: 'border-orange-200',
+      background: 'bg-warning/10',
+      text: 'text-warning',
+      border: 'border-warning/20',
     },
     'score-empty': {
-      background: 'bg-gray-100',
-      text: 'text-gray-500',
-      border: 'border-gray-200',
+      background: 'bg-muted',
+      text: 'text-muted-foreground',
+      border: 'border-border',
     },
   },
 
@@ -810,9 +810,9 @@ export function getUnifiedStatusColors(status: string): ColorScheme {
   // Early return for empty status
   if (!status || status.trim() === '') {
     return {
-      background: 'bg-slate-50',
-      text: 'text-slate-700',
-      border: 'border-slate-200',
+      background: 'bg-muted',
+      text: 'text-foreground',
+      border: 'border-border',
     };
   }
 
@@ -849,9 +849,9 @@ export function getUnifiedStatusColors(status: string): ColorScheme {
 
   // Default fallback
   return {
-    background: 'bg-slate-50',
-    text: 'text-slate-700',
-    border: 'border-slate-200',
+    background: 'bg-muted',
+    text: 'text-foreground',
+    border: 'border-border',
   };
 }
 

@@ -49,7 +49,7 @@ const pipelineStages = [
   {
     key: 'new_lead',
     label: 'New Lead',
-    color: 'bg-gray-100 text-gray-700 border-gray-200',
+    color: 'bg-gray-100 text-foreground border-border',
     shortLabel: 'New',
   },
   {
@@ -190,13 +190,13 @@ export const MobilePipeline: React.FC<MobilePipelineProps> = ({
         {/* Search and Filters */}
         <div className='flex items-center gap-2 mb-4'>
           <div className='relative flex-1'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
             <input
               type='text'
               placeholder='Search companies...'
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm'
+              className='w-full pl-10 pr-4 py-2 border border-border/60 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm'
             />
           </div>
           <Button
@@ -254,7 +254,7 @@ export const MobilePipeline: React.FC<MobilePipelineProps> = ({
               return (
                 <div key={stage.key} className='space-y-2'>
                   <div className='flex items-center justify-between'>
-                    <h3 className='font-semibold text-sm text-gray-900 flex items-center gap-2'>
+                    <h3 className='font-semibold text-sm text-foreground flex items-center gap-2'>
                       <span
                         className={cn(
                           'w-2 h-2 rounded-full',
@@ -283,7 +283,7 @@ export const MobilePipeline: React.FC<MobilePipelineProps> = ({
                         variant='ghost'
                         size='sm'
                         onClick={() => handleStageSelect(stage.key)}
-                        className='w-full text-xs text-gray-500'
+                        className='w-full text-xs text-muted-foreground'
                       >
                         View {stageCompanies.length - 3} more companies
                         <ChevronRight className='h-3 w-3 ml-1' />
@@ -298,11 +298,11 @@ export const MobilePipeline: React.FC<MobilePipelineProps> = ({
       {/* Empty State */}
       {Object.values(companiesByStage).flat().length === 0 && (
         <div className='text-center py-12'>
-          <Building2 className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-          <h3 className='text-lg font-medium text-gray-900 mb-2'>
+          <Building2 className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
+          <h3 className='text-lg font-medium text-foreground mb-2'>
             No companies found
           </h3>
-          <p className='text-gray-500 text-sm'>
+          <p className='text-muted-foreground text-sm'>
             {searchTerm
               ? 'Try adjusting your search terms'
               : 'No companies in pipeline'}
@@ -364,18 +364,18 @@ const MobileCompanyCard: React.FC<MobileCompanyCardProps> = ({
         <div className='flex items-start gap-3'>
           {/* Company Logo */}
           <div className='flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center ring-1 ring-gray-200/50'>
-            <Building2 className='h-5 w-5 text-gray-600' />
+            <Building2 className='h-5 w-5 text-muted-foreground' />
           </div>
 
           {/* Company Info */}
           <div className='flex-1 min-w-0'>
             <div className='flex items-start justify-between'>
               <div className='min-w-0 flex-1'>
-                <h3 className='font-semibold text-gray-900 text-sm truncate'>
+                <h3 className='font-semibold text-foreground text-sm truncate'>
                   {company.name}
                 </h3>
                 {company.industry && (
-                  <p className='text-xs text-gray-500 mt-1 truncate'>
+                  <p className='text-xs text-muted-foreground mt-1 truncate'>
                     {company.industry}
                   </p>
                 )}
@@ -409,7 +409,7 @@ const MobileCompanyCard: React.FC<MobileCompanyCardProps> = ({
                 </Badge>
               )}
 
-              <div className='flex items-center gap-1 text-xs text-gray-500'>
+              <div className='flex items-center gap-1 text-xs text-muted-foreground'>
                 <Users className='h-3 w-3' />
                 <span>{company.people_count || 0}</span>
               </div>
@@ -458,7 +458,7 @@ const MobileCompanyCard: React.FC<MobileCompanyCardProps> = ({
             {/* Next Stage Options */}
             {nextStages.length > 0 && (
               <div className='mt-3 pt-3 border-t border-gray-100'>
-                <p className='text-xs text-gray-500 mb-2'>Move to:</p>
+                <p className='text-xs text-muted-foreground mb-2'>Move to:</p>
                 <div className='flex gap-1'>
                   {nextStages.map(stage => (
                     <Button

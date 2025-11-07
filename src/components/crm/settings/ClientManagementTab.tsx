@@ -188,9 +188,9 @@ export const ClientManagementTab: React.FC = () => {
       case 'enterprise':
         return 'bg-purple-100 text-purple-800';
       case 'professional':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-primary';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-foreground';
     }
   };
 
@@ -207,10 +207,10 @@ export const ClientManagementTab: React.FC = () => {
       {/* Header */}
       <div className='flex items-center justify-between'>
         <div>
-          <h2 className='text-2xl font-bold text-gray-900'>
+          <h2 className='text-2xl font-bold text-foreground'>
             Client Management
           </h2>
-          <p className='text-sm text-gray-600 mt-1'>
+          <p className='text-sm text-muted-foreground mt-1'>
             Manage agency clients and subscriptions
           </p>
         </div>
@@ -222,7 +222,7 @@ export const ClientManagementTab: React.FC = () => {
 
       {/* Search */}
       <div className='relative'>
-        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
         <Input
           placeholder='Search clients...'
           value={searchTerm}
@@ -234,27 +234,27 @@ export const ClientManagementTab: React.FC = () => {
       {/* Clients List */}
       <div className='grid gap-4'>
         {filteredClients.length === 0 ? (
-          <div className='text-center py-12 text-gray-500'>
-            <Building2 className='h-12 w-12 mx-auto mb-4 text-gray-300' />
+          <div className='text-center py-12 text-muted-foreground'>
+            <Building2 className='h-12 w-12 mx-auto mb-4 text-muted-foreground' />
             <p>No clients found</p>
           </div>
         ) : (
           filteredClients.map(client => (
             <div
               key={client.id}
-              className='border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors'
+              className='border border-border rounded-lg p-4 hover:border-border/60 transition-colors'
             >
               <div className='flex items-start justify-between'>
                 <div className='flex-1'>
                   <div className='flex items-center gap-3'>
-                    <Building2 className='h-5 w-5 text-gray-400' />
+                    <Building2 className='h-5 w-5 text-muted-foreground' />
                     <div>
-                      <h3 className='font-semibold text-gray-900'>
+                      <h3 className='font-semibold text-foreground'>
                         {client.name}
                       </h3>
                       {client.company_name &&
                         client.company_name !== client.name && (
-                          <p className='text-sm text-gray-600'>
+                          <p className='text-sm text-muted-foreground'>
                             {client.company_name}
                           </p>
                         )}
@@ -263,13 +263,13 @@ export const ClientManagementTab: React.FC = () => {
 
                   <div className='mt-3 grid grid-cols-2 gap-4 text-sm'>
                     <div>
-                      <span className='text-gray-600'>Contact:</span>
-                      <span className='ml-2 text-gray-900'>
+                      <span className='text-muted-foreground'>Contact:</span>
+                      <span className='ml-2 text-foreground'>
                         {client.contact_email || 'N/A'}
                       </span>
                     </div>
                     <div>
-                      <span className='text-gray-600'>Tier:</span>
+                      <span className='text-muted-foreground'>Tier:</span>
                       <span
                         className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getTierBadgeClass(
                           client.subscription_tier || 'starter'
@@ -280,15 +280,15 @@ export const ClientManagementTab: React.FC = () => {
                     </div>
                     {client.monthly_budget && (
                       <div>
-                        <span className='text-gray-600'>Budget:</span>
-                        <span className='ml-2 text-gray-900'>
+                        <span className='text-muted-foreground'>Budget:</span>
+                        <span className='ml-2 text-foreground'>
                           ${client.monthly_budget}
                         </span>
                       </div>
                     )}
                     <div>
-                      <span className='text-gray-600'>Status:</span>
-                      <span className='ml-2 text-gray-900'>
+                      <span className='text-muted-foreground'>Status:</span>
+                      <span className='ml-2 text-foreground'>
                         {client.subscription_status || 'trial'}
                       </span>
                     </div>
@@ -297,7 +297,7 @@ export const ClientManagementTab: React.FC = () => {
 
                 <div className='flex items-center gap-2'>
                   {client.contact_phone && (
-                    <span className='text-sm text-gray-600'>
+                    <span className='text-sm text-muted-foreground'>
                       {client.contact_phone}
                     </span>
                   )}
@@ -305,7 +305,7 @@ export const ClientManagementTab: React.FC = () => {
                     variant='ghost'
                     size='sm'
                     onClick={() => handleDeleteClient(client.id)}
-                    className='text-red-600 hover:text-red-700 hover:bg-red-50'
+                    className='text-destructive hover:text-destructive hover:bg-destructive/10'
                   >
                     <Trash2 className='h-4 w-4' />
                   </Button>
@@ -380,8 +380,8 @@ export const ClientManagementTab: React.FC = () => {
             </div>
 
             {/* Info Message */}
-            <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
-              <p className='text-sm text-blue-800'>
+            <div className='bg-primary/10 border border-primary/20 rounded-lg p-4'>
+              <p className='text-sm text-primary'>
                 <strong>Invitation will be sent:</strong> The user will receive an email with a link to set their password or sign in with Google.
               </p>
             </div>

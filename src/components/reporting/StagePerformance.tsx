@@ -18,17 +18,17 @@ const StagePerformance: React.FC<StagePerformanceProps> = ({
 }) => {
   // Define stage colors and order
   const stageConfig = {
-    new: { color: 'bg-gray-500', label: 'New' },
+    new: { color: 'bg-muted0', label: 'New' },
     connection_requested: {
-      color: 'bg-blue-500',
+      color: 'bg-primary/100',
       label: 'Connection Requested',
     },
-    connected: { color: 'bg-green-500', label: 'Connected' },
+    connected: { color: 'bg-success/100', label: 'Connected' },
     messaged: { color: 'bg-purple-500', label: 'Messaged' },
-    replied: { color: 'bg-orange-500', label: 'Replied' },
+    replied: { color: 'bg-warning/100', label: 'Replied' },
     meeting_booked: { color: 'bg-emerald-500', label: 'Meeting Booked' },
-    meeting_held: { color: 'bg-yellow-500', label: 'Meeting Held' },
-    disqualified: { color: 'bg-red-500', label: 'Disqualified' },
+    meeting_held: { color: 'bg-warning/100', label: 'Meeting Held' },
+    disqualified: { color: 'bg-destructive/100', label: 'Disqualified' },
     'in queue': { color: 'bg-indigo-500', label: 'In Queue' },
     lead_lost: { color: 'bg-gray-400', label: 'Lead Lost' },
   };
@@ -55,7 +55,7 @@ const StagePerformance: React.FC<StagePerformanceProps> = ({
           {/* People by Stage */}
           <div>
             <div className='flex items-center justify-between mb-3'>
-              <h4 className='font-semibold text-gray-900 flex items-center gap-2'>
+              <h4 className='font-semibold text-foreground flex items-center gap-2'>
                 <Users className='h-4 w-4' />
                 People Pipeline ({totalPeople})
               </h4>
@@ -64,17 +64,17 @@ const StagePerformance: React.FC<StagePerformanceProps> = ({
               {peopleByStage.map(stage => {
                 const config = stageConfig[
                   stage.stage as keyof typeof stageConfig
-                ] || { color: 'bg-gray-500', label: stage.stage };
+                ] || { color: 'bg-muted0', label: stage.stage };
                 const percentage =
                   totalPeople > 0 ? (stage.count / totalPeople) * 100 : 0;
 
                 return (
                   <div key={stage.stage} className='space-y-1'>
                     <div className='flex justify-between text-sm'>
-                      <span className='font-medium text-gray-700'>
+                      <span className='font-medium text-foreground'>
                         {config.label}
                       </span>
-                      <span className='text-gray-500'>
+                      <span className='text-muted-foreground'>
                         {stage.count} ({percentage.toFixed(1)}%)
                       </span>
                     </div>
@@ -93,7 +93,7 @@ const StagePerformance: React.FC<StagePerformanceProps> = ({
           {/* Companies by Stage */}
           <div>
             <div className='flex items-center justify-between mb-3'>
-              <h4 className='font-semibold text-gray-900 flex items-center gap-2'>
+              <h4 className='font-semibold text-foreground flex items-center gap-2'>
                 <Target className='h-4 w-4' />
                 Company Pipeline ({totalCompanies})
               </h4>
@@ -102,17 +102,17 @@ const StagePerformance: React.FC<StagePerformanceProps> = ({
               {companiesByStage.map(stage => {
                 const config = stageConfig[
                   stage.stage as keyof typeof stageConfig
-                ] || { color: 'bg-gray-500', label: stage.stage };
+                ] || { color: 'bg-muted0', label: stage.stage };
                 const percentage =
                   totalCompanies > 0 ? (stage.count / totalCompanies) * 100 : 0;
 
                 return (
                   <div key={stage.stage} className='space-y-1'>
                     <div className='flex justify-between text-sm'>
-                      <span className='font-medium text-gray-700'>
+                      <span className='font-medium text-foreground'>
                         {config.label}
                       </span>
-                      <span className='text-gray-500'>
+                      <span className='text-muted-foreground'>
                         {stage.count} ({percentage.toFixed(1)}%)
                       </span>
                     </div>
@@ -131,18 +131,18 @@ const StagePerformance: React.FC<StagePerformanceProps> = ({
           {/* Performance Summary */}
           <div className='pt-4 border-t'>
             <div className='grid grid-cols-2 gap-4'>
-              <div className='text-center p-3 bg-blue-50 rounded-lg'>
-                <div className='text-lg font-bold text-blue-600'>
+              <div className='text-center p-3 bg-primary/10 rounded-lg'>
+                <div className='text-lg font-bold text-primary'>
                   {peopleByStage.find(s => s.stage === 'replied')?.count || 0}
                 </div>
-                <div className='text-sm text-blue-700'>People Replied</div>
+                <div className='text-sm text-primary'>People Replied</div>
               </div>
-              <div className='text-center p-3 bg-green-50 rounded-lg'>
-                <div className='text-lg font-bold text-green-600'>
+              <div className='text-center p-3 bg-success/10 rounded-lg'>
+                <div className='text-lg font-bold text-success'>
                   {peopleByStage.find(s => s.stage === 'meeting_booked')
                     ?.count || 0}
                 </div>
-                <div className='text-sm text-green-700'>Meetings Booked</div>
+                <div className='text-sm text-success'>Meetings Booked</div>
               </div>
             </div>
           </div>

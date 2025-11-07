@@ -19,11 +19,11 @@ export function getReplyIntentBadgeClasses(intent: ReplyIntent): string {
     case 'interested':
       return 'bg-emerald-50 text-emerald-700 border-emerald-200';
     case 'not_interested':
-      return 'bg-red-50 text-red-700 border-red-200';
+      return 'bg-destructive/10 text-destructive border-red-200';
     case 'maybe':
       return 'bg-amber-50 text-amber-700 border-amber-200';
     default:
-      return 'bg-gray-50 text-gray-500 border-gray-200';
+      return 'bg-muted text-muted-foreground border-border';
   }
 }
 
@@ -67,11 +67,11 @@ export function getReplyIntentIconClasses(intent: ReplyIntent): string {
     case 'interested':
       return 'text-emerald-600';
     case 'not_interested':
-      return 'text-red-600';
+      return 'text-destructive';
     case 'maybe':
       return 'text-amber-600';
     default:
-      return 'text-gray-400';
+      return 'text-muted-foreground';
   }
 }
 
@@ -121,7 +121,7 @@ export function getReplyIntentDotColor(intent: ReplyIntent): string {
     case 'interested':
       return 'bg-emerald-500';
     case 'not_interested':
-      return 'bg-red-500';
+      return 'bg-destructive/100';
     case 'maybe':
       return 'bg-amber-500';
     default:

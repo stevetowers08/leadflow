@@ -7,7 +7,7 @@ interface MinimalLayoutProps {
 
 export const MinimalLayout = ({ children }: MinimalLayoutProps) => {
   return (
-    <div className='min-h-screen w-full bg-gray-50'>
+    <div className='min-h-screen w-full bg-muted'>
       {/* Main content without sidebar */}
       <main className='w-full overflow-auto scrollbar-modern'>
         {/* Content */}

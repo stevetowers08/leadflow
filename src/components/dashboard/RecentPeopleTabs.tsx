@@ -58,7 +58,7 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
   const renderPersonCard = (person: RecentPerson) => (
     <div
       key={person.id}
-      className='group p-6 bg-white rounded-lg border border-gray-200 hover:border-primary/20 hover:shadow-md transition-all duration-200 cursor-pointer'
+      className='group p-6 bg-white rounded-lg border border-border hover:border-primary/20 hover:shadow-md transition-all duration-200 cursor-pointer'
       onClick={() => {
         setSelectedPersonId(person.id);
         setIsSlideOutOpen(true);
@@ -67,11 +67,11 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
       <div className='flex items-start justify-between'>
         <div className='flex-1 min-w-0'>
           <div className='flex items-center gap-2 mb-2'>
-            <h4 className='font-medium text-gray-900 truncate'>
+            <h4 className='font-medium text-foreground truncate'>
               {person.name}
             </h4>
             {person.notes_count && person.notes_count > 0 && (
-              <div className='flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full'>
+              <div className='flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full'>
                 <StickyNote className='h-3 w-3' />
                 <span>{person.notes_count}</span>
               </div>
@@ -81,10 +81,10 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
               <div
                 className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
                   person.reply_type === 'interested'
-                    ? 'text-green-600 bg-green-50'
+                    ? 'text-success bg-success/10'
                     : person.reply_type === 'not_interested'
-                      ? 'text-red-600 bg-red-50'
-                      : 'text-yellow-600 bg-yellow-50'
+                      ? 'text-destructive bg-destructive/10'
+                      : 'text-warning bg-warning/10'
                 }`}
               >
                 {person.reply_type === 'interested' && (
@@ -102,27 +102,27 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
           </div>
 
           {person.email_address && (
-            <div className='flex items-center gap-1 text-sm text-gray-600 mb-1'>
+            <div className='flex items-center gap-1 text-sm text-muted-foreground mb-1'>
               <Mail className='h-3 w-3' />
               <span className='truncate'>{person.email_address}</span>
             </div>
           )}
 
           {person.company_name && (
-            <div className='flex items-center gap-1 text-sm text-gray-600 mb-1'>
+            <div className='flex items-center gap-1 text-sm text-muted-foreground mb-1'>
               <Building2 className='h-3 w-3' />
               <span className='truncate'>{person.company_name}</span>
             </div>
           )}
 
           {person.company_role && (
-            <div className='text-sm text-gray-500 mb-1 truncate'>
+            <div className='text-sm text-muted-foreground mb-1 truncate'>
               {person.company_role}
             </div>
           )}
 
           {person.employee_location && (
-            <div className='flex items-center gap-1 text-sm text-gray-500 mb-2'>
+            <div className='flex items-center gap-1 text-sm text-muted-foreground mb-2'>
               <MapPin className='h-3 w-3' />
               <span className='truncate'>{person.employee_location}</span>
             </div>
@@ -135,7 +135,7 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
                   {getStatusDisplayText(person.people_stage)}
                 </Badge>
               )}
-              <span className='text-xs text-gray-500'>
+              <span className='text-xs text-muted-foreground'>
                 {formatDistanceToNow(new Date(person.created_at), {
                   addSuffix: true,
                 })}
@@ -186,7 +186,7 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
       return (
         <div className='space-y-3'>
           {[...Array(3)].map((_, i) => (
-            <div key={i} className='p-4 bg-gray-50 rounded-lg animate-pulse'>
+            <div key={i} className='p-4 bg-muted rounded-lg animate-pulse'>
               <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
               <div className='h-3 bg-gray-200 rounded w-1/2 mb-1'></div>
               <div className='h-3 bg-gray-200 rounded w-2/3'></div>
@@ -198,7 +198,7 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
 
     if (peopleList.length === 0) {
       return (
-        <div className='text-center py-8 text-gray-500'>
+        <div className='text-center py-8 text-muted-foreground'>
           <Users className='h-8 w-8 mx-auto mb-2 opacity-50' />
           <p className='text-sm'>{emptyMessage}</p>
         </div>
@@ -214,9 +214,9 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
 
   return (
     <>
-      <Card className='bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200'>
+      <Card className='bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-border'>
         <CardHeader className='pb-4'>
-          <CardTitle className='flex items-center gap-2 text-base font-medium text-gray-900'>
+          <CardTitle className='flex items-center gap-2 text-base font-medium text-foreground'>
             <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-primary/5 border border-primary/10'>
               <Users className='h-4 w-4 text-primary' />
             </div>

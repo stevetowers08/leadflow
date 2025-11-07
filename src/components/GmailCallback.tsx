@@ -19,8 +19,8 @@ export const GmailCallback: React.FC = () => {
         await secureGmailService.handleGmailCallback(code);
         setStatus('success');
 
-        // Redirect to communications page
-        router.push('/crm/communications');
+        // Redirect to conversations page
+        router.push('/conversations');
       } catch (error) {
         setStatus('error');
         setError(
@@ -54,16 +54,16 @@ export const GmailCallback: React.FC = () => {
   }, [searchParams, handleGmailCallback]);
 
   const handleRetry = () => {
-    router.push('/crm/communications');
+    router.push('/conversations');
   };
 
   // Minimal loading state
   if (status === 'loading') {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-muted'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Connecting Gmail...</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Connecting Gmail...</p>
         </div>
       </div>
     );
@@ -72,7 +72,7 @@ export const GmailCallback: React.FC = () => {
   // Success state
   if (status === 'success') {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-muted'>
         <div className='text-center'>
           <div className='mb-4'>
             <svg
@@ -89,10 +89,10 @@ export const GmailCallback: React.FC = () => {
               />
             </svg>
           </div>
-          <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+          <h2 className='text-2xl font-bold text-foreground mb-2'>
             Gmail Connected
           </h2>
-          <p className='text-gray-600 mb-6'>Redirecting to communications...</p>
+          <p className='text-muted-foreground mb-6'>Redirecting to conversations...</p>
         </div>
       </div>
     );
@@ -100,11 +100,11 @@ export const GmailCallback: React.FC = () => {
 
   // Error state
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+    <div className='min-h-screen flex items-center justify-center bg-muted'>
       <div className='text-center max-w-md mx-auto p-6'>
         <div className='mb-4'>
           <svg
-            className='mx-auto h-12 w-12 text-red-500'
+            className='mx-auto h-12 w-12 text-destructive'
             fill='none'
             stroke='currentColor'
             viewBox='0 0 24 24'
@@ -117,15 +117,15 @@ export const GmailCallback: React.FC = () => {
             />
           </svg>
         </div>
-        <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+        <h2 className='text-2xl font-bold text-foreground mb-2'>
           Connection Failed
         </h2>
-        <p className='text-gray-600 text-sm mb-6'>{error}</p>
+        <p className='text-muted-foreground text-sm mb-6'>{error}</p>
         <button
           onClick={handleRetry}
           className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'
         >
-          Go to Communications
+          Go to Conversations
         </button>
       </div>
     </div>
