@@ -63,7 +63,7 @@ async function insertPersonWithDuplicateHandling(
         ...personData,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      })
+      } as Record<string, unknown>)
       .select();
 
     if (!error) {
@@ -91,7 +91,7 @@ async function insertPersonWithDuplicateHandling(
             linkedin_url: uniqueLinkedInUrl,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          })
+          } as Record<string, unknown>)
           .select();
 
         if (uniqueError) {
@@ -130,7 +130,7 @@ async function insertPersonWithDuplicateHandling(
             email_address: uniqueEmail,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          })
+          } as Record<string, unknown>)
           .select();
 
         if (uniqueError) {
@@ -174,7 +174,7 @@ async function upsertPerson(
         {
           ...personData,
           updated_at: new Date().toISOString(),
-        },
+        } as Record<string, unknown>,
         {
           onConflict: 'linkedin_url,email_address',
           ignoreDuplicates: false,
@@ -205,7 +205,9 @@ export async function POST(request: NextRequest) {
 
     if (!envCheck.allPresent) {
       return APIErrorHandler.handleError(
-        new Error(`Missing environment variables: ${envCheck.missing.join(', ')}`),
+        new Error(
+          `Missing environment variables: ${envCheck.missing.join(', ')}`
+        ),
         'add-person'
       );
     }
@@ -259,7 +261,12 @@ export async function POST(request: NextRequest) {
     console.error('Error in add-person function:', error);
 
     // Handle specific error types
-    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === '23505'
+    ) {
       const errorResponse = APIErrorHandler.handleError(
         new Error('Duplicate key constraint violation'),
         'add-person'
@@ -273,7 +280,8 @@ export async function POST(request: NextRequest) {
           error: 'Duplicate key constraint violation',
           code: error.code,
           details: 'details' in error ? error.details : undefined,
-          message: 'message' in error ? String(error.message) : 'Duplicate entry',
+          message:
+            'message' in error ? String(error.message) : 'Duplicate entry',
           hint: 'Try using method=upsert to update existing records instead of creating duplicates',
         }),
         {
@@ -294,5 +302,3 @@ export async function POST(request: NextRequest) {
     });
   }
 }
-
-
