@@ -87,9 +87,9 @@ async function insertPersonWithDuplicateHandling(
         );
 
         // Try inserting with the unique LinkedIn URL
-        // @ts-expect-error - Supabase types don't properly infer insert payload types
         const { data: uniqueData, error: uniqueError } = await supabase
           .from('people')
+          // @ts-expect-error - Supabase types don't properly infer insert payload types
           .insert({
             ...personData,
             linkedin_url: uniqueLinkedInUrl,
@@ -127,9 +127,9 @@ async function insertPersonWithDuplicateHandling(
         );
 
         // Try inserting with the unique email
-        // @ts-expect-error - Supabase types don't properly infer insert payload types
         const { data: uniqueData, error: uniqueError } = await supabase
           .from('people')
+          // @ts-expect-error - Supabase types don't properly infer insert payload types
           .insert({
             ...personData,
             email_address: uniqueEmail,
@@ -173,9 +173,9 @@ async function upsertPerson(
   personData: PersonData
 ) {
   try {
-    // @ts-expect-error - Supabase types don't properly infer upsert payload types
     const { data, error } = await supabase
       .from('people')
+      // @ts-expect-error - Supabase types don't properly infer upsert payload types
       .upsert(
         {
           ...personData,
