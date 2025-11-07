@@ -57,13 +57,16 @@ async function insertPersonWithDuplicateHandling(
 ) {
   try {
     // First attempt: try to insert as-is
+    // Supabase client types don't properly infer insert types, so we use any
+
     const { data, error } = await supabase
       .from('people')
+      // @ts-expect-error - Supabase types don't properly infer insert payload types
       .insert({
         ...personData,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      } as Record<string, unknown>)
+      })
       .select();
 
     if (!error) {
@@ -84,6 +87,7 @@ async function insertPersonWithDuplicateHandling(
         );
 
         // Try inserting with the unique LinkedIn URL
+        // @ts-expect-error - Supabase types don't properly infer insert payload types
         const { data: uniqueData, error: uniqueError } = await supabase
           .from('people')
           .insert({
@@ -91,7 +95,7 @@ async function insertPersonWithDuplicateHandling(
             linkedin_url: uniqueLinkedInUrl,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          } as Record<string, unknown>)
+          })
           .select();
 
         if (uniqueError) {
@@ -123,6 +127,7 @@ async function insertPersonWithDuplicateHandling(
         );
 
         // Try inserting with the unique email
+        // @ts-expect-error - Supabase types don't properly infer insert payload types
         const { data: uniqueData, error: uniqueError } = await supabase
           .from('people')
           .insert({
@@ -130,7 +135,7 @@ async function insertPersonWithDuplicateHandling(
             email_address: uniqueEmail,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          } as Record<string, unknown>)
+          })
           .select();
 
         if (uniqueError) {
@@ -168,13 +173,14 @@ async function upsertPerson(
   personData: PersonData
 ) {
   try {
+    // @ts-expect-error - Supabase types don't properly infer upsert payload types
     const { data, error } = await supabase
       .from('people')
       .upsert(
         {
           ...personData,
           updated_at: new Date().toISOString(),
-        } as Record<string, unknown>,
+        },
         {
           onConflict: 'linkedin_url,email_address',
           ignoreDuplicates: false,
