@@ -52,7 +52,8 @@ function generateUniqueEmail(originalEmail: string): string {
  * Insert person with duplicate handling
  */
 async function insertPersonWithDuplicateHandling(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   personData: PersonData
 ) {
   try {
@@ -169,7 +170,8 @@ async function insertPersonWithDuplicateHandling(
  * Alternative approach: Use upsert with conflict resolution
  */
 async function upsertPerson(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   personData: PersonData
 ) {
   try {
