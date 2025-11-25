@@ -131,14 +131,14 @@ async function processEmailStep(
     .eq('id', lead.sequence_id)
     .single();
 
-  if (sequenceError || !sequence?.created_by) {
+  if (sequenceError || !(sequence as any)?.created_by) {
     throw new Error(sequenceError?.message || 'Sequence owner not found');
   }
 
   const { data: emailAccount, error: emailAccountError } = await supabase
     .from('email_accounts')
     .select('*')
-    .eq('user_id', sequence.created_by)
+    .eq('user_id', (sequence as any).created_by)
     .eq('is_active', true)
     .limit(1)
     .single();
@@ -147,7 +147,7 @@ async function processEmailStep(
     throw new Error(emailAccountError?.message || 'No active Gmail account');
   }
 
-  const accessToken = Buffer.from(emailAccount.access_token, 'base64').toString('utf-8');
+  const accessToken = Buffer.from((emailAccount as any).access_token, 'base64').toString('utf-8');
 
   // Send email via Gmail API
   const message = [
@@ -328,7 +328,7 @@ async function scheduleNextStep(
       throw new Error(nextStepError.message);
     }
 
-    nextStepId = nextStep?.id ?? undefined;
+    nextStepId = (nextStep as any)?.id ?? undefined;
   }
 
   if (nextStepId) {
