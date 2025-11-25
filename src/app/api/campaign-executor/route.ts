@@ -285,7 +285,7 @@ async function scheduleNextStep(
       .limit(1)
       .single();
 
-    nextStepId = nextStep?.id;
+    nextStepId = (nextStep as any)?.id;
   }
 
   if (nextStepId) {
