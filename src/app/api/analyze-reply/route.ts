@@ -89,13 +89,13 @@ Respond with JSON: {"replyType": "...", "confidence": 0.85, "reasoning": "..."}`
     }
 
     // Update person's reply_type
-    const { error } = await supabase
-      .from('people')
+    const { error } = await ((supabase
+      .from('people') as any)
       .update({
         reply_type: analysis.replyType,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', personId);
+      .eq('id', personId));
 
     if (error) {
       throw new Error(`Database update error: ${error.message}`);
