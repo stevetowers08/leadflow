@@ -102,9 +102,6 @@ async function processGmailReply(
     const textPart = messageData.payload.parts.find(
       (p: GmailMessagePart) => p.mimeType === 'text/plain'
     );
-    const textPart = messageData.payload.parts.find(
-      (p: GmailMessagePart) => p.mimeType === 'text/plain'
-    );
     if (textPart?.body?.data) {
       body = atob(textPart.body.data.replace(/-/g, '+').replace(/_/g, '/'));
     }
