@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
       const domain = await domainResponse.json();
 
       // Save to database
-      const { data, error } = await supabase
-        .from('email_domains')
+      const { data, error } = await (supabase
+        .from('email_domains') as any)
         .insert({
           provider_id: domain.id,
           name: domain.name,
