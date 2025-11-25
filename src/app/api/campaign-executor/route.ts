@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             status: 'failed',
             error_message: error instanceof Error ? error.message : 'Unknown error',
           })
-          .eq('id', execution.id);
+          .eq('id', (execution as any).id);
       }
     }
 
