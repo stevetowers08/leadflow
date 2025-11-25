@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Store error in database
-    const { error } = await supabase.from('error_logs').insert({
+    const { error } = await (supabase.from('error_logs') as any).insert({
       message: errorReport.message,
       stack: errorReport.stack,
       timestamp: errorReport.timestamp,
