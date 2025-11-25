@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     };
     const { error: updateError } = await supabase
       .from('jobs')
-      .update(updateData)
+      .update(updateData as Database['public']['Tables']['jobs']['Update'])
       .eq('id', jobId);
 
     if (updateError) {

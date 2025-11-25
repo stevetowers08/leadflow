@@ -68,7 +68,7 @@ async function insertPersonWithDuplicateHandling(
 
     const { data, error } = await supabase
       .from('people')
-      .insert(insertData)
+      .insert(insertData as Database['public']['Tables']['people']['Insert'])
       .select();
 
     if (!error) {
@@ -97,7 +97,7 @@ async function insertPersonWithDuplicateHandling(
         };
         const { data: uniqueData, error: uniqueError } = await supabase
           .from('people')
-          .insert(uniqueInsertData)
+          .insert(uniqueInsertData as Database['public']['Tables']['people']['Insert'])
           .select();
 
         if (uniqueError) {
@@ -137,7 +137,7 @@ async function insertPersonWithDuplicateHandling(
         };
         const { data: uniqueData, error: uniqueError } = await supabase
           .from('people')
-          .insert(uniqueEmailInsertData)
+          .insert(uniqueEmailInsertData as Database['public']['Tables']['people']['Insert'])
           .select();
 
         if (uniqueError) {
@@ -181,7 +181,7 @@ async function upsertPerson(
     };
     const { data, error } = await supabase
       .from('people')
-      .upsert(upsertData, {
+      .upsert(upsertData as Database['public']['Tables']['people']['Insert'], {
         onConflict: 'linkedin_url,email_address',
         ignoreDuplicates: false,
       })

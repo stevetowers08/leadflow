@@ -96,7 +96,7 @@ Respond with JSON: {"replyType": "...", "confidence": 0.85, "reasoning": "..."}`
     };
     const { error } = await supabase
       .from('people')
-      .update(updateData)
+      .update(updateData as Database['public']['Tables']['people']['Update'])
       .eq('id', personId);
 
     if (error) {
