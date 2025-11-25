@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
     // Step 5: Link user to client
     const clientId = clientData.id;
 
-    const { error: clientUserError } = await adminClient
-      .from('client_users')
+    const { error: clientUserError } = await (adminClient
+      .from('client_users') as any)
       .insert({
         client_id: clientId,
         user_id: userId,
@@ -132,8 +132,8 @@ export async function POST(request: NextRequest) {
 
     // Step 6: Create default job filter config (optional, non-critical)
     try {
-      await adminClient
-        .from('job_filter_configs')
+      await (adminClient
+        .from('job_filter_configs') as any)
         .insert({
           client_id: clientId,
           user_id: userId,
