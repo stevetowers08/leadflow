@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const body: CheckDuplicateRequest = await request.json();
 
     // Call the database function
-    const { data, error } = await supabase.rpc('check_company_exists', {
+    const { data, error } = await (supabase.rpc as any)('check_company_exists', {
       p_domain: body.domain || null,
       p_linkedin_url: body.linkedin_url || null,
     });
