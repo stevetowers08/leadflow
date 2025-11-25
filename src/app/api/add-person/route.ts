@@ -61,13 +61,13 @@ async function insertPersonWithDuplicateHandling(
     // First attempt: try to insert as-is
     // Supabase client types don't properly infer insert types, so we use any
 
-    const { data, error } = await (supabase
-      .from('people')
+    const { data, error } = await ((supabase
+      .from('people') as any)
       .insert({
         ...personData,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .select());
 
     if (!error) {
@@ -88,14 +88,14 @@ async function insertPersonWithDuplicateHandling(
         );
 
         // Try inserting with the unique LinkedIn URL
-        const { data: uniqueData, error: uniqueError } = await (supabase
-          .from('people')
+        const { data: uniqueData, error: uniqueError } = await ((supabase
+          .from('people') as any)
           .insert({
             ...personData,
             linkedin_url: uniqueLinkedInUrl,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          } as any)
+          })
           .select());
 
         if (uniqueError) {
@@ -127,14 +127,14 @@ async function insertPersonWithDuplicateHandling(
         );
 
         // Try inserting with the unique email
-        const { data: uniqueData, error: uniqueError } = await (supabase
-          .from('people')
+        const { data: uniqueData, error: uniqueError } = await ((supabase
+          .from('people') as any)
           .insert({
             ...personData,
             email_address: uniqueEmail,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          } as any)
+          })
           .select());
 
         if (uniqueError) {
@@ -172,13 +172,13 @@ async function upsertPerson(
   personData: PersonData
 ) {
   try {
-    const { data, error } = await (supabase
-      .from('people')
+    const { data, error } = await ((supabase
+      .from('people') as any)
       .upsert(
         {
           ...personData,
           updated_at: new Date().toISOString(),
-        } as any,
+        },
         {
           onConflict: 'linkedin_url,email_address',
           ignoreDuplicates: false,

@@ -88,12 +88,12 @@ export async function POST(request: NextRequest) {
     const supabase = createServerSupabaseClient();
 
     // Update the job record
-    const { error: updateError } = await (supabase
-      .from('jobs')
+    const { error: updateError } = await ((supabase
+      .from('jobs') as any)
       .update({
         summary: geminiResponse.data.summary,
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq('id', jobId));
 
     if (updateError) {
