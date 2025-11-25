@@ -70,8 +70,8 @@ export async function POST(request: NextRequest) {
       try {
         await processExecution(supabase, execution);
       } catch (error) {
-        await supabase
-          .from('campaign_sequence_executions')
+        await (supabase
+          .from('campaign_sequence_executions') as any)
           .update({
             status: 'failed',
             error_message: error instanceof Error ? error.message : 'Unknown error',
