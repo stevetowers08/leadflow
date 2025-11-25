@@ -1,24 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { APIErrorHandler } from '@/lib/api-error-handler';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
-    const envCheck = APIErrorHandler.validateEnvVars([
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-    ]);
-
-    if (!envCheck.allPresent) {
-      return APIErrorHandler.handleError(
-        new Error(`Missing environment variables: ${envCheck.missing.join(', ')}`),
-        'campaign-executor'
-      );
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServerSupabaseClient();
 
     // Fetch pending executions (max 50)
     const { data: pendingExecutions, error: fetchError } = await supabase
@@ -85,8 +71,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function processExecution(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   execution: any
 ) {
   const step = execution.campaign_sequence_steps;
@@ -106,8 +91,7 @@ async function processExecution(
 }
 
 async function processEmailStep(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   execution: any
 ) {
   const step = execution.campaign_sequence_steps;
@@ -187,8 +171,7 @@ async function processEmailStep(
 }
 
 async function processWaitStep(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   execution: any
 ) {
   const step = execution.campaign_sequence_steps;
@@ -200,8 +183,7 @@ async function processWaitStep(
 }
 
 async function processConditionStep(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   execution: any
 ) {
   const step = execution.campaign_sequence_steps;
@@ -246,8 +228,7 @@ function calculateWaitHours(duration: number | undefined, unit: string | undefin
 }
 
 async function evaluateCondition(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   execution: any,
   step: any
 ): Promise<boolean> {
@@ -277,8 +258,7 @@ async function evaluateCondition(
 }
 
 async function scheduleNextStep(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   execution: any,
   waitDuration?: number,
   waitUnit?: string,
