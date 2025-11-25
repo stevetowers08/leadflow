@@ -31,7 +31,11 @@ function generateConversationId(): string {
   return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-async function queryRelevantData(supabase: ReturnType<typeof createClient>, message: string) {
+async function queryRelevantData(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  message: string
+) {
   // Simplified: query recent jobs, people, companies
   const [jobsResult, peopleResult, companiesResult] = await Promise.all([
     supabase.from('jobs').select('id, title, location').limit(5),
