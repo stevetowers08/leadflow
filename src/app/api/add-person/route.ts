@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 type ServerSupabaseClient = ReturnType<typeof createServerSupabaseClient>;
 
@@ -59,16 +60,16 @@ async function insertPersonWithDuplicateHandling(
 ) {
   try {
     // First attempt: try to insert as-is
-    // Supabase client types don't properly infer insert types, so we use any
+    const insertData: TablesInsert<'people'> = {
+      ...personData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
 
-    const { data, error } = await ((supabase
-      .from('people') as any)
-      .insert({
-        ...personData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select());
+    const { data, error } = await supabase
+      .from('people')
+      .insert(insertData)
+      .select();
 
     if (!error) {
       console.log('Person inserted successfully:', data);
@@ -88,15 +89,16 @@ async function insertPersonWithDuplicateHandling(
         );
 
         // Try inserting with the unique LinkedIn URL
-        const { data: uniqueData, error: uniqueError } = await ((supabase
-          .from('people') as any)
-          .insert({
-            ...personData,
-            linkedin_url: uniqueLinkedInUrl,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .select());
+        const uniqueInsertData: TablesInsert<'people'> = {
+          ...personData,
+          linkedin_url: uniqueLinkedInUrl,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        const { data: uniqueData, error: uniqueError } = await supabase
+          .from('people')
+          .insert(uniqueInsertData)
+          .select();
 
         if (uniqueError) {
           console.error(
@@ -127,15 +129,16 @@ async function insertPersonWithDuplicateHandling(
         );
 
         // Try inserting with the unique email
-        const { data: uniqueData, error: uniqueError } = await ((supabase
-          .from('people') as any)
-          .insert({
-            ...personData,
-            email_address: uniqueEmail,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .select());
+        const uniqueEmailInsertData: TablesInsert<'people'> = {
+          ...personData,
+          email_address: uniqueEmail,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        const { data: uniqueData, error: uniqueError } = await supabase
+          .from('people')
+          .insert(uniqueEmailInsertData)
+          .select();
 
         if (uniqueError) {
           console.error(
@@ -172,19 +175,17 @@ async function upsertPerson(
   personData: PersonData
 ) {
   try {
-    const { data, error } = await ((supabase
-      .from('people') as any)
-      .upsert(
-        {
-          ...personData,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'linkedin_url,email_address',
-          ignoreDuplicates: false,
-        }
-      )
-      .select());
+    const upsertData: TablesInsert<'people'> = {
+      ...personData,
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error } = await supabase
+      .from('people')
+      .upsert(upsertData, {
+        onConflict: 'linkedin_url,email_address',
+        ignoreDuplicates: false,
+      })
+      .select();
 
     if (error) {
       console.error('Error upserting person:', error);

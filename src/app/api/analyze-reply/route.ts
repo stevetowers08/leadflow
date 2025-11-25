@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import type { TablesUpdate } from '@/integrations/supabase/types';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -89,13 +90,14 @@ Respond with JSON: {"replyType": "...", "confidence": 0.85, "reasoning": "..."}`
     }
 
     // Update person's reply_type
-    const { error } = await ((supabase
-      .from('people') as any)
-      .update({
-        reply_type: analysis.replyType,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', personId));
+    const updateData: TablesUpdate<'people'> = {
+      reply_type: analysis.replyType,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase
+      .from('people')
+      .update(updateData)
+      .eq('id', personId);
 
     if (error) {
       throw new Error(`Database update error: ${error.message}`);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import type { TablesUpdate } from '@/integrations/supabase/types';
 
 interface JobData {
   id: string;
@@ -88,13 +89,14 @@ export async function POST(request: NextRequest) {
     const supabase = createServerSupabaseClient();
 
     // Update the job record
-    const { error: updateError } = await ((supabase
-      .from('jobs') as any)
-      .update({
-        summary: geminiResponse.data.summary,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', jobId));
+    const updateData: TablesUpdate<'jobs'> = {
+      summary: geminiResponse.data.summary,
+      updated_at: new Date().toISOString(),
+    };
+    const { error: updateError } = await supabase
+      .from('jobs')
+      .update(updateData)
+      .eq('id', jobId);
 
     if (updateError) {
       throw new Error('Failed to update job in database');
