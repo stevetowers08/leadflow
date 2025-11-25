@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
-import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
 type ServerSupabaseClient = ReturnType<typeof createServerSupabaseClient>;
 
@@ -60,7 +60,7 @@ async function insertPersonWithDuplicateHandling(
 ) {
   try {
     // First attempt: try to insert as-is
-    const insertData: TablesInsert<'people'> = {
+    const insertData: Database['public']['Tables']['people']['Insert'] = {
       ...personData,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -89,7 +89,7 @@ async function insertPersonWithDuplicateHandling(
         );
 
         // Try inserting with the unique LinkedIn URL
-        const uniqueInsertData: TablesInsert<'people'> = {
+        const uniqueInsertData: Database['public']['Tables']['people']['Insert'] = {
           ...personData,
           linkedin_url: uniqueLinkedInUrl,
           created_at: new Date().toISOString(),
@@ -129,7 +129,7 @@ async function insertPersonWithDuplicateHandling(
         );
 
         // Try inserting with the unique email
-        const uniqueEmailInsertData: TablesInsert<'people'> = {
+        const uniqueEmailInsertData: Database['public']['Tables']['people']['Insert'] = {
           ...personData,
           email_address: uniqueEmail,
           created_at: new Date().toISOString(),
@@ -175,7 +175,7 @@ async function upsertPerson(
   personData: PersonData
 ) {
   try {
-    const upsertData: TablesInsert<'people'> = {
+    const upsertData: Database['public']['Tables']['people']['Insert'] = {
       ...personData,
       updated_at: new Date().toISOString(),
     };

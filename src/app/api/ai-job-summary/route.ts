@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
-import type { TablesUpdate } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
 interface JobData {
   id: string;
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     const supabase = createServerSupabaseClient();
 
     // Update the job record
-    const updateData: TablesUpdate<'jobs'> = {
+    const updateData: Database['public']['Tables']['jobs']['Update'] = {
       summary: geminiResponse.data.summary,
       updated_at: new Date().toISOString(),
     };

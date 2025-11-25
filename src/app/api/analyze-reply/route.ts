@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
-import type { TablesUpdate } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -90,7 +90,7 @@ Respond with JSON: {"replyType": "...", "confidence": 0.85, "reasoning": "..."}`
     }
 
     // Update person's reply_type
-    const updateData: TablesUpdate<'people'> = {
+    const updateData: Database['public']['Tables']['people']['Update'] = {
       reply_type: analysis.replyType,
       updated_at: new Date().toISOString(),
     };
