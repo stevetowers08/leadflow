@@ -217,7 +217,12 @@ export function AIConfigurationPanel() {
           <label className='block text-sm font-medium mb-2'>AI Provider</label>
           <select
             value={config.provider}
-            onChange={e => updateConfig({ provider: e.target.value as any })}
+            onChange={e => {
+              const value = e.target.value;
+              if (value === 'auto' || value === 'openai' || value === 'gemini') {
+                updateConfig({ provider: value });
+              }
+            }}
             className='w-full p-2 border rounded'
           >
             <option value='auto'>Auto (Prefer Free)</option>

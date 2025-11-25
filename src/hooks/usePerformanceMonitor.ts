@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getPerformanceMemory } from '@/utils/performanceMemory';
 
 // Performance monitoring configuration
 export const PERFORMANCE_CONFIG = {
@@ -104,10 +105,8 @@ export function usePerformanceMonitor() {
 
   // Monitor memory usage
   const getMemoryUsage = useCallback(() => {
-    if ('memory' in performance) {
-      return (performance as any).memory.usedJSHeapSize;
-    }
-    return 0;
+    const memory = getPerformanceMemory();
+    return memory?.usedJSHeapSize ?? 0;
   }, []);
 
   // Update metrics

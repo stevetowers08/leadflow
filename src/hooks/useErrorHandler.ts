@@ -28,7 +28,7 @@ export function useErrorHandler() {
   const logError = useCallback(
     (
       error: Error | string,
-      context?: Record<string, any>,
+      context?: Record<string, unknown>,
       severity: ErrorInfo['severity'] = 'medium'
     ) => {
       const errorInfo: ErrorInfo = {
@@ -58,7 +58,7 @@ export function useErrorHandler() {
 
       return errorInfo.id;
     },
-    [toast]
+    [toast, showError, showWarning]
   );
 
   const resolveError = useCallback((errorId: string) => {
@@ -87,7 +87,7 @@ export function useErrorHandler() {
 }
 
 // Retry mechanism hook
-export function useRetry<T extends (...args: any[]) => Promise<any>>(
+export function useRetry<T extends (...args: unknown[]) => Promise<unknown>>(
   fn: T,
   options: RetryOptions = {
     maxRetries: 3,
@@ -155,7 +155,7 @@ export function useNetworkErrorHandler() {
   const { logError } = useErrorHandler();
 
   const handleNetworkError = useCallback(
-    (error: any) => {
+    (error: { code?: string; status?: number; url?: string; message?: string }) => {
       let severity: ErrorInfo['severity'] = 'medium';
       let message = 'Network error occurred';
 
@@ -202,7 +202,7 @@ export function useApiErrorHandler() {
   const { handleNetworkError } = useNetworkErrorHandler();
 
   const handleApiError = useCallback(
-    (error: any, context?: Record<string, any>) => {
+    (error: { code?: string; status?: number; message?: string; details?: string; hint?: string }, context?: Record<string, unknown>) => {
       // Handle network errors
       if (error.code === 'NETWORK_ERROR' || error.message?.includes('fetch')) {
         return handleNetworkError(error);
@@ -277,7 +277,7 @@ export function useErrorBoundary() {
   const { logError } = useErrorHandler();
 
   const captureError = useCallback(
-    (error: Error, errorInfo?: any) => {
+    (error: Error, errorInfo?: { componentStack?: string }) => {
       logError(
         error,
         {

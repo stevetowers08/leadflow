@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { getPerformanceMemory } from '@/utils/performanceMemory';
 
 interface PerformanceMetrics {
   renderTime: number;
@@ -42,7 +43,7 @@ export const usePerformanceMonitoring = (
         renderTime,
         timestamp: Date.now(),
         componentName,
-        memoryUsage: (performance as any).memory?.usedJSHeapSize,
+        memoryUsage: getPerformanceMemory()?.usedJSHeapSize,
       };
 
       performanceData.push(metrics);

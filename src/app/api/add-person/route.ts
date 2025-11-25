@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 
+type ServerSupabaseClient = ReturnType<typeof createServerSupabaseClient>;
+
 interface PersonData {
   name: string;
   company_id?: string;
@@ -52,8 +54,7 @@ function generateUniqueEmail(originalEmail: string): string {
  * Insert person with duplicate handling
  */
 async function insertPersonWithDuplicateHandling(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ServerSupabaseClient,
   personData: PersonData
 ) {
   try {
@@ -167,7 +168,7 @@ async function insertPersonWithDuplicateHandling(
  * Alternative approach: Use upsert with conflict resolution
  */
 async function upsertPerson(
-  supabase: ReturnType<typeof createServerSupabaseClient>,
+  supabase: ServerSupabaseClient,
   personData: PersonData
 ) {
   try {

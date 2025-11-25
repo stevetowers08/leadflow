@@ -8,10 +8,9 @@ alwaysApply: true
 
 ## Core Framework
 
+- **Next.js 16.0.1** - App Router, Server Components, API Routes
 - **React 18.2** - Functional components, hooks, strict mode
 - **TypeScript 5.9** - Strict mode, no implicit any, proper null checks
-- **Vite 7.1** - Build tool, HMR, optimized chunks
-- **React Router 7.9** - Client-side routing
 
 ## State Management
 
@@ -38,7 +37,7 @@ alwaysApply: true
 - `@google/generative-ai` - Gemini AI for analysis
 - `@tanstack/react-table` - Data table management
 - `@dnd-kit` - Drag and drop
-- `chart.js` / `recharts` - Data visualization
+- `recharts` - Data visualization (standardized on Recharts)
 - `date-fns` - Date utilities
 - `clsx` / `tailwind-merge` - Class name utilities
 

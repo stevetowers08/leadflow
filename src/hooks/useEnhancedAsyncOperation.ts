@@ -22,14 +22,14 @@ export interface AsyncOperationOptions {
   retryDelay?: number;
   showSuccessToast?: boolean;
   showErrorToast?: boolean;
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: T) => void;
   onError?: (error: AppError) => void;
   onRetry?: (attempt: number) => void;
   onMaxRetriesReached?: () => void;
 }
 
-export function useAsyncOperation<T = any>(
-  asyncFn: (...args: any[]) => Promise<T>,
+export function useAsyncOperation<T = unknown>(
+  asyncFn: (...args: unknown[]) => Promise<T>,
   options: AsyncOperationOptions = {}
 ) {
   const {
@@ -57,7 +57,7 @@ export function useAsyncOperation<T = any>(
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const execute = useCallback(
-    async (...args: any[]) => {
+    async (...args: unknown[]) => {
       setState(prev => ({
         ...prev,
         isLoading: true,
@@ -143,7 +143,7 @@ export function useAsyncOperation<T = any>(
   );
 
   const retry = useCallback(
-    async (...args: any[]) => {
+    async (...args: unknown[]) => {
       if (!enableRetry || retryCountRef.current >= maxRetries) {
         if (retryCountRef.current >= maxRetries) {
           onMaxRetriesReached?.();
@@ -191,23 +191,29 @@ export function useAsyncOperation<T = any>(
     };
   }, []);
 
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    setRetryCount(retryCountRef.current);
+  }, [state.isLoading, state.isError]);
+
   return {
     ...state,
     execute,
     retry,
     reset,
-    retryCount: retryCountRef.current,
-    canRetry: enableRetry && retryCountRef.current < maxRetries,
+    retryCount,
+    canRetry: enableRetry && retryCount < maxRetries,
   };
 }
 
 // Specialized hook for data fetching
-export function useAsyncData<T = any>(
-  fetchFn: (...args: any[]) => Promise<T>,
+export function useAsyncData<T = unknown>(
+  fetchFn: (...args: unknown[]) => Promise<T>,
   options: AsyncOperationOptions & {
     initialData?: T;
     autoExecute?: boolean;
-    dependencies?: any[];
+    dependencies?: unknown[];
   } = {}
 ) {
   const {
@@ -223,6 +229,7 @@ export function useAsyncData<T = any>(
     if (autoExecute) {
       operation.execute();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoExecute, ...dependencies]);
 
   return {
@@ -232,8 +239,8 @@ export function useAsyncData<T = any>(
 }
 
 // Hook for mutations (create, update, delete operations)
-export function useAsyncMutation<T = any>(
-  mutationFn: (...args: any[]) => Promise<T>,
+export function useAsyncMutation<T = unknown>(
+  mutationFn: (...args: unknown[]) => Promise<T>,
   options: AsyncOperationOptions = {}
 ) {
   return useAsyncOperation(mutationFn, {
@@ -244,8 +251,8 @@ export function useAsyncMutation<T = any>(
 }
 
 // Hook for form submissions
-export function useFormSubmission<T = any>(
-  submitFn: (data: any) => Promise<T>,
+export function useFormSubmission<T = unknown>(
+  submitFn: (data: unknown) => Promise<T>,
   options: AsyncOperationOptions = {}
 ) {
   return useAsyncOperation(submitFn, {

@@ -1,22 +1,13 @@
 /**
  * Server-side Supabase client helper for API routes
  * Best practice: Centralized, typed client creation
- * 
- * This helper uses a simplified type approach to avoid TypeScript
- * strict checking issues with Supabase's complex generic types.
- * Runtime behavior is fully type-safe.
+ *
+ * This helper reuses the generated Database type so every server-side
+ * call stays fully typed and consistent with the live schema.
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
-type Database = {
-  public: {
-    Tables: Record<string, any>;
-    Views: Record<string, any>;
-    Functions: Record<string, any>;
-    Enums: Record<string, any>;
-  };
-};
+import type { Database } from '@/integrations/supabase/types';
 
 /**
  * Creates a Supabase client for server-side API routes

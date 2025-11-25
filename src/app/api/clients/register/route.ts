@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (clientError) {
+    if (clientError || !clientData) {
       console.error('Error creating client:', clientError);
       // Clean up on failure
       await adminClient.from('user_profiles').delete().eq('id', userId);
@@ -107,10 +107,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 5: Link user to client
+    const clientId = clientData.id;
+
     const { error: clientUserError } = await adminClient
       .from('client_users')
       .insert({
-        client_id: (clientData as any).id,
+        client_id: clientId,
         user_id: userId,
         role: 'owner',
         is_primary_contact: true,
@@ -119,7 +121,7 @@ export async function POST(request: NextRequest) {
     if (clientUserError) {
       console.error('Error linking user to client:', clientUserError);
       // Clean up on failure
-      await adminClient.from('clients').delete().eq('id', (clientData as any).id);
+      await adminClient.from('clients').delete().eq('id', clientId);
       await adminClient.from('user_profiles').delete().eq('id', userId);
       await adminClient.auth.admin.deleteUser(userId);
       return NextResponse.json(
@@ -133,7 +135,7 @@ export async function POST(request: NextRequest) {
       await adminClient
         .from('job_filter_configs')
         .insert({
-          client_id: (clientData as any).id,
+          client_id: clientId,
           user_id: userId,
           config_name: 'Default Configuration',
           platform: 'linkedin',

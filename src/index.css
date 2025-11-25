@@ -2,13 +2,11 @@
  * ⚠️ LEGACY FILE - DO NOT USE
  * 
  * This file is kept for reference but should NOT be imported.
- * 
+ *
  * Next.js uses src/app/globals.css instead.
- * 
- * This file exists because:
- * - Legacy React Router setup (main.tsx) may have imported it
- * - Migration from Vite to Next.js is in progress
- * 
+ *
+ * This file exists only for historical context from the old SPA bundle.
+ *
  * TO USE: Import './globals.css' in layout.tsx (already done)
  * TO FIX: Remove any imports of this file
  */

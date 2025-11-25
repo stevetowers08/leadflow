@@ -17,9 +17,28 @@ interface GmailNotification {
 }
 
 interface SentimentAnalysis {
-  sentiment: 'interested' | 'not_interested' | 'maybe' | 'out_of_office';
+  sentiment: 'interested' | 'not_interested' | 'maybe' | 'out_of_office' | 'neutral';
   confidence: number;
   reasoning: string;
+}
+
+interface GmailHeader {
+  name: string;
+  value?: string;
+}
+
+interface GmailMessagePart {
+  mimeType?: string;
+  body?: { data?: string };
+}
+
+interface GmailHistoryRecord {
+  messagesAdded?: {
+    message?: {
+      id?: string;
+      labelIds?: string[];
+    };
+  }[];
 }
 
 const corsHeaders = {
@@ -57,9 +76,9 @@ async function processGmailReply(
   const messageData = await messageResponse.json();
 
   // Extract email details
-  const headers = messageData.payload.headers;
-  const subject = headers.find((h: any) => h.name === 'Subject')?.value || '';
-  const from = headers.find((h: any) => h.name === 'From')?.value || '';
+  const headers: GmailHeader[] = messageData.payload.headers || [];
+  const subject = headers.find(h => h.name === 'Subject')?.value || '';
+  const from = headers.find(h => h.name === 'From')?.value || '';
   const threadId = messageData.threadId;
 
   // Find person by email
@@ -81,7 +100,10 @@ async function processGmailReply(
   let body = '';
   if (messageData.payload.parts) {
     const textPart = messageData.payload.parts.find(
-      (p: any) => p.mimeType === 'text/plain'
+      (p: GmailMessagePart) => p.mimeType === 'text/plain'
+    );
+    const textPart = messageData.payload.parts.find(
+      (p: GmailMessagePart) => p.mimeType === 'text/plain'
     );
     if (textPart?.body?.data) {
       body = atob(textPart.body.data.replace(/-/g, '+').replace(/_/g, '/'));
@@ -212,11 +234,13 @@ export async function POST(request: NextRequest) {
     // Filter for new messages in INBOX
     const newMessages =
       historyData.history
-        ?.flatMap((h: Record<string, unknown>) => h.messagesAdded || [])
-        .filter((m: Record<string, unknown>) =>
-          (m.message as any)?.labelIds?.includes('INBOX')
+        ?.flatMap((h: GmailHistoryRecord) => h.messagesAdded || [])
+        .filter(
+          (m): m is { message: { id: string; labelIds?: string[] } } =>
+            !!m.message && !!m.message.id
         )
-        .map((m: Record<string, unknown>) => (m.message as any).id) || [];
+        .filter(m => m.message.labelIds?.includes('INBOX'))
+        .map(m => m.message.id) || [];
 
     console.log(`Found ${newMessages.length} new messages`);
 

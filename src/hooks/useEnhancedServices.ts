@@ -26,7 +26,7 @@ export interface ServiceOptions {
 }
 
 // Enhanced Supabase service wrapper
-export function useSupabaseService<T = any>(
+export function useSupabaseService<T = unknown>(
   tableName: string,
   options: ServiceOptions = {}
 ) {
@@ -42,11 +42,16 @@ export function useSupabaseService<T = any>(
     enableErrorHandling = true,
   } = options;
 
-  const retryLogic = enableRetry ? useDatabaseRetry(retryConfig) : null;
-  const { handleSave, handleDelete, handleUpdate, handleCreate } =
-    enableFeedback ? useActionFeedback() : {};
+  // Always call hooks - conditionally use their return values
+  const retryLogic = useDatabaseRetry(retryConfig);
+  const actionFeedback = useActionFeedback();
+  const errorHandler = useErrorHandler();
+  
+  const { handleSave, handleDelete, handleUpdate, handleCreate } = enableFeedback 
+    ? actionFeedback 
+    : { handleSave: undefined, handleDelete: undefined, handleUpdate: undefined, handleCreate: undefined };
   const { logError } = enableErrorHandling
-    ? useErrorHandler()
+    ? errorHandler
     : { logError: () => {} };
 
   const executeWithRetry = async <R>(
@@ -61,7 +66,7 @@ export function useSupabaseService<T = any>(
 
   // Fetch data with retry and error handling
   const fetchData = useAsyncData(
-    async (query?: any) => {
+    async (query?: string) => {
       return executeWithRetry(async () => {
         const { data, error } = await supabase
           .from(tableName)
@@ -283,10 +288,15 @@ export function useNetworkService(options: ServiceOptions = {}) {
     enableErrorHandling = true,
   } = options;
 
-  const retryLogic = enableRetry ? useNetworkRetry(retryConfig) : null;
-  const { showSuccess, showError } = enableFeedback ? useUserFeedback() : {};
+  // Always call hooks - conditionally use their return values
+  const retryLogicHook = useNetworkRetry(retryConfig);
+  const userFeedbackHook = useUserFeedback();
+  const errorHandlerHook = useErrorHandler();
+  
+  const retryLogic = enableRetry ? retryLogicHook : null;
+  const { showSuccess, showError } = enableFeedback ? userFeedbackHook : { showSuccess: undefined, showError: undefined };
   const { logError } = enableErrorHandling
-    ? useErrorHandler()
+    ? errorHandlerHook
     : { logError: () => {} };
 
   const executeWithRetry = async <R>(
@@ -354,10 +364,15 @@ export function useAIService(options: ServiceOptions = {}) {
     enableErrorHandling = true,
   } = options;
 
-  const retryLogic = enableRetry ? useApiRetry(retryConfig) : null;
-  const { showSuccess, showError } = enableFeedback ? useUserFeedback() : {};
+  // Always call hooks - conditionally use their return values
+  const retryLogicHook = useApiRetry(retryConfig);
+  const userFeedbackHook = useUserFeedback();
+  const errorHandlerHook = useErrorHandler();
+  
+  const retryLogic = enableRetry ? retryLogicHook : null;
+  const { showSuccess, showError } = enableFeedback ? userFeedbackHook : { showSuccess: undefined, showError: undefined };
   const { logError } = enableErrorHandling
-    ? useErrorHandler()
+    ? errorHandlerHook
     : { logError: () => {} };
 
   const executeWithRetry = async <R>(
@@ -401,7 +416,7 @@ export function useAIService(options: ServiceOptions = {}) {
   );
 
   const analyzeData = useAsyncOperation(
-    async ({ data, analysisType }: { data: any; analysisType: string }) => {
+    async ({ data, analysisType }: { data: unknown; analysisType: string }) => {
       return executeWithRetry(async () => {
         const response = await fetch('/api/ai/analyze', {
           method: 'POST',

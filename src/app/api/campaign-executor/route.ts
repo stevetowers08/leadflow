@@ -1,6 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import type { Tables } from '@/integrations/supabase/types';
+
+type CampaignExecution = Tables<'campaign_sequence_executions'> & {
+  campaign_sequence_leads: Pick<
+    Tables<'campaign_sequence_leads'>,
+    'id' | 'lead_id' | 'sequence_id' | 'status'
+  >;
+  campaign_sequence_steps: Pick<
+    Tables<'campaign_sequence_steps'>,
+    | 'id'
+    | 'step_type'
+    | 'order_position'
+    | 'sequence_id'
+    | 'email_subject'
+    | 'email_body'
+    | 'wait_duration'
+    | 'wait_unit'
+    | 'condition_type'
+    | 'true_next_step_id'
+    | 'false_next_step_id'
+  >;
+  people: Pick<Tables<'people'>, 'id' | 'name' | 'email_address'>;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +32,7 @@ export async function POST(request: NextRequest) {
     // Fetch pending executions (max 50)
     const { data: pendingExecutions, error: fetchError } = await supabase
       .from('campaign_sequence_executions')
-      .select(
+      .select<CampaignExecution>(
         `
         *,
         campaign_sequence_leads!sequence_lead_id (id, lead_id, sequence_id, status),
@@ -45,7 +68,7 @@ export async function POST(request: NextRequest) {
     // Process executions
     for (const execution of pendingExecutions) {
       try {
-        await processExecution(supabase, execution as any);
+        await processExecution(supabase, execution);
       } catch (error) {
         await supabase
           .from('campaign_sequence_executions')
@@ -53,7 +76,7 @@ export async function POST(request: NextRequest) {
             status: 'failed',
             error_message: error instanceof Error ? error.message : 'Unknown error',
           })
-          .eq('id', (execution as any).id);
+          .eq('id', execution.id);
       }
     }
 
@@ -72,7 +95,7 @@ export async function POST(request: NextRequest) {
 
 async function processExecution(
   supabase: ReturnType<typeof createServerSupabaseClient>,
-  execution: any
+  execution: CampaignExecution
 ) {
   const step = execution.campaign_sequence_steps;
   if (!step) throw new Error('Missing step configuration');
@@ -92,31 +115,39 @@ async function processExecution(
 
 async function processEmailStep(
   supabase: ReturnType<typeof createServerSupabaseClient>,
-  execution: any
+  execution: CampaignExecution
 ) {
   const step = execution.campaign_sequence_steps;
   const person = execution.people;
   const lead = execution.campaign_sequence_leads;
 
+  if (!person || !lead) throw new Error('Missing lead or person data');
+
   if (!person.email_address) throw new Error('No email address');
 
-  const { data: sequence } = await supabase
+  const { data: sequence, error: sequenceError } = await supabase
     .from('campaign_sequences')
     .select('created_by')
     .eq('id', lead.sequence_id)
     .single();
 
-  const { data: emailAccount } = await supabase
+  if (sequenceError || !sequence?.created_by) {
+    throw new Error(sequenceError?.message || 'Sequence owner not found');
+  }
+
+  const { data: emailAccount, error: emailAccountError } = await supabase
     .from('email_accounts')
     .select('*')
-    .eq('user_id', (sequence as any)?.created_by)
+    .eq('user_id', sequence.created_by)
     .eq('is_active', true)
     .limit(1)
     .single();
 
-  if (!emailAccount) throw new Error('No active Gmail account');
+  if (emailAccountError || !emailAccount) {
+    throw new Error(emailAccountError?.message || 'No active Gmail account');
+  }
 
-  const accessToken = Buffer.from((emailAccount as any).access_token, 'base64').toString('utf-8');
+  const accessToken = Buffer.from(emailAccount.access_token, 'base64').toString('utf-8');
 
   // Send email via Gmail API
   const message = [
@@ -153,7 +184,7 @@ async function processEmailStep(
 
   await supabase.from('email_sends').insert({
     person_id: person.id,
-    email_account_id: (emailAccount as any).id,
+    email_account_id: emailAccount.id,
     gmail_message_id: emailResult.id,
     gmail_thread_id: emailResult.threadId,
     to_email: person.email_address,
@@ -172,7 +203,7 @@ async function processEmailStep(
 
 async function processWaitStep(
   supabase: ReturnType<typeof createServerSupabaseClient>,
-  execution: any
+  execution: CampaignExecution
 ) {
   const step = execution.campaign_sequence_steps;
   await supabase
@@ -184,7 +215,7 @@ async function processWaitStep(
 
 async function processConditionStep(
   supabase: ReturnType<typeof createServerSupabaseClient>,
-  execution: any
+  execution: CampaignExecution
 ) {
   const step = execution.campaign_sequence_steps;
   const conditionResult = await evaluateCondition(supabase, execution, step);
@@ -200,7 +231,10 @@ async function processConditionStep(
   }
 }
 
-function personalizeEmail(body: string, person: any): string {
+function personalizeEmail(
+  body: string,
+  person: Pick<Tables<'people'>, 'name' | 'email_address'>
+): string {
   let personalized = body || '';
   personalized = personalized.replace(/\{name\}/g, (person.name || '').split(' ')[0] || 'there');
   personalized = personalized.replace(/\{full_name\}/g, person.name || 'there');
@@ -229,10 +263,11 @@ function calculateWaitHours(duration: number | undefined, unit: string | undefin
 
 async function evaluateCondition(
   supabase: ReturnType<typeof createServerSupabaseClient>,
-  execution: any,
-  step: any
+  execution: CampaignExecution,
+  step: CampaignExecution['campaign_sequence_steps']
 ): Promise<boolean> {
   const person = execution.people;
+  if (!person) throw new Error('Missing person data for condition evaluation');
 
   if (step.condition_type === 'replied') {
     const { data: recentReply } = await supabase
@@ -259,13 +294,17 @@ async function evaluateCondition(
 
 async function scheduleNextStep(
   supabase: ReturnType<typeof createServerSupabaseClient>,
-  execution: any,
+  execution: CampaignExecution,
   waitDuration?: number,
   waitUnit?: string,
   specificNextStepId?: string
 ) {
   const step = execution.campaign_sequence_steps;
   const sequenceLead = execution.campaign_sequence_leads;
+
+  if (!sequenceLead) {
+    throw new Error('Missing sequence lead data for scheduling');
+  }
 
   const scheduledAt = new Date();
   if (waitDuration && waitUnit) {
@@ -276,16 +315,20 @@ async function scheduleNextStep(
   let nextStepId = specificNextStepId;
 
   if (!nextStepId) {
-    const { data: nextStep } = await supabase
+    const { data: nextStep, error: nextStepError } = await supabase
       .from('campaign_sequence_steps')
       .select('id')
       .eq('sequence_id', sequenceLead.sequence_id)
       .gt('order_position', step.order_position)
       .order('order_position', { ascending: true })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    nextStepId = (nextStep as any)?.id;
+    if (nextStepError) {
+      throw new Error(nextStepError.message);
+    }
+
+    nextStepId = nextStep?.id ?? undefined;
   }
 
   if (nextStepId) {

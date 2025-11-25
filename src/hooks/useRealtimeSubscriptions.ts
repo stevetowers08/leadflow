@@ -39,9 +39,9 @@ export function useRealtimeSubscription(
   options: {
     events?: string[];
     filter?: string;
-    onInsert?: (payload: any) => void;
-    onUpdate?: (payload: any) => void;
-    onDelete?: (payload: any) => void;
+    onInsert?: (payload: unknown) => void;
+    onUpdate?: (payload: unknown) => void;
+    onDelete?: (payload: unknown) => void;
     enabled?: boolean;
     debounceMs?: number;
   } = {}
@@ -50,7 +50,7 @@ export function useRealtimeSubscription(
   const { toast } = useToast();
   const channelRef = useRef<RealtimeChannel | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [lastEvent, setLastEvent] = useState<any>(null);
+  const [lastEvent, setLastEvent] = useState<{ eventType: string; payload: unknown; timestamp: Date } | null>(null);
 
   const {
     events = [REALTIME_CONFIG.EVENTS.ALL],
@@ -62,23 +62,9 @@ export function useRealtimeSubscription(
     debounceMs = 100,
   } = options;
 
-  // Debounced event handler
-  const debouncedEventHandler = useCallback(
-    (() => {
-      let timeoutId: NodeJS.Timeout;
-      return (eventType: string, payload: any) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          handleRealtimeEvent(eventType, payload);
-        }, debounceMs);
-      };
-    })(),
-    [debounceMs]
-  );
-
   // Handle real-time events
   const handleRealtimeEvent = useCallback(
-    (eventType: string, payload: any) => {
+    (eventType: string, payload: unknown) => {
       if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
         console.log(`🔄 Real-time ${eventType} event for ${table}:`, payload);
       }
@@ -111,6 +97,20 @@ export function useRealtimeSubscription(
       }
     },
     [table, queryClient, toast, onInsert, onUpdate, onDelete]
+  );
+
+  // Debounced event handler using ref to store timeout
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debouncedEventHandler = useCallback(
+    (eventType: string, payload: unknown) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        handleRealtimeEvent(eventType, payload);
+      }, debounceMs);
+    },
+    [debounceMs, handleRealtimeEvent]
   );
 
   // Subscribe to real-time changes
@@ -162,6 +162,9 @@ export function useRealtimeSubscription(
         channelRef.current = null;
         setIsConnected(false);
       }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, [table, events, filter, enabled, debouncedEventHandler, toast]);
 
@@ -189,9 +192,9 @@ export function useMultiTableRealtime(
     table: string;
     events?: string[];
     filter?: string;
-    onInsert?: (payload: any) => void;
-    onUpdate?: (payload: any) => void;
-    onDelete?: (payload: any) => void;
+    onInsert?: (payload: unknown) => void;
+    onUpdate?: (payload: unknown) => void;
+    onDelete?: (payload: unknown) => void;
   }>,
   options: {
     enabled?: boolean;
@@ -201,7 +204,7 @@ export function useMultiTableRealtime(
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [connections, setConnections] = useState<Record<string, boolean>>({});
-  const [lastEvents, setLastEvents] = useState<Record<string, any>>({});
+  const [lastEvents, setLastEvents] = useState<Record<string, { eventType: string; payload: unknown; timestamp: Date }>>({});
 
   const { enabled = true, debounceMs = 100 } = options;
 
@@ -211,7 +214,7 @@ export function useMultiTableRealtime(
 
     const channels: RealtimeChannel[] = [];
     const connectionStates: Record<string, boolean> = {};
-    const eventStates: Record<string, any> = {};
+    const eventStates: Record<string, { eventType: string; payload: unknown; timestamp: Date }> = {};
 
     tables.forEach(
       ({ table, events = ['*'], filter, onInsert, onUpdate, onDelete }) => {
@@ -313,13 +316,13 @@ export function useRealtimePresence(
   channelName: string,
   options: {
     enabled?: boolean;
-    onPresenceChange?: (presence: any) => void;
-    onJoin?: (key: string, currentPresences: any) => void;
-    onLeave?: (key: string, currentPresences: any) => void;
+    onPresenceChange?: (presence: Record<string, unknown>) => void;
+    onJoin?: (key: string, currentPresences: unknown[]) => void;
+    onLeave?: (key: string, currentPresences: unknown[]) => void;
   } = {}
 ) {
   const { toast } = useToast();
-  const [presence, setPresence] = useState<any>({});
+  const [presence, setPresence] = useState<Record<string, unknown>>({});
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const channelRef = useRef<RealtimeChannel | null>(null);
 
@@ -385,7 +388,7 @@ export function useRealtimePresence(
     };
   }, [channelName, enabled, onPresenceChange, onJoin, onLeave, toast]);
 
-  const updatePresence = useCallback(async (data: any) => {
+  const updatePresence = useCallback(async (data: Record<string, unknown>) => {
     if (channelRef.current) {
       await channelRef.current.track(data);
     }
@@ -395,7 +398,7 @@ export function useRealtimePresence(
     presence,
     onlineUsers,
     updatePresence,
-    isConnected: !!channelRef.current,
+    isConnected,
   };
 }
 

@@ -13,8 +13,10 @@ const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // Development configuration
 const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
+type SupabaseBrowserClient = ReturnType<typeof createClient<Database>>;
+
 // Lazy initialization to prevent module loading issues
-let _supabaseClient: ReturnType<typeof createClient<Database>> | null = null;
+let _supabaseClient: SupabaseBrowserClient | null = null;
 
 function getSupabaseClient() {
   if (_supabaseClient) return _supabaseClient;
@@ -73,7 +75,7 @@ function getSupabaseClient() {
               data: { subscription: { unsubscribe: () => {} } },
             }),
           },
-        } as any;
+        } as SupabaseBrowserClient;
         return _supabaseClient;
       }
 
@@ -203,14 +205,14 @@ function getSupabaseClient() {
           data: { subscription: { unsubscribe: () => {} } },
         }),
       },
-    } as any;
+    } as SupabaseBrowserClient;
     return _supabaseClient;
   }
 }
 
 // Export a getter function instead of direct client to prevent initialization issues
 export const supabase = new Proxy(
-  {} as ReturnType<typeof createClient<Database>>,
+  {} as SupabaseBrowserClient,
   {
     get(target, prop) {
       const client = getSupabaseClient();

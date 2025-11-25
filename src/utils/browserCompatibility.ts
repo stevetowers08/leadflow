@@ -1,8 +1,9 @@
+import { getPerformanceMemory } from './performanceMemory';
+
 /**
  * Browser Compatibility Configuration
  * Ensures the application works across different browsers and devices
  */
-
 // Browser support configuration
 export const browserSupport = {
   // Modern browsers (ES2020+)
@@ -244,8 +245,8 @@ export const performanceMonitoring = {
   monitorMemory: () => {
     if (typeof window === 'undefined') return;
 
-    if ('memory' in performance) {
-      const memory = (performance as any).memory;
+    const memory = getPerformanceMemory();
+    if (memory) {
       console.log('Memory usage:', {
         used: Math.round(memory.usedJSHeapSize / 1048576) + ' MB',
         total: Math.round(memory.totalJSHeapSize / 1048576) + ' MB',

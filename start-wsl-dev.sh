@@ -18,6 +18,6 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
-echo "🚀 Starting Vite dev server on port 8086..."
+echo "🚀 Starting Next.js dev server on port 8086..."
 npm run dev
 

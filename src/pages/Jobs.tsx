@@ -23,7 +23,7 @@ import { Job } from '@/types/database';
 import { useRouter } from 'next/navigation';
 // Removed deprecated jobStatus import - using statusUtils instead
 import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
-// Temporarily avoid Tooltip to resolve Vite optimize dep error
+// Temporarily avoid Tooltip to resolve bundler optimize dep error
 import { serverAIService } from '@/services/serverAIService';
 import { formatLocation } from '@/utils/locationDisplay';
 import { format } from 'date-fns';

@@ -1,7 +1,7 @@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Advanced caching configuration
 export const CACHE_CONFIG = {
@@ -122,7 +122,7 @@ export function useAdvancedCaching<T>(
   // Prefetch related data
   const prefetchRelated = useCallback(
     async (
-      relatedQueries: Array<{ key: string[]; fn: () => Promise<any> }>
+      relatedQueries: Array<{ key: string[]; fn: () => Promise<unknown> }>
     ) => {
       const prefetchPromises = relatedQueries.map(({ key, fn }) =>
         queryClient.prefetchQuery({
@@ -140,7 +140,7 @@ export function useAdvancedCaching<T>(
   // Cache warming for critical data
   const warmCache = useCallback(
     async (
-      criticalQueries: Array<{ key: string[]; fn: () => Promise<any> }>
+      criticalQueries: Array<{ key: string[]; fn: () => Promise<unknown> }>
     ) => {
       const warmPromises = criticalQueries.map(({ key, fn }) =>
         queryClient.prefetchQuery({
@@ -156,12 +156,18 @@ export function useAdvancedCaching<T>(
     [queryClient]
   );
 
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    setRetryCount(retryCountRef.current);
+  }, [query.isFetching, query.isError]);
+
   return {
     ...query,
     invalidateCache,
     prefetchRelated,
     warmCache,
-    retryCount: retryCountRef.current,
+    retryCount,
   };
 }
 
@@ -169,23 +175,23 @@ export function useAdvancedCaching<T>(
 export function useOptimisticMutation<TData, TVariables>(
   mutationFn: (variables: TVariables) => Promise<TData>,
   options: {
-    onMutate?: (variables: TVariables) => Promise<any>;
+    onMutate?: (variables: TVariables) => Promise<unknown>;
     onError?: (
       error: Error,
       variables: TVariables,
-      context: any
-    ) => Promise<any>;
+      context: unknown
+    ) => Promise<unknown>;
     onSuccess?: (
       data: TData,
       variables: TVariables,
-      context: any
-    ) => Promise<any>;
+      context: unknown
+    ) => Promise<unknown>;
     onSettled?: (
       data: TData | undefined,
       error: Error | null,
       variables: TVariables,
-      context: any
-    ) => Promise<any>;
+      context: unknown
+    ) => Promise<unknown>;
     invalidateQueries?: string[][];
   } = {}
 ) {

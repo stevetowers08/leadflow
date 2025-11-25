@@ -86,6 +86,7 @@ export const usePagination = (
 
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
     }
 
     const visiblePages = Array.from(

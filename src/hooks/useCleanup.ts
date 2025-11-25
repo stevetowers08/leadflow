@@ -3,7 +3,7 @@
  * Prevents memory leaks by ensuring proper cleanup of timers, listeners, and subscriptions
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 
 interface CleanupItem {
   id: string;
@@ -49,6 +49,12 @@ export function useCleanup() {
     isCleanedUp.current = true;
   }, []);
 
+  const [cleanupCount, setCleanupCount] = useState(0);
+
+  useEffect(() => {
+    setCleanupCount(cleanupItems.current.length);
+  }, [cleanupItems.current.length]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -60,7 +66,7 @@ export function useCleanup() {
     addCleanup,
     removeCleanup,
     clearAllCleanup,
-    cleanupCount: cleanupItems.current.length,
+    cleanupCount,
   };
 }
 
@@ -70,6 +76,18 @@ export function useCleanup() {
 export function useTimeout() {
   const { addCleanup, removeCleanup } = useCleanup();
   const timeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  const clearTimeoutFn = useCallback(
+    (id: string) => {
+      const timeoutId = timeouts.current.get(id);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeouts.current.delete(id);
+        removeCleanup(id);
+      }
+    },
+    [removeCleanup]
+  );
 
   const setCleanupTimeout = useCallback(
     (id: string, callback: () => void, delay: number) => {
@@ -97,22 +115,10 @@ export function useTimeout() {
 
       return timeoutId;
     },
-    [addCleanup, removeCleanup]
+    [addCleanup, removeCleanup, clearTimeoutFn]
   );
 
-  const clearTimeout = useCallback(
-    (id: string) => {
-      const timeoutId = timeouts.current.get(id);
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeouts.current.delete(id);
-        removeCleanup(id);
-      }
-    },
-    [removeCleanup]
-  );
-
-  return { setCleanupTimeout, clearTimeout };
+  return { setCleanupTimeout, clearTimeout: clearTimeoutFn };
 }
 
 /**
@@ -121,6 +127,18 @@ export function useTimeout() {
 export function useInterval() {
   const { addCleanup, removeCleanup } = useCleanup();
   const intervals = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  const clearIntervalFn = useCallback(
+    (id: string) => {
+      const intervalId = intervals.current.get(id);
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervals.current.delete(id);
+        removeCleanup(id);
+      }
+    },
+    [removeCleanup]
+  );
 
   const setCleanupInterval = useCallback(
     (id: string, callback: () => void, delay: number) => {
@@ -143,22 +161,10 @@ export function useInterval() {
 
       return intervalId;
     },
-    [addCleanup, removeCleanup]
+    [addCleanup, removeCleanup, clearIntervalFn]
   );
 
-  const clearInterval = useCallback(
-    (id: string) => {
-      const intervalId = intervals.current.get(id);
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervals.current.delete(id);
-        removeCleanup(id);
-      }
-    },
-    [removeCleanup]
-  );
-
-  return { setCleanupInterval, clearInterval };
+  return { setCleanupInterval, clearInterval: clearIntervalFn };
 }
 
 /**
@@ -222,10 +228,10 @@ export function useEventListener() {
  */
 export function useSupabaseSubscription() {
   const { addCleanup, removeCleanup } = useCleanup();
-  const subscriptions = useRef<Map<string, any>>(new Map());
+  const subscriptions = useRef<Map<string, { unsubscribe: () => void }>>(new Map());
 
   const addCleanupSubscription = useCallback(
-    (id: string, subscription: any) => {
+    (id: string, subscription: { unsubscribe: () => void }) => {
       // Remove existing subscription with same ID
       const existingSubscription = subscriptions.current.get(id);
       if (existingSubscription) {

@@ -11,7 +11,6 @@ Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, a
 - **Next.js 16.0.1** - App Router, Server Components, API Routes
 - **React 18.2** - Functional components, hooks, strict mode
 - **TypeScript 5.9** - Strict mode, no implicit any, proper null checks
-- **React Router 7.9** - Client-side routing (legacy routes, migrating to Next.js)
 
 ### State Management
 
@@ -38,7 +37,7 @@ Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, a
 - `@google/generative-ai` - Gemini AI for analysis
 - `@tanstack/react-table` - Data table management
 - `@dnd-kit` - Drag and drop
-- `chart.js` / `recharts` - Data visualization
+- `recharts` - Data visualization (standardized on Recharts)
 - `date-fns` - Date utilities
 - `clsx` / `tailwind-merge` - Class name utilities
 

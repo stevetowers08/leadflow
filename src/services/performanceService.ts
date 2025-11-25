@@ -30,9 +30,9 @@ export function usePerformanceMonitoring(_componentName: string) {
 
 // Stub error boundary - not used for JSX rendering
 export class ErrorBoundary {
-  constructor(_props: any) {}
-  render() {
-    return null as any;
+  constructor(_props: Record<string, unknown>) {}
+  render(): null {
+    return null;
   }
 }
 

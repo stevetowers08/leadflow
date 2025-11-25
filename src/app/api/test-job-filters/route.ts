@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import type { Tables } from '@/integrations/supabase/types';
+
+type JobWithCompany = Pick<
+  Tables<'jobs'>,
+  'id' | 'title' | 'location' | 'salary' | 'description' | 'created_at'
+> & {
+  companies: Pick<Tables<'companies'>, 'name'> | null;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +20,7 @@ export async function POST(request: NextRequest) {
     // Get recent jobs for testing
     const { data: testJobs, error } = await supabase
       .from('jobs')
-      .select(
+      .select<JobWithCompany>(
         `
         id,
         title,
@@ -45,7 +53,7 @@ export async function POST(request: NextRequest) {
     const jobsWithScores = filteredJobs.map(job => ({
       id: job.id,
       title: job.title,
-      company_name: (job.companies as any)?.name || 'Unknown',
+      company_name: job.companies?.name || 'Unknown',
       location: job.location,
       salary: job.salary,
       match_score: 0.85, // Simplified
