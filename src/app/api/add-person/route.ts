@@ -172,19 +172,19 @@ async function upsertPerson(
   personData: PersonData
 ) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('people')
       .upsert(
         {
           ...personData,
           updated_at: new Date().toISOString(),
-        },
+        } as any,
         {
           onConflict: 'linkedin_url,email_address',
           ignoreDuplicates: false,
         }
       )
-      .select();
+      .select());
 
     if (error) {
       console.error('Error upserting person:', error);
