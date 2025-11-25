@@ -67,7 +67,7 @@ async function insertPersonWithDuplicateHandling(
         ...personData,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      })
+      } as Record<string, unknown>)
       .select();
 
     if (!error) {
@@ -95,7 +95,7 @@ async function insertPersonWithDuplicateHandling(
             linkedin_url: uniqueLinkedInUrl,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          })
+          } as Record<string, unknown>)
           .select();
 
         if (uniqueError) {
@@ -134,7 +134,7 @@ async function insertPersonWithDuplicateHandling(
             email_address: uniqueEmail,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          })
+          } as Record<string, unknown>)
           .select();
 
         if (uniqueError) {
