@@ -94,9 +94,9 @@ Respond with JSON: {"replyType": "...", "confidence": 0.85, "reasoning": "..."}`
       reply_type: analysis.replyType,
       updated_at: new Date().toISOString(),
     };
-    const { error } = await supabase
-      .from('people')
-      .update(updateData as Database['public']['Tables']['people']['Update'])
+    const { error } = await (supabase
+      .from('people') as any)
+      .update(updateData)
       .eq('id', personId);
 
     if (error) {

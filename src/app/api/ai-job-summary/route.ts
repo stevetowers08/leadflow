@@ -93,9 +93,9 @@ export async function POST(request: NextRequest) {
       summary: geminiResponse.data.summary,
       updated_at: new Date().toISOString(),
     };
-    const { error: updateError } = await supabase
-      .from('jobs')
-      .update(updateData as Database['public']['Tables']['jobs']['Update'])
+    const { error: updateError } = await (supabase
+      .from('jobs') as any)
+      .update(updateData)
       .eq('id', jobId);
 
     if (updateError) {

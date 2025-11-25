@@ -66,9 +66,9 @@ async function insertPersonWithDuplicateHandling(
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
-      .from('people')
-      .insert(insertData as Database['public']['Tables']['people']['Insert'])
+    const { data, error } = await (supabase
+      .from('people') as any)
+      .insert(insertData)
       .select();
 
     if (!error) {
@@ -95,9 +95,9 @@ async function insertPersonWithDuplicateHandling(
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
-        const { data: uniqueData, error: uniqueError } = await supabase
-          .from('people')
-          .insert(uniqueInsertData as Database['public']['Tables']['people']['Insert'])
+        const { data: uniqueData, error: uniqueError } = await (supabase
+          .from('people') as any)
+          .insert(uniqueInsertData)
           .select();
 
         if (uniqueError) {
@@ -135,9 +135,9 @@ async function insertPersonWithDuplicateHandling(
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
-        const { data: uniqueData, error: uniqueError } = await supabase
-          .from('people')
-          .insert(uniqueEmailInsertData as Database['public']['Tables']['people']['Insert'])
+        const { data: uniqueData, error: uniqueError } = await (supabase
+          .from('people') as any)
+          .insert(uniqueEmailInsertData)
           .select();
 
         if (uniqueError) {
@@ -179,9 +179,9 @@ async function upsertPerson(
       ...personData,
       updated_at: new Date().toISOString(),
     };
-    const { data, error } = await supabase
-      .from('people')
-      .upsert(upsertData as Database['public']['Tables']['people']['Insert'], {
+    const { data, error } = await (supabase
+      .from('people') as any)
+      .upsert(upsertData, {
         onConflict: 'linkedin_url,email_address',
         ignoreDuplicates: false,
       })
