@@ -109,7 +109,7 @@ async function processEmailStep(
   const { data: emailAccount } = await supabase
     .from('email_accounts')
     .select('*')
-    .eq('user_id', sequence?.created_by)
+    .eq('user_id', (sequence as any)?.created_by)
     .eq('is_active', true)
     .limit(1)
     .single();
