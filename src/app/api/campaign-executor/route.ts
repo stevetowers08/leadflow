@@ -182,9 +182,9 @@ async function processEmailStep(
   const emailResult = await emailResponse.json();
   const now = new Date().toISOString();
 
-  await supabase.from('email_sends').insert({
+  await (supabase.from('email_sends') as any).insert({
     person_id: person.id,
-    email_account_id: emailAccount.id,
+    email_account_id: (emailAccount as any).id,
     gmail_message_id: emailResult.id,
     gmail_thread_id: emailResult.threadId,
     to_email: person.email_address,
@@ -193,10 +193,10 @@ async function processEmailStep(
     sent_at: now,
   });
 
-  await supabase
-    .from('campaign_sequence_executions')
+  await (supabase
+    .from('campaign_sequence_executions') as any)
     .update({ status: 'sent', executed_at: now })
-    .eq('id', execution.id);
+    .eq('id', (execution as any).id);
 
   await scheduleNextStep(supabase, execution);
 }
@@ -206,10 +206,10 @@ async function processWaitStep(
   execution: CampaignExecution
 ) {
   const step = execution.campaign_sequence_steps;
-  await supabase
-    .from('campaign_sequence_executions')
+  await (supabase
+    .from('campaign_sequence_executions') as any)
     .update({ status: 'sent', executed_at: new Date().toISOString() })
-    .eq('id', execution.id);
+    .eq('id', (execution as any).id);
   await scheduleNextStep(supabase, execution, step.wait_duration, step.wait_unit);
 }
 
@@ -220,10 +220,10 @@ async function processConditionStep(
   const step = execution.campaign_sequence_steps;
   const conditionResult = await evaluateCondition(supabase, execution, step);
 
-  await supabase
-    .from('campaign_sequence_executions')
+  await (supabase
+    .from('campaign_sequence_executions') as any)
     .update({ status: 'sent', executed_at: new Date().toISOString() })
-    .eq('id', execution.id);
+    .eq('id', (execution as any).id);
 
   const nextStepId = conditionResult ? step.true_next_step_id : step.false_next_step_id;
   if (nextStepId) {
@@ -280,10 +280,10 @@ async function evaluateCondition(
     const hasReplied = !!recentReply && recentReply.length > 0;
 
     if (hasReplied) {
-      await supabase
-        .from('campaign_sequence_leads')
+      await (supabase
+        .from('campaign_sequence_leads') as any)
         .update({ status: 'paused' })
-        .eq('id', execution.sequence_lead_id);
+        .eq('id', (execution as any).sequence_lead_id);
     }
 
     return hasReplied;
@@ -332,20 +332,20 @@ async function scheduleNextStep(
   }
 
   if (nextStepId) {
-    await supabase.from('campaign_sequence_executions').insert({
-      sequence_lead_id: execution.sequence_lead_id,
+    await (supabase.from('campaign_sequence_executions') as any).insert({
+      sequence_lead_id: (execution as any).sequence_lead_id,
       step_id: nextStepId,
       status: 'pending',
       executed_at: scheduledAt.toISOString(),
     });
   } else {
-    await supabase
-      .from('campaign_sequence_leads')
+    await (supabase
+      .from('campaign_sequence_leads') as any)
       .update({
         status: 'completed',
         completed_at: new Date().toISOString(),
       })
-      .eq('id', execution.sequence_lead_id);
+      .eq('id', (execution as any).sequence_lead_id);
   }
 }
 
