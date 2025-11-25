@@ -17,7 +17,7 @@ interface GmailNotification {
 }
 
 interface SentimentAnalysis {
-  sentiment: 'positive' | 'negative' | 'neutral' | 'question' | 'out_of_office';
+  sentiment: 'interested' | 'not_interested' | 'maybe' | 'out_of_office';
   confidence: number;
   reasoning: string;
 }
