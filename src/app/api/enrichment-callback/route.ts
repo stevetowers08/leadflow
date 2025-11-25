@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface EnrichmentCallbackPayload {
   event_type: 'enrichment_completed' | string;
@@ -57,11 +58,11 @@ export async function POST(request: NextRequest) {
     let resolvedCompanyId = companyId || '';
 
     if (!companyName || !resolvedCompanyId) {
-      const { data: company } = await supabase
-        .from('companies')
+      const { data: company } = await (supabase
+        .from('companies') as any)
         .select('id, name')
         .eq('id', companyId || '')
-        .maybeSingle();
+        .maybeSingle() as Promise<{ data: Pick<Tables<'companies'>, 'id' | 'name'> | null }>;
       if (company) {
         companyName = company.name || companyName;
         resolvedCompanyId = company.id || resolvedCompanyId;
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     // Create notification if user found
     if (userIdToNotify) {
-      await supabase.from('user_notifications').insert({
+      await (supabase.from('user_notifications') as any).insert({
         user_id: userIdToNotify,
         type: 'enrichment_completed',
         priority: 'medium',
