@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 4: Create client record
-    const { data: clientData, error: clientError } = await adminClient
-      .from('clients')
+    const { data: clientData, error: clientError } = await (adminClient
+      .from('clients') as any)
       .insert({
         name: name,
         email: email,
