@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     // Call Google Gemini API from server
     const geminiResponse = await callGeminiAPI(geminiApiKey, jobData);
 
-    if (!geminiResponse.success) {
+    if (!geminiResponse.success || !geminiResponse.data) {
       // Return appropriate status code based on error type
       const statusCode = 
         geminiResponse.error?.includes('Missing environment variables') ||
