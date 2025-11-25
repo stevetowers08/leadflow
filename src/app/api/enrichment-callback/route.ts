@@ -72,13 +72,13 @@ export async function POST(request: NextRequest) {
     // Find user to notify
     let userIdToNotify: string | null = null;
     if (jobId && body.client_id) {
-      const { data: cj } = await supabase
-        .from('client_jobs')
+      const { data: cj } = await (supabase
+        .from('client_jobs') as any)
         .select('qualified_by')
         .eq('job_id', jobId)
         .eq('client_id', body.client_id)
         .maybeSingle();
-      userIdToNotify = (cj?.qualified_by as string) || null;
+      userIdToNotify = (cj as Pick<Tables<'client_jobs'>, 'qualified_by'> | null)?.qualified_by || null;
     }
 
     // Create notification if user found
