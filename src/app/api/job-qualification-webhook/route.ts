@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
       };
 
       if (N8N_WEBHOOK_SECRET) {
-        const signature = await generateWebhookSignature(payload, N8N_WEBHOOK_SECRET);
+        const signature = await generateWebhookSignature(payload as Record<string, unknown>, N8N_WEBHOOK_SECRET);
         webhookHeaders['X-Webhook-Signature'] = signature;
       }
 
