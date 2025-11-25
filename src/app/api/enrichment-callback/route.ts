@@ -62,10 +62,10 @@ export async function POST(request: NextRequest) {
         .from('companies') as any)
         .select('id, name')
         .eq('id', companyId || '')
-        .maybeSingle() as Promise<{ data: Pick<Tables<'companies'>, 'id' | 'name'> | null }>;
+        .maybeSingle();
       if (company) {
-        companyName = company.name || companyName;
-        resolvedCompanyId = company.id || resolvedCompanyId;
+        companyName = (company as Pick<Tables<'companies'>, 'id' | 'name'>).name || companyName;
+        resolvedCompanyId = (company as Pick<Tables<'companies'>, 'id' | 'name'>).id || resolvedCompanyId;
       }
     }
 
