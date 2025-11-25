@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     // Process executions
     for (const execution of pendingExecutions) {
       try {
-        await processExecution(supabase, execution);
+        await processExecution(supabase, execution as any);
       } catch (error) {
         await supabase
           .from('campaign_sequence_executions')
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
             status: 'failed',
             error_message: error instanceof Error ? error.message : 'Unknown error',
           })
-          .eq('id', execution.id);
+          .eq('id', (execution as any).id);
       }
     }
 
