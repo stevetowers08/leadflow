@@ -36,7 +36,8 @@ export async function OPTIONS() {
 }
 
 async function processGmailReply(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   messageId: string,
   accessToken: string
 ) {

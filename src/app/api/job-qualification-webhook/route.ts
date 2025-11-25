@@ -71,7 +71,8 @@ async function generateWebhookSignature(
  * Log webhook events for debugging and monitoring
  */
 async function logWebhookEvent(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   jobId: string,
   payload: JobQualificationPayload,
   responseStatus: number,

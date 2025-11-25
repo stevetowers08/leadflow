@@ -85,7 +85,8 @@ export async function POST(request: NextRequest) {
 }
 
 async function processExecution(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   execution: any
 ) {
   const step = execution.campaign_sequence_steps;
@@ -104,7 +105,11 @@ async function processExecution(
   }
 }
 
-async function processEmailStep(supabase: ReturnType<typeof createClient>, execution: any) {
+async function processEmailStep(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  execution: any
+) {
   const step = execution.campaign_sequence_steps;
   const person = execution.people;
   const lead = execution.campaign_sequence_leads;
@@ -181,7 +186,11 @@ async function processEmailStep(supabase: ReturnType<typeof createClient>, execu
   await scheduleNextStep(supabase, execution);
 }
 
-async function processWaitStep(supabase: ReturnType<typeof createClient>, execution: any) {
+async function processWaitStep(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  execution: any
+) {
   const step = execution.campaign_sequence_steps;
   await supabase
     .from('campaign_sequence_executions')
@@ -190,7 +199,11 @@ async function processWaitStep(supabase: ReturnType<typeof createClient>, execut
   await scheduleNextStep(supabase, execution, step.wait_duration, step.wait_unit);
 }
 
-async function processConditionStep(supabase: ReturnType<typeof createClient>, execution: any) {
+async function processConditionStep(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  execution: any
+) {
   const step = execution.campaign_sequence_steps;
   const conditionResult = await evaluateCondition(supabase, execution, step);
 
@@ -233,7 +246,8 @@ function calculateWaitHours(duration: number | undefined, unit: string | undefin
 }
 
 async function evaluateCondition(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   execution: any,
   step: any
 ): Promise<boolean> {
@@ -263,7 +277,8 @@ async function evaluateCondition(
 }
 
 async function scheduleNextStep(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   execution: any,
   waitDuration?: number,
   waitUnit?: string,
