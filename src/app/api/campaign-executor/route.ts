@@ -116,7 +116,7 @@ async function processEmailStep(
 
   if (!emailAccount) throw new Error('No active Gmail account');
 
-  const accessToken = Buffer.from(emailAccount.access_token, 'base64').toString('utf-8');
+  const accessToken = Buffer.from((emailAccount as any).access_token, 'base64').toString('utf-8');
 
   // Send email via Gmail API
   const message = [
@@ -153,7 +153,7 @@ async function processEmailStep(
 
   await supabase.from('email_sends').insert({
     person_id: person.id,
-    email_account_id: emailAccount.id,
+    email_account_id: (emailAccount as any).id,
     gmail_message_id: emailResult.id,
     gmail_thread_id: emailResult.threadId,
     to_email: person.email_address,
