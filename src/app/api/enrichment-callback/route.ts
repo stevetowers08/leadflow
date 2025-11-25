@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { APIErrorHandler } from '@/lib/api-error-handler';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 interface EnrichmentCallbackPayload {
   event_type: 'enrichment_completed' | string;
@@ -28,21 +28,7 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    const envCheck = APIErrorHandler.validateEnvVars([
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-    ]);
-
-    if (!envCheck.allPresent) {
-      return APIErrorHandler.handleError(
-        new Error(`Missing environment variables: ${envCheck.missing.join(', ')}`),
-        'enrichment-callback'
-      );
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServerSupabaseClient();
 
     const body: EnrichmentCallbackPayload = await request.json();
 

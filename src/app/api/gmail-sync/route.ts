@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { APIErrorHandler } from '@/lib/api-error-handler';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -98,21 +98,7 @@ async function sendEmail(accessToken: string, emailData: any, userId: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const envCheck = APIErrorHandler.validateEnvVars([
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-    ]);
-
-    if (!envCheck.allPresent) {
-      return APIErrorHandler.handleError(
-        new Error(`Missing environment variables: ${envCheck.missing.join(', ')}`),
-        'gmail-sync'
-      );
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServerSupabaseClient();
 
     const body = await request.json();
     const { userId, accessToken, operation, emailData } = body;
@@ -183,9 +169,7 @@ export async function POST(request: NextRequest) {
 
     // Log error to database
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      const supabase = createServerSupabaseClient();
 
       await supabase.from('email_sync_logs').insert({
         operation_type: 'function_error',

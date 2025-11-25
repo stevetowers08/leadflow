@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { APIErrorHandler } from '@/lib/api-error-handler';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 interface JobQualificationRequest {
   job_id: string;
@@ -71,8 +71,7 @@ async function generateWebhookSignature(
  * Log webhook events for debugging and monitoring
  */
 async function logWebhookEvent(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   jobId: string,
   payload: JobQualificationPayload,
   responseStatus: number,
@@ -106,22 +105,7 @@ async function logWebhookEvent(
 
 export async function POST(request: NextRequest) {
   try {
-    // Validate environment variables
-    const envCheck = APIErrorHandler.validateEnvVars([
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-    ]);
-
-    if (!envCheck.allPresent) {
-      return APIErrorHandler.handleError(
-        new Error(`Missing environment variables: ${envCheck.missing.join(', ')}`),
-        'job-qualification-webhook'
-      );
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServerSupabaseClient();
 
     // Parse request body
     let bodyText: string;

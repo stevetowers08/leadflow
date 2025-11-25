@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { APIErrorHandler } from '@/lib/api-error-handler';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 interface ChatRequest {
   message: string;
@@ -32,8 +32,7 @@ function generateConversationId(): string {
 }
 
 async function queryRelevantData(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   message: string
 ) {
   // Simplified: query recent jobs, people, companies
@@ -101,11 +100,7 @@ async function callGeminiAPI(geminiApiKey: string, prompt: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const envCheck = APIErrorHandler.validateEnvVars([
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-      'GEMINI_API_KEY',
-    ]);
+    const envCheck = APIErrorHandler.validateEnvVars(['GEMINI_API_KEY']);
 
     if (!envCheck.allPresent) {
       return APIErrorHandler.handleError(
@@ -114,9 +109,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServerSupabaseClient();
     const geminiApiKey = process.env.GEMINI_API_KEY!;
 
     const body: ChatRequest = await request.json();

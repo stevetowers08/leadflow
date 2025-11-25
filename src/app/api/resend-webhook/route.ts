@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { APIErrorHandler } from '@/lib/api-error-handler';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 interface ResendWebhookEvent {
   type: string;
@@ -28,21 +28,7 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    const envCheck = APIErrorHandler.validateEnvVars([
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-    ]);
-
-    if (!envCheck.allPresent) {
-      return APIErrorHandler.handleError(
-        new Error(`Missing environment variables: ${envCheck.missing.join(', ')}`),
-        'resend-webhook'
-      );
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServerSupabaseClient();
 
     // Get raw body for signature verification
     const bodyText = await request.text();
@@ -79,8 +65,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function processWebhookEvent(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   event: ResendWebhookEvent
 ) {
   try {

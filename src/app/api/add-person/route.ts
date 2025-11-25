@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { APIErrorHandler } from '@/lib/api-error-handler';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 interface PersonData {
   name: string;
@@ -167,8 +167,7 @@ async function insertPersonWithDuplicateHandling(
  * Alternative approach: Use upsert with conflict resolution
  */
 async function upsertPerson(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   personData: PersonData
 ) {
   try {
@@ -201,24 +200,7 @@ async function upsertPerson(
 
 export async function POST(request: NextRequest) {
   try {
-    // Validate environment variables
-    const envCheck = APIErrorHandler.validateEnvVars([
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-    ]);
-
-    if (!envCheck.allPresent) {
-      return APIErrorHandler.handleError(
-        new Error(
-          `Missing environment variables: ${envCheck.missing.join(', ')}`
-        ),
-        'add-person'
-      );
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServerSupabaseClient();
 
     // Parse request body
     const personData: PersonData = await request.json();

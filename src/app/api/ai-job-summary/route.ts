@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { APIErrorHandler } from '@/lib/api-error-handler';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 interface JobData {
   id: string;
@@ -39,11 +39,7 @@ export async function OPTIONS() {
 export async function POST(request: NextRequest) {
   try {
     // Validate environment variables
-    const envCheck = APIErrorHandler.validateEnvVars([
-      'GEMINI_API_KEY',
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-    ]);
+    const envCheck = APIErrorHandler.validateEnvVars(['GEMINI_API_KEY']);
 
     if (!envCheck.allPresent) {
       return APIErrorHandler.handleError(
@@ -89,10 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update Supabase database with AI-generated summary
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServerSupabaseClient();
 
     // Update the job record
     const { error: updateError } = await supabase

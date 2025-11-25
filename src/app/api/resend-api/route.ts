@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { APIErrorHandler } from '@/lib/api-error-handler';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,11 +17,7 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    const envCheck = APIErrorHandler.validateEnvVars([
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-      'RESEND_API_KEY',
-    ]);
+    const envCheck = APIErrorHandler.validateEnvVars(['RESEND_API_KEY']);
 
     if (!envCheck.allPresent) {
       return APIErrorHandler.handleError(
@@ -30,9 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServerSupabaseClient();
     const resendApiKey = process.env.RESEND_API_KEY!;
 
     const url = new URL(request.url);
