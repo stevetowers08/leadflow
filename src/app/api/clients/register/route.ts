@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 3: Create user profile
-    const { data: profileData, error: profileError } = await adminClient
-      .from('user_profiles')
+    const { data: profileData, error: profileError } = await (adminClient
+      .from('user_profiles') as any)
       .insert({
         id: userId,
         email: email,
