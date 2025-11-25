@@ -144,18 +144,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 6: Create default job filter config (optional, non-critical)
-    await adminClient
-      .from('job_filter_configs')
-      .insert({
-        client_id: clientData.id,
-        user_id: userId,
-        config_name: 'Default Configuration',
-        platform: 'linkedin',
-        is_active: true,
-      })
-      .catch(err => {
-        console.warn('Failed to create default filter config (non-critical):', err);
-      });
+    try {
+      await adminClient
+        .from('job_filter_configs')
+        .insert({
+          client_id: clientData.id,
+          user_id: userId,
+          config_name: 'Default Configuration',
+          platform: 'linkedin',
+          is_active: true,
+        });
+    } catch (err) {
+      console.warn('Failed to create default filter config (non-critical):', err);
+    }
 
     return NextResponse.json({
       success: true,
