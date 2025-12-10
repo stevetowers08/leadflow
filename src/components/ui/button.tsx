@@ -14,13 +14,13 @@ const buttonVariants = cva(
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md',
         outline:
-          'border border-border bg-background hover:bg-gray-100 transition-colors', // Unified gray-100 hover
+          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
         secondary:
-          'bg-gray-100 text-foreground hover:bg-gray-200 transition-colors', // Medium gray hover
-        ghost: 'text-foreground hover:bg-gray-100 transition-colors', // Unified gray-100 hover for subtle actions
+          'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
         actionbar:
-          'border border-border bg-background hover:bg-gray-100 transition-colors', // Unified gray-100 hover to match dropdowns
+          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
         danger:
           'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md', // Alias for destructive
         success:

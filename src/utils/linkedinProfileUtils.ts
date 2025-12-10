@@ -13,6 +13,8 @@
  * @param textColor - Text color (optional)
  * @returns UI Avatars URL
  */
+import { API_URLS } from '@/constants/urls';
+
 export const getUIAvatarUrl = (
   name: string | null | undefined,
   size: number = 32,
@@ -20,7 +22,7 @@ export const getUIAvatarUrl = (
   textColor: string = 'ffffff' // White
 ): string => {
   const initials = getInitials(name);
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=${size}&background=${backgroundColor}&color=${textColor}&format=png`;
+  return API_URLS.UI_AVATARS(initials, size, backgroundColor, textColor);
 };
 
 /**

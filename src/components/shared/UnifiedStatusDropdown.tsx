@@ -28,7 +28,7 @@ import React, { useState } from 'react';
 
 export interface UnifiedStatusDropdownProps {
   entityId: string;
-  entityType: 'people' | 'companies' | 'jobs';
+  entityType: 'people' | 'companies' | 'jobs' | 'leads';
   currentStatus: string;
   availableStatuses: string[];
   onStatusChange?: () => void;
@@ -209,12 +209,23 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
             })();
           }
         } else {
-          // People and Companies update directly
-          const statusField =
-            entityType === 'people' ? 'people_stage' : 'pipeline_stage';
+          // People, Companies, and Leads update directly
+          let statusField: string;
+          let tableName: string;
+          
+          if (entityType === 'leads') {
+            tableName = 'leads';
+            statusField = 'status'; // PDR Section 7: leads table uses 'status' field
+          } else if (entityType === 'people') {
+            tableName = 'people';
+            statusField = 'people_stage';
+          } else {
+            tableName = entityType;
+            statusField = 'pipeline_stage';
+          }
 
           const { error } = await supabase
-            .from(entityType)
+            .from(tableName)
             .update({
               [statusField]: newStatus,
               updated_at: new Date().toISOString(),

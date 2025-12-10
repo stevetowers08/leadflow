@@ -39,10 +39,10 @@ export const DropdownSelect = ({
       onValueChange={onValueChange}
       disabled={disabled || loading}
     >
-      <SelectTrigger className={cn('w-full text-foreground', className)}>
+      <SelectTrigger className={cn('w-full', className)}>
         <SelectValue placeholder={loading ? 'Loading...' : placeholder} />
       </SelectTrigger>
-      <SelectContent className='bg-background/95 backdrop-blur-sm border border-border shadow-lg'>
+      <SelectContent>
         {options.map(option => {
           const optionValue = isReferenceOption(option)
             ? option.id
@@ -60,10 +60,7 @@ export const DropdownSelect = ({
             <SelectItem
               key={optionValue}
               value={optionValue}
-              className={cn(
-                'cursor-pointer text-foreground',
-                !isReferenceOption(option) && option.color
-              )}
+              className={!isReferenceOption(option) && option.color ? option.color : undefined}
             >
               {optionLabel}
             </SelectItem>

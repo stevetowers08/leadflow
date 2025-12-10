@@ -34,6 +34,7 @@ import {
   bulkSyncToCRM,
 } from '@/services/bulk/bulkPeopleService';
 import { Company, Job, Person } from '@/types/database';
+import { getErrorMessage } from '@/lib/utils';
 import {
   Building2,
   Calendar,
@@ -509,10 +510,24 @@ const CompanyDetailsSlideOutComponent: React.FC<
           .eq('status', 'active')
           .order('name', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+          // Check if table doesn't exist
+          if (error.message?.includes('schema cache') || error.message?.includes('does not exist')) {
+            console.warn('[CompanyDetailsSlideOut] campaign_sequences table not found. Migration may not have been run.');
+            setCampaigns([]);
+            return;
+          }
+          throw error;
+        }
         setCampaigns(data || []);
       } catch (error) {
-        console.error('Error fetching campaigns:', error);
+        // Only log non-table-missing errors
+        const errorMessage = getErrorMessage(error);
+        if (!errorMessage.includes('schema cache') && !errorMessage.includes('does not exist')) {
+          console.error('[CompanyDetailsSlideOut] Error fetching campaigns:', errorMessage, error);
+        }
+        // Set empty array to prevent UI errors
+        setCampaigns([]);
       }
     };
 

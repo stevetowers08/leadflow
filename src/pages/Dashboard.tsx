@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 /**
  * Daily Dashboard - Morning View
@@ -6,46 +6,44 @@
  */
 
 import { ClearbitLogoSync } from '@/components/ClearbitLogo';
-import { ScrollToTopButton } from '@/components/shared/ScrollToTopButton';
 import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
 import { Card } from '@/components/ui/card';
 import { Page } from '@/design-system/components';
 import { useClientId } from '@/hooks/useClientId';
-import {
-  useDashboardChartData,
-  useDashboardData,
-} from '@/hooks/useDashboardData';
-import { cn } from '@/lib/utils';
-import type {
-  DashboardActivityData,
-  DashboardJobsData,
-} from '@/services/dashboardDataService';
+import { supabase } from '@/integrations/supabase/client';
+import { getErrorMessage } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import {
-  Activity,
-  Briefcase,
-  Building2,
-  Calendar,
-  FileText,
-  Mail,
-  Users,
-} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { useJobDiscoveryMetrics } from '@/hooks/useSupabaseData';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useState } from 'react';
-import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { motion } from 'framer-motion';
+import React from 'react';
+import { ScrollToTopButton } from '@/components/shared/ScrollToTopButton';
 
-// Use types from service
-type Job = DashboardJobsData;
-type ActivityItem = DashboardActivityData;
+interface Job {
+  id: string;
+  title: string;
+  qualification_status: string;
+  created_at: string;
+  companies?: {
+    id: string;
+    name: string;
+    website?: string;
+    head_office?: string;
+    industry?: string;
+    logo_url?: string;
+  };
+}
+
+interface EmailThread {
+  id: string;
+  gmail_thread_id: string;
+  subject: string | null;
+  last_message_at: string | null;
+  is_read: boolean | null;
+  person_id: string | null;
+  participants: unknown;
+}
 
 // Removed pipeline snapshot UI per request
 
@@ -59,10 +57,10 @@ const Dashboard: React.FC = () => {
 
   if (!isMounted) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-muted'>
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
-          <p className='text-muted-foreground'>Loading dashboard...</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading dashboard...</p>
         </div>
       </div>
     );
@@ -73,48 +71,254 @@ const Dashboard: React.FC = () => {
 
 function DashboardContent() {
   const router = useRouter();
-  const { data: clientId } = useClientId();
-
-  // Use React Query hooks for data fetching (long-term solution)
-  const {
-    data: dashboardData,
-    isLoading: loading,
-    error: dashboardError,
-  } = useDashboardData();
-
-  const { data: chartData = [], isLoading: chartLoading } =
-    useDashboardChartData(true); // Load chart data in background
+  const { data: clientId, isLoading: clientIdLoading } = useClientId();
+  const [jobsToReview, setJobsToReview] = useState<Job[]>([]);
+  const [emailReplies, setEmailReplies] = useState<EmailThread[]>([]);
+  const [newLeadsToday, setNewLeadsToday] = useState<number>(0);
+  const [newCompaniesToday, setNewCompaniesToday] = useState<number>(0);
+  // Past week metrics
+  const [newJobsPastWeek, setNewJobsPastWeek] = useState<number>(0);
+  const [qualifiedCompaniesPastWeek, setQualifiedCompaniesPastWeek] =
+    useState<number>(0);
+  const [peopleAddedPastWeek, setPeopleAddedPastWeek] = useState<number>(0);
+  // Last week for trend comparison
+  const [newJobsLastWeek, setNewJobsLastWeek] = useState<number>(0);
+  const [qualifiedCompaniesLastWeek, setQualifiedCompaniesLastWeek] =
+    useState<number>(0);
+  const [peopleAddedLastWeek, setPeopleAddedLastWeek] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [isJobSlideOutOpen, setIsJobSlideOutOpen] = useState(false);
 
-  // Extract data with defaults
-  const jobsToReview = dashboardData?.jobsToReview || [];
-  const activities = dashboardData?.activities || [];
-  const newLeadsToday = dashboardData?.newLeadsToday || 0;
-  const newCompaniesToday = dashboardData?.newCompaniesToday || 0;
-  const error = dashboardError
-    ? dashboardError instanceof Error
-      ? dashboardError.message
-      : 'Failed to load dashboard data'
-    : null;
+  // Job discovery KPIs for Today and Week
+  const { data: jobKpis, isLoading: jobKpisLoading } = useJobDiscoveryMetrics();
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Don't load if clientId is still loading or not available
+        if (clientIdLoading || !clientId) {
+          setLoading(false);
+          return;
+        }
+
+        const twoDaysAgo = new Date(
+          Date.now() - 48 * 60 * 60 * 1000
+        ).toISOString();
+
+        const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
+        const [
+          jobsRes,
+          threadsRes,
+          leadsTodayRes,
+          companiesTodayRes,
+          jobsWeekRes,
+          repliesWeekRes,
+          progressedWeekRes,
+          jobsLastWeekRes,
+          repliesLastWeekRes,
+          progressedLastWeekRes,
+        ] = await Promise.all([
+          supabase
+            .from('jobs')
+            .select(
+              'id, title, qualification_status, created_at, companies!jobs_company_id_fkey(id, name, website, head_office, industry, logo_url)'
+            )
+            .eq('qualification_status', 'new')
+            .gte('created_at', twoDaysAgo)
+            .order('created_at', { ascending: false })
+            .limit(10),
+          supabase
+            .from('email_threads')
+            .select(
+              'id, gmail_thread_id, subject, last_message_at, is_read, person_id, participants'
+            )
+            .eq('is_read', false)
+            .order('last_message_at', { ascending: false })
+            .limit(10),
+          supabase
+            .from('people')
+            .select('id, created_at')
+            .gte('created_at', new Date().toISOString().split('T')[0]),
+          supabase
+            .from('companies')
+            .select('id, created_at')
+            .gte('created_at', new Date().toISOString().split('T')[0]),
+          // Past week metrics
+          supabase
+            .from('jobs')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', oneWeekAgo.toISOString()),
+          supabase
+            .from('client_companies')
+            .select('*', { count: 'exact', head: true })
+            .eq('client_id', clientId)
+            .eq('qualification_status', 'qualify')
+            .gte('qualified_at', oneWeekAgo.toISOString()),
+          supabase
+            .from('people')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', oneWeekAgo.toISOString()),
+          // Last week metrics for trend calculation
+          supabase
+            .from('jobs')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', twoWeeksAgo.toISOString())
+            .lt('created_at', oneWeekAgo.toISOString()),
+          supabase
+            .from('client_companies')
+            .select('*', { count: 'exact', head: true })
+            .eq('client_id', clientId)
+            .eq('qualification_status', 'qualify')
+            .gte('qualified_at', twoWeeksAgo.toISOString())
+            .lt('qualified_at', oneWeekAgo.toISOString()),
+          supabase
+            .from('people')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', twoWeeksAgo.toISOString())
+            .lt('created_at', oneWeekAgo.toISOString()),
+        ]);
+
+        // Check for errors and log them, but continue with partial data
+        const errors: string[] = [];
+        if (jobsRes.error) {
+          const errorMsg = getErrorMessage(jobsRes.error);
+          console.error('Jobs query error:', errorMsg, jobsRes.error);
+          errors.push(`Jobs: ${errorMsg}`);
+        }
+        if (threadsRes.error) {
+          const errorMsg = getErrorMessage(threadsRes.error);
+          console.error('Threads query error:', errorMsg, threadsRes.error);
+          errors.push(`Email threads: ${errorMsg}`);
+        }
+        if (leadsTodayRes.error) {
+          const errorMsg = getErrorMessage(leadsTodayRes.error);
+          console.error('Leads today query error:', errorMsg, leadsTodayRes.error);
+          errors.push(`Leads: ${errorMsg}`);
+        }
+        if (companiesTodayRes.error) {
+          console.error(
+            'Companies today query error:',
+            companiesTodayRes.error
+          );
+          errors.push(
+            `Companies: ${companiesTodayRes.error.message || companiesTodayRes.error.code || 'Unknown error'}`
+          );
+        }
+
+        // Log all errors for debugging
+        if (errors.length > 0) {
+          console.error('Dashboard load errors:', {
+            jobs: jobsRes.error,
+            threads: threadsRes.error,
+            leads: leadsTodayRes.error,
+            companies: companiesTodayRes.error,
+          });
+          // Set error message but don't throw - allow partial data to display
+          setError(`Some data failed to load: ${errors.join('; ')}`);
+        }
+
+        // Transform the jobs data to flatten the companies array if present
+        // Handle case where jobs query failed - use empty array
+        const transformedJobs = (jobsRes.data || []).map(
+          (job: {
+            companies?:
+              | Array<unknown>
+              | {
+                  id: string;
+                  name: string;
+                  website?: string;
+                  head_office?: string;
+                  industry?: string;
+                  logo_url?: string;
+                };
+            [key: string]: unknown;
+          }) => ({
+            ...job,
+            companies: Array.isArray(job.companies)
+              ? job.companies[0] || null
+              : job.companies,
+          })
+        );
+        // Set data, using empty arrays/0 if queries failed
+        setJobsToReview(transformedJobs as Job[]);
+        setEmailReplies((threadsRes.data || []) as EmailThread[]);
+        setNewLeadsToday(
+          leadsTodayRes.error ? 0 : leadsTodayRes.data?.length || 0
+        );
+        setNewCompaniesToday(
+          companiesTodayRes.error ? 0 : companiesTodayRes.data?.length || 0
+        );
+
+        // Past week metrics are optional; default to 0 on error
+        setNewJobsPastWeek(jobsWeekRes.error ? 0 : jobsWeekRes.count || 0);
+        setQualifiedCompaniesPastWeek(
+          repliesWeekRes.error ? 0 : repliesWeekRes.count || 0
+        );
+        setPeopleAddedPastWeek(
+          progressedWeekRes.error ? 0 : progressedWeekRes.count || 0
+        );
+
+        // Last week metrics for trends
+        setNewJobsLastWeek(
+          jobsLastWeekRes.error ? 0 : jobsLastWeekRes.count || 0
+        );
+        setQualifiedCompaniesLastWeek(
+          repliesLastWeekRes.error ? 0 : repliesLastWeekRes.count || 0
+        );
+        setPeopleAddedLastWeek(
+          progressedLastWeekRes.error ? 0 : progressedLastWeekRes.count || 0
+        );
+      } catch (e) {
+        const errorMessage = getErrorMessage(e) || 'Failed to load dashboard data';
+        console.error('Dashboard load error:', errorMessage, e);
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (!clientIdLoading) {
+      load();
+    }
+  }, [clientId, clientIdLoading]);
 
   const handleJobClick = useCallback((jobId: string) => {
     setSelectedJobId(jobId);
     setIsJobSlideOutOpen(true);
   }, []);
 
-  const handleActivityClick = useCallback(
-    (activity: ActivityItem) => {
-      if (activity.type === 'email_reply' || activity.type === 'email') {
-        // For email activities, navigate to conversations
-        router.push(
-          `/conversations${activity.person_id ? `?person=${activity.person_id}` : ''}`
-        );
-      } else if (activity.person_id) {
-        router.push(`/people/${activity.person_id}`);
-      } else {
-        router.push('/conversations');
+  const handleEmailClick = useCallback(
+    (threadId: string) => {
+      router.push(`/crm/communications?thread=${threadId}`);
+    },
+    [router]
+  );
+
+  // Calculate trend percentage
+  const calculateTrend = (current: number, previous: number): string => {
+    if (previous === 0) {
+      return current > 0 ? 'New' : '0%';
+    }
+    const change = ((current - previous) / previous) * 100;
+    if (Math.abs(change) < 0.5) return '0%';
+    return `${change > 0 ? '+' : ''}${Math.round(change)}%`;
+  };
+
+  const handleWeeklyCardClick = useCallback(
+    (type: 'jobs' | 'companies' | 'people') => {
+      if (type === 'jobs') {
+        router.push('/jobs?tab=new');
+      } else if (type === 'companies') {
+        router.push('/companies');
+      } else if (type === 'people') {
+        router.push('/people');
       }
     },
     [router]
@@ -128,400 +332,286 @@ function DashboardContent() {
     return 'Good evening';
   };
 
-  // Render job card
-  const renderJobCard = (job: Job) => {
-    const createdDate = new Date(job.created_at);
-    const now = new Date();
-    const diffInHours = Math.floor(
-      (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60)
-    );
-    const timeDisplay =
-      diffInHours < 24
-        ? `${diffInHours}h ago`
-        : `${Math.floor(diffInHours / 24)}d ago`;
-
-    return (
-      <div
-        key={job.id}
-        className={cn(
-          'px-4 py-3 rounded-lg transition-all duration-200 cursor-pointer group hover:shadow-md',
-          'border border-border bg-card hover:bg-muted/50'
-        )}
-        onClick={() => handleJobClick(job.id)}
-      >
-        <div className='flex items-center gap-3'>
-          {/* Company Logo */}
-          <div className='flex-shrink-0 w-10 h-10 rounded-md border border-border bg-white flex items-center justify-center overflow-hidden'>
-            <ClearbitLogoSync
-              companyName={job.companies?.name || ''}
-              website={job.companies?.website}
-              size='sm'
-            />
-          </div>
-
-          {/* Job Info */}
-          <div className='flex-1 min-w-0'>
-            <p className='text-sm font-semibold text-foreground truncate'>
-              {job.title}
-            </p>
-            <div className='flex items-center gap-2 mt-0.5'>
-              <p className='text-xs text-muted-foreground truncate'>
-                {job.companies?.name || 'Unknown'}
-              </p>
-              {job.companies?.industry && (
-                <>
-                  <span className='text-xs text-muted-foreground'>•</span>
-                  <p className='text-xs text-muted-foreground truncate'>
-                    {job.companies.industry}
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Time Badge */}
-          <div className='flex-shrink-0'>
-            <span className='text-xs text-muted-foreground whitespace-nowrap'>
-              {timeDisplay}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Render activity card
-  const renderActivityCard = (activity: ActivityItem) => {
-    const activityDate = new Date(activity.timestamp);
-    const timeDisplay = formatDistanceToNow(activityDate, { addSuffix: true });
-
-    const getActivityIcon = () => {
-      switch (activity.type) {
-        case 'email':
-        case 'email_reply':
-          return Mail;
-        case 'meeting':
-          return Calendar;
-        case 'note':
-          return FileText;
-        default:
-          return Activity;
-      }
-    };
-
-    const getActivityColor = () => {
-      switch (activity.type) {
-        case 'email':
-        case 'email_reply':
-          return 'bg-primary/10 text-primary';
-        case 'meeting':
-          return 'bg-purple-100 text-purple-600';
-        case 'note':
-          return 'bg-amber-100 text-amber-600';
-        default:
-          return 'bg-muted text-muted-foreground';
-      }
-    };
-
-    const Icon = getActivityIcon();
-
-    return (
-      <div
-        key={activity.id}
-        className={cn(
-          'px-4 py-3 rounded-lg transition-all duration-200 cursor-pointer group hover:shadow-md',
-          'border border-border bg-card hover:bg-muted/50'
-        )}
-        onClick={() => handleActivityClick(activity)}
-      >
-        <div className='flex items-center gap-3'>
-          {/* Activity Icon */}
-          <div
-            className={cn(
-              'flex-shrink-0 w-10 h-10 rounded-md border border-border flex items-center justify-center',
-              getActivityColor()
-            )}
-          >
-            <Icon className='h-5 w-5' />
-          </div>
-
-          {/* Activity Info */}
-          <div className='flex-1 min-w-0'>
-            <p className='text-sm font-semibold text-foreground line-clamp-1'>
-              {activity.title}
-            </p>
-            <div className='flex items-center gap-2 mt-0.5'>
-              {activity.person_name && (
-                <p className='text-xs text-muted-foreground truncate'>
-                  {activity.person_name}
-                </p>
-              )}
-              {activity.company_name && (
-                <>
-                  {activity.person_name && (
-                    <span className='text-xs text-muted-foreground'>•</span>
-                  )}
-                  <p className='text-xs text-muted-foreground truncate'>
-                    {activity.company_name}
-                  </p>
-                </>
-              )}
-            </div>
-            <p className='text-xs text-muted-foreground mt-0.5'>
-              {timeDisplay}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <Page title='Dashboard' hideHeader padding='large'>
-      <div className='space-y-6 pb-8'>
-        <div className='mb-2'>
-          <h1 className='text-2xl font-bold tracking-tight text-foreground mb-1'>
-            {getGreeting()}!
+      <div className='space-y-5 pb-8'>
+        <div className='mb-6'>
+          <h1 className='text-2xl font-bold tracking-tight text-foreground mb-4'>
+            {getGreeting()}
           </h1>
-          <p className='text-sm text-muted-foreground'>
-            Here&apos;s an overview of your recruitment activity.
-          </p>
           {error && (
-            <div className='mt-4 p-3 bg-destructive/10 border border-red-200 rounded-lg'>
-              <p className='text-sm text-destructive'>{error}</p>
+            <div className='mt-4 p-3 bg-red-50 border border-red-200 rounded-lg'>
+              <p className='text-sm text-red-600'>{error}</p>
             </div>
           )}
         </div>
 
-        {/* Key Metrics - Reduced to 4 cards */}
-        <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'>
-          <Card className='p-5 hover:shadow-md transition-shadow'>
-            <div className='flex items-center justify-between mb-2'>
-              <p className='text-sm font-medium text-muted-foreground'>
-                Jobs to Review
-              </p>
-              <Briefcase className='h-4 w-4 text-primary' />
-            </div>
-            <p className='text-3xl font-bold tracking-tight text-foreground'>
-              {loading ? '…' : jobsToReview.length}
+        {/* Current Actions */}
+        <div className='grid gap-3 grid-cols-1 md:grid-cols-3 lg:grid-cols-4'>
+          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 p-4 backdrop-blur-sm shadow-sm'>
+            <p className='text-sm font-medium text-muted-foreground mb-2'>
+              Jobs to Review
             </p>
-          </Card>
-          <Card className='p-5 hover:shadow-md transition-shadow'>
-            <div className='flex items-center justify-between mb-2'>
-              <p className='text-sm font-medium text-muted-foreground'>
-                Recent Activities
-              </p>
-              <Activity className='h-4 w-4 text-primary' />
-            </div>
             <p className='text-3xl font-bold tracking-tight text-foreground'>
-              {loading ? '…' : activities.length}
-            </p>
-          </Card>
-          <Card className='p-5 hover:shadow-md transition-shadow'>
-            <div className='flex items-center justify-between mb-2'>
-              <p className='text-sm font-medium text-muted-foreground'>
-                New Leads Today
-              </p>
-              <Users className='h-4 w-4 text-primary' />
-            </div>
-            <p className='text-3xl font-bold tracking-tight text-foreground'>
-              {loading ? '…' : newLeadsToday}
-            </p>
-          </Card>
-          <Card className='p-5 hover:shadow-md transition-shadow'>
-            <div className='flex items-center justify-between mb-2'>
-              <p className='text-sm font-medium text-muted-foreground'>
-                New Companies Today
-              </p>
-              <Building2 className='h-4 w-4 text-primary' />
-            </div>
-            <p className='text-3xl font-bold tracking-tight text-foreground'>
-              {loading ? '…' : newCompaniesToday}
-            </p>
-          </Card>
-        </div>
-
-        {/* Activity Chart */}
-        <Card className='p-5'>
-          <div className='mb-4'>
-            <h3 className='text-base font-semibold tracking-tight text-foreground mb-1'>
-              Activity Overview
-            </h3>
-            <p className='text-xs text-muted-foreground'>
-              Last 7 days activity trends
+              {loading ? 'ΓÇª' : jobsToReview.length}
             </p>
           </div>
-          {loading || chartLoading ? (
-            <div className='h-[300px] flex items-center justify-center'>
-              <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
-            </div>
-          ) : chartData && chartData.length > 0 ? (
-            <div className='h-[300px] w-full'>
-              <ResponsiveContainer width='100%' height='100%'>
-                <LineChart
-                  data={chartData}
-                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray='3 3'
-                    stroke='hsl(var(--border))'
-                  />
-                  <XAxis
-                    dataKey='date'
-                    stroke='hsl(var(--muted-foreground))'
-                    fontSize={12}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    stroke='hsl(var(--muted-foreground))'
-                    fontSize={12}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Legend
-                    wrapperStyle={{ paddingTop: '20px' }}
-                    iconType='line'
-                  />
-                  <Line
-                    type='monotone'
-                    dataKey='jobs'
-                    stroke='hsl(var(--primary))'
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    name='Jobs'
-                  />
-                  <Line
-                    type='monotone'
-                    dataKey='people'
-                    stroke='#10B981'
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    name='People'
-                  />
-                  <Line
-                    type='monotone'
-                    dataKey='companies'
-                    stroke='#8B5CF6'
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    name='Companies'
-                  />
-                  <Line
-                    type='monotone'
-                    dataKey='replies'
-                    stroke='#F59E0B'
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    name='Replies'
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className='h-[300px] flex items-center justify-center text-muted-foreground'>
-              <p className='text-sm'>No chart data available</p>
-            </div>
-          )}
-        </Card>
+          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 p-4 backdrop-blur-sm shadow-sm'>
+            <p className='text-sm font-medium text-muted-foreground mb-2'>
+              Unread Replies
+            </p>
+            <p className='text-3xl font-bold tracking-tight text-foreground'>
+              {loading ? 'ΓÇª' : emailReplies.length}
+            </p>
+          </div>
+          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-emerald-500/5 via-emerald-50/30 to-emerald-500/10 p-4 backdrop-blur-sm shadow-sm'>
+            <p className='text-sm font-medium text-muted-foreground mb-2'>
+              New Leads Today
+            </p>
+            <p className='text-3xl font-bold tracking-tight text-foreground'>
+              {loading ? 'ΓÇª' : newLeadsToday}
+            </p>
+          </div>
+          <div className='relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-amber-500/5 via-amber-50/30 to-amber-500/10 p-4 backdrop-blur-sm shadow-sm'>
+            <p className='text-sm font-medium text-muted-foreground mb-2'>
+              New Companies Today
+            </p>
+            <p className='text-3xl font-bold tracking-tight text-foreground'>
+              {loading ? 'ΓÇª' : newCompaniesToday}
+            </p>
+          </div>
+        </div>
 
-        {/* Tables Section */}
-        <div className='grid gap-6 grid-cols-1 lg:grid-cols-2'>
-          <Card className='p-0 overflow-hidden'>
-            <div className='flex items-center justify-between p-5 border-b border-border'>
-              <div className='flex items-center gap-2'>
-                <h3 className='text-base font-semibold tracking-tight text-foreground'>
-                  Jobs to Review
-                </h3>
-                {jobsToReview.length > 0 && (
-                  <span className='inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary'>
-                    {jobsToReview.length}
-                  </span>
-                )}
+        {/* Past Week Summary Section */}
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-lg font-semibold tracking-tight text-foreground mt-0 mb-2'>
+              Past Week Summary
+            </h2>
+          </div>
+          <div className='grid gap-3 grid-cols-1 md:grid-cols-3'>
+            <Card
+              onClick={() => handleWeeklyCardClick('jobs')}
+              className='cursor-pointer hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm shadow-sm'
+            >
+              <div className='p-4'>
+                <div className='flex items-center gap-2 mb-1'>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    New Jobs
+                  </p>
+                </div>
+                <p className='text-2xl font-bold tracking-tight text-foreground mb-1'>
+                  {loading ? 'ΓÇª' : newJobsPastWeek}
+                </p>
               </div>
+            </Card>
+            <Card
+              onClick={() => handleWeeklyCardClick('companies')}
+              className='cursor-pointer hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 backdrop-blur-sm shadow-sm'
+            >
+              <div className='p-4'>
+                <div className='flex items-center gap-2 mb-1'>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    Qualified Companies
+                  </p>
+                </div>
+                <p className='text-2xl font-bold tracking-tight text-foreground mb-1'>
+                  {loading ? 'ΓÇª' : qualifiedCompaniesPastWeek}
+                </p>
+              </div>
+            </Card>
+            <Card
+              onClick={() => handleWeeklyCardClick('people')}
+              className='cursor-pointer hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-emerald-500/5 via-emerald-50/30 to-emerald-500/10 backdrop-blur-sm shadow-sm'
+            >
+              <div className='p-4'>
+                <div className='flex items-center gap-2 mb-1'>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    People Added
+                  </p>
+                </div>
+                <p className='text-2xl font-bold tracking-tight text-foreground mb-1'>
+                  {loading ? 'ΓÇª' : peopleAddedPastWeek}
+                </p>
+              </div>
+            </Card>
+          </div>
+          {/* Weekly Job Discovery KPI add-on */}
+          <div className='grid gap-3 grid-cols-1 md:grid-cols-3 mt-2'>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-blue-500/5 via-blue-50/30 to-blue-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  Jobs Analyzed
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading ? 'ΓÇª' : jobKpis?.week.analyzed || 0}
+                </p>
+              </div>
+            </Card>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-green-500/5 via-green-50/30 to-green-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  Qualification Rate
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading
+                    ? 'ΓÇª'
+                    : `${jobKpis?.week.qualificationRatePercent || 0}%`}
+                </p>
+              </div>
+            </Card>
+            <Card className='cursor-default hover:shadow-md transition-all relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-purple-500/5 via-purple-50/30 to-purple-500/10 backdrop-blur-sm shadow-sm'>
+              <div className='p-4'>
+                <p className='text-sm font-medium text-muted-foreground mb-1'>
+                  Non-Executive Filtered
+                </p>
+                <p className='text-2xl font-bold tracking-tight text-foreground'>
+                  {jobKpisLoading
+                    ? 'ΓÇª'
+                    : jobKpis?.week.nonExecutiveFiltered || 0}
+                </p>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* Lists */}
+        <div className='grid gap-6 grid-cols-1 lg:grid-cols-2'>
+          <Card className='p-4'>
+            <div className='flex items-center justify-between mb-4'>
+              <h3 className='text-base font-semibold tracking-tight text-foreground'>
+                Jobs to Review
+              </h3>
               <button
                 onClick={() => router.push('/jobs')}
                 className='text-xs text-primary hover:text-primary/80 transition-colors font-medium'
               >
-                View All
+                View Pipeline
               </button>
             </div>
-            <div className='p-5'>
-              {loading ? (
-                <div className='space-y-3'>
-                  {[...Array(3)].map((_, i) => (
-                    <div
-                      key={i}
-                      className='p-4 bg-muted rounded-lg animate-pulse'
-                    >
-                      <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
-                      <div className='h-3 bg-gray-200 rounded w-1/2'></div>
-                    </div>
-                  ))}
-                </div>
-              ) : jobsToReview.length === 0 ? (
-                <div className='text-center py-8 text-muted-foreground'>
-                  <Briefcase className='h-8 w-8 mx-auto mb-2 opacity-50' />
-                  <p className='text-sm'>No jobs to review</p>
-                </div>
-              ) : (
-                <div className='space-y-2'>
-                  {jobsToReview.slice(0, 5).map(renderJobCard)}
-                </div>
-              )}
-            </div>
+            {jobsToReview.length > 0 && (
+              <div className='overflow-x-auto scrollbar-modern'>
+                <table className='w-full table-fixed'>
+                  <thead>
+                    <tr className='border-b border-border/50'>
+                      <th className='text-left py-2 w-1/2 text-xs font-medium text-muted-foreground uppercase tracking-wider'>
+                        Job
+                      </th>
+                      <th className='text-left py-2 w-1/3 text-xs font-medium text-muted-foreground uppercase tracking-wider'>
+                        Company
+                      </th>
+                      <th className='text-right py-2 w-1/6 text-xs font-medium text-muted-foreground uppercase tracking-wider'>
+                        Posted
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {jobsToReview.map(job => {
+                      const createdDate = new Date(job.created_at);
+                      const now = new Date();
+                      const diffInHours = Math.floor(
+                        (now.getTime() - createdDate.getTime()) /
+                          (1000 * 60 * 60)
+                      );
+
+                      let timeDisplay = '';
+                      if (diffInHours < 24) {
+                        timeDisplay = `${diffInHours}h ago`;
+                      } else {
+                        const diffInDays = Math.floor(diffInHours / 24);
+                        timeDisplay = `${diffInDays}d ago`;
+                      }
+
+                      return (
+                        <tr
+                          key={job.id}
+                          onClick={() => handleJobClick(job.id)}
+                          className='border-b border-border/30 hover:bg-muted/30 cursor-pointer transition-colors'
+                        >
+                          <td className='py-3 overflow-hidden'>
+                            <div className='flex items-center gap-3 min-w-0'>
+                              <ClearbitLogoSync
+                                companyName={job.companies?.name || ''}
+                                website={job.companies?.website}
+                                size='sm'
+                              />
+                              <div className='flex-1 min-w-0'>
+                                <p className='text-sm font-medium text-foreground truncate'>
+                                  {job.title}
+                                </p>
+                                <p className='text-xs text-muted-foreground truncate'>
+                                  {job.companies?.industry || 'No industry'}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className='py-3 overflow-hidden'>
+                            <span className='text-sm text-foreground truncate block'>
+                              {job.companies?.name || 'Unknown'}
+                            </span>
+                          </td>
+                          <td className='py-3 text-right overflow-hidden'>
+                            <span className='text-xs text-muted-foreground whitespace-nowrap'>
+                              {timeDisplay}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {jobsToReview.length === 0 && !loading && (
+              <p className='text-sm text-muted-foreground py-6 text-center'>
+                No jobs to review
+              </p>
+            )}
           </Card>
 
-          <Card className='p-0 overflow-hidden'>
-            <div className='flex items-center justify-between p-5 border-b border-border'>
-              <div className='flex items-center gap-2'>
-                <h3 className='text-base font-semibold tracking-tight text-foreground'>
-                  Recent Activities
-                </h3>
-                {activities.length > 0 && (
-                  <span className='inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary'>
-                    {activities.length}
-                  </span>
-                )}
-              </div>
+          <Card className='p-4'>
+            <div className='flex items-center justify-between mb-4'>
+              <h3 className='text-base font-semibold tracking-tight text-foreground'>
+                Unread Replies
+              </h3>
               <button
-                onClick={() => router.push('/conversations')}
+                onClick={() => router.push('/crm/communications')}
                 className='text-xs text-primary hover:text-primary/80 transition-colors font-medium'
               >
-                View All
+                Open Conversation
               </button>
             </div>
-            <div className='p-5'>
-              {loading ? (
-                <div className='space-y-3'>
-                  {[...Array(3)].map((_, i) => (
-                    <div
-                      key={i}
-                      className='p-4 bg-muted rounded-lg animate-pulse'
-                    >
-                      <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
-                      <div className='h-3 bg-gray-200 rounded w-1/2'></div>
-                    </div>
-                  ))}
-                </div>
-              ) : activities.length === 0 ? (
-                <div className='text-center py-8 text-muted-foreground'>
-                  <Activity className='h-8 w-8 mx-auto mb-2 opacity-50' />
-                  <p className='text-sm'>No recent activities</p>
-                </div>
-              ) : (
-                <div className='space-y-2'>
-                  {activities.slice(0, 5).map(renderActivityCard)}
-                </div>
+            <div className='space-y-1'>
+              {emailReplies.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => handleEmailClick(t.gmail_thread_id)}
+                  className='w-full text-left p-2.5 rounded-lg hover:bg-muted/50 transition-colors'
+                >
+                  <div className='flex items-start justify-between gap-3'>
+                    <p className='text-sm font-medium text-foreground line-clamp-2'>
+                      {t.subject || 'No subject'}
+                    </p>
+                    <span className='text-xs text-muted-foreground whitespace-nowrap'>
+                      {t.last_message_at
+                        ? formatDistanceToNow(new Date(t.last_message_at), {
+                            addSuffix: true,
+                          })
+                        : ''}
+                    </span>
+                  </div>
+                </button>
+              ))}
+              {emailReplies.length === 0 && !loading && (
+                <p className='text-sm text-muted-foreground py-6 text-center'>
+                  No new replies
+                </p>
               )}
             </div>
           </Card>
         </div>
+
+        {/* Pipeline Overview removed per request */}
       </div>
 
       <JobDetailsSlideOut

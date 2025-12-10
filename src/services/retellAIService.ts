@@ -51,8 +51,10 @@ export interface RetellWebhook {
   created_at?: string;
 }
 
+import { API_URLS } from '@/constants/urls';
+
 class RetellAIService {
-  private baseURL = 'https://api.retellai.com/v2';
+  private baseURL = API_URLS.RETELL_AI;
   private apiKey: string | null = null;
 
   constructor() {

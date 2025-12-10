@@ -11,17 +11,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { cn } from '@/lib/utils';
 import {
-  BarChart3,
-  Briefcase,
-  Building2,
   Home,
-  Megaphone,
   MessageSquare,
-  MoreHorizontal,
-  Rocket,
+  GitMerge,
   Settings,
-  Target,
   Users,
+  MoreHorizontal,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -37,62 +32,30 @@ interface NavItem {
 }
 
 // All possible navigation items
+// Updated for LeadFlow PDR - PDR Section 5.1
 const allNavItems: NavItem[] = [
   {
     to: '/',
-    label: 'Dashboard',
+    label: 'Overview',
     icon: <Home className='h-5 w-5' />,
     isPrimary: true,
   },
   {
-    to: '/getting-started',
-    label: 'Getting Started',
-    icon: <Rocket className='h-5 w-5' />,
-    isPrimary: true,
-  },
-  {
-    to: '/people',
-    label: 'Contacts',
+    to: '/leads',
+    label: 'Leads',
     icon: <Users className='h-5 w-5' />,
     isPrimary: true,
-    permission: 'people',
   },
   {
-    to: '/companies',
-    label: 'Companies',
-    icon: <Building2 className='h-5 w-5' />,
-    isPrimary: true,
-    permission: 'companies',
-  },
-  {
-    to: '/jobs',
-    label: 'Job Intelligence',
-    icon: <Briefcase className='h-5 w-5' />,
-    isPrimary: true,
-    permission: 'jobs',
-  },
-  {
-    to: '/pipeline',
-    label: 'Pipeline',
-    icon: <Target className='h-5 w-5' />,
-    permission: 'leads',
-  },
-  {
-    to: '/conversations',
-    label: 'Messages',
+    to: '/inbox',
+    label: 'Inbox',
     icon: <MessageSquare className='h-5 w-5' />,
+    isPrimary: true,
   },
   {
-    to: '/campaigns',
-    label: 'Campaigns',
-    icon: <Megaphone className='h-5 w-5' />,
-    permission: 'campaigns',
-  },
-  {
-    to: '/reporting',
-    label: 'Reports',
-    icon: <BarChart3 className='h-5 w-5' />,
-    permission: 'reports',
+    to: '/workflows',
+    label: 'Workflows',
+    icon: <GitMerge className='h-5 w-5' />,
   },
   {
     to: '/settings',

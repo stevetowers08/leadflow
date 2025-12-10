@@ -10,7 +10,7 @@ import React, { useEffect, useRef, useState } from 'react';
 interface IconOnlyAssignmentCellProps {
   ownerId: string | null;
   entityId: string;
-  entityType: 'companies' | 'people' | 'jobs';
+  entityType: 'companies' | 'people' | 'jobs' | 'leads';
   onAssignmentChange?: () => void;
   className?: string;
 }
@@ -147,10 +147,14 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
 
     setIsUpdating(true);
     try {
+      // Leads table uses owner_id, others use owner_id as well
+      const updateField = entityType === 'leads' ? 'owner_id' : 'owner_id';
+      const tableName = entityType;
+      
       const { error } = await supabase
-        .from(entityType)
+        .from(tableName)
         .update({
-          owner_id: newOwnerId,
+          [updateField]: newOwnerId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
@@ -193,10 +197,13 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
 
     setIsUpdating(true);
     try {
+      const updateField = entityType === 'leads' ? 'owner_id' : 'owner_id';
+      const tableName = entityType;
+      
       const { error } = await supabase
-        .from(entityType)
+        .from(tableName)
         .update({
-          owner_id: null,
+          [updateField]: null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);

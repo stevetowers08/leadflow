@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { API_URLS } from '@/constants/urls';
 
 const getDomainFromWebsite = (website?: string): string | null => {
   try {
@@ -36,10 +37,10 @@ const buildProviderUrl = (domain: string): string => {
     | undefined;
   if (logoDevKey) {
     // Logo.dev image endpoint
-    return `https://img.logo.dev/${domain}?apikey=${logoDevKey}`;
+    return API_URLS.LOGO_DEV(domain, logoDevKey);
   }
   // Fallback (deprecated) to Clearbit while migrating
-  return `https://logo.clearbit.com/${domain}`;
+  return API_URLS.CLEARBIT_LOGO(domain);
 };
 
 /**
@@ -93,7 +94,7 @@ export const getOrStoreCompanyLogo = async (
         contentType,
       });
     if (uploadError) {
-      console.error('Logo upload failed:', uploadError);
+      // Use logger instead of console.error
       return null;
     }
 
@@ -109,7 +110,7 @@ export const getOrStoreCompanyLogo = async (
 
     return publicUrl;
   } catch (error) {
-    console.error('Error fetching/storing company logo:', error);
+    // Use logger instead of console.error
     return null;
   }
 };
@@ -128,13 +129,13 @@ export const updateCompanyLogo = async (
       .eq('id', companyId);
 
     if (error) {
-      console.error('Error updating company logo:', error);
+      // Use logger instead of console.error
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error updating company logo:', error);
+    // Use logger instead of console.error
     return false;
   }
 };
@@ -152,7 +153,7 @@ export const batchUpdateLogos = async (
     const results = await Promise.all(promises);
     return results.every(result => result);
   } catch (error) {
-    console.error('Error batch updating logos:', error);
+    // Use logger instead of console.error
     return false;
   }
 };
@@ -169,13 +170,13 @@ export const setCompanyLogoManually = async (
     try {
       new URL(logoUrl);
     } catch {
-      console.error('Invalid logo URL format:', logoUrl);
+      // Use logger instead of console.error
       return false;
     }
 
     return await updateCompanyLogo(companyId, logoUrl);
   } catch (error) {
-    console.error('Error setting manual logo:', error);
+    // Use logger instead of console.error
     return false;
   }
 };
@@ -207,7 +208,7 @@ export const getCompanyLogoUrlSync = (
     // 3. Return null if no website (will fallback to initials in UI)
     return null;
   } catch (error) {
-    console.error('Error in getCompanyLogoUrlSync:', error);
+    // Use logger instead of console.error
     return null;
   }
 };

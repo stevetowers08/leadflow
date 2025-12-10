@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { getErrorMessage } from '@/lib/utils';
 
 export interface ReportingMetrics {
   // Core counts
@@ -102,8 +103,14 @@ export class ReportingService {
         growthMetrics,
       };
     } catch (error) {
-      console.error('Error fetching reporting data:', error);
-      throw new Error('Failed to fetch reporting data');
+      const errorMessage = getErrorMessage(error);
+      console.error('[ReportingService] Error fetching reporting data:', {
+        message: errorMessage,
+        error,
+        filters,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw new Error(`Failed to fetch reporting data: ${errorMessage}`);
     }
   }
 
@@ -111,35 +118,56 @@ export class ReportingService {
    * Get core entity counts
    */
   private static async getCoreCounts() {
-    const [peopleResult, companiesResult, jobsResult, qualifiedJobsResult] =
-      await Promise.all([
-        supabase.from('people').select('id', { count: 'exact', head: true }),
-        supabase.from('companies').select('id', { count: 'exact', head: true }),
-        supabase.from('jobs').select('id', { count: 'exact', head: true }),
-        supabase
-          .from('jobs')
-          .select('id', { count: 'exact', head: true })
-          .eq('qualification_status', 'qualify'),
-      ]);
+    try {
+      const [peopleResult, companiesResult, jobsResult, qualifiedJobsResult] =
+        await Promise.all([
+          supabase.from('people').select('id', { count: 'exact', head: true }),
+          supabase.from('companies').select('id', { count: 'exact', head: true }),
+          supabase.from('jobs').select('id', { count: 'exact', head: true }),
+          supabase
+            .from('jobs')
+            .select('id', { count: 'exact', head: true })
+            .eq('qualification_status', 'qualify'),
+        ]);
 
-    return {
-      totalPeople: peopleResult.count || 0,
-      totalCompanies: companiesResult.count || 0,
-      totalJobs: jobsResult.count || 0,
-      qualifiedJobs: qualifiedJobsResult.count || 0,
-    };
+      // Handle errors gracefully
+      if (peopleResult.error) console.error('Error counting people:', peopleResult.error);
+      if (companiesResult.error) console.error('Error counting companies:', companiesResult.error);
+      if (jobsResult.error) console.error('Error counting jobs:', jobsResult.error);
+      if (qualifiedJobsResult.error) console.error('Error counting qualified jobs:', qualifiedJobsResult.error);
+
+      return {
+        totalPeople: peopleResult.count || 0,
+        totalCompanies: companiesResult.count || 0,
+        totalJobs: jobsResult.count || 0,
+        qualifiedJobs: qualifiedJobsResult.count || 0,
+      };
+    } catch (error) {
+      console.error('Error in getCoreCounts:', error);
+      // Return zeros instead of throwing
+      return {
+        totalPeople: 0,
+        totalCompanies: 0,
+        totalJobs: 0,
+        qualifiedJobs: 0,
+      };
+    }
   }
 
   /**
    * Get people pipeline breakdown by stage
    */
   private static async getPeoplePipeline() {
+    // Try both field names for compatibility
     const { data, error } = await supabase
       .from('people')
-      .select('people_stage')
-      .not('people_stage', 'is', null);
+      .select('people_stage, stage');
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching people pipeline:', error);
+      // Return empty pipeline on error instead of throwing
+      return { new: 0, qualified: 0, proceed: 0, skip: 0 };
+    }
 
     const pipeline = {
       new: 0,
@@ -149,11 +177,17 @@ export class ReportingService {
     };
 
     data?.forEach(person => {
-      switch (person.people_stage) {
+      // Support both field names
+      const stage = (person as any).stage || (person as any).people_stage;
+      if (!stage) return;
+      
+      switch (stage) {
         case 'new':
+        case 'new_lead':
           pipeline.new++;
           break;
         case 'qualified':
+        case 'qualify':
           pipeline.qualified++;
           break;
         case 'proceed':
@@ -172,33 +206,44 @@ export class ReportingService {
    * Get job qualification breakdown
    */
   private static async getJobQualification() {
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('qualification_status');
+    try {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('qualification_status');
 
-    if (error) throw error;
-
-    const qualification = {
-      new: 0,
-      qualify: 0,
-      skip: 0,
-    };
-
-    data?.forEach(job => {
-      switch (job.qualification_status) {
-        case 'new':
-          qualification.new++;
-          break;
-        case 'qualify':
-          qualification.qualify++;
-          break;
-        case 'skip':
-          qualification.skip++;
-          break;
+      if (error) {
+        console.error('Error fetching job qualification:', error);
+        return { new: 0, qualify: 0, skip: 0 };
       }
-    });
 
-    return qualification;
+      const qualification = {
+        new: 0,
+        qualify: 0,
+        skip: 0,
+      };
+
+      data?.forEach(job => {
+        const status = job.qualification_status;
+        if (!status) return;
+        
+        switch (status) {
+          case 'new':
+            qualification.new++;
+            break;
+          case 'qualify':
+            qualification.qualify++;
+            break;
+          case 'skip':
+            qualification.skip++;
+            break;
+        }
+      });
+
+      return qualification;
+    } catch (error) {
+      console.error('Error in getJobQualification:', error);
+      return { new: 0, qualify: 0, skip: 0 };
+    }
   }
 
   /**

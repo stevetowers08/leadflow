@@ -8,9 +8,11 @@
  * - Proper focus states and accessibility
  */
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, X } from 'lucide-react';
 import { forwardRef } from 'react';
 
 // Standard height for all interactive elements - consistent with action bar standard
@@ -175,8 +177,8 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   ({ className, variant, size, onClear, ...props }, ref) => {
     return (
       <div className='relative'>
-        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-        <input
+        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none' />
+        <Input
           className={cn(
             searchVariants({ variant, size }),
             'pl-10 pr-10', // Padding for icons
@@ -186,12 +188,15 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           {...props}
         />
         {onClear && (
-          <button
+          <Button
+            type='button'
+            variant='ghost'
+            size='icon'
             onClick={onClear}
-            className='absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground'
+            className='absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground p-0'
           >
-            ×
-          </button>
+            <X className='h-4 w-4' />
+          </Button>
         )}
       </div>
     );

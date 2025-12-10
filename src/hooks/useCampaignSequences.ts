@@ -5,6 +5,7 @@ import {
   CampaignStep,
 } from '@/types/campaign.types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getErrorMessage } from '@/lib/utils';
 
 // Campaign Sequences Hook
 export function useCampaignSequences() {
@@ -24,7 +25,7 @@ export function useCampaignSequences() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ Error fetching campaign sequences:', error);
+        console.error('❌ Error fetching campaign sequences:', getErrorMessage(error), error);
         throw error;
       }
 

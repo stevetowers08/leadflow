@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { cn } from '@/lib/utils';
+import { cn, getErrorMessage } from '@/lib/utils';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import {
   ChevronDown,
@@ -80,8 +80,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         .limit(50);
 
       if (error) {
-        console.error('Supabase error:', error);
-        alert('Error fetching data: ' + error.message);
+        const errorMsg = getErrorMessage(error);
+        console.error('Supabase error:', errorMsg, error);
+        alert('Error fetching data: ' + errorMsg);
         return;
       }
 
@@ -122,9 +123,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
       console.log('Transformed conversations:', conversations);
       setConversations(conversations);
     } catch (error) {
-      console.error('Failed to load conversations:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage = getErrorMessage(error) || 'Unknown error occurred';
+      console.error('Failed to load conversations:', errorMessage, error);
       alert('Failed to load conversations: ' + errorMessage);
     } finally {
       setLoading(false);

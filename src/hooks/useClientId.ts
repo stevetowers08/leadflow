@@ -3,6 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { getErrorMessage } from '@/lib/utils';
+import { logger } from '@/utils/productionLogger';
 
 export function useClientId() {
   const { user } = useAuth();
@@ -24,9 +26,19 @@ export function useClientId() {
         .maybeSingle();
 
       if (error) {
-        // PGRST116 = no rows found, which is acceptable in some cases
-        if (error.code !== 'PGRST116') {
-          console.error('Error fetching client ID:', error);
+        // PGRST116 = no rows found, which is acceptable
+        // PGRST301 = table not found in schema cache (table may not exist or migration not run)
+        // Both are acceptable - client_users table is optional for single-tenant setups
+        const errorMessage = getErrorMessage(error);
+        const isTableNotFound = 
+          error.code === 'PGRST301' || 
+          error.code === 'PGRST116' ||
+          errorMessage?.includes('schema cache') ||
+          errorMessage?.includes('does not exist') ||
+          errorMessage?.includes('Could not find the table');
+        
+        if (!isTableNotFound) {
+          logger.error('Error fetching client ID:', errorMessage, error);
         }
         return null;
       }
@@ -35,7 +47,7 @@ export function useClientId() {
     },
     enabled: !!user?.id || bypassAuth,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2,
+    retry: false, // Don't retry if table doesn't exist
   });
 }
 
@@ -51,10 +63,22 @@ export async function getClientId(): Promise<string | null> {
     .from('client_users')
     .select('client_id')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    console.error('Error fetching client ID:', error);
+    // PGRST116 = no rows found, PGRST301 = table not found
+    // Both are acceptable - client_users table is optional
+    const errorMessage = getErrorMessage(error);
+    const isTableNotFound = 
+      error.code === 'PGRST301' || 
+      error.code === 'PGRST116' ||
+      errorMessage?.includes('schema cache') ||
+      errorMessage?.includes('does not exist') ||
+      errorMessage?.includes('Could not find the table');
+    
+    if (!isTableNotFound) {
+      logger.error('Error fetching client ID:', errorMessage, error);
+    }
     return null;
   }
 

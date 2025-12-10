@@ -7,6 +7,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -63,22 +64,6 @@ const sidebarItems: SidebarItem[] = [
     label: 'Dashboard',
     icon: <Home className='h-4 w-4' />,
     isPrimary: true,
-    category: 'main',
-  },
-  {
-    to: '/jobs',
-    label: 'Jobs Feed',
-    icon: <Briefcase className='h-4 w-4' />,
-    isPrimary: true,
-    permission: 'jobs',
-    category: 'main',
-  },
-  {
-    to: '/companies',
-    label: 'Companies',
-    icon: <Building2 className='h-4 w-4' />,
-    isPrimary: true,
-    permission: 'companies',
     category: 'main',
   },
   {
@@ -281,13 +266,13 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
 
             {/* Search */}
             <div className='relative mb-4'>
-              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-              <input
+              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none' />
+              <Input
                 type='text'
                 placeholder='Search navigation...'
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className='mobile-form-input w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-background/50 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                className='mobile-form-input w-full pl-10'
               />
             </div>
 

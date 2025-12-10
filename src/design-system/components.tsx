@@ -3,7 +3,9 @@
  * Consistent page structure components
  */
 
+import { Button } from '@/components/ui/button';
 import { DropdownSelect } from '@/components/ui/dropdown-select';
+import { Input } from '@/components/ui/input';
 import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown';
 import { cn } from '@/lib/utils';
 import { Search, Star } from 'lucide-react';
@@ -289,13 +291,14 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
 
           {/* Favorites Icon Button - Only show if props provided */}
           {onFavoritesToggle && (
-            <button
+            <Button
               onClick={onFavoritesToggle}
+              variant={showFavoritesOnly ? "secondary" : "outline"}
+              size="sm"
               className={cn(
-                tokens.button,
                 showFavoritesOnly
                   ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100'
-                  : tokens.buttonDefault
+                  : ''
               )}
               aria-label={
                 showFavoritesOnly ? 'Show all items' : 'Show favorites only'
@@ -307,7 +310,7 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
                   showFavoritesOnly && 'fill-current text-amber-600'
                 )}
               />
-            </button>
+            </Button>
           )}
 
           {/* Sort By Dropdown */}
@@ -323,22 +326,23 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
         {/* Inline Search - Completely Far Right */}
         <div className='flex items-center'>
           {isSearchActive ? (
-            <input
+            <Input
               type='text'
               value={searchTerm}
               onChange={e => onSearchChange(e.target.value)}
               placeholder='Search...'
-              className='h-8 px-3 text-sm border border-border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 min-w-48'
+              className='h-8 min-w-48'
               autoFocus
             />
           ) : (
-            <button
+            <Button
               onClick={onSearchToggle}
-              className={cn(tokens.button, tokens.buttonDefault)}
+              variant="outline"
+              size="sm"
               aria-label='Search'
             >
               <Search className={tokens.icon} />
-            </button>
+            </Button>
           )}
         </div>
       </div>

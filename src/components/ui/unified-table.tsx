@@ -394,29 +394,20 @@ export function UnifiedTable<T = unknown>({
       <div
         className={cn(
           'bg-card border shadow-sm w-full rounded-md',
-          scrollable && 'flex flex-col flex-1 min-h-0 overflow-hidden',
-          !scrollable && 'overflow-hidden overflow-x-auto scrollbar-modern',
+          scrollable && 'flex flex-col overflow-hidden',
+          !scrollable && 'overflow-x-auto scrollbar-modern',
           className
         )}
-        style={scrollable ? { minHeight: 0, maxHeight: '100%' } : undefined}
+        style={scrollable ? { flex: '1 1 0%', minHeight: 0 } : undefined}
       >
         <div
           ref={el => {
             scrollContainerRef.current = el;
           }}
           className={cn(
-            scrollable &&
-              'flex-1 min-h-0 overflow-y-auto overflow-x-auto scrollbar-thin',
+            scrollable && 'flex-1 min-h-0 overflow-auto scrollbar-thin',
             !scrollable && 'w-full'
           )}
-          style={
-            scrollable
-              ? {
-                  // Prevent sub-pixel rendering issues
-                  willChange: 'scroll-position',
-                }
-              : undefined
-          }
         >
           <table
             style={{

@@ -143,7 +143,7 @@ export const bulkExportPeople = async (
         employee_location,
         linkedin_url,
         score,
-        stage,
+        people_stage,
         created_at,
         companies!left(name, website, industry)
       `
@@ -187,9 +187,11 @@ export const bulkExportPeople = async (
       ),
     ];
 
-    const csvContent = csvRows.join('\n');
+    // Add UTF-8 BOM for Excel compatibility (2025 best practice)
+    const BOM = '\uFEFF';
+    const csvContent = BOM + csvRows.join('\n');
 
-    // Create and download file
+    // Create and download file with proper MIME type
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -203,6 +205,7 @@ export const bulkExportPeople = async (
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url); // Clean up blob URL to prevent memory leak
 
     return {
       success: true,

@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -107,7 +108,7 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
                     {action.divider && index > 0 && (
                       <div className='my-3 border-t border-border' />
                     )}
-                    <button
+                    <Button
                       onClick={() => {
                         if (!action.disabled) {
                           action.onClick();
@@ -115,14 +116,11 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
                         }
                       }}
                       disabled={action.disabled}
+                      variant={isDestructive ? 'destructive' : isSecondary ? 'secondary' : 'ghost'}
                       className={cn(
-                        'w-full flex items-center gap-3 px-4 py-3 text-sm rounded-lg transition-all',
-                        'hover:bg-muted active:bg-gray-100',
-                        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                        'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent',
-                        isDestructive && 'text-destructive hover:bg-destructive/10 hover:text-destructive',
-                        isSecondary && 'text-muted-foreground',
-                        !isDestructive && !isSecondary && 'text-foreground'
+                        'w-full justify-start gap-3 px-4 py-3 h-auto text-sm',
+                        isDestructive && 'hover:bg-destructive/10',
+                        isSecondary && 'text-muted-foreground'
                       )}
                     >
                       <Icon
@@ -133,7 +131,7 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
                         )}
                       />
                       <span className='flex-1 text-left font-medium'>{action.label}</span>
-                    </button>
+                    </Button>
                   </React.Fragment>
                 );
               })}

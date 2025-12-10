@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -45,19 +46,20 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        className={cn(
-          'h-8 px-3 text-sm border border-border rounded-md hover:border-border hover:bg-gray-100 transition-colors flex items-center justify-between max-w-[180px] bg-white',
-          className
-        )}
-      >
-        <span className='truncate'>{displayText}</span>
-        <ChevronDown className='h-4 w-4 ml-2 flex-shrink-0' />
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(
+            'h-8 justify-between min-w-[180px] max-w-[180px]',
+            className
+          )}
+        >
+          <span className='truncate'>{displayText}</span>
+          <ChevronDown className='h-4 w-4 ml-2 flex-shrink-0 opacity-50' />
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        className='bg-white border border-border shadow-lg rounded-md'
-        align='start'
-      >
+      <DropdownMenuContent align='start' className="min-w-[180px]">
         {options.map(option => {
           const isChecked = value.includes(option.value);
           return (
@@ -67,7 +69,6 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               onCheckedChange={checked =>
                 handleCheckedChange(option.value, checked as boolean)
               }
-              className='cursor-pointer'
             >
               {option.label}
             </DropdownMenuCheckboxItem>

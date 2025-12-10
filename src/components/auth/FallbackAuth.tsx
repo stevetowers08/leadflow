@@ -61,7 +61,7 @@ export const FallbackAuth: React.FC = () => {
           <div>
             <h1 className='text-xl font-semibold tracking-tight'>Sign In</h1>
             <p className='text-sm text-muted-foreground mt-1'>
-              Sign in to your RECRUITEDGE account
+              Sign in to your Leadflow account
             </p>
           </div>
         </div>

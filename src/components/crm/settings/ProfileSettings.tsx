@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { getErrorMessage } from '@/lib/utils';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -50,7 +51,7 @@ const ProfileSettings = () => {
         // Handle profile fetch - 406 or missing profile is OK, use auth data
         if (profileError && profileError.code !== 'PGRST116') {
           // PGRST116 = no rows returned, which is fine
-          console.warn('Profile fetch warning:', profileError);
+          console.warn('Profile fetch warning:', getErrorMessage(profileError), profileError);
         }
 
         if (profile) {
@@ -58,7 +59,7 @@ const ProfileSettings = () => {
           setEmail(profile.email || authEmail);
         }
       } catch (err) {
-        console.error('Error loading profile:', err);
+        console.error('Error loading profile:', getErrorMessage(err), err);
       } finally {
         setInitialLoad(false);
       }

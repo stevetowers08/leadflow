@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownSelect } from '@/components/ui/dropdown-select';
 import { DropdownOption } from '@/hooks/useDropdownOptions';
@@ -146,9 +147,9 @@ export function AddNoteModal({
           {/* Lead Selection (only for companies) */}
           {entityType === 'company' && (
             <div className='space-y-2'>
-              <label className='text-sm font-medium text-foreground'>
+              <Label className='text-sm font-medium text-foreground'>
                 Related Lead (Optional)
-              </label>
+              </Label>
               <DropdownSelect
                 options={leadOptions}
                 value={selectedLeadId}
@@ -162,9 +163,9 @@ export function AddNoteModal({
 
           {/* Note Text */}
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground'>
+            <Label className='text-sm font-medium text-foreground'>
               Note Content
-            </label>
+            </Label>
             <Textarea
               value={noteText}
               onChange={e => setNoteText(e.target.value)}

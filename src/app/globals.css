@@ -3,6 +3,7 @@
 @import '../styles/mobile.css';
 @import '../styles/mobile-improvements.css';
 @import '../styles/mobile-typography.css';
+@import '../styles/glassmorphism.css';
 
 /* BEST PRACTICE: Use only system fonts for optimal rendering */
 
@@ -116,7 +117,7 @@ All colors MUST be HSL.
     --table-radius: 0.75rem; /* Modern rounded corners */
 
     /* Professional Sidebar - Light Grey */
-    --sidebar-background: 0 0% 98%; /* Lighter grey background */
+    --sidebar-background: 0 0% 100%; /* White background */
     --sidebar-foreground: 240 10% 20%; /* Dark text for contrast */
     --sidebar-primary: 219 87% 55%; /* Attio Dodger Blue */
     --sidebar-primary-foreground: 0 0% 98%;
@@ -131,11 +132,11 @@ All colors MUST be HSL.
     /* Glassmorphism sidebar background - Enterprise Professional */
     --sidebar-glass-bg: linear-gradient(
       135deg,
-      rgba(10, 102, 194, 0.03) 0%,
-      rgba(99, 102, 241, 0.03) 50%,
-      rgba(107, 114, 128, 0.03) 100%
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(255, 255, 255, 0.90) 50%,
+      rgba(248, 250, 252, 0.85) 100%
     );
-    --sidebar-glass-border: transparent;
+    --sidebar-glass-border: rgba(229, 231, 235, 0.5);
     --sidebar-glass-blur: blur(12px);
 
     /* Shadow System */
@@ -653,11 +654,51 @@ All colors MUST be HSL.
     border-color: hsl(var(--sidebar-primary-medium));
   }
 
-  /* Glassmorphism sidebar utilities - Remove backdrop filter that blurs text */
+  /* Glassmorphism sidebar utilities - Now using CSS classes from glassmorphism.css */
   .bg-sidebar-glass {
-    background: var(--sidebar-glass-bg) !important;
-    /* backdrop-filter: var(--sidebar-glass-blur) !important; */
-    border: 1px solid var(--sidebar-glass-border) !important;
+    background: var(--sidebar-glass-bg);
+    /* Note: backdrop-blur is applied via Tailwind class, not here to avoid text blur */
+  }
+  
+  /* Sidebar - match shadcn/ui implementation */
+  [data-sidebar="container"] {
+    background: transparent;
+  }
+
+  [data-sidebar="sidebar"] {
+    background: hsl(var(--sidebar-background));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  /* Inset and floating variants use transparent background */
+  [data-variant="inset"] [data-sidebar="sidebar"],
+  [data-variant="floating"] [data-sidebar="sidebar"],
+  .group[data-variant="inset"] [data-sidebar="sidebar"],
+  .group[data-variant="floating"] [data-sidebar="sidebar"] {
+    background: transparent !important;
+  }
+  
+  /* Ensure text inside glassmorphism containers remains crisp */
+  .bg-sidebar-glass *,
+  .bg-sidebar-glass h1,
+  .bg-sidebar-glass h2,
+  .bg-sidebar-glass h3,
+  .bg-sidebar-glass h4,
+  .bg-sidebar-glass h5,
+  .bg-sidebar-glass h6,
+  .bg-sidebar-glass p,
+  .bg-sidebar-glass span,
+  .bg-sidebar-glass div,
+  .bg-sidebar-glass a,
+  .bg-sidebar-glass button,
+  .bg-sidebar-glass input,
+  .bg-sidebar-glass textarea,
+  .bg-sidebar-glass select,
+  .bg-sidebar-glass label,
+  [data-sidebar="sidebar"] * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   /* Focus and Hover States */

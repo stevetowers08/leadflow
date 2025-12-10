@@ -297,6 +297,28 @@ export interface Contact {
 // Legacy alias for backward compatibility during migration
 export type Person = Contact;
 
+// Lead interface matching PDR Section 7 - leads table structure
+export interface Lead {
+  id: string;
+  user_id: string | null;
+  owner_id: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  company: string | null;
+  job_title: string | null;
+  scan_image_url: string | null;
+  quality_rank: 'hot' | 'warm' | 'cold' | null;
+  ai_summary: string | null;
+  ai_icebreaker: string | null;
+  status: 'processing' | 'active' | 'replied_manual';
+  gmail_thread_id: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  // Computed fields for display
+  name?: string; // Computed from first_name + last_name
+}
+
 // Analytics Types
 export interface ReplyAnalytics {
   people_stage: string;

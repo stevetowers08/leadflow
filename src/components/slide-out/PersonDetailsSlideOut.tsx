@@ -30,6 +30,7 @@ import { Company, Interaction, Job, Person } from '@/types/database';
 import { bulkAddToCampaign } from '@/services/bulk/bulkPeopleService';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
+import { getErrorMessage } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   Building2,
@@ -196,37 +197,53 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
           }
 
           // Fetch enrolled campaigns
-          const { data: enrolledData, error: enrolledError } = await supabase
-            .from('campaign_sequence_leads')
-            .select(
+          try {
+            const { data: enrolledData, error: enrolledError } = await supabase
+              .from('campaign_sequence_leads')
+              .select(
+                `
+                id,
+                status,
+                campaign_sequences(id, name)
               `
-              id,
-              status,
-              campaign_sequences(id, name)
-            `
-            )
-            .eq('lead_id', personData.id)
-            .in('status', ['active', 'paused', 'completed']);
+              )
+              .eq('lead_id', personData.id)
+              .in('status', ['active', 'paused', 'completed']);
 
-          if (!enrolledError && enrolledData) {
-            setEnrolledCampaigns(
-              enrolledData
-                .filter(
-                  item =>
-                    item.campaign_sequences &&
-                    typeof item.campaign_sequences === 'object' &&
-                    !Array.isArray(item.campaign_sequences)
-                )
-                .map(item => ({
-                  id:
-                    (item.campaign_sequences as { id: string; name: string })
-                      .id || '',
-                  name:
-                    (item.campaign_sequences as { id: string; name: string })
-                      .name || '',
-                  status: item.status,
-                }))
-            );
+            if (enrolledError) {
+              // Check if table doesn't exist
+              if (enrolledError.message?.includes('schema cache') || enrolledError.message?.includes('does not exist')) {
+                console.warn('[PersonDetailsSlideOut] campaign_sequence_leads table not found. Migration may not have been run.');
+                setEnrolledCampaigns([]);
+              } else {
+                console.error('[PersonDetailsSlideOut] Error fetching enrolled campaigns:', getErrorMessage(enrolledError), enrolledError);
+                setEnrolledCampaigns([]);
+              }
+            } else if (enrolledData) {
+              setEnrolledCampaigns(
+                enrolledData
+                  .filter(
+                    item =>
+                      item.campaign_sequences &&
+                      typeof item.campaign_sequences === 'object' &&
+                      !Array.isArray(item.campaign_sequences)
+                  )
+                  .map(item => ({
+                    id:
+                      (item.campaign_sequences as { id: string; name: string })
+                        .id || '',
+                    name:
+                      (item.campaign_sequences as { id: string; name: string })
+                        .name || '',
+                    status: item.status,
+                  }))
+              );
+            } else {
+              setEnrolledCampaigns([]);
+            }
+          } catch (err) {
+            console.error('[PersonDetailsSlideOut] Error in enrolled campaigns query:', err);
+            setEnrolledCampaigns([]);
           }
         }
       } catch (error) {
@@ -257,10 +274,24 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
             .eq('status', 'active')
             .order('name', { ascending: true });
 
-          if (error) throw error;
+          if (error) {
+            // Check if table doesn't exist
+            if (error.message?.includes('schema cache') || error.message?.includes('does not exist')) {
+              console.warn('[PersonDetailsSlideOut] campaign_sequences table not found. Migration may not have been run.');
+              setCampaigns([]);
+              return;
+            }
+            throw error;
+          }
           setCampaigns(data || []);
         } catch (error) {
-          console.error('Error fetching campaigns:', error);
+          // Only log non-table-missing errors
+          const errorMessage = getErrorMessage(error);
+          if (!errorMessage.includes('schema cache') && !errorMessage.includes('does not exist')) {
+            console.error('[PersonDetailsSlideOut] Error fetching campaigns:', errorMessage, error);
+          }
+          // Set empty array to prevent UI errors
+          setCampaigns([]);
         }
       };
 
