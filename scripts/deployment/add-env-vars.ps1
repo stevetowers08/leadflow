@@ -6,8 +6,8 @@ Write-Host "Adding environment variables to Vercel..." -ForegroundColor Green
 # Supabase Configuration
 Write-Host "Adding Supabase configuration..." -ForegroundColor Yellow
 vercel env add NEXT_PUBLIC_SUPABASE_URL production --value "https://jedfundfhzytpnbjkspn.supabase.co"
-vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production --value "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGZ1bmRmaHp5dHBuYmprc3BuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzNjE5NDIsImV4cCI6MjA3MzkzNzk0Mn0.K5PFr9NdDav7SLk5pguj5tawj-10j-yhlUfFa_Fkvqg"
-vercel env add SUPABASE_SERVICE_ROLE_KEY production --value "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGZ1bmRmaHp5dHBuYmprc3BuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODM2MTk0MiwiZXhwIjoyMDczOTM3OTQyfQ.GpPDYihR_qSnN4cR0SXfgNa8AxB8iXCt7VkG1xYo44w"
+vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production --value "your-supabase-anon-key-here"
+vercel env add SUPABASE_SERVICE_ROLE_KEY production --value "your-supabase-service-role-key-here"
 
 # Google OAuth Configuration
 Write-Host "Adding Google OAuth configuration..." -ForegroundColor Yellow

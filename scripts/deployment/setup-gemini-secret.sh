@@ -32,7 +32,7 @@ if [ $? -eq 0 ]; then
     
     # Test the function
     curl -X POST "https://jedfundfhzytpnbjkspn.supabase.co/functions/v1/ai-job-summary" \
-        -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGZ1bmRmaHp5dHBuYmprc3BuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODM2MTk0MiwiZXhwIjoyMDczOTM3OTQyfQ.GpPDYihR_qSnN4cR0SXfgNa8AxB8iXCt7VkG1xYo44w" \
+        -H "Authorization: Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY" \
         -H "Content-Type: application/json" \
         -d '{
             "jobId": "d93cb366-b36a-42e9-9489-1032f07d6902",

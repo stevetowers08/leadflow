@@ -45,7 +45,7 @@ if ($LASTEXITCODE -eq 0) {
     } | ConvertTo-Json -Depth 3
     
     $headers = @{
-        "Authorization" = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGZ1bmRmaHp5dHBuYmprc3BuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODM2MTk0MiwiZXhwIjoyMDczOTM3OTQyfQ.GpPDYihR_qSnN4cR0SXfgNa8AxB8iXCt7VkG1xYo44w"
+        "Authorization" = "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
         "Content-Type" = "application/json"
     }
     
