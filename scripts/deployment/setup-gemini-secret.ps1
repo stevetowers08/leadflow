@@ -25,7 +25,7 @@ if (-not (Test-Path "supabase/config.toml")) {
 
 # Set the Gemini API key as a secret
 Write-Host "🔑 Setting GEMINI_API_KEY secret..." -ForegroundColor Yellow
-$result = supabase secrets set GEMINI_API_KEY=AIzaSyCNT_-QVzJr36BRJYU_P6AQYWOEZaoepZ4
+$result = supabase secrets set GEMINI_API_KEY=your-gemini-api-key-here
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Gemini API key set successfully!" -ForegroundColor Green

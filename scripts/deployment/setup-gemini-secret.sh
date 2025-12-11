@@ -23,7 +23,7 @@ fi
 
 # Set the Gemini API key as a secret
 echo "🔑 Setting GEMINI_API_KEY secret..."
-supabase secrets set GEMINI_API_KEY=AIzaSyCNT_-QVzJr36BRJYU_P6AQYWOEZaoepZ4
+supabase secrets set GEMINI_API_KEY=your-gemini-api-key-here
 
 if [ $? -eq 0 ]; then
     echo "✅ Gemini API key set successfully!"

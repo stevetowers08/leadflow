@@ -2,7 +2,7 @@
 // Run this in your browser console or as a test script
 
 const testApiKey = async () => {
-  const apiKey = 'AIzaSyCNT_-QVzJr36BRJYU_P6AQYWOEZaoepZ4';
+  const apiKey = process.env.GEMINI_API_KEY || 'your-gemini-api-key-here';
 
   try {
     const response = await fetch(
