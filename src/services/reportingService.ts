@@ -6,7 +6,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { getErrorMessage } from '@/lib/utils';
+import { getErrorMessage, logSupabaseError } from '@/lib/utils';
 
 export interface ReportingMetrics {
   // Core counts
@@ -131,10 +131,10 @@ export class ReportingService {
         ]);
 
       // Handle errors gracefully
-      if (peopleResult.error) console.error('Error counting people:', peopleResult.error);
-      if (companiesResult.error) console.error('Error counting companies:', companiesResult.error);
-      if (jobsResult.error) console.error('Error counting jobs:', jobsResult.error);
-      if (qualifiedJobsResult.error) console.error('Error counting qualified jobs:', qualifiedJobsResult.error);
+      if (peopleResult.error) logSupabaseError(peopleResult.error, 'counting people');
+      if (companiesResult.error) logSupabaseError(companiesResult.error, 'counting companies');
+      if (jobsResult.error) logSupabaseError(jobsResult.error, 'counting jobs');
+      if (qualifiedJobsResult.error) logSupabaseError(qualifiedJobsResult.error, 'counting qualified jobs');
 
       return {
         totalPeople: peopleResult.count || 0,

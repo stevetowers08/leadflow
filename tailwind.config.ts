@@ -4,10 +4,9 @@ import tailwindcssAnimate from 'tailwindcss-animate';
 export default {
   darkMode: ['class'],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    './src/pages/**/*.{ts,tsx}',
+    './src/components/**/*.{ts,tsx}',
+    './src/app/**/*.{ts,tsx}',
     '!./src/**/*.test.{ts,tsx}',
     '!./src/**/*.spec.{ts,tsx}',
     '!./src/**/__tests__/**',
@@ -146,9 +145,9 @@ export default {
   			}
   		},
   		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			lg: 'var(--radius)', /* 12px - PDR requirement */
+  			md: 'calc(var(--radius) - 2px)', /* 10px */
+  			sm: 'calc(var(--radius) - 4px)' /* 8px */
   		},
   		fontWeight: {
   			body: 'var(--font-weight-body)',

@@ -13,37 +13,15 @@ export default function IntegrationCallback() {
   );
   const [message, setMessage] = useState('');
   const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState<{ id: string } | null>(null);
+  const auth = useAuth();
+  const user = auth.user;
   const [searchParams] = useSearchParams();
   const router = useRouter();
   
   // Ensure component only runs auth logic on client
   useEffect(() => {
     setMounted(true);
-    // Only access auth after component mounts (client-side only)
-    try {
-      // Dynamic import to avoid SSR issues
-      const { useAuth } = require('@/contexts/AuthContext');
-      const auth = useAuth();
-      setUser(auth.user);
-    } catch (error) {
-      // Auth context not available during SSR - will retry on client
-      console.warn('Auth context not available during SSR');
-    }
   }, []);
-  
-  // Get auth once mounted (client-side only)
-  useEffect(() => {
-    if (mounted && typeof window !== 'undefined') {
-      try {
-        const { useAuth } = require('@/contexts/AuthContext');
-        const auth = useAuth();
-        setUser(auth.user);
-      } catch (error) {
-        // Handle gracefully
-      }
-    }
-  }, [mounted]);
 
   const handleCallback = useCallback(async () => {
     // Don't run auth-dependent logic during SSR

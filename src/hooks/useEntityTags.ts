@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/utils/toast';
 
 interface Tag {
   id: string;
@@ -17,7 +17,6 @@ interface UseEntityTagsProps {
 export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -58,10 +57,8 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
         setTags(formattedTags);
       } catch (error) {
         console.error('Error fetching entity tags:', error);
-        toast({
-          title: 'Error',
+        toast.error('Error', {
           description: 'Failed to load tags',
-          variant: 'destructive',
         });
       } finally {
         setLoading(false);
@@ -69,7 +66,7 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
     };
 
     fetchTags();
-  }, [entityId, entityType, toast]);
+  }, [entityId, entityType]);
 
   const addTag = async (tag: Tag) => {
     try {
@@ -82,16 +79,13 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
       if (error) throw error;
 
       setTags(prev => [...prev, tag]);
-      toast({
-        title: 'Tag Added',
+      toast.success('Tag Added', {
         description: `Added "${tag.name}" tag`,
       });
     } catch (error) {
       console.error('Error adding tag:', error);
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: 'Failed to add tag',
-        variant: 'destructive',
       });
     }
   };
@@ -110,16 +104,13 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
       const tagToRemove = tags.find(type => type.id === tagId);
       setTags(prev => prev.filter(tag => tag.id !== tagId));
 
-      toast({
-        title: 'Tag Removed',
+      toast.success('Tag Removed', {
         description: `Removed "${tagToRemove?.name}" tag`,
       });
     } catch (error) {
       console.error('Error removing tag:', error);
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: 'Failed to remove tag',
-        variant: 'destructive',
       });
     }
   };

@@ -16,9 +16,6 @@ import { cn } from '@/lib/utils';
 import {
   BarChart3,
   Bell,
-  Briefcase,
-  Building2,
-  Filter,
   Home,
   LogOut,
   Megaphone,
@@ -52,65 +49,53 @@ interface MobileSidebarProps {
 }
 
 /**
- * Sidebar items following user flow document structure:
- * 1. Core Campaigns - Primary user journey (Jobs → Companies → Pipeline → People → Conversations)
- * 2. Advanced Features - Phase 2 features (Campaigns, Analytics)
- * 3. Settings - Configuration
+ * Sidebar items following PDR structure:
+ * LeadFlow MVP Navigation:
+ * - Overview (/) - Dashboard
+ * - Leads (/leads) - Lead list
+ * - Inbox (/inbox) - Email conversations
+ * - Workflows (/workflows) - Workflow builder
+ * - Analytics (/analytics) - Analytics dashboard
+ * - Settings (/settings) - Settings
  */
 const sidebarItems: SidebarItem[] = [
-  // Core Campaigns - Most common items displayed prominently
   {
     to: '/',
-    label: 'Dashboard',
+    label: 'Overview',
     icon: <Home className='h-4 w-4' />,
     isPrimary: true,
     category: 'main',
   },
   {
-    to: '/pipeline',
-    label: 'Pipeline',
-    icon: <Filter className='h-4 w-4' />,
-    isPrimary: true,
-    category: 'main',
-  },
-  {
-    to: '/people',
-    label: 'Contacts',
+    to: '/leads',
+    label: 'Leads',
     icon: <Users className='h-4 w-4' />,
     isPrimary: true,
-    permission: 'people',
     category: 'main',
   },
   {
-    to: '/conversations',
-    label: 'Conversations',
+    to: '/inbox',
+    label: 'Inbox',
     icon: <MessageSquare className='h-4 w-4' />,
     isPrimary: true,
     category: 'main',
   },
-
-  // Advanced Features - Phase 2 functionality
   {
-    to: '/campaigns',
-    label: 'Campaigns',
+    to: '/workflows',
+    label: 'Workflows',
     icon: <Megaphone className='h-4 w-4' />,
-    permission: 'campaigns',
     category: 'secondary',
   },
   {
-    to: '/reporting',
+    to: '/analytics',
     label: 'Analytics',
     icon: <BarChart3 className='h-4 w-4' />,
-    permission: 'reports',
     category: 'secondary',
   },
-
-  // Settings
   {
     to: '/settings',
     label: 'Settings',
     icon: <Settings className='h-4 w-4' />,
-    permission: 'settings',
     category: 'tools',
   },
 ];
@@ -303,11 +288,11 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
 
           {/* Navigation Content */}
           <div className='flex-1 overflow-y-auto mobile-smooth-scroll p-4'>
-            {/* Core Campaigns */}
+            {/* Main Navigation */}
             {groupedItems.main && (
               <div className='mb-6'>
                 <h3 className='mobile-supporting-sm font-semibold uppercase tracking-wide mb-3'>
-                  Core Campaigns
+                  Main
                 </h3>
                 <nav className='space-y-1'>
                   {groupedItems.main.map(item => {

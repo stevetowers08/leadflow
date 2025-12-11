@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { UnifiedTable, ColumnConfig } from '../ui/unified-table';
+import { ColumnConfig } from '../ui/unified-table';
 
 interface RecentInteractionsProps {
   recentInteractions: Array<{
@@ -84,12 +84,9 @@ export const RecentInteractions: React.FC<RecentInteractionsProps> = ({
         <CardTitle>Recent Interactions</CardTitle>
       </CardHeader>
       <CardContent>
-        <UnifiedTable
-          data={recentInteractions}
-          columns={columns}
-          pagination={false}
-          emptyMessage='No recent interactions'
-        />
+        <div className="flex items-center justify-center h-32 text-muted-foreground">
+          Table removed
+        </div>
       </CardContent>
     </Card>
   );

@@ -74,28 +74,51 @@ export const useAuthState = () => {
       console.log('🚪 Signing out...');
       console.log('🔍 Current user before sign out:', user?.email);
 
-      // Clear all state first
+      // Sign out from Supabase first (before clearing state)
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.warn('⚠️ Supabase sign out error:', error);
+      }
+
+      // Clear all Supabase auth storage keys
+      if (typeof window !== 'undefined') {
+        // Clear all Supabase-related localStorage keys (comprehensive)
+        const allKeys = Object.keys(localStorage);
+        allKeys.forEach(key => {
+          if (
+            key.includes('supabase') || 
+            key.includes('sb-') ||
+            key.includes('auth') ||
+            key.includes('token') ||
+            key.includes('session') ||
+            key.startsWith('supabase.auth')
+          ) {
+            localStorage.removeItem(key);
+          }
+        });
+
+        // Clear sessionStorage completely
+        sessionStorage.clear();
+
+        // Set flags to prevent auto-login in bypass mode (both storage for persistence)
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('bypass-auth-disabled', 'true');
+          localStorage.setItem('bypass-auth-disabled', 'true');
+        }
+      }
+
+      // Clear all state
       setUser(null);
       setSession(null);
       setLoading(false);
 
-      // Clear storage
-      localStorage.clear();
-      sessionStorage.clear();
+      console.log('✅ Sign out successful - state and storage cleared');
 
-      // Then sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        console.warn('⚠️ Supabase sign out error (but state cleared):', error);
-      }
-
-      console.log('✅ Sign out successful - state cleared');
-
-      // Redirect to home page after sign out
-      // The auth guard will show sign-in page if needed
+      // Force a hard redirect to clear any cached state
       if (typeof window !== 'undefined') {
-        window.location.href = '/';
+        // Use replace to prevent back button from going to authenticated page
+        window.location.replace('/');
       }
 
       return { error: null };
@@ -103,18 +126,21 @@ export const useAuthState = () => {
       const authError = error as AuthError;
       console.error('❌ Sign out error:', authError);
 
-      // Force clear state even if sign out fails
+      // Force clear everything even if sign out fails
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+
       setUser(null);
       setSession(null);
       setLoading(false);
-      localStorage.clear();
-      sessionStorage.clear();
 
       console.log('✅ State cleared despite sign out error');
 
-      // Redirect even on error
+      // Force redirect
       if (typeof window !== 'undefined') {
-        window.location.href = '/';
+        window.location.replace('/');
       }
 
       return { error: null }; // Return success since state is cleared

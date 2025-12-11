@@ -18,18 +18,12 @@ export const RecruitEdgeLogo: React.FC<RecruitEdgeLogoProps> = ({
   const textColor = '#1E293B';
   const fontWeight = '700';
 
+  const textClasses = 'font-bold tracking-tight font-sans text-slate-800';
+  const textStyle = { fontSize: `${textSize}px` };
+
   if (variant === 'horizontal') {
     return (
-      <span
-        className={className}
-        style={{
-          fontSize: `${textSize}px`,
-          color: textColor,
-          fontWeight: fontWeight,
-          letterSpacing: '-0.02em',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-        }}
-      >
+      <span className={`${textClasses} ${className}`} style={textStyle}>
         Leadflow
       </span>
     );
@@ -38,15 +32,7 @@ export const RecruitEdgeLogo: React.FC<RecruitEdgeLogoProps> = ({
   if (variant === 'vertical') {
     return (
       <div className={`flex flex-col items-center gap-2 ${className}`}>
-        <span
-          style={{
-            fontSize: `${textSize}px`,
-            color: textColor,
-            fontWeight: fontWeight,
-            letterSpacing: '-0.02em',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-          }}
-        >
+        <span className={textClasses} style={textStyle}>
           Leadflow
         </span>
       </div>
@@ -55,16 +41,7 @@ export const RecruitEdgeLogo: React.FC<RecruitEdgeLogoProps> = ({
 
   // Default text only
   return (
-    <span
-      className={className}
-      style={{
-        fontSize: `${textSize}px`,
-        color: textColor,
-        fontWeight: fontWeight,
-        letterSpacing: '-0.02em',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
+    <span className={`${textClasses} ${className}`} style={textStyle}>
       Leadflow
     </span>
   );

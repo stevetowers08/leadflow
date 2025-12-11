@@ -16,6 +16,13 @@ import {
   saveUserTablePreferences,
   type TablePreferences,
 } from '@/services/userSettingsService';
+import {
+  TableHeader as ShadcnTableHeader,
+  TableBody as ShadcnTableBody,
+  TableRow as ShadcnTableRow,
+  TableCell as ShadcnTableCell,
+  TableHead as ShadcnTableHead,
+} from '@/components/ui/table';
 
 // TypeScript Interfaces for Column Configuration
 export interface ColumnConfig<T = unknown> {
@@ -59,11 +66,12 @@ export interface UnifiedTableProps<T = unknown> {
 }
 
 // Compound Component Pattern - Table Sub-components
+// Extend shadcn TableHeader with additional styling
 export const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn('bg-muted', className)} {...props} />
+  <ShadcnTableHeader ref={ref} className={className} {...props} />
 ));
 TableHeader.displayName = 'TableHeader';
 
@@ -71,7 +79,7 @@ export const TableBody = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <tbody
+  <ShadcnTableBody
     ref={ref}
     className={cn('[&_tr_td]:border-b [&_tr_td]:border-border', className)}
     {...props}
@@ -92,7 +100,7 @@ export const TableRow = React.forwardRef<
     if (
       target.closest('button') ||
       target.closest('[role="button"]') ||
-      target.closest('td.p-0.relative')
+      target.closest('[data-bulk-checkbox]')
     ) {
       return;
     }
@@ -100,22 +108,28 @@ export const TableRow = React.forwardRef<
   };
 
   return (
-    <tr
+    <ShadcnTableRow
       ref={ref}
       className={cn(
-        'cursor-pointer group h-[40px]',
-        'hover:bg-muted',
+        'group h-[40px]',
         onClick && 'cursor-pointer',
+        'hover:bg-muted',
         className
       )}
       role='row'
       tabIndex={onClick ? 0 : undefined}
       aria-label={onClick ? `Row ${(index || 0) + 1}` : undefined}
       onClick={handleClick}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
       {...props}
     >
       {children}
-    </tr>
+    </ShadcnTableRow>
   );
 });
 TableRow.displayName = 'TableRow';
@@ -125,41 +139,31 @@ export const TableCell = React.forwardRef<
   React.TdHTMLAttributes<HTMLTableCellElement> & {
     cellType?: ColumnConfig['cellType'];
     align?: ColumnConfig['align'];
-    statusValue?: string; // For status cells to get unified colors
+    statusValue?: string;
   }
 >(({ className, cellType, align = 'left', statusValue, ...props }, ref) => {
-  // Memoize status classes to prevent recalculation on every render
   const statusClasses = React.useMemo(() => {
-    if (cellType === 'status' && statusValue) {
-      return getUnifiedStatusClass(statusValue);
-    }
-    if (cellType === 'ai-score' && statusValue) {
+    if ((cellType === 'status' || cellType === 'ai-score') && statusValue) {
       return getUnifiedStatusClass(statusValue);
     }
     return '';
   }, [cellType, statusValue]);
 
   return (
-    <td
+    <ShadcnTableCell
       ref={ref}
       className={cn(
-        // Status cells: no padding, relative positioning, apply background colors directly
-        // Regular cells: reduced padding for 40px row height (py-1 = 4px top + 4px bottom = 8px total, leaving 32px for content)
-        cellType === 'status' ? 'p-0 relative' : 'px-4 py-1',
+        'px-4 py-1',
         'text-sm text-muted-foreground',
         'border-r border-border last:border-r-0',
-        // Don't apply hover text color change to status cells (they have colored backgrounds)
+        'box-border',
         cellType !== 'status' && 'group-hover:text-muted-foreground',
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
-        // Apply unified status colors for full-cell backgrounds on the td
         statusClasses,
+        'overflow-hidden break-words',
         className
       )}
-      style={{
-        boxSizing: 'border-box',
-        ...props.style,
-      }}
       {...props}
     />
   );
@@ -179,24 +183,27 @@ export const TableHead = React.forwardRef<
     { className, align = 'left', isFirst = false, isLast = false, isSticky = false, ...props },
     ref
   ) => (
-    <th
+    <ShadcnTableHead
       ref={ref}
       className={cn(
-        'px-4 py-1 h-[40px] text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap',
+        'px-4 py-1 h-[40px]',
+        'text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap',
         'border-b border-border border-r border-border last:border-r-0',
-        'transition-colors duration-150',
-        // Only apply rounded corners when NOT sticky (sticky headers don't need rounded corners)
+        'box-border',
         !isSticky && isFirst && 'rounded-tl-md',
         !isSticky && isLast && 'rounded-tr-md',
-        // Apply alignment classes
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
         align === 'left' && 'text-left',
-        !align && 'text-left',
         className
       )}
       style={{
-        boxSizing: 'border-box',
+        ...(isSticky && { 
+          position: 'sticky',
+          top: 0,
+          zIndex: 30,
+          backgroundColor: 'var(--muted)',
+        }),
         ...props.style,
       }}
       {...props}
@@ -239,8 +246,8 @@ export function UnifiedTable<T = unknown>({
         id: col.key,
         header: col.label as React.ReactNode,
         // We render cells ourselves, so cell isn't needed here
-        size: col.width ? Number.parseInt(col.width) : undefined,
-        minSize: col.minWidth ? Number.parseInt(col.minWidth) : undefined,
+        size: col.width ? parseInt(col.width, 10) : undefined,
+        minSize: col.minWidth ? parseInt(col.minWidth, 10) : undefined,
       })),
     [columns]
   );
@@ -294,6 +301,11 @@ export function UnifiedTable<T = unknown>({
   React.useEffect(() => {
     if (!tableId) return;
     queueSave({ columnOrder });
+    return () => {
+      if (saveDebounced.current) {
+        window.clearTimeout(saveDebounced.current);
+      }
+    };
   }, [columnOrder, queueSave, tableId]);
   // State for scroll-based shadow - optimized for performance
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -385,7 +397,7 @@ export function UnifiedTable<T = unknown>({
       // Parse width value - handle 'px', '%', 'rem', etc.
       const widthStr = colWidth.toString().trim();
       const widthMatch = widthStr.match(/^(\d+(?:\.\d+)?)/);
-      const widthNum = widthMatch ? Number.parseFloat(widthMatch[1]) : 150;
+      const widthNum = widthMatch ? parseFloat(widthMatch[1]) : 150;
       // Round to prevent sub-pixel issues
       return sum + Math.round(widthNum);
     }, 0);
@@ -393,29 +405,28 @@ export function UnifiedTable<T = unknown>({
     return (
       <div
         className={cn(
-          'bg-card border shadow-sm w-full rounded-md',
-          scrollable && 'flex flex-col overflow-hidden',
-          !scrollable && 'overflow-x-auto scrollbar-modern',
+          'bg-card border shadow-sm rounded-md',
+          scrollable && 'flex flex-col h-full min-w-0',
+          !scrollable && 'w-full',
           className
         )}
-        style={scrollable ? { flex: '1 1 0%', minHeight: 0 } : undefined}
       >
         <div
           ref={el => {
             scrollContainerRef.current = el;
           }}
           className={cn(
-            scrollable && 'flex-1 min-h-0 overflow-auto scrollbar-thin',
-            !scrollable && 'w-full'
+            scrollable && 'flex-1 min-h-0 min-w-0 overflow-auto',
+            !scrollable && 'w-full overflow-x-auto'
           )}
         >
           <table
+            role="table"
+            aria-label={tableId ? `Table: ${tableId}` : 'Data table'}
             style={{
               tableLayout: 'fixed',
               width: `${Math.round(totalTableWidth)}px`,
-              minWidth: `${Math.round(totalTableWidth)}px`,
-              maxWidth: `${Math.round(totalTableWidth)}px`,
-              borderCollapse: 'collapse',
+              borderCollapse: 'separate',
               borderSpacing: 0,
             }}
           >
@@ -444,7 +455,7 @@ export function UnifiedTable<T = unknown>({
                 // Round pixel values to prevent sub-pixel rendering issues
                 const widthStr = widthPx.toString().trim();
                 const widthMatch = widthStr.match(/^(\d+(?:\.\d+)?)/);
-                const widthNum = widthMatch ? Math.round(Number.parseFloat(widthMatch[1])) : 150;
+                const widthNum = widthMatch ? Math.round(parseFloat(widthMatch[1])) : 150;
                 const roundedWidth = `${widthNum}px`;
                 
                 return (
@@ -464,15 +475,6 @@ export function UnifiedTable<T = unknown>({
                 'bg-muted',
                 isScrolled && scrollable && 'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
               )}
-              style={
-                scrollable && stickyHeaders
-                  ? {
-                      position: 'sticky',
-                      top: 0,
-                      zIndex: 30,
-                    }
-                  : undefined
-              }
             >
               <tr className='border-b border-border'>
                 {orderedColumns.map((column, index) => {
@@ -561,8 +563,9 @@ export function UnifiedTable<T = unknown>({
 
                           {/* Group Header Row */}
                           <TableRow
-                            className='bg-gray-100 hover:bg-gray-200 cursor-pointer'
+                            className='bg-muted hover:bg-muted/80 cursor-pointer'
                             onClick={() => onToggleGroup?.(group.label)}
+                            aria-expanded={isExpanded}
                           >
                             <TableCell
                               colSpan={columns.length}
@@ -701,7 +704,8 @@ export function UnifiedTable<T = unknown>({
     expandedGroups,
     onToggleGroup,
     columnOrder,
-    table,
+    getRowClassName,
+    getRowProps,
   ]);
 
   return tableStructure;

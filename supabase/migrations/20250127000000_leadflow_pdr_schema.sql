@@ -205,3 +205,9 @@ COMMENT ON COLUMN public.leads.status IS 'System state: processing (AI enrichmen
 COMMENT ON COLUMN public.leads.gmail_thread_id IS 'Gmail thread ID for 2-way email sync';
 COMMENT ON COLUMN public.emails.direction IS 'Email direction: inbound (from lead) or outbound (to lead)';
 
+
+
+
+
+
+

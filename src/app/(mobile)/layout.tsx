@@ -18,9 +18,19 @@ export default function MobileLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="h-[100dvh] w-screen overflow-hidden">
+    <div 
+      className="h-[100dvh] w-screen overflow-hidden mobile-safe-area"
+      role="main"
+      aria-label="Mobile application"
+    >
       {children}
     </div>
   );
 }
+
+
+
+
+
+
 

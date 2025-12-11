@@ -34,7 +34,15 @@ export async function getUserTablePreferences(
       .eq('user_id', user.id)
       .maybeSingle();
 
-    if (error) throw error;
+    // Handle missing table gracefully
+    if (error) {
+      const errorMessage = error.message || '';
+      if (errorMessage.includes('schema cache') || errorMessage.includes('does not exist')) {
+        console.debug('Failed to load email signature: Could not find the table', error);
+        return null;
+      }
+      throw error;
+    }
 
     const prefs =
       (data?.preferences as UserPreferencesPayload | undefined) || {};
@@ -71,7 +79,15 @@ export async function saveUserTablePreferences(
       .eq('user_id', user.id)
       .maybeSingle();
 
-    if (selectError) throw selectError;
+    // Handle missing table gracefully
+    if (selectError) {
+      const errorMessage = selectError.message || '';
+      if (errorMessage.includes('schema cache') || errorMessage.includes('does not exist')) {
+        console.debug('Table user_settings not found, skipping save');
+        return;
+      }
+      throw selectError;
+    }
 
     const merged: UserPreferencesPayload = {
       ...(existing?.preferences as UserPreferencesPayload | undefined),

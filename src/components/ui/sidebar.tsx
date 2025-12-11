@@ -247,7 +247,12 @@ const Sidebar = React.forwardRef<
         >
           <div
             data-sidebar='sidebar'
-            className='flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow'
+            className={cn(
+              'flex h-full w-full flex-col bg-sidebar backdrop-blur-[20px] [backdrop-filter:saturate(180%)]',
+              'group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow',
+              'group-data-[variant=inset]:bg-transparent group-data-[variant=floating]:bg-transparent',
+              '[&_*]:[backdrop-filter:none] [&_*]:[-webkit-backdrop-filter:none]'
+            )}
           >
             {children}
           </div>
@@ -321,8 +326,8 @@ const SidebarInset = React.forwardRef<
     <main
       ref={ref}
       className={cn(
-        'relative flex min-h-svh flex-1 flex-col bg-background',
-        'peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow',
+        'relative flex min-h-dvh flex-1 flex-col bg-background',
+        'peer-data-[variant=inset]:min-h-[calc(100dvh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow',
         className
       )}
       {...props}
@@ -561,7 +566,11 @@ const SidebarMenuButton = React.forwardRef<
         data-sidebar='menu-button'
         data-size={size}
         data-active={isActive}
-        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        className={cn(
+          sidebarMenuButtonVariants({ variant, size }),
+          'focus-visible:outline-none', // Remove default focus outline for sidebar links
+          className
+        )}
         {...props}
       />
     );

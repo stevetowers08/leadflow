@@ -93,10 +93,7 @@ const SearchResultItem: React.FC<{
 
   return (
     <Card
-      className={cn(
-        'cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/50',
-        'border border-border bg-white'
-      )}
+      className="cursor-pointer transition-all"
       onClick={handleClick}
     >
       <CardContent className='p-4'>

@@ -1,4 +1,4 @@
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/utils/toast';
 import { queryKeys, type JobFilters } from '@/lib/queryKeys';
 import { jobsService, type Job } from '@/services/jobsService';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -23,7 +23,6 @@ export function useJob(id: string) {
 
 export function useCreateJob() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: jobsService.createJob,
@@ -31,16 +30,13 @@ export function useCreateJob() {
       // Invalidate and refetch jobs list
       queryClient.invalidateQueries({ queryKey: queryKeys.jobs.all });
 
-      toast({
-        title: 'Success',
+      toast.success('Success', {
         description: `Job "${newJob.title}" created successfully`,
       });
     },
     onError: error => {
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: `Failed to create job: ${error.message}`,
-        variant: 'destructive',
       });
     },
   });
@@ -48,7 +44,6 @@ export function useCreateJob() {
 
 export function useUpdateJob() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Partial<Job> }) =>
@@ -73,15 +68,12 @@ export function useUpdateJob() {
         queryClient.setQueryData(queryKeys.jobs.all, context.previousJobs);
       }
 
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: `Failed to update job: ${error.message}`,
-        variant: 'destructive',
       });
     },
     onSuccess: updatedJob => {
-      toast({
-        title: 'Success',
+      toast.success('Success', {
         description: `Job "${updatedJob.title}" updated successfully`,
       });
     },
@@ -94,7 +86,6 @@ export function useUpdateJob() {
 
 export function useDeleteJob() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: jobsService.deleteJob,
@@ -102,16 +93,13 @@ export function useDeleteJob() {
       // Invalidate and refetch jobs list
       queryClient.invalidateQueries({ queryKey: queryKeys.jobs.all });
 
-      toast({
-        title: 'Success',
+      toast.success('Success', {
         description: 'Job deleted successfully',
       });
     },
     onError: error => {
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: `Failed to delete job: ${error.message}`,
-        variant: 'destructive',
       });
     },
   });

@@ -154,8 +154,6 @@ export class UnifiedActionService {
       switch (crmProvider) {
         case 'salesforce':
           return this.mapToSalesforce(entity);
-        case 'hubspot':
-          return this.mapToHubspot(entity);
         case 'pipedrive':
           return this.mapToPipedrive(entity);
         case 'zoho':
@@ -190,34 +188,6 @@ export class UnifiedActionService {
         NumberOfEmployees: entity.company_size || '',
         Description: entity.score_reason || '',
         LeadSource: 'Empowr CRM',
-      };
-    }
-  }
-
-  /**
-   * Map to HubSpot format
-   */
-  private mapToHubspot(entity: Company | Person): Record<string, unknown> {
-    if ('company_role' in entity) {
-      // Person entity
-      return {
-        firstname: entity.name?.split(' ')[0] || '',
-        lastname: entity.name?.split(' ').slice(1).join(' ') || '',
-        email: entity.email_address || '',
-        jobtitle: entity.company_role || '',
-        company: entity.company_name || '',
-        phone: entity.phone || '',
-        hs_lead_source: 'Empowr CRM',
-      };
-    } else {
-      // Company entity
-      return {
-        name: entity.name || '',
-        domain: entity.website || '',
-        industry: entity.industry || '',
-        numberofemployees: entity.company_size || '',
-        description: entity.score_reason || '',
-        hs_lead_source: 'Empowr CRM',
       };
     }
   }

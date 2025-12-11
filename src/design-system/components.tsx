@@ -142,7 +142,7 @@ export const Page: React.FC<PageProps> = ({
 
   return (
     <div
-      className={cn('w-full flex flex-col overflow-hidden', containerPadding)}
+      className={cn('w-full flex flex-col overflow-hidden min-w-0', containerPadding)}
       style={{ height: '100%', minHeight: 0, maxHeight: '100%' }}
     >
       {!hideHeader && (
@@ -157,13 +157,13 @@ export const Page: React.FC<PageProps> = ({
             {title}
           </h1>
           {stats && (
-            <div className='flex items-center gap-4 mt-2 text-sm'>
+            <div className='flex items-center gap-4 mt-2 text-sm flex-wrap min-w-0'>
               {stats.map((stat, index) => {
                 const IconComponent = stat.icon;
                 return (
                   <div
                     key={index}
-                    className='flex items-center gap-1 text-muted-foreground'
+                    className='flex items-center gap-1 text-muted-foreground flex-shrink-0'
                   >
                     <IconComponent className='h-3 w-3' />
                     <span className='font-semibold'>{stat.value}</span>
@@ -177,7 +177,7 @@ export const Page: React.FC<PageProps> = ({
       )}
       <div
         className={cn(
-          'flex-1 min-h-0 overflow-y-auto overflow-x-auto',
+          'flex-1 min-h-0 min-w-0 overflow-y-auto',
           contentRightPadding
         )}
         style={{
@@ -185,15 +185,13 @@ export const Page: React.FC<PageProps> = ({
           scrollPaddingBottom: scrollPadding,
         }}
       >
-        {/* Content wrapper with padding for visual spacing */}
         <div
           className={cn(
             hideHeader 
-              ? isLargePadding ? 'pt-12' : 'pt-6' // Only top padding when hideHeader
-              : isLargePadding ? 'pb-6' : 'pb-3', // Keep bottom padding when header shown
-            'h-full flex flex-col'
+              ? isLargePadding ? 'pt-12' : 'pt-6'
+              : isLargePadding ? 'pb-6' : 'pb-3',
+            'min-w-0'
           )}
-          style={{ minHeight: 0 }}
         >
           {children}
         </div>

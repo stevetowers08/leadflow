@@ -313,10 +313,9 @@ export function EnhancedMobileTable<
             {/* Card Content */}
             <Card
               className={cn(
-                'cursor-pointer transition-all duration-200',
+                'cursor-pointer transition-all',
                 'touch-manipulation min-h-[56px]',
-                isSwiped && 'shadow-lg',
-                'hover:shadow-md active:shadow-sm'
+                isSwiped && 'shadow-lg'
               )}
               style={{
                 transform: offset < 0 ? `translateX(${offset}px)` : 'none',

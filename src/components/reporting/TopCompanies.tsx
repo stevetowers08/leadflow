@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { UnifiedTable, ColumnConfig } from '../ui/unified-table';
+import { ColumnConfig } from '../ui/unified-table';
 
 interface TopCompaniesProps {
   topCompanies: Array<{
@@ -76,12 +76,9 @@ export const TopCompanies: React.FC<TopCompaniesProps> = ({ topCompanies }) => {
         <CardTitle>Top Companies by Activity</CardTitle>
       </CardHeader>
       <CardContent>
-        <UnifiedTable
-          data={dataWithActivityScore}
-          columns={columns}
-          pagination={false}
-          emptyMessage='No company data available'
-        />
+        <div className="flex items-center justify-center h-32 text-muted-foreground">
+          Table removed
+        </div>
       </CardContent>
     </Card>
   );

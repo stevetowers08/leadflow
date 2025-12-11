@@ -164,82 +164,22 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
       const isSupabaseError = this.isSupabaseError(this.state.error);
 
       return (
-        <div
-          style={{
-            minHeight: '100vh',
-            backgroundColor: '#f9fafb',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-            fontFamily: 'Arial, sans-serif',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              padding: '24px',
-              maxWidth: '600px',
-              width: '100%',
-            }}
-          >
+        <div className='min-h-screen bg-gray-50 flex items-center justify-center p-5 font-sans'>
+          <div className='bg-white rounded-lg shadow-md p-6 max-w-[600px] w-full'>
             {/* Error Header */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                marginBottom: '16px',
-                color: '#dc2626',
-              }}
-            >
-              <span style={{ fontSize: '20px' }}>⚠️</span>
-              <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
-                {errorType}
-              </h1>
+            <div className='flex items-center gap-2 mb-4 text-destructive'>
+              <span className='text-xl'>⚠️</span>
+              <h1 className='m-0 text-lg font-bold'>{errorType}</h1>
             </div>
 
             {/* Error Message */}
-            <div
-              style={{
-                backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca',
-                borderRadius: '6px',
-                padding: '16px',
-                marginBottom: '16px',
-              }}
-            >
-              <h3
-                style={{
-                  margin: '0 0 8px 0',
-                  color: '#991b1b',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                }}
-              >
-                Error Details:
-              </h3>
-              <p
-                style={{
-                  color: '#7f1d1d',
-                  fontSize: '12px',
-                  fontFamily: 'monospace',
-                  margin: 0,
-                  wordBreak: 'break-word',
-                }}
-              >
+            <div className='bg-red-50 border border-red-200 rounded-md p-4 mb-4'>
+              <h3 className='m-0 mb-2 text-red-900 text-sm font-bold'>Error Details:</h3>
+              <p className='text-red-800 text-xs font-mono m-0 break-words'>
                 {this.state.error.message}
               </p>
               {this.state.errorId && (
-                <p
-                  style={{
-                    color: '#dc2626',
-                    fontSize: '10px',
-                    margin: '8px 0 0 0',
-                  }}
-                >
+                <p className='text-destructive text-[10px] mt-2 mb-0'>
                   Error ID: {this.state.errorId}
                 </p>
               )}
@@ -247,53 +187,26 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
 
             {/* Supabase-specific help */}
             {isSupabaseError && (
-              <div
-                style={{
-                  backgroundColor: '#eff6ff',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '6px',
-                  padding: '16px',
-                  marginBottom: '16px',
-                }}
-              >
-                <h3
-                  style={{
-                    margin: '0 0 8px 0',
-                    color: '#1e40af',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                  }}
-                >
+              <div className='bg-blue-50 border border-blue-200 rounded-md p-4 mb-4'>
+                <h3 className='m-0 mb-2 text-blue-900 text-sm font-bold'>
                   🔧 Supabase Setup Help:
                 </h3>
-                <div style={{ color: '#1e3a8a', fontSize: '12px' }}>
-                  <p style={{ margin: '0 0 8px 0' }}>
+                <div className='text-blue-800 text-xs'>
+                  <p className='m-0 mb-2'>
                     This appears to be a Supabase configuration issue. Here's
                     how to fix it:
                   </p>
-                  <ol style={{ margin: 0, paddingLeft: '16px' }}>
+                  <ol className='m-0 pl-4'>
                     <li>
                       Create a{' '}
-                      <code
-                        style={{
-                          backgroundColor: '#dbeafe',
-                          padding: '2px 4px',
-                          borderRadius: '2px',
-                        }}
-                      >
+                      <code className='bg-blue-100 px-1 py-0.5 rounded text-xs'>
                         .env
                       </code>{' '}
                       file in your project root
                     </li>
                     <li>
                       Copy the template from{' '}
-                      <code
-                        style={{
-                          backgroundColor: '#dbeafe',
-                          padding: '2px 4px',
-                          borderRadius: '2px',
-                        }}
-                      >
+                      <code className='bg-blue-100 px-1 py-0.5 rounded text-xs'>
                         env.example
                       </code>
                     </li>
@@ -306,10 +219,8 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
                       <a
                         href='https://supabase.com/dashboard'
                         target='_blank'
-                        style={{
-                          color: '#1e40af',
-                          textDecoration: 'underline',
-                        }}
+                        rel='noopener noreferrer'
+                        className='text-blue-900 underline'
                       >
                         Supabase Dashboard
                       </a>
@@ -320,35 +231,13 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
             )}
 
             {/* Suggestions */}
-            <div
-              style={{
-                backgroundColor: '#fffbeb',
-                border: '1px solid #fed7aa',
-                borderRadius: '6px',
-                padding: '16px',
-                marginBottom: '16px',
-              }}
-            >
-              <h3
-                style={{
-                  margin: '0 0 8px 0',
-                  color: '#92400e',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                }}
-              >
+            <div className='bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4'>
+              <h3 className='m-0 mb-2 text-yellow-900 text-sm font-bold'>
                 💡 Suggested Solutions:
               </h3>
-              <ul
-                style={{
-                  margin: 0,
-                  paddingLeft: '16px',
-                  color: '#92400e',
-                  fontSize: '12px',
-                }}
-              >
+              <ul className='m-0 pl-4 text-yellow-900 text-xs'>
                 {suggestions.map((suggestion, index) => (
-                  <li key={index} style={{ marginBottom: '4px' }}>
+                  <li key={index} className='mb-1'>
                     {suggestion}
                   </li>
                 ))}
@@ -356,34 +245,16 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
             </div>
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div className='flex gap-3 flex-wrap'>
               <button
                 onClick={this.handleRetry}
-                style={{
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '8px 16px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                }}
+                className='bg-blue-600 text-white border-none rounded-md px-4 py-2 cursor-pointer text-sm font-bold hover:bg-blue-700 transition-colors'
               >
                 🔄 Try Again
               </button>
               <button
                 onClick={this.handleReload}
-                style={{
-                  backgroundColor: 'transparent',
-                  color: '#374151',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  padding: '8px 16px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                }}
+                className='bg-transparent text-gray-700 border border-gray-300 rounded-md px-4 py-2 cursor-pointer text-sm font-bold hover:bg-gray-50 transition-colors'
               >
                 🔄 Reload Page
               </button>

@@ -178,11 +178,14 @@ export function useRealtimeSubscription(
     // The useEffect will automatically recreate the subscription
   }, []);
 
+  // Getter function to access channel safely
+  const getChannel = useCallback(() => channelRef.current, []);
+
   return {
     isConnected,
     lastEvent,
     reconnect,
-    channel: channelRef.current,
+    getChannel,
   };
 }
 

@@ -1,7 +1,7 @@
 import { useState, memo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/utils/toast';
 import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,7 +23,6 @@ const FavoriteToggleComponent = ({
     className,
   }: FavoriteToggleProps) => {
     const [isToggling, setIsToggling] = useState(false);
-    const { toast } = useToast();
 
     const handleToggle = useCallback(async () => {
       if (isToggling) return;
@@ -49,23 +48,21 @@ const FavoriteToggleComponent = ({
 
         onToggle?.(newFavoriteStatus);
 
-        toast({
-          title: newFavoriteStatus
-            ? 'Added to Favorites'
-            : 'Removed from Favorites',
-          description: `${entityType} ${newFavoriteStatus ? 'added to' : 'removed from'} favorites`,
-        });
+        toast.success(
+          newFavoriteStatus ? 'Added to Favorites' : 'Removed from Favorites',
+          {
+            description: `${entityType} ${newFavoriteStatus ? 'added to' : 'removed from'} favorites`,
+          }
+        );
       } catch (error) {
         console.error('Error toggling favorite:', error);
-        toast({
-          title: 'Error',
+        toast.error('Error', {
           description: 'Failed to update favorite status',
-          variant: 'destructive',
         });
       } finally {
         setIsToggling(false);
       }
-    }, [isToggling, isFavorite, entityType, entityId, onToggle, toast]);
+    }, [isToggling, isFavorite, entityType, entityId, onToggle]);
 
     const sizeClasses = {
       sm: 'h-6 w-6',

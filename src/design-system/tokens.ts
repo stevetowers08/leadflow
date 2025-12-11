@@ -204,20 +204,42 @@ export const designTokens = {
     tableRow: 'border-b border-border last:border-b-0',
   },
 
-  // Transitions - Professional timing system
+  // Transitions - Professional timing system (2025 Best Practices)
   transitions: {
-    fast: 'transition-colors duration-150',
-    normal: 'transition-colors duration-200',
-    slow: 'transition-all duration-300',
-    transform: 'transition-transform duration-200',
+    fast: 'transition-colors duration-150 ease-out',
+    normal: 'transition-colors duration-200 ease-out',
+    slow: 'transition-all duration-300 ease-out',
+    transform: 'transition-transform duration-200 ease-out',
     // Hover effects - Color and shadow transitions only (NO scale effects)
     // Following HubSpot design patterns - subtle color changes and shadow elevation
     hoverInteractive:
-      'cursor-pointer transition-all duration-200 hover:shadow-md',
+      'cursor-pointer transition-all duration-200 ease-out hover:shadow-md',
     // Card hover effects - ONLY for clickable cards
     cardInteractive:
-      'cursor-pointer transition-all duration-200 hover:shadow-md',
-    cardStatic: 'transition-shadow duration-200 hover:shadow-md',
+      'cursor-pointer transition-all duration-200 ease-out hover:shadow-md',
+    cardStatic: 'transition-shadow duration-200 ease-out hover:shadow-md',
+    // 2025 Microinteractions - Subtle feedback patterns
+    microinteraction: 'transition-all duration-200 ease-out',
+    focusRing: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+    // Smooth animations for state changes
+    smooth: 'transition-all duration-300 ease-in-out',
+  },
+  
+  // Animations - 2025 Best Practices
+  animations: {
+    // Subtle pulse for attention
+    pulse: 'animate-pulse',
+    // Smooth fade in
+    fadeIn: 'animate-in fade-in duration-200',
+    // Slide animations
+    slideUp: 'animate-in slide-in-from-bottom-4 duration-200',
+    slideDown: 'animate-in slide-in-from-top-4 duration-200',
+    slideLeft: 'animate-in slide-in-from-right-4 duration-200',
+    slideRight: 'animate-in slide-in-from-left-4 duration-200',
+    // Scale animations (use sparingly)
+    scaleIn: 'animate-in zoom-in-95 duration-200',
+    // Spin for loading
+    spin: 'animate-spin',
   },
 
   // Loading States

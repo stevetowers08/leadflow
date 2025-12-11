@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
@@ -15,6 +15,23 @@ export const metadata: Metadata = {
     icon: '/favicon.svg',
     apple: '/apple-touch-icon.png',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'LeadFlow',
+  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0A1628' },
+  ],
+  viewportFit: 'cover', // Support for notched devices
 };
 
 export default function RootLayout({
@@ -25,12 +42,18 @@ export default function RootLayout({
   return (
     <html
       lang='en'
-      className='h-full overflow-hidden'
-      style={{ height: '100vh' }}
+      className='h-dvh overflow-hidden'
+      suppressHydrationWarning
     >
+      <head>
+        <meta name='mobile-web-app-capable' content='yes' />
+        <meta name='apple-mobile-web-app-capable' content='yes' />
+        <meta name='apple-mobile-web-app-status-bar-style' content='default' />
+        <meta name='format-detection' content='telephone=no' />
+        <link rel='manifest' href='/manifest.json' />
+      </head>
       <body
-        className={`${inter.className} h-full overflow-hidden`}
-        style={{ height: '100%', margin: 0, padding: 0 }}
+        className={`${inter.className} h-full overflow-hidden m-0 p-0 antialiased`}
       >
         <Providers>
           <LayoutWrapper>{children}</LayoutWrapper>

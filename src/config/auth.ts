@@ -63,7 +63,7 @@ export const getAuthConfig = (): AuthConfig => {
       // Override via env vars: NEXT_PUBLIC_MOCK_USER_*
       id:
         process.env.NEXT_PUBLIC_MOCK_USER_ID ||
-        '339cf49e-5cd9-4692-b4bf-26b9eee3a44c', // steve@polarislabs.io
+        '79a2f2d5-91ff-485f-ad13-466bcc96666d', // steve@polarislabs.io (actual Supabase user ID)
       email:
         process.env.NEXT_PUBLIC_MOCK_USER_EMAIL || 'steve@polarislabs.io',
       role: process.env.NEXT_PUBLIC_MOCK_USER_ROLE || 'admin',

@@ -166,6 +166,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Handle bypass auth mode - but check for actual session first
         if (authConfig.bypassAuth) {
+          // Check if user explicitly signed out (bypass disabled flag)
+          // Check both sessionStorage and localStorage for persistence
+          const bypassDisabled = typeof window !== 'undefined' 
+            ? (sessionStorage.getItem('bypass-auth-disabled') === 'true' ||
+               localStorage.getItem('bypass-auth-disabled') === 'true')
+            : false;
+
+          if (bypassDisabled) {
+            // User explicitly signed out - don't auto-login
+            console.log('🔐 BypassAuth: User signed out, not auto-logging in');
+            if (isMountedRef.current) {
+              authState.setUser(null);
+              authState.setSession(null);
+              authState.setLoading(false);
+              userProfile.setUserProfile(null);
+            }
+            return;
+          }
+
           // Try to get actual session first, even in bypass mode
           const {
             data: { session },
@@ -173,7 +192,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } = await supabase.auth.getSession();
 
           if (session?.user) {
-            // Use actual authenticated user from Supabase
+            // Use actual authenticated user from Supabase (preferred in bypass mode)
             console.log('🔐 BypassAuth: Using actual authenticated user:', session.user.email);
             if (isMountedRef.current) {
               authState.setUser(session.user);
@@ -182,17 +201,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Continue with normal auth flow to set up user profile
             // Don't set loading to false here - let the normal flow handle it
           } else {
-            // No actual session - fall back to mock user
-            console.log('🔐 BypassAuth: No session found, using mock user');
+            // No actual session - use mock user for development
+            // This allows dev work without needing to sign in
+            console.log('🔐 BypassAuth: No session found, using mock user for development');
             const mockUser = getMockUser();
             const mockUserProfile = getMockUserProfile();
 
             if (isMountedRef.current) {
               authState.setUser(mockUser);
+              // Create a minimal mock session (won't work for real Supabase queries)
+              // But allows UI to work in bypass mode
               authState.setSession({
                 user: mockUser,
-                access_token: 'mock-token',
-                refresh_token: 'mock-refresh-token',
+                access_token: 'bypass-mock-token',
+                refresh_token: 'bypass-mock-refresh-token',
                 expires_in: 3600,
                 expires_at: Date.now() + 3600000,
                 token_type: 'bearer',
@@ -328,56 +350,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           authState.setError(null); // Clear errors on successful auth change
 
           if (session?.user) {
-            // Prevent duplicate profile creation for the same user
+            // Set loading to false immediately - user is authenticated
+            authState.setLoading(false);
+            
+            // Load profile (non-blocking)
             if (lastProcessedUserIdRef.current !== session.user.id) {
-              console.log('🔄 Auth state change - loading user profile');
-              if (isMountedRef.current) {
-                // Try to fetch actual user profile from database first
-                try {
-                  const { data: existingProfile, error: profileError } =
-                    await supabase
-                      .from('user_profiles')
-                      .select('*')
-                      .eq('id', session.user.id)
-                      .single();
-
-                  if (existingProfile && !profileError) {
-                    console.log(
-                      '✅ Found existing user profile:',
-                      existingProfile
-                    );
-                    console.log(
-                      '🔍 User role from database:',
-                      existingProfile.role
-                    );
-                    userProfile.setUserProfile(existingProfile);
-                  } else {
-                    console.log(
-                      '🔧 No existing profile found, creating fallback profile'
-                    );
-                    const fallbackProfile = userProfile.createFallbackProfile(
-                      session.user
-                    );
-                    userProfile.setUserProfile(fallbackProfile);
+              lastProcessedUserIdRef.current = session.user.id;
+              
+              // Fetch profile asynchronously
+              supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single()
+                .then(({ data: existingProfile, error: profileError }) => {
+                  if (isMountedRef.current) {
+                    if (existingProfile && !profileError) {
+                      userProfile.setUserProfile(existingProfile);
+                    } else {
+                      userProfile.setUserProfile(
+                        userProfile.createFallbackProfile(session.user)
+                      );
+                    }
                   }
-                } catch (error) {
-                  console.error('❌ Error fetching user profile:', error);
-                  // Fallback to creating a profile
-                  const fallbackProfile = userProfile.createFallbackProfile(
-                    session.user
-                  );
-                  userProfile.setUserProfile(fallbackProfile);
-                }
-
-                lastProcessedUserIdRef.current = session.user.id;
-                console.log('✅ User profile loaded');
-                authState.setLoading(false);
-              }
-            } else {
-              console.log(
-                '🔄 Auth state change - user already processed, skipping profile creation'
-              );
-              authState.setLoading(false);
+                })
+                .catch(() => {
+                  if (isMountedRef.current) {
+                    userProfile.setUserProfile(
+                      userProfile.createFallbackProfile(session.user)
+                    );
+                  }
+                });
             }
           } else {
             if (isMountedRef.current) {

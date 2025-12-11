@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useCallback } from 'react';
+import { toast } from '@/utils/toast';
 import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -40,7 +40,6 @@ export function useUserFeedback(options: UserFeedbackOptions = {}) {
 
   const [feedback, setFeedback] = useState<UserFeedbackState | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const { toast } = useToast();
 
   const showFeedback = useCallback(
     (state: UserFeedbackState) => {
@@ -48,22 +47,41 @@ export function useUserFeedback(options: UserFeedbackOptions = {}) {
       setIsVisible(true);
 
       if (showToast) {
-        toast({
-          title: state.title,
+        const toastOptions = {
           description: state.message,
-          variant: state.type === 'error' ? 'destructive' : 'default',
           duration: state.duration || duration,
-        });
+          action: state.action
+            ? {
+                label: state.action.label,
+                onClick: state.action.onClick,
+              }
+            : undefined,
+        };
+
+        switch (state.type) {
+          case 'success':
+            toast.success(state.title, toastOptions);
+            break;
+          case 'error':
+            toast.error(state.title, toastOptions);
+            break;
+          case 'warning':
+            toast.warning(state.title, toastOptions);
+            break;
+          case 'info':
+            toast.info(state.title, toastOptions);
+            break;
+        }
       }
 
       if (autoHide && (state.duration || duration)) {
         setTimeout(() => {
           setIsVisible(false);
-          setTimeout(() => setFeedback(null), 300); // Wait for animation
+          setTimeout(() => setFeedback(null), 300);
         }, state.duration || duration);
       }
     },
-    [showToast, autoHide, duration, toast]
+    [showToast, autoHide, duration]
   );
 
   const hideFeedback = useCallback(() => {

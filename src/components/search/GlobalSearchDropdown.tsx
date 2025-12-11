@@ -150,7 +150,7 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
             onChange={handleInputChange}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            className='w-full h-8 rounded-md border border-border/60 bg-white pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:border-gray-400 focus:border-primary search-input-light'
+            className='w-full h-8 rounded-md border border-border/60 bg-white pl-10 pr-10 text-sm font-normal text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:border-gray-400 focus:border-primary'
           />
 
           {/* Search Icon */}

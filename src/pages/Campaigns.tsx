@@ -14,6 +14,7 @@ import { useCampaignSequences } from '@/hooks/useCampaignSequences';
 import { supabase } from '@/integrations/supabase/client';
 import { CampaignSequence } from '@/types/campaign.types';
 import { format } from 'date-fns';
+import { getErrorMessage } from '@/lib/utils';
 import {
   AlertTriangle,
   DollarSign,
@@ -169,9 +170,10 @@ function CampaignsContent() {
         : '/campaigns';
       router.push(`${basePath}/sequence/${newSequence.id}`);
     } catch (error) {
+      const errorMessage = getErrorMessage(error);
       toast({
         title: 'Error',
-        description: 'Failed to create sequence. Please try again.',
+        description: `Failed to create campaign sequence: ${errorMessage}`,
         variant: 'destructive',
       });
     }

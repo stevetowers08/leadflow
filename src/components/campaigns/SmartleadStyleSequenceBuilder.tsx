@@ -1,10 +1,11 @@
 /**
- * Smartlead-Style Campaign Sequence Builder
- * Vertical timeline design with connected steps
+ * Campaign Sequence Builder - 2025 Best Practices
+ * Modern, accessible, and user-friendly campaign builder
  */
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -16,11 +17,22 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Page } from '@/design-system/components';
 import {
   useCampaignSteps,
   useCampaignSequences,
 } from '@/hooks/useCampaignSequences';
+import { CampaignSequence, CampaignStep } from '@/types/campaign.types';
 import {
   ArrowLeft,
   ChevronDown,
@@ -30,14 +42,15 @@ import {
   Eye,
   GitBranch,
   Mail,
-  MoreHorizontal,
   Pause,
+  Pencil,
   Play,
   Plus,
   Save,
   Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { toast } from 'sonner';
 import StepCreationModal from './StepCreationModal';
 import WaitStepConfig from './WaitStepConfig';
 
@@ -54,115 +67,139 @@ export default function SmartleadStyleSequenceBuilder({
     useCampaignSteps(sequence.id);
   const { updateSequence } = useCampaignSequences();
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [showStepModal, setShowStepModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [stepToDelete, setStepToDelete] = useState<string | null>(null);
   const [pauseOnReply, setPauseOnReply] = useState(
     sequence.pause_on_reply ?? true
   );
-  const { toast } = useToast();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState(sequence.name);
 
-  const selectedStep = steps.find(s => s.id === selectedStepId);
+  useEffect(() => {
+    setEditedName(sequence.name);
+  }, [sequence.name]);
 
-  const handlePauseOnReplyToggle = async (checked: boolean) => {
-    setPauseOnReply(checked);
-    try {
-      await updateSequence.mutateAsync({
-        id: sequence.id,
-        pause_on_reply: checked,
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update pause on reply setting',
-        variant: 'destructive',
-      });
-      setPauseOnReply(!checked); // Revert on error
-    }
-  };
+  const selectedStep = useMemo(
+    () => steps.find(s => s.id === selectedStepId),
+    [steps, selectedStepId]
+  );
 
-  if (loading) {
-    return (
-      <div className='flex items-center justify-center h-64'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4'></div>
-          <p className='text-muted-foreground'>Loading campaign steps...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const handleAddStep = async (type: 'email' | 'wait' | 'condition') => {
-    try {
-      const newStep = await addStep.mutateAsync(type);
-      if (newStep) {
-        setSelectedStepId(newStep.id);
-        toast({
-          title: 'Step Added',
-          description: `New ${type} step added to sequence`,
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to add step',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleStepModalSelect = (stepType: 'email' | 'wait' | 'condition') => {
-    handleAddStep(stepType);
-  };
-
-  const handleMoveStep = async (stepId: string, direction: 'up' | 'down') => {
-    const currentIndex = steps.findIndex(s => s.id === stepId);
-    if (currentIndex === -1) return;
-
-    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    if (newIndex < 0 || newIndex >= steps.length) return;
-
-    const newSteps = [...steps];
-    const [movedStep] = newSteps.splice(currentIndex, 1);
-    newSteps.splice(newIndex, 0, movedStep);
-
-    const reorderedSteps = newSteps.map((step, index) => ({
-      ...step,
-      order_position: index + 1,
-    }));
-
-    try {
-      await reorderSteps.mutateAsync(reorderedSteps);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to reorder steps',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleDeleteStep = async (stepId: string) => {
-    if (confirm('Are you sure you want to delete this step?')) {
+  const handlePauseOnReplyToggle = useCallback(
+    async (checked: boolean) => {
+      setPauseOnReply(checked);
       try {
-        await deleteStep.mutate(stepId);
-        if (selectedStepId === stepId) {
-          setSelectedStepId(null);
-        }
-        toast({
-          title: 'Step Deleted',
-          description: 'Step removed from sequence',
+        await updateSequence.mutateAsync({
+          id: sequence.id,
+          pause_on_reply: checked,
+        });
+        toast.success('Settings updated', {
+          description: 'Auto-pause on reply setting saved',
         });
       } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete step',
-          variant: 'destructive',
-        });
+        toast.error('Failed to update settings');
+        setPauseOnReply(!checked);
       }
-    }
-  };
+    },
+    [sequence.id, updateSequence]
+  );
 
-  const getStepIcon = (stepType: string) => {
+  const handleAddStep = useCallback(
+    async (type: 'email' | 'wait' | 'condition') => {
+      try {
+        const newStep = await addStep.mutateAsync(type);
+        if (newStep) {
+          setSelectedStepId(newStep.id);
+          toast.success('Step added', {
+            description: `New ${type} step added to sequence`,
+          });
+        }
+      } catch (error) {
+        toast.error('Failed to add step');
+      }
+    },
+    [addStep]
+  );
+
+  const handleStepModalSelect = useCallback(
+    (stepType: 'email' | 'wait' | 'condition') => {
+      handleAddStep(stepType);
+    },
+    [handleAddStep]
+  );
+
+  const handleMoveStep = useCallback(
+    async (stepId: string, direction: 'up' | 'down') => {
+      const currentIndex = steps.findIndex(s => s.id === stepId);
+      if (currentIndex === -1) return;
+
+      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      if (newIndex < 0 || newIndex >= steps.length) return;
+
+      const newSteps = [...steps];
+      const [movedStep] = newSteps.splice(currentIndex, 1);
+      newSteps.splice(newIndex, 0, movedStep);
+
+      const reorderedSteps = newSteps.map((step, index) => ({
+        ...step,
+        order_position: index + 1,
+      }));
+
+      try {
+        await reorderSteps.mutateAsync(reorderedSteps);
+        toast.success('Step moved', {
+          description: `Step moved ${direction}`,
+        });
+      } catch (error) {
+        toast.error('Failed to reorder step');
+      }
+    },
+    [steps, reorderSteps]
+  );
+
+  const handleDeleteClick = useCallback((stepId: string) => {
+    setStepToDelete(stepId);
+    setShowDeleteDialog(true);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!stepToDelete) return;
+
+    try {
+      await deleteStep.mutateAsync(stepToDelete);
+      if (selectedStepId === stepToDelete) {
+        setSelectedStepId(null);
+      }
+      toast.success('Step deleted', {
+        description: 'Step removed from sequence',
+      });
+    } catch (error) {
+      toast.error('Failed to delete step');
+    } finally {
+      setShowDeleteDialog(false);
+      setStepToDelete(null);
+    }
+  }, [stepToDelete, selectedStepId, deleteStep]);
+
+  const handleNameSave = useCallback(async () => {
+    if (editedName.trim() && editedName !== sequence.name) {
+      try {
+        await updateSequence.mutateAsync({
+          id: sequence.id,
+          updates: { name: editedName.trim() },
+        });
+        toast.success('Sequence name updated');
+      } catch (error) {
+        toast.error('Failed to update sequence name');
+        setEditedName(sequence.name);
+      }
+    } else {
+      setEditedName(sequence.name);
+    }
+    setIsEditingName(false);
+  }, [editedName, sequence.name, sequence.id, updateSequence]);
+
+  const getStepIcon = useCallback((stepType: string) => {
     switch (stepType) {
       case 'email':
         return <Mail className='w-4 h-4' />;
@@ -173,9 +210,9 @@ export default function SmartleadStyleSequenceBuilder({
       default:
         return <Mail className='w-4 h-4' />;
     }
-  };
+  }, []);
 
-  const getStepTitle = (step: CampaignStep, index: number) => {
+  const getStepTitle = useCallback((step: CampaignStep, index: number) => {
     switch (step.step_type) {
       case 'email':
         return `Email Follow Up ${index + 1}`;
@@ -186,9 +223,9 @@ export default function SmartleadStyleSequenceBuilder({
       default:
         return `Step ${index + 1}`;
     }
-  };
+  }, []);
 
-  const getStepDescription = (step: CampaignStep) => {
+  const getStepDescription = useCallback((step: CampaignStep) => {
     switch (step.step_type) {
       case 'email':
         return {
@@ -202,7 +239,7 @@ export default function SmartleadStyleSequenceBuilder({
         };
       case 'condition':
         return {
-          type: 'Manual',
+          type: 'Condition',
           detail: `Title: ${step.name || '----'}`,
         };
       default:
@@ -211,233 +248,226 @@ export default function SmartleadStyleSequenceBuilder({
           detail: '----',
         };
     }
-  };
+  }, []);
+
+  if (loading) {
+    return (
+      <Page title="Campaign Builder" loading={true}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading campaign steps...</p>
+          </div>
+        </div>
+      </Page>
+    );
+  }
 
   return (
-    <div className='min-h-screen bg-white'>
+    <div className="h-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className='bg-white border-b border-border px-6 py-4'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-4'>
+      <div className="bg-card border-b border-border px-6 py-4 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <Button
-              variant='ghost'
-              size='sm'
+              variant="ghost"
+              size="sm"
               onClick={onClose}
-              className='text-muted-foreground hover:text-foreground'
+              className="text-muted-foreground hover:text-foreground"
             >
-              <ArrowLeft className='w-4 h-4 mr-2' />
-              Back to Campaigns
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
             </Button>
-            <div className='h-8 w-px bg-gray-300' />
-            <h1 className='text-xl font-semibold text-foreground'>
-              {sequence.name}
-            </h1>
-            <Badge variant='secondary' className='capitalize'>
+            <div className="h-8 w-px bg-border" />
+            {isEditingName ? (
+              <Input
+                value={editedName}
+                onChange={e => setEditedName(e.target.value)}
+                onBlur={handleNameSave}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.currentTarget.blur();
+                  } else if (e.key === 'Escape') {
+                    setEditedName(sequence.name);
+                    setIsEditingName(false);
+                  }
+                }}
+                className="text-xl font-semibold h-8 px-2"
+                autoFocus
+              />
+            ) : (
+              <button
+                onClick={() => setIsEditingName(true)}
+                className="flex items-center gap-2 group hover:bg-muted/50 rounded px-2 py-1 -ml-2 transition-colors"
+                aria-label="Edit sequence name"
+              >
+                <h1 className="text-xl font-semibold text-foreground">
+                  {sequence.name || 'Untitled Campaign'}
+                </h1>
+                <Pencil className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            )}
+            <Badge variant="secondary" className="capitalize">
               {sequence.status}
             </Badge>
           </div>
 
-          <div className='flex items-center gap-3'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => setIsSaving(true)}
-              disabled={isSaving}
-            >
-              <Save className='w-4 h-4 mr-2' />
-              {isSaving ? 'Saving...' : 'Save'}
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm">
+              <Save className="w-4 h-4 mr-2" />
+              Save
             </Button>
-            <Button size='sm'>
+            <Button size="sm">
               {sequence.status === 'active' ? (
                 <>
-                  <Pause className='w-4 h-4 mr-2' />
+                  <Pause className="w-4 h-4 mr-2" />
                   Pause
                 </>
               ) : (
                 <>
-                  <Play className='w-4 h-4 mr-2' />
+                  <Play className="w-4 h-4 mr-2" />
                   Activate
                 </>
               )}
             </Button>
           </div>
         </div>
+      </div>
 
-        {/* Settings Row */}
-        <div className='px-6 py-2 bg-muted border-b border-border'>
-          <div className='flex items-center justify-between max-w-7xl mx-auto'>
-            <div className='flex items-center gap-8'>
-              <Label className='text-sm font-medium text-foreground'>
-                Campaign Settings
+      {/* Settings Row */}
+      <div className="px-6 py-3 bg-muted/50 border-b border-border flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-medium text-foreground">
+            Campaign Settings
+          </Label>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="pause-on-reply"
+                checked={pauseOnReply}
+                onCheckedChange={handlePauseOnReplyToggle}
+              />
+              <Label
+                htmlFor="pause-on-reply"
+                className="text-sm text-muted-foreground cursor-pointer"
+              >
+                Auto-pause on reply
               </Label>
-              <div className='flex items-center gap-3'>
-                <div className='flex items-center gap-2'>
-                  <Switch
-                    id='pause-on-reply'
-                    checked={pauseOnReply}
-                    onCheckedChange={handlePauseOnReplyToggle}
-                  />
-                  <Label
-                    htmlFor='pause-on-reply'
-                    className='text-sm text-muted-foreground cursor-pointer'
-                  >
-                    Auto-pause on reply
-                  </Label>
-                </div>
-                <div className='text-xs text-muted-foreground'>
-                  {pauseOnReply
-                    ? 'Sequence will pause when someone replies'
-                    : 'Sequence will continue even after replies'}
-                </div>
-              </div>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {pauseOnReply
+                ? 'Sequence will pause when someone replies'
+                : 'Sequence will continue even after replies'}
             </div>
           </div>
         </div>
       </div>
 
-      <div className='flex flex-1'>
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left Panel - Vertical Timeline */}
-        <div className='w-80 bg-muted border-r border-border p-6'>
-          <div className='space-y-6'>
-            {/* Add Step Button */}
-            <div className='flex justify-center'>
+        <div className="w-80 bg-muted/30 border-r border-border p-6 overflow-y-auto flex-shrink-0">
+          <div className="space-y-6">
+            <div className="flex justify-center">
               <Button
                 onClick={() => setShowStepModal(true)}
-                className='flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-200'
+                className="flex items-center gap-2"
               >
-                <Plus className='w-4 h-4' />
+                <Plus className="w-4 h-4" />
                 Add Step
               </Button>
             </div>
 
-            {/* Vertical Timeline */}
-            <div className='relative'>
-              {/* Timeline Line */}
-              <div className='absolute left-6 top-0 bottom-0 w-px bg-gray-300'></div>
+            <div className="relative">
+              <div className="absolute left-6 top-0 bottom-0 w-px bg-border" />
 
-              {/* Steps */}
-              <div className='space-y-4'>
+              <div className="space-y-4">
                 {steps.map((step, index) => {
                   const description = getStepDescription(step);
                   const isLast = index === steps.length - 1;
+                  const isSelected = selectedStepId === step.id;
 
                   return (
-                    <div key={step.id} className='relative'>
-                      {/* Timeline Node */}
-                      <div className='absolute left-4 top-4 w-4 h-4 bg-purple-100 border-2 border-purple-500 rounded-full flex items-center justify-center z-10'>
+                    <div key={step.id} className="relative">
+                      <div className="absolute left-4 top-4 w-4 h-4 bg-primary/10 border-2 border-primary rounded-full flex items-center justify-center z-10">
                         {getStepIcon(step.step_type)}
                       </div>
 
-                      {/* Step Card */}
-                      <div
+                      <Card
                         className={`ml-12 cursor-pointer transition-all ${
-                          selectedStepId === step.id
-                            ? 'opacity-100'
-                            : 'opacity-90 hover:opacity-100'
+                          isSelected
+                            ? 'ring-2 ring-primary border-primary'
+                            : 'hover:border-border/60'
                         }`}
                         onClick={() => setSelectedStepId(step.id)}
                       >
-                        <div
-                          className={`bg-white rounded-lg border-2 p-4 ${
-                            selectedStepId === step.id
-                              ? 'border-purple-500 shadow-md'
-                              : 'border-border hover:border-border/60'
-                          }`}
-                        >
-                          <div className='flex items-start justify-between'>
-                            <div className='flex-1'>
-                              <h3 className='text-sm font-medium text-foreground mb-2'>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-medium text-foreground mb-2">
                                 {getStepTitle(step, index)}
                               </h3>
 
-                              <div className='bg-muted rounded p-3 text-xs text-muted-foreground'>
-                                <div className='font-medium'>
-                                  {description.type}
-                                </div>
-                                <div className='mt-1'>{description.detail}</div>
+                              <div className="bg-muted rounded p-3 text-xs text-muted-foreground">
+                                <div className="font-medium">{description.type}</div>
+                                <div className="mt-1 truncate">{description.detail}</div>
                               </div>
-
-                              {/* Add Variant Button for Email Steps */}
-                              {step.step_type === 'email' && (
-                                <button className='text-primary text-xs mt-2 hover:underline flex items-center gap-1'>
-                                  <Plus className='w-3 h-3' />
-                                  Add Variant
-                                </button>
-                              )}
                             </div>
 
-                            {/* Action Buttons */}
-                            <div className='flex items-center gap-1 ml-2'>
+                            <div className="flex items-center gap-1 ml-2">
                               <Button
-                                variant='ghost'
-                                size='sm'
+                                variant="ghost"
+                                size="sm"
                                 onClick={e => {
                                   e.stopPropagation();
                                   handleMoveStep(step.id, 'up');
                                 }}
                                 disabled={index === 0}
-                                className='p-1 h-6 w-6'
+                                className="p-1 h-6 w-6"
+                                aria-label="Move step up"
                               >
-                                <ChevronUp className='w-3 h-3' />
+                                <ChevronUp className="w-3 h-3" />
                               </Button>
                               <Button
-                                variant='ghost'
-                                size='sm'
+                                variant="ghost"
+                                size="sm"
                                 onClick={e => {
                                   e.stopPropagation();
                                   handleMoveStep(step.id, 'down');
                                 }}
                                 disabled={index === steps.length - 1}
-                                className='p-1 h-6 w-6'
+                                className="p-1 h-6 w-6"
+                                aria-label="Move step down"
                               >
-                                <ChevronDown className='w-3 h-3' />
+                                <ChevronDown className="w-3 h-3" />
                               </Button>
                               <Button
-                                variant='ghost'
-                                size='sm'
+                                variant="ghost"
+                                size="sm"
                                 onClick={e => {
                                   e.stopPropagation();
-                                  handleDeleteStep(step.id);
+                                  handleDeleteClick(step.id);
                                 }}
-                                className='p-1 h-6 w-6 text-destructive hover:text-destructive'
+                                className="p-1 h-6 w-6 text-destructive hover:text-destructive"
+                                aria-label="Delete step"
                               >
-                                <Trash2 className='w-3 h-3' />
+                                <Trash2 className="w-3 h-3" />
                               </Button>
                             </div>
                           </div>
-                        </div>
-                      </div>
+                        </CardContent>
+                      </Card>
 
-                      {/* Connector Line */}
                       {!isLast && (
-                        <div className='absolute left-6 top-16 w-px h-4 bg-gray-300'></div>
+                        <div className="absolute left-6 top-16 w-px h-4 bg-border" />
                       )}
                     </div>
                   );
                 })}
 
-                {/* Add Step Button */}
-                <div className='relative'>
-                  <div className='absolute left-4 top-4 w-4 h-4 bg-purple-100 border-2 border-purple-500 rounded-full flex items-center justify-center z-10'>
-                    <Plus className='w-3 h-3 text-primary' />
-                  </div>
-                  <div className='ml-12'>
-                    <Button
-                      variant='ghost'
-                      onClick={() => setShowStepModal(true)}
-                      className='text-muted-foreground hover:text-foreground hover:bg-purple-50 transition-colors'
-                    >
-                      Add step
-                    </Button>
-                  </div>
-                </div>
-
                 {steps.length === 0 && (
-                  <div className='text-center py-8 text-muted-foreground'>
-                    <p className='text-sm'>No steps yet</p>
-                    <p className='text-xs'>
-                      Add your first step to get started
-                    </p>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="text-sm">No steps yet</p>
+                    <p className="text-xs">Add your first step to get started</p>
                   </div>
                 )}
               </div>
@@ -446,41 +476,35 @@ export default function SmartleadStyleSequenceBuilder({
         </div>
 
         {/* Right Panel - Step Editor */}
-        <div className='flex-1 bg-white'>
+        <div className="flex-1 bg-background min-w-0 overflow-hidden">
           {selectedStep ? (
-            <div className='h-full flex flex-col'>
-              {/* Editor Header */}
-              <div className='border-b border-border px-6 py-4'>
-                <div className='flex items-center justify-between'>
-                  <h2 className='text-lg font-semibold text-foreground'>
+            <div className="h-full flex flex-col overflow-hidden">
+              <div className="border-b border-border px-6 py-4 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground">
                     {getStepTitle(
                       selectedStep,
                       steps.findIndex(s => s.id === selectedStep.id)
                     )}
                   </h2>
-                  <div className='flex items-center gap-2'>
-                    <Button variant='outline' size='sm'>
-                      <Eye className='w-4 h-4 mr-2' />
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-4 h-4 mr-2" />
                       Preview
                     </Button>
-                    <Button variant='outline' size='sm'>
-                      <Copy className='w-4 h-4 mr-2' />
+                    <Button variant="outline" size="sm">
+                      <Copy className="w-4 h-4 mr-2" />
                       Duplicate
-                    </Button>
-                    <Button variant='outline' size='sm'>
-                      <MoreHorizontal className='w-4 h-4' />
                     </Button>
                   </div>
                 </div>
               </div>
 
-              {/* Editor Content */}
-              <div className='flex-1 p-6 space-y-6'>
-                {/* Step Name */}
-                <div className='space-y-2'>
-                  <Label htmlFor='step-name'>Step Name</Label>
+              <div className="flex-1 p-6 space-y-6 overflow-y-auto min-h-0">
+                <div className="space-y-2">
+                  <Label htmlFor="step-name">Step Name</Label>
                   <Input
-                    id='step-name'
+                    id="step-name"
                     value={selectedStep.name}
                     onChange={e => {
                       updateStep.mutate({
@@ -488,17 +512,16 @@ export default function SmartleadStyleSequenceBuilder({
                         updates: { name: e.target.value },
                       });
                     }}
-                    placeholder='Enter step name...'
+                    placeholder="Enter step name..."
                   />
                 </div>
 
-                {/* Email Step Fields */}
                 {selectedStep.step_type === 'email' && (
                   <>
-                    <div className='space-y-2'>
-                      <Label htmlFor='email-subject'>Subject:</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-subject">Subject</Label>
                       <Input
-                        id='email-subject'
+                        id="email-subject"
                         value={selectedStep.email_subject || ''}
                         onChange={e => {
                           updateStep.mutate({
@@ -506,14 +529,14 @@ export default function SmartleadStyleSequenceBuilder({
                             updates: { email_subject: e.target.value },
                           });
                         }}
-                        placeholder='Hi {{first_name}}, interested in {{company}}?'
+                        placeholder="Hi {{first_name}}, interested in {{company}}?"
                       />
                     </div>
 
-                    <div className='space-y-2'>
-                      <Label htmlFor='email-body'>Email Body</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-body">Email Body</Label>
                       <Textarea
-                        id='email-body'
+                        id="email-body"
                         value={selectedStep.email_body || ''}
                         onChange={e => {
                           updateStep.mutate({
@@ -521,13 +544,13 @@ export default function SmartleadStyleSequenceBuilder({
                             updates: { email_body: e.target.value },
                           });
                         }}
-                        placeholder='Enter your email content here...'
-                        className='min-h-[300px]'
+                        placeholder="Enter your email content here..."
+                        className="min-h-[300px]"
                       />
                     </div>
 
-                    <div className='space-y-2'>
-                      <Label htmlFor='send-timing'>Send Timing</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="send-timing">Send Timing</Label>
                       <Select
                         value={selectedStep.send_immediately || 'immediate'}
                         onValueChange={value => {
@@ -541,10 +564,10 @@ export default function SmartleadStyleSequenceBuilder({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='immediate'>
+                          <SelectItem value="immediate">
                             Send Immediately
                           </SelectItem>
-                          <SelectItem value='business_hours'>
+                          <SelectItem value="business_hours">
                             Send During Business Hours
                           </SelectItem>
                         </SelectContent>
@@ -553,7 +576,6 @@ export default function SmartleadStyleSequenceBuilder({
                   </>
                 )}
 
-                {/* Wait Step Fields */}
                 {selectedStep.step_type === 'wait' && (
                   <WaitStepConfig
                     config={{
@@ -580,11 +602,10 @@ export default function SmartleadStyleSequenceBuilder({
                   />
                 )}
 
-                {/* Condition Step Fields */}
                 {selectedStep.step_type === 'condition' && (
                   <>
-                    <div className='space-y-2'>
-                      <Label htmlFor='condition-type'>Condition Type</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="condition-type">Condition Type</Label>
                       <Select
                         value={selectedStep.condition_type || 'opened'}
                         onValueChange={value => {
@@ -598,24 +619,24 @@ export default function SmartleadStyleSequenceBuilder({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='opened'>Email Opened</SelectItem>
-                          <SelectItem value='clicked'>Link Clicked</SelectItem>
-                          <SelectItem value='replied'>Email Replied</SelectItem>
-                          <SelectItem value='bounced'>Email Bounced</SelectItem>
-                          <SelectItem value='unsubscribed'>
+                          <SelectItem value="opened">Email Opened</SelectItem>
+                          <SelectItem value="clicked">Link Clicked</SelectItem>
+                          <SelectItem value="replied">Email Replied</SelectItem>
+                          <SelectItem value="bounced">Email Bounced</SelectItem>
+                          <SelectItem value="unsubscribed">
                             Unsubscribed
                           </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
-                    <div className='space-y-2'>
-                      <Label htmlFor='condition-wait'>
+                    <div className="space-y-2">
+                      <Label htmlFor="condition-wait">
                         Wait Duration Before Checking (hours)
                       </Label>
                       <Input
-                        id='condition-wait'
-                        type='number'
+                        id="condition-wait"
+                        type="number"
                         value={selectedStep.condition_wait_duration || 24}
                         onChange={e => {
                           updateStep.mutate({
@@ -625,28 +646,26 @@ export default function SmartleadStyleSequenceBuilder({
                             },
                           });
                         }}
-                        min='1'
+                        min="1"
                       />
                     </div>
                   </>
                 )}
               </div>
 
-              {/* Editor Footer */}
-              <div className='border-t border-border px-6 py-4 bg-muted'>
-                <div className='flex items-center justify-between'>
-                  <div className='text-sm text-muted-foreground'>All changes saved</div>
-                  <Button className='bg-purple-600 hover:bg-purple-700 text-white'>
-                    Save & Next
-                  </Button>
+              <div className="border-t border-border px-6 py-4 bg-muted/50 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    All changes saved automatically
+                  </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className='h-full flex items-center justify-center text-muted-foreground'>
-              <div className='text-center'>
-                <p className='text-lg mb-2'>No step selected</p>
-                <p className='text-sm'>
+            <div className="h-full flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <p className="text-lg mb-2">No step selected</p>
+                <p className="text-sm">
                   Select a step from the timeline to edit it
                 </p>
               </div>
@@ -655,12 +674,32 @@ export default function SmartleadStyleSequenceBuilder({
         </div>
       </div>
 
-      {/* Step Creation Modal */}
       <StepCreationModal
         isOpen={showStepModal}
         onClose={() => setShowStepModal(false)}
         onSelectStep={handleStepModalSelect}
       />
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Step</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this step? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

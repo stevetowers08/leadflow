@@ -1,9 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { supabase } from '@/integrations/supabase/client';
+import { logSupabaseError } from '@/lib/utils';
 
 export interface GmailIntegration {
   id: string;
@@ -79,13 +75,17 @@ export async function getGmailIntegrationStatus(): Promise<GmailIntegration | nu
       .single();
 
     if (error) {
-      console.error('Error fetching Gmail integration:', error);
+      logSupabaseError(error, 'fetching Gmail integration');
       return null;
     }
 
     return integration;
   } catch (error) {
-    console.error('Error getting Gmail integration status:', error);
+    if (error instanceof Error) {
+      console.error('Error getting Gmail integration status:', error.message);
+    } else {
+      logSupabaseError(error, 'getting Gmail integration status');
+    }
     return null;
   }
 }

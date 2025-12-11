@@ -11,7 +11,7 @@ import {
   ChatServiceConfig,
   ChatRequest,
 } from '@/services/chatService';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/utils/toast';
 
 interface ChatState {
   messages: ChatMessage[];
@@ -111,7 +111,6 @@ interface ChatProviderProps {
 
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
-  const { toast } = useToast();
 
   const generateMessageId = useCallback(() => {
     return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -216,11 +215,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
           payload: error instanceof Error ? error.message : 'Unknown error',
         });
 
-        toast({
-          title: 'Chat Error',
+        toast.error('Chat Error', {
           description:
             'Failed to send message. Please check your webhook configuration.',
-          variant: 'destructive',
         });
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
@@ -231,7 +228,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       state.conversationId,
       state.messages.length,
       generateMessageId,
-      toast,
     ]
   );
 
@@ -254,16 +250,13 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         dispatch({ type: 'SET_CONNECTED', payload: isConnected });
 
         if (isConnected) {
-          toast({
-            title: 'Chat Connected',
+          toast.success('Chat Connected', {
             description: 'Successfully connected to AI service.',
           });
         } else {
-          toast({
-            title: 'Connection Failed',
+          toast.error('Connection Failed', {
             description:
               'Could not connect to AI service. Please check your configuration.',
-            variant: 'destructive',
           });
         }
       } catch (error) {
@@ -274,14 +267,12 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
             error instanceof Error ? error.message : 'Configuration failed',
         });
 
-        toast({
-          title: 'Configuration Error',
+        toast.error('Configuration Error', {
           description: 'Failed to configure chat service.',
-          variant: 'destructive',
         });
       }
     },
-    [toast]
+    []
   );
 
   const testConnection = useCallback(async (): Promise<boolean> => {

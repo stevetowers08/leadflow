@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { UnifiedTable, ColumnConfig } from '@/components/ui/unified-table';
 import {
   Table,
   TableBody,

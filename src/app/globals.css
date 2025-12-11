@@ -28,80 +28,78 @@ All colors MUST be HSL.
 }
 
 @layer base {
-  /* Removed duplicate - see lines 222-236 for html/body definitions */
   :root {
-    /* Modern Light Theme - Clean and Minimal */
-    --background: 0 0% 100%;
-    --foreground: 240 5% 15%; /* Equivalent to gray-900 - primary text color */
+    /* LeadFlow PDR Design System - Light Theme */
+    --background: 0 0% 100%; /* Pure White #FFFFFF */
+    --foreground: 218 60% 9%; /* Deep Navy #0A1628 - primary text */
 
     --card: 0 0% 100%;
-    --card-foreground: 240 5% 15%;
+    --card-foreground: 218 60% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 5% 15%;
+    --popover-foreground: 218 60% 9%;
 
-    /* SIMPLIFIED COLOR PALETTE - 6 Essential Colors + Neutrals */
+    /* PDR Color System - LeadFlow Brand Colors */
 
-    /* Primary Brand Color - Attio Dodger Blue */
-    --primary: 219 87% 55%; /* Attio Dodger Blue #266DF0 */
-    --primary-foreground: 0 0% 98%;
-    --primary-hover: 219 87% 50%;
-    --primary-light: 219 87% 95%;
-    --primary-medium: 219 87% 85%;
+    /* Primary - Accent Blue (Primary Actions) */
+    --primary: 217 91% 60%; /* Accent Blue #2563EB */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 91% 55%;
+    --primary-light: 217 91% 95%;
+    --primary-medium: 217 91% 85%;
 
-    /* Secondary - Same as primary for consistency */
-    --secondary: 219 87% 50%; /* Slightly darker blue */
-    --secondary-foreground: 0 0% 98%;
-    --secondary-hover: 219 87% 45%;
-    --secondary-light: 219 87% 90%;
-    --secondary-medium: 219 87% 80%;
+    /* Secondary - Slightly darker blue for secondary actions */
+    --secondary: 217 91% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 217 91% 45%;
+    --secondary-light: 217 91% 90%;
+    --secondary-medium: 217 91% 80%;
 
     /* Accent - Same as primary for consistency */
-    --accent: 219 87% 55%;
-    --accent-foreground: 0 0% 98%;
-    --accent-hover: 219 87% 50%;
-    --accent-light: 219 87% 95%;
-    --accent-medium: 219 87% 85%;
+    --accent: 217 91% 60%; /* Accent Blue #2563EB */
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 217 91% 55%;
+    --accent-light: 217 91% 95%;
+    --accent-medium: 217 91% 85%;
 
-    /* Muted - Professional grays with improved readability */
-    /* Consolidated: All muted text (gray-300, 400, 500, 600, 700) → text-muted-foreground */
+    /* Muted - Professional grays */
     --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 5% 45%; /* Equivalent to gray-600 - standard muted text */
+    --muted-foreground: 240 5% 45%;
     --muted-hover: 240 4.8% 90%;
     --muted-light: 240 4.8% 98%;
     --muted-medium: 240 4.8% 85%;
 
-    /* Semantic Colors - 4 Essential States */
-    --success: 142 76% 36%; /* Green for success */
-    --success-foreground: 0 0% 98%;
-    --success-hover: 142 76% 31%;
-    --success-light: 142 76% 95%;
-    --success-medium: 142 76% 85%;
+    /* Semantic Colors - PDR Color System */
+    --success: 160 84% 39%; /* Success Green #10B981 */
+    --success-foreground: 0 0% 100%;
+    --success-hover: 160 84% 34%;
+    --success-light: 160 84% 95%;
+    --success-medium: 160 84% 85%;
 
-    --warning: 38 92% 50%; /* Orange for warnings */
-    --warning-foreground: 0 0% 98%;
-    --warning-hover: 38 92% 45%;
-    --warning-light: 38 92% 95%;
-    --warning-medium: 38 92% 85%;
+    --warning: 38 96% 50%; /* Warning Amber #F59E0B */
+    --warning-foreground: 0 0% 100%;
+    --warning-hover: 38 96% 45%;
+    --warning-light: 38 96% 95%;
+    --warning-medium: 38 96% 85%;
 
-    --destructive: 0 84.2% 60.2%; /* Red for errors */
-    --destructive-foreground: 210 40% 98%;
-    --destructive-hover: 0 84.2% 55%;
-    --destructive-light: 0 84.2% 95%;
-    --destructive-medium: 0 84.2% 85%;
+    --destructive: 0 85% 60%; /* Alert Red #EF4444 */
+    --destructive-foreground: 0 0% 100%;
+    --destructive-hover: 0 85% 55%;
+    --destructive-light: 0 85% 95%;
+    --destructive-medium: 0 85% 85%;
 
-    --info: 219 87% 55%; /* Blue for info (same as primary) */
-    --info-foreground: 0 0% 98%;
-    --info-hover: 219 87% 50%;
-    --info-light: 219 87% 95%;
-    --info-medium: 219 87% 85%;
+    --info: 217 91% 60%; /* Info Blue (same as primary) */
+    --info-foreground: 0 0% 100%;
+    --info-hover: 217 91% 55%;
+    --info-light: 217 91% 95%;
+    --info-medium: 217 91% 85%;
 
     /* Clean Neutrals */
-    --border: 240 5.9% 90%; /* Lighter borders for cleaner look */
-    --input: 240 5.9% 95%; /* Very light input backgrounds */
-    --ring: 219 87% 55%; /* Attio blue focus rings */
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 95%;
+    --ring: 217 91% 60%; /* Accent Blue focus rings */
 
-    --radius: 0.5rem; /* Slightly less rounded for professional look */
+    --radius: 0.75rem; /* 12px rounded corners - PDR requirement */
 
     /* Modern Table Design System (2025) - Best Practices */
     --table-border-width: 0px; /* No outer borders - modern clean look */
@@ -116,18 +114,18 @@ All colors MUST be HSL.
       0 1px 3px 0 rgb(0, 0, 0, 0.1), 0 1px 2px 0 rgb(0, 0, 0, 0.06); /* Modern shadow */
     --table-radius: 0.75rem; /* Modern rounded corners */
 
-    /* Professional Sidebar - Light Grey */
-    --sidebar-background: 0 0% 100%; /* White background */
-    --sidebar-foreground: 240 10% 20%; /* Dark text for contrast */
-    --sidebar-primary: 219 87% 55%; /* Attio Dodger Blue */
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-primary-hover: 219 87% 50%;
-    --sidebar-primary-light: 219 87% 95%;
-    --sidebar-primary-medium: 219 87% 85%;
+    /* Professional Sidebar - PDR Colors */
+    --sidebar-background: 0 0% 100%; /* White background (light mode) */
+    --sidebar-foreground: 218 60% 9%; /* Deep Navy text */
+    --sidebar-primary: 217 91% 60%; /* Accent Blue #2563EB */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary-hover: 217 91% 55%;
+    --sidebar-primary-light: 217 91% 95%;
+    --sidebar-primary-medium: 217 91% 85%;
     --sidebar-accent: 240 5% 96%; /* Very light gray for hover */
-    --sidebar-accent-foreground: 240 10% 20%; /* Dark text */
+    --sidebar-accent-foreground: 218 60% 9%; /* Deep Navy text */
     --sidebar-border: 240 5.9% 85%;
-    --sidebar-ring: 219 87% 55%; /* Attio blue focus */
+    --sidebar-ring: 217 91% 60%; /* Accent Blue focus */
 
     /* Glassmorphism sidebar background - Enterprise Professional */
     --sidebar-glass-bg: linear-gradient(
@@ -199,6 +197,90 @@ All colors MUST be HSL.
       hsl(219 87% 55% / 0.02) 100%
     );
   }
+
+  /* Dark Mode - PDR Default Theme */
+  .dark {
+    /* LeadFlow PDR Design System - Dark Theme (Default) */
+    --background: 218 60% 9%; /* Deep Navy #0A1628 - PDR dark mode background */
+    --foreground: 0 0% 98%; /* Pure White #FFFFFF - primary text */
+
+    --card: 218 60% 12%; /* Slightly lighter navy for cards */
+    --card-foreground: 0 0% 98%;
+
+    --popover: 218 60% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary - Accent Blue (same as light mode) */
+    --primary: 217 91% 60%; /* Accent Blue #2563EB */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 91% 65%; /* Lighter on dark background */
+    --primary-light: 217 91% 20%; /* Darker tint for dark mode */
+    --primary-medium: 217 91% 30%;
+
+    /* Secondary */
+    --secondary: 217 91% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 217 91% 55%;
+    --secondary-light: 217 91% 15%;
+    --secondary-medium: 217 91% 25%;
+
+    /* Accent */
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 217 91% 65%;
+    --accent-light: 217 91% 20%;
+    --accent-medium: 217 91% 30%;
+
+    /* Muted - Adjusted for dark mode */
+    --muted: 218 60% 15%;
+    --muted-foreground: 240 5% 65%;
+    --muted-hover: 218 60% 20%;
+    --muted-light: 218 60% 12%;
+    --muted-medium: 218 60% 18%;
+
+    /* Semantic Colors - Same as light mode */
+    --success: 160 84% 39%; /* Success Green #10B981 */
+    --success-foreground: 0 0% 100%;
+    --success-hover: 160 84% 44%;
+    --success-light: 160 84% 15%;
+    --success-medium: 160 84% 25%;
+
+    --warning: 38 96% 50%; /* Warning Amber #F59E0B */
+    --warning-foreground: 0 0% 100%;
+    --warning-hover: 38 96% 55%;
+    --warning-light: 38 96% 15%;
+    --warning-medium: 38 96% 25%;
+
+    --destructive: 0 85% 60%; /* Alert Red #EF4444 */
+    --destructive-foreground: 0 0% 100%;
+    --destructive-hover: 0 85% 65%;
+    --destructive-light: 0 85% 15%;
+    --destructive-medium: 0 85% 25%;
+
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --info-hover: 217 91% 65%;
+    --info-light: 217 91% 20%;
+    --info-medium: 217 91% 30%;
+
+    /* Neutrals - Adjusted for dark mode */
+    --border: 218 60% 20%;
+    --input: 218 60% 15%;
+    --ring: 217 91% 60%;
+
+    /* Sidebar - Dark Mode */
+    --sidebar-background: 218 60% 12%; /* Slightly lighter navy */
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary-hover: 217 91% 65%;
+    --sidebar-primary-light: 217 91% 20%;
+    --sidebar-primary-medium: 217 91% 30%;
+    --sidebar-accent: 218 60% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 218 60% 20%;
+    --sidebar-ring: 217 91% 60%;
+  }
 }
 
 @layer base {
@@ -210,20 +292,18 @@ All colors MUST be HSL.
   }
 
   html {
-    height: 100vh; /* Viewport height - required for % heights to work */
+    height: 100dvh;
     width: 100%;
-    max-width: 100vw;
-    overflow: hidden; /* Prevent page-level scrolling */
+    overflow: hidden;
   }
 
   body {
     @apply bg-background text-foreground;
-    height: 100%; /* 100% of html (which is 100vh) */
+    height: 100%;
     width: 100%;
-    max-width: 100vw;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Prevent page-level scrolling - Layout handles all scrolling */
+    overflow: hidden;
     /* Inter font for modern CRM aesthetic - matches Attio */
     font-family:
       'Inter',
@@ -250,146 +330,30 @@ All colors MUST be HSL.
     font-variation-settings: normal;
   }
 
-  /* Modern Table Design System (2025) - Best Practices */
-  /* Note: Removed !important to allow component-level overrides for UnifiedTable */
-  /* table {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    border: var(--table-border-width) var(--table-border-style)
-      var(--table-border-color);
-    border-radius: var(--table-radius);
-    box-shadow: var(--table-shadow);
-    background-color: white;
-    overflow: hidden;
-  } */
+  /* Table styles handled at component level - see UnifiedTable component */
 
-  /* Removed global th, td styles to prevent column alignment issues with UnifiedTable */
-  /* th,
-  td {
-    border-right: var(--table-inner-border-width) var(--table-border-style)
-      var(--table-border-color);
-    border-bottom: var(--table-inner-border-width) var(--table-border-style)
-      var(--table-border-color);
-    padding: var(--table-cell-padding);
-    height: var(--table-row-height);
-    text-align: left;
-    font-size: 0.875rem;
-    line-height: 1.5;
-  } */
-
-  /* Removed global th styles to prevent column alignment issues with UnifiedTable */
-  /* th {
-    background-color: var(--table-header-bg);
-    font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: rgb(75, 85, 99);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  } */
-
-  /* Removed global tbody tr and border styles to prevent column alignment issues with UnifiedTable */
-  /* tbody tr {
-    position: relative;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-  }
-
-  tbody tr::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background-color: transparent;
-    transition: background-color 0.2s ease;
-  }
-
-  tbody tr:hover {
-    background-color: rgb(249, 250, 251);
-    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.1);
-  }
-
-  tbody tr:hover::before {
-    background-color: rgb(59, 130, 246);
-  }
-
-  tbody tr:active {
-    background-color: rgb(243, 244, 246);
-  }
-
-  tbody tr[data-selected='true'] {
-    background-color: rgb(239, 246, 255);
-    border-left: 3px solid rgb(59, 130, 246);
-  }
-
-  tbody tr[data-selected='true']:hover {
-    background-color: rgb(219, 234, 254);
-  }
-
-  tbody tr[data-selected='true']::before {
-    background-color: rgb(37, 99, 235);
-  }
-
-  th:last-child,
-  td:last-child {
-    border-right: none;
-  }
-
-  tbody tr:last-child td {
-    border-bottom: none;
-  } */
-
-  /* Enhanced text clarity for all text elements - BEST PRACTICES */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p,
-  span,
-  div,
-  a,
-  button,
-  input,
-  textarea,
-  select,
-  label {
-    /* Ensure crisp text rendering - Chrome-like thickness in Firefox */
+  /* Typography - Font rendering optimized for clarity */
+  * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    /* Enable font features for better readability */
-    font-feature-settings:
-      'kern' 1,
-      'liga' 1;
-    /* Prevent text blur from transforms */
-    transform: none;
-    backface-visibility: visible;
-    will-change: auto;
   }
 
-  /* 2025 CRM Typography System - Improved Readability */
-
-  /* Global font weight improvements using CSS variables */
+  /* Typography weights - using CSS variables without !important where possible */
+  /* Base body text */
   p,
   span,
   div {
     font-weight: var(--font-weight-body);
   }
 
-  /* Small text gets medium weight for better visibility */
+  /* Small text - removed !important, apply via component classes if needed */
   .text-xs,
   .text-sm {
-    font-weight: var(--font-weight-small) !important;
+    font-weight: var(--font-weight-small);
   }
 
-  /* Form elements get medium weight */
+  /* Form elements */
   input,
   textarea,
   select,
@@ -397,17 +361,17 @@ All colors MUST be HSL.
     font-weight: var(--font-weight-label);
   }
 
-  /* Table data gets medium weight for data readability */
+  /* Table data - removed !important, apply via table component classes */
   td {
-    font-weight: var(--font-weight-data) !important;
+    font-weight: var(--font-weight-data);
   }
 
-  /* Table headers get semibold weight */
+  /* Table headers - removed !important, apply via table component classes */
   th {
-    font-weight: var(--font-weight-heading) !important;
+    font-weight: var(--font-weight-heading);
   }
 
-  /* Headers maintain their weights */
+  /* Headings */
   h1,
   h2,
   h3,
@@ -417,161 +381,25 @@ All colors MUST be HSL.
     font-weight: var(--font-weight-heading);
   }
 
-  /* Buttons get medium weight */
+  /* Buttons */
   button {
     font-weight: var(--font-weight-button);
   }
 
-  /* Status badges and small UI elements */
+  /* Status badges - keep !important only for data attributes that need override */
   .badge,
   [data-cell-type='status'] span {
-    font-weight: var(--font-weight-status) !important;
+    font-weight: var(--font-weight-status);
   }
 
-  /* Specific optimizations for interactive elements */
-  button,
-  input,
-  textarea,
-  select {
-    /* Prevent blur on focus/interaction - Chrome-like thickness in Firefox */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-  }
-
-  /* Enhanced image rendering for crisp images */
+  /* Enhanced image rendering */
   img,
   svg,
   canvas {
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
-    /* Prevent blur from scaling */
     transform: none;
     backface-visibility: visible;
-  }
-
-  /* Utility class for extra crisp text when needed */
-  .text-crisp {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-feature-settings:
-      'kern' 1,
-      'liga' 1;
-    transform: none;
-    backface-visibility: visible;
-    will-change: auto;
-  }
-
-  /* BEST PRACTICE: Prevent hardware acceleration blur on text elements */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p,
-  span,
-  div,
-  a,
-  button,
-  input,
-  textarea,
-  select,
-  label {
-    /* Prevent text blur from hardware acceleration */
-    -webkit-backface-visibility: visible;
-    backface-visibility: visible;
-    /* Prevent blur from transforms */
-    transform: none;
-    /* Optimize for text rendering, not animations */
-    will-change: auto;
-  }
-
-  /* BEST PRACTICE: Prevent text blur from common causes - targeted approach */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p,
-  span,
-  div,
-  a,
-  button,
-  input,
-  textarea,
-  select,
-  label {
-    /* Remove any text shadows that might cause blur */
-    text-shadow: none;
-    /* Prevent blur from filters */
-    filter: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  /* Enhanced table font rendering - Chrome-like thickness in Firefox */
-  table {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-feature-settings:
-      'kern' 1,
-      'liga' 1;
-  }
-
-  th,
-  td {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-feature-settings:
-      'kern' 1,
-      'liga' 1;
-  }
-
-  /* Enhanced font rendering for better clarity - Chrome-like thickness */
-  .font-clear {
-    font-family:
-      'Inter',
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      'Segoe UI',
-      Roboto,
-      sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-feature-settings:
-      'kern' 1,
-      'liga' 1;
-    font-variant-ligatures: common-ligatures;
-  }
-
-  /* High-DPI display optimization - Chrome-like thickness in Firefox */
-  .text-sharp {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-feature-settings:
-      'kern' 1,
-      'liga' 1;
-    font-variant-ligatures: common-ligatures;
-    /* Removed hardware acceleration that causes text blur */
-  }
-
-  /* Specific improvements for table text - Chrome-like thickness */
-  .table-text-clear {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-feature-settings:
-      'kern' 1,
-      'liga' 1;
-    font-variant-ligatures: common-ligatures;
   }
 }
 
@@ -660,46 +488,7 @@ All colors MUST be HSL.
     /* Note: backdrop-blur is applied via Tailwind class, not here to avoid text blur */
   }
   
-  /* Sidebar - match shadcn/ui implementation */
-  [data-sidebar="container"] {
-    background: transparent;
-  }
-
-  [data-sidebar="sidebar"] {
-    background: hsl(var(--sidebar-background));
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-  }
-
-  /* Inset and floating variants use transparent background */
-  [data-variant="inset"] [data-sidebar="sidebar"],
-  [data-variant="floating"] [data-sidebar="sidebar"],
-  .group[data-variant="inset"] [data-sidebar="sidebar"],
-  .group[data-variant="floating"] [data-sidebar="sidebar"] {
-    background: transparent !important;
-  }
-  
-  /* Ensure text inside glassmorphism containers remains crisp */
-  .bg-sidebar-glass *,
-  .bg-sidebar-glass h1,
-  .bg-sidebar-glass h2,
-  .bg-sidebar-glass h3,
-  .bg-sidebar-glass h4,
-  .bg-sidebar-glass h5,
-  .bg-sidebar-glass h6,
-  .bg-sidebar-glass p,
-  .bg-sidebar-glass span,
-  .bg-sidebar-glass div,
-  .bg-sidebar-glass a,
-  .bg-sidebar-glass button,
-  .bg-sidebar-glass input,
-  .bg-sidebar-glass textarea,
-  .bg-sidebar-glass select,
-  .bg-sidebar-glass label,
-  [data-sidebar="sidebar"] * {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
+  /* Sidebar styles moved to component-level - see src/components/ui/sidebar.tsx */
 
   /* Focus and Hover States */
   .focus-ring-primary {
@@ -775,9 +564,10 @@ All colors MUST be HSL.
   }
 
   /* Modern minimal scrollbar: ultra-thin, subtle, hover-reveal */
+  /* Note: !important needed to override browser default scrollbar styles */
   .scrollbar-modern {
-    scrollbar-width: thin !important;
-    scrollbar-color: transparent transparent !important;
+    scrollbar-width: thin !important; /* Override browser default */
+    scrollbar-color: transparent transparent !important; /* Override browser default */
   }
 
   .scrollbar-modern:hover {
@@ -812,9 +602,10 @@ All colors MUST be HSL.
     background: transparent !important;
   }
 
+  /* Scrollbar utility - !important needed to override browser defaults */
   .scrollbar-thin {
-    scrollbar-width: thin !important;
-    scrollbar-color: rgba(203, 213, 225, 0.5) transparent !important;
+    scrollbar-width: thin !important; /* Override browser default */
+    scrollbar-color: rgba(203, 213, 225, 0.5) transparent !important; /* Override browser default */
   }
 
   .scrollbar-thin:hover {
@@ -910,16 +701,18 @@ All colors MUST be HSL.
   }
 
   /* Override classes for when you need different weights */
+  /* Note: Use Tailwind utilities (font-light, font-normal, font-bold) when possible */
+  /* These are for cases where you need to override CSS variable-based weights */
   .font-light-override {
-    font-weight: 300 !important;
+    font-weight: 300 !important; /* Override utility - keep !important for specificity */
   }
 
   .font-normal-override {
-    font-weight: 400 !important;
+    font-weight: 400 !important; /* Override utility - keep !important for specificity */
   }
 
   .font-bold-override {
-    font-weight: 700 !important;
+    font-weight: 700 !important; /* Override utility - keep !important for specificity */
   }
 
   /* High contrast mode support */
@@ -1048,10 +841,7 @@ All colors MUST be HSL.
     }
   }
 
-  /* Search input override - lighter font weight */
-  .search-input-light {
-    font-weight: 400 !important;
-  }
+  /* Search input styles moved to component-level - customize Input component directly */
 
   /* Touch device optimizations */
   @media (hover: none) and (pointer: coarse) {
@@ -1081,10 +871,7 @@ All colors MUST be HSL.
       outline-offset: 2px;
     }
 
-    /* Override focus outline for sidebar navigation links */
-    .sidebar a:focus-visible {
-      outline: none;
-    }
+    /* Sidebar focus styles moved to component-level - see src/components/ui/sidebar.tsx */
   }
 
   /* Desktop Sidebar - Fixed position only on desktop */

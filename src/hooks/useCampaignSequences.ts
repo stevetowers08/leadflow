@@ -6,10 +6,12 @@ import {
 } from '@/types/campaign.types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Campaign Sequences Hook
 export function useCampaignSequences() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const {
     data: sequences,
@@ -24,7 +26,13 @@ export function useCampaignSequences() {
         .select('*')
         .order('created_at', { ascending: false });
 
+      // Handle missing table gracefully
       if (error) {
+        const errorMessage = error.message || '';
+        if (errorMessage.includes('schema cache') || errorMessage.includes('does not exist')) {
+          console.debug('❌ Error fetching campaign sequences: Could not find the table', error);
+          return [] as CampaignSequence[];
+        }
         console.error('❌ Error fetching campaign sequences:', getErrorMessage(error), error);
         throw error;
       }
@@ -36,15 +44,37 @@ export function useCampaignSequences() {
 
   const createSequence = useMutation({
     mutationFn: async (formData: CampaignSequenceFormData) => {
-      // Remove created_by if not authenticated
+      // Verify user is authenticated
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      // Ensure Supabase session exists (required for RLS)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error('No active session. Please sign in again.');
+      }
+
       const { created_by, ...insertData } = formData;
       const { data, error } = await supabase
         .from('campaign_sequences')
-        .insert([insertData])
+        .insert([
+          {
+            ...insertData,
+            created_by: user.id,
+          },
+        ])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(`Failed to create campaign sequence: ${getErrorMessage(error)}`);
+      }
+      
+      if (!data) {
+        throw new Error('Campaign sequence was created but no data was returned');
+      }
+      
       return data as CampaignSequence;
     },
     onSuccess: () => {

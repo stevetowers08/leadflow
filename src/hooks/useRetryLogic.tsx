@@ -265,8 +265,6 @@ export const RetryIndicator: React.FC<RetryIndicatorProps> = ({
 }) => {
   const { isRetrying, retryCount, lastError, nextRetryAt } = retryState;
 
-  if (!isRetrying && !lastError) return null;
-
   const getTimeUntilRetry = () => {
     if (!nextRetryAt) return null;
     const now = new Date();
@@ -274,10 +272,14 @@ export const RetryIndicator: React.FC<RetryIndicatorProps> = ({
     return Math.max(0, Math.ceil(diff / 1000));
   };
 
-  const [timeLeft, setTimeLeft] = useState(getTimeUntilRetry());
+  // Hooks must be called unconditionally before any early returns
+  const [timeLeft, setTimeLeft] = useState<number | null>(getTimeUntilRetry());
 
   useEffect(() => {
-    if (!nextRetryAt) return;
+    if (!nextRetryAt) {
+      setTimeLeft(null);
+      return;
+    }
 
     const interval = setInterval(() => {
       const remaining = getTimeUntilRetry();
@@ -290,6 +292,9 @@ export const RetryIndicator: React.FC<RetryIndicatorProps> = ({
 
     return () => clearInterval(interval);
   }, [nextRetryAt]);
+
+  // Early return after all hooks are called
+  if (!isRetrying && !lastError) return null;
 
   return (
     <div

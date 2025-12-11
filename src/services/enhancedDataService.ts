@@ -48,18 +48,18 @@ export function useEnhancedDataService() {
       },
     },
     {
-      table: 'interactions',
+      table: 'activity_log',
       events: ['INSERT', 'UPDATE'],
       onInsert: payload => {
-        console.log('💬 New interaction:', payload.new);
+        console.log('💬 New activity:', payload.new);
       },
     },
     {
-      table: 'campaigns',
+      table: 'workflows',
       events: ['INSERT', 'UPDATE', 'DELETE'],
     },
     {
-      table: 'campaign_participants',
+      table: 'campaign_sequences',
       events: ['INSERT', 'UPDATE', 'DELETE'],
     },
   ]);
@@ -374,15 +374,15 @@ export function useEnhancedDashboardService() {
         { data: people, error: peopleError },
         { data: companies, error: companiesError },
         { data: jobs, error: jobsError },
-        { data: interactions, error: interactionsError },
+        { data: activityLog, error: activityLogError },
       ] = await Promise.all([
         supabase.from('people').select('id', { count: 'exact' }),
         supabase.from('companies').select('id', { count: 'exact' }),
         supabase.from('jobs').select('id', { count: 'exact' }),
-        supabase.from('interactions').select('id', { count: 'exact' }),
+        supabase.from('activity_log').select('id', { count: 'exact' }),
       ]);
 
-      if (peopleError || companiesError || jobsError || interactionsError) {
+      if (peopleError || companiesError || jobsError || activityLogError) {
         throw new Error('Failed to fetch dashboard stats');
       }
 
@@ -390,7 +390,7 @@ export function useEnhancedDashboardService() {
         totalLeads: people?.length || 0,
         totalCompanies: companies?.length || 0,
         totalJobs: jobs?.length || 0,
-        totalInteractions: interactions?.length || 0,
+        totalInteractions: activityLog?.length || 0,
         lastUpdated: new Date().toISOString(),
       };
     },
@@ -405,7 +405,7 @@ export function useEnhancedDashboardService() {
     { table: 'people', events: ['INSERT', 'DELETE'] },
     { table: 'companies', events: ['INSERT', 'DELETE'] },
     { table: 'jobs', events: ['INSERT', 'DELETE'] },
-    { table: 'interactions', events: ['INSERT'] },
+    { table: 'activity_log', events: ['INSERT'] },
   ]);
 
   return {

@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export const SignIn: React.FC = () => {
   const [loading, setLoading] = useState<string | null>(null);
@@ -14,7 +15,23 @@ export const SignIn: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signInWithGoogle, signInWithPassword } = useAuth();
+  const { signInWithGoogle, signInWithPassword, user } = useAuth();
+  const router = useRouter();
+
+  // Clear bypass disabled flag when user tries to sign in
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('bypass-auth-disabled');
+      localStorage.removeItem('bypass-auth-disabled');
+    }
+  }, []);
+
+  // Redirect if user is already signed in
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   const handleGoogleSignIn = async () => {
     setLoading('google');
@@ -70,8 +87,10 @@ export const SignIn: React.FC = () => {
       if (error) {
         setError(error.message);
         setLoading(null);
+      } else {
+        // Success - auth listener will update state, useEffect will redirect
+        // Keep loading state until redirect happens
       }
-      // Success will be handled by the auth context
     } catch (err) {
       console.error('Email sign-in error:', err);
       setError('An unexpected error occurred. Please try again.');

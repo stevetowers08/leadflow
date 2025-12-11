@@ -171,3 +171,9 @@ COMMENT ON COLUMN public.people.gmail_thread_id IS 'Gmail thread ID for 2-way em
 COMMENT ON COLUMN public.people.company_id IS 'Foreign key to companies table';
 COMMENT ON COLUMN public.people.company IS 'Company name (text field, may differ from companies.name)';
 
+
+
+
+
+
+

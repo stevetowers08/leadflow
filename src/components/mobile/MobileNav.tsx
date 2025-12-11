@@ -114,17 +114,19 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
 
   return (
     <>
-      {/* Bottom Navigation Bar */}
+      {/* Bottom Navigation Bar - 2025 Enhanced */}
       <nav
         className={cn(
           'fixed bottom-0 inset-x-0 z-30 bg-background',
           'border-t border-border lg:hidden',
           'shadow-[0_-4px_20px_rgba(0,0,0,0.08)]',
           'safe-area-pb', // Safe area padding for devices with home indicators
+          'backdrop-blur-lg bg-background/95', // 2025: Modern backdrop blur
           className
         )}
         role='navigation'
         aria-label='Main navigation'
+        aria-orientation='horizontal'
       >
         <div className='flex items-center justify-around px-3 py-2.5 max-w-screen-sm mx-auto gap-1'>
           {primaryItems.map(item => {

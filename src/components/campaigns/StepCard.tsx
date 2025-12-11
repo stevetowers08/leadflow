@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { CampaignStep } from '@/types/campaign.types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -58,14 +59,12 @@ export default function StepCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`
-        relative rounded-lg border-2 transition-all cursor-pointer
-        ${
-          isSelected
-            ? 'border-blue-500 bg-primary/10'
-            : 'border-border bg-white hover:border-border/60'
-        }
-      `}
+      className={cn(
+        'relative rounded-lg border-2 transition-all cursor-pointer',
+        isSelected
+          ? 'ring-2 ring-primary border-primary bg-primary/10'
+          : 'border-border bg-background hover:border-border/60'
+      )}
       onClick={onSelect}
     >
       {/* Drag Handle */}
@@ -100,7 +99,7 @@ export default function StepCard({
               e.stopPropagation();
               if (confirm('Delete this step?')) onDelete();
             }}
-            className='p-1 hover:bg-red-100 text-muted-foreground hover:text-destructive'
+            className='p-1 hover:bg-destructive/10 text-muted-foreground hover:text-destructive'
           >
             <Trash2 className='w-3.5 h-3.5' />
           </Button>
@@ -108,7 +107,7 @@ export default function StepCard({
       </div>
 
       {/* Step Number Badge */}
-      <div className='absolute -top-2 -left-2 w-6 h-6 rounded-full bg-gray-700 text-white text-xs font-semibold flex items-center justify-center'>
+      <div className='absolute -top-2 -left-2 w-6 h-6 rounded-full bg-foreground text-background text-xs font-semibold flex items-center justify-center'>
         {step.order_position}
       </div>
     </div>

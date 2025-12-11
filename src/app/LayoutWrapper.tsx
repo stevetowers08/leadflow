@@ -1,7 +1,14 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
+import { initMobileViewport } from '@/utils/mobileViewport';
+import {
+  useImageOptimization,
+  usePreventDoubleTapZoom,
+  useSmoothScroll,
+  useServiceWorker,
+} from '@/hooks/useMobileOptimizations';
 
 /**
  * LayoutWrapper - Updated for Route Groups
@@ -10,10 +17,21 @@ import { ReactNode } from 'react';
  * - (mobile)/layout.tsx - Full viewport mobile layouts
  * - (app)/layout.tsx - Desktop sidebar layouts
  * 
- * This wrapper only handles root-level exclusions
+ * This wrapper only handles root-level exclusions and mobile optimizations
  */
 export function LayoutWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+
+  // 2025: Initialize mobile optimizations
+  useEffect(() => {
+    initMobileViewport();
+  }, []);
+
+  // 2025: Apply mobile performance optimizations
+  useImageOptimization();
+  usePreventDoubleTapZoom();
+  useSmoothScroll();
+  useServiceWorker();
 
   // Routes that should NOT have any layout wrapper
   // These are full-page routes like auth flows and OAuth callbacks

@@ -95,3 +95,9 @@ COMMENT ON COLUMN public.leads.quality_rank IS 'Lead quality: hot (high priority
 COMMENT ON COLUMN public.leads.status IS 'System state: processing (AI enrichment), active (in sequence), replied_manual (paused)';
 COMMENT ON COLUMN public.leads.gmail_thread_id IS 'Gmail thread ID for 2-way email sync';
 
+
+
+
+
+
+

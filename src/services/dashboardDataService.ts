@@ -158,53 +158,25 @@ export class DashboardDataService {
     const activities: DashboardActivityData[] = [];
 
     try {
-      // Fetch unread email threads (RLS should handle client filtering)
-      const { data: threadsData, error: threadsError } = await supabase
-        .from('email_threads')
+      // Email threads table removed - use activity_log instead
+      // Fetch recent activities from activity_log
+      const { data: activityData, error: activityError } = await supabase
+        .from('activity_log')
         .select(
-          'id, gmail_thread_id, subject, last_message_at, is_read, person_id'
+          'id, activity_type, timestamp, metadata, lead_id'
         )
-        .eq('is_read', false)
-        .order('last_message_at', { ascending: false })
-        .limit(10);
+        .order('timestamp', { ascending: false })
+        .limit(20);
 
-      if (threadsError) {
+      if (activityError) {
         console.error(
-          '[DashboardDataService] Threads query error:',
-          threadsError
+          '[DashboardDataService] Activity log query error:',
+          activityError
         );
-      } else if (threadsData) {
-        threadsData.forEach(thread => {
-          activities.push({
-            id: thread.id,
-            type: 'email_reply',
-            title: thread.subject || 'Email Reply',
-            description: thread.subject || 'No subject',
-            timestamp: thread.last_message_at || new Date().toISOString(),
-            person_id: thread.person_id,
-          });
-        });
-      }
-
-      // Fetch recent interactions (RLS should handle client filtering)
-      const { data: interactionsData, error: interactionsError } =
-        await supabase
-          .from('interactions')
-          .select(
-            'id, interaction_type, occurred_at, subject, content, person_id'
-          )
-          .order('occurred_at', { ascending: false })
-          .limit(20);
-
-      if (interactionsError) {
-        console.error(
-          '[DashboardDataService] Interactions query error:',
-          interactionsError
-        );
-      } else if (interactionsData && interactionsData.length > 0) {
-        // Fetch people data for interactions
-        const personIds = interactionsData
-          .map(i => i.person_id)
+      } else if (activityData && activityData.length > 0) {
+        // Fetch leads data for activities
+        const leadIds = activityData
+          .map(a => a.lead_id)
           .filter((id): id is string => id !== null);
 
         const peopleMap = new Map<
@@ -212,83 +184,55 @@ export class DashboardDataService {
           { name: string; company_name?: string }
         >();
 
-        if (personIds.length > 0) {
-          // Fetch people first
-          const { data: peopleData, error: peopleError } = await supabase
-            .from('people')
-            .select('id, name, company_id')
-            .in('id', personIds);
+        if (leadIds.length > 0) {
+          // Fetch leads first
+          const { data: leadsData, error: leadsError } = await supabase
+            .from('leads')
+            .select('id, first_name, last_name, company')
+            .in('id', leadIds);
 
-          if (peopleError) {
+          if (leadsError) {
             console.error(
-              '[DashboardDataService] People query error:',
-              peopleError
+              '[DashboardDataService] Query error:',
+              leadsError
             );
-          } else if (peopleData) {
-            // Get unique company IDs
-            const companyIds = peopleData
-              .map(p => p.company_id)
-              .filter((id): id is string => id !== null);
-
-            // Fetch companies separately
-            const companiesMap = new Map<string, string>();
-            if (companyIds.length > 0) {
-              const { data: companiesData } = await supabase
-                .from('companies')
-                .select('id, name')
-                .in('id', companyIds);
-
-              if (companiesData) {
-                companiesData.forEach(company => {
-                  companiesMap.set(company.id, company.name);
-                });
-              }
-            }
-
-            // Map people with their company names
-            peopleData.forEach(person => {
-              peopleMap.set(person.id, {
-                name: person.name,
-                company_name: person.company_id
-                  ? companiesMap.get(person.company_id)
-                  : undefined,
+          } else if (leadsData) {
+            // Map leads for activity display
+            leadsData.forEach(lead => {
+              peopleMap.set(lead.id, {
+                name: `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown',
+                company_name: lead.company || undefined,
               });
             });
           }
         }
 
-        // Add interactions as activities
-        interactionsData.forEach(interaction => {
-          // Skip if person_id is null
-          if (!interaction.person_id) return;
+        // Add activities from activity_log
+        activityData.forEach(activity => {
+          // Skip if lead_id is null
+          if (!activity.lead_id) return;
 
-          const person = peopleMap.get(interaction.person_id);
+          // Fetch lead to get person info
+          const metadata = activity.metadata as Record<string, unknown> | null;
           let activityType: DashboardActivityData['type'] = 'interaction';
 
           if (
-            interaction.interaction_type === 'email_sent' ||
-            interaction.interaction_type === 'email_reply'
+            activity.activity_type === 'email_sent' ||
+            activity.activity_type === 'email_replied'
           ) {
             activityType = 'email';
-          } else if (
-            interaction.interaction_type === 'meeting_booked' ||
-            interaction.interaction_type === 'meeting_held'
-          ) {
-            activityType = 'meeting';
-          } else if (interaction.interaction_type === 'note') {
+          } else if (activity.activity_type === 'manual_note') {
             activityType = 'note';
           }
 
           activities.push({
-            id: interaction.id,
+            id: activity.id,
             type: activityType,
-            title: interaction.subject || interaction.content || 'Activity',
+            title: (metadata?.subject as string) || activity.activity_type || 'Activity',
             description:
-              interaction.subject || interaction.content || 'No details',
-            timestamp: interaction.occurred_at,
-            person_id: interaction.person_id,
-            person_name: person?.name,
-            company_name: person?.company_name,
+              (metadata?.content as string) || activity.activity_type || 'No details',
+            timestamp: activity.timestamp || activity.created_at || new Date().toISOString(),
+            person_id: activity.lead_id, // Using lead_id as person_id for compatibility
           });
         });
       }
@@ -410,10 +354,10 @@ export class DashboardDataService {
           return { data: null, error: err };
         }),
       supabase
-        .from('email_threads')
-        .select('last_message_at')
-        .eq('is_read', false)
-        .gte('last_message_at', sevenDaysAgoISO)
+        .from('activity_log')
+        .select('timestamp')
+        .eq('activity_type', 'email_replied')
+        .gte('timestamp', sevenDaysAgoISO)
         .catch(err => {
           console.error(
             '[DashboardDataService] Chart replies query error:',

@@ -4,9 +4,9 @@
   "description": "RECRUITEDGE - AI-powered recruitment platform",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stevetowers08/recruitedge.git"
+    "url": "https://github.com/stevetowers08/leadflow.git"
   },
-  "homepage": "https://github.com/stevetowers08/recruitedge#readme",
+  "homepage": "https://github.com/stevetowers08/leadflow#readme",
   "type": "module",
   "scripts": {
     "dev": "next dev -p 8086",
@@ -75,6 +75,7 @@
     "next-themes": "^0.4.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-webcam": "^7.2.0",
     "react-window": "^2.1.1",
     "recharts": "^2.15.4",
     "sonner": "^2.0.7",

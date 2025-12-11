@@ -9,27 +9,24 @@
  */
 
 export const DATABASE_SCHEMA = {
-  // Table names
+  // Table names - Only existing tables
   TABLES: {
     PEOPLE: 'people',
     COMPANIES: 'companies',
     JOBS: 'jobs',
+    LEADS: 'leads',
+    LEADFLOW_LEADS: 'leadflow_leads',
     USER_PROFILES: 'user_profiles',
-    INTERACTIONS: 'interactions',
-    NOTES: 'notes',
-    TAGS: 'tags',
-    ENTITY_TAGS: 'entity_tags',
-    CAMPAIGNS: 'campaigns',
-    CAMPAIGN_PARTICIPANTS: 'campaign_participants',
-    CAMPAIGN_MESSAGES: 'campaign_messages',
-    BUSINESS_PROFILES: 'business_profiles',
-    ASSIGNMENT_LOGS: 'assignment_logs',
-    INVITATIONS: 'invitations',
-    SYSTEM_SETTINGS: 'system_settings',
-    LEAD_SOURCES: 'lead_sources',
+    USER_SETTINGS: 'user_settings',
+    WORKFLOWS: 'workflows',
+    ACTIVITY_LOG: 'activity_log',
+    CAMPAIGN_SEQUENCES: 'campaign_sequences',
+    CAMPAIGN_SEQUENCE_STEPS: 'campaign_sequence_steps',
+    CAMPAIGN_SEQUENCE_LEADS: 'campaign_sequence_leads',
+    CAMPAIGN_SEQUENCE_EXECUTIONS: 'campaign_sequence_executions',
   },
 
-  // Field definitions for each table
+  // Field definitions for each table - Only existing tables
   FIELDS: {
     people: {
       id: 'uuid',
@@ -120,6 +117,60 @@ export const DATABASE_SCHEMA = {
       is_active: 'boolean',
       created_at: 'timestamptz',
       updated_at: 'timestamptz',
+      default_client_id: 'uuid',
+    },
+    user_settings: {
+      id: 'uuid',
+      user_id: 'uuid',
+      preferences: 'jsonb',
+      notifications: 'jsonb',
+      security: 'jsonb',
+      created_at: 'timestamptz',
+      updated_at: 'timestamptz',
+    },
+    leads: {
+      id: 'uuid',
+      first_name: 'text',
+      last_name: 'text',
+      email: 'text',
+      phone: 'text',
+      company: 'text',
+      job_title: 'text',
+      quality_rank: 'text',
+      scan_image_url: 'text',
+      notes: 'text',
+      ai_summary: 'text',
+      ai_icebreaker: 'text',
+      status: 'text',
+      workflow_id: 'uuid',
+      workflow_status: 'text',
+      enrichment_data: 'jsonb',
+      enrichment_timestamp: 'timestamptz',
+      gmail_thread_id: 'text',
+      owner_id: 'uuid',
+      user_id: 'uuid',
+      created_at: 'timestamptz',
+      updated_at: 'timestamptz',
+    },
+    workflows: {
+      id: 'uuid',
+      name: 'text',
+      description: 'text',
+      created_by: 'uuid',
+      email_provider: 'text',
+      gmail_sequence: 'jsonb',
+      lemlist_campaign_id: 'text',
+      pause_rules: 'jsonb',
+      created_at: 'timestamptz',
+      updated_at: 'timestamptz',
+    },
+    activity_log: {
+      id: 'uuid',
+      lead_id: 'uuid',
+      activity_type: 'text',
+      timestamp: 'timestamptz',
+      metadata: 'jsonb',
+      created_at: 'timestamptz',
     },
   },
 
@@ -151,24 +202,21 @@ export const DATABASE_SCHEMA = {
     reply_type: ['interested', 'not_interested', 'maybe'],
   },
 
-  // Foreign key relationships
+  // Foreign key relationships - Only existing tables
   FOREIGN_KEYS: {
-    'contacts.company_id': 'companies.id',
-    'contacts.owner_id': 'user_profiles.id',
-    'companies.owner_id': 'user_profiles.id',
+    'people.company_id': 'companies.id',
+    'people.owner_id': 'user_profiles.id',
+    'companies.owner_id': 'auth.users.id',
     'jobs.company_id': 'companies.id',
-    'jobs.owner_id': 'user_profiles.id',
-    'interactions.contact_id': 'contacts.id',
-    'interactions.owner_id': 'user_profiles.id',
-    'notes.author_id': 'user_profiles.id',
-    'entity_tags.tag_id': 'tags.id',
-    'campaigns.created_by': 'auth.users.id',
-    'campaign_participants.campaign_id': 'campaigns.id',
-    'campaign_participants.contact_id': 'contacts.id',
-    'campaign_messages.campaign_id': 'campaigns.id',
-    'business_profiles.created_by': 'auth.users.id',
-    'invitations.accepted_by': 'user_profiles.id',
-    'invitations.invited_by': 'user_profiles.id',
+    'jobs.owner_id': 'auth.users.id',
+    'leads.workflow_id': 'workflows.id',
+    'leads.owner_id': 'auth.users.id',
+    'activity_log.lead_id': 'leads.id',
+    'campaign_sequence_leads.lead_id': 'leads.id',
+    'campaign_sequence_leads.sequence_id': 'campaign_sequences.id',
+    'campaign_sequence_steps.sequence_id': 'campaign_sequences.id',
+    'campaign_sequence_executions.lead_id': 'leads.id',
+    'workflows.created_by': 'auth.users.id',
     'user_profiles.id': 'auth.users.id',
   },
 } as const;
@@ -208,5 +256,11 @@ export const COMMON_SELECTIONS = {
   jobs: 'id, title, company_id, job_url, posted_date, valid_through, location, description, summary, employment_type, seniority_level, linkedin_job_id, created_at, updated_at, priority, lead_score_job, salary, function, logo_url, owner_id',
 
   user_profiles:
-    'id, email, full_name, role, user_limit, is_active, created_at, updated_at',
+    'id, email, full_name, role, user_limit, is_active, created_at, updated_at, default_client_id',
+  leads:
+    'id, first_name, last_name, email, phone, company, job_title, quality_rank, scan_image_url, notes, ai_summary, ai_icebreaker, status, workflow_id, workflow_status, enrichment_data, enrichment_timestamp, gmail_thread_id, owner_id, user_id, created_at, updated_at',
+  workflows:
+    'id, name, description, created_by, email_provider, gmail_sequence, lemlist_campaign_id, pause_rules, created_at, updated_at',
+  activity_log:
+    'id, lead_id, activity_type, timestamp, metadata, created_at',
 } as const;

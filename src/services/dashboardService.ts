@@ -205,21 +205,19 @@ export class DashboardService {
           .order('created_at', { ascending: false })
           .limit(20),
 
-        // Recent activities
+        // Recent activities - using activity_log instead of interactions
         supabase
-          .from('interactions')
+          .from('activity_log')
           .select(
             `
           id,
-          interaction_type,
-          subject,
-          content,
-          occurred_at,
-          people(name),
-          companies(name)
+          activity_type,
+          metadata,
+          timestamp,
+          lead_id
         `
           )
-          .order('occurred_at', { ascending: false })
+          .order('timestamp', { ascending: false })
           .limit(10),
 
         // Pipeline breakdown
@@ -248,19 +246,11 @@ export class DashboardService {
         // Owner stats
         supabase.from('people').select('owner_id'),
 
-        // Notes counts for recent items
-        supabase
-          .from('notes')
-          .select('entity_id, entity_type')
-          .eq('entity_type', 'person'),
-        supabase
-          .from('notes')
-          .select('entity_id, entity_type')
-          .eq('entity_type', 'company'),
-        supabase
-          .from('notes')
-          .select('entity_id, entity_type')
-          .eq('entity_type', 'job'),
+        // Notes removed - using leads.notes field instead
+        // Return empty arrays for compatibility
+        Promise.resolve({ data: [], error: null }),
+        Promise.resolve({ data: [], error: null }),
+        Promise.resolve({ data: [], error: null }),
 
         // People count per company for jobs
         supabase
@@ -309,7 +299,7 @@ export class DashboardService {
           assigned_to: person.owner_id,
           company_name: person.companies?.name || null,
           company_logo_url: person.companies?.logo_url || null,
-          notes_count: person.notes?.length || 0,
+          notes_count: 0, // Notes table removed - use leads.notes field instead
         }));
       };
 
@@ -326,7 +316,7 @@ export class DashboardService {
           stage: company.pipeline_stage,
           created_at: company.created_at,
           assigned_to: company.owner_id,
-          notes_count: company.notes?.length || 0,
+          notes_count: 0, // Notes table removed - use company notes field if added
         }));
       };
 
@@ -380,15 +370,15 @@ export class DashboardService {
         },
         recentPeople: this.processRecentPeople(
           recentPeopleData.data || [],
-          personNotesData.data || []
+          [] // Notes table removed
         ),
         recentCompanies: this.processRecentCompanies(
           recentCompaniesData.data || [],
-          companyNotesData.data || []
+          [] // Notes table removed
         ),
         recentJobs: this.processRecentJobs(
           recentJobsData.data || [],
-          jobNotesData.data || [],
+          [], // Notes table removed
           peopleByCompanyData.data || []
         ),
         recentActivities: this.processRecentActivities(

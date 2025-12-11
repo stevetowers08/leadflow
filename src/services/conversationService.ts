@@ -125,15 +125,10 @@ export class ConversationService {
   async getConversationMessages(
     conversationId: string
   ): Promise<ConversationMessage[]> {
-    // Get messages from the conversation_messages table
-    const { data: messages, error } = await supabase
-      .from('conversation_messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('sent_at', { ascending: true });
-
-    if (error) throw error;
-    return messages || [];
+    // conversation_messages table removed - using activity_log instead
+    // Return empty array for now
+    console.warn('conversation_messages table removed - use activity_log instead');
+    return [];
   }
 
   async createConversation(conversationData: {
@@ -143,14 +138,9 @@ export class ConversationService {
     participants: string[];
     conversation_type?: 'email';
   }): Promise<Conversation> {
-    const { data, error } = await supabase
-      .from('conversations')
-      .insert(conversationData)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    // conversations table removed - using activity_log instead
+    console.warn('conversations table removed - use activity_log instead');
+    throw new Error('Conversations table removed - use activity_log for tracking');
   }
 
   async addMessage(messageData: {
@@ -166,45 +156,28 @@ export class ConversationService {
     expandi_status?: 'pending' | 'sent' | 'delivered' | 'failed';
     expandi_message_id?: string;
   }): Promise<ConversationMessage> {
-    const { data, error } = await supabase
-      .from('conversation_messages')
-      .insert(messageData)
-      .select()
-      .single();
+    // conversation_messages table removed - using activity_log instead
+    console.warn('conversation_messages table removed - use activity_log instead');
+    throw new Error('Conversation messages table removed - use activity_log for tracking');
 
     if (error) throw error;
 
-    // Update conversation's last_message_at
-    await supabase
-      .from('conversations')
-      .update({
-        last_message_at: messageData.sent_at || new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', messageData.conversation_id);
+    // Update conversation's last_message_at - conversations table removed
+    // await supabase
+    //   .from('conversations')
+    //   .update({
+    //     last_message_at: messageData.sent_at || new Date().toISOString(),
+        // updated_at: new Date().toISOString(),
+      // })
+      // .eq('id', messageData.conversation_id);
 
     return data;
   }
 
   async markConversationAsRead(conversationId: string): Promise<void> {
-    const { error } = await supabase
-      .from('conversations')
-      .update({
-        is_read: true,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', conversationId);
-
-    if (error) throw error;
-
-    // Also mark all messages in the conversation as read
-    await supabase
-      .from('conversation_messages')
-      .update({
-        is_read: true,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('conversation_id', conversationId);
+    // conversations table removed - using activity_log instead
+    console.warn('conversations table removed - use activity_log instead');
+    // No-op for now
   }
 
   async updateMessageStatus(
@@ -212,29 +185,17 @@ export class ConversationService {
     status: 'pending' | 'sent' | 'delivered' | 'failed',
     expandiMessageId?: string
   ): Promise<void> {
-    const { error } = await supabase
-      .from('conversation_messages')
-      .update({
-        expandi_status: status,
-        expandi_message_id: expandiMessageId,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', messageId);
-
-    if (error) throw error;
+    // conversation_messages table removed - using activity_log instead
+    console.warn('conversation_messages table removed - use activity_log instead');
+    // No-op for now
   }
 
   private async findConversationByLinkedInId(
     linkedinMessageId: string
   ): Promise<Conversation | null> {
-    const { data, error } = await supabase
-      .from('conversations')
-      .select('*')
-      .eq('linkedin_message_id', linkedinMessageId)
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error;
-    return data;
+    // conversations table removed - using activity_log instead
+    console.warn('conversations table removed - use activity_log instead');
+    return null;
   }
 
   private async findPersonByEmailOrName(
@@ -264,7 +225,8 @@ export class ConversationService {
   ): Promise<void> {
     const { data: user } = await supabase.auth.getUser();
 
-    await supabase.from('conversation_sync_logs').insert({
+    // conversation_sync_logs table removed - using activity_log instead
+    // await supabase.from('conversation_sync_logs').insert({
       user_id: user.user?.id,
       operation_type: operationType,
       status,

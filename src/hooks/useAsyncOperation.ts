@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/utils/toast';
 import { useErrorHandler, useRetry } from '@/hooks/useErrorHandler';
 
 export interface AsyncOperationState<T = any> {
@@ -50,7 +50,6 @@ export function useAsyncOperation<T = any>(
     lastExecutedAt: null,
   });
 
-  const { toast } = useToast();
   const { logError } = useErrorHandler();
   const { executeWithRetry, isRetrying, retryCount } = useRetry(asyncFn, {
     ...retryOptions,
@@ -85,8 +84,7 @@ export function useAsyncOperation<T = any>(
         }));
 
         if (showSuccessToast) {
-          toast({
-            title: 'Success',
+          toast.success('Success', {
             description: successMessage,
           });
         }
@@ -105,10 +103,8 @@ export function useAsyncOperation<T = any>(
         }));
 
         if (showErrorToast) {
-          toast({
-            title: 'Error',
+          toast.error('Error', {
             description: errorMessage,
-            variant: 'destructive',
           });
         }
 
@@ -127,7 +123,6 @@ export function useAsyncOperation<T = any>(
       errorMessage,
       onSuccess,
       onError,
-      toast,
       logError,
     ]
   );

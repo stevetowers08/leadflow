@@ -1195,7 +1195,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
                   </div>
                 </h3>
               </div>
-              <div className='flex-1 min-h-0 w-full' style={{ minWidth: 0 }}>
+              <div className='flex-1 min-h-0 w-full min-w-0'>
                 <NotesSection
                   entityId={company.id}
                   entityType='company'

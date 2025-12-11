@@ -25,7 +25,7 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/utils/toast';
 import {
   AssignmentService,
   TeamMember,
@@ -56,7 +56,6 @@ export const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   const [assignmentResult, setAssignmentResult] =
     useState<BulkAssignmentResult | null>(null);
   const [loadingMembers, setLoadingMembers] = useState(true);
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const entityTypeLabel =
@@ -80,10 +79,8 @@ export const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
       setTeamMembers(members);
     } catch (error) {
       console.error('Error loading team members:', error);
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: 'Failed to load team members',
-        variant: 'destructive',
       });
     } finally {
       setLoadingMembers(false);
@@ -92,10 +89,8 @@ export const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
 
   const handleBulkAssignment = async () => {
     if (!selectedOwnerId || !user) {
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: 'Please select a user to assign to',
-        variant: 'destructive',
       });
       return;
     }
@@ -114,33 +109,26 @@ export const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
       setAssignmentResult(result);
 
       if (result.success) {
-        toast({
-          title: 'Assignment Complete',
+        toast.success('Assignment Complete', {
           description: `Successfully assigned ${result.updated_count} of ${result.total_requested} ${entityTypeLabel}`,
         });
 
         if (result.invalid_entities.length > 0) {
-          toast({
-            title: 'Warning',
+          toast.warning('Warning', {
             description: `${result.invalid_entities.length} ${entityTypeLabel} could not be assigned`,
-            variant: 'destructive',
           });
         }
 
         onAssignmentComplete();
       } else {
-        toast({
-          title: 'Assignment Failed',
+        toast.error('Assignment Failed', {
           description: result.errors?.[0] || 'Failed to assign entities',
-          variant: 'destructive',
         });
       }
     } catch (error) {
       console.error('Error in bulk assignment:', error);
-      toast({
-        title: 'Assignment Failed',
+      toast.error('Assignment Failed', {
         description: 'An unexpected error occurred',
-        variant: 'destructive',
       });
     } finally {
       setIsAssigning(false);

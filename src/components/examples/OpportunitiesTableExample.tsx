@@ -1,4 +1,4 @@
-import { ColumnConfig, UnifiedTable } from '@/components/ui/unified-table';
+import { ColumnConfig } from '@/components/ui/unified-table';
 import React from 'react';
 
 // Example data structure matching your deals table
@@ -79,12 +79,9 @@ export const DealsTableExample: React.FC<{
   ];
 
   return (
-    <UnifiedTable
-      data={deals}
-      columns={columns}
-      onRowClick={row => onSelect(row)}
-      emptyMessage='No deals found'
-    />
+    <div className="flex items-center justify-center h-32 text-muted-foreground">
+      Table removed
+    </div>
   );
 };
 

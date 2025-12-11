@@ -30,7 +30,7 @@ import {
 } from '@/services/bulk/bulkPeopleImportService';
 import { Upload, FileText, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import React, { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/utils/toast';
 
 export interface CSVImportDialogProps {
   open: boolean;
@@ -43,7 +43,6 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
   onOpenChange,
   onImportComplete,
 }) => {
-  const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState({ processed: 0, total: 0 });
@@ -52,10 +51,8 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
 
   const handleFileSelect = useCallback((selectedFile: File) => {
     if (!selectedFile.name.endsWith('.csv')) {
-      toast({
-        title: 'Invalid file type',
+      toast.error('Invalid file type', {
         description: 'Please select a CSV file',
-        variant: 'destructive',
       });
       return;
     }
@@ -63,7 +60,7 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
     setFile(selectedFile);
     setResult(null);
     setProgress({ processed: 0, total: 0 });
-  }, [toast]);
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -113,23 +110,18 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
       setResult(importResult);
 
       if (importResult.success) {
-        toast({
-          title: 'Import successful',
+        toast.success('Import successful', {
           description: importResult.message,
         });
         onImportComplete?.(importResult);
       } else {
-        toast({
-          title: 'Import completed with errors',
+        toast.error('Import completed with errors', {
           description: importResult.message,
-          variant: 'destructive',
         });
       }
     } catch (error) {
-      toast({
-        title: 'Import failed',
+      toast.error('Import failed', {
         description: (error as Error).message,
-        variant: 'destructive',
       });
     } finally {
       setIsImporting(false);

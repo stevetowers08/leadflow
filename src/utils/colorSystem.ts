@@ -1,8 +1,15 @@
 /**
- * Unified Color System for Attio Blue Theme
+ * Unified Color System for LeadFlow PDR Theme
  *
  * This file provides a centralized way to manage all colors in the application.
- * All colors should use CSS variables defined in index.css for consistency.
+ * All colors should use CSS variables defined in globals.css for consistency.
+ * 
+ * PDR Color System:
+ * - Deep Navy (#0A1628) - Dark mode background
+ * - Accent Blue (#2563EB) - Primary actions
+ * - Success Green (#10B981) - Positive states
+ * - Warning Amber (#F59E0B) - Medium priority
+ * - Alert Red (#EF4444) - Hot leads/urgent
  */
 
 export const colorSystem = {

@@ -18,7 +18,7 @@ const Card = React.forwardRef<
   const baseStyles =
     'rounded-lg border border-border transition-all duration-200 ease-out';
   const interactiveStyles = isInteractive
-    ? 'cursor-pointer hover:shadow-md'
+    ? 'cursor-pointer hover:shadow-md hover:border-border/60'
     : 'hover:shadow-md';
 
   const variants = {

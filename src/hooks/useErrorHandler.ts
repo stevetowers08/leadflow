@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { useUserFeedback } from './useUserFeedback';
 
 export interface ErrorInfo {
@@ -22,7 +21,6 @@ export interface RetryOptions {
 
 export function useErrorHandler() {
   const [errors, setErrors] = useState<ErrorInfo[]>([]);
-  const { toast } = useToast();
   const { showError, showWarning } = useUserFeedback();
 
   const logError = useCallback(
@@ -58,7 +56,7 @@ export function useErrorHandler() {
 
       return errorInfo.id;
     },
-    [toast, showError, showWarning]
+    [showError, showWarning]
   );
 
   const resolveError = useCallback((errorId: string) => {

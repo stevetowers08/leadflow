@@ -11,7 +11,7 @@ import React, {
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/utils/toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { useRealtimeAssignmentSync } from '@/hooks/useRealtimeAssignmentSync';
@@ -47,7 +47,6 @@ export const AssignmentProvider: React.FC<AssignmentProviderProps> = ({
   children,
 }) => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { user } = useAuth();
   const { hasRole } = usePermissions();
 
@@ -71,19 +70,15 @@ export const AssignmentProvider: React.FC<AssignmentProviderProps> = ({
       newOwnerId: string | null
     ): Promise<boolean> => {
       if (!canAssign) {
-        toast({
-          title: 'Permission Denied',
+        toast.error('Permission Denied', {
           description: "You don't have permission to assign entities",
-          variant: 'destructive',
         });
         return false;
       }
 
       if (!user) {
-        toast({
-          title: 'Error',
+        toast.error('Error', {
           description: 'You must be logged in to assign entities',
-          variant: 'destructive',
         });
         return false;
       }
@@ -98,10 +93,8 @@ export const AssignmentProvider: React.FC<AssignmentProviderProps> = ({
             .single();
 
           if (userError || !userData) {
-            toast({
-              title: 'Assignment Failed',
+            toast.error('Assignment Failed', {
               description: 'Target user does not exist or is not active',
-              variant: 'destructive',
             });
             return false;
           }
@@ -126,8 +119,7 @@ export const AssignmentProvider: React.FC<AssignmentProviderProps> = ({
         // Show success message
         const entityName =
           entityType === 'people' ? 'lead' : entityType.slice(0, -1);
-        toast({
-          title: 'Assignment Updated',
+        toast.success('Assignment Updated', {
           description: newOwnerId
             ? `${entityName} assigned successfully`
             : `${entityName} unassigned successfully`,
@@ -136,18 +128,16 @@ export const AssignmentProvider: React.FC<AssignmentProviderProps> = ({
         return true;
       } catch (error) {
         console.error('Error assigning entity:', error);
-        toast({
-          title: 'Assignment Failed',
+        toast.error('Assignment Failed', {
           description:
             error instanceof Error
               ? error.message
               : 'An unexpected error occurred',
-          variant: 'destructive',
         });
         return false;
       }
     },
-    [canAssign, user, toast, invalidateAssignmentCaches]
+    [canAssign, user, invalidateAssignmentCaches]
   );
 
   const value: AssignmentContextType = {

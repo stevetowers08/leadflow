@@ -17,23 +17,24 @@
 
   /* Mobile Typography Hierarchy */
 
-  /* Headlines - 24-32px range */
+  /* 2025: Fluid typography with clamp() for responsive scaling */
+  /* Headlines - 24-32px range with fluid scaling */
   .mobile-h1 {
-    font-size: 1.75rem; /* 28px */
+    font-size: clamp(1.5rem, 4vw + 1rem, 1.75rem); /* 24px - 28px */
     line-height: 1.2;
     font-weight: 700;
     letter-spacing: -0.025em;
   }
 
   .mobile-h2 {
-    font-size: 1.5rem; /* 24px */
+    font-size: clamp(1.25rem, 3vw + 0.75rem, 1.5rem); /* 20px - 24px */
     line-height: 1.25;
     font-weight: 600;
     letter-spacing: -0.025em;
   }
 
   .mobile-h3 {
-    font-size: 1.25rem; /* 20px */
+    font-size: clamp(1.125rem, 2.5vw + 0.5rem, 1.25rem); /* 18px - 20px */
     line-height: 1.3;
     font-weight: 600;
     letter-spacing: -0.025em;
@@ -46,15 +47,16 @@
     font-weight: 500;
   }
 
+  /* 2025: Fluid body text with clamp() */
   /* Body Text - 14-16px range (16px for optimal readability) */
   .mobile-body {
-    font-size: 1rem; /* 16px - prevents zoom on iOS */
+    font-size: clamp(0.875rem, 2vw + 0.5rem, 1rem); /* 14px - 16px */
     line-height: 1.6; /* 1.6x for optimal readability */
     font-weight: 400;
   }
 
   .mobile-body-sm {
-    font-size: 0.875rem; /* 14px */
+    font-size: clamp(0.8125rem, 1.5vw + 0.5rem, 0.875rem); /* 13px - 14px */
     line-height: 1.5;
     font-weight: 400;
   }

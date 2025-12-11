@@ -1,4 +1,5 @@
 import { StatusBadge } from '@/components/StatusBadge';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Building2 } from 'lucide-react';
 import { getCompanyLogoUrlSync } from '@/services/logoService';
@@ -34,14 +35,12 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
   const logo = getCompanyLogo();
 
   return (
-    <div
-      className={cn(
-        'px-4 py-2 border border-border rounded-lg hover:bg-muted hover:border-border/60 transition-all duration-200 cursor-pointer group',
-        className
-      )}
+    <Card
+      className={cn('cursor-pointer transition-all', className)}
       onClick={onClick}
     >
-      <div className='flex items-center gap-3'>
+      <CardContent className='p-4'>
+        <div className='flex items-center gap-3'>
         {/* Company Logo */}
         <div className='flex-shrink-0 w-8 h-8 rounded-md border border-border bg-white flex items-center justify-center'>
           {logo ? (
@@ -92,6 +91,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
           </span>
         </div>
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };

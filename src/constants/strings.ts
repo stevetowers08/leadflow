@@ -79,3 +79,9 @@ export const CONFIRMATION_MESSAGES = {
   AUTOMATION: 'Are you sure you want to start the automation process? This will begin contacting the selected leads.',
 } as const;
 
+
+
+
+
+
+

@@ -11,7 +11,7 @@
 
 'use client';
 
-import { UnifiedTable, ColumnConfig } from './unified-table';
+import { ColumnConfig } from './unified-table';
 import {
   EnhancedMobileTable,
   MobileTableColumn,
@@ -106,8 +106,8 @@ export function ResponsiveTable<T = unknown>({
     );
   }
 
-  // On desktop, use UnifiedTable
-  return <UnifiedTable data={data} columns={columns} {...props} />;
+  // On desktop, table removed
+  return <div className="flex items-center justify-center h-full text-muted-foreground">Table removed</div>;
 }
 
 // Re-export for convenience

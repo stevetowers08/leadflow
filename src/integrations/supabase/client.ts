@@ -79,15 +79,17 @@ function getSupabaseClient() {
         return _supabaseClient;
       }
 
-      _supabaseClient = createClient<Database>(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY,
-        {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false,
-          },
+    _supabaseClient = createClient<Database>(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY,
+      {
+        auth: {
+          persistSession: true, // Allow session persistence for real auth
+          autoRefreshToken: true, // Auto-refresh for real sessions
+          detectSessionInUrl: true, // Detect OAuth callbacks
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+          storageKey: 'sb-auth-token', // Standard Supabase storage key
+        },
           global: {
             headers: {
               apikey: SUPABASE_PUBLISHABLE_KEY,

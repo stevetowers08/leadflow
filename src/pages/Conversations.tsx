@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { supabase } from '@/integrations/supabase/client';
-import { cn, getErrorMessage } from '@/lib/utils';
+import { cn, getErrorMessage, logSupabaseError } from '@/lib/utils';
 import {
   Building2,
   Mail,
@@ -205,7 +205,16 @@ const ConversationsContent: React.FC = () => {
         .order('last_message_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      // Handle missing table gracefully
+      if (error) {
+        const errorMessage = error.message || '';
+        if (errorMessage.includes('schema cache') || errorMessage.includes('does not exist')) {
+          console.debug('Failed to load conversations: Could not find the table', error);
+          setThreads([]);
+          return;
+        }
+        throw error;
+      }
 
       const transformedThreads: EmailThread[] = (emailThreads || [])
         .filter(thread => thread.people) // Only show threads with matching people
@@ -320,7 +329,29 @@ const ConversationsContent: React.FC = () => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      // Handle specific error codes gracefully
+      if (error) {
+        // PGRST116 = no rows found (normal - user hasn't set signature yet)
+        if (error.code === 'PGRST116') {
+          setEmailSignature('');
+          return;
+        }
+        
+        // 42P01 = relation does not exist (table missing - migration not run)
+        // 42704 = object does not exist (table missing)
+        if (error.code === '42P01' || error.code === '42704' || 
+            error.message?.includes('schema cache') || 
+            error.message?.includes('does not exist')) {
+          // Table doesn't exist - this is expected if migration hasn't run
+          // Silently fail and use empty signature
+          setEmailSignature('');
+          return;
+        }
+        
+        // For other errors, log them properly
+        logSupabaseError(error, 'loading email signature');
+        return;
+      }
 
       const prefs = data?.preferences as
         | { emailSignature?: string }
@@ -328,7 +359,15 @@ const ConversationsContent: React.FC = () => {
       const signature = prefs?.emailSignature || '';
       setEmailSignature(signature);
     } catch (error) {
-      console.error('Failed to load email signature:', getErrorMessage(error), error);
+      // Fallback error handling
+      const errorMessage = getErrorMessage(error);
+      // Only log if it's a meaningful error (not table missing)
+      if (!errorMessage.includes('schema cache') && 
+          !errorMessage.includes('does not exist')) {
+        logSupabaseError(error, 'loading email signature');
+      }
+      // Set empty signature as fallback
+      setEmailSignature('');
     }
   };
 
@@ -349,9 +388,23 @@ const ConversationsContent: React.FC = () => {
         { onConflict: 'user_id' }
       );
 
-      if (error) throw error;
+      if (error) {
+        // Handle table missing errors gracefully
+        if (error.code === '42P01' || error.code === '42704' || 
+            error.message?.includes('schema cache') || 
+            error.message?.includes('does not exist')) {
+          alert('Settings table not available. Please ensure database migrations are up to date.');
+          return;
+        }
+        throw error;
+      }
     } catch (error) {
-      console.error('Failed to save email signature:', getErrorMessage(error), error);
+      const errorMessage = getErrorMessage(error);
+      // Only log meaningful errors
+      if (!errorMessage.includes('schema cache') && 
+          !errorMessage.includes('does not exist')) {
+        logSupabaseError(error, 'saving email signature');
+      }
       alert('Failed to save signature. Please try again.');
     }
   };

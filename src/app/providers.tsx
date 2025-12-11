@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect } from 'react';
-import { Toaster } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 import {
   useGlobalErrorHandler,
   usePerformanceMonitoring,
@@ -167,6 +167,12 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
   const { user, userProfile, loading } = useAuth();
   const bypassAuth = shouldBypassAuth();
 
+  // Check if user explicitly signed out in bypass mode
+  const bypassDisabled = typeof window !== 'undefined' 
+    ? (sessionStorage.getItem('bypass-auth-disabled') === 'true' ||
+       localStorage.getItem('bypass-auth-disabled') === 'true')
+    : false;
+
   // Show loading state while checking auth (only if not bypassing)
   if (loading && !bypassAuth) {
     return (
@@ -179,18 +185,25 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // If bypass is disabled (user signed out), show sign-in page
+  if (bypassAuth && bypassDisabled) {
+    return <AuthPage />;
+  }
+
   // Redirect to sign-in if no user and not bypassing
   if (!bypassAuth && !user) {
     return <AuthPage />;
   }
 
   // Get current user and profile (real or mock)
-  const currentUser = user || (bypassAuth ? getMockUser() : null);
+  // Only use mock user if bypass is enabled AND not disabled by sign-out
+  const shouldUseMock = bypassAuth && !bypassDisabled;
+  const currentUser = user || (shouldUseMock ? getMockUser() : null);
   const currentUserProfile =
-    userProfile || (bypassAuth ? getMockUserProfile() : null);
+    userProfile || (shouldUseMock ? getMockUserProfile() : null);
 
   // If we're bypassing auth but still don't have a user, something is wrong
-  if (bypassAuth && !currentUser) {
+  if (bypassAuth && !bypassDisabled && !currentUser) {
     return (
       <div className='min-h-screen flex items-center justify-center'>
         <div className='text-center'>

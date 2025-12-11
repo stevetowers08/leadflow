@@ -1,170 +1,64 @@
 /**
- * Hover Overflow Fixes - 2025 Edition
+ * Hover Overflow Fixes - 2025 Edition (Optimized)
  * 
- * Comprehensive solution for preventing hover elements from being cut off
- * by container overflow settings.
+ * Note: Most overflow/z-index fixes are unnecessary because:
+ * - Radix UI (used by shadcn/ui) handles z-index via Portal
+ * - Dropdowns, popovers, tooltips render in Portal (outside DOM hierarchy)
  * 
- * Best Practices Implemented:
- * - Proper z-index stacking context
- * - Overflow handling for hover states
- * - Transform3d for hardware acceleration
- * - CSS containment for performance
+ * These utilities are for edge cases only - prefer component-level solutions.
  */
 
-/* Global hover container fixes - Remove hardware acceleration that causes text blur */
+/* Utility classes for edge cases - use sparingly */
+/* Note: Radix UI Portal handles most cases automatically */
 .hover-safe-container {
-  /* Ensure hover elements can extend beyond container bounds */
-  overflow: visible !important;
-  /* Create proper stacking context */
+  overflow: visible;
   position: relative;
   z-index: 1;
-  /* Remove hardware acceleration that causes text blur */
-  /* transform: translateZ(0); */
-  /* backface-visibility: hidden; */
 }
 
-/* Enhanced z-index stacking for hover elements */
+/* For custom non-Radix components that need overflow handling */
 .hover-element {
-  z-index: 60 !important;
-  /* Ensure proper positioning context */
   position: relative;
+  z-index: 60;
 }
 
 .hover-element-high {
-  z-index: 70 !important;
   position: relative;
+  z-index: 70;
 }
 
-/* Dropdown and popover specific fixes */
+/* Legacy support - Radix UI Portal handles this automatically */
 .dropdown-container {
-  /* Prevent clipping by parent containers */
-  overflow: visible !important;
-  /* Ensure proper stacking */
-  z-index: 60;
-  position: relative;
-}
-
-.dropdown-content {
-  /* Portal-like behavior for dropdowns */
-  z-index: 70 !important;
-  /* Ensure visibility */
-  position: relative;
-  /* Remove hardware acceleration that causes text blur */
-  /* transform: translateZ(0); */
-  will-change: transform, opacity;
-}
-
-/* Tooltip specific fixes */
-.tooltip-container {
-  /* Allow tooltips to extend beyond bounds */
-  overflow: visible !important;
-  /* Proper stacking context */
-  z-index: 1;
-  position: relative;
-}
-
-.tooltip-content {
-  /* High z-index for tooltips */
-  z-index: 70 !important;
-  /* Ensure proper rendering */
-  position: relative;
-  /* Remove hardware acceleration that causes text blur */
-  /* transform: translateZ(0); */
-  will-change: transform, opacity;
-}
-
-/* Page-level overflow fixes - Only apply to specific page containers */
-/* NOTE: Do NOT use on main layout containers - they need overflow-hidden */
-.page-container {
-  /* Allow hover elements to extend beyond page bounds */
-  overflow-x: visible !important;
-  /* Maintain vertical scrolling for accessibility */
-  overflow-y: auto;
-  /* Proper stacking context */
   position: relative;
   z-index: 1;
 }
 
-/* Exclude main layout elements from overflow visible */
-main.page-container,
-[role='main'].page-container {
-  overflow-x: visible !important;
-  overflow-y: auto !important;
-}
-
-/* Card hover effects that might extend beyond bounds */
-.card-hover-safe {
-  /* Ensure hover effects aren't clipped */
-  overflow: visible !important;
-  /* Proper stacking */
-  position: relative;
-  z-index: 1;
-  /* Hardware acceleration for smooth hover */
-  /* Remove hardware acceleration that causes text blur */
-  /* transform: translateZ(0); */
-  will-change: transform;
-}
-
-/* Table cell hover fixes */
-.table-cell-hover {
-  /* Allow dropdowns to extend beyond cell bounds */
-  overflow: visible !important;
-  /* Proper positioning context */
-  position: relative;
-  z-index: 1;
-}
-
-/* Mobile-specific hover fixes */
-@media (max-width: 768px) {
-  .mobile-hover-safe {
-    /* On mobile, ensure touch targets aren't clipped */
-    overflow: visible !important;
-    /* Prevent horizontal scrolling issues */
-    overflow-x: visible !important;
-    /* Proper stacking */
-    position: relative;
-    z-index: 1;
-  }
-}
-
-/* Performance optimizations - Remove hardware acceleration that causes text blur */
+/* Performance optimizations */
 .hover-optimized {
-  /* Remove hardware acceleration that causes text blur */
-  /* transform: translateZ(0); */
-  /* backface-visibility: hidden; */
-  /* Optimize for hover animations */
   will-change: transform, opacity;
-  /* Prevent layout thrashing */
   contain: layout style paint;
 }
 
 /* Accessibility improvements */
 .hover-accessible {
-  /* Ensure hover elements are accessible */
-  z-index: 70 !important;
-  /* Proper focus management */
   position: relative;
-  /* High contrast for better visibility */
+  z-index: 70;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 }
 
 /* Dark mode hover fixes */
 @media (prefers-color-scheme: dark) {
   .hover-dark-safe {
-    /* Enhanced shadows for dark mode */
     filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
-    /* Ensure proper contrast */
     background-color: rgba(0, 0, 0, 0.8);
-    /* backdrop-filter: blur(8px); */
   }
 }
 
 /* Print media fixes */
 @media print {
   .hover-print-safe {
-    /* Disable hover effects in print */
-    overflow: visible !important;
-    z-index: auto !important;
-    transform: none !important;
+    overflow: visible;
+    z-index: auto;
+    transform: none;
   }
 }

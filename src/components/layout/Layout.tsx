@@ -85,21 +85,36 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
       },
     };
 
-    const data = routeData[pathname] || { title: 'Dashboard' };
+    // Check for route patterns (e.g., /workflows/sequence/[id])
+    let data = routeData[pathname];
+    if (!data && pathname) {
+      if (pathname.startsWith('/workflows')) {
+        data = routeData['/workflows'];
+      } else if (pathname.startsWith('/leads')) {
+        data = routeData['/leads'];
+      } else if (pathname.startsWith('/inbox')) {
+        data = routeData['/inbox'];
+      } else if (pathname.startsWith('/analytics')) {
+        data = routeData['/analytics'];
+      } else if (pathname.startsWith('/settings')) {
+        data = routeData['/settings'];
+      }
+    }
+
+    const finalData = data || { title: 'Dashboard' };
     return {
-      currentPageTitle: data.title,
-      currentPageSubheading: data.subheading,
+      currentPageTitle: finalData.title,
+      currentPageSubheading: finalData.subheading,
     };
   }, [pageTitle, pathname]);
 
 
-  // Constants for fixed positioning
-  const topNavHeight = 49;
+  const topNavHeight = 48;
   const mobileBottomNavHeight = 80;
 
   if (!isMounted) {
     return (
-      <div className='h-screen bg-background'>
+      <div className='h-dvh bg-background'>
         <main className='h-full w-full'>{children}</main>
       </div>
     );
@@ -108,7 +123,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         {/* Top Navigation - Fixed position with glassmorphism */}
         <TopNavigationBar
           pageTitle={currentPageTitle}
@@ -124,11 +139,11 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         {/* Main Content */}
         <main
           ref={mainContentRef}
-          className='flex flex-col overflow-hidden bg-background'
+          className='flex flex-col overflow-hidden bg-background min-w-0'
           style={{
             height: isMobile
-              ? `calc(100vh - ${topNavHeight}px - ${mobileBottomNavHeight}px)`
-              : `calc(100vh - ${topNavHeight}px)`,
+              ? `calc(100dvh - ${topNavHeight}px - ${mobileBottomNavHeight}px)`
+              : `calc(100dvh - ${topNavHeight}px)`,
           }}
           role='main'
         >

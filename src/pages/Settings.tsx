@@ -1,7 +1,4 @@
 ﻿import IntegrationsPage from '@/components/IntegrationsPage';
-import AdminSettingsTab from '@/components/crm/settings/AdminSettingsTab';
-import BusinessProfileSettings from '@/components/crm/settings/BusinessProfileSettings';
-import { ClientManagementTab } from '@/components/crm/settings/ClientManagementTab';
 import NotificationSettings from '@/components/crm/settings/NotificationSettings';
 import ProfileSettings from '@/components/crm/settings/ProfileSettings';
 import { SettingsSidebar, getSettingsSections } from '@/components/crm/settings/SettingsSidebar';
@@ -21,10 +18,10 @@ const Settings: React.FC = () => {
   // Don't call useAuth until component is mounted on client
   if (!isMounted) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-background'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading settings...</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Loading settings...</p>
         </div>
       </div>
     );
@@ -44,7 +41,7 @@ const SettingsContent: React.FC = () => {
     description: 'Manage your account settings and preferences',
   });
 
-  const settingsSections = getSettingsSections(hasRole);
+  const settingsSections = getSettingsSections();
   const availableSections = settingsSections.filter(
     section => section.available && !section.isExternal
   );
@@ -54,20 +51,11 @@ const SettingsContent: React.FC = () => {
       case 'profile':
         return <ProfileSettings />;
 
-      case 'business-profile':
-        return <BusinessProfileSettings />;
-
       case 'notifications':
         return <NotificationSettings />;
 
       case 'integrations':
         return <IntegrationsPage />;
-
-      case 'team-members':
-        return <AdminSettingsTab />;
-
-      case 'client-management':
-        return <ClientManagementTab />;
 
       default:
         return null;

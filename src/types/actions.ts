@@ -5,7 +5,7 @@
 
 export type EntityType = 'company' | 'person';
 export type ActionType = 'crm_sync' | 'campaign_add' | 'bulk_action';
-export type CrmProvider = 'salesforce' | 'hubspot' | 'pipedrive' | 'zoho';
+export type CrmProvider = 'salesforce' | 'pipedrive' | 'zoho';
 
 export interface EntityAction {
   type: ActionType;

@@ -5,14 +5,14 @@
 import dynamicImport from 'next/dynamic';
 
 const ConversationsClient = dynamicImport(
-  () => import('../../conversations/ConversationsClient'),
+  () => import('@/pages/Conversations'),
   { 
     ssr: false,
     loading: () => (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-background'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading inbox...</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Loading inbox...</p>
         </div>
       </div>
     )
@@ -24,4 +24,10 @@ export const dynamic = 'force-dynamic';
 export default function InboxPage() {
   return <ConversationsClient />;
 }
+
+
+
+
+
+
 

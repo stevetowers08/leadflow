@@ -39,7 +39,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   return (
     <div
       className={cn(
-        'min-h-screen bg-muted',
+        'min-h-[100dvh] bg-muted',
         paddingClasses[padding],
         spacingClasses[spacing],
         className

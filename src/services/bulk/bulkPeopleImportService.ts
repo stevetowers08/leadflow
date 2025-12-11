@@ -248,18 +248,20 @@ async function transformRow(
         case 'linkedin_url':
           personData.linkedin_url = csvValue.trim();
           break;
-        case 'people_stage':
+        case 'people_stage': {
           const normalizedStage = normalizeStage(csvValue);
           if (normalizedStage) {
             personData.people_stage = normalizedStage;
           }
           break;
-        case 'score':
+        }
+        case 'score': {
           const score = parseFloat(csvValue);
           if (!isNaN(score)) {
             personData.score = score;
           }
           break;
+        }
         case 'company_name':
         case 'company_website':
           // These will be handled separately for company creation

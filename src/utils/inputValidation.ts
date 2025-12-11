@@ -8,12 +8,12 @@ import DOMPurify from 'dompurify';
 // Input validation patterns
 export const VALIDATION_PATTERNS = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  phone: /^[\+]?[1-9][\d]{0,15}$/,
-  url: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/,
+  phone: /^[+]?[1-9][\d]{0,15}$/,
+  url: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/,
   alphanumeric: /^[a-zA-Z0-9\s\-_]+$/,
-  name: /^[a-zA-Z\s\-'\.]+$/,
-  company: /^[a-zA-Z0-9\s\-'\.&,()]+$/,
-  jobTitle: /^[a-zA-Z0-9\s\-'\.&,()\/]+$/,
+  name: /^[a-zA-Z\s\-'.]+$/,
+  company: /^[a-zA-Z0-9\s\-'.&,()]+$/,
+  jobTitle: /^[a-zA-Z0-9\s\-'.&,()/]+$/,
   linkedin: /^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9\-_]+\/?$/,
   twitter: /^https?:\/\/(www\.)?twitter\.com\/[a-zA-Z0-9_]+$/,
   github: /^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9\-_]+\/?$/,
