@@ -26,7 +26,7 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "🔧 Next steps:"
     echo "1. Set your Gemini API key:"
-    echo "   supabase secrets set GEMINI_API_KEY=AIzaSyCkGik7ZkmNI2cuRRFl97VlzadPu9ol55w"
+    echo "   supabase secrets set GEMINI_API_KEY=your-gemini-api-key-here"
     echo ""
     echo "2. Test the function:"
     echo "   curl -X POST https://jedfundfhzytpnbjkspn.supabase.co/functions/v1/ai-job-summary \\"

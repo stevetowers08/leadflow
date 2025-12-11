@@ -27,7 +27,7 @@ echo "2. Select project: jedfundfhzytpnbjkspn (4Twenty)"
 echo "3. Navigate to: Settings → Edge Functions"
 echo "4. Add new secret:"
 echo "   - Key: GEMINI_API_KEY"
-echo "   - Value: AIzaSyCNT_-QVzJr36BRJYU_P6AQYWOEZaoepZ4"
+echo "   - Value: your-gemini-api-key-here"
 echo "   - Mark as Secret: ✅ Yes"
 echo "5. Click Save"
 echo ""
@@ -42,7 +42,7 @@ if command -v supabase &> /dev/null; then
     echo ""
     echo "Run these commands:"
     echo "  supabase login"
-    echo "  supabase secrets set GEMINI_API_KEY=AIzaSyCNT_-QVzJr36BRJYU_P6AQYWOEZaoepZ4 --project-ref jedfundfhzytpnbjkspn"
+    echo "  supabase secrets set GEMINI_API_KEY=your-gemini-api-key-here --project-ref jedfundfhzytpnbjkspn"
     echo "  supabase secrets list --project-ref jedfundfhzytpnbjkspn"
     echo ""
     
@@ -51,7 +51,7 @@ if command -v supabase &> /dev/null; then
     echo ""
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "🔑 Setting GEMINI_API_KEY secret via CLI..."
-        supabase secrets set GEMINI_API_KEY=AIzaSyCNT_-QVzJr36BRJYU_P6AQYWOEZaoepZ4 --project-ref jedfundfhzytpnbjkspn
+        supabase secrets set GEMINI_API_KEY=your-gemini-api-key-here --project-ref jedfundfhzytpnbjkspn
         
         if [ $? -eq 0 ]; then
             echo "✅ Secret set successfully!"
