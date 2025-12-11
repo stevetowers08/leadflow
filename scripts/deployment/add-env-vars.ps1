@@ -11,8 +11,8 @@ vercel env add SUPABASE_SERVICE_ROLE_KEY production --value "eyJhbGciOiJIUzI1NiI
 
 # Google OAuth Configuration
 Write-Host "Adding Google OAuth configuration..." -ForegroundColor Yellow
-vercel env add NEXT_PUBLIC_GOOGLE_CLIENT_ID production --value "431821374966-6g222eg7q4hsish5e8ln7mmh7t72dgc2.apps.googleusercontent.com"
-vercel env add GOOGLE_CLIENT_SECRET production --value "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"
+vercel env add NEXT_PUBLIC_GOOGLE_CLIENT_ID production --value "your-google-client-id.apps.googleusercontent.com"
+vercel env add GOOGLE_CLIENT_SECRET production --value "your-google-client-secret"
 
 # MCP Server Configuration
 Write-Host "Adding MCP server configuration..." -ForegroundColor Yellow
@@ -25,7 +25,7 @@ vercel env add N8N_WEBHOOK_URL production --value "https://n8n.srv814433.hstgr.c
 
 # Google Gemini AI API (Server-side - Required for AI features)
 Write-Host "Adding Google Gemini AI configuration..." -ForegroundColor Yellow
-vercel env add GEMINI_API_KEY production --value "AIzaSyCkGik7ZkmNI2cuRRFl97VlzadPu9ol55w"
+vercel env add GEMINI_API_KEY production --value "your-gemini-api-key-here"
 
 Write-Host "All environment variables added successfully!" -ForegroundColor Green
 Write-Host "You may need to redeploy your Vercel project for changes to take effect." -ForegroundColor Cyan
