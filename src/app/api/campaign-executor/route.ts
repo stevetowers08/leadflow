@@ -25,7 +25,6 @@ type CampaignExecution = Tables<'campaign_sequence_executions'> & {
   people: Pick<Tables<'leads'>, 'id' | 'first_name' | 'last_name' | 'email'> | null;
 };
 
-type CampaignSequence = Pick<Tables<'campaign_sequences'>, 'id' | 'created_by'>;
 type EmailAccount = Tables<'email_accounts'>;
 type CampaignSequenceStep = Pick<Tables<'campaign_sequence_steps'>, 'id'>;
 
@@ -148,12 +147,10 @@ async function processEmailStep(
     throw new Error(sequenceError?.message || 'Sequence owner not found');
   }
 
-  const sequenceTyped: CampaignSequence = sequence;
-
   const { data: emailAccount, error: emailAccountError } = await supabase
     .from('email_accounts')
     .select('*')
-    .eq('user_id', sequenceTyped.created_by)
+    .eq('user_id', sequence.created_by)
     .eq('is_active', true)
     .limit(1)
     .single();
