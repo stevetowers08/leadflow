@@ -161,7 +161,7 @@ async function processEmailStep(
     `Subject: ${step.email_subject || 'Follow up'}`,
     `Content-Type: text/html; charset=utf-8`,
     '',
-    personalizeEmail(step.email_body || '', person),
+    personalizeEmail(step.email_body || '', leadData, fullName, email),
   ].join('\r\n');
 
   const emailResponse = await fetch(
