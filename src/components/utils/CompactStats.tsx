@@ -19,9 +19,6 @@ import { designTokens } from '@/design-system/tokens';
 interface StatsData {
   totalLeads: number;
   totalCompanies: number;
-  totalJobs: number;
-  newJobsToday: number;
-  expiringJobs?: number;
 }
 
 interface CompactStatsProps {
@@ -47,20 +44,6 @@ export const CompactStats: React.FC<CompactStatsProps> = ({
       icon: <Building2 className='h-4 w-4 text-success' />,
       color: 'text-success',
       bgColor: 'bg-success/10',
-    },
-    {
-      title: 'Jobs',
-      value: stats.totalJobs,
-      icon: <Briefcase className='h-4 w-4 text-secondary' />,
-      color: 'text-secondary',
-      bgColor: 'bg-secondary/10',
-    },
-    {
-      title: 'New Today',
-      value: stats.newJobsToday,
-      icon: <Calendar className='h-4 w-4 text-warning' />,
-      color: 'text-warning',
-      bgColor: 'bg-warning/10',
     },
   ];
 
@@ -147,18 +130,6 @@ export const UltraCompactStats: React.FC<UltraCompactStatsProps> = ({
         </div>
         <div className='text-xs text-success'>Companies</div>
       </div>
-      <div className='text-center p-2 bg-secondary/10 rounded-lg'>
-        <div className='text-lg font-bold text-secondary'>
-          {stats.totalJobs}
-        </div>
-        <div className='text-xs text-secondary'>Jobs</div>
-      </div>
-      <div className='text-center p-2 bg-warning/10 rounded-lg'>
-        <div className='text-lg font-bold text-warning'>
-          {stats.newJobsToday}
-        </div>
-        <div className='text-xs text-warning'>New</div>
-      </div>
     </div>
   );
 };
@@ -169,8 +140,6 @@ interface StatsWithTrendsProps {
   trends?: {
     leads: { value: number; isPositive: boolean };
     companies: { value: number; isPositive: boolean };
-    jobs: { value: number; isPositive: boolean };
-    newJobs: { value: number; isPositive: boolean };
   };
   className?: string;
 }
@@ -194,20 +163,6 @@ export const StatsWithTrends: React.FC<StatsWithTrendsProps> = ({
       icon: <Building2 className='h-4 w-4' />,
       trend: trends?.companies,
       color: 'green',
-    },
-    {
-      title: 'Jobs',
-      value: stats.totalJobs,
-      icon: <Briefcase className='h-4 w-4' />,
-      trend: trends?.jobs,
-      color: 'purple',
-    },
-    {
-      title: 'New Today',
-      value: stats.newJobsToday,
-      icon: <Calendar className='h-4 w-4' />,
-      trend: trends?.newJobs,
-      color: 'orange',
     },
   ];
 

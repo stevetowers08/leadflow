@@ -1,4 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
+
+type CompanyInsertData = Tables<'companies'>['Insert'];
 
 /**
  * Handles company insertion with optional owner_id assignment
@@ -6,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
  *
  * Best Practice: Always include proper validation and error handling
  */
-export const insertCompanyWithOwner = async (companyData: any) => {
+export const insertCompanyWithOwner = async (companyData: CompanyInsertData) => {
   try {
     // Validate required fields
     if (!companyData.name) {
@@ -49,7 +52,7 @@ export const insertCompanyWithOwner = async (companyData: any) => {
  * Handles company insertion with automatic duplicate resolution
  * If a company name already exists, it will create a unique version
  */
-export const insertCompanyWithDuplicateHandling = async (companyData: any) => {
+export const insertCompanyWithDuplicateHandling = async (companyData: CompanyInsertData) => {
   try {
     // Get the current user (optional)
     const {
@@ -118,7 +121,7 @@ export const insertCompanyWithDuplicateHandling = async (companyData: any) => {
  * Alternative approach: Use upsert with conflict resolution
  * This will update existing companies instead of creating duplicates
  */
-export const upsertCompany = async (companyData: any) => {
+export const upsertCompany = async (companyData: CompanyInsertData) => {
   try {
     // Get the current user
     const {

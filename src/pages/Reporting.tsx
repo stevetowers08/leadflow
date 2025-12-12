@@ -161,36 +161,6 @@ function ReportingContent() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Jobs data breakdown
-  const jobsData = useMemo(() => {
-    if (!reportingData) return null;
-
-    const qualificationData = [
-      {
-        name: 'New',
-        value: reportingData.jobQualification.new,
-        color: STATUS_CHART_COLORS.new,
-      },
-      {
-        name: 'Qualify',
-        value: reportingData.jobQualification.qualify,
-        color: STATUS_CHART_COLORS.qualify,
-      },
-      {
-        name: 'Skip',
-        value: reportingData.jobQualification.skip,
-        color: STATUS_CHART_COLORS.skip,
-      },
-    ];
-
-    const seniorityData = reportingData.topJobFunctions.map((item, index) => ({
-      name: item.function,
-      count: item.count,
-      color: index % 2 === 0 ? CHART_COLORS.primary : CHART_COLORS.success,
-    }));
-
-    return { qualificationData, seniorityData };
-  }, [reportingData]);
 
   // Leads data breakdown (companies + people)
   const leadsData = useMemo(() => {
@@ -267,15 +237,10 @@ function ReportingContent() {
       ['Metric', 'Value'],
       ['Total People', reportingData.totalPeople],
       ['Total Companies', reportingData.totalCompanies],
-      ['Total Jobs', reportingData.totalJobs],
-      ['Qualified Jobs', reportingData.qualifiedJobs],
       ['People - New', reportingData.peoplePipeline.new],
       ['People - Qualified', reportingData.peoplePipeline.qualified],
       ['People - Proceed', reportingData.peoplePipeline.proceed],
       ['People - Skip', reportingData.peoplePipeline.skip],
-      ['Jobs - New', reportingData.jobQualification.new],
-      ['Jobs - Qualify', reportingData.jobQualification.qualify],
-      ['Jobs - Skip', reportingData.jobQualification.skip],
     ];
 
     const csvContent = csvRows.map(row => row.join(',')).join('\n');
@@ -523,10 +488,6 @@ function ReportingContent() {
           className='space-y-6'
         >
           <TabsList className='flex space-x-8'>
-            <TabsTrigger value='jobs' className='flex items-center gap-2'>
-              <Briefcase className='h-4 w-4' />
-              Jobs Discovery
-            </TabsTrigger>
             <TabsTrigger value='leads' className='flex items-center gap-2'>
               <Users className='h-4 w-4' />
               Leads
@@ -536,224 +497,6 @@ function ReportingContent() {
               Emails
             </TabsTrigger>
           </TabsList>
-
-          {/* Jobs Discovery Tab */}
-          <TabsContent value='jobs' className='space-y-6'>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Total Jobs
-                  </CardTitle>
-                  <Briefcase className='h-4 w-4 text-muted-foreground' />
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>
-                    {isLoading
-                      ? '...'
-                      : reportingData?.totalJobs.toLocaleString() || 0}
-                  </div>
-                  <p className='text-xs text-muted-foreground mt-1'>
-                    {reportingData?.growthMetrics.jobsGrowth !== undefined
-                      ? `${formatGrowthRate(reportingData.growthMetrics.jobsGrowth)} from last period`
-                      : 'Loading...'}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Qualified Jobs
-                  </CardTitle>
-                  <Target className='h-4 w-4 text-muted-foreground' />
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>
-                    {isLoading
-                      ? '...'
-                      : reportingData?.qualifiedJobs.toLocaleString() || 0}
-                  </div>
-                  <p className='text-xs text-muted-foreground mt-1'>
-                    {reportingData?.growthMetrics.qualificationRate !==
-                    undefined
-                      ? `${reportingData.growthMetrics.qualificationRate.toFixed(1)}% qualification rate`
-                      : 'Loading...'}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    New Jobs
-                  </CardTitle>
-                  <Calendar className='h-4 w-4 text-muted-foreground' />
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>
-                    {isLoading
-                      ? '...'
-                      : reportingData?.jobQualification.new || 0}
-                  </div>
-                  <p className='text-xs text-muted-foreground mt-1'>
-                    Awaiting qualification
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Skipped Jobs
-                  </CardTitle>
-                  <TrendingUp className='h-4 w-4 text-muted-foreground' />
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>
-                    {isLoading
-                      ? '...'
-                      : reportingData?.jobQualification.skip || 0}
-                  </div>
-                  <p className='text-xs text-muted-foreground mt-1'>
-                    Not pursuing
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Charts */}
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-              <Card>
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2'>
-                    <BarChart3 className='h-5 w-5' />
-                    Job Qualification Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div className='h-80 flex items-center justify-center'>
-                      <div className='animate-pulse text-muted-foreground'>
-                        Loading chart...
-                      </div>
-                    </div>
-                  ) : jobsData ? (
-                    <ResponsiveContainer width='100%' height={300}>
-                      <PieChart>
-                        <Pie
-                          data={jobsData.qualificationData}
-                          cx='50%'
-                          cy='50%'
-                          labelLine={false}
-                          label={({ name, percent }) =>
-                            `${name}: ${(percent * 100).toFixed(0)}%`
-                          }
-                          outerRadius={80}
-                          fill={CHART_COLORS.primary}
-                          dataKey='value'
-                        >
-                          {jobsData.qualificationData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className='h-80 flex items-center justify-center text-muted-foreground'>
-                      No data available
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2'>
-                    <Briefcase className='h-5 w-5' />
-                    Top Job Functions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div className='h-80 flex items-center justify-center'>
-                      <div className='animate-pulse text-muted-foreground'>
-                        Loading chart...
-                      </div>
-                    </div>
-                  ) : jobsData?.seniorityData.length ? (
-                    <ResponsiveContainer width='100%' height={300}>
-                      <BarChart data={jobsData.seniorityData.slice(0, 8)}>
-                        <XAxis
-                          dataKey='name'
-                          angle={-45}
-                          textAnchor='end'
-                          height={100}
-                          fontSize={12}
-                        />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey='count' fill={CHART_COLORS.primary} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className='h-80 flex items-center justify-center text-muted-foreground'>
-                      No data available
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Top Companies */}
-            <Card>
-              <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <Building2 className='h-5 w-5' />
-                  Top Companies by Jobs
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className='space-y-3'>
-                  {isLoading ? (
-                    <div className='space-y-2'>
-                      {[...Array(5)].map((_, i) => (
-                        <div
-                          key={i}
-                          className='flex items-center justify-between'
-                        >
-                          <div className='h-4 bg-gray-200 rounded w-3/4 animate-pulse'></div>
-                          <div className='h-6 bg-gray-200 rounded w-16 animate-pulse'></div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    reportingData?.topCompaniesByJobs
-                      .slice(0, 10)
-                      .map((item, index) => (
-                        <div
-                          key={index}
-                          className='flex items-center justify-between p-2 hover:bg-gray-50 rounded'
-                        >
-                          <span className='text-sm font-medium'>
-                            {item.companyName}
-                          </span>
-                          <Badge variant='secondary'>
-                            {item.jobCount} jobs
-                          </Badge>
-                        </div>
-                      )) || (
-                      <div className='text-center py-4 text-gray-500'>
-                        No company data available
-                      </div>
-                    )
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Leads Tab */}
           <TabsContent value='leads' className='space-y-6'>
@@ -943,26 +686,6 @@ function ReportingContent() {
                             ? '...'
                             : reportingData?.peoplePipeline[
                                 stage as keyof typeof reportingData.peoplePipeline
-                              ] || 0}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                  <div className='space-y-4'>
-                    <h3 className='font-semibold'>Job Qualification</h3>
-                    {['new', 'qualify', 'skip'].map(status => (
-                      <div
-                        key={status}
-                        className='flex items-center justify-between'
-                      >
-                        <span className='text-sm font-medium capitalize'>
-                          {status}
-                        </span>
-                        <Badge variant='secondary'>
-                          {isLoading
-                            ? '...'
-                            : reportingData?.jobQualification[
-                                status as keyof typeof reportingData.jobQualification
                               ] || 0}
                         </Badge>
                       </div>

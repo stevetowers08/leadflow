@@ -27,7 +27,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getCompanyLogoUrlSync } from '@/services/logoService';
 import { useStatusAutomation } from '@/services/statusAutomationService';
-import { Company, Interaction, Job, Person } from '@/types/database';
+import { Company, Interaction, Person } from '@/types/database';
 import { bulkAddToCampaign } from '@/services/bulk/bulkPeopleService';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
@@ -67,7 +67,7 @@ interface PersonDetailsSlideOutProps {
   isOpen: boolean;
   onClose: () => void;
   onUpdate?: () => void;
-  initialTab?: 'overview' | 'company' | 'jobs' | 'notes' | 'ai' | 'activity';
+  initialTab?: 'overview' | 'company' | 'notes' | 'ai' | 'activity';
 }
 
 interface InteractionWithPerson extends Interaction {
@@ -82,7 +82,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
     const [person, setPerson] = useState<Person | null>(null);
     const [company, setCompany] = useState<Company | null>(null);
     const [otherPeople, setOtherPeople] = useState<Person[]>([]);
-    const [jobs, setJobs] = useState<Job[]>([]);
     const [interactions, setInteractions] = useState<InteractionWithPerson[]>(
       []
     );
@@ -103,7 +102,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
     useEffect(() => {
       if (isOpen && initialTab) {
         // Map deprecated tabs to overview
-        const mapped = initialTab === 'company' || initialTab === 'jobs' ? 'overview' : initialTab;
+        const mapped = initialTab === 'company' ? 'overview' : initialTab;
         setActiveTab(mapped);
       }
     }, [isOpen, initialTab]);
@@ -147,19 +146,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               setOtherPeople(otherPeopleData as Person[]);
             }
 
-            // Fetch jobs at this company
-            const { data: jobsData, error: jobsError } = await supabase
-              .from('jobs')
-              .select(
-                'id, title, location, qualification_status, job_url, posted_date, function, created_at'
-              )
-              .eq('company_id', personData.company_id)
-              .order('created_at', { ascending: false })
-              .limit(10);
-
-            if (!jobsError && jobsData) {
-              setJobs(jobsData as Job[]);
-            }
           }
         }
 
@@ -470,10 +456,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
       router.push(`/people?id=${clickedPersonId}`);
     };
 
-    const handleJobClick = (jobId: string) => {
-      onClose();
-      router.push(`/jobs?id=${jobId}`);
-    };
 
     // All hooks must be called before any early returns
     const tabOptions: TabOption[] = useMemo(
@@ -934,48 +916,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                     </div>
                   )}
 
-                  {/* Jobs (moved from Jobs tab) */}
-                  <div className='mt-12 mb-24' id='jobs-section'>
-                    <SlideOutSection title='Jobs'>
-                      {jobs.length > 0 ? (
-                        <div className='space-y-3'>
-                          {jobs.map(job => {
-                            const currentJobStatus = job.qualification_status || 'new';
-                            return (
-                              <div
-                                key={job.id}
-                                onClick={() => handleJobClick(job.id)}
-                                className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-gray-100 transition-colors cursor-pointer'
-                              >
-                                <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
-                                  <Calendar className='h-5 w-5 text-muted-foreground' />
-                                </div>
-                                <div className='flex-1 min-w-0'>
-                                  <div className='font-medium text-sm text-foreground truncate'>
-                                    {job.title || 'Untitled Job'}
-                                  </div>
-                                  <div className='text-xs text-muted-foreground truncate'>
-                                    {job.function || 'No function specified'}
-                                  </div>
-                                  {job.location && (
-                                    <div className='text-xs text-muted-foreground truncate mt-0.5'>
-                                      {job.location}
-                                    </div>
-                                  )}
-                                </div>
-                                <StatusBadge status={currentJobStatus} size='sm' />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className='text-center py-6 text-muted-foreground'>
-                          <Calendar className='h-8 w-8 text-muted-foreground mx-auto mb-2' />
-                          <p className='text-sm'>No jobs available</p>
-                        </div>
-                      )}
-                    </SlideOutSection>
-                  </div>
                 </div>
               )}
 

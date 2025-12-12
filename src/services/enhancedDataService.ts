@@ -244,123 +244,6 @@ export function useEnhancedCompaniesService(
   };
 }
 
-// Enhanced jobs service
-export function useEnhancedJobsService(
-  pagination: { page: number; pageSize: number },
-  sort: { column: string; ascending: boolean },
-  filters: Record<string, unknown>
-) {
-  const { data: clientId, isLoading: clientIdLoading } = useClientId();
-
-  const { invalidateCache } = useAdvancedCaching(
-    ['jobs', pagination, sort, filters, clientId],
-    async () => {
-      // Don't fetch if client ID is still loading
-      if (clientIdLoading || !clientId) {
-        return {
-          data: [],
-          totalCount: 0,
-          hasMore: false,
-          page: pagination.page,
-          pageSize: pagination.pageSize,
-        };
-      }
-
-      const { page, pageSize } = pagination;
-      const { column, ascending } = sort;
-      const { search, priority, ...otherFilters } = filters;
-
-      // CLIENT-SPECIFIC JOBS ONLY (jobs assigned to this client)
-      let query = supabase.from('jobs').select(
-        `
-          id,
-          title,
-          location,
-          priority,
-          posted_date,
-          lead_score_job,
-          automation_active,
-          company_id,
-          created_at,
-          qualification_status,
-          companies!jobs_company_id_fkey(
-            id,
-            name,
-            website,
-            industry
-          ),
-          client_jobs!client_jobs_job_id_fkey (
-            status,
-            priority_level,
-            qualified_at,
-            qualified_by
-          )
-        `,
-        { count: 'exact' }
-      );
-
-      // Only show jobs assigned to this client
-      query = query.eq('client_jobs.client_id', clientId);
-
-      // Exclude expired jobs
-      const today = new Date().toISOString().split('T')[0];
-      query = query.or(`valid_through.is.null,valid_through.gte.${today}`);
-
-      // Apply filters
-      if (search) {
-        query = query.or(`title.ilike.%${search}%,location.ilike.%${search}%`);
-      }
-
-      if (priority && priority !== 'all') {
-        query = query.eq('priority', priority);
-      }
-
-      // Apply other filters
-      Object.entries(otherFilters).forEach(([key, value]) => {
-        if (value && value !== 'all') {
-          query = query.eq(key, value);
-        }
-      });
-
-      // Apply sorting
-      query = query.order(column, { ascending });
-
-      // Apply pagination
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
-
-      if (error) throw error;
-
-      return {
-        data: data || [],
-        totalCount: count || 0,
-        hasMore: (count || 0) > to + 1,
-        page,
-        pageSize,
-      };
-    },
-    {
-      cacheType: 'DYNAMIC',
-      refetchOnWindowFocus: false,
-    }
-  );
-
-  // Real-time subscription for jobs
-  useRealtimeSubscription('jobs', {
-    events: ['INSERT', 'UPDATE', 'DELETE'],
-    onInsert: () => invalidateCache(CACHE_PATTERNS.JOBS),
-    onUpdate: () => invalidateCache(CACHE_PATTERNS.JOBS),
-    onDelete: () => invalidateCache(CACHE_PATTERNS.JOBS),
-  });
-
-  return {
-    invalidateCache,
-  };
-}
-
 // Enhanced dashboard service with real-time updates
 export function useEnhancedDashboardService() {
   const {
@@ -378,18 +261,16 @@ export function useEnhancedDashboardService() {
       ] = await Promise.all([
         supabase.from('people').select('id', { count: 'exact' }),
         supabase.from('companies').select('id', { count: 'exact' }),
-        supabase.from('jobs').select('id', { count: 'exact' }),
         supabase.from('activity_log').select('id', { count: 'exact' }),
       ]);
 
-      if (peopleError || companiesError || jobsError || activityLogError) {
+      if (peopleError || companiesError || activityLogError) {
         throw new Error('Failed to fetch dashboard stats');
       }
 
       return {
         totalLeads: people?.length || 0,
         totalCompanies: companies?.length || 0,
-        totalJobs: jobs?.length || 0,
         totalInteractions: activityLog?.length || 0,
         lastUpdated: new Date().toISOString(),
       };
@@ -466,23 +347,6 @@ export function useOptimisticMutations() {
     }
   );
 
-  // Optimistic update for job priority
-  const updateJobPriority = useOptimisticMutation(
-    async ({ jobId, newPriority }: { jobId: string; newPriority: string }) => {
-      const { data, error } = await supabase
-        .from('jobs')
-        .update({ priority: newPriority, updated_at: new Date().toISOString() })
-        .eq('id', jobId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    {
-      invalidateQueries: [['jobs'], ['dashboard']],
-    }
-  );
 
   return {
     updatePersonStage,

@@ -6,7 +6,6 @@ interface OverviewCardsProps {
   data: {
     totalPeople: number;
     totalCompanies: number;
-    totalJobs: number;
     totalInteractions: number;
   };
 }
@@ -26,13 +25,6 @@ export const OverviewCards = memo<OverviewCardsProps>(({ data }) => {
       icon: Building2,
       color: 'text-success',
       bgColor: 'bg-success/10',
-    },
-    {
-      title: 'Total Jobs',
-      value: data.totalJobs,
-      icon: Briefcase,
-      color: 'text-primary',
-      bgColor: 'bg-purple-50',
     },
     {
       title: 'Total Interactions',

@@ -6,21 +6,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface DashboardJobsData {
-  id: string;
-  title: string;
-  qualification_status: string;
-  created_at: string;
-  companies?: {
-    id: string;
-    name: string;
-    website?: string;
-    head_office?: string;
-    industry?: string;
-    logo_url?: string;
-  };
-}
-
 export interface DashboardActivityData {
   id: string;
   type: 'email' | 'meeting' | 'note' | 'interaction' | 'email_reply';
@@ -33,7 +18,6 @@ export interface DashboardActivityData {
 }
 
 export interface DashboardMetrics {
-  jobsToReview: DashboardJobsData[];
   activities: DashboardActivityData[];
   newLeadsToday: number;
   newCompaniesToday: number;
@@ -41,105 +25,12 @@ export interface DashboardMetrics {
 
 export interface DashboardChartData {
   date: string;
-  jobs: number;
   people: number;
   companies: number;
   replies: number;
 }
 
 export class DashboardDataService {
-  /**
-   * Fetch jobs to review (new status, last 2 days)
-   * Respects RLS by filtering through client_jobs table
-   */
-  static async getJobsToReview(clientId: string): Promise<DashboardJobsData[]> {
-    if (!clientId) {
-      console.warn(
-        '[DashboardDataService] No clientId provided, returning empty array'
-      );
-      return [];
-    }
-
-    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-
-    try {
-      // First, get job IDs for this client from client_jobs (more efficient and respects RLS)
-      const { data: clientJobsData, error: clientJobsError } = await supabase
-        .from('client_jobs')
-        .select('job_id')
-        .eq('client_id', clientId);
-
-      if (clientJobsError) {
-        console.error(
-          '[DashboardDataService] Client jobs query error:',
-          clientJobsError
-        );
-        return [];
-      }
-
-      if (!clientJobsData || clientJobsData.length === 0) {
-        return [];
-      }
-
-      const clientJobIds = clientJobsData.map(cj => cj.job_id);
-
-      // Now fetch jobs filtered by client and status
-      // Explicitly specify the foreign key relationship to avoid ambiguity
-      const { data: jobsData, error: jobsError } = await supabase
-        .from('jobs')
-        .select(
-          `
-          id,
-          title,
-          qualification_status,
-          created_at,
-          company_id,
-          companies!jobs_company_id_fkey(id, name, website, head_office, industry, logo_url)
-        `
-        )
-        .in('id', clientJobIds)
-        .eq('qualification_status', 'new')
-        .gte('created_at', twoDaysAgo)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (jobsError) {
-        console.error('[DashboardDataService] Jobs query error:', jobsError);
-        // Log more details for debugging
-        if (jobsError.code) {
-          console.error('[DashboardDataService] Error code:', jobsError.code);
-        }
-        if (jobsError.message) {
-          console.error(
-            '[DashboardDataService] Error message:',
-            jobsError.message
-          );
-        }
-        return [];
-      }
-
-      if (!jobsData || jobsData.length === 0) {
-        return [];
-      }
-
-      // Transform jobs data
-      const filteredJobs = jobsData.map(job => ({
-        id: job.id,
-        title: job.title,
-        qualification_status: job.qualification_status,
-        created_at: job.created_at,
-        companies: Array.isArray(job.companies)
-          ? job.companies[0] || null
-          : job.companies || null,
-      }));
-
-      return filteredJobs;
-    } catch (error) {
-      console.error('[DashboardDataService] Error in getJobsToReview:', error);
-      // Return empty array instead of throwing to prevent page crash
-      return [];
-    }
-  }
 
   /**
    * Fetch recent activities (email threads + interactions)
@@ -322,15 +213,7 @@ export class DashboardDataService {
 
     // Fetch all data for past 7 days in parallel
     // RLS policies should automatically filter by client_id
-    const [jobsRes, peopleRes, companiesRes, repliesRes] = await Promise.all([
-      supabase
-        .from('jobs')
-        .select('created_at')
-        .gte('created_at', sevenDaysAgoISO)
-        .catch(err => {
-          console.error('[DashboardDataService] Chart jobs query error:', err);
-          return { data: null, error: err };
-        }),
+    const [peopleRes, companiesRes, repliesRes] = await Promise.all([
       supabase
         .from('people')
         .select('created_at')
@@ -385,15 +268,6 @@ export class DashboardDataService {
         const nextDayStr = nextDay.toISOString().split('T')[0];
 
         // Count items for this day with safe null checks
-        const jobsCount =
-          (jobsRes.data && Array.isArray(jobsRes.data)
-            ? jobsRes.data.filter(
-                item =>
-                  item?.created_at &&
-                  item.created_at >= dateStr &&
-                  item.created_at < nextDayStr
-              ).length
-            : 0) || 0;
         const peopleCount =
           (peopleRes.data && Array.isArray(peopleRes.data)
             ? peopleRes.data.filter(
@@ -427,7 +301,6 @@ export class DashboardDataService {
             month: 'short',
             day: 'numeric',
           }),
-          jobs: jobsCount,
           people: peopleCount,
           companies: companiesCount,
           replies: repliesCount,
@@ -443,7 +316,6 @@ export class DashboardDataService {
             month: 'short',
             day: 'numeric',
           }),
-          jobs: 0,
           people: 0,
           companies: 0,
           replies: 0,
@@ -457,11 +329,7 @@ export class DashboardDataService {
    */
   static async getDashboardData(clientId: string): Promise<DashboardMetrics> {
     try {
-      const [jobs, activities, metrics] = await Promise.all([
-        this.getJobsToReview(clientId).catch(err => {
-          console.error('[DashboardDataService] Error fetching jobs:', err);
-          return [];
-        }),
+      const [activities, metrics] = await Promise.all([
         this.getRecentActivities(clientId).catch(err => {
           console.error(
             '[DashboardDataService] Error fetching activities:',
@@ -476,7 +344,6 @@ export class DashboardDataService {
       ]);
 
       return {
-        jobsToReview: jobs,
         activities,
         newLeadsToday: metrics.newLeadsToday,
         newCompaniesToday: metrics.newCompaniesToday,
@@ -488,7 +355,6 @@ export class DashboardDataService {
       );
       // Return empty data instead of throwing to prevent app crash
       return {
-        jobsToReview: [],
         activities: [],
         newLeadsToday: 0,
         newCompaniesToday: 0,

@@ -6,12 +6,10 @@ export interface DashboardMetrics {
   // Core Metrics (aligned with reporting)
   totalPeople: number;
   totalCompanies: number;
-  totalJobs: number;
 
   // Activity Metrics
   peopleThisWeek: number;
   companiesThisWeek: number;
-  jobsThisWeek: number;
 
   // Automation Metrics
   activeAutomations: number;
@@ -54,23 +52,10 @@ export interface RecentCompany extends RecentItem {
   employee_count?: number | null;
 }
 
-export interface RecentJob extends RecentItem {
-  title: string;
-  location?: string | null;
-  priority?: string | null;
-  company_name?: string | null;
-  company_logo_url?: string | null;
-  company_website?: string | null;
-  employment_type?: string | null;
-  seniority_level?: string | null;
-  people_count?: number;
-}
-
 export interface DashboardData {
   metrics: DashboardMetrics;
   recentPeople: RecentPerson[];
   recentCompanies: RecentCompany[];
-  recentJobs: RecentJob[];
   recentActivities: Array<{
     id: string;
     interaction_type: string;
@@ -110,13 +95,10 @@ export class DashboardService {
       const [
         peopleCount,
         companiesCount,
-        jobsCount,
         peopleThisWeek,
         companiesThisWeek,
-        jobsThisWeek,
         recentPeopleData,
         recentCompaniesData,
-        recentJobsData,
         recentActivitiesData,
         pipelineData,
         automationData,
@@ -126,13 +108,10 @@ export class DashboardService {
         ownersData,
         personNotesData,
         companyNotesData,
-        jobNotesData,
-        peopleByCompanyData,
       ] = await Promise.all([
         // Counts
         supabase.from('people').select('*', { count: 'exact', head: true }),
         supabase.from('companies').select('*', { count: 'exact', head: true }),
-        supabase.from('jobs').select('*', { count: 'exact', head: true }),
 
         // This week counts
         supabase
@@ -141,10 +120,6 @@ export class DashboardService {
           .gte('created_at', oneWeekAgo.toISOString()),
         supabase
           .from('companies')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', oneWeekAgo.toISOString()),
-        supabase
-          .from('jobs')
           .select('*', { count: 'exact', head: true })
           .gte('created_at', oneWeekAgo.toISOString()),
 
@@ -181,25 +156,6 @@ export class DashboardService {
           pipeline_stage,
           created_at,
           owner_id
-        `
-          )
-          .order('created_at', { ascending: false })
-          .limit(20),
-
-        supabase
-          .from('jobs')
-          .select(
-            `
-          id,
-          title,
-          location,
-          priority,
-          employment_type,
-          seniority_level,
-          created_at,
-          owner_id,
-          company_id,
-          companies(name, logo_url, website)
         `
           )
           .order('created_at', { ascending: false })
@@ -250,13 +206,6 @@ export class DashboardService {
         // Return empty arrays for compatibility
         Promise.resolve({ data: [], error: null }),
         Promise.resolve({ data: [], error: null }),
-        Promise.resolve({ data: [], error: null }),
-
-        // People count per company for jobs
-        supabase
-          .from('people')
-          .select('company_id')
-          .not('company_id', 'is', null),
       ]);
 
       // Process pipeline breakdown
@@ -284,82 +233,12 @@ export class DashboardService {
           ? Math.round((uniqueCompaniesWithAutomation / totalCompanies) * 100)
           : 0;
 
-      // Process recent items with notes count
-      const processRecentPeople = (
-        data: Record<string, unknown>[]
-      ): RecentPerson[] => {
-        return data.map(person => ({
-          id: person.id,
-          name: person.name,
-          email_address: person.email_address,
-          company_role: person.company_role,
-          employee_location: person.employee_location,
-          stage: person.people_stage,
-          created_at: person.created_at,
-          assigned_to: person.owner_id,
-          company_name: person.companies?.name || null,
-          company_logo_url: person.companies?.logo_url || null,
-          notes_count: 0, // Notes table removed - use leads.notes field instead
-        }));
-      };
-
-      const processRecentCompanies = (
-        data: Record<string, unknown>[]
-      ): RecentCompany[] => {
-        return data.map(company => ({
-          id: company.id,
-          name: company.name,
-          industry: company.industry,
-          website: company.website,
-          logo_url: company.logo_url,
-          employee_count: company.company_size,
-          stage: company.pipeline_stage,
-          created_at: company.created_at,
-          assigned_to: company.owner_id,
-          notes_count: 0, // Notes table removed - use company notes field if added
-        }));
-      };
-
-      const processRecentJobs = (
-        data: Record<string, unknown>[]
-      ): RecentJob[] => {
-        return data.map(job => ({
-          id: job.id,
-          name: job.title, // Jobs use title as name
-          title: job.title,
-          location: job.location,
-          priority: job.priority,
-          employment_type: job.employment_type,
-          seniority_level: job.seniority_level,
-          stage: null, // Jobs don't have stages in the schema
-          created_at: job.created_at,
-          assigned_to: job.owner_id,
-          company_name: job.companies?.name || null,
-          company_logo_url: job.companies?.logo_url || null,
-          notes_count: job.notes?.length || 0,
-        }));
-      };
-
-      const processRecentActivities = (data: Record<string, unknown>[]) => {
-        return data.map(activity => ({
-          id: activity.id,
-          interaction_type: activity.interaction_type,
-          subject: activity.subject,
-          content: activity.content,
-          occurred_at: activity.occurred_at,
-          person_name: activity.people?.name || null,
-          company_name: activity.companies?.name || null,
-        }));
-      };
-
       const dashboardData: DashboardData = {
         metrics: {
           totalPeople: peopleCount.count || 0,
           totalCompanies: companiesCount.count || 0,
-          totalJobs: jobsCount.count || 0,
           peopleThisWeek: peopleThisWeek.count || 0,
           companiesThisWeek: companiesThisWeek.count || 0,
-          jobsThisWeek: jobsThisWeek.count || 0,
           activeAutomations: automationData.data?.length || 0,
           automationSuccessRate,
           pipelineBreakdown,
@@ -375,11 +254,6 @@ export class DashboardService {
         recentCompanies: this.processRecentCompanies(
           recentCompaniesData.data || [],
           [] // Notes table removed
-        ),
-        recentJobs: this.processRecentJobs(
-          recentJobsData.data || [],
-          [], // Notes table removed
-          peopleByCompanyData.data || []
         ),
         recentActivities: this.processRecentActivities(
           recentActivitiesData.data || []
@@ -404,10 +278,8 @@ export class DashboardService {
         metrics: {
           totalPeople: 0,
           totalCompanies: 0,
-          totalJobs: 0,
           peopleThisWeek: 0,
           companiesThisWeek: 0,
-          jobsThisWeek: 0,
           activeAutomations: 0,
           automationSuccessRate: 0,
           pipelineBreakdown: {},
@@ -418,7 +290,6 @@ export class DashboardService {
         },
         recentPeople: [],
         recentCompanies: [],
-        recentJobs: [],
         recentActivities: [],
         companiesOverTime: [],
         peopleAutomationOverTime: [],
@@ -472,44 +343,6 @@ export class DashboardService {
       created_at: company.created_at,
       assigned_to: company.owner_id,
       notes_count: notesCount.get(company.id) || 0,
-    }));
-  }
-
-  private static processRecentJobs(
-    jobs: Record<string, unknown>[],
-    notes: Record<string, unknown>[],
-    peopleByCompany: Record<string, unknown>[]
-  ): RecentJob[] {
-    const notesCount = new Map<string, number>();
-    notes.forEach(note => {
-      const count = notesCount.get(note.entity_id) || 0;
-      notesCount.set(note.entity_id, count + 1);
-    });
-
-    // Count people per company
-    const peopleCountByCompany = new Map<string, number>();
-    peopleByCompany.forEach(person => {
-      const count = peopleCountByCompany.get(person.company_id) || 0;
-      peopleCountByCompany.set(person.company_id, count + 1);
-    });
-
-    return jobs.map(job => ({
-      id: job.id,
-      name: job.title || 'Unknown Job',
-      title: job.title || 'Unknown Job',
-      location: job.location || 'Unknown',
-      priority: job.priority || 'Medium',
-      company_name: job.companies?.name || 'Unknown Company',
-      company_logo_url: job.companies?.logo_url || '',
-      company_website: job.companies?.website || null,
-      employment_type: job.employment_type || 'Unknown',
-      seniority_level: job.seniority_level || 'Unknown',
-      created_at: job.created_at,
-      assigned_to: job.owner_id,
-      notes_count: notesCount.get(job.id) || 0,
-      people_count: job.company_id
-        ? peopleCountByCompany.get(job.company_id) || 0
-        : 0,
     }));
   }
 

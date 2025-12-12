@@ -6,7 +6,7 @@
  * - Modern design with status dots
  * - Clean, efficient code
  * - Optimistic updates
- * - Works with People, Companies, and Jobs
+ * - Works with People and Companies
  */
 
 import {
@@ -28,7 +28,7 @@ import React, { useState } from 'react';
 
 export interface UnifiedStatusDropdownProps {
   entityId: string;
-  entityType: 'people' | 'companies' | 'jobs' | 'leads';
+  entityType: 'people' | 'companies' | 'leads';
   currentStatus: string;
   availableStatuses: string[];
   onStatusChange?: () => void;
@@ -287,13 +287,8 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
   // Choose variant styling
   const isCellVariant = variant === 'cell';
 
-  // Disable dropdown if disabled, updating, or clientId is loading
-  // clientId is required for jobs (multi-tenant isolation)
-  // In bypassAuth mode, allow operations even if clientId is still loading
-  const isDisabled =
-    disabled ||
-    isUpdating ||
-    (entityType === 'jobs' && !bypassAuth && (clientIdLoading || !clientId));
+  // Disable dropdown if disabled or updating
+  const isDisabled = disabled || isUpdating;
 
   // For cell variant, the entire cell should be the trigger with background color
   // Use w-full h-full to fill the cell naturally

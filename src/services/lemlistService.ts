@@ -158,7 +158,11 @@ export class LemlistService {
       const data = await response.json();
       // Count email senders (senders that have an email field)
       // This is a proxy for email count since Lemlist API doesn't provide steps in list endpoint
-      const emailSenders = data.senders?.filter((s: any) => s.email) || [];
+      interface LemlistSender {
+        email?: string;
+        [key: string]: unknown;
+      }
+      const emailSenders = (data.senders as LemlistSender[] | undefined)?.filter((s) => s.email) || [];
       return { emailCount: emailSenders.length };
     } catch (error) {
       return { emailCount: 0 };
@@ -209,20 +213,28 @@ export class LemlistService {
       
       // Handle both array and object responses
       // Lemlist API returns campaigns in different formats
-      let campaigns: any[] = [];
+      interface LemlistCampaignResponse {
+        id?: string;
+        name?: string;
+        status?: string;
+        campaignStatus?: string;
+        [key: string]: unknown;
+      }
+
+      let campaigns: LemlistCampaignResponse[] = [];
       
       if (Array.isArray(data)) {
-        campaigns = data;
-      } else if (data && data.data && Array.isArray(data.data)) {
-        campaigns = data.data;
-      } else if (data && data.campaigns && Array.isArray(data.campaigns)) {
-        campaigns = data.campaigns;
+        campaigns = data as LemlistCampaignResponse[];
+      } else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
+        campaigns = data.data as LemlistCampaignResponse[];
+      } else if (data && typeof data === 'object' && 'campaigns' in data && Array.isArray(data.campaigns)) {
+        campaigns = data.campaigns as LemlistCampaignResponse[];
       } else if (data && typeof data === 'object' && Object.keys(data).length > 0) {
         // Sometimes it's an object with campaign IDs as keys
-        campaigns = Object.values(data);
+        campaigns = Object.values(data) as LemlistCampaignResponse[];
       }
       
-      return campaigns.map((campaign: any) => {
+      return campaigns.map((campaign: LemlistCampaignResponse) => {
         // Map status: "running" -> "active" to match our type
         let status = campaign.status || campaign.campaignStatus || 'paused';
         if (status === 'running') {

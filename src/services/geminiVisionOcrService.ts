@@ -52,18 +52,27 @@ export async function extractBusinessCardWithGemini(
   if (typeof imageData === 'string') {
     base64Image = imageData;
   } else {
-    const reader = new FileReader();
-    base64Image = await new Promise<string>((resolve, reject) => {
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result);
-        } else {
-          reject(new Error('Failed to convert image to base64'));
-        }
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(imageData);
-    });
+    // Server-side: Use Buffer API
+    if (typeof window === 'undefined') {
+      const arrayBuffer = await imageData.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const mimeType = imageData instanceof File ? imageData.type : 'image/jpeg';
+      base64Image = `data:${mimeType};base64,${buffer.toString('base64')}`;
+    } else {
+      // Client-side: Use FileReader API
+      const reader = new FileReader();
+      base64Image = await new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            resolve(reader.result);
+          } else {
+            reject(new Error('Failed to convert image to base64'));
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(imageData);
+      });
+    }
   }
 
   // Extract base64 data (remove data:image/jpeg;base64, prefix)

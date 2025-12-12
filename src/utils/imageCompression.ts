@@ -100,6 +100,23 @@ export async function imageToBase64(
     return imageData;
   }
 
+  // Server-side: Use Buffer API (Node.js)
+  if (typeof window === 'undefined') {
+    let blob: Blob;
+    if (imageData instanceof File || imageData instanceof Blob) {
+      blob = imageData;
+    } else {
+      const response = await fetch(imageData);
+      blob = await response.blob();
+    }
+    
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const mimeType = blob.type || 'image/jpeg';
+    return `data:${mimeType};base64,${buffer.toString('base64')}`;
+  }
+
+  // Client-side: Use FileReader API (Browser)
   let blob: Blob;
   if (imageData instanceof File || imageData instanceof Blob) {
     blob = imageData;

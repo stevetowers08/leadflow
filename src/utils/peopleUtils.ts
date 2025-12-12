@@ -1,10 +1,13 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
+
+type PersonInsertData = Tables<'people'>['Insert'];
 
 /**
  * Handles people insertion with automatic duplicate resolution
  * If a LinkedIn URL or email already exists, it will create unique versions
  */
-export const insertPersonWithDuplicateHandling = async (personData: any) => {
+export const insertPersonWithDuplicateHandling = async (personData: PersonInsertData) => {
   try {
     // First attempt: try to insert as-is
     const { data, error } = await supabase
@@ -95,7 +98,7 @@ export const insertPersonWithDuplicateHandling = async (personData: any) => {
  * Alternative approach: Use upsert with conflict resolution
  * This will update existing people instead of creating duplicates
  */
-export const upsertPerson = async (personData: any) => {
+export const upsertPerson = async (personData: PersonInsertData) => {
   try {
     const { data, error } = await supabase
       .from('people')
@@ -208,7 +211,7 @@ export const generateUniqueEmail = async (
 /**
  * Handle both LinkedIn URL and email duplicates in one function
  */
-export const insertPersonWithAllDuplicateHandling = async (personData: any) => {
+export const insertPersonWithAllDuplicateHandling = async (personData: PersonInsertData) => {
   try {
     // Check for existing LinkedIn URL and email
     const linkedinExists = personData.linkedin_url

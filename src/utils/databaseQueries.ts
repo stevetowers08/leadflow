@@ -19,17 +19,15 @@ export class DatabaseQueries {
    * Safe entity fetching with proper field selection
    */
   static async getEntity<T>(
-    table: 'people' | 'companies' | 'jobs',
+    table: 'people' | 'companies',
     id: string
   ): Promise<T> {
     try {
       let selection: string;
       if (table === 'people') {
         selection = COMMON_SELECTIONS.people;
-      } else if (table === 'companies') {
-        selection = COMMON_SELECTIONS.companies;
       } else {
-        selection = COMMON_SELECTIONS.jobs;
+        selection = COMMON_SELECTIONS.companies;
       }
 
       const { data, error } = await supabase
@@ -60,7 +58,7 @@ export class DatabaseQueries {
    * Safe assignment fetching (avoids complex joins)
    */
   static async getAssignment(
-    table: 'people' | 'companies' | 'jobs',
+    table: 'people' | 'companies',
     entityId: string
   ): Promise<{ ownerId: string | null; ownerName: string | null }> {
     try {

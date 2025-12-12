@@ -2,7 +2,6 @@
 
 import { SearchResults } from '@/components/search/SearchResults';
 import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
-import { JobDetailsSlideOut } from '@/components/slide-out/JobDetailsSlideOut';
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { useSearch } from '@/contexts/SearchContext';
 import { cn } from '@/lib/utils';
@@ -34,7 +33,7 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [selectedEntityType, setSelectedEntityType] = useState<
-    'job' | 'company' | 'person' | null
+    'company' | 'person' | null
   >(null);
   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -104,7 +103,7 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
   const handleResultClick = (result: SearchResult) => {
     // Open the appropriate slide-out based on result type
     setSelectedEntityId(result.id);
-    setSelectedEntityType(result.type as 'job' | 'company' | 'person');
+    setSelectedEntityType(result.type as 'company' | 'person');
     setIsSlideOutOpen(true);
 
     // Close search dropdown
@@ -145,7 +144,7 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
           <input
             ref={inputRef}
             type='text'
-            placeholder='Search contacts, companies, jobs...'
+            placeholder='Search contacts, companies...'
             value={searchQuery}
             onChange={handleInputChange}
             onFocus={handleInputFocus}
@@ -218,13 +217,6 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
       )}
 
       {/* Slide-Outs for Search Results */}
-      {selectedEntityType === 'job' && (
-        <JobDetailsSlideOut
-          jobId={selectedEntityId}
-          isOpen={isSlideOutOpen}
-          onClose={handleCloseSlideOut}
-        />
-      )}
       {selectedEntityType === 'company' && (
         <CompanyDetailsSlideOut
           companyId={selectedEntityId}
@@ -260,7 +252,7 @@ export const GlobalSearchDropdown: React.FC<GlobalSearchDropdownProps> = ({
         <div className='w-full h-8 rounded-md border border-border/60 bg-white pl-10 pr-10 text-sm text-foreground opacity-50 pointer-events-none'>
           <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
           <span className='absolute left-10 top-1/2 -translate-y-1/2 text-muted-foreground'>
-            Search contacts, companies, jobs...
+            Search contacts, companies...
           </span>
         </div>
       </div>

@@ -34,7 +34,7 @@ import {
   bulkFavouritePeople,
   bulkSyncToCRM,
 } from '@/services/bulk/bulkPeopleService';
-import { Company, Job, Person } from '@/types/database';
+import { Company, Person } from '@/types/database';
 import { getErrorMessage } from '@/lib/utils';
 import {
   Building2,
@@ -62,7 +62,7 @@ interface CompanyDetailsSlideOutProps {
   onClose: () => void;
   onUpdate?: () => void;
   onPersonClick?: (personId: string) => void;
-  initialTab?: 'overview' | 'people' | 'jobs' | 'activity' | 'notes';
+  initialTab?: 'overview' | 'people' | 'activity' | 'notes';
 }
 
 interface Interaction {
@@ -85,7 +85,6 @@ const CompanyDetailsSlideOutComponent: React.FC<
   const { user } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
-  const [jobs, setJobs] = useState<Job[]>([]);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
@@ -114,7 +113,6 @@ const CompanyDetailsSlideOutComponent: React.FC<
         showCount: false,
       },
       { id: 'people', label: 'Contacts', count: people.length, icon: User },
-      { id: 'jobs', label: 'Jobs', count: jobs.length, icon: Calendar },
       {
         id: 'activity',
         label: 'Activity',
@@ -129,7 +127,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
         showCount: false,
       },
     ],
-    [people.length, jobs.length, interactions.length]
+    [people.length, interactions.length]
   );
 
   // Action handlers
@@ -421,16 +419,6 @@ const CompanyDetailsSlideOutComponent: React.FC<
 
         if (peopleError) throw peopleError;
 
-        // Fetch jobs at this company (no limit) with ALL available details
-        const { data: jobsData, error: jobsError } = await supabase
-          .from('jobs')
-          .select(
-            'id, title, location, qualification_status, job_url, posted_date, valid_through, employment_type, seniority_level, function, salary, summary, description, qualified_at, qualified_by, qualification_notes, created_at'
-          )
-          .eq('company_id', companyId)
-          .order('created_at', { ascending: false });
-
-        if (jobsError) throw jobsError;
 
         // Fetch interactions for people at this company
         // First get people IDs for this company
@@ -466,7 +454,6 @@ const CompanyDetailsSlideOutComponent: React.FC<
 
         setCompany(companyData as unknown as Company);
         setPeople((peopleData as unknown as Person[]) || []);
-        setJobs((jobsData as Job[]) || []);
         setInteractions((interactionsData as Interaction[]) || []);
 
         // Fetch notes count
@@ -951,59 +938,6 @@ const CompanyDetailsSlideOutComponent: React.FC<
                         )}
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'jobs' && (
-              <div className='flex flex-col px-6 pb-4'>
-                {jobs.length > 0 ? (
-                  <div className='space-y-3'>
-                    {jobs.slice(0, 10).map(job => {
-                      const currentJobStatus =
-                        job.client_jobs?.[0]?.status || 'new';
-                      return (
-                        <div
-                          key={job.id}
-                          className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-gray-100 transition-colors cursor-pointer'
-                        >
-                          <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
-                            <Calendar className='h-5 w-5 text-muted-foreground' />
-                          </div>
-                          <div className='flex-1 min-w-0'>
-                            <div className='font-medium text-sm text-foreground truncate'>
-                              {job.title || 'Untitled Job'}
-                            </div>
-                            <div className='text-xs text-muted-foreground truncate'>
-                              {job.function || 'No function specified'}
-                            </div>
-                            {job.location && (
-                              <div className='text-xs text-muted-foreground truncate mt-0.5'>
-                                {job.location}
-                              </div>
-                            )}
-                          </div>
-                          <StatusBadge status={currentJobStatus} size='sm' />
-                        </div>
-                      );
-                    })}
-                    {jobs.length > 10 && (
-                      <div className='text-center pt-4'>
-                        <a
-                          href={`/jobs?company=${companyId}`}
-                          className='text-sm text-primary hover:text-primary font-medium inline-flex items-center gap-1.5'
-                        >
-                          View all {jobs.length} jobs
-                          <ExternalLink className='h-3.5 w-3.5' />
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className='text-center py-12 text-muted-foreground'>
-                    <Calendar className='h-12 w-12 text-muted-foreground mx-auto mb-3' />
-                    <p className='text-sm'>No jobs at this company</p>
                   </div>
                 )}
               </div>

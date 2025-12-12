@@ -12,8 +12,6 @@ export interface ReportingMetrics {
   // Core counts
   totalPeople: number;
   totalCompanies: number;
-  totalJobs: number;
-  qualifiedJobs: number;
 
   // Pipeline breakdowns
   peoplePipeline: {
@@ -23,27 +21,11 @@ export interface ReportingMetrics {
     skip: number;
   };
 
-  jobQualification: {
-    new: number;
-    qualify: number;
-    skip: number;
-  };
-
-  // Top performers
-  topJobFunctions: Array<{
-    function: string;
-    count: number;
-  }>;
-
-  topCompaniesByJobs: Array<{
-    companyName: string;
-    jobCount: number;
-  }>;
 
   // Recent activity
   recentActivity: Array<{
     id: string;
-    type: 'job_discovered' | 'job_qualified' | 'person_added' | 'company_added';
+    type: 'person_added' | 'company_added';
     description: string;
     timestamp: string;
     entityId?: string;
@@ -53,8 +35,6 @@ export interface ReportingMetrics {
   growthMetrics: {
     peopleGrowth: number;
     companiesGrowth: number;
-    jobsGrowth: number;
-    qualificationRate: number;
   };
 }
 
@@ -78,17 +58,11 @@ export class ReportingService {
       const [
         coreCounts,
         peoplePipeline,
-        jobQualification,
-        topJobFunctions,
-        topCompanies,
         recentActivity,
         growthMetrics,
       ] = await Promise.all([
         this.getCoreCounts(),
         this.getPeoplePipeline(),
-        this.getJobQualification(),
-        this.getTopJobFunctions(),
-        this.getTopCompaniesByJobs(),
         this.getRecentActivity(startDate, endDate),
         this.getGrowthMetrics(startDate, endDate),
       ]);
@@ -96,9 +70,6 @@ export class ReportingService {
       return {
         ...coreCounts,
         peoplePipeline,
-        jobQualification,
-        topJobFunctions,
-        topCompaniesByJobs: topCompanies,
         recentActivity,
         growthMetrics,
       };
@@ -119,28 +90,19 @@ export class ReportingService {
    */
   private static async getCoreCounts() {
     try {
-      const [peopleResult, companiesResult, jobsResult, qualifiedJobsResult] =
+      const [peopleResult, companiesResult] =
         await Promise.all([
           supabase.from('people').select('id', { count: 'exact', head: true }),
           supabase.from('companies').select('id', { count: 'exact', head: true }),
-          supabase.from('jobs').select('id', { count: 'exact', head: true }),
-          supabase
-            .from('jobs')
-            .select('id', { count: 'exact', head: true })
-            .eq('qualification_status', 'qualify'),
         ]);
 
       // Handle errors gracefully
       if (peopleResult.error) logSupabaseError(peopleResult.error, 'counting people');
       if (companiesResult.error) logSupabaseError(companiesResult.error, 'counting companies');
-      if (jobsResult.error) logSupabaseError(jobsResult.error, 'counting jobs');
-      if (qualifiedJobsResult.error) logSupabaseError(qualifiedJobsResult.error, 'counting qualified jobs');
 
       return {
         totalPeople: peopleResult.count || 0,
         totalCompanies: companiesResult.count || 0,
-        totalJobs: jobsResult.count || 0,
-        qualifiedJobs: qualifiedJobsResult.count || 0,
       };
     } catch (error) {
       console.error('Error in getCoreCounts:', error);
@@ -148,8 +110,6 @@ export class ReportingService {
       return {
         totalPeople: 0,
         totalCompanies: 0,
-        totalJobs: 0,
-        qualifiedJobs: 0,
       };
     }
   }
@@ -202,49 +162,6 @@ export class ReportingService {
     return pipeline;
   }
 
-  /**
-   * Get job qualification breakdown
-   */
-  private static async getJobQualification() {
-    try {
-      const { data, error } = await supabase
-        .from('jobs')
-        .select('qualification_status');
-
-      if (error) {
-        console.error('Error fetching job qualification:', error);
-        return { new: 0, qualify: 0, skip: 0 };
-      }
-
-      const qualification = {
-        new: 0,
-        qualify: 0,
-        skip: 0,
-      };
-
-      data?.forEach(job => {
-        const status = job.qualification_status;
-        if (!status) return;
-        
-        switch (status) {
-          case 'new':
-            qualification.new++;
-            break;
-          case 'qualify':
-            qualification.qualify++;
-            break;
-          case 'skip':
-            qualification.skip++;
-            break;
-        }
-      });
-
-      return qualification;
-    } catch (error) {
-      console.error('Error in getJobQualification:', error);
-      return { new: 0, qualify: 0, skip: 0 };
-    }
-  }
 
   /**
    * Get top job functions by count
@@ -327,47 +244,6 @@ export class ReportingService {
       companyMap.set(company.id, company.name);
     });
 
-    // Recent jobs discovered
-    const { data: recentJobs } = await supabase
-      .from('jobs')
-      .select('id, title, created_at, company_id')
-      .gte('created_at', startDate)
-      .lte('created_at', endDate)
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    recentJobs?.forEach(job => {
-      const companyName = companyMap.get(job.company_id) || 'Unknown Company';
-      activities.push({
-        id: `job-${job.id}`,
-        type: 'job_discovered' as const,
-        description: `New job discovered: ${job.title} at ${companyName}`,
-        timestamp: job.created_at,
-        entityId: job.id,
-      });
-    });
-
-    // Recent job qualifications
-    const { data: qualifiedJobs } = await supabase
-      .from('jobs')
-      .select('id, title, qualified_at, company_id, created_at')
-      .eq('qualification_status', 'qualify')
-      .gte('qualified_at', startDate)
-      .lte('qualified_at', endDate)
-      .order('qualified_at', { ascending: false })
-      .limit(5);
-
-    qualifiedJobs?.forEach(job => {
-      const companyName = companyMap.get(job.company_id) || 'Unknown Company';
-      activities.push({
-        id: `qualify-${job.id}`,
-        type: 'job_qualified' as const,
-        description: `Job qualified: ${job.title} at ${companyName}`,
-        timestamp: job.qualified_at || job.created_at,
-        entityId: job.id,
-      });
-    });
-
     // Recent people added
     const { data: recentPeople } = await supabase
       .from('people')
@@ -423,20 +299,9 @@ export class ReportingService {
       currentCounts.totalCompanies,
       previousCounts.totalCompanies
     );
-    const jobsGrowth = this.calculateGrowthRate(
-      currentCounts.totalJobs,
-      previousCounts.totalJobs
-    );
-    const qualificationRate =
-      currentCounts.totalJobs > 0
-        ? (currentCounts.qualifiedJobs / currentCounts.totalJobs) * 100
-        : 0;
-
     return {
       peopleGrowth,
       companiesGrowth,
-      jobsGrowth,
-      qualificationRate,
     };
   }
 
@@ -447,7 +312,7 @@ export class ReportingService {
     startDate: string,
     endDate: string
   ) {
-    const [peopleResult, companiesResult, jobsResult, qualifiedJobsResult] =
+    const [peopleResult, companiesResult] =
       await Promise.all([
         supabase
           .from('people')
@@ -457,22 +322,11 @@ export class ReportingService {
           .from('companies')
           .select('id', { count: 'exact', head: true })
           .lte('created_at', endDate),
-        supabase
-          .from('jobs')
-          .select('id', { count: 'exact', head: true })
-          .lte('created_at', endDate),
-        supabase
-          .from('jobs')
-          .select('id', { count: 'exact', head: true })
-          .eq('qualification_status', 'qualify')
-          .lte('created_at', endDate),
       ]);
 
     return {
       totalPeople: peopleResult.count || 0,
       totalCompanies: companiesResult.count || 0,
-      totalJobs: jobsResult.count || 0,
-      qualifiedJobs: qualifiedJobsResult.count || 0,
     };
   }
 

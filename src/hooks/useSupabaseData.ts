@@ -115,112 +115,6 @@ export const useLeads = (
   });
 };
 
-// Optimized jobs query with server-side pagination
-export const useJobs = (
-  pagination: PaginationParams,
-  sort: SortParams,
-  filters: FilterParams,
-  options: QueryOptions = {}
-) => {
-  const { data: clientId, isLoading: clientIdLoading } = useClientId();
-
-  return useQuery({
-    queryKey: ['jobs', pagination, sort, filters, clientId],
-    queryFn: async () => {
-      // Don't fetch if client ID is still loading
-      if (clientIdLoading || !clientId) {
-        return {
-          data: [],
-          totalCount: 0,
-          hasMore: false,
-          page: pagination.page,
-          pageSize: pagination.pageSize,
-        };
-      }
-
-      const { page, pageSize } = pagination;
-      const { column, ascending } = sort;
-      const { search, priority, ...otherFilters } = filters;
-
-      // CLIENT-SPECIFIC JOBS ONLY (jobs assigned to this client)
-      let query = supabase.from('jobs').select(
-        `
-          id,
-          title,
-          location,
-          priority,
-          posted_date,
-          lead_score_job,
-          automation_active,
-          company_id,
-          created_at,
-          qualification_status,
-          companies!jobs_company_id_fkey(
-            id,
-            name,
-            website,
-            industry
-          ),
-          client_jobs!client_jobs_job_id_fkey (
-            status,
-            priority_level,
-            qualified_at,
-            qualified_by
-          )
-        `,
-        { count: 'exact' }
-      );
-
-      // Only show jobs assigned to this client
-      query = query.eq('client_jobs.client_id', clientId);
-
-      // Exclude expired jobs
-      const today = new Date().toISOString().split('T')[0];
-      query = query.or(`valid_through.is.null,valid_through.gte.${today}`);
-
-      // Apply filters
-      if (search) {
-        query = query.or(`title.ilike.%${search}%,location.ilike.%${search}%`);
-      }
-
-      if (priority && priority !== 'all') {
-        query = query.eq('priority', priority);
-      }
-
-      // Apply other filters
-      Object.entries(otherFilters).forEach(([key, value]) => {
-        if (value && value !== 'all') {
-          query = query.eq(key, value);
-        }
-      });
-
-      // Apply sorting
-      query = query.order(column, { ascending });
-
-      // Apply pagination
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
-
-      if (error) throw error;
-
-      return {
-        data: data || [],
-        totalCount: count || 0,
-        hasMore: (count || 0) > to + 1,
-        page,
-        pageSize,
-      };
-    },
-    enabled: !clientIdLoading && !!clientId && options.enabled !== false,
-    staleTime: options.staleTime || 2 * 60 * 1000,
-    cacheTime: options.cacheTime || 5 * 60 * 1000,
-    refetchOnWindowFocus: options.refetchOnWindowFocus || false,
-  });
-};
-
 // Optimized companies query with server-side pagination and counts
 export const useCompanies = (
   pagination: PaginationParams,
@@ -314,221 +208,17 @@ export const useDashboardStats = (options: QueryOptions = {}) => {
         // Get dashboard metrics from materialized view
         supabase.from('dashboard_metrics').select('*').single(),
 
-        // Today's jobs - optimized with limit
-        supabase
-          .from('jobs')
-          .select(
-            `
-            id,
-            title,
-            company_id,
-            location,
-            priority,
-            lead_score_job,
-            created_at,
-            companies!inner(name, website)
-          `
-          )
-          .gte('created_at', todayDateString)
-          .order('created_at', { ascending: false })
-          .limit(5),
-
-        // Expiring jobs - optimized query
-        supabase
-          .from('jobs')
-          .select('id, priority, valid_through')
-          .not('valid_through', 'is', null)
-          .lte(
-            'valid_through',
-            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-          ),
       ]);
-
-      // Process expiring jobs count
-      const expiringCount =
-        expiringJobs.data?.filter(job => {
-          if (!job.valid_through) return false;
-          const validThrough = new Date(job.valid_through);
-          const sevenDaysFromNow = new Date(
-            Date.now() + 7 * 24 * 60 * 60 * 1000
-          );
-          return validThrough <= sevenDaysFromNow;
-        }).length || 0;
 
       return {
         totalLeads: dashboardMetrics.data?.total_leads || 0,
         totalCompanies: dashboardMetrics.data?.total_companies || 0,
-        totalJobs: dashboardMetrics.data?.total_jobs || 0,
-        newJobsToday: todayJobs.data?.length || 0,
-        expiringJobs: expiringCount,
-        todayJobs: todayJobs.data || [],
         activeAutomations: dashboardMetrics.data?.active_automations || 0,
         avgLeadScore: dashboardMetrics.data?.avg_lead_score || 0,
       };
     },
     enabled: options.enabled !== false,
     staleTime: options.staleTime || 1 * 60 * 1000, // 1 minute for stats
-    cacheTime: options.cacheTime || 5 * 60 * 1000,
-    refetchOnWindowFocus: options.refetchOnWindowFocus || false,
-  });
-};
-
-// Job Discovery metrics for dashboard KPIs
-export const useJobDiscoveryMetrics = (options: QueryOptions = {}) => {
-  return useQuery({
-    queryKey: ['dashboard', 'job-discovery-metrics'],
-    queryFn: async () => {
-      const now = new Date();
-      const startOfToday = new Date(now);
-      startOfToday.setHours(0, 0, 0, 0);
-      const endOfToday = new Date(startOfToday);
-      endOfToday.setDate(endOfToday.getDate() + 1);
-
-      const startOfWeek = new Date(now);
-      const day = startOfWeek.getDay();
-      const diff = (day === 0 ? -6 : 1) - day; // Monday start
-      startOfWeek.setDate(startOfWeek.getDate() + diff);
-      startOfWeek.setHours(0, 0, 0, 0);
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(endOfWeek.getDate() + 7);
-
-      const tStart = startOfToday.toISOString();
-      const tEnd = endOfToday.toISOString();
-      const wStart = startOfWeek.toISOString();
-      const wEnd = endOfWeek.toISOString();
-
-      const [
-        // Today
-        analyzedToday,
-        qualifiedToday,
-        reviewedToday,
-        nonExecToday,
-        indeedToday,
-        linkedinToday,
-        // This week
-        analyzedWeek,
-        qualifiedWeek,
-        reviewedWeek,
-        nonExecWeek,
-        indeedWeek,
-        linkedinWeek,
-      ] = await Promise.all([
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', tStart)
-          .lt('created_at', tEnd),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .eq('qualification_status', 'qualify')
-          .gte('created_at', tStart)
-          .lt('created_at', tEnd),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .in('qualification_status', ['qualify', 'skip'])
-          .gte('created_at', tStart)
-          .lt('created_at', tEnd),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .eq('qualification_status', 'skip')
-          .or(
-            `seniority_level.neq.executive,filter_reason.ilike.%non-executive%`
-          )
-          .gte('created_at', tStart)
-          .lt('created_at', tEnd),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .or(`source.eq.Indeed,job_url.ilike.%indeed.%`)
-          .gte('created_at', tStart)
-          .lt('created_at', tEnd),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .or(
-            `source.eq.LinkedIn,linkedin_job_id.not.is.null,job_url.ilike.%linkedin.%`
-          )
-          .gte('created_at', tStart)
-          .lt('created_at', tEnd),
-
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', wStart)
-          .lt('created_at', wEnd),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .eq('qualification_status', 'qualify')
-          .gte('created_at', wStart)
-          .lt('created_at', wEnd),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .in('qualification_status', ['qualify', 'skip'])
-          .gte('created_at', wStart)
-          .lt('created_at', wEnd),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .eq('qualification_status', 'skip')
-          .or(
-            `seniority_level.neq.executive,filter_reason.ilike.%non-executive%`
-          )
-          .gte('created_at', wStart)
-          .lt('created_at', wEnd),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .or(`source.eq.Indeed,job_url.ilike.%indeed.%`)
-          .gte('created_at', wStart)
-          .lt('created_at', wEnd),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .or(
-            `source.eq.LinkedIn,linkedin_job_id.not.is.null,job_url.ilike.%linkedin.%`
-          )
-          .gte('created_at', wStart)
-          .lt('created_at', wEnd),
-      ]);
-
-      const todayAnalyzed = analyzedToday.count || 0;
-      const todayQualified = qualifiedToday.count || 0;
-      const todayReviewed = reviewedToday.count || 0;
-      const todayRate =
-        todayReviewed > 0
-          ? Math.round((todayQualified / todayReviewed) * 100)
-          : 0;
-
-      const weekAnalyzed = analyzedWeek.count || 0;
-      const weekQualified = qualifiedWeek.count || 0;
-      const weekReviewed = reviewedWeek.count || 0;
-      const weekRate =
-        weekReviewed > 0 ? Math.round((weekQualified / weekReviewed) * 100) : 0;
-
-      return {
-        today: {
-          analyzed: todayAnalyzed,
-          qualificationRatePercent: todayRate,
-          nonExecutiveFiltered: nonExecToday.count || 0,
-          indeedOpportunities: indeedToday.count || 0,
-          linkedinOpportunities: linkedinToday.count || 0,
-        },
-        week: {
-          analyzed: weekAnalyzed,
-          qualificationRatePercent: weekRate,
-          nonExecutiveFiltered: nonExecWeek.count || 0,
-          indeedOpportunities: indeedWeek.count || 0,
-          linkedinOpportunities: linkedinWeek.count || 0,
-        },
-      };
-    },
-    enabled: options.enabled !== false,
-    staleTime: options.staleTime || 60 * 1000,
     cacheTime: options.cacheTime || 5 * 60 * 1000,
     refetchOnWindowFocus: options.refetchOnWindowFocus || false,
   });
@@ -679,54 +369,9 @@ export const usePrefetchData = () => {
     [queryClient]
   );
 
-  const prefetchJob = useCallback(
-    (jobId: string) => {
-      queryClient.prefetchQuery({
-        queryKey: ['popup-job', jobId],
-        queryFn: async () => {
-          const { data, error } = await supabase
-            .from('jobs')
-            .select(
-              `
-            *,
-            companies!inner(
-              id,
-              name,
-              website,
-              linkedin_url,
-              head_office,
-              industry,
-              company_size,
-              lead_score,
-              score_reason,
-              automation_active,
-              automation_started_at,
-              priority,
-              confidence_level,
-              is_favourite,
-              ai_info,
-              key_info_raw,
-              created_at,
-              updated_at
-            )
-          `
-            )
-            .eq('id', jobId)
-            .single();
-
-          if (error) throw error;
-          return data;
-        },
-        staleTime: 5 * 60 * 1000,
-      });
-    },
-    [queryClient]
-  );
-
   return {
     prefetchLead,
     prefetchCompany,
-    prefetchJob,
   };
 };
 
@@ -737,10 +382,6 @@ export const useCacheInvalidation = () => {
   const invalidateLeads = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['leads'] });
     queryClient.invalidateQueries({ queryKey: ['leads-infinite'] });
-  }, [queryClient]);
-
-  const invalidateJobs = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['jobs'] });
   }, [queryClient]);
 
   const invalidateCompanies = useCallback(() => {
@@ -757,7 +398,6 @@ export const useCacheInvalidation = () => {
 
   return {
     invalidateLeads,
-    invalidateJobs,
     invalidateCompanies,
     invalidateDashboard,
     invalidateAll,
