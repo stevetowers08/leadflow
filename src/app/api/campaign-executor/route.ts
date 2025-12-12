@@ -141,8 +141,8 @@ async function processEmailStep(
     throw new Error(sequenceError?.message || 'Sequence owner not found');
   }
 
-  const { data: emailAccount, error: emailAccountError } = await supabase
-    .from('email_accounts')
+  const { data: emailAccount, error: emailAccountError } = await (supabase
+    .from('email_accounts') as any)
     .select('*')
     .eq('user_id', (sequence as any).created_by)
     .eq('is_active', true)
