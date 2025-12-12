@@ -1013,6 +1013,84 @@ export type Database = {
         }
         Relationships: []
       }
+      email_replies: {
+        Row: {
+          id: string
+          person_id: string | null
+          interaction_id: string | null
+          company_id: string | null
+          gmail_message_id: string
+          gmail_thread_id: string
+          from_email: string
+          reply_subject: string | null
+          reply_body_plain: string | null
+          reply_body_html: string | null
+          received_at: string
+          sentiment: string | null
+          sentiment_confidence: number | null
+          sentiment_reasoning: string | null
+          analyzed_at: string | null
+          triggered_stage_change: boolean | null
+          previous_stage: string | null
+          new_stage: string | null
+          detected_at: string
+          processed_at: string | null
+          processing_error: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          person_id?: string | null
+          interaction_id?: string | null
+          company_id?: string | null
+          gmail_message_id: string
+          gmail_thread_id: string
+          from_email: string
+          reply_subject?: string | null
+          reply_body_plain?: string | null
+          reply_body_html?: string | null
+          received_at: string
+          sentiment?: string | null
+          sentiment_confidence?: number | null
+          sentiment_reasoning?: string | null
+          analyzed_at?: string | null
+          triggered_stage_change?: boolean | null
+          previous_stage?: string | null
+          new_stage?: string | null
+          detected_at: string
+          processed_at?: string | null
+          processing_error?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          person_id?: string | null
+          interaction_id?: string | null
+          company_id?: string | null
+          gmail_message_id?: string
+          gmail_thread_id?: string
+          from_email?: string
+          reply_subject?: string | null
+          reply_body_plain?: string | null
+          reply_body_html?: string | null
+          received_at?: string
+          sentiment?: string | null
+          sentiment_confidence?: number | null
+          sentiment_reasoning?: string | null
+          analyzed_at?: string | null
+          triggered_stage_change?: boolean | null
+          previous_stage?: string | null
+          new_stage?: string | null
+          detected_at?: string
+          processed_at?: string | null
+          processing_error?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

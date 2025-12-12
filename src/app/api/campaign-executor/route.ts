@@ -25,6 +25,10 @@ type CampaignExecution = Tables<'campaign_sequence_executions'> & {
   people: Pick<Tables<'leads'>, 'id' | 'first_name' | 'last_name' | 'email'> | null;
 };
 
+type CampaignSequence = Pick<Tables<'campaign_sequences'>, 'id' | 'created_by'>;
+type EmailAccount = Tables<'email_accounts'>;
+type CampaignSequenceStep = Pick<Tables<'campaign_sequence_steps'>, 'id'>;
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient();
@@ -73,13 +77,17 @@ export async function POST(request: NextRequest) {
       try {
         await processExecution(supabase, execution);
       } catch (error) {
-        await (supabase
-          .from('campaign_sequence_executions') as any)
+        const { error: updateError } = await supabase
+          .from('campaign_sequence_executions')
           .update({
             status: 'failed',
             error_message: error instanceof Error ? error.message : 'Unknown error',
           })
-          .eq('id', (execution as any).id);
+          .eq('id', execution.id);
+        
+        if (updateError) {
+          console.error('Failed to update execution status:', updateError);
+        }
       }
     }
 
@@ -91,7 +99,6 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('Fatal error:', error);
     return APIErrorHandler.handleError(error, 'campaign-executor');
   }
 }
@@ -137,14 +144,16 @@ async function processEmailStep(
     .eq('id', lead.sequence_id)
     .single();
 
-  if (sequenceError || !(sequence as any)?.created_by) {
+  if (sequenceError || !sequence?.created_by) {
     throw new Error(sequenceError?.message || 'Sequence owner not found');
   }
+
+  const sequenceTyped: CampaignSequence = sequence;
 
   const { data: emailAccount, error: emailAccountError } = await supabase
     .from('email_accounts')
     .select('*')
-    .eq('user_id', (sequence as any).created_by)
+    .eq('user_id', sequenceTyped.created_by)
     .eq('is_active', true)
     .limit(1)
     .single();
@@ -153,7 +162,13 @@ async function processEmailStep(
     throw new Error(emailAccountError?.message || 'No active Gmail account');
   }
 
-  const accessToken = Buffer.from((emailAccount as any).access_token, 'base64').toString('utf-8');
+  const emailAccountTyped: EmailAccount = emailAccount;
+  
+  if (!emailAccountTyped.access_token) {
+    throw new Error('Email account missing access token');
+  }
+
+  const accessToken = Buffer.from(emailAccountTyped.access_token, 'base64').toString('utf-8');
 
   // Send email via Gmail API
   const message = [
@@ -186,23 +201,36 @@ async function processEmailStep(
   }
 
   const emailResult = await emailResponse.json();
+  
+  if (!emailResult?.id) {
+    throw new Error('Gmail API did not return a message ID');
+  }
+
   const now = new Date().toISOString();
 
-  await supabase.from('email_sends').insert({
+  const { error: insertError } = await supabase.from('email_sends').insert({
     person_id: leadData.id,
-    email_account_id: (emailAccount as any).id,
+    email_account_id: emailAccountTyped.id,
     gmail_message_id: emailResult.id,
-    gmail_thread_id: emailResult.threadId,
+    gmail_thread_id: emailResult.threadId || null,
     to_email: email,
-    subject: step.email_subject,
+    subject: step.email_subject || 'Follow up',
     status: 'sent',
     sent_at: now,
   });
 
-  await (supabase
-    .from('campaign_sequence_executions') as any)
+  if (insertError) {
+    throw new Error(`Failed to record email send: ${insertError.message}`);
+  }
+
+  const { error: updateError } = await supabase
+    .from('campaign_sequence_executions')
     .update({ status: 'sent', executed_at: now })
-    .eq('id', (execution as any).id);
+    .eq('id', execution.id);
+
+  if (updateError) {
+    throw new Error(`Failed to update execution: ${updateError.message}`);
+  }
 
   await scheduleNextStep(supabase, execution);
 }
@@ -212,10 +240,15 @@ async function processWaitStep(
   execution: CampaignExecution
 ) {
   const step = execution.campaign_sequence_steps;
-  await (supabase
-    .from('campaign_sequence_executions') as any)
+  const { error: updateError } = await supabase
+    .from('campaign_sequence_executions')
     .update({ status: 'sent', executed_at: new Date().toISOString() })
-    .eq('id', (execution as any).id);
+    .eq('id', execution.id);
+
+  if (updateError) {
+    throw new Error(`Failed to update execution: ${updateError.message}`);
+  }
+
   await scheduleNextStep(supabase, execution, step.wait_duration, step.wait_unit);
 }
 
@@ -226,10 +259,14 @@ async function processConditionStep(
   const step = execution.campaign_sequence_steps;
   const conditionResult = await evaluateCondition(supabase, execution, step);
 
-  await (supabase
-    .from('campaign_sequence_executions') as any)
+  const { error: updateError } = await supabase
+    .from('campaign_sequence_executions')
     .update({ status: 'sent', executed_at: new Date().toISOString() })
-    .eq('id', (execution as any).id);
+    .eq('id', execution.id);
+
+  if (updateError) {
+    throw new Error(`Failed to update execution: ${updateError.message}`);
+  }
 
   const nextStepId = conditionResult ? step.true_next_step_id : step.false_next_step_id;
   if (nextStepId) {
@@ -288,10 +325,14 @@ async function evaluateCondition(
     const hasReplied = !!recentReply && recentReply.length > 0;
 
     if (hasReplied) {
-      await (supabase
-        .from('campaign_sequence_leads') as any)
+      const { error: updateError } = await supabase
+        .from('campaign_sequence_leads')
         .update({ status: 'paused' })
-        .eq('id', (execution as any).sequence_lead_id);
+        .eq('id', execution.sequence_lead_id);
+
+      if (updateError) {
+        throw new Error(`Failed to pause sequence lead: ${updateError.message}`);
+      }
     }
 
     return hasReplied;
@@ -336,24 +377,39 @@ async function scheduleNextStep(
       throw new Error(nextStepError.message);
     }
 
-    nextStepId = (nextStep as any)?.id ?? undefined;
+    if (nextStep) {
+      const nextStepTyped: CampaignSequenceStep = nextStep;
+      nextStepId = nextStepTyped.id;
+    }
   }
 
   if (nextStepId) {
-    await (supabase.from('campaign_sequence_executions') as any).insert({
-      sequence_lead_id: (execution as any).sequence_lead_id,
-      step_id: nextStepId,
-      status: 'pending',
-      executed_at: scheduledAt.toISOString(),
-    });
+    const { error: insertError } = await supabase
+      .from('campaign_sequence_executions')
+      .insert({
+        sequence_lead_id: execution.sequence_lead_id,
+        step_id: nextStepId,
+        status: 'pending',
+        executed_at: scheduledAt.toISOString(),
+        lead_id: execution.lead_id,
+        sequence_id: execution.sequence_id,
+      });
+
+    if (insertError) {
+      throw new Error(`Failed to schedule next step: ${insertError.message}`);
+    }
   } else {
-    await (supabase
-      .from('campaign_sequence_leads') as any)
+    const { error: updateError } = await supabase
+      .from('campaign_sequence_leads')
       .update({
         status: 'completed',
         completed_at: new Date().toISOString(),
       })
-      .eq('id', (execution as any).sequence_lead_id);
+      .eq('id', execution.sequence_lead_id);
+
+    if (updateError) {
+      throw new Error(`Failed to complete sequence lead: ${updateError.message}`);
+    }
   }
 }
 
