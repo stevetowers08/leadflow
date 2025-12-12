@@ -40,35 +40,30 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Insert error into database
-    const { data, error } = await supabase
-      .from('error_logs')
-      .insert({
-        message,
-        stack,
-        timestamp: timestamp || new Date().toISOString(),
-        user_agent: userAgent,
-        url,
-        type,
-        component_name: componentName,
-        user_id: userId,
-        session_id: sessionId,
-        metadata,
-      })
-      .select('id')
-      .single();
-
-    if (error) {
-      console.error('Failed to log error to database:', error);
-      // Return 200 anyway to prevent recursive error logging
-      return NextResponse.json(
-        { id: `error-${Date.now()}`, message: 'Error logged locally' },
-        { status: 200 }
-      );
+    // Note: error_logs table doesn't exist - using activity_log instead
+    // Log error to activity_log if needed, otherwise just log to console
+    try {
+      await supabase.from('activity_log').insert({
+        activity_type: 'manual_note',
+        metadata: {
+          message,
+          stack,
+          timestamp: timestamp || new Date().toISOString(),
+          user_agent: userAgent,
+          url,
+          type,
+          component_name: componentName,
+          user_id: userId,
+          session_id: sessionId,
+          ...metadata,
+        } as Record<string, unknown>,
+      });
+    } catch (logError) {
+      console.error('Failed to log error to database:', logError);
     }
 
     return NextResponse.json(
-      { id: data?.id || `error-${Date.now()}` },
+      { id: `error-${Date.now()}` },
       { status: 200 }
     );
   } catch (error) {

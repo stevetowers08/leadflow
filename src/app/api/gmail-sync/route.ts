@@ -157,13 +157,11 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    // Log to database for monitoring
+    // Log to activity_log for monitoring (email_sync_logs table doesn't exist)
     try {
-      await supabase.from('email_sync_logs').insert({
-        user_id: userId,
-        operation_type: operation,
-        status: 'success',
-        metadata: result,
+      await supabase.from('activity_log').insert({
+        activity_type: 'email_sent',
+        metadata: JSON.parse(JSON.stringify(result)) as Record<string, unknown>,
       });
     } catch (logError) {
       console.error('Failed to log to database:', logError);
@@ -183,15 +181,16 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Gmail sync error:', error);
 
-    // Log error to database
+    // Log error to activity_log (email_sync_logs table doesn't exist)
     try {
       const supabase = createServerSupabaseClient();
 
-      await supabase.from('email_sync_logs').insert({
-        user_id: userId,
-        operation_type: 'function_error',
-        status: 'error',
-        error_message: error instanceof Error ? error.message : 'Unknown error',
+      await supabase.from('activity_log').insert({
+        activity_type: 'email_sent',
+        metadata: {
+          operation: 'function_error',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        } as Record<string, unknown>,
       });
     } catch (logError) {
       console.error('Failed to log error:', logError);

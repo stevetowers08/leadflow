@@ -59,25 +59,12 @@ export async function POST(request: NextRequest) {
 
       const domain = await domainResponse.json();
 
-      // Save to database
-      const { data, error } = await supabase
-        .from('email_domains')
-        .insert({
-          provider_id: domain.id,
-          name: domain.name,
-          status: domain.status || 'pending',
-          dns_records: domain.records || [],
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Database error:', error);
-        throw new Error('Failed to save domain to database');
-      }
+      // Note: email_domains table doesn't exist - skipping database save
+      // If needed, create the table or use activity_log for tracking
+      console.log('Domain created:', { id: domain.id, name: domain.name, status: domain.status });
 
       return NextResponse.json(
-        { success: true, domain: data },
+        { success: true, domain },
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,

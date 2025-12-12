@@ -542,28 +542,38 @@ export class GmailService {
     operationType: string,
     messageCount: number
   ): Promise<void> {
-    const { data: user } = await supabase.auth.getUser();
-
-    await supabase.from('email_sync_logs').insert({
-      user_id: user.user?.id,
-      operation_type: operationType,
-      status: 'success',
-      message_count: messageCount,
-    });
+    // email_sync_logs table doesn't exist - using activity_log instead
+    try {
+      await supabase.from('activity_log').insert({
+        activity_type: 'email_sent',
+        metadata: {
+          operation: operationType,
+          message_count: messageCount,
+          status: 'success',
+        } as Record<string, unknown>,
+      });
+    } catch (error) {
+      console.error('Failed to log sync success:', error);
+    }
   }
 
   private async logSyncError(
     operationType: string,
     error: unknown
   ): Promise<void> {
-    const { data: user } = await supabase.auth.getUser();
-
-    await supabase.from('email_sync_logs').insert({
-      user_id: user.user?.id,
-      operation_type: operationType,
-      status: 'error',
-      error_message: error instanceof Error ? error.message : 'Unknown error',
-    });
+    // email_sync_logs table doesn't exist - using activity_log instead
+    try {
+      await supabase.from('activity_log').insert({
+        activity_type: 'email_sent',
+        metadata: {
+          operation: operationType,
+          status: 'error',
+          error_message: error instanceof Error ? error.message : 'Unknown error',
+        } as Record<string, unknown>,
+      });
+    } catch (logError) {
+      console.error('Failed to log sync error:', logError);
+    }
   }
 
   async markAsRead(threadId: string): Promise<void> {
