@@ -156,16 +156,19 @@ async function processGmailReply(
   }
 
   // Store reply
+  const receivedAt = new Date(messageData.internalDate || Date.now()).toISOString();
   await supabase.from('email_replies').insert({
     person_id: person.id,
     gmail_message_id: messageId,
     gmail_thread_id: threadId,
-    subject: subject,
-    body: body,
     from_email: emailAddress,
-    received_at: new Date(messageData.internalDate || Date.now()).toISOString(),
+    reply_subject: subject,
+    reply_body_plain: body,
+    received_at: receivedAt,
+    detected_at: receivedAt,
     sentiment: sentiment?.sentiment || 'neutral',
-    confidence: sentiment?.confidence || 0.5,
+    sentiment_confidence: sentiment?.confidence || 0.5,
+    sentiment_reasoning: sentiment?.reasoning || null,
   });
 
   // Update person's reply_type
