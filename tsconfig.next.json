@@ -49,6 +49,8 @@
     "src/constants/**/*.ts",
     "src/integrations/**/*.ts",
     "src/server/**/*.ts",
+    "src/data/**/*.ts",
+    "src/design-system/**/*.tsx",
     "src/proxy.ts",
     "src/vite-env.d.ts",
     ".next/types/**/*.ts",

@@ -70,10 +70,6 @@ interface PersonDetailsSlideOutProps {
   initialTab?: 'overview' | 'company' | 'notes' | 'ai' | 'activity';
 }
 
-interface InteractionWithPerson extends Interaction {
-  people?: Person | null;
-  companies?: Company | null;
-}
 
 const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
   memo(({ personId, isOpen, onClose, onUpdate, initialTab }) => {
@@ -82,9 +78,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
     const [person, setPerson] = useState<Person | null>(null);
     const [company, setCompany] = useState<Company | null>(null);
     const [otherPeople, setOtherPeople] = useState<Person[]>([]);
-    const [interactions, setInteractions] = useState<InteractionWithPerson[]>(
-      []
-    );
     const [campaigns, setCampaigns] = useState<
       Array<{ id: string; name: string }>
     >([]);
@@ -148,29 +141,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
           }
         }
-
-        // Fetch interactions for this person
-        const { data: interactionsData, error: interactionsError } =
-          await supabase
-            .from('interactions')
-            .select(
-              `
-              id,
-              interaction_type,
-              occurred_at,
-              subject,
-              content,
-              person_id,
-              people!inner(id, name, company_role, company_id)
-            `
-            )
-            .eq('person_id', personId)
-            .order('occurred_at', { ascending: false })
-            .limit(20);
-
-        if (interactionsError) throw interactionsError;
-
-        setInteractions((interactionsData as InteractionWithPerson[]) || []);
 
         // Fetch notes count
         if (personData?.id) {
@@ -435,15 +405,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
       return format(new Date(dateString), 'MMM d, yyyy');
     };
 
-    const getInteractionTypeDisplay = (
-      type: string | null
-    ): string => {
-      if (!type) return 'Activity';
-      return type
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-    };
 
     const handleCompanyClick = (companyId: string) => {
       onClose();
@@ -464,7 +425,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
         {
           id: 'activity' as const,
           label: 'Activity',
-          count: interactions.length,
+          count: 0,
           icon: Mail,
         },
         {
@@ -480,7 +441,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
           icon: StickyNote,
         },
       ],
-      [notesCount, interactions.length]
+      [notesCount]
     );
 
     const personDetailsItems: GridItem[] = useMemo(
@@ -924,53 +885,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   <div className='mt-6 mb-8'>
                     <SlideOutSection title='Activity'>
                       <div className='space-y-2 select-text overflow-x-hidden'>
-                        {interactions.length > 0 ? (
-                          interactions.map(interaction => {
-                            const interactionType = getInteractionTypeDisplay(
-                              interaction.interaction_type
-                            );
-                            let dotColor = 'bg-primary/100';
-                            if (
-                              interaction.interaction_type?.includes('reply') ||
-                              interaction.interaction_type?.includes('positive')
-                            ) {
-                              dotColor = 'bg-emerald-500';
-                            } else if (
-                              interaction.interaction_type?.includes('decline') ||
-                              interaction.interaction_type?.includes('negative')
-                            ) {
-                              dotColor = 'bg-destructive/100';
-                            }
-
-                            return (
-                              <div
-                                key={interaction.id}
-                                className='flex gap-3 p-3 rounded-lg hover:bg-muted transition-colors border border-transparent hover:border-border select-text'
-                              >
-                                <div
-                                  className={`flex-shrink-0 w-2 h-2 rounded-full ${dotColor} mt-1.5`}
-                                />
-                                <div className='flex-1 min-w-0'>
-                                  <div className='text-xs font-medium text-foreground'>
-                                    {interactionType}
-                                  </div>
-                                  {interaction.subject && (
-                                    <div className='text-xs text-muted-foreground mt-0.5'>
-                                      {interaction.subject}
-                                    </div>
-                                  )}
-                                  <div className='text-xs text-muted-foreground mt-1'>
-                                    {formatDate(interaction.occurred_at)}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <div className='text-center py-8 text-muted-foreground text-sm'>
-                            No activity yet
-                          </div>
-                        )}
+                        <div className='text-center py-8 text-muted-foreground text-sm'>
+                          No activity yet
+                        </div>
                       </div>
                     </SlideOutSection>
                   </div>

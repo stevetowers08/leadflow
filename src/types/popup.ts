@@ -9,7 +9,8 @@ import { Tables } from '@/integrations/supabase/types';
 export type Company = Tables<'companies'>;
 export type Contact = Tables<'contacts'>;
 export type Job = Tables<'jobs'>;
-export type Interaction = Tables<'interactions'>;
+// Interaction type removed - table no longer exists
+// export type Interaction = Tables<'interactions'>;
 
 // Legacy alias for backward compatibility during migration
 export type Person = Contact;
@@ -17,7 +18,7 @@ export type Person = Contact;
 // Popup-specific types
 export interface PopupLead extends Contact {
   company?: Company;
-  interactions?: Interaction[];
+  // interactions?: Interaction[]; // Removed - interactions table no longer exists
 }
 
 export interface PopupJob extends Job {

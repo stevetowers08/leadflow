@@ -58,7 +58,13 @@ async function syncSentEmails(accessToken: string, userId: string) {
   };
 }
 
-async function sendEmail(accessToken: string, emailData: any, userId: string) {
+interface EmailData {
+  to: string;
+  subject: string;
+  body?: string;
+}
+
+async function sendEmail(accessToken: string, emailData: EmailData, userId: string) {
   const message = [
     `To: ${emailData.to}`,
     `Subject: ${emailData.subject}`,
@@ -119,7 +125,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let result: any;
+    interface SyncResult {
+      synced?: number;
+      messageId?: string;
+      threadId?: string;
+      operation: string;
+    }
+
+    let result: SyncResult;
 
     switch (operation) {
       case 'sync_inbox':

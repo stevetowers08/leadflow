@@ -72,7 +72,7 @@ export const FieldWrapper = React.forwardRef<HTMLDivElement, FieldWrapperProps>(
               id: fieldId,
               'aria-describedby': description ? `${fieldId}-description` : undefined,
               'aria-invalid': error ? true : undefined,
-            } as any)
+            } as React.HTMLAttributes<HTMLElement>)
           : children}
         {error && (
           <p

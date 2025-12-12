@@ -45,7 +45,7 @@ const measureOperation = async <T>(
 export interface AssignmentResult {
   success: boolean;
   message: string;
-  data?: any;
+  data?: unknown;
   error?: string;
 }
 

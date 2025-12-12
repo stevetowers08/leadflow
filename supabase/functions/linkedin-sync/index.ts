@@ -146,17 +146,7 @@ serve(async req => {
           })
           .eq('id', personData.id);
 
-        // Create interaction record
-        await supabaseClient.from('interactions').insert({
-          person_id: personData.id,
-          interaction_type: 'linkedin_connected',
-          occurred_at: connection.connectedAt || new Date().toISOString(),
-          content: `Connected with ${connectionName}`,
-          metadata: {
-            linkedinId: connection.id,
-            profileUrl: connection.profileUrl,
-          },
-        });
+        // Interactions table removed - no longer used
 
         matchedCount++;
       }

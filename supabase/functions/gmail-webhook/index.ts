@@ -128,36 +128,26 @@ async function processGmailReply(
     const message: Record<string, unknown> = await messageResponse.json();
     const threadId = message.threadId;
 
-    // Check if this is a reply to one of our sent emails
-    // Look for interactions with email_sent type
-    const { data: interaction } = await supabase
-      .from('interactions')
-      .select(
-        `
-        id,
-        person_id,
-        people!inner(
-          id,
-          company_id,
-          email_address,
-          name
-        )
-      `
-      )
-      .eq('interaction_type', 'email_sent')
-      .like('metadata->>gmail_thread_id', `%${threadId}%`)
-      .single();
-
-    if (!interaction) {
-      console.log(`No matching interaction found for thread ${threadId}`);
-      return;
-    }
-
-    // Extract email content
+    // Find person by email address from the reply
     const headers = message.payload.headers;
     const fromHeader = headers.find(
       (h: Record<string, unknown>) => h.name === 'From'
     )?.value;
+    const fromEmail = extractEmail(String(fromHeader || ''));
+
+    // Find person by email
+    const { data: person } = await supabase
+      .from('people')
+      .select('id, company_id, email_address, name')
+      .eq('email_address', fromEmail)
+      .single();
+
+    if (!person) {
+      console.log(`No person found for email: ${fromEmail}`);
+      return;
+    }
+
+    // Extract email content
     const subjectHeader = headers.find(
       (h: Record<string, unknown>) => h.name === 'Subject'
     )?.value;
@@ -169,25 +159,25 @@ async function processGmailReply(
     const sentiment = await analyzeSentiment(bodyPlain || bodyHtml || '');
 
     // Insert email_reply record
+    const receivedAt = new Date(parseInt(String(message.internalDate || Date.now())));
     const { data: reply, error: insertError } = await supabase
       .from('email_replies')
       .insert({
-        interaction_id: interaction.id,
-        person_id: interaction.person_id,
-        company_id: interaction.people.company_id,
+        person_id: person.id,
+        company_id: person.company_id,
         gmail_message_id: messageId,
         gmail_thread_id: threadId,
-        from_email: extractEmail(fromHeader || ''),
-        reply_subject: subjectHeader,
+        from_email: fromEmail,
+        reply_subject: String(subjectHeader || ''),
         reply_body_plain: bodyPlain,
         reply_body_html: bodyHtml,
-        received_at: new Date(parseInt(message.internalDate)),
+        received_at: receivedAt.toISOString(),
+        detected_at: new Date().toISOString(),
         sentiment: sentiment.sentiment,
         sentiment_confidence: sentiment.confidence,
         sentiment_reasoning: sentiment.reasoning,
-        analyzed_at: new Date(),
-        detected_at: new Date(),
-        processed_at: new Date(),
+        analyzed_at: new Date().toISOString(),
+        processed_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -200,55 +190,40 @@ async function processGmailReply(
     // Auto-progress pipeline stage based on sentiment
     await autoProgressPerson(
       supabase,
-      interaction.person_id,
+      person.id,
       sentiment.sentiment,
       reply.id
     );
 
     // Also auto-progress company if person belongs to one
-    if (interaction.people?.company_id) {
+    if (person.company_id) {
       await autoProgressCompany(
         supabase,
-        interaction.people.company_id,
+        person.company_id,
         sentiment.sentiment,
         {
           messageId,
           threadId,
           replyContent: bodyPlain || bodyHtml,
-          personId: interaction.person_id,
+          personId: person.id,
         }
       );
     }
-
-    // Create interaction record for the reply
-    await supabase.from('interactions').insert({
-      person_id: interaction.person_id,
-      interaction_type: 'email_reply',
-      subject: subjectHeader,
-      content: bodyPlain,
-      metadata: {
-        reply_id: reply.id,
-        sentiment: sentiment.sentiment,
-        confidence: sentiment.confidence,
-        gmail_message_id: messageId,
-        gmail_thread_id: threadId,
       },
       owner_id: interaction.people.id, // Use person's owner
     });
 
     // Create notification for email response received
     // Get the user_id who should receive the notification
-    // Priority: interaction owner, then integration user_id, then person owner
     const { data: ownerUser } = await supabase
       .from('people')
       .select('owner_id')
-      .eq('id', interaction.person_id)
+      .eq('id', person.id)
       .single();
 
     const notificationUserId =
-      interaction.people.owner_id ||
-      integration?.user_id ||
-      ownerUser?.owner_id;
+      ownerUser?.owner_id ||
+      integration?.user_id;
 
     if (notificationUserId) {
       await supabase.from('user_notifications').insert({
@@ -256,14 +231,14 @@ async function processGmailReply(
         type: 'email_response_received',
         priority: 'high',
         title: 'New Email Response',
-        message: `${interaction.people.name || 'Someone'} replied to your message`,
+        message: `${person.name || 'Someone'} replied to your message`,
         action_type: 'navigate',
-        action_url: `/people/${interaction.person_id}`,
+        action_url: `/people/${person.id}`,
         action_entity_type: 'person',
-        action_entity_id: interaction.person_id,
+        action_entity_id: person.id,
         metadata: {
-          person_id: interaction.person_id,
-          company_id: interaction.people.company_id,
+          person_id: person.id,
+          company_id: person.company_id,
           reply_id: reply.id,
         },
       });

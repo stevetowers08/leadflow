@@ -27,7 +27,7 @@ interface Activity {
   description?: string;
   date: string;
   status?: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
   color: string;
 }
 

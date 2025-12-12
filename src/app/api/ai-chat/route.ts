@@ -49,7 +49,19 @@ async function queryRelevantData(
   };
 }
 
-function buildContextualPrompt(message: string, dataQuery: any, history: any[]): string {
+interface DataQueryResult {
+  recentJobs: Array<{ id: string; title: string; location: string | null }>;
+  recentPeople: Array<{ id: string; name: string | null; email_address: string | null; stage: string | null }>;
+  recentCompanies: Array<{ id: string; name: string | null; industry: string | null }>;
+}
+
+interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+}
+
+function buildContextualPrompt(message: string, dataQuery: DataQueryResult, history: ChatMessage[]): string {
   let prompt = `You are a helpful AI assistant for a recruitment CRM system. Answer questions about jobs, people, and companies.\n\n`;
 
   if (dataQuery.recentJobs.length > 0) {

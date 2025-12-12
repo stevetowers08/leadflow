@@ -263,8 +263,7 @@ export class DashboardService {
           automationData.data || []
         ),
         peopleAutomationOverTime: this.generatePeopleAutomationOverTime(
-          automationData.data || [],
-          recentActivitiesData.data || []
+          automationData.data || []
         ),
       };
 
@@ -416,8 +415,7 @@ export class DashboardService {
   }
 
   private static generatePeopleAutomationOverTime(
-    automationData: Record<string, unknown>[],
-    interactions: Record<string, unknown>[]
+    automationData: Record<string, unknown>[]
   ): Array<{
     date: string;
     peopleWithAutomation: number;
@@ -443,20 +441,8 @@ export class DashboardService {
       {} as Record<string, number>
     );
 
-    // Count automation activity (interactions) by date
-    const activityByDate = interactions.reduce(
-      (acc, interaction) => {
-        const date = new Date(interaction.occurred_at)
-          .toISOString()
-          .split('T')[0];
-        // Only count automation-related interactions
-        if (interaction.interaction_type?.includes('linkedin')) {
-          acc[date] = (acc[date] || 0) + 1;
-        }
-        return acc;
-      },
-      {} as Record<string, number>
-    );
+    // Interactions table removed - no automation activity to count
+    const activityByDate: Record<string, number> = {};
 
     let cumulativePeopleWithAutomation = 0;
 

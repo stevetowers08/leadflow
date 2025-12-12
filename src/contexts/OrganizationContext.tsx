@@ -75,8 +75,15 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
       }
 
       // Map and filter results
+      interface ClientUserRow {
+        client_id: string;
+        role: string;
+        is_primary_contact: boolean;
+        clients: Client | null;
+      }
+
       const orgs = (clientUsers || [])
-        .map((cu: any) => ({
+        .map((cu: ClientUserRow) => ({
           ...cu.clients,
           userRole: cu.role,
           isPrimary: cu.is_primary_contact,

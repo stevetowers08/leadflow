@@ -1017,7 +1017,6 @@ export type Database = {
         Row: {
           id: string
           person_id: string | null
-          interaction_id: string | null
           company_id: string | null
           gmail_message_id: string
           gmail_thread_id: string

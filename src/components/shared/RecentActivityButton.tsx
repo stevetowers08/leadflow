@@ -77,68 +77,7 @@ export const RecentActivityButton: React.FC = () => {
 
       const items: ActivityItem[] = [];
 
-      // Fetch interactions (emails, calls, meetings)
-      const interactionsQuery = supabase
-        .from('interactions')
-        .select(
-          'id, interaction_type, occurred_at, subject, content, person_id, people:person_id (id, name, company_id, companies!inner (id, name))'
-        )
-        .order('occurred_at', { ascending: false })
-        .limit(100);
-
-      if (clientId) {
-        // TODO: Add client_id filtering when interactions table has client_id column
-      }
-
-      const { data: interactions, error: interactionsError } =
-        await interactionsQuery;
-
-      if (interactionsError) throw interactionsError;
-
-      // Process interactions
-      for (const interaction of interactions || []) {
-        const person = interaction.people as { companies?: { name: string } };
-        const company = person?.companies;
-
-        let activityType: ActivityItem['type'] = 'interaction';
-        if (
-          interaction.interaction_type === 'email_sent' ||
-          interaction.interaction_type === 'email_reply'
-        ) {
-          activityType = 'email';
-        } else if (
-          interaction.interaction_type === 'meeting_booked' ||
-          interaction.interaction_type === 'meeting_held'
-        ) {
-          activityType = 'meeting';
-        } else if (interaction.interaction_type === 'note') {
-          activityType = 'note';
-        }
-
-        items.push({
-          id: interaction.id,
-          type: activityType,
-          entity_type: 'person',
-          entity_name: person?.name || 'Unknown Person',
-          entity_id: person?.id,
-          description:
-            interaction.subject || interaction.content || 'No details',
-          timestamp: interaction.occurred_at,
-        });
-
-        // Add company activity if person has a company
-        if (company) {
-          items.push({
-            id: `company-${company.id}-${interaction.id}`,
-            type: activityType,
-            entity_type: 'company',
-            entity_name: company.name || 'Unknown Company',
-            entity_id: company.id,
-            description: `${person?.name || 'Someone'} - ${interaction.subject || interaction.content || 'No details'}`,
-            timestamp: interaction.occurred_at,
-          });
-        }
-      }
+      // Interactions table removed - no longer used
 
       // Fetch notes
       let notesQuery = supabase

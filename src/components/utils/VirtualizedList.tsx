@@ -18,7 +18,7 @@ interface VirtualizedListProps {
   }>;
   height?: number;
   itemHeight?: number;
-  onItemClick?: (item: any) => void;
+  onItemClick?: (item: VirtualizedListProps['items'][number]) => void;
   type?: 'lead' | 'job' | 'company';
 }
 
@@ -32,7 +32,7 @@ const VirtualizedListItem = memo(
     style: React.CSSProperties;
     data: {
       items: VirtualizedListProps['items'];
-      onItemClick?: (item: any) => void;
+      onItemClick?: (item: VirtualizedListProps['items'][number]) => void;
       type?: 'lead' | 'job' | 'company';
     };
   }) => {

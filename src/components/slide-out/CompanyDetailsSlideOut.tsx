@@ -65,6 +65,7 @@ interface CompanyDetailsSlideOutProps {
   initialTab?: 'overview' | 'people' | 'activity' | 'notes';
 }
 
+// Interaction interface removed - table no longer exists
 interface Interaction {
   id: string;
   interaction_type: string;
@@ -85,7 +86,6 @@ const CompanyDetailsSlideOutComponent: React.FC<
   const { user } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
-  const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
@@ -116,7 +116,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
       {
         id: 'activity',
         label: 'Activity',
-        count: interactions.length,
+        count: 0,
         icon: Mail,
       },
       {
@@ -127,7 +127,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
         showCount: false,
       },
     ],
-    [people.length, interactions.length]
+    [people.length]
   );
 
   // Action handlers
@@ -420,41 +420,8 @@ const CompanyDetailsSlideOutComponent: React.FC<
         if (peopleError) throw peopleError;
 
 
-        // Fetch interactions for people at this company
-        // First get people IDs for this company
-        const { data: companyPeopleData } = await supabase
-          .from('people')
-          .select('id')
-          .eq('company_id', companyId);
-
-        const personIds = companyPeopleData?.map(p => p.id) || [];
-
-        // Then fetch interactions for these people
-        const { data: interactionsData, error: interactionsError } =
-          personIds.length > 0
-            ? await supabase
-                .from('interactions')
-                .select(
-                  `
-                id,
-                interaction_type,
-                occurred_at,
-                subject,
-                content,
-                person_id,
-                people!inner(id, name, company_role)
-              `
-                )
-                .in('person_id', personIds)
-                .order('occurred_at', { ascending: false })
-                .limit(20)
-            : { data: [], error: null };
-
-        if (interactionsError) throw interactionsError;
-
         setCompany(companyData as unknown as Company);
         setPeople((peopleData as unknown as Person[]) || []);
-        setInteractions((interactionsData as Interaction[]) || []);
 
         // Fetch notes count
         const companyIdForNotes = (companyData as { id?: string })?.id;
@@ -945,149 +912,15 @@ const CompanyDetailsSlideOutComponent: React.FC<
 
             {activeTab === 'activity' && (
               <div className='space-y-4 px-6 pb-4'>
-                {/* Recent Alerts Card - Notification Style */}
-                {interactions.length > 0 && (
-                  <div className='bg-white border border-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden'>
-                    <div className='p-6'>
-                      <div className='flex items-center justify-between mb-4'>
-                        <h3 className='font-semibold text-foreground'>
-                          Recent Alerts
-                        </h3>
-                        <div className='flex items-center gap-2'>
-                          <span className='relative flex h-3 w-3'>
-                            <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75' />
-                            <span className='relative inline-flex rounded-full h-3 w-3 bg-destructive/100' />
-                          </span>
-                          <span className='text-xs font-medium text-muted-foreground'>
-                            {interactions.length} New
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className='space-y-3'>
-                        {interactions.slice(0, 3).map((interaction, idx) => {
-                          const interactionType = getInteractionTypeDisplay(
-                            interaction.interaction_type
-                          );
-                          // Determine color based on interaction type
-                          let bgColor = 'bg-primary/10';
-                          let borderColor = 'border-blue-100';
-                          let dotColor = 'bg-primary/100';
-                          let textColor = 'text-primary';
-                          let hoverColor = 'hover:bg-blue-100';
-
-                          if (interaction.interaction_type?.includes('email')) {
-                            bgColor = 'bg-primary/10';
-                            borderColor = 'border-blue-100';
-                            dotColor = 'bg-primary/100';
-                            textColor = 'text-primary';
-                            hoverColor = 'hover:bg-blue-100';
-                          } else if (
-                            interaction.interaction_type?.includes('reply') ||
-                            interaction.interaction_type?.includes('positive')
-                          ) {
-                            bgColor = 'bg-emerald-50';
-                            borderColor = 'border-emerald-100';
-                            dotColor = 'bg-emerald-500';
-                            textColor = 'text-emerald-600';
-                            hoverColor = 'hover:bg-emerald-100';
-                          } else if (
-                            interaction.interaction_type?.includes('decline') ||
-                            interaction.interaction_type?.includes('negative')
-                          ) {
-                            bgColor = 'bg-destructive/10';
-                            borderColor = 'border-red-100';
-                            dotColor = 'bg-destructive/100';
-                            textColor = 'text-destructive';
-                            hoverColor = 'hover:bg-red-100';
-                          }
-
-                          return (
-                            <div
-                              key={interaction.id}
-                              className={`flex items-start gap-3 p-3 ${bgColor} border ${borderColor} rounded-lg group ${hoverColor} transition-colors cursor-pointer`}
-                            >
-                              <div
-                                className={`w-2 h-2 rounded-full ${dotColor} mt-1.5 flex-shrink-0`}
-                              />
-                              <div className='flex-1 min-w-0'>
-                                <p className='text-sm font-medium text-foreground'>
-                                  {interactionType}
-                                </p>
-                                <p className='text-xs text-muted-foreground mt-0.5'>
-                                  {interaction.people?.name || 'Unknown Person'}
-                                </p>
-                                {interaction.subject && (
-                                  <p className='text-xs text-muted-foreground mt-0.5 truncate'>
-                                    {interaction.subject}
-                                  </p>
-                                )}
-                                <span
-                                  className={`text-xs ${textColor} mt-1 inline-block`}
-                                >
-                                  {formatDate(interaction.occurred_at)}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {interactions.length > 3 && (
-                        <button className='mt-4 w-full text-xs font-medium text-center text-primary hover:text-primary py-2 border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors'>
-                          View All Alerts ({interactions.length})
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 {/* Activity Timeline */}
                 <div className='space-y-3'>
                   <h3 className='text-sm font-semibold text-foreground px-1'>
                     All Activity
                   </h3>
-                  {interactions.length > 0 ? (
-                    <div className='space-y-3'>
-                      {interactions.map(interaction => (
-                        <div
-                          key={interaction.id}
-                          className='flex gap-3 p-3 bg-muted rounded-lg hover:bg-gray-100 transition-colors'
-                        >
-                          <div className='flex-shrink-0 w-1 bg-primary/100 rounded-full' />
-                          <div className='flex-1 min-w-0'>
-                            <div className='flex items-center gap-2 mb-1'>
-                              <span className='text-xs font-medium text-primary'>
-                                {getInteractionTypeDisplay(
-                                  interaction.interaction_type
-                                )}
-                              </span>
-                              <span className='text-xs text-muted-foreground'>
-                                {formatDate(interaction.occurred_at)}
-                              </span>
-                            </div>
-                            <div className='text-sm font-medium text-foreground'>
-                              {interaction.people?.name || 'Unknown Person'}
-                            </div>
-                            {interaction.subject && (
-                              <div className='text-xs text-muted-foreground mt-1 truncate'>
-                                {interaction.subject}
-                              </div>
-                            )}
-                            {interaction.content && (
-                              <div className='text-xs text-muted-foreground mt-1 line-clamp-2'>
-                                {interaction.content}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className='text-center py-8 text-muted-foreground'>
-                      No activity yet
-                    </div>
-                  )}
+                  <div className='text-center py-8 text-muted-foreground'>
+                    No activity yet
+                  </div>
                 </div>
               </div>
             )}
@@ -1103,65 +936,10 @@ const CompanyDetailsSlideOutComponent: React.FC<
                 <div className='flex items-center gap-1.5'>
                   <Mail className='h-4 w-4 text-muted-foreground' />
                   <span>Activity</span>
-                  {interactions.length > 0 && (
-                    <span className='ml-1.5 text-muted-foreground font-normal'>
-                      ({interactions.length})
-                    </span>
-                  )}
                 </div>
               </h3>
               <div className='space-y-2 select-text overflow-x-hidden'>
-                {interactions.length > 0 ? (
-                  interactions.slice(0, 5).map(interaction => {
-                    const interactionType = getInteractionTypeDisplay(
-                      interaction.interaction_type
-                    );
-                    let dotColor = 'bg-primary/100';
-                    if (
-                      interaction.interaction_type?.includes('reply') ||
-                      interaction.interaction_type?.includes('positive')
-                    ) {
-                      dotColor = 'bg-emerald-500';
-                    } else if (
-                      interaction.interaction_type?.includes('decline') ||
-                      interaction.interaction_type?.includes('negative')
-                    ) {
-                      dotColor = 'bg-destructive/100';
-                    }
-
-                    return (
-                      <div
-                        key={interaction.id}
-                        className='flex gap-3 p-3 rounded-lg hover:bg-muted transition-colors border border-transparent hover:border-border select-text'
-                      >
-                        <div
-                          className={`flex-shrink-0 w-2 h-2 rounded-full ${dotColor} mt-1.5`}
-                        />
-                        <div className='flex-1 min-w-0'>
-                          <div className='text-xs font-medium text-foreground'>
-                            {interactionType}
-                          </div>
-                          <div className='text-xs text-muted-foreground mt-0.5'>
-                            {interaction.people?.name || 'Unknown'}
-                          </div>
-                          <div className='text-xs text-muted-foreground mt-1'>
-                            {formatDate(interaction.occurred_at)}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className='text-sm text-muted-foreground py-2'>No activity</p>
-                )}
-                {interactions.length > 5 && (
-                  <button
-                    onClick={() => setActiveTab('activity')}
-                    className='text-xs text-primary hover:text-primary w-full text-left py-2 font-medium'
-                  >
-                    View all {interactions.length} activities →
-                  </button>
-                )}
+                <p className='text-sm text-muted-foreground py-2'>No activity</p>
               </div>
             </div>
 
@@ -1239,17 +1017,6 @@ const CompanyDetailsSlideOutComponent: React.FC<
 export const CompanyDetailsSlideOut = memo(CompanyDetailsSlideOutComponent);
 
 // Helper functions
-const getInteractionTypeDisplay = (type: string): string => {
-  const displayMap: Record<string, string> = {
-    email_sent: 'Email Sent',
-    email_reply: 'Email Reply',
-    meeting_booked: 'Meeting Booked',
-    meeting_held: 'Meeting Held',
-    disqualified: 'Disqualified',
-    note: 'Note',
-  };
-  return displayMap[type] || type;
-};
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);

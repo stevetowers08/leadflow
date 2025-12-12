@@ -6,7 +6,7 @@ export interface ErrorInfo {
   message: string;
   stack?: string;
   timestamp: Date;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   severity: 'low' | 'medium' | 'high' | 'critical';
   resolved?: boolean;
 }

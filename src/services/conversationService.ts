@@ -227,12 +227,12 @@ export class ConversationService {
 
     // conversation_sync_logs table removed - using activity_log instead
     // await supabase.from('conversation_sync_logs').insert({
-      user_id: user.user?.id,
-      operation_type: operationType,
-      status,
-      message_count: messageCount,
-      error_message: errorMessage,
-    });
+    //   user_id: user.user?.id,
+    //   operation_type: operationType,
+    //   status,
+    //   message_count: messageCount,
+    //   error_message: errorMessage,
+    // });
   }
 
   async getConversationStats(): Promise<{

@@ -3,7 +3,7 @@ import { useEffect, useCallback, useRef } from 'react';
 // Analytics event types
 export interface AnalyticsEvent {
   event: string;
-  properties?: Record<string, any>;
+  properties?: Record<string, string | number | boolean | null | undefined>;
   timestamp?: number;
   userId?: string;
   sessionId?: string;

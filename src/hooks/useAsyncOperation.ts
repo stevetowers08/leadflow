@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { toast } from '@/utils/toast';
 import { useErrorHandler, useRetry } from '@/hooks/useErrorHandler';
 
-export interface AsyncOperationState<T = any> {
+export interface AsyncOperationState<T = unknown> {
   data: T | null;
   isLoading: boolean;
   error: string | null;
@@ -21,13 +21,13 @@ export interface AsyncOperationOptions {
   showErrorToast?: boolean;
   successMessage?: string;
   errorMessage?: string;
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
   onRetry?: (attempt: number) => void;
 }
 
-export function useAsyncOperation<T = any>(
-  asyncFn: (...args: any[]) => Promise<T>,
+export function useAsyncOperation<T = unknown>(
+  asyncFn: (...args: unknown[]) => Promise<T>,
   options: AsyncOperationOptions = {}
 ) {
   const {
@@ -63,7 +63,7 @@ export function useAsyncOperation<T = any>(
   });
 
   const execute = useCallback(
-    async (...args: any[]) => {
+    async (...args: unknown[]) => {
       setState(prev => ({
         ...prev,
         isLoading: true,
@@ -139,7 +139,7 @@ export function useAsyncOperation<T = any>(
   }, []);
 
   const retry = useCallback(
-    async (...args: any[]) => {
+    async (...args: unknown[]) => {
       return execute(...args);
     },
     [execute]
@@ -156,12 +156,12 @@ export function useAsyncOperation<T = any>(
 }
 
 // Specialized hook for data fetching operations
-export function useAsyncData<T = any>(
-  fetchFn: (...args: any[]) => Promise<T>,
+export function useAsyncData<T = unknown>(
+  fetchFn: (...args: unknown[]) => Promise<T>,
   options: AsyncOperationOptions & {
     initialData?: T;
     autoExecute?: boolean;
-    executeArgs?: any[];
+    executeArgs?: unknown[];
   } = {}
 ) {
   const {
@@ -191,8 +191,8 @@ export function useAsyncData<T = any>(
 }
 
 // Hook for mutation operations (create, update, delete)
-export function useAsyncMutation<T = any>(
-  mutationFn: (...args: any[]) => Promise<T>,
+export function useAsyncMutation<T = unknown>(
+  mutationFn: (...args: unknown[]) => Promise<T>,
   options: AsyncOperationOptions = {}
 ) {
   return useAsyncOperation(mutationFn, {
@@ -203,8 +203,8 @@ export function useAsyncMutation<T = any>(
 }
 
 // Hook for batch operations
-export function useAsyncBatchOperation<T = any>(
-  batchFn: (items: any[]) => Promise<T[]>,
+export function useAsyncBatchOperation<T = unknown>(
+  batchFn: (items: T[]) => Promise<T[]>,
   options: AsyncOperationOptions & {
     batchSize?: number;
     onProgress?: (completed: number, total: number) => void;
@@ -214,7 +214,7 @@ export function useAsyncBatchOperation<T = any>(
 
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
 
-  const operation = useAsyncOperation(async (items: any[]) => {
+  const operation = useAsyncOperation<T[]>(async (items: T[]) => {
     const results: T[] = [];
     const batches = [];
 

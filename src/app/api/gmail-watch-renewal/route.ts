@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
           .from('integrations')
           .update({
             config: {
-              ...config,
+              ...(config as Record<string, unknown>),
               watch_history_id: watchData.historyId,
               watch_expiration: watchData.expiration,
             },

@@ -129,17 +129,17 @@ export function useFollowUpReminders() {
       }
 
       // Filter to only those who have sent at least one email
-      const { data: interactions } = await supabase
-        .from('interactions')
+      const { data: emailSends } = await supabase
+        .from('email_sends')
         .select('person_id')
-        .eq('interaction_type', 'email_sent')
+        .eq('status', 'sent')
         .in(
           'person_id',
           peopleNeedingFollowUp.map(p => p.id)
         );
 
       const peopleWithEmails = new Set(
-        (interactions || []).map(i => i.person_id)
+        (emailSends || []).map(e => e.person_id)
       );
 
       const peopleToNotify = peopleNeedingFollowUp.filter(p =>

@@ -4,12 +4,12 @@ import { statusAutomation } from './statusAutomationService';
 // Check if this is first message for user
 async function checkAndCelebrateFirstMessage(personId: string) {
   try {
-    // Count total messages sent by this user
+    // Count total messages sent by this user using email_sends table
     const { count } = await supabase
-      .from('interactions')
+      .from('email_sends')
       .select('*', { count: 'exact', head: true })
       .eq('person_id', personId)
-      .eq('interaction_type', 'email_sent');
+      .eq('status', 'sent');
 
     // If this is the first email, show celebration
     if (count === 0) {
