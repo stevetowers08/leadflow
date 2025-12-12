@@ -24,6 +24,7 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { PermissionsProvider } from '@/contexts/PermissionsContext';
+import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { SearchProvider } from '@/contexts/SearchContext';
 import { SlidePanelProvider } from '@/contexts/SlidePanelContext';
 import { LoggingProvider } from '@/utils/enhancedLogger';
@@ -33,9 +34,13 @@ import { useClientId } from '@/hooks/useClientId';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10 * 60 * 1000, // 10 minutes for stable data
-      retry: 3, // More retries for better UX
+      staleTime: 5 * 60 * 1000, // 5 minutes - reduced for better freshness
+      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      retry: 2, // Reduced retries for faster failure handling
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      refetchOnWindowFocus: false, // Disable refetch on focus for better performance
+      refetchOnMount: true, // Still refetch on mount for fresh data
+      refetchOnReconnect: true, // Refetch on reconnect
     },
   },
 });
@@ -231,18 +236,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <PerformanceProvider>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
-              <PermissionsWrapper>
-                <OnboardingProvider>
-                  <SlidePanelProvider>
-                    <SearchProvider>
-                      <AppInitialization>
-                        {children}
-                        <Toaster />
-                      </AppInitialization>
-                    </SearchProvider>
-                  </SlidePanelProvider>
-                </OnboardingProvider>
-              </PermissionsWrapper>
+              <OrganizationProvider>
+                <PermissionsWrapper>
+                  <OnboardingProvider>
+                    <SlidePanelProvider>
+                      <SearchProvider>
+                        <AppInitialization>
+                          {children}
+                          <Toaster />
+                        </AppInitialization>
+                      </SearchProvider>
+                    </SlidePanelProvider>
+                  </OnboardingProvider>
+                </PermissionsWrapper>
+              </OrganizationProvider>
             </AuthProvider>
           </QueryClientProvider>
         </PerformanceProvider>

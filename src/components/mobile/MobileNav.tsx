@@ -17,6 +17,7 @@ import {
   Settings,
   Users,
   MoreHorizontal,
+  Camera,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -41,6 +42,12 @@ const allNavItems: NavItem[] = [
     isPrimary: true,
   },
   {
+    to: '/capture',
+    label: 'Capture',
+    icon: <Camera className='h-5 w-5' />,
+    isPrimary: true,
+  },
+  {
     to: '/leads',
     label: 'Leads',
     icon: <Users className='h-5 w-5' />,
@@ -54,7 +61,7 @@ const allNavItems: NavItem[] = [
   },
   {
     to: '/workflows',
-    label: 'Workflows',
+    label: 'Campaigns',
     icon: <GitMerge className='h-5 w-5' />,
   },
   {
@@ -229,12 +236,13 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
             {/* More Menu Dropdown */}
             {showMoreMenu && (
               <div
-                className='absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-72 bg-background border border-border rounded-2xl shadow-xl z-40 animate-in fade-in slide-in-from-bottom-2 duration-200'
+                className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-background border border-border rounded-2xl shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2 duration-200 max-h-[calc(100vh-120px)]'
                 data-more-menu
                 role='menu'
                 aria-label='Additional navigation options'
+                style={{ maxHeight: 'calc(100vh - 120px)' }}
               >
-                <div className='py-2 max-h-[60vh] overflow-y-auto'>
+                <div className='py-2 max-h-[60vh] overflow-y-auto overscroll-contain'>
                   <div className='px-4 py-2.5 border-b border-border'>
                     <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
                       More Options

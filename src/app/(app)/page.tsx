@@ -23,12 +23,16 @@ export default function OverviewPage() {
     queryKey: ['lead-stats'],
     queryFn: () => getLeadStats(),
     enabled: shouldBypassAuth() || (!authLoading && !!user),
+    staleTime: 5 * 60 * 1000, // Cache stats for 5 minutes (less frequently changing)
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   const { data: recentLeads = [] } = useQuery({
     queryKey: ['recent-leads'],
     queryFn: () => getLeads({ limit: 10 }),
     enabled: shouldBypassAuth() || (!authLoading && !!user),
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus for better performance
   });
 
   return (

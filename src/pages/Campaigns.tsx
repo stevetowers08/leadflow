@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Page } from '@/design-system/components';
 import { useToast } from '@/hooks/use-toast';
 import { useCampaignSequences } from '@/hooks/useCampaignSequences';
@@ -29,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { LemlistCampaignsView } from '@/components/campaigns/LemlistCampaignsView';
 
 // Client-side mount guard wrapper
 const Campaigns: React.FC = () => {
@@ -207,9 +209,16 @@ function CampaignsContent() {
 
   return (
     <Page title='Campaigns' hideHeader>
-      <div className='space-y-4'>
-        {/* Header Section with Filters and Search */}
-        <div className='flex justify-between items-center'>
+      <Tabs defaultValue="email" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="email">Email</TabsTrigger>
+          <TabsTrigger value="lemlist">Lemlist</TabsTrigger>
+        </TabsList>
+
+        {/* Email Tab */}
+        <TabsContent value="email" className="space-y-4">
+          {/* Header Section with Filters and Search */}
+          <div className='flex justify-between items-center'>
           <div className='flex items-center gap-4'>
             {/* Filter Dropdown */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -401,7 +410,13 @@ function CampaignsContent() {
             </div>
           </div>
         )}
-      </div>
+        </TabsContent>
+
+        {/* Lemlist Tab */}
+        <TabsContent value="lemlist">
+          <LemlistCampaignsView />
+        </TabsContent>
+      </Tabs>
     </Page>
   );
 }

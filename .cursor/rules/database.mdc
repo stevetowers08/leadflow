@@ -11,6 +11,19 @@ alwaysApply: false
 
 # Database Best Practices
 
+## Supabase MCP Access
+
+For any database-related issues, queries, migrations, or operations, you have access to **Supabase MCP (Model Context Protocol)** tools. Use these tools when:
+
+- Inspecting database schema, tables, or columns
+- Executing SQL queries or migrations
+- Checking RLS policies and security advisors
+- Viewing database logs
+- Managing projects, branches, or migrations
+- Generating TypeScript types from schema
+
+**Always use Supabase MCP tools for database operations** instead of making assumptions about schema or structure.
+
 ## Key Tables
 
 - **jobs** - Job postings (qualification_status: new | qualify | skip)

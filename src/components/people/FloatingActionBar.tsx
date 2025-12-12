@@ -49,9 +49,9 @@ export interface FloatingActionBarProps {
   onExport: () => Promise<void>;
   onSyncCRM: () => Promise<void>;
   onSendEmail: () => Promise<void>;
-  onAddToCampaign: (campaignId: string) => Promise<void>;
+  onAddToCampaign: (campaignId: string, campaignType: 'email' | 'lemlist') => Promise<void>;
   onClear: () => void;
-  campaigns?: Array<{ id: string; name: string }>;
+  campaigns?: Array<{ id: string; name: string; type: 'email' | 'lemlist' }>;
 }
 
 export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
@@ -89,8 +89,8 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
     setShowDeleteDialog(false);
   };
 
-  const handleCampaignSelect = async (campaignId: string) => {
-    await handleAction('campaign', () => onAddToCampaign(campaignId));
+  const handleCampaignSelect = async (campaignId: string, campaignType: 'email' | 'lemlist') => {
+    await handleAction('campaign', () => onAddToCampaign(campaignId, campaignType));
     setShowCampaignSelect(false);
   };
 
@@ -234,7 +234,12 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className='py-4'>
-            <Select onValueChange={handleCampaignSelect}>
+            <Select onValueChange={(value) => {
+              const selectedCampaign = campaigns.find(c => c.id === value);
+              if (selectedCampaign) {
+                handleCampaignSelect(selectedCampaign.id, selectedCampaign.type);
+              }
+            }}>
               <SelectTrigger>
                 <SelectValue placeholder='Select a campaign' />
               </SelectTrigger>

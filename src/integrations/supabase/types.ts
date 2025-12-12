@@ -799,6 +799,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_active: boolean | null
+          metadata: Json | null
           role: string | null
           updated_at: string | null
           user_limit: number | null
@@ -810,6 +811,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_active?: boolean | null
+          metadata?: Json | null
           role?: string | null
           updated_at?: string | null
           user_limit?: number | null
@@ -821,6 +823,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_active?: boolean | null
+          metadata?: Json | null
           role?: string | null
           updated_at?: string | null
           user_limit?: number | null

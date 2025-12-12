@@ -42,6 +42,8 @@ export interface SupabaseErrorLog {
 class SupabaseErrorService {
   private notificationSettings: ErrorNotificationSettings | null = null;
   private adminEmail: string | null = null;
+  private isLogging = false; // Guard flag to prevent recursive logging
+  private isLogging = false; // Guard flag to prevent recursive logging
 
   /**
    * Initialize the error service with admin email
@@ -180,7 +182,14 @@ class SupabaseErrorService {
       };
 
       // Use API route instead of direct Supabase insert to avoid RLS issues
+      // Prevent recursive logging
+      if (this.isLogging) {
+        return errorId;
+      }
+
       try {
+        this.isLogging = true;
+        
         // Map ErrorCategory to API route's expected type
         const categoryToTypeMap: Record<ErrorCategory, 'unhandled' | 'promise' | 'resource' | 'validation' | 'permission' | 'data' | 'unknown'> = {
           [ErrorCategory.AUTHENTICATION]: 'permission',
@@ -213,6 +222,7 @@ class SupabaseErrorService {
 
         if (!response.ok) {
           // Silently fail - don't let error logging cause cascading errors
+          this.isLogging = false;
           return errorId;
         }
 
@@ -221,8 +231,11 @@ class SupabaseErrorService {
           // Use the returned ID from API
           errorData.id = result.id;
         }
+        
+        this.isLogging = false;
       } catch (fetchError) {
         // Silently fail error logging to prevent cascading errors
+        this.isLogging = false;
         return errorId;
       }
 

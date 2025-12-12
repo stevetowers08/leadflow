@@ -81,8 +81,17 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
       if (error) {
         const errorMsg = getErrorMessage(error);
-        console.error('Supabase error:', errorMsg, error);
-        alert('Error fetching data: ' + errorMsg);
+        const isTableNotFound = 
+          errorMsg.includes('schema cache') ||
+          errorMsg.includes('does not exist') ||
+          errorMsg.includes('Could not find the table');
+        
+        // Suppress table not found errors (table may not exist yet)
+        if (!isTableNotFound) {
+          console.error('Supabase error:', errorMsg, error);
+          alert('Error fetching data: ' + errorMsg);
+        }
+        setConversations([]);
         return;
       }
 
@@ -124,8 +133,17 @@ export const ConversationList: React.FC<ConversationListProps> = ({
       setConversations(conversations);
     } catch (error) {
       const errorMessage = getErrorMessage(error) || 'Unknown error occurred';
-      console.error('Failed to load conversations:', errorMessage, error);
-      alert('Failed to load conversations: ' + errorMessage);
+      const isTableNotFound = 
+        errorMessage.includes('schema cache') ||
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('Could not find the table');
+      
+      // Suppress table not found errors (table may not exist yet)
+      if (!isTableNotFound) {
+        console.error('Failed to load conversations:', errorMessage, error);
+        alert('Failed to load conversations: ' + errorMessage);
+      }
+      setConversations([]);
     } finally {
       setLoading(false);
     }

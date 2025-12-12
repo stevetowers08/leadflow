@@ -14,19 +14,31 @@
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   ReactNode,
-  Suspense,
-  lazy,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
 import { usePathname } from 'next/navigation';
-import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { TopNavigationBar } from './TopNavigationBar';
+import dynamic from 'next/dynamic';
 
-const MobileNav = lazy(() => import('../mobile/MobileNav'));
+// Lazy load heavy components for better initial load performance
+// Using Next.js dynamic import instead of React.lazy for better Next.js 16/Turbopack compatibility
+const AppSidebar = dynamic(() => import('@/components/app-sidebar').then(mod => ({ default: mod.AppSidebar })), {
+  ssr: false,
+  loading: () => null,
+});
+
+const TopNavigationBar = dynamic(() => import('./TopNavigationBar').then(mod => ({ default: mod.TopNavigationBar })), {
+  ssr: false,
+  loading: () => null,
+});
+
+const MobileNav = dynamic(() => import('../mobile/MobileNav'), {
+  ssr: false,
+  loading: () => null,
+});
 
 interface LayoutProps {
   children: ReactNode;
@@ -63,8 +75,8 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         subheading: 'View and manage all email conversations with your leads',
       },
       '/workflows': {
-        title: 'Workflows',
-        subheading: 'Create and manage visual automation workflows',
+        title: 'Campaigns',
+        subheading: 'Create and manage email campaigns and automation',
       },
       '/analytics': {
         title: 'Analytics',
@@ -151,11 +163,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         </main>
 
         {/* Mobile bottom nav */}
-        {isMobile && (
-          <Suspense fallback={null}>
-            <MobileNav />
-          </Suspense>
-        )}
+        {isMobile && <MobileNav />}
       </SidebarInset>
     </SidebarProvider>
   );

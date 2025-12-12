@@ -162,6 +162,7 @@ export async function deleteLead(leadId: string): Promise<void> {
 
 /**
  * Get lead statistics
+ * Optimized: Uses database aggregation instead of fetching all records
  */
 export async function getLeadStats(): Promise<{
   total: number;
@@ -171,23 +172,27 @@ export async function getLeadStats(): Promise<{
   active: number;
   processing: number;
 }> {
-  const { data, error } = await supabase
-    .from('leads')
-    .select('quality_rank, status');
+  // Use count queries for better performance - only fetch counts, not data
+  const [totalResult, hotResult, warmResult, coldResult, activeResult, processingResult] = await Promise.all([
+    supabase.from('leads').select('*', { count: 'exact', head: true }),
+    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('quality_rank', 'hot'),
+    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('quality_rank', 'warm'),
+    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('quality_rank', 'cold'),
+    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'processing'),
+  ]);
 
-  if (error) {
-    throw new Error(`Failed to get lead stats: ${error.message}`);
+  if (totalResult.error) {
+    throw new Error(`Failed to get lead stats: ${totalResult.error.message}`);
   }
 
-  const leads = data || [];
-
   return {
-    total: leads.length,
-    hot: leads.filter((l) => l.quality_rank === 'hot').length,
-    warm: leads.filter((l) => l.quality_rank === 'warm').length,
-    cold: leads.filter((l) => l.quality_rank === 'cold').length,
-    active: leads.filter((l) => l.status === 'active').length,
-    processing: leads.filter((l) => l.status === 'processing').length,
+    total: totalResult.count || 0,
+    hot: hotResult.count || 0,
+    warm: warmResult.count || 0,
+    cold: coldResult.count || 0,
+    active: activeResult.count || 0,
+    processing: processingResult.count || 0,
   };
 }
 

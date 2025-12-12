@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { TabNavigation, TabOption } from '@/components/ui/tab-navigation';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import {
   bulkAddToCampaign,
@@ -81,6 +82,7 @@ const CompanyDetailsSlideOutComponent: React.FC<
   CompanyDetailsSlideOutProps
 > = ({ companyId, isOpen, onClose, onUpdate, onPersonClick, initialTab }) => {
   const router = useRouter();
+  const { user } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -181,20 +183,53 @@ const CompanyDetailsSlideOutComponent: React.FC<
 
   const handleAddToCampaign = useCallback(
     async (campaignId: string) => {
-      if (selectedPeople.length === 0) return;
-      const result = await bulkAddToCampaign(selectedPeople, campaignId);
-      toast({
-        title: result.success ? 'Success' : 'Error',
-        description: result.message,
-        variant: result.success ? 'default' : 'destructive',
-      });
-      if (result.success) {
-        setSelectedPeople([]);
-        setShowCampaignSelect(false);
-        onUpdate?.();
+      if (selectedPeople.length === 0 || !user) return;
+      
+      // Check if it's a Lemlist campaign (ID starts with "cam_")
+      const isLemlistCampaign = campaignId.startsWith('cam_');
+      
+      if (isLemlistCampaign) {
+        // Use Lemlist service for bulk add
+        try {
+          const { bulkAddPeopleToLemlistCampaign } = await import('@/services/bulkLemlistService');
+          const result = await bulkAddPeopleToLemlistCampaign(user.id, campaignId, selectedPeople);
+          
+          toast({
+            title: result.success > 0 ? 'Success' : 'Error',
+            description: result.success > 0 
+              ? `Added ${result.success} lead(s) to Lemlist campaign${result.failed > 0 ? ` (${result.failed} failed)` : ''}`
+              : result.errors[0]?.error || 'Failed to add leads to campaign',
+            variant: result.success > 0 ? 'default' : 'destructive',
+          });
+          
+          if (result.success > 0) {
+            setSelectedPeople([]);
+            setShowCampaignSelect(false);
+            onUpdate?.();
+          }
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: error instanceof Error ? error.message : 'Failed to add leads to Lemlist campaign',
+            variant: 'destructive',
+          });
+        }
+      } else {
+        // Use regular campaign service
+        const result = await bulkAddToCampaign(selectedPeople, campaignId);
+        toast({
+          title: result.success ? 'Success' : 'Error',
+          description: result.message,
+          variant: result.success ? 'default' : 'destructive',
+        });
+        if (result.success) {
+          setSelectedPeople([]);
+          setShowCampaignSelect(false);
+          onUpdate?.();
+        }
       }
     },
-    [selectedPeople, toast, onUpdate]
+    [selectedPeople, user, toast, onUpdate]
   );
 
   const handleBulkSendMessage = useCallback(() => {
@@ -500,39 +535,58 @@ const CompanyDetailsSlideOutComponent: React.FC<
     fetchCompanyDetails();
   }, [companyId, isOpen, toast]);
 
-  // Fetch campaigns
+  // Fetch campaigns (both email campaigns and Lemlist campaigns)
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const { data, error } = await supabase
-          .from('campaign_sequences')
-          .select('id, name')
-          .eq('status', 'active')
-          .order('name', { ascending: true });
+        const allCampaigns: Array<{ id: string; name: string; type?: 'email' | 'lemlist' }> = [];
 
-        if (error) {
-          // Check if table doesn't exist
-          if (error.message?.includes('schema cache') || error.message?.includes('does not exist')) {
-            console.warn('[CompanyDetailsSlideOut] campaign_sequences table not found. Migration may not have been run.');
-            setCampaigns([]);
-            return;
+        // Fetch email campaigns
+        try {
+          const { data: emailCampaigns, error: emailError } = await supabase
+            .from('campaign_sequences')
+            .select('id, name')
+            .eq('status', 'active')
+            .order('name', { ascending: true });
+
+          if (!emailError && emailCampaigns) {
+            allCampaigns.push(...emailCampaigns.map(c => ({ ...c, type: 'email' as const })));
           }
-          throw error;
+        } catch (emailErr) {
+          // Silently handle missing table
+          if (!getErrorMessage(emailErr).includes('schema cache') && !getErrorMessage(emailErr).includes('does not exist')) {
+            console.error('[CompanyDetailsSlideOut] Error fetching email campaigns:', emailErr);
+          }
         }
-        setCampaigns(data || []);
+
+        // Fetch Lemlist campaigns
+        if (user) {
+          try {
+            const { getLemlistCampaigns } = await import('@/services/lemlistWorkflowService');
+            const lemlistCampaigns = await getLemlistCampaigns(user.id);
+            allCampaigns.push(...lemlistCampaigns.map(c => ({ 
+              id: c.id, 
+              name: `[Lemlist] ${c.name}`,
+              type: 'lemlist' as const 
+            })));
+          } catch (lemlistErr) {
+            // Silently handle Lemlist errors (credentials not set, etc.)
+            console.debug('[CompanyDetailsSlideOut] Could not fetch Lemlist campaigns:', lemlistErr);
+          }
+        }
+
+        setCampaigns(allCampaigns);
       } catch (error) {
-        // Only log non-table-missing errors
         const errorMessage = getErrorMessage(error);
         if (!errorMessage.includes('schema cache') && !errorMessage.includes('does not exist')) {
           console.error('[CompanyDetailsSlideOut] Error fetching campaigns:', errorMessage, error);
         }
-        // Set empty array to prevent UI errors
         setCampaigns([]);
       }
     };
 
     fetchCampaigns();
-  }, []);
+  }, [user]);
 
   if (!company) {
     return (

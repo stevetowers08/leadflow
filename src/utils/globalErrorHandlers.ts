@@ -72,7 +72,10 @@ export function setupGlobalErrorHandlers(): void {
 
       // Log failed requests to error tracking service
       // HTTP 5xx errors are handled gracefully by the application and won't spam console
-      if (!response.ok) {
+      const url = args[0]?.toString() || '';
+      
+      // Don't log errors from the error logging endpoint itself (prevents infinite loops)
+      if (!response.ok && !url.includes('/api/errors')) {
         // Always log to error tracking service for monitoring
         await enhancedErrorLogger.logNetworkError(
           `HTTP ${response.status}: ${response.statusText}`,
@@ -80,7 +83,7 @@ export function setupGlobalErrorHandlers(): void {
             component: 'fetch',
             action: 'http_request',
             metadata: {
-              url: args[0]?.toString(),
+              url,
               status: response.status,
               statusText: response.statusText,
               method: args[1]?.method || 'GET',
@@ -91,15 +94,32 @@ export function setupGlobalErrorHandlers(): void {
 
       return response;
     } catch (error) {
-      // Network errors (connection failures) should always be logged
-      await enhancedErrorLogger.logNetworkError(error as Error, {
-        component: 'fetch',
-        action: 'network_error',
-        metadata: {
-          url: args[0]?.toString(),
-          method: args[1]?.method || 'GET',
-        },
-      });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const url = args[0]?.toString() || '';
+      
+      // Suppress "Failed to fetch" errors from expected scenarios:
+      // - API key validation/testing (Lemlist, external APIs)
+      // - CORS errors from third-party APIs
+      // - Network timeouts during connection testing
+      const isExpectedError = 
+        errorMessage === 'Failed to fetch' &&
+        (url.includes('api.lemlist.com') || 
+         url.includes('lemlist.com') ||
+         url.includes('/api/lemlist') ||
+         url.includes('/api/integrations') ||
+         url.includes('/api/oauth'));
+      
+      if (!isExpectedError) {
+        // Network errors (connection failures) should be logged for unexpected cases
+        await enhancedErrorLogger.logNetworkError(error as Error, {
+          component: 'fetch',
+          action: 'network_error',
+          metadata: {
+            url,
+            method: args[1]?.method || 'GET',
+          },
+        });
+      }
       throw error;
     }
   };

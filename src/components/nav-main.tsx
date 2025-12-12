@@ -25,7 +25,7 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupContent className="flex flex-col gap-2">
+      <SidebarGroupContent className="flex flex-col gap-2 min-h-0">
         <SidebarMenu>
           {items.map((item) => {
             const Icon = item.icon

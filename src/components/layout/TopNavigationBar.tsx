@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import { memo } from 'react';
 
 interface TopNavigationBarProps {
   pageTitle: string;
@@ -19,7 +20,7 @@ interface TopNavigationBarProps {
   style?: React.CSSProperties;
 }
 
-export const TopNavigationBar = ({
+export const TopNavigationBar = memo(({
   pageTitle,
   pageSubheading,
   onSearch,
@@ -36,26 +37,28 @@ export const TopNavigationBar = ({
       )}
       style={style}
     >
-      <div className="flex w-full items-center gap-1 pl-3 pr-4 lg:gap-2 lg:pl-6 lg:pr-6 overflow-visible">
-        <SidebarTrigger className="flex-shrink-0" />
+      <div className="flex w-full items-center gap-1 pl-3 pr-4 sm:gap-2 sm:pl-4 sm:pr-4 lg:gap-2 lg:pl-6 lg:pr-6 overflow-visible">
+        <SidebarTrigger className="flex-shrink-0 min-h-[48px] min-w-[48px] sm:min-h-0 sm:min-w-0" />
         <Separator
           orientation="vertical"
-          className="mx-2 data-[orientation=vertical]:h-4"
+          className="mx-1 sm:mx-2 data-[orientation=vertical]:h-4"
         />
-        <Breadcrumb>
-          <BreadcrumbList>
+        <Breadcrumb className="min-w-0 flex-1">
+          <BreadcrumbList className="flex items-center min-w-0">
             <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="/">
+              <BreadcrumbLink href="/" className="truncate">
                 Home
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{pageTitle}</BreadcrumbPage>
+            <BreadcrumbItem className="min-w-0">
+              <BreadcrumbPage className="truncate text-sm sm:text-base">{pageTitle}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
     </header>
   );
-};
+});
+
+TopNavigationBar.displayName = 'TopNavigationBar';

@@ -115,31 +115,33 @@
   }
 }
 
-/* Improved mobile typography - better readability */
+/* 2025: Improved mobile typography with fluid sizing */
 @media (max-width: 767px) {
-  /* Ensure readable font sizes */
+  /* Ensure readable font sizes with fluid typography */
   body {
-    font-size: 16px;
+    font-size: clamp(15px, 4vw, 16px); /* Fluid: 15-16px */
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Headings */
+  /* Headings with fluid sizing */
   h1 {
-    font-size: 1.75rem;
+    font-size: clamp(1.5rem, 5vw, 1.75rem); /* Fluid: 24-28px */
     line-height: 1.2;
     font-weight: 700;
+    letter-spacing: -0.02em; /* Tighter letter spacing for mobile */
   }
 
   h2 {
-    font-size: 1.5rem;
+    font-size: clamp(1.25rem, 4vw, 1.5rem); /* Fluid: 20-24px */
     line-height: 1.3;
     font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   h3 {
-    font-size: 1.25rem;
+    font-size: clamp(1.125rem, 3.5vw, 1.25rem); /* Fluid: 18-20px */
     line-height: 1.4;
     font-weight: 600;
   }
@@ -148,6 +150,12 @@
   p,
   span {
     line-height: 1.6;
+    font-size: clamp(14px, 3.5vw, 15px); /* Fluid: 14-15px */
+  }
+
+  /* Better button text sizing */
+  button {
+    font-size: clamp(14px, 3.5vw, 15px);
   }
 }
 
@@ -555,5 +563,50 @@ button[title*='Favorite'] {
   .mobile-container-optimized {
     padding: clamp(0.75rem, 3vw, 1rem);
     font-size: clamp(0.875rem, 2.5vw, 1rem);
+  }
+}
+
+/* 2025: Enhanced mobile spacing utilities */
+@media (max-width: 767px) {
+  /* Fluid spacing for better mobile experience */
+  .mobile-spacing-xs {
+    gap: clamp(0.25rem, 1vw, 0.5rem);
+  }
+  
+  .mobile-spacing-sm {
+    gap: clamp(0.5rem, 2vw, 0.75rem);
+  }
+  
+  .mobile-spacing-md {
+    gap: clamp(0.75rem, 3vw, 1rem);
+  }
+  
+  .mobile-spacing-lg {
+    gap: clamp(1rem, 4vw, 1.5rem);
+  }
+  
+  /* Better padding for mobile cards and containers */
+  .mobile-padding {
+    padding: clamp(1rem, 4vw, 1.5rem);
+  }
+  
+  .mobile-padding-x {
+    padding-left: clamp(1rem, 4vw, 1.5rem);
+    padding-right: clamp(1rem, 4vw, 1.5rem);
+  }
+  
+  .mobile-padding-y {
+    padding-top: clamp(0.75rem, 3vw, 1rem);
+    padding-bottom: clamp(0.75rem, 3vw, 1rem);
+  }
+  
+  /* Improved touch spacing between interactive elements */
+  .mobile-touch-spacing > * + * {
+    margin-top: clamp(0.5rem, 2vw, 0.75rem);
+  }
+  
+  /* Better mobile margins */
+  .mobile-margin-bottom {
+    margin-bottom: clamp(1rem, 4vw, 1.5rem);
   }
 }

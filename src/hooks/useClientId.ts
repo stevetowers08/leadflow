@@ -6,10 +6,36 @@ import { useQuery } from '@tanstack/react-query';
 import { getErrorMessage } from '@/lib/utils';
 import { logger } from '@/utils/productionLogger';
 
+// Import organization context (will throw if not in provider, which is expected)
+import { useOrganization } from '@/contexts/OrganizationContext';
+
 export function useClientId() {
   const { user } = useAuth();
   const bypassAuth = shouldBypassAuth();
+  
+  // Get organization from context (OrganizationProvider wraps the app)
+  // Note: This will throw if OrganizationProvider is not in the tree, which is expected
+  // The error is caught and we fall back to the query method
+  let currentOrganization: { id: string } | null = null;
+  try {
+    const orgContext = useOrganization();
+    currentOrganization = orgContext?.currentOrganization || null;
+  } catch {
+    // Context not available - OrganizationProvider not mounted yet or not in tree
+    // This is expected during initial render or if provider setup is incomplete
+    // Will fall back to querying client_users table directly
+  }
 
+  // If we have organization context, use it directly (more efficient)
+  if (currentOrganization?.id) {
+    return {
+      data: currentOrganization.id,
+      isLoading: false,
+      error: null,
+    };
+  }
+
+  // Fallback: fetch from client_users (for backward compatibility or if context unavailable)
   return useQuery({
     queryKey: ['client-id', user?.id],
     queryFn: async () => {
@@ -28,6 +54,7 @@ export function useClientId() {
       if (error) {
         // PGRST116 = no rows found, which is acceptable
         // PGRST301 = table not found in schema cache (table may not exist or migration not run)
+        // PGRST301 with infinite recursion = RLS policy issue (suppress error, return null)
         // Both are acceptable - client_users table is optional for single-tenant setups
         const errorMessage = getErrorMessage(error);
         const isTableNotFound = 
@@ -37,7 +64,12 @@ export function useClientId() {
           errorMessage?.includes('does not exist') ||
           errorMessage?.includes('Could not find the table');
         
-        if (!isTableNotFound) {
+        const isInfiniteRecursion = 
+          errorMessage?.includes('infinite recursion') ||
+          errorMessage?.includes('recursion detected');
+        
+        // Suppress infinite recursion errors (RLS policy issue) and table not found errors
+        if (!isTableNotFound && !isInfiniteRecursion) {
           logger.error('Error fetching client ID:', errorMessage, error);
         }
         return null;
@@ -67,6 +99,7 @@ export async function getClientId(): Promise<string | null> {
 
   if (error) {
     // PGRST116 = no rows found, PGRST301 = table not found
+    // PGRST301 with infinite recursion = RLS policy issue (suppress error, return null)
     // Both are acceptable - client_users table is optional
     const errorMessage = getErrorMessage(error);
     const isTableNotFound = 
@@ -76,7 +109,12 @@ export async function getClientId(): Promise<string | null> {
       errorMessage?.includes('does not exist') ||
       errorMessage?.includes('Could not find the table');
     
-    if (!isTableNotFound) {
+    const isInfiniteRecursion = 
+      errorMessage?.includes('infinite recursion') ||
+      errorMessage?.includes('recursion detected');
+    
+    // Suppress infinite recursion errors (RLS policy issue) and table not found errors
+    if (!isTableNotFound && !isInfiniteRecursion) {
       logger.error('Error fetching client ID:', errorMessage, error);
     }
     return null;

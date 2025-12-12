@@ -15,22 +15,29 @@ import { Button } from '@/components/ui/button';
 import { exportLeadsToCSV, exportLeadsToJSON, downloadExport } from '@/services/exportService';
 import { toast } from 'sonner';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
+import { FloatingActionBar } from '@/components/people/FloatingActionBar';
+import { useAllCampaigns } from '@/hooks/useAllCampaigns';
+import { bulkAddLeadsToCampaign } from '@/services/bulk/bulkLeadsService';
 
 export default function LeadsPage() {
   const { user, loading: authLoading } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
   const bulkSelection = useBulkSelection();
+  const { data: campaigns = [] } = useAllCampaigns();
 
   const { data: leads = [], isLoading, error } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => getLeads({ limit: 1000 }), // Increased limit for export
+    queryFn: () => getLeads({ limit: 50 }), // Reduced initial load for performance
     enabled: shouldBypassAuth() || (!authLoading && !!user),
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
   });
 
   const { data: stats } = useQuery({
     queryKey: ['lead-stats'],
     queryFn: () => getLeadStats(),
     enabled: shouldBypassAuth() || (!authLoading && !!user),
+    staleTime: 5 * 60 * 1000, // Cache stats for 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   // Keyboard shortcuts (Cmd/Ctrl+A for select all, Escape to clear)
@@ -252,6 +259,63 @@ export default function LeadsPage() {
     }
   };
 
+  const handleAddToCampaign = useCallback(
+    async (campaignId: string, campaignType: 'email' | 'lemlist') => {
+      if (!user) {
+        toast.error('Error', { description: 'User not authenticated' });
+        return;
+      }
+
+      const selectedLeadIds = bulkSelection.getSelectedIds(leads.map(l => l.id));
+      
+      if (selectedLeadIds.length === 0) {
+        toast.error('Error', { description: 'No leads selected' });
+        return;
+      }
+
+      try {
+        const result = await bulkAddLeadsToCampaign(selectedLeadIds, campaignId, user.id);
+        
+        if (result.success > 0) {
+          toast.success('Success', {
+            description: `Added ${result.success} lead(s) to ${campaignType === 'lemlist' ? 'Lemlist' : 'email'} campaign${result.failed > 0 ? ` (${result.failed} failed)` : ''}`,
+          });
+          bulkSelection.deselectAll();
+        } else {
+          toast.error('Error', {
+            description: result.errors[0]?.error || 'Failed to add leads to campaign',
+          });
+        }
+      } catch (error) {
+        console.error('Error adding leads to campaign:', error);
+        toast.error('Error', {
+          description: error instanceof Error ? error.message : 'Failed to add leads to campaign',
+        });
+      }
+    },
+    [user, bulkSelection, leads]
+  );
+
+  const handleDelete = useCallback(async () => {
+    // Placeholder - implement delete functionality if needed
+    toast.info('Delete functionality not yet implemented');
+  }, []);
+
+  const handleFavourite = useCallback(async () => {
+    // Placeholder - implement favourite functionality if needed
+    toast.info('Favourite functionality not yet implemented');
+  }, []);
+
+  const handleSyncCRM = useCallback(async () => {
+    // Placeholder - implement CRM sync functionality if needed
+    toast.info('CRM sync functionality not yet implemented');
+  }, []);
+
+  const handleSendEmail = useCallback(async () => {
+    // Placeholder - implement send email functionality if needed
+    toast.info('Send email functionality not yet implemented');
+  }, []);
+
   if (error) {
     return (
       <Page stats={pageStats} title="Leads">
@@ -312,6 +376,21 @@ export default function LeadsPage() {
           />
         </div>
       </div>
+
+      {/* Floating Action Bar for bulk operations */}
+      <FloatingActionBar
+        selectedCount={actualSelectedCount}
+        onDelete={handleDelete}
+        onFavourite={handleFavourite}
+        onExport={async () => {
+          await handleExport('csv');
+        }}
+        onSyncCRM={handleSyncCRM}
+        onSendEmail={handleSendEmail}
+        onAddToCampaign={handleAddToCampaign}
+        onClear={() => bulkSelection.deselectAll()}
+        campaigns={campaigns}
+      />
     </Page>
   );
 }

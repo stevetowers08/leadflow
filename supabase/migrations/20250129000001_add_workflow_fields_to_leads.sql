@@ -94,3 +94,4 @@ CREATE INDEX IF NOT EXISTS idx_activity_log_lead_id ON public.activity_log(lead_
 CREATE INDEX IF NOT EXISTS idx_activity_log_workflow_id ON public.activity_log(workflow_id);
 CREATE INDEX IF NOT EXISTS idx_activity_log_timestamp ON public.activity_log(timestamp);
 
+

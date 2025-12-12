@@ -296,8 +296,8 @@ export const bulkSyncToCRM = async (
 };
 
 /**
- * Bulk Add People to Campaign
- * Enrolls selected people in a specific campaign
+ * Bulk Add People to Campaign Sequence
+ * Enrolls selected people in a specific campaign sequence
  */
 export const bulkAddToCampaign = async (
   peopleIds: string[],
@@ -307,9 +307,9 @@ export const bulkAddToCampaign = async (
   let successCount = 0;
 
   try {
-    // First check if campaign exists
+    // First check if campaign sequence exists
     const { data: campaign, error: campaignError } = await supabase
-      .from('campaigns')
+      .from('campaign_sequences')
       .select('id, name')
       .eq('id', campaignId)
       .single();
@@ -319,8 +319,8 @@ export const bulkAddToCampaign = async (
         success: false,
         successCount: 0,
         errorCount: peopleIds.length,
-        errors: [{ id: 'campaign', error: 'Campaign not found' }],
-        message: 'Invalid campaign ID',
+        errors: [{ id: 'campaign', error: 'Campaign sequence not found' }],
+        message: 'Invalid campaign sequence ID',
       };
     }
 
@@ -328,18 +328,18 @@ export const bulkAddToCampaign = async (
     for (let i = 0; i < peopleIds.length; i += BATCH_SIZE) {
       const batch = peopleIds.slice(i, i + BATCH_SIZE);
 
-      // Create campaign participant records
-      const participants = batch.map(personId => ({
-        campaign_id: campaignId,
-        person_id: personId,
+      // Create campaign sequence lead records
+      const leadRecords = batch.map(personId => ({
+        sequence_id: campaignId,
+        lead_id: personId,
         status: 'active',
-        enrolled_at: new Date().toISOString(),
+        started_at: new Date().toISOString(),
       }));
 
       const { error } = await supabase
-        .from('campaign_participants')
-        .upsert(participants, {
-          onConflict: 'campaign_id,person_id',
+        .from('campaign_sequence_leads')
+        .upsert(leadRecords, {
+          onConflict: 'sequence_id,lead_id',
           ignoreDuplicates: false,
         });
 
@@ -366,7 +366,7 @@ export const bulkAddToCampaign = async (
       successCount,
       errorCount: peopleIds.length - successCount,
       errors: [{ id: 'all', error: (error as Error).message }],
-      message: 'Failed to add people to campaign',
+      message: 'Failed to add people to campaign sequence',
     };
   }
 };

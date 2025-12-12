@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import * as React from "react"
+import * as React from 'react';
 import {
   LayoutDashboard,
   MessageSquare,
@@ -8,6 +8,7 @@ import {
   Users,
   GitMerge,
   BarChart3,
+  Camera,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 
@@ -24,6 +25,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { RecruitEdgeLogo } from "@/components/RecruitEdgeLogo"
+import { OrganizationSwitcher } from "@/components/shared/OrganizationSwitcher"
 import { useAuth } from "@/contexts/AuthContext"
 import Link from "next/link"
 
@@ -32,9 +34,11 @@ import Link from "next/link"
  * 
  * LeadFlow Console Navigation:
  * - Overview (/) - Icon: LayoutDashboard
+ * - Capture (/capture) - Icon: Camera - Business card scanner
  * - Leads (/leads) - Icon: Users
  * - Inbox (/inbox) - Icon: MessageSquare
- * - Workflows (/workflows) - Icon: GitMerge
+ * - Campaigns (/workflows) - Icon: GitMerge
+ * - Analytics (/analytics) - Icon: BarChart3
  * - Settings (/settings) - Icon: Settings2
  */
 const data = {
@@ -43,6 +47,11 @@ const data = {
       title: "Overview",
       url: "/",
       icon: LayoutDashboard,
+    },
+    {
+      title: "Capture",
+      url: "/capture",
+      icon: Camera,
     },
     {
       title: "Leads",
@@ -55,7 +64,7 @@ const data = {
       icon: MessageSquare,
     },
     {
-      title: "Workflows",
+      title: "Campaigns",
       url: "/workflows",
       icon: GitMerge,
     },
@@ -85,7 +94,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="flex-shrink-0">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -98,12 +107,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className="px-3 py-2">
+          <OrganizationSwitcher />
+        </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="flex-1 min-h-0 overflow-y-auto">
         <NavMain items={data.navMain} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="flex-shrink-0">
         <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>

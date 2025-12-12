@@ -72,10 +72,23 @@ export async function getGmailIntegrationStatus(): Promise<GmailIntegration | nu
       .select('*')
       .eq('platform', 'gmail')
       .eq('connected', true)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      logSupabaseError(error, 'fetching Gmail integration');
+      // PGRST116 = no rows found (normal - user hasn't connected Gmail yet)
+      // PGRST301 = table not found in schema cache
+      const isExpectedError = 
+        error.code === 'PGRST116' || 
+        error.code === 'PGRST301' ||
+        (error.message && (
+          error.message.includes('schema cache') ||
+          error.message.includes('does not exist') ||
+          error.message.includes('Could not find the table')
+        ));
+      
+      if (!isExpectedError) {
+        logSupabaseError(error, 'fetching Gmail integration');
+      }
       return null;
     }
 

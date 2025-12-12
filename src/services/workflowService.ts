@@ -208,3 +208,71 @@ export function shouldPauseWorkflow(
   return false;
 }
 
+/**
+ * Assign a lead to a workflow and add to lemlist campaign if applicable
+ */
+export async function assignLeadToWorkflow(
+  leadId: string,
+  workflowId: string
+): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  // Get workflow details
+  const workflow = await getWorkflow(workflowId);
+  if (!workflow) {
+    throw new Error('Workflow not found');
+  }
+
+  // Get lead details
+  const { data: lead, error: leadError } = await supabase
+    .from('leads')
+    .select('id, email, first_name, last_name, company')
+    .eq('id', leadId)
+    .single();
+
+  if (leadError || !lead) {
+    throw new Error('Lead not found');
+  }
+
+  // Update lead with workflow assignment
+  const { error: updateError } = await supabase
+    .from('leads')
+    .update({
+      workflow_id: workflowId,
+      workflow_status: 'active',
+    })
+    .eq('id', leadId);
+
+  if (updateError) {
+    throw new Error(`Failed to assign workflow: ${updateError.message}`);
+  }
+
+  // If workflow uses lemlist, add lead to lemlist campaign
+  if (workflow.email_provider === 'lemlist' && workflow.lemlist_campaign_id) {
+    try {
+      const { addLeadToLemlistCampaign } = await import('./lemlistWorkflowService');
+      await addLeadToLemlistCampaign(
+        user.id,
+        workflow.lemlist_campaign_id,
+        {
+          email: lead.email || '',
+          firstName: lead.first_name || undefined,
+          lastName: lead.last_name || undefined,
+          company: lead.company || undefined,
+        }
+      );
+    } catch (error) {
+      console.error('Error adding lead to lemlist campaign:', error);
+      // Don't throw - workflow assignment succeeded, lemlist add failed
+      // This allows the workflow to be assigned even if lemlist fails
+    }
+  }
+}
+
+

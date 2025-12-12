@@ -2,11 +2,12 @@
  * OCR Processing API Route
  * 
  * PDR Section: Technical Specifications - OCR Implementation
- * Processes business card images using Mindee OCR API
+ * Processes business card images using Google Gemini Vision API
+ * Free tier: 15 RPM, 1,500 RPD
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { extractBusinessCardData } from '@/services/mindeeOcrService';
+import { extractBusinessCardWithGemini } from '@/services/geminiVisionOcrService';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -41,9 +42,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Process with Mindee OCR (server-side, use MINDEE_API_KEY)
-    const apiKey = process.env.MINDEE_API_KEY || process.env.NEXT_PUBLIC_MINDEE_API_KEY;
-    const result = await extractBusinessCardData(imageFile, apiKey);
+    // Process with Gemini Vision OCR (server-side, use GEMINI_API_KEY)
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    const result = await extractBusinessCardWithGemini(imageFile, apiKey);
 
     return NextResponse.json({
       success: true,

@@ -175,3 +175,4 @@ toast.promise(
 - Duration defaults: success/info/warning (5000ms), error (7000ms)
 - Toasts can be dismissed programmatically using `toast.dismiss(id)`
 
+

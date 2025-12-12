@@ -82,3 +82,4 @@ The application will now:
 - Only log actual errors that need attention
 - Show user-friendly message when saving if table is missing
 
+

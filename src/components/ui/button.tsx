@@ -29,12 +29,12 @@ const buttonVariants = cva(
           'bg-warning text-warning-foreground hover:bg-warning-hover shadow-sm hover:shadow-md',
       },
       size: {
-        default: 'h-8 px-3 py-1.5 text-sm', // h-8 (32px) - standard height for all action elements
-        sm: 'h-8 px-2.5 py-1 text-xs', // h-8 with reduced padding
-        xs: 'h-8 px-2 py-1 text-xs', // h-8 minimal padding
-        lg: 'h-11 px-8 text-base', // Large button for CTAs
-        icon: 'h-8 w-8', // Icon button - h-8 to match action bar height
-        mobile: 'h-12 px-4 py-3 text-base', // Mobile-optimized size for touch
+        default: 'h-8 px-3 py-1.5 text-sm min-h-[48px] min-w-[48px] sm:min-h-0 sm:min-w-0', // Mobile: 48px min, Desktop: 32px
+        sm: 'h-8 px-2.5 py-1 text-xs min-h-[48px] min-w-[48px] sm:min-h-0 sm:min-w-0', // Mobile: 48px min, Desktop: 32px
+        xs: 'h-8 px-2 py-1 text-xs min-h-[48px] min-w-[48px] sm:min-h-0 sm:min-w-0', // Mobile: 48px min, Desktop: 32px
+        lg: 'h-11 px-8 text-base min-h-[52px]', // Large button for CTAs - 52px on mobile
+        icon: 'h-8 w-8 min-h-[48px] min-w-[48px] sm:min-h-8 sm:min-w-8', // Icon button - 48px on mobile, 32px on desktop
+        mobile: 'h-12 px-4 py-3 text-base min-h-[48px]', // Mobile-optimized size for touch
       },
     },
     defaultVariants: {

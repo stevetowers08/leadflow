@@ -54,7 +54,7 @@ interface MobileSidebarProps {
  * - Overview (/) - Dashboard
  * - Leads (/leads) - Lead list
  * - Inbox (/inbox) - Email conversations
- * - Workflows (/workflows) - Workflow builder
+ * - Campaigns (/workflows) - Campaign builder
  * - Analytics (/analytics) - Analytics dashboard
  * - Settings (/settings) - Settings
  */
@@ -82,7 +82,7 @@ const sidebarItems: SidebarItem[] = [
   },
   {
     to: '/workflows',
-    label: 'Workflows',
+    label: 'Campaigns',
     icon: <Megaphone className='h-4 w-4' />,
     category: 'secondary',
   },
