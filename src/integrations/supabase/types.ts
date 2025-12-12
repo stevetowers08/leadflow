@@ -944,6 +944,75 @@ export type Database = {
         }
         Relationships: []
       }
+      email_sends: {
+        Row: {
+          id: string
+          campaign_id: string | null
+          person_id: string | null
+          template_id: string | null
+          email_account_id: string | null
+          gmail_message_id: string | null
+          gmail_thread_id: string | null
+          to_email: string
+          subject: string
+          body_html: string | null
+          body_text: string | null
+          status: string
+          sent_at: string | null
+          delivered_at: string | null
+          opened_at: string | null
+          clicked_at: string | null
+          bounced_at: string | null
+          replied_at: string | null
+          error_message: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          campaign_id?: string | null
+          person_id?: string | null
+          template_id?: string | null
+          email_account_id?: string | null
+          gmail_message_id?: string | null
+          gmail_thread_id?: string | null
+          to_email: string
+          subject: string
+          body_html?: string | null
+          body_text?: string | null
+          status?: string
+          sent_at?: string | null
+          delivered_at?: string | null
+          opened_at?: string | null
+          clicked_at?: string | null
+          bounced_at?: string | null
+          replied_at?: string | null
+          error_message?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          campaign_id?: string | null
+          person_id?: string | null
+          template_id?: string | null
+          email_account_id?: string | null
+          gmail_message_id?: string | null
+          gmail_thread_id?: string | null
+          to_email?: string
+          subject?: string
+          body_html?: string | null
+          body_text?: string | null
+          status?: string
+          sent_at?: string | null
+          delivered_at?: string | null
+          opened_at?: string | null
+          clicked_at?: string | null
+          bounced_at?: string | null
+          replied_at?: string | null
+          error_message?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

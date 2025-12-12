@@ -188,7 +188,7 @@ async function processEmailStep(
   const emailResult = await emailResponse.json();
   const now = new Date().toISOString();
 
-  await (supabase.from('email_sends') as any).insert({
+  await supabase.from('email_sends').insert({
     person_id: leadData.id,
     email_account_id: (emailAccount as any).id,
     gmail_message_id: emailResult.id,
