@@ -1,5 +1,6 @@
 import { supabase } from '../integrations/supabase/client';
 import { statusAutomation } from './statusAutomationService';
+import type { Json } from '@/integrations/supabase/types';
 
 // Check if this is first message for user
 async function checkAndCelebrateFirstMessage(personId: string) {
@@ -550,7 +551,7 @@ export class GmailService {
           operation: operationType,
           message_count: messageCount,
           status: 'success',
-        } as Record<string, unknown>,
+        } as unknown as Json,
       });
     } catch (error) {
       console.error('Failed to log sync success:', error);
@@ -569,7 +570,7 @@ export class GmailService {
           operation: operationType,
           status: 'error',
           error_message: error instanceof Error ? error.message : 'Unknown error',
-        } as Record<string, unknown>,
+        } as unknown as Json,
       });
     } catch (logError) {
       console.error('Failed to log sync error:', logError);

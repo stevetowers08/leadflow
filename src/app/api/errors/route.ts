@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import type { Json } from '@/integrations/supabase/types';
+import type { Json } from '@/integrations/supabase/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -56,7 +58,7 @@ export async function POST(request: NextRequest) {
           user_id: userId,
           session_id: sessionId,
           ...metadata,
-        } as Record<string, unknown>,
+        } as unknown as Json,
       });
     } catch (logError) {
       console.error('Failed to log error to database:', logError);

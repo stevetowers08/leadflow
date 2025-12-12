@@ -646,7 +646,7 @@ class SupabaseErrorService {
             resolved: true,
             resolved_at: new Date().toISOString(),
             resolved_by: user.id,
-          } as Record<string, unknown>,
+          } as unknown as Json,
         })
         .eq('id', errorId);
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import type { Json } from '@/integrations/supabase/types';
+import type { Json } from '@/integrations/supabase/types';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -161,7 +163,7 @@ export async function POST(request: NextRequest) {
     try {
       await supabase.from('activity_log').insert({
         activity_type: 'email_sent',
-        metadata: JSON.parse(JSON.stringify(result)) as Record<string, unknown>,
+        metadata: JSON.parse(JSON.stringify(result)) as unknown as Json,
       });
     } catch (logError) {
       console.error('Failed to log to database:', logError);
@@ -190,7 +192,7 @@ export async function POST(request: NextRequest) {
         metadata: {
           operation: 'function_error',
           error: error instanceof Error ? error.message : 'Unknown error',
-        } as Record<string, unknown>,
+        } as unknown as Json,
       });
     } catch (logError) {
       console.error('Failed to log error:', logError);
