@@ -246,12 +246,7 @@ async function processWaitStep(
     throw new Error(`Failed to update execution: ${updateError.message}`);
   }
 
-  await scheduleNextStep(
-    supabase,
-    execution,
-    step.wait_duration ?? undefined,
-    step.wait_unit ?? undefined
-  );
+  await scheduleNextStep(supabase, execution, step.wait_duration, step.wait_unit);
 }
 
 async function processConditionStep(
@@ -294,7 +289,10 @@ function personalizeEmail(
   return personalized;
 }
 
-function calculateWaitHours(duration: number | undefined, unit: string | undefined): number {
+function calculateWaitHours(
+  duration: number | null | undefined,
+  unit: string | null | undefined
+): number {
   if (!duration) return 120;
   switch (unit) {
     case 'hours':
@@ -346,8 +344,8 @@ async function evaluateCondition(
 async function scheduleNextStep(
   supabase: ReturnType<typeof createServerSupabaseClient>,
   execution: CampaignExecution,
-  waitDuration?: number,
-  waitUnit?: string,
+  waitDuration?: number | null,
+  waitUnit?: string | null,
   specificNextStepId?: string
 ) {
   const step = execution.campaign_sequence_steps;
