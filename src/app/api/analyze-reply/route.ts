@@ -89,14 +89,20 @@ Respond with JSON: {"replyType": "...", "confidence": 0.85, "reasoning": "..."}`
       };
     }
 
-    // Update person's reply_type
-    const updateData: Database['public']['Tables']['people']['Update'] = {
-      reply_type: analysis.replyType,
-      updated_at: new Date().toISOString(),
+    // Update lead's status based on reply type
+    // Note: leads table doesn't have reply_type, using status field instead
+    const statusMap: Record<string, string> = {
+      interested: 'active',
+      not_interested: 'replied_manual',
+      maybe: 'active',
     };
+    
     const { error } = await supabase
-      .from('people')
-      .update(updateData)
+      .from('leads')
+      .update({
+        status: statusMap[analysis.replyType] || 'active',
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', personId);
 
     if (error) {

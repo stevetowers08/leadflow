@@ -35,23 +35,23 @@ async function queryRelevantData(
   supabase: ReturnType<typeof createServerSupabaseClient>,
   message: string
 ) {
-  // Simplified: query recent jobs, people, companies
-  const [jobsResult, peopleResult, companiesResult] = await Promise.all([
+  // Simplified: query recent jobs, leads, companies
+  const [jobsResult, leadsResult, companiesResult] = await Promise.all([
     supabase.from('jobs').select('id, title, location').limit(5),
-    supabase.from('people').select('id, name, email_address, stage').limit(5),
+    supabase.from('leads').select('id, first_name, last_name, email, status').limit(5),
     supabase.from('companies').select('id, name, industry').limit(5),
   ]);
 
   return {
     recentJobs: jobsResult.data || [],
-    recentPeople: peopleResult.data || [],
+    recentLeads: leadsResult.data || [],
     recentCompanies: companiesResult.data || [],
   };
 }
 
 interface DataQueryResult {
   recentJobs: Array<{ id: string; title: string; location: string | null }>;
-  recentPeople: Array<{ id: string; name: string | null; email_address: string | null; stage: string | null }>;
+  recentLeads: Array<{ id: string; first_name: string | null; last_name: string | null; email: string | null; status: string | null }>;
   recentCompanies: Array<{ id: string; name: string | null; industry: string | null }>;
 }
 
@@ -68,8 +68,8 @@ function buildContextualPrompt(message: string, dataQuery: DataQueryResult, hist
     prompt += `Recent Jobs:\n${JSON.stringify(dataQuery.recentJobs, null, 2)}\n\n`;
   }
 
-  if (dataQuery.recentPeople.length > 0) {
-    prompt += `Recent People:\n${JSON.stringify(dataQuery.recentPeople, null, 2)}\n\n`;
+  if (dataQuery.recentLeads.length > 0) {
+    prompt += `Recent Leads:\n${JSON.stringify(dataQuery.recentLeads, null, 2)}\n\n`;
   }
 
   if (dataQuery.recentCompanies.length > 0) {

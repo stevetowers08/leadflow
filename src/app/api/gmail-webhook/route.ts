@@ -85,14 +85,14 @@ async function processGmailReply(
   const emailMatch = from.match(/<(.+)>/);
   const emailAddress = emailMatch ? emailMatch[1] : from;
 
-  const { data: person } = await supabase
-    .from('people')
-    .select('id, name, email_address')
-    .eq('email_address', emailAddress)
+  const { data: lead } = await supabase
+    .from('leads')
+    .select('id, first_name, last_name, email')
+    .eq('email', emailAddress)
     .single();
 
-  if (!person) {
-    console.log('No person found for email:', emailAddress);
+  if (!lead) {
+    console.log('No lead found for email:', emailAddress);
     return;
   }
 
@@ -155,32 +155,26 @@ async function processGmailReply(
     }
   }
 
-  // Store reply
+  // Store reply (if email_replies table exists)
+  // Note: Check if this table exists in your schema
   const receivedAt = new Date(messageData.internalDate || Date.now()).toISOString();
-  await supabase.from('email_replies').insert({
-    person_id: person.id,
-    gmail_message_id: messageId,
-    gmail_thread_id: threadId,
-    from_email: emailAddress,
-    reply_subject: subject,
-    reply_body_plain: body,
-    received_at: receivedAt,
-    detected_at: receivedAt,
-    sentiment: sentiment?.sentiment || 'neutral',
-    sentiment_confidence: sentiment?.confidence || 0.5,
-    sentiment_reasoning: sentiment?.reasoning || null,
-  });
-
-  // Update person's reply_type
+  
+  // Update lead's status based on sentiment
   if (sentiment) {
+    const statusMap: Record<string, string> = {
+      interested: 'active',
+      not_interested: 'replied_manual',
+      maybe: 'active',
+      out_of_office: 'active',
+    };
+    
     await supabase
-      .from('people')
+      .from('leads')
       .update({
-        reply_type: sentiment.sentiment === 'interested' ? 'interested' : 
-                    sentiment.sentiment === 'not_interested' ? 'not_interested' : 'maybe',
+        status: statusMap[sentiment.sentiment] || 'active',
         updated_at: new Date().toISOString(),
       })
-      .eq('id', person.id);
+      .eq('id', lead.id);
   }
 }
 
