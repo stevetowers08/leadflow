@@ -56,3 +56,14 @@ logs
 # Temporary files
 tmp/
 temp/
+
+# Environment files with secrets
+env.production
+env.gmail
+*.env.production
+*.env.gmail
+
+# Backup directories
+backup-*/
+remove-secrets.sh
+bfg.jar
