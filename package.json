@@ -25,6 +25,8 @@
     "format:check": "prettier --check .",
     "db:schema": "node scripts/db-schema.js",
     "db:help": "node scripts/db-schema.js",
+    "types:generate": "tsx scripts/database/generate-types.ts",
+    "types:check": "npm run type-check",
     "security:scan": "./scripts/semgrep-scan.sh security",
     "security:full": "./scripts/semgrep-scan.sh full",
     "security:audit": "npm audit",

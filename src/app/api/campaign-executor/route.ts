@@ -246,7 +246,12 @@ async function processWaitStep(
     throw new Error(`Failed to update execution: ${updateError.message}`);
   }
 
-  await scheduleNextStep(supabase, execution, step.wait_duration, step.wait_unit);
+  await scheduleNextStep(
+    supabase,
+    execution,
+    step.wait_duration ?? undefined,
+    step.wait_unit ?? undefined
+  );
 }
 
 async function processConditionStep(

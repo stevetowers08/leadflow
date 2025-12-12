@@ -1,2 +1,2 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Ensure TypeScript types file is treated as generated
+src/integrations/supabase/types.ts linguist-generated=true

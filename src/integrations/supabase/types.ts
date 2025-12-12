@@ -1091,6 +1091,162 @@ export type Database = {
         }
         Relationships: []
       }
+      clients: {
+        Row: {
+          id: string
+          name: string
+          company_name: string | null
+          industry: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          subscription_tier: string | null
+          subscription_status: string | null
+          monthly_budget: number | null
+          settings: Json | null
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          company_name?: string | null
+          industry?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          subscription_tier?: string | null
+          subscription_status?: string | null
+          monthly_budget?: number | null
+          settings?: Json | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          company_name?: string | null
+          industry?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          subscription_tier?: string | null
+          subscription_status?: string | null
+          monthly_budget?: number | null
+          settings?: Json | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      client_users: {
+        Row: {
+          id: string
+          client_id: string
+          user_id: string
+          role: string | null
+          is_primary_contact: boolean | null
+          joined_at: string | null
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          user_id: string
+          role?: string | null
+          is_primary_contact?: boolean | null
+          joined_at?: string | null
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          user_id?: string
+          role?: string | null
+          is_primary_contact?: boolean | null
+          joined_at?: string | null
+        }
+        Relationships: []
+      }
+      client_job_deals: {
+        Row: {
+          id: string
+          client_id: string
+          job_id: string
+          status: string | null
+          priority: string | null
+          notes: string | null
+          added_by: string | null
+          added_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          job_id: string
+          status?: string | null
+          priority?: string | null
+          notes?: string | null
+          added_by?: string | null
+          added_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          job_id?: string
+          status?: string | null
+          priority?: string | null
+          notes?: string | null
+          added_by?: string | null
+          added_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      client_decision_maker_outreach: {
+        Row: {
+          id: string
+          client_id: string
+          decision_maker_id: string
+          job_id: string | null
+          status: string | null
+          outreach_method: string | null
+          first_contact_at: string | null
+          last_contact_at: string | null
+          next_action_at: string | null
+          notes: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          decision_maker_id: string
+          job_id?: string | null
+          status?: string | null
+          outreach_method?: string | null
+          first_contact_at?: string | null
+          last_contact_at?: string | null
+          next_action_at?: string | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          decision_maker_id?: string
+          job_id?: string | null
+          status?: string | null
+          outreach_method?: string | null
+          first_contact_at?: string | null
+          last_contact_at?: string | null
+          next_action_at?: string | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

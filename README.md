@@ -36,6 +36,7 @@ The complete Product Requirements Document (PDR) is available at [`docs/PDR`](do
 - Node.js >= 20.9.0
 - npm or yarn
 - Supabase account
+- Supabase CLI (for type generation): `npm install -g supabase`
 
 ### Installation
 
@@ -45,6 +46,9 @@ npm install
 
 # Set up environment variables
 cp env.example .env.local
+
+# Generate TypeScript types from database schema
+npm run types:generate
 
 # Run development server
 npm run dev
