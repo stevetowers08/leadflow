@@ -1,49 +1,57 @@
 ---
-description: Project overview and workflows for Empowr CRM
+description: Project overview and workflows for LeadFlow
 globs: []
 alwaysApply: true
 ---
 
 # Project Overview
 
-Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, and Supabase. The focus is on simplicity and clear campaigns for managing jobs and people.
+LeadFlow is an AI-powered Event Lead Capture & Automation tool built with React, TypeScript, and Supabase. The focus is on OCR-based business card scanning, lead management, and email automation workflows.
 
-## Current Campaigns (Updated Oct 2025)
+## Current Features
 
-### Job Qualification Campaigns
+### Lead Capture
+- **Mobile OCR Scanner** - Capture business cards at events using camera
+- **Lead Processing** - AI-powered extraction and enrichment
+- **Quality Ranking** - Hot/Warm/Cold lead classification
 
-**Status Enum:** `new | qualify | skip`
+### Lead Management
+- **Lead Pipeline** - Track leads through stages: processing → active → replied_manual
+- **Company Enrichment** - Automatic company data enrichment
+- **Lead Scoring** - AI-powered lead quality assessment
 
-- **New** - Newly discovered jobs awaiting review
-- **Qualify** - Jobs that meet criteria and should be pursued
-- **Skip** - Jobs to skip for now
+### Email Automation
+- **Workflow Builder** - Create multi-step email sequences
+- **Gmail Integration** - Send and track emails via Gmail
+- **Reply Analysis** - AI-powered sentiment and intent analysis
+- **Campaign Management** - Track email campaign performance
 
-**Database Field:** `jobs.qualification_status`
+## Architecture
 
-### People Status Campaigns
+- **Frontend**: Next.js 16 (App Router), React 18, TypeScript
+- **Backend**: Supabase (PostgreSQL + Edge Functions)
+- **AI**: Google Gemini for OCR, analysis, and enrichment
+- **Email**: Gmail API + Resend for email automation
 
-**Status Enum:** `new | qualified | proceed | skip`
+## Database Schema
 
-- **New** - New leads to review
-- **Qualified** - Leads that meet your criteria
-- **Proceed** - Ready for CRM integration or email outreach
-- **Skip** - Not pursuing at this time
+Core tables:
+- `leads` - Event-captured leads with OCR data
+- `companies` - Company profiles with enrichment
+- `contacts` - Contact/people records (legacy, being migrated to leads)
+- `campaigns` - Email workflow definitions
+- `campaign_participants` - Campaign member tracking
+- `interactions` - Activity and email tracking
+- `email_replies` - Reply analysis and sentiment tracking
 
-**Database Field:** `people.stage`
+## Removed Features
 
-## LinkedIn Automation Removed
+As of February 2025, recruitment-specific features have been **completely removed**:
 
-As of October 2025, LinkedIn automation features have been **completely removed**:
+- ❌ No job posting management
+- ❌ No candidate tracking
+- ❌ No placement tracking
+- ❌ No job qualification workflows
+- ❌ No recruitment-specific campaigns
 
-- ❌ No LinkedInAutomationModal component
-- ❌ No automation buttons in UI
-- ❌ No lead selection checkboxes for bulk automation
-- ❌ No automation status tracking
-
-**Orphaned Files (not imported/used):**
-
-- `src/components/crm/automation/LinkedInAutomationModal.tsx`
-- `src/components/LinkedInConfirmationModal.tsx`
-- `src/components/crm/automation/AutomationModalManager.tsx`
-
-These can be deleted in future cleanup.
+The codebase has been cleaned to focus exclusively on Event Lead Capture & Automation.

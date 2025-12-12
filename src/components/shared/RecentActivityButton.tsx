@@ -25,7 +25,7 @@ import { useSlidePanel } from '@/contexts/SlidePanelContext';
 interface ActivityItem {
   id: string;
   type: 'email' | 'note' | 'meeting' | 'call' | 'interaction';
-  entity_type: 'company' | 'person' | 'job';
+  entity_type: 'company' | 'person' | 'contact';
   entity_name: string;
   entity_id: string;
   description: string;
@@ -182,7 +182,9 @@ export const RecentActivityButton: React.FC = () => {
         title='Recent Activity'
         headerActions={
           clientId ? (
-            <span className='text-xs text-muted-foreground'>Your workspace</span>
+            <span className='text-xs text-muted-foreground'>
+              Your workspace
+            </span>
           ) : undefined
         }
       >
@@ -191,7 +193,9 @@ export const RecentActivityButton: React.FC = () => {
             <div className='flex items-center justify-center py-16'>
               <div className='flex flex-col items-center gap-3'>
                 <Loader2 className='h-6 w-6 animate-spin text-primary' />
-                <p className='text-sm text-muted-foreground'>Loading activity...</p>
+                <p className='text-sm text-muted-foreground'>
+                  Loading activity...
+                </p>
               </div>
             </div>
           ) : error ? (
@@ -199,7 +203,9 @@ export const RecentActivityButton: React.FC = () => {
               <div className='h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center mb-3'>
                 <Activity className='h-6 w-6 text-destructive' />
               </div>
-              <p className='text-sm font-medium text-destructive mb-1'>Error loading activity</p>
+              <p className='text-sm font-medium text-destructive mb-1'>
+                Error loading activity
+              </p>
               <p className='text-xs text-destructive text-center'>{error}</p>
             </div>
           ) : activities.length === 0 ? (
@@ -207,7 +213,9 @@ export const RecentActivityButton: React.FC = () => {
               <div className='h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4'>
                 <Activity className='h-8 w-8 text-muted-foreground' />
               </div>
-              <p className='text-sm font-medium text-foreground mb-1'>No recent activity</p>
+              <p className='text-sm font-medium text-foreground mb-1'>
+                No recent activity
+              </p>
               <p className='text-xs text-muted-foreground text-center'>
                 Activity will appear here as things happen
               </p>
@@ -228,36 +236,38 @@ export const RecentActivityButton: React.FC = () => {
                       key={activity.id}
                       className='flex gap-3 px-3 py-3.5 hover:bg-muted/80 active:bg-gray-100 transition-all'
                     >
-                    <div className={`p-2.5 rounded-xl flex-shrink-0 shadow-sm ${colorClass}`}>
-                      <Icon className='h-4 w-4' />
-                    </div>
-
-                    <div className='flex-1 min-w-0'>
-                      <div className='flex items-center gap-2 mb-1.5'>
-                        <EntityIcon className='h-3.5 w-3.5 text-muted-foreground' />
-                        <span className='text-sm font-semibold text-foreground line-clamp-1'>
-                          {activity.entity_name}
-                        </span>
+                      <div
+                        className={`p-2.5 rounded-xl flex-shrink-0 shadow-sm ${colorClass}`}
+                      >
+                        <Icon className='h-4 w-4' />
                       </div>
 
-                      <p className='text-xs text-muted-foreground line-clamp-2 mb-2 leading-relaxed'>
-                        {activity.description}
-                      </p>
+                      <div className='flex-1 min-w-0'>
+                        <div className='flex items-center gap-2 mb-1.5'>
+                          <EntityIcon className='h-3.5 w-3.5 text-muted-foreground' />
+                          <span className='text-sm font-semibold text-foreground line-clamp-1'>
+                            {activity.entity_name}
+                          </span>
+                        </div>
 
-                      <div className='flex items-center gap-2'>
-                        <span className='text-xs px-2 py-0.5 rounded-md bg-gray-100 text-foreground capitalize font-medium'>
-                          {activity.type}
-                        </span>
-                        <span className='text-xs text-muted-foreground font-medium'>
-                          {formatDistanceToNow(new Date(activity.timestamp), {
-                            addSuffix: true,
-                          })}
-                        </span>
+                        <p className='text-xs text-muted-foreground line-clamp-2 mb-2 leading-relaxed'>
+                          {activity.description}
+                        </p>
+
+                        <div className='flex items-center gap-2'>
+                          <span className='text-xs px-2 py-0.5 rounded-md bg-gray-100 text-foreground capitalize font-medium'>
+                            {activity.type}
+                          </span>
+                          <span className='text-xs text-muted-foreground font-medium'>
+                            {formatDistanceToNow(new Date(activity.timestamp), {
+                              addSuffix: true,
+                            })}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
               </div>
             </ScrollArea>
           )}

@@ -22,10 +22,10 @@ export interface AuthConfig {
 
 /**
  * Get authentication configuration based on environment
- * 
+ *
  * Development: Bypass enabled by default (unless NEXT_PUBLIC_BYPASS_AUTH=false)
  * Production/Unknown: Bypass DISABLED for security (env vars ignored)
- * 
+ *
  * Security: Unknown environments (test, staging, etc.) default to production-like behavior
  */
 export const getAuthConfig = (): AuthConfig => {
@@ -64,8 +64,7 @@ export const getAuthConfig = (): AuthConfig => {
       id:
         process.env.NEXT_PUBLIC_MOCK_USER_ID ||
         '79a2f2d5-91ff-485f-ad13-466bcc96666d', // steve@polarislabs.io (actual Supabase user ID)
-      email:
-        process.env.NEXT_PUBLIC_MOCK_USER_EMAIL || 'steve@polarislabs.io',
+      email: process.env.NEXT_PUBLIC_MOCK_USER_EMAIL || 'steve@polarislabs.io',
       role: process.env.NEXT_PUBLIC_MOCK_USER_ROLE || 'admin',
       full_name: process.env.NEXT_PUBLIC_MOCK_USER_NAME || 'Steve Towers',
     },
@@ -95,16 +94,18 @@ export const clearBypassAuth = (): void => {
 
 /**
  * Get mock user data
- * 
+ *
  * Note: Should only be called when bypassAuth is true (development mode)
  * Returns empty/invalid user if called in production for safety
  */
 export const getMockUser = () => {
   const config = getAuthConfig();
-  
+
   // Safety check: if bypass is disabled, return invalid user to prevent misuse
   if (!config.bypassAuth) {
-    console.warn('getMockUser() called but bypassAuth is disabled. This should not happen in production.');
+    console.warn(
+      'getMockUser() called but bypassAuth is disabled. This should not happen in production.'
+    );
     return {
       id: '',
       email: '',
@@ -163,16 +164,18 @@ export const getMockUser = () => {
 
 /**
  * Get mock user profile data
- * 
+ *
  * Note: Should only be called when bypassAuth is true (development mode)
  * Returns empty/invalid profile if called in production for safety
  */
 export const getMockUserProfile = () => {
   const config = getAuthConfig();
-  
+
   // Safety check: if bypass is disabled, return invalid profile to prevent misuse
   if (!config.bypassAuth) {
-    console.warn('getMockUserProfile() called but bypassAuth is disabled. This should not happen in production.');
+    console.warn(
+      'getMockUserProfile() called but bypassAuth is disabled. This should not happen in production.'
+    );
     return {
       id: '',
       email: '',
@@ -182,6 +185,8 @@ export const getMockUserProfile = () => {
       is_active: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      default_client_id: null,
+      metadata: null,
     };
   }
 
@@ -194,5 +199,7 @@ export const getMockUserProfile = () => {
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    default_client_id: null,
+    metadata: null,
   };
 };

@@ -21,7 +21,6 @@ export interface ReportingMetrics {
     skip: number;
   };
 
-
   // Recent activity
   recentActivity: Array<{
     id: string;
@@ -55,17 +54,13 @@ export class ReportingService {
 
     try {
       // Execute all queries in parallel for better performance
-      const [
-        coreCounts,
-        peoplePipeline,
-        recentActivity,
-        growthMetrics,
-      ] = await Promise.all([
-        this.getCoreCounts(),
-        this.getPeoplePipeline(),
-        this.getRecentActivity(startDate, endDate),
-        this.getGrowthMetrics(startDate, endDate),
-      ]);
+      const [coreCounts, peoplePipeline, recentActivity, growthMetrics] =
+        await Promise.all([
+          this.getCoreCounts(),
+          this.getPeoplePipeline(),
+          this.getRecentActivity(startDate, endDate),
+          this.getGrowthMetrics(startDate, endDate),
+        ]);
 
       return {
         ...coreCounts,
@@ -90,15 +85,16 @@ export class ReportingService {
    */
   private static async getCoreCounts() {
     try {
-      const [peopleResult, companiesResult] =
-        await Promise.all([
-          supabase.from('people').select('id', { count: 'exact', head: true }),
-          supabase.from('companies').select('id', { count: 'exact', head: true }),
-        ]);
+      const [peopleResult, companiesResult] = await Promise.all([
+        supabase.from('people').select('id', { count: 'exact', head: true }),
+        supabase.from('companies').select('id', { count: 'exact', head: true }),
+      ]);
 
       // Handle errors gracefully
-      if (peopleResult.error) logSupabaseError(peopleResult.error, 'counting people');
-      if (companiesResult.error) logSupabaseError(companiesResult.error, 'counting companies');
+      if (peopleResult.error)
+        logSupabaseError(peopleResult.error, 'counting people');
+      if (companiesResult.error)
+        logSupabaseError(companiesResult.error, 'counting companies');
 
       return {
         totalPeople: peopleResult.count || 0,
@@ -138,9 +134,12 @@ export class ReportingService {
 
     data?.forEach(person => {
       // Support both field names
-      const stage = (person as any).stage || (person as any).people_stage;
+      const personObj = person as Record<string, unknown>;
+      const stage = (personObj.stage || personObj.people_stage) as
+        | string
+        | undefined;
       if (!stage) return;
-      
+
       switch (stage) {
         case 'new':
         case 'new_lead':
@@ -160,72 +159,6 @@ export class ReportingService {
     });
 
     return pipeline;
-  }
-
-
-  /**
-   * Get top job functions by count
-   */
-  private static async getTopJobFunctions() {
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('function')
-      .not('function', 'is', null);
-
-    if (error) throw error;
-
-    const functionCounts = new Map<string, number>();
-
-    data?.forEach(job => {
-      if (job.function) {
-        const count = functionCounts.get(job.function) || 0;
-        functionCounts.set(job.function, count + 1);
-      }
-    });
-
-    return Array.from(functionCounts.entries())
-      .map(([functionName, count]) => ({ function: functionName, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-  }
-
-  /**
-   * Get top companies by job count
-   */
-  private static async getTopCompaniesByJobs() {
-    // Get jobs with company_id
-    const { data: jobsData, error: jobsError } = await supabase
-      .from('jobs')
-      .select('company_id')
-      .not('company_id', 'is', null);
-
-    if (jobsError) throw jobsError;
-
-    // Get all companies
-    const { data: companiesData, error: companiesError } = await supabase
-      .from('companies')
-      .select('id, name');
-
-    if (companiesError) throw companiesError;
-
-    // Create a map of company names
-    const companyMap = new Map<string, string>();
-    companiesData?.forEach(company => {
-      companyMap.set(company.id, company.name);
-    });
-
-    const companyJobCounts = new Map<string, number>();
-
-    jobsData?.forEach(job => {
-      const companyName = companyMap.get(job.company_id) || 'Unknown Company';
-      const count = companyJobCounts.get(companyName) || 0;
-      companyJobCounts.set(companyName, count + 1);
-    });
-
-    return Array.from(companyJobCounts.entries())
-      .map(([companyName, jobCount]) => ({ companyName, jobCount }))
-      .sort((a, b) => b.jobCount - a.jobCount)
-      .slice(0, 10);
   }
 
   /**
@@ -312,17 +245,16 @@ export class ReportingService {
     startDate: string,
     endDate: string
   ) {
-    const [peopleResult, companiesResult] =
-      await Promise.all([
-        supabase
-          .from('people')
-          .select('id', { count: 'exact', head: true })
-          .lte('created_at', endDate),
-        supabase
-          .from('companies')
-          .select('id', { count: 'exact', head: true })
-          .lte('created_at', endDate),
-      ]);
+    const [peopleResult, companiesResult] = await Promise.all([
+      supabase
+        .from('people')
+        .select('id', { count: 'exact', head: true })
+        .lte('created_at', endDate),
+      supabase
+        .from('companies')
+        .select('id', { count: 'exact', head: true })
+        .lte('created_at', endDate),
+    ]);
 
     return {
       totalPeople: peopleResult.count || 0,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Plus, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 interface AddNoteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  entityType: 'lead' | 'company' | 'job';
+  entityType: 'lead' | 'company' | 'contact';
   entityId: string;
   entityName: string;
   onNoteAdded?: () => void;
@@ -37,14 +37,7 @@ export function AddNoteModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch leads when modal opens
-  useEffect(() => {
-    if (isOpen && entityType === 'company') {
-      fetchLeads();
-    }
-  }, [isOpen, entityType, entityId]);
-
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -60,7 +53,14 @@ export function AddNoteModal({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [entityId]);
+
+  // Fetch leads when modal opens
+  useEffect(() => {
+    if (isOpen && entityType === 'company') {
+      fetchLeads();
+    }
+  }, [isOpen, entityType, fetchLeads]);
 
   const leadOptions: DropdownOption[] = [
     { value: '', label: 'General company note' },
@@ -130,7 +130,9 @@ export function AddNoteModal({
               <Plus className='w-4 h-4 text-sidebar-primary' />
             </div>
             <div>
-              <h2 className='text-lg font-semibold text-foreground'>Add Note</h2>
+              <h2 className='text-lg font-semibold text-foreground'>
+                Add Note
+              </h2>
               <p className='text-sm text-muted-foreground'>{entityName}</p>
             </div>
           </div>

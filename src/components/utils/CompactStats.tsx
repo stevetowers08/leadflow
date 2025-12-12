@@ -48,9 +48,11 @@ export const CompactStats: React.FC<CompactStatsProps> = ({
   ];
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn(designTokens.spacing.section, className)}>
       {/* Mobile: 2x2 Grid */}
-      <div className='grid grid-cols-2 gap-3 md:hidden'>
+      <div
+        className={cn('grid grid-cols-2 md:hidden', designTokens.spacing.md)}
+      >
         {statsItems.map((item, index) => (
           <Card
             key={index}
@@ -58,15 +60,31 @@ export const CompactStats: React.FC<CompactStatsProps> = ({
             className={designTokens.shadows.cardStatic}
           >
             <CardContent className={designTokens.spacing.cardPadding.compact}>
-              <div className='flex items-center gap-2'>
-                <div className={cn('p-1.5 rounded-md', item.bgColor)}>
+              <div className={cn('flex items-center', designTokens.spacing.sm)}>
+                <div
+                  className={cn(
+                    designTokens.spacing.padding.xs,
+                    'rounded-md',
+                    item.bgColor
+                  )}
+                >
                   {item.icon}
                 </div>
                 <div className='min-w-0 flex-1'>
-                  <div className='text-lg font-bold text-foreground truncate'>
+                  <div
+                    className={cn(
+                      designTokens.typography.heading.h4,
+                      'font-bold text-foreground truncate'
+                    )}
+                  >
                     {item.value}
                   </div>
-                  <div className='text-xs text-muted-foreground truncate'>
+                  <div
+                    className={cn(
+                      designTokens.typography.body.small,
+                      'truncate'
+                    )}
+                  >
                     {item.title}
                   </div>
                 </div>
@@ -77,7 +95,13 @@ export const CompactStats: React.FC<CompactStatsProps> = ({
       </div>
 
       {/* Desktop: Horizontal Layout */}
-      <div className='hidden md:grid md:grid-cols-4 gap-4 lg:gap-6'>
+      <div
+        className={cn(
+          'hidden md:grid md:grid-cols-4',
+          designTokens.spacing.lg,
+          `lg:${designTokens.spacing.xl}`
+        )}
+      >
         {statsItems.map((item, index) => (
           <Card
             key={index}
@@ -87,15 +111,37 @@ export const CompactStats: React.FC<CompactStatsProps> = ({
             <CardContent
               className={designTokens.spacing.cardPadding.responsive}
             >
-              <div className='flex items-center gap-3 lg:gap-4'>
-                <div className={cn('p-2 rounded-lg', item.bgColor)}>
+              <div
+                className={cn(
+                  'flex items-center',
+                  designTokens.spacing.md,
+                  `lg:${designTokens.spacing.lg}`
+                )}
+              >
+                <div
+                  className={cn(
+                    designTokens.spacing.padding.sm,
+                    'rounded-lg',
+                    item.bgColor
+                  )}
+                >
                   {item.icon}
                 </div>
                 <div className='min-w-0'>
-                  <div className='text-xl lg:text-2xl font-bold text-foreground'>
+                  <div
+                    className={cn(
+                      designTokens.typography.heading.h2,
+                      'lg:text-2xl font-bold text-foreground'
+                    )}
+                  >
                     {item.value}
                   </div>
-                  <div className='text-sm text-muted-foreground font-medium'>
+                  <div
+                    className={cn(
+                      designTokens.typography.body.default,
+                      'font-medium'
+                    )}
+                  >
                     {item.title}
                   </div>
                 </div>
@@ -124,7 +170,14 @@ export const UltraCompactStats: React.FC<UltraCompactStatsProps> = ({
         <div className='text-lg font-bold text-primary'>{stats.totalLeads}</div>
         <div className='text-xs text-primary'>Leads</div>
       </div>
-      <div className='text-center p-2 bg-success/10 rounded-lg'>
+      <div
+        className={cn(
+          'text-center',
+          designTokens.spacing.padding.sm,
+          designTokens.colors.background.success,
+          'rounded-lg'
+        )}
+      >
         <div className='text-lg font-bold text-success'>
           {stats.totalCompanies}
         </div>
@@ -169,7 +222,9 @@ export const StatsWithTrends: React.FC<StatsWithTrendsProps> = ({
   return (
     <div
       className={cn(
-        'grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6',
+        'grid grid-cols-2 lg:grid-cols-4',
+        designTokens.spacing.md,
+        `lg:${designTokens.spacing.xl}`,
         className
       )}
     >
@@ -177,38 +232,78 @@ export const StatsWithTrends: React.FC<StatsWithTrendsProps> = ({
         <Card key={index} variant='glass' className={designTokens.shadows.card}>
           <CardContent className={designTokens.spacing.cardPadding.responsive}>
             <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-2 lg:gap-3'>
+              <div
+                className={cn(
+                  'flex items-center',
+                  designTokens.spacing.sm,
+                  `lg:${designTokens.spacing.md}`
+                )}
+              >
                 <div
                   className={cn(
-                    'p-1.5 lg:p-2 rounded-md lg:rounded-lg',
-                    item.color === 'blue' && 'bg-accent/20 text-accent',
-                    item.color === 'green' && 'bg-success/10 text-success',
-                    item.color === 'purple' && 'bg-secondary/10 text-secondary',
-                    item.color === 'orange' && 'bg-warning/10 text-warning'
+                    designTokens.spacing.padding.xs,
+                    `lg:${designTokens.spacing.padding.sm}`,
+                    'rounded-md lg:rounded-lg',
+                    item.color === 'blue' &&
+                      designTokens.colors.combinations.primary,
+                    item.color === 'green' &&
+                      designTokens.colors.combinations.success,
+                    item.color === 'purple' &&
+                      designTokens.colors.combinations.primary,
+                    item.color === 'orange' &&
+                      designTokens.colors.combinations.warning
                   )}
                 >
                   {item.icon}
                 </div>
                 <div className='min-w-0'>
-                  <div className='text-lg lg:text-xl font-bold text-foreground'>
+                  <div
+                    className={cn(
+                      designTokens.typography.heading.h4,
+                      'lg:text-xl font-bold text-foreground'
+                    )}
+                  >
                     {item.value}
                   </div>
-                  <div className='text-xs lg:text-sm text-muted-foreground truncate'>
+                  <div
+                    className={cn(
+                      designTokens.typography.body.small,
+                      'lg:text-sm truncate'
+                    )}
+                  >
                     {item.title}
                   </div>
                 </div>
               </div>
               {item.trend && (
-                <div className='flex items-center gap-1 text-xs'>
+                <div
+                  className={cn(
+                    'flex items-center',
+                    designTokens.spacing.xs,
+                    designTokens.typography.body.small
+                  )}
+                >
                   {item.trend.isPositive ? (
-                    <TrendingUp className='h-3 w-3 text-success' />
+                    <TrendingUp
+                      className={cn(
+                        designTokens.icons.sizeSm,
+                        designTokens.colors.text.success
+                      )}
+                    />
                   ) : (
-                    <TrendingDown className='h-3 w-3 text-destructive' />
+                    <TrendingDown
+                      className={cn(
+                        designTokens.icons.sizeSm,
+                        designTokens.colors.text.error
+                      )}
+                    />
                   )}
                   <span
                     className={cn(
                       'font-medium',
-                      item.trend.isPositive ? 'text-success' : 'text-destructive'
+                      item.trend.isPositive
+                        ? designTokens.colors.text.success
+                        : designTokens.colors.text.error
                     )}
                   >
                     {Math.abs(item.trend.value)}%

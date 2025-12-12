@@ -378,9 +378,9 @@ export function validateUuid(
 /**
  * Validate form data object
  */
-export function validateFormData<T extends Record<string, any>>(
+export function validateFormData<T extends Record<string, unknown>>(
   data: T,
-  validationRules: Record<keyof T, (value: any) => ValidationResult>
+  validationRules: Record<keyof T, (value: unknown) => ValidationResult>
 ): {
   isValid: boolean;
   errors: Record<string, string[]>;

@@ -57,12 +57,15 @@ function getSupabaseClient() {
             range: () => query,
             single: () => Promise.resolve({ data: null, error: null }),
             maybeSingle: () => Promise.resolve({ data: null, error: null }),
-            then: (onResolve: any) => Promise.resolve({ data: [], error: null }).then(onResolve),
-            catch: (onReject: any) => Promise.resolve({ data: [], error: null }).catch(onReject),
+            then: (
+              onResolve: (value: { data: unknown[]; error: null }) => unknown
+            ) => Promise.resolve({ data: [], error: null }).then(onResolve),
+            catch: (onReject: (reason?: unknown) => unknown) =>
+              Promise.resolve({ data: [], error: null }).catch(onReject),
           };
           return query;
         };
-        
+
         _supabaseClient = {
           from: () => createChainableQuery(),
           auth: {
@@ -79,17 +82,18 @@ function getSupabaseClient() {
         return _supabaseClient;
       }
 
-    _supabaseClient = createClient<Database>(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY,
-      {
-        auth: {
-          persistSession: true, // Allow session persistence for real auth
-          autoRefreshToken: true, // Auto-refresh for real sessions
-          detectSessionInUrl: true, // Detect OAuth callbacks
-          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-          storageKey: 'sb-auth-token', // Standard Supabase storage key
-        },
+      _supabaseClient = createClient<Database>(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY,
+        {
+          auth: {
+            persistSession: true, // Allow session persistence for real auth
+            autoRefreshToken: true, // Auto-refresh for real sessions
+            detectSessionInUrl: true, // Detect OAuth callbacks
+            storage:
+              typeof window !== 'undefined' ? window.localStorage : undefined,
+            storageKey: 'sb-auth-token', // Standard Supabase storage key
+          },
           global: {
             headers: {
               apikey: SUPABASE_PUBLISHABLE_KEY,
@@ -105,8 +109,8 @@ function getSupabaseClient() {
     const envConfig = validateEnvironment();
     if (!envConfig.isValid && envConfig.errors.length > 0) {
       // Only log errors if variables are actually missing, not just invalid format
-      const criticalErrors = envConfig.errors.filter(
-        e => e.includes('is required')
+      const criticalErrors = envConfig.errors.filter(e =>
+        e.includes('is required')
       );
       if (criticalErrors.length > 0 && IS_DEVELOPMENT) {
         console.error('❌ Supabase configuration validation failed:');
@@ -189,12 +193,15 @@ function getSupabaseClient() {
         range: () => query,
         single: () => Promise.resolve({ data: null, error: null }),
         maybeSingle: () => Promise.resolve({ data: null, error: null }),
-        then: (onResolve: any) => Promise.resolve({ data: [], error: null }).then(onResolve),
-        catch: (onReject: any) => Promise.resolve({ data: [], error: null }).catch(onReject),
+        then: (
+          onResolve: (value: { data: unknown[]; error: null }) => unknown
+        ) => Promise.resolve({ data: [], error: null }).then(onResolve),
+        catch: (onReject: (reason?: unknown) => unknown) =>
+          Promise.resolve({ data: [], error: null }).catch(onReject),
       };
       return query;
     };
-    
+
     _supabaseClient = {
       from: () => createChainableQuery(),
       auth: {
@@ -213,15 +220,12 @@ function getSupabaseClient() {
 }
 
 // Export a getter function instead of direct client to prevent initialization issues
-export const supabase = new Proxy(
-  {} as SupabaseBrowserClient,
-  {
-    get(target, prop) {
-      const client = getSupabaseClient();
-      return client[prop];
-    },
-  }
-);
+export const supabase = new Proxy({} as SupabaseBrowserClient, {
+  get(target, prop) {
+    const client = getSupabaseClient();
+    return client[prop];
+  },
+});
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";

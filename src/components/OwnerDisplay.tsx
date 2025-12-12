@@ -17,8 +17,8 @@ interface OwnerDisplayProps {
 
 interface OwnerInfo {
   id: string;
-  full_name: string;
-  role: string;
+  full_name: string | null;
+  role: string | null;
 }
 
 export const OwnerDisplay = ({

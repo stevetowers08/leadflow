@@ -8,7 +8,7 @@ export interface RetryConfig {
   maxDelay: number;
   backoffMultiplier: number;
   jitter: boolean;
-  retryCondition?: (error: any) => boolean;
+  retryCondition?: (error: unknown) => boolean;
 }
 
 export interface RetryState {
@@ -66,7 +66,7 @@ export function useRetryLogic(config: Partial<RetryConfig> = {}) {
   );
 
   const shouldRetry = useCallback(
-    (error: any): boolean => {
+    (error: unknown): boolean => {
       if (retryState.retryCount >= retryConfig.maxRetries) return false;
       return retryConfig.retryCondition
         ? retryConfig.retryCondition(error)
@@ -201,7 +201,7 @@ export function useRetryLogic(config: Partial<RetryConfig> = {}) {
     executeWithRetry,
     cancelRetry,
     resetRetry,
-    shouldRetry: (error: any) => shouldRetry(error),
+    shouldRetry: (error: unknown) => shouldRetry(error),
     canRetry: retryState.retryCount < retryConfig.maxRetries,
   };
 }

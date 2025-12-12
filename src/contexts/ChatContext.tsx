@@ -5,7 +5,7 @@ import React, {
   useCallback,
   ReactNode,
 } from 'react';
-import { ChatMessage } from '@/components/ChatMessage';
+import { ChatMessage } from '@/components/ai/ChatMessage';
 import {
   ChatService,
   ChatServiceConfig,
@@ -239,41 +239,38 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     dispatch({ type: 'RESET_CHAT' });
   }, []);
 
-  const configureService = useCallback(
-    async (config: ChatServiceConfig) => {
-      try {
-        const service = new ChatService(config);
-        dispatch({ type: 'SET_CHAT_SERVICE', payload: service });
+  const configureService = useCallback(async (config: ChatServiceConfig) => {
+    try {
+      const service = new ChatService(config);
+      dispatch({ type: 'SET_CHAT_SERVICE', payload: service });
 
-        // Test connection
-        const isConnected = await service.testConnection();
-        dispatch({ type: 'SET_CONNECTED', payload: isConnected });
+      // Test connection
+      const isConnected = await service.testConnection();
+      dispatch({ type: 'SET_CONNECTED', payload: isConnected });
 
-        if (isConnected) {
-          toast.success('Chat Connected', {
-            description: 'Successfully connected to AI service.',
-          });
-        } else {
-          toast.error('Connection Failed', {
-            description:
-              'Could not connect to AI service. Please check your configuration.',
-          });
-        }
-      } catch (error) {
-        console.error('Failed to configure chat service:', error);
-        dispatch({
-          type: 'SET_ERROR',
-          payload:
-            error instanceof Error ? error.message : 'Configuration failed',
+      if (isConnected) {
+        toast.success('Chat Connected', {
+          description: 'Successfully connected to AI service.',
         });
-
-        toast.error('Configuration Error', {
-          description: 'Failed to configure chat service.',
+      } else {
+        toast.error('Connection Failed', {
+          description:
+            'Could not connect to AI service. Please check your configuration.',
         });
       }
-    },
-    []
-  );
+    } catch (error) {
+      console.error('Failed to configure chat service:', error);
+      dispatch({
+        type: 'SET_ERROR',
+        payload:
+          error instanceof Error ? error.message : 'Configuration failed',
+      });
+
+      toast.error('Configuration Error', {
+        description: 'Failed to configure chat service.',
+      });
+    }
+  }, []);
 
   const testConnection = useCallback(async (): Promise<boolean> => {
     if (!state.chatService) {

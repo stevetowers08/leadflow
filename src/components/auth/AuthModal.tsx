@@ -36,7 +36,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [headline, setHeadline] = useState('');
   const [role, setRole] = useState<'mentor' | 'mentee' | 'both'>('both');
 
-  const { signInWithGoogle, signInWithLinkedIn, signInWithPassword } = useAuth();
+  const { signInWithGoogle, signInWithPassword } = useAuth();
 
   const handleGoogleSignIn = async () => {
     setLoading('google');
@@ -84,7 +84,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
 
-      const { error } = await signInWithLinkedIn();
+      // LinkedIn sign-in removed - feature not available
+      const error: Error = new Error('LinkedIn sign-in is not available');
 
       if (error) {
         setError(error.message);
@@ -298,7 +299,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <div className='w-full border-t border-border'></div>
                   </div>
                   <div className='relative flex justify-center text-sm'>
-                    <span className='px-2 bg-white text-muted-foreground'>or</span>
+                    <span className='px-2 bg-white text-muted-foreground'>
+                      or
+                    </span>
                   </div>
                 </div>
 
@@ -455,7 +458,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <div className='w-full border-t border-border'></div>
                   </div>
                   <div className='relative flex justify-center text-sm'>
-                    <span className='px-2 bg-white text-muted-foreground'>or</span>
+                    <span className='px-2 bg-white text-muted-foreground'>
+                      or
+                    </span>
                   </div>
                 </div>
 

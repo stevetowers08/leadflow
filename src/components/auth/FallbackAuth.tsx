@@ -15,7 +15,7 @@ import { Loader2 } from 'lucide-react';
 export const FallbackAuth: React.FC = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { signInWithGoogle, signInWithLinkedIn } = useAuth();
+  const { signInWithGoogle } = useAuth();
 
   const handleGoogleSignIn = async () => {
     setLoading('google');
@@ -40,7 +40,8 @@ export const FallbackAuth: React.FC = () => {
     setError(null);
 
     try {
-      const { error } = await signInWithLinkedIn();
+      // LinkedIn sign-in removed - feature not available
+      const error: Error = new Error('LinkedIn sign-in is not available');
 
       if (error) {
         setError(error.message);

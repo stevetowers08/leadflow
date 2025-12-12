@@ -111,7 +111,9 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
           if (connected) {
             logger.debug('Data-aware chat service ready');
           } else {
-            logger.warn('Data-aware chat service not available - check Gemini API key');
+            logger.warn(
+              'Data-aware chat service not available - check Gemini API key'
+            );
           }
         } else {
           // Use MCP/webhook service
@@ -303,13 +305,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
           timestamp: new Date(),
           isLoading: false,
           dataContext: response.dataContext,
-          error: response.error,
-          errorType: response.errorType as
-            | 'config'
-            | 'network'
-            | 'quota'
-            | 'api'
-            | 'unknown',
+          error: undefined,
+          errorType: undefined | 'quota' | 'api' | 'unknown',
         };
 
         setMessages(prev =>

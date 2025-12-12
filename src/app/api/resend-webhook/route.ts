@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { Json } from '@/integrations/supabase/types';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 
@@ -89,16 +90,23 @@ async function processWebhookEvent(
         })
         .eq('external_id', event.data.id);
     } else if (event.type === 'email.opened') {
-      // Track email opens
-      await supabase.from('email_tracking').insert({
-        email_id: event.data.id,
-        event_type: 'opened',
+      // Track email opens (email_tracking table doesn't exist - using activity_log)
+      await supabase.from('activity_log').insert({
+        activity_type: 'email_opened',
+        metadata: {
+          email_id: event.data.id,
+          event_type: 'opened',
+        } as unknown as Json,
         timestamp: new Date().toISOString(),
       });
     } else if (event.type === 'email.clicked') {
-      await supabase.from('email_tracking').insert({
-        email_id: event.data.id,
-        event_type: 'clicked',
+      // Track email clicks (email_tracking table doesn't exist - using activity_log)
+      await supabase.from('activity_log').insert({
+        activity_type: 'email_clicked',
+        metadata: {
+          email_id: event.data.id,
+          event_type: 'clicked',
+        } as unknown as Json,
         timestamp: new Date().toISOString(),
       });
     } else if (event.type === 'email.bounced') {
@@ -115,5 +123,3 @@ async function processWebhookEvent(
     throw error;
   }
 }
-
-

@@ -15,18 +15,52 @@ const Card = React.forwardRef<
   const isInteractive =
     interactive !== undefined ? interactive : hasClickHandler;
 
-  const baseStyles =
-    'rounded-lg border border-border transition-all duration-200 ease-out';
+  const baseStyles = cn(
+    'rounded-lg',
+    designTokens.borders.card,
+    designTokens.transitions.normal
+  );
   const interactiveStyles = isInteractive
-    ? 'cursor-pointer hover:shadow-md hover:border-border/60'
-    : 'hover:shadow-md';
+    ? cn(
+        'cursor-pointer',
+        designTokens.shadows.cardHover,
+        'hover:border-border/60'
+      )
+    : designTokens.shadows.cardStatic;
 
   const variants = {
-    default: `${baseStyles} bg-white shadow-sm ${interactiveStyles}`,
-    elevated: `${baseStyles} bg-white shadow-lg shadow-gray-300/20 hover:shadow-xl ${interactiveStyles}`,
-    outlined: `${baseStyles} bg-white shadow-sm ${interactiveStyles}`,
-    glass: `${baseStyles} bg-white shadow-xl shadow-gray-400/10 hover:shadow-2xl ${interactiveStyles}`,
-    minimal: `${baseStyles} bg-white shadow-sm ${interactiveStyles}`,
+    default: cn(
+      baseStyles,
+      designTokens.colors.background.primary,
+      designTokens.shadows.sm,
+      interactiveStyles
+    ),
+    elevated: cn(
+      baseStyles,
+      designTokens.colors.background.primary,
+      designTokens.shadows.lg,
+      'hover:shadow-xl',
+      interactiveStyles
+    ),
+    outlined: cn(
+      baseStyles,
+      designTokens.colors.background.primary,
+      designTokens.shadows.sm,
+      interactiveStyles
+    ),
+    glass: cn(
+      baseStyles,
+      designTokens.colors.background.primary,
+      designTokens.shadows.xl,
+      'hover:shadow-2xl',
+      interactiveStyles
+    ),
+    minimal: cn(
+      baseStyles,
+      designTokens.colors.background.primary,
+      designTokens.shadows.sm,
+      interactiveStyles
+    ),
   };
 
   return (
@@ -41,7 +75,11 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('flex flex-col space-y-1.5 p-6', className)}
+    className={cn(
+      'flex flex-col space-y-1.5',
+      designTokens.spacing.cardPadding.default,
+      className
+    )}
     {...props}
   />
 ));
@@ -53,7 +91,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-lg font-semibold tracking-tight', className)}
+    className={cn(designTokens.typography.heading.h3, className)}
     {...props}
   />
 ));
@@ -100,8 +138,17 @@ const CardFooter = React.forwardRef<
 ));
 CardFooter.displayName = 'CardFooter';
 
+// Compound component pattern (2025 best practice)
+const CardRoot = Card;
+CardRoot.Header = CardHeader;
+CardRoot.Title = CardTitle;
+CardRoot.Description = CardDescription;
+CardRoot.Content = CardContent;
+CardRoot.Footer = CardFooter;
+
+// Export compound component as default, individual components for backward compatibility
 export {
-  Card,
+  CardRoot as Card,
   CardContent,
   CardDescription,
   CardFooter,

@@ -34,8 +34,18 @@ import { cn } from '@/lib/utils';
 <div className={cn('base-classes', isActive && 'active-classes')} />
 ```
 
-- Design tokens in `src/design-system/tokens.ts`
+- **Design Tokens**: Use tokens from `src/lib/design-tokens/` - **NEVER hardcoded values**
+- All colors, spacing, typography must reference CSS variables from `globals.css`
 - Responsive design (mobile-first): `sm:`, `md:`, `lg:`
+
+```typescript
+// ✅ CORRECT: Use Tailwind classes that reference CSS variables
+<div className="bg-primary text-primary-foreground p-6">
+
+// ❌ INCORRECT: Hardcoded values
+<div style={{ backgroundColor: '#2563EB', padding: '24px' }}>
+<div className="bg-[#2563EB] p-[24px]">
+```
 
 ## Icons (Lucide React)
 

@@ -13,7 +13,10 @@ import {
 } from 'lucide-react';
 import React from 'react';
 import { useDashboardReplyAnalytics } from '../../hooks/useReplyAnalytics';
-import type { OverallReplyMetrics, ReplyAnalytics } from '../../types/database';
+import type {
+  OverallReplyMetrics,
+  ReplyAnalytics,
+} from '../../services/analyticsService';
 import { getStatusDisplayText } from '../../utils/statusUtils';
 
 interface ReplyAnalyticsCardProps {
@@ -283,7 +286,7 @@ export function ReplyAnalyticsDashboard() {
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
         <ReplyAnalyticsCard
           title='Total People'
-          value={overall.total_people}
+          value={overall.total_people || 0}
           subtitle='In your pipeline'
           icon={<Users className='h-4 w-4' />}
           color='blue'
@@ -316,7 +319,7 @@ export function ReplyAnalyticsDashboard() {
         <ReplyRateCard
           title='Overall Reply Rate'
           rate={overall.overall_reply_rate}
-          total={overall.total_people}
+          total={overall.total_people || 0}
           color='blue'
         />
         <ReplyRateCard
@@ -327,8 +330,11 @@ export function ReplyAnalyticsDashboard() {
         />
         <ReplyRateCard
           title='Conversion Rate'
-          rate={(overall.interested_count / overall.total_people) * 100}
-          total={overall.total_people}
+          rate={
+            ((overall.interested_count || 0) / (overall.total_people || 1)) *
+            100
+          }
+          total={overall.total_people || 0}
           color='purple'
         />
       </div>

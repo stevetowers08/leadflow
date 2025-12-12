@@ -142,7 +142,7 @@ export const batchFetchListData = async (
   options: {
     page?: number;
     limit?: number;
-    filters?: Record<string, any>;
+    filters?: Record<string, unknown>;
     orderBy?: string;
     orderDirection?: 'asc' | 'desc';
   } = {}
@@ -182,7 +182,7 @@ export const batchFetchListData = async (
 /**
  * Cache for batch queries to prevent duplicate requests
  */
-const queryCache = new Map<string, { data: any; timestamp: number }>();
+const queryCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
 export const getCachedQuery = (key: string) => {
@@ -193,7 +193,7 @@ export const getCachedQuery = (key: string) => {
   return null;
 };
 
-export const setCachedQuery = (key: string, data: any) => {
+export const setCachedQuery = (key: string, data: unknown) => {
   queryCache.set(key, { data, timestamp: Date.now() });
 };
 

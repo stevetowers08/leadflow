@@ -13,7 +13,7 @@ import { useAssignmentRefresh } from '@/hooks/useAssignmentRefresh';
 interface UserAssignmentDisplayProps {
   ownerId: string | null;
   entityId: string;
-  entityType: 'company' | 'lead' | 'job';
+  entityType: 'company' | 'lead' | 'contact';
   onAssignmentChange?: () => void;
   className?: string;
 }
@@ -198,7 +198,12 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
     // Read-only view
     if (isLoading) {
       return (
-        <div className={cn('flex items-center gap-2 text-muted-foreground', className)}>
+        <div
+          className={cn(
+            'flex items-center gap-2 text-muted-foreground',
+            className
+          )}
+        >
           <User className='w-4 h-4 animate-pulse' />
           <span className='text-sm'>Loading...</span>
         </div>
@@ -207,7 +212,12 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
 
     if (!currentOwnerId) {
       return (
-        <div className={cn('flex items-center gap-2 text-muted-foreground', className)}>
+        <div
+          className={cn(
+            'flex items-center gap-2 text-muted-foreground',
+            className
+          )}
+        >
           <User className='w-4 h-4' />
           <span className='text-sm'>Unassigned</span>
         </div>

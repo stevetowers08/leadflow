@@ -1,0 +1,386 @@
+---
+description: Design system tokens, component patterns, testing, and accessibility guidelines
+globs: ['**/components/**', '**/lib/design-tokens/**', '**/*.test.tsx', '**/*.test.ts']
+alwaysApply: false
+---
+
+# Design System Rules
+
+## Design Token System
+
+### Location
+All design tokens are in `src/lib/design-tokens/`:
+- `colors.ts` - Color tokens (semantic, sidebar, gradients)
+- `spacing.ts` - Spacing scale and semantic spacing
+- `typography.ts` - Font system (weights, sizes, line heights)
+- `borders.ts` - Border radius, widths, styles
+- `shadows.ts` - Shadow/elevation system
+- `animations.ts` - Motion and transition tokens
+- `accessibility.ts` - ARIA patterns, keyboard navigation
+
+### Critical Rule: CSS Variables First
+
+**ALL component styles MUST reference design tokens through CSS variables defined in `globals.css`, never hardcoded values.**
+
+```typescript
+// ✅ CORRECT: Use CSS variables via Tailwind classes
+<div className="bg-primary text-primary-foreground p-6">
+  Content
+</div>
+
+// ✅ CORRECT: Reference tokens for TypeScript usage
+import { colorTokens, spacingTokens } from '@/lib/design-tokens';
+<div style={{ padding: spacingTokens.semantic.card.default }}>
+
+// ❌ INCORRECT: Hardcoded values
+<div style={{ backgroundColor: '#2563EB', padding: '24px' }}>
+<div className="bg-[#2563EB] p-[24px]">
+```
+
+### Using Design Tokens
+
+```typescript
+import { 
+  colorTokens, 
+  spacingTokens, 
+  typographyTokens,
+  borderTokens,
+  shadowTokens,
+  animationTokens
+} from '@/lib/design-tokens';
+
+// In components, prefer Tailwind classes that reference CSS variables
+<div className="bg-primary text-primary-foreground p-6 rounded-lg shadow-md">
+  Content
+</div>
+```
+
+## Component Architecture Patterns
+
+### 1. Compound Component Pattern
+
+For complex components, use the compound pattern:
+
+```typescript
+// ✅ CORRECT: Compound component
+export const Card = ({ children, ...props }) => (
+  <div className="rounded-lg border bg-card" {...props}>
+    {children}
+  </div>
+);
+
+Card.Header = ({ children, ...props }) => (
+  <div className="flex flex-col space-y-1.5 p-6" {...props}>
+    {children}
+  </div>
+);
+
+Card.Title = ({ children, ...props }) => (
+  <h3 className="font-semibold leading-none tracking-tight" {...props}>
+    {children}
+  </h3>
+);
+
+// Usage:
+<Card>
+  <Card.Header>
+    <Card.Title>Title</Card.Title>
+  </Card.Header>
+</Card>
+```
+
+### 2. Variant System with CVA
+
+Use class-variance-authority for variant management:
+
+```typescript
+import { cva, type VariantProps } from "class-variance-authority";
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground",
+        outline: "border border-input bg-background hover:bg-accent",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+);
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+```
+
+### 3. TypeScript Excellence
+
+```typescript
+// ✅ CORRECT: Always export prop types
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+// ✅ CORRECT: Use explicit return types for complex functions
+function processData(input: Data): ProcessedData { }
+```
+
+## Accessibility Requirements
+
+### Non-Negotiable Standards
+
+Every component MUST include:
+
+1. **Keyboard Navigation**: Full keyboard operability (Space/Enter for buttons, Arrow keys for navigation)
+2. **ARIA Labels**: Proper ARIA attributes for all interactive elements
+3. **Focus Management**: Visible focus indicators, logical tab order
+4. **Screen Reader Support**: Descriptive labels, live regions where needed
+5. **Color Contrast**: Minimum WCAG AA (4.5:1 for text)
+
+### Implementation Pattern
+
+```typescript
+// ✅ CORRECT: Full accessibility
+<Button
+  aria-label="Delete item"
+  aria-describedby="delete-description"
+  disabled={isLoading}
+  className="focus-visible:ring-2 focus-visible:ring-primary"
+>
+  Delete
+</Button>
+
+// ❌ INCORRECT: Missing accessibility
+<button onClick={handleClick}>Delete</button>
+```
+
+### Accessibility Tokens
+
+```typescript
+import { accessibilityTokens } from '@/lib/design-tokens';
+
+// Use accessibility patterns
+<button
+  role={accessibilityTokens.roles.button}
+  aria-label="Action button"
+  className={accessibilityTokens.focus.ring}
+>
+  Action
+</button>
+```
+
+## Testing Strategy
+
+### Test-Driven Development (TDD)
+
+**CRITICAL**: Write tests FIRST, then the code, then run tests and update until all pass.
+
+### Testing Tools
+
+- **Unit Tests**: Vitest + React Testing Library
+- **Test Setup**: `src/test/setup.ts`
+- **Test Utils**: `src/test/utils.tsx` (includes React Query provider)
+
+### Test Structure
+
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@/test/utils';
+import userEvent from '@testing-library/user-event';
+import { Button } from './button';
+
+describe('Button', () => {
+  it('renders with correct variant styles', () => {
+    render(<Button variant="default">Click me</Button>);
+    const button = screen.getByRole('button', { name: /click me/i });
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveClass('bg-primary');
+  });
+
+  it('handles click events', async () => {
+    const handleClick = vi.fn();
+    const user = userEvent.setup();
+    
+    render(<Button onClick={handleClick}>Click me</Button>);
+    const button = screen.getByRole('button', { name: /click me/i });
+    
+    await user.click(button);
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('is keyboard accessible', async () => {
+    const handleClick = vi.fn();
+    const user = userEvent.setup();
+    
+    render(<Button onClick={handleClick}>Click me</Button>);
+    const button = screen.getByRole('button', { name: /click me/i });
+    
+    // Test Space key
+    button.focus();
+    await user.keyboard(' ');
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+### Running Tests
+
+```bash
+npm run test          # Run tests once
+npm run test:watch    # Run tests in watch mode
+npm run test:ui       # Run tests with UI
+npm run test:coverage # Run tests with coverage
+```
+
+## Component Checklist
+
+Before marking a component as complete:
+
+- [ ] Full TypeScript types exported
+- [ ] All variants implemented with CVA
+- [ ] Accessibility verified (keyboard + screen reader)
+- [ ] Unit tests written and passing
+- [ ] Documentation with examples
+- [ ] Responsive behavior verified
+- [ ] Design tokens used (no hardcoded values)
+- [ ] Dark mode support (if applicable)
+
+## File Naming & Code Style
+
+### Conventions
+
+- **Files**: kebab-case (`user-profile.tsx`)
+- **Components**: PascalCase (`UserProfile`)
+- **Functions**: camelCase (`getUserData`)
+- **Constants**: SCREAMING_SNAKE_CASE (`MAX_RETRY_COUNT`)
+- **Interfaces**: PascalCase (`ButtonProps`)
+
+### Code Style Rules
+
+```typescript
+// ✅ DO: Use functional components
+export function Button({ variant, ...props }: ButtonProps) { }
+
+// ❌ DON'T: Use class components
+export class Button extends React.Component { }
+
+// ✅ DO: Use composition
+<Card>
+  <Card.Header />
+  <Card.Content />
+</Card>
+
+// ✅ DO: Destructure props
+const Button = ({ variant, size, ...rest }) => { }
+```
+
+## Performance Optimization
+
+### Bundle Size
+
+```typescript
+// ✅ Use dynamic imports for heavy components
+const HeavyChart = dynamic(() => import('./heavy-chart'), {
+  loading: () => <Skeleton />
+});
+
+// ✅ Use React.memo for expensive renders
+export const ExpensiveList = React.memo(({ items }) => {
+  // component implementation
+});
+```
+
+## Responsive Design
+
+### Breakpoint System
+
+```typescript
+// Use Tailwind's responsive prefixes consistently
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+  {/* Mobile: 1 col, Tablet: 2 cols, Desktop: 3 cols */}
+</div>
+
+// Standard breakpoints:
+// sm: 640px
+// md: 768px
+// lg: 1024px
+// xl: 1280px
+// 2xl: 1536px
+```
+
+## 🚫 Don't Do This
+
+1. **Don't hardcode colors/spacing** - Always use design tokens
+2. **Don't skip accessibility** - Build it in from day one
+3. **Don't skip tests** - Write tests first (TDD)
+4. **Don't use `any` type** - Define proper types
+5. **Don't mix component libraries** - Stay consistent with shadcn/ui
+6. **Don't create duplicate components** - Check if one exists first
+7. **Don't ignore TypeScript errors** - Resolve them properly
+
+## ✅ Do This
+
+1. **Use design tokens** - Reference CSS variables, never hardcoded values
+2. **Write tests first** - Follow TDD approach
+3. **Include accessibility** - Keyboard navigation, ARIA labels, focus management
+4. **Use CVA for variants** - Consistent variant system
+5. **Use compound components** - For complex component structures
+6. **Follow TypeScript strict mode** - No implicit any, proper null checks
+7. **Reference existing patterns** - Check similar components before creating new ones
+
+## Documentation
+
+### Component Documentation Template
+
+Every component needs:
+
+```markdown
+# Component Name
+
+## Overview
+Brief description of the component and its purpose.
+
+## Usage
+\`\`\`tsx
+import { Button } from "@/components/ui/button";
+
+<Button variant="default" size="lg">
+  Click me
+</Button>
+\`\`\`
+
+## API Reference
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| variant | "default" \| "destructive" | "default" | Visual style variant |
+
+## Accessibility
+- Keyboard: Space/Enter activates
+- Screen reader: Announced as button with label
+
+## Design Tokens Used
+- Colors: `--primary`, `--primary-foreground`
+- Spacing: `spacing-4`, `spacing-2`
+```
+
+## Related Files
+
+- Design Tokens: `src/lib/design-tokens/`
+- Test Setup: `src/test/`
+- Example Components: `src/components/composite/card/`
+- Documentation: `src/components/DESIGN_SYSTEM.md`
+- CSS Variables: `src/app/globals.css`

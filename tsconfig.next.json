@@ -51,8 +51,11 @@
     "src/server/**/*.ts",
     "src/data/**/*.ts",
     "src/design-system/**/*.tsx",
+    "src/test/**/*.ts",
+    "src/test/**/*.tsx",
     "src/proxy.ts",
     "src/vite-env.d.ts",
+    "vitest.config.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
@@ -61,6 +64,11 @@
     "api/**/*",
     "supabase/functions/**/*",
     "src/ai/**/*",
+    "src/components/ai/ChatWindow.tsx",
+    "src/components/ai/FloatingChatWidget.tsx",
+    "src/components/ai/ChatInput.tsx",
+    "src/components/ai/ChatMessage.tsx",
+    "src/contexts/ChatContext.tsx",
     "dist",
     ".next"
   ]

@@ -1,13 +1,13 @@
 import React from 'react';
 
-interface RecruitEdgeLogoProps {
+interface LeadFlowLogoProps {
   size?: number;
   className?: string;
   showText?: boolean;
   variant?: 'icon' | 'horizontal' | 'vertical';
 }
 
-export const RecruitEdgeLogo: React.FC<RecruitEdgeLogoProps> = ({
+export const LeadFlowLogo: React.FC<LeadFlowLogoProps> = ({
   size = 32,
   className = '',
   showText = true,
@@ -48,10 +48,15 @@ export const RecruitEdgeLogo: React.FC<RecruitEdgeLogoProps> = ({
 };
 
 // Export variants for easy use
-export const RecruitEdgeLogoHorizontal = (
-  props: Omit<RecruitEdgeLogoProps, 'variant'>
-) => <RecruitEdgeLogo {...props} variant='horizontal' />;
+export const LeadFlowLogoHorizontal = (
+  props: Omit<LeadFlowLogoProps, 'variant'>
+) => <LeadFlowLogo {...props} variant='horizontal' />;
 
-export const RecruitEdgeLogoVertical = (
-  props: Omit<RecruitEdgeLogoProps, 'variant'>
-) => <RecruitEdgeLogo {...props} variant='vertical' />;
+export const LeadFlowLogoVertical = (
+  props: Omit<LeadFlowLogoProps, 'variant'>
+) => <LeadFlowLogo {...props} variant='vertical' />;
+
+// Legacy alias for backward compatibility
+export const RecruitEdgeLogo = LeadFlowLogo;
+export const RecruitEdgeLogoHorizontal = LeadFlowLogoHorizontal;
+export const RecruitEdgeLogoVertical = LeadFlowLogoVertical;

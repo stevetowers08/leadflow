@@ -17,7 +17,12 @@ interface GmailNotification {
 }
 
 interface SentimentAnalysis {
-  sentiment: 'interested' | 'not_interested' | 'maybe' | 'out_of_office' | 'neutral';
+  sentiment:
+    | 'interested'
+    | 'not_interested'
+    | 'maybe'
+    | 'out_of_office'
+    | 'neutral';
   confidence: number;
   reasoning: string;
 }
@@ -32,13 +37,15 @@ interface GmailMessagePart {
   body?: { data?: string };
 }
 
+interface GmailMessageAdded {
+  message?: {
+    id?: string;
+    labelIds?: string[];
+  };
+}
+
 interface GmailHistoryRecord {
-  messagesAdded?: {
-    message?: {
-      id?: string;
-      labelIds?: string[];
-    };
-  }[];
+  messagesAdded?: GmailMessageAdded[];
 }
 
 const corsHeaders = {
@@ -106,7 +113,9 @@ async function processGmailReply(
       body = atob(textPart.body.data.replace(/-/g, '+').replace(/_/g, '/'));
     }
   } else if (messageData.payload.body?.data) {
-    body = atob(messageData.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+    body = atob(
+      messageData.payload.body.data.replace(/-/g, '+').replace(/_/g, '/')
+    );
   }
 
   // Analyze reply sentiment using Gemini (if configured)
@@ -138,7 +147,8 @@ async function processGmailReply(
 
       if (aiResponse.ok) {
         const aiData = await aiResponse.json();
-        const analysisText = aiData.candidates[0]?.content?.parts[0]?.text || '';
+        const analysisText =
+          aiData.candidates[0]?.content?.parts[0]?.text || '';
         try {
           sentiment = JSON.parse(analysisText.trim());
         } catch {
@@ -157,8 +167,10 @@ async function processGmailReply(
 
   // Store reply (if email_replies table exists)
   // Note: Check if this table exists in your schema
-  const receivedAt = new Date(messageData.internalDate || Date.now()).toISOString();
-  
+  const receivedAt = new Date(
+    messageData.internalDate || Date.now()
+  ).toISOString();
+
   // Update lead's status based on sentiment
   if (sentiment) {
     const statusMap: Record<string, string> = {
@@ -167,7 +179,7 @@ async function processGmailReply(
       maybe: 'active',
       out_of_office: 'active',
     };
-    
+
     await supabase
       .from('leads')
       .update({
@@ -194,14 +206,21 @@ export async function POST(request: NextRequest) {
     // Get user's Gmail access token
     const { data: integration } = await supabase
       .from('integrations')
-      .select('config, user_id')
+      .select('config')
       .eq('platform', 'gmail')
       .eq('connected', true)
       .ilike('config->>user_email', notification.emailAddress)
       .single();
 
-    if (!integration?.config?.access_token) {
+    if (!integration?.config) {
       console.log('No Gmail integration found');
+      return new NextResponse('OK', { status: 200 });
+    }
+
+    // Type guard for config
+    const config = integration.config as { access_token?: string } | null;
+    if (!config?.access_token) {
+      console.log('No Gmail access token found');
       return new NextResponse('OK', { status: 200 });
     }
 
@@ -210,7 +229,7 @@ export async function POST(request: NextRequest) {
       `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${notification.historyId}&historyTypes=messageAdded&fields=history(messagesAdded(message(id,threadId,labelIds)))`,
       {
         headers: {
-          Authorization: `Bearer ${integration.config.access_token}`,
+          Authorization: `Bearer ${config.access_token}`,
         },
       }
     );
@@ -230,17 +249,32 @@ export async function POST(request: NextRequest) {
       historyData.history
         ?.flatMap((h: GmailHistoryRecord) => h.messagesAdded || [])
         .filter(
-          (m): m is { message: { id: string; labelIds?: string[] } } =>
-            !!m.message && !!m.message.id
+          (
+            m: GmailMessageAdded
+          ): m is GmailMessageAdded & {
+            message: { id: string; labelIds?: string[] };
+          } => !!m?.message && !!m.message.id
         )
-        .filter(m => m.message.labelIds?.includes('INBOX'))
-        .map(m => m.message.id) || [];
+        .filter(
+          (
+            m: GmailMessageAdded & {
+              message: { id: string; labelIds?: string[] };
+            }
+          ) => m.message.labelIds?.includes('INBOX')
+        )
+        .map(
+          (
+            m: GmailMessageAdded & {
+              message: { id: string; labelIds?: string[] };
+            }
+          ) => m.message.id
+        ) || [];
 
     console.log(`Found ${newMessages.length} new messages`);
 
-    // Process each new message
+    // Process each new message (config already defined above)
     for (const messageId of newMessages) {
-      await processGmailReply(supabase, messageId, integration.config.access_token);
+      await processGmailReply(supabase, messageId, config.access_token);
     }
 
     return new NextResponse('OK', { status: 200 });
@@ -250,5 +284,3 @@ export async function POST(request: NextRequest) {
     return new NextResponse('OK', { status: 200 });
   }
 }
-
-

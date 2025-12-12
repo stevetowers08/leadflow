@@ -1,6 +1,5 @@
-// AI Service for lead scoring, job summaries, and optimization
+// AI Service for lead scoring and optimization
 // Now uses SECURE server-side processing via Supabase Edge Functions
-import { serverAIService } from './serverAIService';
 
 export interface AIScore {
   score: number;
@@ -13,14 +12,6 @@ export interface AIScore {
     location_match: number;
     experience_match: number;
   };
-}
-
-export interface JobSummary {
-  summary: string;
-  key_requirements: string[];
-  ideal_candidate: string;
-  urgency_level: 'low' | 'medium' | 'high';
-  market_demand: 'low' | 'medium' | 'high';
 }
 
 export interface LeadOptimization {
@@ -128,51 +119,6 @@ class AIService {
     }
   }
 
-  // Generate job summary using SECURE server-side processing
-  async generateJobSummary(jobData: {
-    id: string; // Required for server-side processing
-    title: string;
-    company: string;
-    description: string;
-    requirements?: string;
-    location: string;
-    salary?: string;
-  }): Promise<JobSummary> {
-    try {
-      // Use server-side AI processing (SECURE)
-      const serverResult = await serverAIService.generateJobSummary({
-        id: jobData.id,
-        title: jobData.title,
-        company: jobData.company,
-        description: jobData.description,
-        location: jobData.location,
-        salary: jobData.salary,
-        employment_type: undefined,
-        seniority_level: undefined,
-      });
-
-      if (serverResult.success && serverResult.data) {
-        return {
-          summary: serverResult.data.summary,
-          key_requirements: serverResult.data.key_requirements,
-          ideal_candidate: serverResult.data.ideal_candidate,
-          urgency_level: serverResult.data.urgency_level,
-          market_demand: serverResult.data.market_demand,
-        };
-      }
-
-      // Fallback to manual generation if server fails
-      console.warn(
-        'Server-side AI failed, using fallback:',
-        serverResult.error
-      );
-      return this.generateFallbackJobSummary(jobData);
-    } catch (error) {
-      console.error('AI job summary error:', error);
-      return this.generateFallbackJobSummary(jobData);
-    }
-  }
-
   // Optimize lead outreach
   async optimizeLeadOutreach(leadData: {
     name: string;
@@ -228,7 +174,9 @@ class AIService {
   }
 
   // Batch process multiple leads
-  async batchProcessLeads(leads: any[]): Promise<AIScore[]> {
+  async batchProcessLeads(
+    leads: Array<{ id: string; [key: string]: unknown }>
+  ): Promise<AIScore[]> {
     const batchSize = 5; // Process in small batches to avoid rate limits
     const results: AIScore[] = [];
 
@@ -265,7 +213,7 @@ class AIService {
           {
             role: 'system',
             content:
-              'You are an advanced AI assistant specialized in intelligent lead scoring, job analysis, and recruitment optimization using machine learning algorithms. Always respond with valid JSON format and provide detailed AI-powered insights.',
+              'You are an advanced AI assistant specialized in intelligent lead scoring and outreach optimization using machine learning algorithms. Always respond with valid JSON format and provide detailed AI-powered insights.',
           },
           {
             role: 'user',
@@ -300,27 +248,6 @@ class AIService {
     return false;
   }
 
-  // Generate fallback job summary
-  private generateFallbackJobSummary(jobData: {
-    title: string;
-    company: string;
-    description: string;
-    location: string;
-    salary?: string;
-  }): JobSummary {
-    return {
-      summary: `${jobData.title} position at ${jobData.company} in ${jobData.location}`,
-      key_requirements: [
-        'Experience in relevant field',
-        'Strong communication skills',
-        'Team collaboration',
-      ],
-      ideal_candidate: 'Experienced professional with relevant background',
-      urgency_level: 'medium',
-      market_demand: 'medium',
-    };
-  }
-
   // Get AI service status
   getStatus(): {
     available: boolean;
@@ -348,12 +275,7 @@ class AIService {
         },
       },
       activeProvider,
-      features: [
-        'lead_scoring',
-        'job_summaries',
-        'outreach_optimization',
-        'batch_processing',
-      ],
+      features: ['lead_scoring', 'outreach_optimization', 'batch_processing'],
     };
   }
 }

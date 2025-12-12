@@ -10,8 +10,8 @@ interface AssignedUserBadgeProps {
 
 interface UserProfile {
   id: string;
-  full_name: string;
-  role: string;
+  full_name: string | null;
+  role: string | null;
 }
 
 export const AssignedUserBadge: React.FC<AssignedUserBadgeProps> = ({
@@ -41,7 +41,7 @@ export const AssignedUserBadge: React.FC<AssignedUserBadgeProps> = ({
           .single();
 
         if (error) throw error;
-        setUserProfile(data);
+        setUserProfile(data as UserProfile | null);
       } catch (error) {
         console.error('Error fetching user profile:', error);
         setUserProfile(null);

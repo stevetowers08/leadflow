@@ -54,7 +54,7 @@ export interface PopupData {
 }
 
 // Column definitions for tables
-export interface TableColumn<T = any> {
+export interface TableColumn<T = unknown> {
   key: keyof T;
   label: string;
   sortable?: boolean;
@@ -68,7 +68,7 @@ export interface BulkAction {
   id: string;
   label: string;
   icon?: React.ReactNode;
-  onClick: (selectedItems: any[]) => void;
+  onClick: (selectedItems: unknown[]) => void;
   variant?: 'default' | 'destructive' | 'outline';
   disabled?: boolean;
 }
@@ -107,13 +107,13 @@ export interface ErrorInfo {
   message: string;
   stack?: string;
   timestamp: Date;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   severity: 'low' | 'medium' | 'high' | 'critical';
   resolved?: boolean;
 }
 
 // API response types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T | null;
   error: Error | null;
   loading: boolean;
@@ -140,7 +140,7 @@ export interface RealtimeSubscription {
   table: string;
   event: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
   filter?: string;
-  callback: (payload: any) => void;
+  callback: (payload: unknown) => void;
 }
 
 // Automation types

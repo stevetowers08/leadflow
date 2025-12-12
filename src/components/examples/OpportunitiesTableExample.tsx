@@ -38,20 +38,6 @@ export const DealsTableExample: React.FC<{
       ),
     },
     {
-      key: 'job',
-      label: 'Job Title',
-      render: (_, row) => (
-        <div>
-          <div className='font-medium'>{row.job.title}</div>
-          {row.job.location && (
-            <div className='text-sm text-muted-foreground'>
-              {row.job.location}
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
       key: 'matchScore',
       label: 'Match',
       align: 'center',
@@ -79,7 +65,7 @@ export const DealsTableExample: React.FC<{
   ];
 
   return (
-    <div className="flex items-center justify-center h-32 text-muted-foreground">
+    <div className='flex items-center justify-center h-32 text-muted-foreground'>
       Table removed
     </div>
   );

@@ -27,18 +27,26 @@ export class EnhancedErrorHandler {
   /**
    * Classify and handle Supabase database errors
    */
-  classifySupabaseError(error: any, context?: Record<string, any>): AppError {
-    if (!error.code) {
+  classifySupabaseError(
+    error: unknown,
+    context?: Record<string, unknown>
+  ): AppError {
+    const errorObj = error as Record<string, unknown>;
+    if (!errorObj.code || typeof errorObj.code !== 'string') {
+      const message =
+        typeof errorObj.message === 'string'
+          ? errorObj.message
+          : 'Unknown database error occurred';
       return ErrorFactory.create(
         ErrorType.SYSTEM_ERROR,
         'UNKNOWN_DATABASE_ERROR',
-        error.message || 'Unknown database error occurred',
+        message,
         'A database error occurred. Please try again.',
         {
           severity: ErrorSeverity.MEDIUM,
           category: ErrorCategory.DATABASE,
           context,
-          originalError: error,
+          originalError: error as Error,
         }
       );
     }
@@ -144,8 +152,15 @@ export class EnhancedErrorHandler {
   /**
    * Classify network errors
    */
-  classifyNetworkError(error: any, context?: Record<string, any>): AppError {
-    if (error.code === 'NETWORK_ERROR' || !navigator.onLine) {
+  classifyNetworkError(
+    error: unknown,
+    context?: Record<string, unknown>
+  ): AppError {
+    const errorObj = error as Record<string, unknown>;
+    if (
+      errorObj.code === 'NETWORK_ERROR' ||
+      (typeof navigator !== 'undefined' && !navigator.onLine)
+    ) {
       return ErrorFactory.create(
         ErrorType.NETWORK_ERROR,
         'NO_INTERNET_CONNECTION',
@@ -160,22 +175,23 @@ export class EnhancedErrorHandler {
       );
     }
 
-    if (error.status >= 500) {
+    const status = typeof errorObj.status === 'number' ? errorObj.status : 0;
+    if (status >= 500) {
       return ErrorFactory.create(
         ErrorType.EXTERNAL_SERVICE_ERROR,
         'SERVER_ERROR',
-        `Server error: ${error.status}`,
+        `Server error: ${status}`,
         'Server error. Please try again later.',
         {
           severity: ErrorSeverity.HIGH,
           category: ErrorCategory.NETWORK,
-          context: { ...context, status: error.status },
-          originalError: error,
+          context: { ...context, status },
+          originalError: error as Error,
         }
       );
     }
 
-    if (error.status === 404) {
+    if (status === 404) {
       return ErrorFactory.create(
         ErrorType.EXTERNAL_SERVICE_ERROR,
         'NOT_FOUND',
@@ -184,13 +200,13 @@ export class EnhancedErrorHandler {
         {
           severity: ErrorSeverity.MEDIUM,
           category: ErrorCategory.NETWORK,
-          context: { ...context, status: error.status },
-          originalError: error,
+          context: { ...context, status },
+          originalError: error as Error,
         }
       );
     }
 
-    if (error.status === 403) {
+    if (status === 403) {
       return ErrorFactory.create(
         ErrorType.PERMISSION_DENIED,
         'FORBIDDEN',
@@ -199,13 +215,13 @@ export class EnhancedErrorHandler {
         {
           severity: ErrorSeverity.MEDIUM,
           category: ErrorCategory.NETWORK,
-          context: { ...context, status: error.status },
-          originalError: error,
+          context: { ...context, status },
+          originalError: error as Error,
         }
       );
     }
 
-    if (error.status === 401) {
+    if (status === 401) {
       return ErrorFactory.create(
         ErrorType.AUTHENTICATION_ERROR,
         'UNAUTHORIZED',
@@ -214,22 +230,26 @@ export class EnhancedErrorHandler {
         {
           severity: ErrorSeverity.HIGH,
           category: ErrorCategory.AUTHENTICATION,
-          context: { ...context, status: error.status },
-          originalError: error,
+          context: { ...context, status },
+          originalError: error as Error,
         }
       );
     }
 
+    const message =
+      typeof errorObj.message === 'string'
+        ? errorObj.message
+        : 'Network error occurred';
     return ErrorFactory.create(
       ErrorType.NETWORK_ERROR,
       'NETWORK_ERROR',
-      error.message || 'Network error occurred',
+      message,
       'A network error occurred. Please try again.',
       {
         severity: ErrorSeverity.MEDIUM,
         category: ErrorCategory.NETWORK,
         context,
-        originalError: error,
+        originalError: error as Error,
       }
     );
   }
@@ -237,18 +257,30 @@ export class EnhancedErrorHandler {
   /**
    * Classify validation errors
    */
-  classifyValidationError(error: any, context?: Record<string, any>): AppError {
+  classifyValidationError(
+    error: unknown,
+    context?: Record<string, unknown>
+  ): AppError {
+    const errorObj = error as Record<string, unknown>;
+    const message =
+      typeof errorObj.message === 'string'
+        ? errorObj.message
+        : 'Validation failed';
+    const userMessage =
+      typeof errorObj.userMessage === 'string'
+        ? errorObj.userMessage
+        : 'Please check your input and try again.';
     return ErrorFactory.create(
       ErrorType.VALIDATION_ERROR,
       'VALIDATION_FAILED',
-      error.message || 'Validation failed',
-      error.userMessage || 'Please check your input and try again.',
+      message,
+      userMessage,
       {
         recoverable: true,
         severity: ErrorSeverity.LOW,
         category: ErrorCategory.VALIDATION,
         context,
-        originalError: error,
+        originalError: error as Error,
       }
     );
   }
@@ -256,18 +288,26 @@ export class EnhancedErrorHandler {
   /**
    * Classify authentication errors
    */
-  classifyAuthError(error: any, context?: Record<string, any>): AppError {
+  classifyAuthError(
+    error: unknown,
+    context?: Record<string, unknown>
+  ): AppError {
+    const errorObj = error as Record<string, unknown>;
+    const message =
+      typeof errorObj.message === 'string'
+        ? errorObj.message
+        : 'Authentication failed';
     return ErrorFactory.create(
       ErrorType.AUTHENTICATION_ERROR,
       'AUTH_FAILED',
-      error.message || 'Authentication failed',
+      message,
       'Authentication failed. Please log in again.',
       {
         recoverable: true,
         severity: ErrorSeverity.HIGH,
         category: ErrorCategory.AUTHENTICATION,
         context,
-        originalError: error,
+        originalError: error as Error,
       }
     );
   }
@@ -276,37 +316,52 @@ export class EnhancedErrorHandler {
    * Handle and log error with enhanced classification
    */
   async handleError(
-    error: any,
-    context?: Record<string, any>
+    error: unknown,
+    context?: Record<string, unknown>
   ): Promise<AppError> {
     let appError: AppError;
 
     // If it's already an AppError, use it
-    if (error && typeof error === 'object' && 'type' in error) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'type' in error &&
+      'code' in error
+    ) {
       appError = error as AppError;
     } else {
+      const errorObj = error as Record<string, unknown>;
       // Classify the error based on its properties
-      if (error.code && typeof error.code === 'string') {
+      if (errorObj.code && typeof errorObj.code === 'string') {
         // Likely a Supabase error
         appError = this.classifySupabaseError(error, context);
-      } else if (error.status || error.message?.includes('fetch')) {
+      } else if (
+        (errorObj.status && typeof errorObj.status === 'number') ||
+        (typeof errorObj.message === 'string' &&
+          errorObj.message.includes('fetch'))
+      ) {
         // Likely a network error
         appError = this.classifyNetworkError(error, context);
       } else if (
-        error.name === 'ValidationError' ||
-        error.message?.includes('validation')
+        errorObj.name === 'ValidationError' ||
+        (typeof errorObj.message === 'string' &&
+          errorObj.message.includes('validation'))
       ) {
         // Validation error
         appError = this.classifyValidationError(error, context);
       } else if (
-        error.message?.includes('auth') ||
-        error.message?.includes('login')
+        typeof errorObj.message === 'string' &&
+        (errorObj.message.includes('auth') ||
+          errorObj.message.includes('login'))
       ) {
         // Authentication error
         appError = this.classifyAuthError(error, context);
       } else {
         // Generic system error
-        appError = ErrorFactory.fromError(error, ErrorType.SYSTEM_ERROR);
+        appError = ErrorFactory.fromError(
+          error as Error,
+          ErrorType.SYSTEM_ERROR
+        );
         if (context) {
           appError.context = { ...appError.context, ...context };
         }
@@ -342,7 +397,7 @@ export class EnhancedErrorHandler {
    */
   async wrapAsyncOperation<T>(
     operation: () => Promise<T>,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): Promise<Result<T, AppError>> {
     try {
       const result = await operation();

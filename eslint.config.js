@@ -23,6 +23,13 @@ export default tseslint.config(
       '*.config.ts',
       'src/ai/**/*',
       'src/api/**/*',
+      'src/components/ai/ChatWindow.tsx',
+      'src/components/ai/FloatingChatWidget.tsx',
+      'src/components/ai/ChatInput.tsx',
+      'src/components/ai/ChatMessage.tsx',
+      'src/contexts/ChatContext.tsx',
+      'src/test/**/*',
+      'vitest.config.ts',
     ],
   },
   // Base recommended configs

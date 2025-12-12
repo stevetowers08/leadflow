@@ -3,9 +3,9 @@ import { supabase } from '../integrations/supabase/client';
 
 interface RealtimeOptions {
   table: string;
-  onUpdate?: (payload: any) => void;
-  onInsert?: (payload: any) => void;
-  onDelete?: (payload: any) => void;
+  onUpdate?: (payload: Record<string, unknown>) => void;
+  onInsert?: (payload: Record<string, unknown>) => void;
+  onDelete?: (payload: Record<string, unknown>) => void;
   debounceMs?: number;
 }
 

@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { SearchResult } from '@/services/globalSearchService';
 import {
@@ -28,7 +28,7 @@ const getTypeIcon = (type: SearchResult['type']) => {
       return User;
     case 'company':
       return Building2;
-    case 'job':
+    case 'contact':
       return Briefcase;
     default:
       return User;
@@ -41,7 +41,7 @@ const getTypeColor = (type: SearchResult['type']) => {
       return 'bg-blue-100 text-primary border-primary/20';
     case 'company':
       return 'bg-green-100 text-success border-green-200';
-    case 'job':
+    case 'lead':
       return 'bg-purple-100 text-purple-800 border-purple-200';
     default:
       return 'bg-gray-100 text-foreground border-border';
@@ -54,8 +54,8 @@ const getTypeLabel = (type: SearchResult['type']) => {
       return 'Person';
     case 'company':
       return 'Company';
-    case 'job':
-      return 'Job';
+    case 'lead':
+      return 'Lead';
     default:
       return 'Unknown';
   }
@@ -92,11 +92,8 @@ const SearchResultItem: React.FC<{
   };
 
   return (
-    <Card
-      className="cursor-pointer transition-all"
-      onClick={handleClick}
-    >
-      <CardContent className='p-4'>
+    <Card className='cursor-pointer transition-all' onClick={handleClick}>
+      <Card.Content className='p-4'>
         <div className='flex items-start gap-3'>
           {/* Icon */}
           <div
@@ -167,7 +164,7 @@ const SearchResultItem: React.FC<{
               )}
 
               {/* Posted date for jobs */}
-              {result.type === 'job' && result.metadata?.postedDate && (
+              {result.type === 'contact' && result.metadata?.postedDate && (
                 <div className='flex items-center gap-1'>
                   <Clock className='w-3 h-3' />
                   <span>{formatDate(result.metadata.postedDate)}</span>
@@ -213,7 +210,7 @@ const SearchResultItem: React.FC<{
           {/* External link indicator */}
           <ExternalLink className='w-4 h-4 text-muted-foreground flex-shrink-0' />
         </div>
-      </CardContent>
+      </Card.Content>
     </Card>
   );
 };
@@ -229,7 +226,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
       <div className={cn('space-y-3', className)}>
         {Array.from({ length: 3 }).map((_, index) => (
           <Card key={index} className='border border-border bg-white'>
-            <CardContent className='p-4'>
+            <Card.Content className='p-4'>
               <div className='flex items-start gap-3'>
                 <div className='w-10 h-10 bg-gray-200 rounded-lg animate-pulse' />
                 <div className='flex-1 space-y-2'>
@@ -238,7 +235,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                   <div className='h-3 bg-gray-200 rounded animate-pulse w-2/3' />
                 </div>
               </div>
-            </CardContent>
+            </Card.Content>
           </Card>
         ))}
       </div>

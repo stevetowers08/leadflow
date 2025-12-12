@@ -19,7 +19,7 @@ interface VirtualizedListProps {
   height?: number;
   itemHeight?: number;
   onItemClick?: (item: VirtualizedListProps['items'][number]) => void;
-  type?: 'lead' | 'job' | 'company';
+  type?: 'lead' | 'contact' | 'company';
 }
 
 const VirtualizedListItem = memo(
@@ -33,7 +33,7 @@ const VirtualizedListItem = memo(
     data: {
       items: VirtualizedListProps['items'];
       onItemClick?: (item: VirtualizedListProps['items'][number]) => void;
-      type?: 'lead' | 'job' | 'company';
+      type?: 'lead' | 'contact' | 'company';
     };
   }) => {
     const { items, onItemClick, type } = data;

@@ -52,8 +52,14 @@ export function useCleanup() {
   const [cleanupCount, setCleanupCount] = useState(0);
 
   useEffect(() => {
-    setCleanupCount(cleanupItems.current.length);
-  }, [cleanupItems.current.length]);
+    const updateCount = () => {
+      setCleanupCount(cleanupItems.current.length);
+    };
+    updateCount();
+
+    const intervalId = setInterval(updateCount, 100);
+    return () => clearInterval(intervalId);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -228,7 +234,9 @@ export function useEventListener() {
  */
 export function useSupabaseSubscription() {
   const { addCleanup, removeCleanup } = useCleanup();
-  const subscriptions = useRef<Map<string, { unsubscribe: () => void }>>(new Map());
+  const subscriptions = useRef<Map<string, { unsubscribe: () => void }>>(
+    new Map()
+  );
 
   const addCleanupSubscription = useCallback(
     (id: string, subscription: { unsubscribe: () => void }) => {

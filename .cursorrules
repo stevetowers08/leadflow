@@ -1,8 +1,8 @@
-# Cursor AI Rules for Empowr CRM
+# Cursor AI Rules for LeadFlow
 
 ## 🎯 Project Overview
 
-Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, and Supabase. The focus is on simplicity and clear campaigns for managing jobs and people.
+LeadFlow is an AI-powered Event Lead Capture & Automation tool built with React, TypeScript, and Supabase. The focus is on OCR-based business card scanning, lead management, and email automation workflows.
 
 ## 🛠️ Tech Stack
 
@@ -56,9 +56,9 @@ Empowr CRM is an AI-powered recruitment platform built with React, TypeScript, a
 src/
 ├── components/        # React components
 │   ├── crm/          # CRM features
-│   ├── jobs/         # Job management
 │   ├── companies/    # Company management
-│   ├── people/       # Lead management
+│   ├── people/       # Lead management (legacy, migrating to leads)
+│   ├── mobile/       # Mobile capture components
 │   ├── shared/       # Reusable components
 │   ├── ui/           # Base UI components (Radix-based)
 │   └── slide-out/    # Slide-out panels
@@ -69,7 +69,7 @@ src/
 │   └── useSupabaseData.ts
 ├── services/         # API service layer
 │   ├── aiService.ts
-│   ├── jobsService.ts
+│   ├── leadsService.ts
 │   ├── bulk/        # Bulk operations
 │   └── ...
 ├── utils/            # Utility functions
@@ -93,19 +93,19 @@ src/
     └── auth.ts
 ```
 
-## 🔄 Current Campaigns (Updated Oct 2025)
+## 🔄 Lead Management
 
-### Job Qualification Campaigns
+### Lead Status (from leads table)
 
-**Status Enum:** `new | qualify | skip`
+**Status Enum:** `processing | active | replied_manual`
 
-- **New** - Newly discovered jobs awaiting review
-- **Qualify** - Jobs that meet criteria and should be pursued
-- **Skip** - Jobs to skip for now
+- **Processing** - OCR scan being processed
+- **Active** - Lead is active and ready for outreach
+- **Replied_Manual** - Lead has manually replied
 
-**Database Field:** `jobs.qualification_status`
+**Quality Rank:** `hot | warm | cold`
 
-### People Status Campaigns
+### Contact/People Status (legacy, migrating to leads)
 
 **Status Enum:** `new | qualified | proceed | skip`
 
@@ -114,24 +114,19 @@ src/
 - **Proceed** - Ready for CRM integration or email outreach
 - **Skip** - Not pursuing at this time
 
-**Database Field:** `people.stage`
+**Database Field:** `people.stage` (legacy, use `leads.status` for new features)
 
-## ⚠️ Important: LinkedIn Automation Removed
+## ⚠️ Important: Recruitment Features Removed
 
-As of October 2025, LinkedIn automation features have been **completely removed**:
+As of February 2025, recruitment-specific features have been **completely removed**:
 
-- ❌ No LinkedInAutomationModal component
-- ❌ No automation buttons in UI
-- ❌ No lead selection checkboxes for bulk automation
-- ❌ No automation status tracking
+- ❌ No job posting management
+- ❌ No candidate tracking
+- ❌ No placement tracking
+- ❌ No job qualification workflows
+- ❌ No recruitment-specific campaigns
 
-**Orphaned Files (not imported/used):**
-
-- `src/components/crm/automation/LinkedInAutomationModal.tsx`
-- `src/components/LinkedInConfirmationModal.tsx`
-- `src/components/crm/automation/AutomationModalManager.tsx`
-
-These can be deleted in future cleanup.
+The codebase has been cleaned to focus exclusively on Event Lead Capture & Automation.
 
 ## 🏗️ Architecture Guidelines
 
@@ -169,8 +164,8 @@ These can be deleted in future cleanup.
 - **Components**: PascalCase (`PersonCard.tsx`)
 - **Hooks**: camelCase with `use` prefix (`useBulkSelection.ts`)
 - **Utilities**: camelCase (`statusUtils.ts`)
-- **Services**: camelCase (`jobsService.ts`)
-- **Types/Interfaces**: PascalCase (`Job`, `Person`)
+- **Services**: camelCase (`leadsService.ts`)
+- **Types/Interfaces**: PascalCase (`Lead`, `Contact`, `Person`)
 - **Constants**: UPPER_SNAKE_CASE (`MAX_RETRIES`)
 - **Props interfaces**: `ComponentNameProps` (`PersonCardProps`)
 
@@ -220,7 +215,7 @@ const HeavyComponent = lazy(() => import('./HeavyComponent'));
 src/
 ├── components/     # React components
 │   ├── crm/       # CRM-specific components
-│   ├── jobs/      # Job management components
+│   ├── mobile/    # Mobile capture components
 │   ├── popup/     # Popup/modal components
 │   └── shared/    # Reusable shared components
 ├── pages/         # Page-level components
@@ -232,7 +227,7 @@ src/
 
 ## 🚫 Don't Do This
 
-1. **Don't add LinkedIn automation** - It has been intentionally removed
+1. **Don't add recruitment features** - Jobs, candidates, placements have been removed
 2. **Don't use old status values** - Use the new simplified enums
 3. **Don't bypass RLS** - Always use authenticated queries
 4. **Don't use `any` type** - Define proper types
@@ -242,7 +237,7 @@ src/
 
 ## ✅ Do This
 
-1. **Use the new status campaigns** - Follow the simplified 3/4-step campaigns
+1. **Use LeadFlow features** - Focus on OCR capture, lead management, email automation
 2. **Reference types** - Import from `src/types/database.ts`
 3. **Use status utilities** - Import from `src/utils/statusUtils.ts`
 4. **Follow TypeScript strict mode** - No implicit any, proper null checks
@@ -254,14 +249,14 @@ src/
 
 ### Key Tables
 
-- **jobs** - Job postings (qualification_status: new | qualify | skip)
-- **people** - Leads/contacts (stage: new | qualified | proceed | skip)
-- **companies** - Company profiles
-- **interactions** - Activity tracking
+- **leads** - Event-captured leads with OCR data (status: processing | active | replied_manual)
+- **people** - Contact/people records (legacy, migrating to leads)
+- **companies** - Company profiles with enrichment
+- **interactions** - Activity and email tracking
 - **user_profiles** - User accounts
-- **client_jobs** - Client-specific job data
-- **campaigns** - Email campaigns
+- **campaigns** - Email workflow definitions
 - **campaign_participants** - Campaign member tracking
+- **email_replies** - Reply analysis and sentiment tracking
 
 ### Database Access Patterns
 
@@ -271,8 +266,8 @@ import { DatabaseQueries } from '@/utils/databaseQueries';
 const person = await DatabaseQueries.getEntity<Person>('people', id);
 
 // ✅ CORRECT: Use service functions
-import { getJobs } from '@/services/jobsService';
-const jobs = await getJobs({ status: 'new' });
+import { getLeads } from '@/services/leadsService';
+const leads = await getLeads({ status: 'active' });
 
 // ❌ INCORRECT: Don't bypass type system
 const { data } = await supabase.from('people').select('*').eq('id', id);
@@ -323,9 +318,9 @@ setPeople(data); // data could be null!
 All database access goes through service functions in `src/services/`:
 
 ```typescript
-// Example: src/services/jobsService.ts
-export async function getJobs(filters: JobFilters): Promise<Job[]> {
-  const query = supabase.from('jobs').select('*');
+// Example: src/services/leadsService.ts
+export async function getLeads(filters: LeadFilters): Promise<Lead[]> {
+  const query = supabase.from('leads').select('*');
   // Apply filters, joins, etc.
   return data;
 }
@@ -333,26 +328,27 @@ export async function getJobs(filters: JobFilters): Promise<Job[]> {
 
 ### Key Services
 
-- `jobsService.ts` - Job management
-- `aiService.ts` - Gemini AI integration
-- `bulkPeopleService.ts` - Bulk operations
+- `leadsService.ts` - Lead management
+- `aiService.ts` - Gemini AI integration (OCR, analysis)
+- `bulkLeadsService.ts` - Bulk lead operations
 - `decisionMakerService.ts` - Lead enrichment
 - `gmailService.ts` - Email integration
 - `logoService.ts` - Company logo fetching
 - `conversationService.ts` - Email tracking
+- `geminiVisionOcrService.ts` - OCR processing
 
 ### React Query Usage
 
 ```typescript
 // ✅ CORRECT: Use React Query for server state
 const { data, isLoading } = useQuery({
-  queryKey: ['jobs', filters],
-  queryFn: () => getJobs(filters),
+  queryKey: ['leads', filters],
+  queryFn: () => getLeads(filters),
 });
 
 // ❌ INCORRECT: Direct fetch in component
 useEffect(() => {
-  fetchJobs().then(setJobs);
+  fetchLeads().then(setLeads);
 }, []);
 ```
 
@@ -423,7 +419,7 @@ export async function GET() {
 
 1. Read existing component first
 2. Check for TypeScript types
-3. Ensure no LinkedIn automation logic remains
+3. Ensure no recruitment/job logic remains
 4. Update related components if needed
 5. Run TypeScript check: `npx tsc --noEmit`
 
@@ -572,5 +568,5 @@ Use conventional commits:
 
 ---
 
-**Last Updated:** October 22, 2025
-**Version:** Post-LinkedIn Automation Removal
+**Last Updated:** February 2025
+**Version:** Post-Recruitment Cleanup (LeadFlow Focus)

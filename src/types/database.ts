@@ -210,6 +210,7 @@ export interface StageReplyAnalytics {
 
 export interface OverallReplyMetrics {
   total_contacts: number;
+  total_people?: number; // Legacy alias
   total_replies: number;
   overall_reply_rate: number;
   interested_count: number;

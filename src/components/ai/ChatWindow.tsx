@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
-import { ChatMessageComponent, ChatMessage } from '@/components/ChatMessage';
-import { ChatInput } from '@/components/ChatInput';
+import { ChatMessageComponent, ChatMessage } from '@/components/ai/ChatMessage';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Send, Loader2 } from 'lucide-react';
 import { useChat } from '@/contexts/ChatContext';
 import { cn } from '@/lib/utils';
 
@@ -101,16 +103,48 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
         </ScrollArea>
 
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          isLoading={state.isLoading}
-          disabled={!state.isConnected}
-          placeholder={
-            state.isConnected
-              ? placeholder
-              : 'Configure AI webhook to start chatting...'
-          }
-        />
+        <div className='p-4 border-t flex gap-2'>
+          <Textarea
+            placeholder={
+              state.isConnected
+                ? placeholder
+                : 'Configure AI webhook to start chatting...'
+            }
+            disabled={!state.isConnected || state.isLoading}
+            className='flex-1 min-h-[60px] resize-none'
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const message = e.currentTarget.value.trim();
+                if (message) {
+                  handleSendMessage(message);
+                  e.currentTarget.value = '';
+                }
+              }
+            }}
+          />
+          <Button
+            onClick={() => {
+              const input = document.querySelector(
+                'textarea'
+              ) as HTMLTextAreaElement;
+              const message = input?.value.trim();
+              if (message) {
+                handleSendMessage(message);
+                if (input) input.value = '';
+              }
+            }}
+            disabled={!state.isConnected || state.isLoading}
+            size='icon'
+            className='h-[60px] w-[60px]'
+          >
+            {state.isLoading ? (
+              <Loader2 className='h-4 w-4 animate-spin' />
+            ) : (
+              <Send className='h-4 w-4' />
+            )}
+          </Button>
+        </div>
       </div>
 
       {state.error && (

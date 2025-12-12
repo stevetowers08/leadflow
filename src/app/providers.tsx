@@ -21,6 +21,7 @@ import {
   shouldBypassAuth,
 } from '@/config/auth';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import type { User } from '@supabase/supabase-js';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { PermissionsProvider } from '@/contexts/PermissionsContext';
@@ -93,13 +94,7 @@ function ClientGuard({ children }: { children: React.ReactNode }) {
     // Prevent multiple sign-out calls
     if (hasTriggeredSignOut.current) return;
 
-    if (
-      !bypassAuth &&
-      !authLoading &&
-      !clientIdLoading &&
-      user &&
-      !clientId
-    ) {
+    if (!bypassAuth && !authLoading && !clientIdLoading && user && !clientId) {
       // User authenticated but missing client_id - sign out automatically
       // Admin/owner must set up the account first
       hasTriggeredSignOut.current = true;
@@ -173,10 +168,11 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
   const bypassAuth = shouldBypassAuth();
 
   // Check if user explicitly signed out in bypass mode
-  const bypassDisabled = typeof window !== 'undefined' 
-    ? (sessionStorage.getItem('bypass-auth-disabled') === 'true' ||
-       localStorage.getItem('bypass-auth-disabled') === 'true')
-    : false;
+  const bypassDisabled =
+    typeof window !== 'undefined'
+      ? sessionStorage.getItem('bypass-auth-disabled') === 'true' ||
+        localStorage.getItem('bypass-auth-disabled') === 'true'
+      : false;
 
   // Show loading state while checking auth (only if not bypassing)
   if (loading && !bypassAuth) {
@@ -220,7 +216,7 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <PermissionsProvider
-      user={currentUser}
+      user={currentUser as User | null}
       userProfile={currentUserProfile}
       authLoading={loading && !bypassAuth}
     >
@@ -257,4 +253,3 @@ export function Providers({ children }: { children: React.ReactNode }) {
     </ErrorBoundaryProvider>
   );
 }
-

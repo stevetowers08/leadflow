@@ -1,13 +1,5 @@
 export const queryKeys = {
   // Entity-based keys
-  jobs: {
-    all: ['jobs'] as const,
-    lists: () => [...queryKeys.jobs.all, 'list'] as const,
-    list: (filters: JobFilters) =>
-      [...queryKeys.jobs.lists(), filters] as const,
-    details: () => [...queryKeys.jobs.all, 'detail'] as const,
-    detail: (id: string) => [...queryKeys.jobs.details(), id] as const,
-  },
   companies: {
     all: ['companies'] as const,
     lists: () => [...queryKeys.companies.all, 'list'] as const,
@@ -37,14 +29,6 @@ export const queryKeys = {
 } as const;
 
 // Type definitions for filters
-export interface JobFilters {
-  searchTerm?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-  statusFilter?: string;
-  priorityFilter?: string;
-}
-
 export interface CompanyFilters {
   searchTerm?: string;
   sortBy?: string;

@@ -2,6 +2,7 @@ import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 
+import { designTokens } from '@/design-system/tokens';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
@@ -9,27 +10,42 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          'bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm hover:shadow-md', // Darker blue hover for primary actions only
-        destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md',
-        outline:
-          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+        default: cn(
+          'bg-primary text-primary-foreground hover:bg-primary-hover',
+          designTokens.shadows.button
+        ),
+        destructive: cn(
+          'bg-destructive text-destructive-foreground hover:bg-destructive-hover',
+          designTokens.shadows.button
+        ),
+        outline: cn(
+          designTokens.borders.default,
+          'bg-background hover:bg-accent hover:text-accent-foreground'
+        ),
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
-        actionbar:
-          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-        danger:
-          'bg-destructive text-destructive-foreground hover:bg-destructive-hover shadow-sm hover:shadow-md', // Alias for destructive
-        success:
-          'bg-success text-success-foreground hover:bg-success-hover shadow-sm hover:shadow-md',
-        warning:
-          'bg-warning text-warning-foreground hover:bg-warning-hover shadow-sm hover:shadow-md',
+        actionbar: cn(
+          designTokens.borders.default,
+          'bg-background hover:bg-accent hover:text-accent-foreground'
+        ),
+        danger: cn(
+          'bg-destructive text-destructive-foreground hover:bg-destructive-hover',
+          designTokens.shadows.button
+        ),
+        success: cn(
+          'bg-success text-success-foreground hover:bg-success-hover',
+          designTokens.shadows.button
+        ),
+        warning: cn(
+          'bg-warning text-warning-foreground hover:bg-warning-hover',
+          designTokens.shadows.button
+        ),
       },
       size: {
-        default: 'h-8 px-3 py-1.5 text-sm min-h-[48px] min-w-[48px] sm:min-h-0 sm:min-w-0', // Mobile: 48px min, Desktop: 32px
+        default:
+          'h-8 px-3 py-1.5 text-sm min-h-[48px] min-w-[48px] sm:min-h-0 sm:min-w-0', // Mobile: 48px min, Desktop: 32px
         sm: 'h-8 px-2.5 py-1 text-xs min-h-[48px] min-w-[48px] sm:min-h-0 sm:min-w-0', // Mobile: 48px min, Desktop: 32px
         xs: 'h-8 px-2 py-1 text-xs min-h-[48px] min-w-[48px] sm:min-h-0 sm:min-w-0', // Mobile: 48px min, Desktop: 32px
         lg: 'h-11 px-8 text-base min-h-[52px]', // Large button for CTAs - 52px on mobile

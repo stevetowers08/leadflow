@@ -12,7 +12,7 @@ import React from 'react';
 
 interface NotesButtonProps {
   entityId: string;
-  entityType: 'lead' | 'company' | 'job';
+  entityType: 'lead' | 'company' | 'contact';
   entityName?: string;
   size?: 'sm' | 'md';
 }
