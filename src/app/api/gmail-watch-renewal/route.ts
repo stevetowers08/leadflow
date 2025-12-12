@@ -49,6 +49,13 @@ export async function POST(request: NextRequest) {
     // Renew watches for each integration
     for (const integration of integrations) {
       try {
+        // Type guard: ensure config is an object
+        if (!integration.config || typeof integration.config !== 'object' || Array.isArray(integration.config)) {
+          console.error(`Invalid config for integration ${integration.id}`);
+          errorCount++;
+          continue;
+        }
+
         const config = integration.config as {
           access_token?: string;
           watch_expiration?: string;
@@ -114,7 +121,7 @@ export async function POST(request: NextRequest) {
           .from('integrations')
           .update({
             config: {
-              ...integration.config,
+              ...config,
               watch_history_id: watchData.historyId,
               watch_expiration: watchData.expiration,
             },
