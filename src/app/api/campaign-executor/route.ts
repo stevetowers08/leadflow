@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
           true_next_step_id,
           false_next_step_id
         ),
-        people:lead_id (id, name, email_address)
+        people!campaign_sequence_executions_lead_id_fkey (id, name, email_address)
       `
       )
       .eq('status', 'pending')
@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Type the results
-    const typedExecutions = pendingExecutions as CampaignExecution[];
+    // Type the results (using unknown first to satisfy TypeScript)
+    const typedExecutions = pendingExecutions as unknown as CampaignExecution[];
 
     // Process executions
     for (const execution of typedExecutions) {
