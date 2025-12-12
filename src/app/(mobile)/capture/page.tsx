@@ -16,6 +16,9 @@ import { compressImage } from '@/utils/imageCompression';
  * 
  * OCR-only capture: Capture image → Process with Gemini Vision → Auto-save lead
  * Uses native getUserMedia API for better stability and mobile support
+ * 
+ * Updated: Dec 2025 - Migrated from react-webcam to native getUserMedia
+ * OCR: Google Gemini 2.0 Flash Vision API (free tier: 15 RPM, 1,500 RPD)
  */
 export default function CapturePage() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
