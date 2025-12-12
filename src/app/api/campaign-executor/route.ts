@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     // Fetch pending executions (max 50)
     const { data: pendingExecutions, error: fetchError } = await supabase
       .from('campaign_sequence_executions')
-      .select<CampaignExecution>(
+      .select(
         `
         *,
         campaign_sequence_leads!sequence_lead_id (id, lead_id, sequence_id, status),
@@ -65,8 +65,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Type the results
+    const typedExecutions = pendingExecutions as CampaignExecution[];
+
     // Process executions
-    for (const execution of pendingExecutions) {
+    for (const execution of typedExecutions) {
       try {
         await processExecution(supabase, execution);
       } catch (error) {
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { processed: pendingExecutions.length },
+      { processed: typedExecutions.length },
       {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
