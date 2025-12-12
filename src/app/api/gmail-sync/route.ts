@@ -97,11 +97,13 @@ async function sendEmail(accessToken: string, emailData: any, userId: string) {
 }
 
 export async function POST(request: NextRequest) {
+  let userId: string | null = null;
   try {
     const supabase = createServerSupabaseClient();
 
     const body = await request.json();
-    const { userId, accessToken, operation, emailData } = body;
+    const { userId: bodyUserId, accessToken, operation, emailData } = body;
+    userId = bodyUserId || null;
 
     if (!userId || !accessToken) {
       return APIErrorHandler.handleError(
@@ -145,6 +147,7 @@ export async function POST(request: NextRequest) {
     // Log to database for monitoring
     try {
       await supabase.from('email_sync_logs').insert({
+        user_id: userId,
         operation_type: operation,
         status: 'success',
         metadata: result,
@@ -172,6 +175,7 @@ export async function POST(request: NextRequest) {
       const supabase = createServerSupabaseClient();
 
       await supabase.from('email_sync_logs').insert({
+        user_id: userId,
         operation_type: 'function_error',
         status: 'error',
         error_message: error instanceof Error ? error.message : 'Unknown error',

@@ -1247,6 +1247,39 @@ export type Database = {
         }
         Relationships: []
       }
+      email_sync_logs: {
+        Row: {
+          id: string
+          user_id: string | null
+          operation_type: string
+          status: string
+          message_count: number | null
+          error_message: string | null
+          metadata: Json
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          operation_type: string
+          status: string
+          message_count?: number | null
+          error_message?: string | null
+          metadata?: Json
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          operation_type?: string
+          status?: string
+          message_count?: number | null
+          error_message?: string | null
+          metadata?: Json
+          created_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
