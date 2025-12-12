@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
           true_next_step_id,
           false_next_step_id
         ),
-        people!campaign_sequence_leads.lead_id (id, name, email_address)
+        people!lead_id (id, name, email_address)
       `
       )
       .eq('status', 'pending')
