@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import type { Json } from '@/integrations/supabase/types';
-import type { Json } from '@/integrations/supabase/types';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -66,7 +65,11 @@ interface EmailData {
   body?: string;
 }
 
-async function sendEmail(accessToken: string, emailData: EmailData, userId: string) {
+async function sendEmail(
+  accessToken: string,
+  emailData: EmailData,
+  userId: string
+) {
   const message = [
     `To: ${emailData.to}`,
     `Subject: ${emailData.subject}`,
@@ -122,7 +125,9 @@ export async function POST(request: NextRequest) {
 
     if (!operation) {
       return APIErrorHandler.handleError(
-        new Error('Operation type is required (sync_inbox, sync_sent, send_email)'),
+        new Error(
+          'Operation type is required (sync_inbox, sync_sent, send_email)'
+        ),
         'gmail-sync'
       );
     }
@@ -154,7 +159,9 @@ export async function POST(request: NextRequest) {
         break;
       default:
         return APIErrorHandler.handleError(
-          new Error(`Unknown operation: ${operation}. Supported: sync_inbox, sync_sent, send_email`),
+          new Error(
+            `Unknown operation: ${operation}. Supported: sync_inbox, sync_sent, send_email`
+          ),
           'gmail-sync'
         );
     }
@@ -209,5 +216,3 @@ export async function POST(request: NextRequest) {
     });
   }
 }
-
-

@@ -1,7 +1,7 @@
 {
-  "name": "recruitedge-platform",
+  "name": "leadflow-web",
   "version": "1.0.0",
-  "description": "RECRUITEDGE - AI-powered recruitment platform",
+  "description": "LeadFlow - AI-powered Event Lead Capture & Automation",
   "repository": {
     "type": "git",
     "url": "https://github.com/stevetowers08/leadflow.git"

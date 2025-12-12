@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Json } from '@/integrations/supabase/types';
-import type { Json } from '@/integrations/supabase/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -64,10 +63,7 @@ export async function POST(request: NextRequest) {
       console.error('Failed to log error to database:', logError);
     }
 
-    return NextResponse.json(
-      { id: `error-${Date.now()}` },
-      { status: 200 }
-    );
+    return NextResponse.json({ id: `error-${Date.now()}` }, { status: 200 });
   } catch (error) {
     // Silently fail to prevent recursive error logging
     console.error('Error in error logging endpoint:', error);
@@ -77,4 +73,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

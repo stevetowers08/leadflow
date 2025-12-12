@@ -38,10 +38,7 @@ export interface ExecutionDetails {
   [key: string]: unknown;
 }
 
-// Specific types for job and automation settings
-export interface QualificationCriteria {
-  [key: string]: unknown;
-}
+// Specific types for automation settings
 
 export interface LeadScoringRules {
   [key: string]: unknown;
@@ -108,151 +105,18 @@ export interface Company {
   airtable_id: string | null;
   added_by_client_id: string | null;
   added_manually: boolean | null;
-  source_job_id: string | null;
   source: string | null;
   normalized_company_size: string | null;
   last_activity: string | null;
   funding_raised: number | null;
   estimated_arr: number | null;
-}
-
-export interface Job {
-  id: string;
-  title: string;
-  company_id: string | null;
-  job_url: string | null;
-  posted_date: string | null;
-  valid_through: string | null;
-  location: string | null;
-  country: string | null;
-  city: string | null;
-  region: string | null;
-  description: string | null;
-  summary: string | null;
-  employment_type: string | null;
-  seniority_level: string | null;
-  linkedin_job_id: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-  priority: string | null;
-  salary: string | null;
-  function: string | null;
-  logo_url: string | null;
-  owner_id: string | null;
-  airtable_id: string | null;
-  source: string | null;
-  // Qualification fields
-  qualified: boolean | null;
-  qualified_at: string | null;
-  qualified_by: string | null;
-  qualification_notes: string | null;
-  qualification_status: 'new' | 'qualify' | 'skip' | null;
-  // Joined fields
-  companies?: Company;
-  assigned_to?: string | null;
-  is_favorite?: boolean | null;
-  total_leads?: number | null;
-  // Client-specific job data (from client_jobs table)
-  client_jobs?: ClientJob[];
 }
 
 /**
  * Database Types - Generated from Supabase Schema
  * Based on actual database structure from Supabase MCP
- * Updated: January 27, 2025 - Post-LinkedIn Automation Removal
+ * Updated: February 2025 - LeadFlow Cleanup (Recruitment features removed)
  */
-
-export interface UserProfile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  role: 'owner' | 'admin' | 'user';
-  user_limit: number | null;
-  is_active: boolean | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-export interface Company {
-  id: string;
-  name: string;
-  website: string | null;
-  linkedin_url: string | null;
-  head_office: string | null;
-  industry_id: string | null;
-  confidence_level: 'low' | 'medium' | 'high' | null;
-  lead_score: string | null;
-  score_reason: string | null;
-  automation_active: boolean | null;
-  automation_started_at: string | null;
-  is_favourite: boolean | null;
-  ai_info: AiInfo | null;
-  key_info_raw: KeyInfoRaw | null;
-  loxo_company_id: string | null;
-  industry: string | null;
-  company_size: string | null;
-  priority: string | null;
-  logo_url: string | null;
-  logo_cached_at: string | null;
-  owner_id: string | null;
-  lead_source: string | null;
-  source_details: string | null;
-  source_date: string | null;
-  pipeline_stage:
-    | 'new_lead'
-    | 'qualified'
-    | 'message_sent'
-    | 'replied'
-    | 'interested'
-    | 'meeting_scheduled'
-    | 'proposal_sent'
-    | 'negotiation'
-    | 'closed_won'
-    | 'closed_lost'
-    | 'on_hold'
-    | null;
-  airtable_id: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-  source: string | null;
-  normalized_company_size: string | null;
-  last_activity: string | null;
-  funding_raised: number | null;
-  estimated_arr: number | null;
-}
-
-export interface Job {
-  id: string;
-  title: string;
-  company_id: string | null;
-  job_url: string | null;
-  posted_date: string | null;
-  valid_through: string | null;
-  location: string | null;
-  description: string | null;
-  summary: string | null;
-  employment_type: string | null;
-  seniority_level: string | null;
-  linkedin_job_id: string | null;
-  automation_active: boolean | null;
-  automation_started_at: string | null;
-  priority: string | null;
-  lead_score_job: number | null;
-  salary: string | null;
-  function: string | null;
-  logo_url: string | null;
-  owner_id: string | null;
-  airtable_id: string | null;
-  source: string | null;
-  qualification_status: 'new' | 'qualify' | 'skip' | null;
-  created_at: string | null;
-  updated_at: string | null;
-  // Joined fields
-  companies?: Company;
-  assigned_to?: string | null;
-  is_favorite?: boolean | null;
-  total_leads?: number | null;
-}
 
 export interface Contact {
   id: string;
@@ -440,36 +304,10 @@ export interface Client {
   updated_at: string | null;
 }
 
-export interface ClientJob {
-  id: string;
-  client_id: string;
-  job_id: string;
-  status: 'new' | 'qualify' | 'skip';
-  priority_level: 'low' | 'medium' | 'high' | 'urgent' | null;
-  notes: string | null;
-  qualified_at: string | null;
-  qualified_by: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-export interface ClientJobDeal {
-  id: string;
-  client_id: string;
-  job_id: string;
-  company_id: string | null;
-  qualification_status: string | null;
-  priority: string | null;
-  notes: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
 export interface ClientDecisionMakerOutreach {
   id: string;
   client_id: string;
   decision_maker_id: string;
-  job_id: string | null;
   outreach_status: string | null;
   last_contact_date: string | null;
   next_follow_up_date: string | null;
@@ -539,7 +377,7 @@ export interface Integration {
 export interface Note {
   id: string;
   entity_id: string;
-  entity_type: 'lead' | 'company' | 'job' | 'contact';
+  entity_type: 'lead' | 'company' | 'contact';
   content: string;
   author_id: string;
   created_at: string;
@@ -559,7 +397,7 @@ export interface Tag {
 export interface EntityTag {
   id: string;
   entity_id: string;
-  entity_type: 'company' | 'contact' | 'job';
+  entity_type: 'company' | 'contact';
   tag_id: string;
   created_at: string | null;
 }
@@ -765,30 +603,10 @@ export interface ClientUser {
   joined_at: string | null;
 }
 
-export interface ClientJobDeal {
-  id: string;
-  client_id: string;
-  job_id: string;
-  status:
-    | 'researching'
-    | 'preparing'
-    | 'outreach'
-    | 'interviewing'
-    | 'offer'
-    | 'placed'
-    | 'lost';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  notes: string | null;
-  added_by: string | null;
-  added_at: string | null;
-  updated_at: string | null;
-}
-
 export interface ClientDecisionMakerOutreach {
   id: string;
   client_id: string;
   decision_maker_id: string;
-  job_id: string | null;
   status:
     | 'identified'
     | 'researching'
@@ -822,8 +640,6 @@ export interface CostEvent {
   id: string;
   client_id: string;
   operation_type:
-    | 'job_discovery'
-    | 'job_enrichment'
     | 'company_research'
     | 'company_enrichment'
     | 'decision_maker_search'
@@ -835,7 +651,6 @@ export interface CostEvent {
     | 'storage'
     | 'other';
   entity_type:
-    | 'job'
     | 'company'
     | 'decision_maker'
     | 'email'
@@ -858,113 +673,18 @@ export interface SharedIntelligenceSavings {
   original_client_id: string | null;
   data_type:
     | 'company_research'
-    | 'job_data'
     | 'decision_maker_contact'
     | 'email_enrichment'
     | 'company_enrichment'
     | 'industry_analysis'
     | 'other';
-  entity_type: 'job' | 'company' | 'decision_maker' | 'other' | null;
+  entity_type: 'company' | 'decision_maker' | 'other' | null;
   entity_id: string | null;
   estimated_savings_usd: number;
   actual_cost_usd: number | null;
   reuse_count: number | null;
   operation_details: OperationDetails | null;
   created_at: string | null;
-}
-
-export interface JobSource {
-  id: string;
-  job_id: string;
-  source_type:
-    | 'linkedin'
-    | 'indeed'
-    | 'glassdoor'
-    | 'company_website'
-    | 'recruiter'
-    | 'referral'
-    | 'job_board'
-    | 'search_campaign'
-    | 'api'
-    | 'manual_entry'
-    | 'other';
-  source_url: string | null;
-  source_identifier: string | null;
-  discovered_by_client_id: string | null;
-  discovered_by_campaign_id: string | null;
-  discovered_at: string | null;
-  was_enriched: boolean | null;
-  enriched_at: string | null;
-  enrichment_cost_usd: number | null;
-  raw_data: Metadata | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-export interface ClientSearchCampaign {
-  id: string;
-  client_id: string;
-  name: string;
-  description: string | null;
-  status: 'draft' | 'active' | 'paused' | 'completed' | 'archived';
-  // Search criteria
-  keywords: string[] | null;
-  excluded_keywords: string[] | null;
-  companies: string[] | null;
-  locations: string[] | null;
-  remote_only: boolean | null;
-  job_types: string[] | null;
-  experience_levels: string[] | null;
-  salary_min: number | null;
-  salary_max: number | null;
-  search_sources: string[] | null;
-  // Automation
-  frequency: 'hourly' | 'daily' | 'weekly' | 'manual';
-  auto_qualify: boolean | null;
-  auto_enrich: boolean | null;
-  notify_on_match: boolean | null;
-  notification_emails: string[] | null;
-  // Tracking
-  last_run_at: string | null;
-  next_run_at: string | null;
-  total_jobs_found: number | null;
-  jobs_found_this_month: number | null;
-  // Budget
-  max_monthly_cost: number | null;
-  current_month_cost: number | null;
-  custom_filters: CustomFilters | null;
-  created_by: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-export interface CampaignExecutionLog {
-  id: string;
-  campaign_id: string;
-  status: 'running' | 'completed' | 'failed' | 'cancelled';
-  started_at: string | null;
-  completed_at: string | null;
-  jobs_discovered: number | null;
-  jobs_qualified: number | null;
-  jobs_enriched: number | null;
-  new_companies_found: number | null;
-  execution_cost_usd: number | null;
-  error_message: string | null;
-  execution_details: ExecutionDetails | null;
-  created_at: string | null;
-}
-
-export interface CampaignJobMatch {
-  id: string;
-  campaign_id: string;
-  job_id: string;
-  match_score: number | null;
-  match_reasons: string[] | null;
-  reviewed: boolean | null;
-  reviewed_at: string | null;
-  reviewed_by: string | null;
-  added_to_deals: boolean | null;
-  discovered_at: string | null;
 }
 
 export interface ErrorSetting {
