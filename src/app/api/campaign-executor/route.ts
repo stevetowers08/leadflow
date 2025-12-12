@@ -22,7 +22,7 @@ type CampaignExecution = Tables<'campaign_sequence_executions'> & {
     | 'true_next_step_id'
     | 'false_next_step_id'
   >;
-  people: Pick<Tables<'people'>, 'id' | 'name' | 'email_address'> | null;
+  people: Pick<Tables<'leads'>, 'id' | 'first_name' | 'last_name' | 'email'> | null;
 };
 
 export async function POST(request: NextRequest) {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
           true_next_step_id,
           false_next_step_id
         ),
-        people:lead_id (id, name, email_address)
+        leads!campaign_sequence_executions_lead_id_fkey (id, first_name, last_name, email)
       `
       )
       .eq('status', 'pending')
@@ -121,12 +121,15 @@ async function processEmailStep(
   execution: CampaignExecution
 ) {
   const step = execution.campaign_sequence_steps;
-  const person = execution.people;
+  const leadData = execution.people;
   const lead = execution.campaign_sequence_leads;
 
-  if (!person || !lead) throw new Error('Missing lead or person data');
+  if (!leadData || !lead) throw new Error('Missing lead or person data');
 
-  if (!person.email_address) throw new Error('No email address');
+  const email = leadData.email;
+  if (!email) throw new Error('No email address');
+  
+  const fullName = [leadData.first_name, leadData.last_name].filter(Boolean).join(' ') || 'there';
 
   const { data: sequence, error: sequenceError } = await supabase
     .from('campaign_sequences')
@@ -154,7 +157,7 @@ async function processEmailStep(
 
   // Send email via Gmail API
   const message = [
-    `To: ${person.email_address}`,
+    `To: ${email}`,
     `Subject: ${step.email_subject || 'Follow up'}`,
     `Content-Type: text/html; charset=utf-8`,
     '',
@@ -186,11 +189,11 @@ async function processEmailStep(
   const now = new Date().toISOString();
 
   await (supabase.from('email_sends') as any).insert({
-    person_id: person.id,
+    person_id: leadData.id,
     email_account_id: (emailAccount as any).id,
     gmail_message_id: emailResult.id,
     gmail_thread_id: emailResult.threadId,
-    to_email: person.email_address,
+    to_email: email,
     subject: step.email_subject,
     status: 'sent',
     sent_at: now,
@@ -236,12 +239,14 @@ async function processConditionStep(
 
 function personalizeEmail(
   body: string,
-  person: Pick<Tables<'people'>, 'name' | 'email_address'>
+  leadData: Pick<Tables<'leads'>, 'first_name' | 'last_name' | 'email'> | null,
+  fullName: string,
+  email: string
 ): string {
   let personalized = body || '';
-  personalized = personalized.replace(/\{name\}/g, (person.name || '').split(' ')[0] || 'there');
-  personalized = personalized.replace(/\{full_name\}/g, person.name || 'there');
-  personalized = personalized.replace(/\{email\}/g, person.email_address || '');
+  personalized = personalized.replace(/\{name\}/g, leadData?.first_name || 'there');
+  personalized = personalized.replace(/\{full_name\}/g, fullName);
+  personalized = personalized.replace(/\{email\}/g, email || '');
 
   if (!personalized.includes('<html>') && !personalized.includes('<div')) {
     personalized = `<div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333;">${personalized.replace(/\n/g, '<br>')}</div>`;
@@ -269,14 +274,14 @@ async function evaluateCondition(
   execution: CampaignExecution,
   step: CampaignExecution['campaign_sequence_steps']
 ): Promise<boolean> {
-  const person = execution.people;
-  if (!person) throw new Error('Missing person data for condition evaluation');
+  const leadData = execution.people;
+  if (!leadData) throw new Error('Missing lead data for condition evaluation');
 
   if (step.condition_type === 'replied') {
     const { data: recentReply } = await supabase
       .from('email_replies')
       .select('id')
-      .eq('person_id', person.id)
+      .eq('person_id', leadData.id)
       .gte('received_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
       .limit(1);
 
