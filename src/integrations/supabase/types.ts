@@ -1280,6 +1280,33 @@ export type Database = {
         }
         Relationships: []
       }
+      integrations: {
+        Row: {
+          id: string
+          platform: string
+          connected: boolean | null
+          config: Json
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          platform: string
+          connected?: boolean | null
+          config?: Json
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          platform?: string
+          connected?: boolean | null
+          config?: Json
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
