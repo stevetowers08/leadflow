@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { secureGmailService } from '../services/secureGmailService';
 
 export const GmailCallback: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
@@ -33,6 +33,12 @@ export const GmailCallback: React.FC = () => {
 
   useEffect(() => {
     const processCallback = async () => {
+      if (!searchParams) {
+        setStatus('error');
+        setError('No search parameters available');
+        return;
+      }
+
       const code = searchParams.get('code');
       const error = searchParams.get('error');
 
@@ -92,7 +98,9 @@ export const GmailCallback: React.FC = () => {
           <h2 className='text-2xl font-bold text-foreground mb-2'>
             Gmail Connected
           </h2>
-          <p className='text-muted-foreground mb-6'>Redirecting to conversations...</p>
+          <p className='text-muted-foreground mb-6'>
+            Redirecting to conversations...
+          </p>
         </div>
       </div>
     );
