@@ -10,7 +10,7 @@
     "checkJs": false,
     "strict": true,
     "noEmit": false,
-    "composite": true,
+    "composite": false, // Disabled - Next.js doesn't fully support project references
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,

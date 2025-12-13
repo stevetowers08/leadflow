@@ -42,7 +42,15 @@ const nextConfig: NextConfig = {
 
   // Experimental features for Next.js 16
   experimental: {
-    // Enable if needed for specific features
+    // Optimize package imports
+    optimizePackageImports: [
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+      '@tanstack/react-query',
+      'lucide-react',
+      'recharts',
+    ],
   },
 
   // TypeScript configuration
@@ -52,6 +60,10 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false, // Changed to see actual errors
     tsconfigPath: './tsconfig.next.json',
   },
+
+  // Build optimizations
+  // SWC minification is default in Next.js 16 (no need to specify)
+  // Vercel automatically optimizes output, no need for standalone mode
 
   // Compiler options for better performance
   compiler: {

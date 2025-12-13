@@ -155,9 +155,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     try {
-      const { registerNewClient } = await import(
-        '@/services/clientRegistrationService'
-      );
+      const { registerNewClient } =
+        await import('@/services/clientRegistrationService');
 
       const result = await registerNewClient({
         email,
@@ -165,7 +164,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         name: fullName,
         companyName: headline || fullName,
         fullName,
-        headline,
       });
 
       if (!result.success) {
