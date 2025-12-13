@@ -90,7 +90,8 @@ class GlobalErrorHandler {
       this.handleError(error, {
         componentName: 'Global',
         timestamp: new Date(),
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+        userAgent:
+          typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
         url: window.location.href,
         severity: ErrorSeverity.HIGH,
         type: ErrorType.UNKNOWN,
@@ -105,7 +106,8 @@ class GlobalErrorHandler {
       this.handleError(error, {
         componentName: 'Global',
         timestamp: new Date(),
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+        userAgent:
+          typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
         url: window.location.href,
         severity: ErrorSeverity.HIGH,
         type: ErrorType.UNKNOWN,
@@ -210,7 +212,8 @@ export class BaseErrorBoundary extends Component<
     const context: ErrorContext = {
       componentName: this.props.componentName || 'Unknown',
       timestamp: new Date(),
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      userAgent:
+        typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
       url: typeof window !== 'undefined' ? window.location.href : 'unknown',
       stackTrace: error.stack,
       severity: this.props.severity || ErrorSeverity.MEDIUM,
@@ -471,7 +474,9 @@ export class CriticalErrorBoundary extends Component<
     this.state = {
       hasError: false,
       error: null,
+      errorInfo: null,
       retryCount: 0,
+      lastErrorTime: 0,
     };
   }
 
@@ -479,18 +484,31 @@ export class CriticalErrorBoundary extends Component<
     return {
       hasError: true,
       error,
+      lastErrorTime: Date.now(),
     };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    this.errorHandler.handleError(error, {
-      component: 'CriticalErrorBoundary',
-      action: 'componentDidCatch',
+    const context: ErrorContext = {
+      componentName: 'CriticalErrorBoundary',
+      timestamp: new Date(),
+      userAgent:
+        typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      url: typeof window !== 'undefined' ? window.location.href : 'unknown',
+      stackTrace: error.stack,
+      severity: ErrorSeverity.CRITICAL,
+      type: ErrorType.RENDER,
+      recoverable: false,
       metadata: {
-        errorInfo: errorInfo.componentStack,
-        severity: ErrorSeverity.CRITICAL,
-        recoverable: false,
+        componentStack: errorInfo.componentStack,
       },
+    };
+
+    this.errorHandler.handleError(error, context);
+
+    this.setState({
+      error,
+      errorInfo,
     });
   }
 
@@ -498,7 +516,9 @@ export class CriticalErrorBoundary extends Component<
     this.setState(prevState => ({
       hasError: false,
       error: null,
+      errorInfo: null,
       retryCount: prevState.retryCount + 1,
+      lastErrorTime: 0,
     }));
   };
 
@@ -659,8 +679,8 @@ export class NetworkErrorBoundary extends Component<
             </h2>
 
             <p className='text-sm text-muted-foreground mb-6'>
-              You&apos;re currently offline. Please check your internet connection
-              and try again.
+              You&apos;re currently offline. Please check your internet
+              connection and try again.
             </p>
 
             <button
@@ -701,7 +721,8 @@ export function useErrorHandler() {
     const fullContext: ErrorContext = {
       componentName: 'Unknown',
       timestamp: new Date(),
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      userAgent:
+        typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
       url: typeof window !== 'undefined' ? window.location.href : 'unknown',
       severity: ErrorSeverity.MEDIUM,
       type: ErrorType.UNKNOWN,
