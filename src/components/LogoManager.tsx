@@ -19,7 +19,7 @@ interface Company {
   id: string;
   name: string;
   website?: string;
-  profile_image_url?: string;
+  logo_url?: string;
 }
 
 export const LogoManager = () => {
@@ -38,11 +38,11 @@ export const LogoManager = () => {
     try {
       const { data, error } = await supabase
         .from('companies')
-        .select('id, name, website, profile_image_url')
+        .select('id, name, website, logo_url')
         .order('name');
 
       if (error) throw error;
-      setCompanies(data || []);
+      setCompanies((data as Company[]) || []);
     } catch (error) {
       toast({
         title: 'Error',
@@ -84,9 +84,9 @@ export const LogoManager = () => {
         try {
           // Skip if already has a Clearbit logo
           if (
-            company.profile_image_url &&
-            (company.profile_image_url.includes('logo.clearbit.com') ||
-              company.profile_image_url.includes('img.logo.dev'))
+            company.logo_url &&
+            (company.logo_url.includes('logo.clearbit.com') ||
+              company.logo_url.includes('img.logo.dev'))
           ) {
             skippedCount++;
             continue;
@@ -156,8 +156,8 @@ export const LogoManager = () => {
         try {
           // Only replace LinkedIn URLs
           if (
-            company.profile_image_url &&
-            company.profile_image_url.includes('media.licdn.com')
+            company.logo_url &&
+            company.logo_url.includes('media.licdn.com')
           ) {
             const logoUrl = getCompanyLogoUrlSync(
               company.name,
@@ -340,14 +340,14 @@ export const LogoManager = () => {
               <CardContent className='p-4'>
                 <div className='flex items-center gap-3 mb-3'>
                   <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0'>
-                    {company.profile_image_url ? (
+                    {company.logo_url ? (
                       <img
-                        src={company.profile_image_url}
+                        src={company.logo_url}
                         alt={company.name}
                         className='w-8 h-8 rounded-full object-cover'
                         onError={e => {
                           console.log(
-                            `Failed to load logo for ${company.name}: ${company.profile_image_url}`
+                            `Failed to load logo for ${company.name}: ${company.logo_url}`
                           );
                           e.currentTarget.style.display = 'none';
                           const nextElement = e.currentTarget
@@ -358,7 +358,7 @@ export const LogoManager = () => {
                         }}
                         onLoad={() => {
                           console.log(
-                            `Successfully loaded logo for ${company.name}: ${company.profile_image_url}`
+                            `Successfully loaded logo for ${company.name}: ${company.logo_url}`
                           );
                         }}
                       />
@@ -366,7 +366,7 @@ export const LogoManager = () => {
                     <div
                       className='w-8 h-8 rounded-full bg-primary/100 text-white flex items-center justify-center text-xs font-semibold'
                       style={{
-                        display: company.profile_image_url ? 'none' : 'flex',
+                        display: company.logo_url ? 'none' : 'flex',
                       }}
                     >
                       {getStatusDisplayText(company.name.charAt(0))}
@@ -386,7 +386,7 @@ export const LogoManager = () => {
 
                 <div className='flex items-center justify-between'>
                   <div className='flex gap-1'>
-                    {company.profile_image_url ? (
+                    {company.logo_url ? (
                       <StatusBadge status='Has Logo' size='sm' />
                     ) : (
                       <StatusBadge status='No Logo' size='sm' />
