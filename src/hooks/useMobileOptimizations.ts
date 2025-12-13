@@ -15,8 +15,8 @@ export function useImageOptimization() {
 
     // 2025: Use Intersection Observer for lazy loading
     const imageObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
+      entries => {
+        entries.forEach(entry => {
           if (entry.isIntersecting) {
             const img = entry.target as HTMLImageElement;
             if (img.dataset.src) {
@@ -34,7 +34,7 @@ export function useImageOptimization() {
 
     // Observe all images with data-src attribute
     const lazyImages = document.querySelectorAll('img[data-src]');
-    lazyImages.forEach((img) => imageObserver.observe(img));
+    lazyImages.forEach(img => imageObserver.observe(img));
 
     return () => {
       imageObserver.disconnect();
@@ -106,10 +106,10 @@ export function useServiceWorker() {
     // Register service worker
     navigator.serviceWorker
       .register('/sw.js')
-      .then((registration) => {
+      .then(registration => {
         console.log('[SW] Service Worker registered:', registration.scope);
       })
-      .catch((error) => {
+      .catch(error => {
         console.error('[SW] Service Worker registration failed:', error);
       });
   }, []);
@@ -137,5 +137,3 @@ export function useFontOptimization() {
     };
   }, []);
 }
-
-

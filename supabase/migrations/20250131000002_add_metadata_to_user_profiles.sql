@@ -10,3 +10,5 @@ ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
 -- Add comment for documentation
 COMMENT ON COLUMN public.user_profiles.metadata IS 'Stores integration credentials and user preferences as JSON (e.g., lemlist_api_key, lemlist_email, gmail tokens)';
 
+
+

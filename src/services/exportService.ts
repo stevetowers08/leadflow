@@ -1,11 +1,12 @@
 /**
  * Export Service
- * 
+ *
  * PDR Section: Phase 3 - Analytics & Polish
  * Handles exporting leads data to CSV/JSON formats
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import type { Lead } from '@/types/database';
 
 export interface ExportOptions {
   format: 'csv' | 'json';
@@ -21,7 +22,9 @@ export interface ExportOptions {
 /**
  * Export leads to CSV format
  */
-export async function exportLeadsToCSV(options: ExportOptions = { format: 'csv' }): Promise<string> {
+export async function exportLeadsToCSV(
+  options: ExportOptions = { format: 'csv' }
+): Promise<string> {
   let query = supabase.from('leads').select('*');
 
   // Apply filters
@@ -38,7 +41,9 @@ export async function exportLeadsToCSV(options: ExportOptions = { format: 'csv' 
     query = query.lte('created_at', options.filters.dateTo);
   }
 
-  const { data: leads, error } = await query.order('created_at', { ascending: false });
+  const { data: leads, error } = await query.order('created_at', {
+    ascending: false,
+  });
 
   if (error) {
     throw new Error(`Failed to export leads: ${error.message}`);
@@ -63,12 +68,15 @@ export async function exportLeadsToCSV(options: ExportOptions = { format: 'csv' 
   // Create CSV rows
   const csvRows = [
     headers.join(','), // Header row
-    ...leads.map((lead) =>
+    ...leads.map(lead =>
       headers
-        .map((field) => {
-          const value = (lead as any)[field] || '';
+        .map(field => {
+          const value = (lead as Record<string, unknown>)[field] || '';
           // Escape commas and quotes in CSV
-          if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+          if (
+            typeof value === 'string' &&
+            (value.includes(',') || value.includes('"'))
+          ) {
             return `"${value.replace(/"/g, '""')}"`;
           }
           return value;
@@ -83,7 +91,9 @@ export async function exportLeadsToCSV(options: ExportOptions = { format: 'csv' 
 /**
  * Export leads to JSON format
  */
-export async function exportLeadsToJSON(options: ExportOptions = { format: 'json' }): Promise<string> {
+export async function exportLeadsToJSON(
+  options: ExportOptions = { format: 'json' }
+): Promise<string> {
   let query = supabase.from('leads').select('*');
 
   // Apply filters
@@ -100,7 +110,9 @@ export async function exportLeadsToJSON(options: ExportOptions = { format: 'json
     query = query.lte('created_at', options.filters.dateTo);
   }
 
-  const { data: leads, error } = await query.order('created_at', { ascending: false });
+  const { data: leads, error } = await query.order('created_at', {
+    ascending: false,
+  });
 
   if (error) {
     throw new Error(`Failed to export leads: ${error.message}`);
@@ -109,10 +121,10 @@ export async function exportLeadsToJSON(options: ExportOptions = { format: 'json
   // Filter fields if specified
   if (options.fields && leads) {
     return JSON.stringify(
-      leads.map((lead) => {
-        const filtered: any = {};
-        options.fields!.forEach((field) => {
-          filtered[field] = (lead as any)[field];
+      leads.map(lead => {
+        const filtered: Record<string, unknown> = {};
+        options.fields!.forEach(field => {
+          filtered[field] = (lead as Record<string, unknown>)[field];
         });
         return filtered;
       }),
@@ -127,7 +139,11 @@ export async function exportLeadsToJSON(options: ExportOptions = { format: 'json
 /**
  * Download exported data as file
  */
-export function downloadExport(data: string, filename: string, mimeType: string): void {
+export function downloadExport(
+  data: string,
+  filename: string,
+  mimeType: string
+): void {
   const blob = new Blob([data], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -138,5 +154,3 @@ export function downloadExport(data: string, filename: string, mimeType: string)
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
-
-

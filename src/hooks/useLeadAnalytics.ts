@@ -1,13 +1,18 @@
 /**
  * Hook for Lead Analytics
- * 
+ *
  * Provides React Query integration for lead analytics data
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { LeadAnalyticsService, LeadAnalyticsFilters } from '@/services/leadAnalyticsService';
+import {
+  LeadAnalyticsService,
+  LeadAnalyticsFilters,
+} from '@/services/leadAnalyticsService';
 
-export function useLeadAnalytics(filters: LeadAnalyticsFilters = { period: 'last_30_days' }) {
+export function useLeadAnalytics(
+  filters: LeadAnalyticsFilters = { period: 'last_30_days' }
+) {
   return useQuery({
     queryKey: ['lead-analytics', filters],
     queryFn: () => LeadAnalyticsService.getLeadAnalytics(filters),
@@ -15,5 +20,3 @@ export function useLeadAnalytics(filters: LeadAnalyticsFilters = { period: 'last
     refetchOnWindowFocus: false,
   });
 }
-
-

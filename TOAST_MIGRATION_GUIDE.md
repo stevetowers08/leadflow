@@ -18,18 +18,23 @@ This document tracks the migration from Radix UI toast to Sonner toast notificat
 ## 🔄 Migration Pattern
 
 ### Step 1: Update Import
+
 **Before:**
+
 ```typescript
 import { useToast } from '@/hooks/use-toast';
 ```
 
 **After:**
+
 ```typescript
 import { toast } from '@/utils/toast';
 ```
 
 ### Step 2: Remove Hook Usage
+
 **Before:**
+
 ```typescript
 const { toast } = useToast();
 ```
@@ -38,7 +43,9 @@ const { toast } = useToast();
 Remove this line - `toast` is now imported directly.
 
 ### Step 3: Update Toast Calls
+
 **Before:**
+
 ```typescript
 toast({
   title: 'Success',
@@ -48,6 +55,7 @@ toast({
 ```
 
 **After:**
+
 ```typescript
 // Success
 toast.success('Success', {
@@ -71,6 +79,7 @@ toast.info('Info', {
 ```
 
 ### Step 4: Update Dependencies
+
 Remove `toast` from dependency arrays in `useCallback` and `useEffect` hooks.
 
 ## 📋 Remaining Files to Update
@@ -78,6 +87,7 @@ Remove `toast` from dependency arrays in `useCallback` and `useEffect` hooks.
 The following files still need to be migrated:
 
 ### Hooks
+
 - `src/hooks/useRetryLogic.tsx`
 - `src/hooks/useRealtimeSubscriptions.ts`
 - `src/hooks/useOptimizedAssignment.ts`
@@ -88,6 +98,7 @@ The following files still need to be migrated:
 - `src/hooks/useAdvancedCaching.ts`
 
 ### Components
+
 - `src/pages/Campaigns.tsx`
 - `src/components/admin/AssignmentManagementPanel.tsx`
 - `src/components/slide-out/CompanyDetailsSlideOut.tsx`
@@ -115,11 +126,13 @@ The following files still need to be migrated:
 - `src/components/utils/BulkActions.tsx`
 
 ### Services
+
 - `src/services/statusAutomationService.ts`
 
 ## 🎯 Usage Examples
 
 ### Basic Usage
+
 ```typescript
 import { toast } from '@/utils/toast';
 
@@ -145,6 +158,7 @@ toast.info('Info', {
 ```
 
 ### With Actions
+
 ```typescript
 toast.success('Email sent', {
   description: 'Your email has been sent successfully',
@@ -156,15 +170,13 @@ toast.success('Email sent', {
 ```
 
 ### Promise-based
+
 ```typescript
-toast.promise(
-  saveData(),
-  {
-    loading: 'Saving...',
-    success: 'Saved successfully',
-    error: 'Failed to save',
-  }
-);
+toast.promise(saveData(), {
+  loading: 'Saving...',
+  success: 'Saved successfully',
+  error: 'Failed to save',
+});
 ```
 
 ## 📝 Notes
@@ -174,5 +186,3 @@ toast.promise(
 - All toast types (success, error, warning, info) are available
 - Duration defaults: success/info/warning (5000ms), error (7000ms)
 - Toasts can be dismissed programmatically using `toast.dismiss(id)`
-
-

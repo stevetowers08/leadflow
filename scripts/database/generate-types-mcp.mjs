@@ -30,3 +30,5 @@ console.log('   4. Write to types.ts file\n');
 
 console.log('✅ For now, use Supabase CLI: npm run types:generate');
 
+
+

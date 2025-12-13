@@ -17,7 +17,10 @@ export interface EmptyStateProps {
 }
 
 export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
-  ({ icon: Icon, title, description, action, className, size = 'default' }, ref) => {
+  (
+    { icon: Icon, title, description, action, className, size = 'default' },
+    ref
+  ) => {
     const sizeClasses = {
       sm: 'py-8',
       default: 'py-12',
@@ -59,16 +62,13 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         </h3>
         {description && (
           <p
-            className={cn(
-              designTokens.typography.body.muted,
-              'max-w-sm mb-6'
-            )}
+            className={cn(designTokens.typography.body.muted, 'max-w-sm mb-6')}
           >
             {description}
           </p>
         )}
         {action && (
-          <Button onClick={action.onClick} size="default" variant="default">
+          <Button onClick={action.onClick} size='default' variant='default'>
             {action.label}
           </Button>
         )}
@@ -77,8 +77,3 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
   }
 );
 EmptyState.displayName = 'EmptyState';
-
-
-
-
-

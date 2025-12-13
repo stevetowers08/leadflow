@@ -19,6 +19,7 @@ npm run types:check
 ## When to Generate Types
 
 **Always generate types after:**
+
 1. ✅ Creating a new table
 2. ✅ Adding/modifying columns
 3. ✅ Running database migrations
@@ -41,6 +42,7 @@ This uses the `supabase gen types typescript` command which reads from your loca
 ### Method 2: Supabase MCP Server
 
 If you have the Supabase MCP server configured, you can use it to:
+
 - List all tables
 - Get table schemas
 - Generate types programmatically
@@ -48,6 +50,7 @@ If you have the Supabase MCP server configured, you can use it to:
 ### Method 3: Manual (Not Recommended)
 
 Only use manual type updates for:
+
 - Quick fixes during development
 - Temporary workarounds
 - When CLI is unavailable
@@ -57,6 +60,7 @@ Only use manual type updates for:
 ## Type File Location
 
 Types are generated to:
+
 ```
 src/integrations/supabase/types.ts
 ```
@@ -79,7 +83,7 @@ Add to your CI pipeline:
 # Example GitHub Actions
 - name: Generate Types
   run: npm run types:generate
-  
+
 - name: Check Types
   run: npm run types:check
 ```
@@ -89,11 +93,13 @@ Add to your CI pipeline:
 ### Types Out of Sync
 
 **Symptoms:**
+
 - TypeScript errors about missing tables
 - `as any` workarounds in code
 - Build failures
 
 **Solution:**
+
 ```bash
 npm run types:generate
 ```
@@ -103,6 +109,7 @@ npm run types:generate
 **Error:** `supabase: command not found`
 
 **Solution:**
+
 ```bash
 npm install -g supabase
 ```
@@ -112,6 +119,7 @@ Or use the Supabase MCP server for type generation.
 ### Type Generation Fails
 
 **Check:**
+
 1. Supabase is running locally (if using `--local`)
 2. Database connection is configured
 3. Migrations are up to date
@@ -143,4 +151,3 @@ When adding/modifying database schema:
 - [ ] Update code if needed
 - [ ] Test changes
 - [ ] Commit migration + types
-

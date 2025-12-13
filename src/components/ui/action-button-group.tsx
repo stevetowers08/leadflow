@@ -66,9 +66,9 @@ export const ActionButtonGroup = React.forwardRef<
               )}
             >
               {action.loading ? (
-                <span className="animate-spin">⟳</span>
+                <span className='animate-spin'>⟳</span>
               ) : (
-                Icon && <Icon className="h-4 w-4" />
+                Icon && <Icon className='h-4 w-4' />
               )}
               {action.label}
             </Button>
@@ -79,8 +79,3 @@ export const ActionButtonGroup = React.forwardRef<
   }
 );
 ActionButtonGroup.displayName = 'ActionButtonGroup';
-
-
-
-
-

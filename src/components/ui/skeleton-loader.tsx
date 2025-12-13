@@ -10,21 +10,21 @@ export interface SkeletonLoaderProps {
 }
 
 const SkeletonCard = () => (
-  <div className="rounded-lg border border-border bg-white p-6 space-y-4">
-    <Skeleton className="h-4 w-3/4" />
-    <Skeleton className="h-4 w-full" />
-    <Skeleton className="h-4 w-5/6" />
+  <div className='rounded-lg border border-border bg-white p-6 space-y-4'>
+    <Skeleton className='h-4 w-3/4' />
+    <Skeleton className='h-4 w-full' />
+    <Skeleton className='h-4 w-5/6' />
   </div>
 );
 
 const SkeletonList = ({ count = 3 }: { count?: number }) => (
-  <div className="space-y-3">
+  <div className='space-y-3'>
     {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="flex items-center gap-4">
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-4 w-1/4" />
-          <Skeleton className="h-3 w-1/2" />
+      <div key={i} className='flex items-center gap-4'>
+        <Skeleton className='h-10 w-10 rounded-full' />
+        <div className='flex-1 space-y-2'>
+          <Skeleton className='h-4 w-1/4' />
+          <Skeleton className='h-3 w-1/2' />
         </div>
       </div>
     ))}
@@ -32,33 +32,30 @@ const SkeletonList = ({ count = 3 }: { count?: number }) => (
 );
 
 const SkeletonTable = ({ count = 5 }: { count?: number }) => (
-  <div className="space-y-2">
-    <div className="flex gap-4 pb-2 border-b border-border">
-      <Skeleton className="h-4 w-24" />
-      <Skeleton className="h-4 w-32" />
-      <Skeleton className="h-4 w-20" />
-      <Skeleton className="h-4 w-28" />
+  <div className='space-y-2'>
+    <div className='flex gap-4 pb-2 border-b border-border'>
+      <Skeleton className='h-4 w-24' />
+      <Skeleton className='h-4 w-32' />
+      <Skeleton className='h-4 w-20' />
+      <Skeleton className='h-4 w-28' />
     </div>
     {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="flex gap-4 py-3">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-4 w-20" />
-        <Skeleton className="h-4 w-28" />
+      <div key={i} className='flex gap-4 py-3'>
+        <Skeleton className='h-4 w-24' />
+        <Skeleton className='h-4 w-32' />
+        <Skeleton className='h-4 w-20' />
+        <Skeleton className='h-4 w-28' />
       </div>
     ))}
   </div>
 );
 
 const SkeletonText = ({ count = 3 }: { count?: number }) => (
-  <div className="space-y-2">
+  <div className='space-y-2'>
     {Array.from({ length: count }).map((_, i) => (
       <Skeleton
         key={i}
-        className={cn(
-          'h-4',
-          i === count - 1 ? 'w-3/4' : 'w-full'
-        )}
+        className={cn('h-4', i === count - 1 ? 'w-3/4' : 'w-full')}
       />
     ))}
   </div>
@@ -80,7 +77,7 @@ export const SkeletonLoader = React.forwardRef<
     switch (variant) {
       case 'card':
         return (
-          <div className="space-y-4">
+          <div className='space-y-4'>
             {Array.from({ length: count }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
@@ -106,8 +103,3 @@ export const SkeletonLoader = React.forwardRef<
   );
 });
 SkeletonLoader.displayName = 'SkeletonLoader';
-
-
-
-
-

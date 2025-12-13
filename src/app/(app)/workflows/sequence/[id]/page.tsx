@@ -7,11 +7,3 @@ import CampaignSequenceBuilderPage from '@/pages/CampaignSequenceBuilderPage';
 export default function WorkflowSequencePage() {
   return <CampaignSequenceBuilderPage />;
 }
-
-
-
-
-
-
-
-

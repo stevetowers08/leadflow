@@ -123,11 +123,3 @@ export const SCORE_RANGE_COLORS_10 = {
     border: 'border-border',
   },
 } as const;
-
-
-
-
-
-
-
-

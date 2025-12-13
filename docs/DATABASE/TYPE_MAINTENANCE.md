@@ -3,6 +3,7 @@
 ## Problem Statement
 
 Previously, TypeScript types were **manually maintained**, leading to:
+
 - ❌ Types out of sync with database
 - ❌ Build failures when new tables added
 - ❌ `as any` workarounds reducing type safety
@@ -15,6 +16,7 @@ We now use **automated type generation** from Supabase schema.
 ## Current Status
 
 ### ✅ Fixed Issues
+
 - Added missing tables: `email_accounts`, `email_sends`, `email_replies`
 - Added client tables: `clients`, `client_users`, `client_job_deals`, `client_decision_maker_outreach`
 - Created type generation script
@@ -24,9 +26,11 @@ We now use **automated type generation** from Supabase schema.
 ### 📋 Tables Status
 
 **In Database (17):**
+
 - ✅ All 17 tables now have TypeScript types
 
 **Used in Code (6+):**
+
 - ⚠️ Some tables referenced in code may not exist yet:
   - `email_threads`, `email_messages`, `email_templates`, `email_domains`
   - `interactions`, `conversations`
@@ -37,23 +41,27 @@ We now use **automated type generation** from Supabase schema.
 ### When Adding a New Table
 
 1. **Create migration:**
+
    ```sql
    -- supabase/migrations/YYYYMMDD_add_table_name.sql
    CREATE TABLE public.table_name (...);
    ```
 
 2. **Apply migration:**
+
    ```bash
    supabase migration up
    # or via Supabase dashboard
    ```
 
 3. **Generate types:**
+
    ```bash
    npm run types:generate
    ```
 
 4. **Verify:**
+
    ```bash
    npm run types:check
    ```
@@ -100,6 +108,7 @@ Add to your CI pipeline:
 **Symptom:** TypeScript errors about missing tables
 
 **Fix:**
+
 ```bash
 npm run types:generate
 ```
@@ -109,6 +118,7 @@ npm run types:generate
 **Symptom:** `Type error: No overload matches this call`
 
 **Fix:**
+
 1. Check if table exists in database
 2. Run `npm run types:generate`
 3. If table doesn't exist, create migration first
@@ -118,6 +128,7 @@ npm run types:generate
 **Symptom:** Code has `(supabase.from('table') as any)`
 
 **Fix:**
+
 1. Add table to database (if missing)
 2. Run `npm run types:generate`
 3. Remove `as any` workaround
@@ -126,6 +137,7 @@ npm run types:generate
 ## Migration from Manual to Automated
 
 ### Before (Manual)
+
 ```typescript
 // ❌ Had to manually add each table
 email_accounts: {
@@ -136,6 +148,7 @@ email_accounts: {
 ```
 
 ### After (Automated)
+
 ```bash
 # ✅ Just run command after migration
 npm run types:generate
@@ -161,4 +174,3 @@ npm run types:generate
 - [Type Generation Guide](./TYPE_GENERATION.md)
 - [Database Best Practices](../DATABASE_BEST_PRACTICES.md)
 - [Supabase CLI Docs](https://supabase.com/docs/reference/cli)
-

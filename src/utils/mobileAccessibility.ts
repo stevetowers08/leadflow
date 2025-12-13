@@ -6,7 +6,10 @@
 /**
  * Announce message to screen readers
  */
-export function announceToScreenReader(message: string, priority: 'polite' | 'assertive' = 'polite'): void {
+export function announceToScreenReader(
+  message: string,
+  priority: 'polite' | 'assertive' = 'polite'
+): void {
   if (typeof document === 'undefined') return;
 
   const announcement = document.createElement('div');
@@ -95,7 +98,7 @@ export function getAccessibleLabel(element: HTMLElement): string {
  */
 export function isVisibleToScreenReader(element: HTMLElement): boolean {
   const style = window.getComputedStyle(element);
-  
+
   return (
     style.display !== 'none' &&
     style.visibility !== 'hidden' &&
@@ -112,7 +115,7 @@ export function focusWithAnnouncement(
   announcement?: string
 ): void {
   element.focus();
-  
+
   if (announcement) {
     announceToScreenReader(announcement);
   }
@@ -139,5 +142,3 @@ export function meetsTouchTargetSize(element: HTMLElement): boolean {
   const size = getTouchTargetSize(element);
   return size.width >= 48 && size.height >= 48;
 }
-
-

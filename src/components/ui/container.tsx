@@ -17,7 +17,10 @@ const sizeClasses = {
 };
 
 export const Container = React.forwardRef<HTMLDivElement, ContainerProps>(
-  ({ size = 'default', padding = true, children, className, ...props }, ref) => {
+  (
+    { size = 'default', padding = true, children, className, ...props },
+    ref
+  ) => {
     return (
       <div
         ref={ref}
@@ -62,8 +65,3 @@ export const Section = React.forwardRef<HTMLElement, SectionProps>(
   }
 );
 Section.displayName = 'Section';
-
-
-
-
-

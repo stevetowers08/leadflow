@@ -43,8 +43,14 @@ export function useAllCampaigns() {
       } catch (emailErr) {
         // Silently handle missing table
         const errorMsg = getErrorMessage(emailErr);
-        if (!errorMsg.includes('schema cache') && !errorMsg.includes('does not exist')) {
-          console.error('[useAllCampaigns] Error fetching email campaigns:', emailErr);
+        if (
+          !errorMsg.includes('schema cache') &&
+          !errorMsg.includes('does not exist')
+        ) {
+          console.error(
+            '[useAllCampaigns] Error fetching email campaigns:',
+            emailErr
+          );
         }
       }
 
@@ -61,7 +67,10 @@ export function useAllCampaigns() {
           );
         } catch (lemlistErr) {
           // Silently handle Lemlist errors (credentials not set, etc.)
-          console.debug('[useAllCampaigns] Could not fetch Lemlist campaigns:', lemlistErr);
+          console.debug(
+            '[useAllCampaigns] Could not fetch Lemlist campaigns:',
+            lemlistErr
+          );
         }
       }
 
@@ -71,4 +80,3 @@ export function useAllCampaigns() {
     staleTime: 2 * 60 * 1000, // Cache for 2 minutes
   });
 }
-

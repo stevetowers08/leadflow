@@ -11,17 +11,18 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const supabaseUrl = 
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 
-  process.env.VITE_SUPABASE_URL;
-const serviceRoleKey = 
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const serviceRoleKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
   console.error('❌ Missing required environment variables:');
   console.error('   NEXT_PUBLIC_SUPABASE_URL or VITE_SUPABASE_URL');
-  console.error('   SUPABASE_SERVICE_ROLE_KEY or VITE_SUPABASE_SERVICE_ROLE_KEY');
+  console.error(
+    '   SUPABASE_SERVICE_ROLE_KEY or VITE_SUPABASE_SERVICE_ROLE_KEY'
+  );
   console.error('');
   console.error('Please check your .env.local file');
   process.exit(1);
@@ -39,7 +40,7 @@ async function setupSteveAdmin() {
     const email = 'steve@polarislabs.io';
     const fullName = 'Steve Towers';
     const password = 'TempPassword123!'; // User should change this
-    
+
     console.log('🚀 Setting up steve@polarislabs.io as admin...');
     console.log('');
 
@@ -52,7 +53,9 @@ async function setupSteveAdmin() {
       throw new Error(`Failed to list users: ${listError.message}`);
     }
 
-    let user = users.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    let user = users.users.find(
+      u => u.email?.toLowerCase() === email.toLowerCase()
+    );
     let userId;
 
     if (user) {
@@ -61,18 +64,19 @@ async function setupSteveAdmin() {
     } else {
       // 2. Create new user via admin API
       console.log(`📋 Creating new user: ${email}`);
-      const { data: userData, error: createError } = await supabase.auth.admin.createUser({
-        email: email,
-        email_confirm: true, // Auto-confirm email
-        password: password,
-        user_metadata: {
-          full_name: fullName,
-        },
-        app_metadata: {
-          provider: 'email',
-          providers: ['email'],
-        },
-      });
+      const { data: userData, error: createError } =
+        await supabase.auth.admin.createUser({
+          email: email,
+          email_confirm: true, // Auto-confirm email
+          password: password,
+          user_metadata: {
+            full_name: fullName,
+          },
+          app_metadata: {
+            provider: 'email',
+            providers: ['email'],
+          },
+        });
 
       if (createError) {
         throw new Error(`Failed to create user: ${createError.message}`);
@@ -105,7 +109,9 @@ async function setupSteveAdmin() {
     );
 
     if (updateAuthError) {
-      throw new Error(`Failed to update auth users: ${updateAuthError.message}`);
+      throw new Error(
+        `Failed to update auth users: ${updateAuthError.message}`
+      );
     }
     console.log('   ✅ Auth metadata updated');
 
@@ -129,7 +135,9 @@ async function setupSteveAdmin() {
       .single();
 
     if (profileError) {
-      throw new Error(`Failed to update user_profiles: ${profileError.message}`);
+      throw new Error(
+        `Failed to update user_profiles: ${profileError.message}`
+      );
     }
 
     console.log('   ✅ User profile created/updated');
@@ -137,14 +145,20 @@ async function setupSteveAdmin() {
     // 5. Generate password reset link if user was just created
     if (!user) {
       console.log('📋 Generating password reset link...');
-      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email: email,
-      });
+      const { data: linkData, error: linkError } =
+        await supabase.auth.admin.generateLink({
+          type: 'recovery',
+          email: email,
+        });
 
       if (linkError) {
-        console.warn('   ⚠️  Could not generate password reset link:', linkError.message);
-        console.log('   💡 User can use "Forgot Password" to set their password');
+        console.warn(
+          '   ⚠️  Could not generate password reset link:',
+          linkError.message
+        );
+        console.log(
+          '   💡 User can use "Forgot Password" to set their password'
+        );
       } else {
         const resetLink = linkData?.properties?.action_link;
         console.log('   ✅ Password reset link generated');
@@ -165,10 +179,12 @@ async function setupSteveAdmin() {
     console.log(`   Full Name: ${fullName}`);
     console.log(`   Status: Active`);
     console.log('');
-    
+
     if (!user) {
       console.log('💡 Next steps:');
-      console.log('   1. Use the password reset link above to set your password');
+      console.log(
+        '   1. Use the password reset link above to set your password'
+      );
       console.log('   2. Or use "Forgot Password" on the login page');
       console.log('   3. Sign in with your email and new password');
     } else {
@@ -189,5 +205,3 @@ async function setupSteveAdmin() {
 }
 
 setupSteveAdmin();
-
-

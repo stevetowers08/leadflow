@@ -51,38 +51,33 @@ export const LABELS = {
   CLOSE: 'Close',
   RETRY: 'Retry',
   RELOAD: 'Reload Page',
-  
+
   // Status labels
   ALL_STAGES: 'All Stages',
   SORT_BY: 'Sort by',
   ALL: 'All',
-  
+
   // Time periods
   LAST_7_DAYS: 'Last 7 days',
   LAST_30_DAYS: 'Last 30 days',
   LAST_90_DAYS: 'Last 90 days',
-  
+
   // Reporting
   EXPORT_CSV: 'Export to CSV',
   REFRESH: 'Refresh',
-  
+
   // Errors
   FAILED_TO_LOAD: 'Failed to Load',
   TRY_AGAIN: 'Please try again.',
 } as const;
 
 export const CONFIRMATION_MESSAGES = {
-  DELETE: 'Are you sure you want to delete this item? This action cannot be undone.',
+  DELETE:
+    'Are you sure you want to delete this item? This action cannot be undone.',
   ASSIGNMENT: 'Are you sure you want to change the assignment for this item?',
-  SIGNOUT: 'Are you sure you want to sign out? You will need to sign in again to access your account.',
+  SIGNOUT:
+    'Are you sure you want to sign out? You will need to sign in again to access your account.',
   SAVE: 'Are you sure you want to save these changes?',
-  AUTOMATION: 'Are you sure you want to start the automation process? This will begin contacting the selected leads.',
+  AUTOMATION:
+    'Are you sure you want to start the automation process? This will begin contacting the selected leads.',
 } as const;
-
-
-
-
-
-
-
-

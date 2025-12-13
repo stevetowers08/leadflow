@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 /**
  * Generate TypeScript types from Supabase database schema
- * 
+ *
  * This script uses Supabase CLI to generate types automatically.
  * Run this after any database migration to keep types in sync.
- * 
+ *
  * Usage:
  *   npm run types:generate
  *   npm run types:generate -- --watch
@@ -22,7 +22,9 @@ async function generateTypes() {
 
   // Check if Supabase config exists
   if (!existsSync(SUPABASE_CONFIG)) {
-    console.error('❌ Supabase config not found. Make sure you have supabase/config.toml');
+    console.error(
+      '❌ Supabase config not found. Make sure you have supabase/config.toml'
+    );
     process.exit(1);
   }
 
@@ -31,22 +33,23 @@ async function generateTypes() {
     try {
       execSync('supabase --version', { stdio: 'ignore' });
     } catch {
-      console.error('❌ Supabase CLI not found. Install it with: npm install -g supabase');
-      console.log('\nAlternatively, use the Supabase MCP server to generate types.');
+      console.error(
+        '❌ Supabase CLI not found. Install it with: npm install -g supabase'
+      );
+      console.log(
+        '\nAlternatively, use the Supabase MCP server to generate types.'
+      );
       process.exit(1);
     }
 
     // Generate types using Supabase CLI
     console.log('📝 Running: supabase gen types typescript --local > types.ts');
-    
-    const output = execSync(
-      'supabase gen types typescript --local',
-      { 
-        encoding: 'utf-8',
-        cwd: process.cwd(),
-        stdio: 'pipe'
-      }
-    );
+
+    const output = execSync('supabase gen types typescript --local', {
+      encoding: 'utf-8',
+      cwd: process.cwd(),
+      stdio: 'pipe',
+    });
 
     // Write to types file
     const fs = await import('fs/promises');
@@ -54,25 +57,29 @@ async function generateTypes() {
 
     console.log('✅ Types generated successfully!');
     console.log(`📄 Written to: ${TYPES_FILE}\n`);
-    
+
     // Run TypeScript check
     console.log('🔍 Running TypeScript type check...');
     try {
       execSync('npx tsc --noEmit', { stdio: 'inherit' });
       console.log('✅ Type check passed!\n');
     } catch {
-      console.warn('⚠️  Type check found errors. Please review the output above.\n');
+      console.warn(
+        '⚠️  Type check found errors. Please review the output above.\n'
+      );
     }
-
   } catch (error: any) {
     console.error('❌ Error generating types:', error.message);
-    
-    if (error.message.includes('not found') || error.message.includes('ENOENT')) {
+
+    if (
+      error.message.includes('not found') ||
+      error.message.includes('ENOENT')
+    ) {
       console.log('\n💡 Tip: Make sure Supabase CLI is installed:');
       console.log('   npm install -g supabase');
       console.log('\n   Or use the Supabase MCP server for type generation.');
     }
-    
+
     process.exit(1);
   }
 }
@@ -86,4 +93,3 @@ if (process.argv.includes('--watch')) {
 } else {
   generateTypes();
 }
-

@@ -3,6 +3,7 @@
 ## Tables in Database (from Supabase MCP)
 
 ### ✅ Tables in BOTH Database AND Types (13)
+
 1. `activity_log` ✅
 2. `campaign_sequence_executions` ✅
 3. `campaign_sequence_leads` ✅
@@ -18,6 +19,7 @@
 13. `workflows` ✅
 
 ### ❌ Tables in Database BUT Missing from Types (4)
+
 1. **`client_job_deals`** - Tracks which jobs each client is actively pursuing
    - Columns: id, client_id, job_id, status, priority, notes, added_by, added_at, updated_at
    - Used in: `dashboardDataService.ts`, `UnifiedStatusDropdown.tsx`
@@ -35,6 +37,7 @@
    - Used in: `OrganizationContext.tsx`, `useClientId.ts`, `clientRegistrationService.ts`, `UnifiedStatusDropdown.tsx`, `useNotificationTriggers.ts`
 
 ### ❓ Tables Used in Code BUT Not in Database (May be in different schema or not yet created)
+
 1. **`email_threads`** - Used in: `Conversations.tsx`, `gmailService.ts`, `PersonMessagingPanel.tsx`, `ActivityTimeline.tsx`
 2. **`email_messages`** - Used in: `Conversations.tsx`, `gmailService.ts`, `PersonMessagingPanel.tsx`, `ActivityTimeline.tsx`
 3. **`email_templates`** - Used in: `secureGmailService.ts`, `secureGmailServiceFixed.ts`, `gmailService.ts`
@@ -43,6 +46,7 @@
 6. **`conversations`** - Used in: `PersonMessagingPanel.tsx`, `ActivityTimeline.tsx`, `conversationService.ts` (commented out)
 
 ### ✅ Recently Added to Types (3)
+
 1. **`email_accounts`** ✅ - Just added
 2. **`email_sends`** ✅ - Just added
 3. **`email_replies`** ✅ - Just added
@@ -57,14 +61,17 @@
 ## Priority Fix List
 
 ### High Priority (In Database, Used in Code)
+
 1. **`client_users`** - Actively used, missing from types
 2. **`client_job_deals`** - Actively used, missing from types
 
 ### Medium Priority (In Database, Not Yet Used)
+
 3. **`clients`** - Exists in DB, referenced via FKs
 4. **`client_decision_maker_outreach`** - Exists in DB, not yet used
 
 ### Low Priority (Used in Code, Need to Verify Existence)
+
 5. **`email_threads`** - Check if exists or needs migration
 6. **`email_messages`** - Check if exists or needs migration
 7. **`email_templates`** - Check if exists or needs migration
@@ -77,4 +84,3 @@
 1. **Immediate**: Add `client_users` and `client_job_deals` to types
 2. **This Week**: Verify existence of email/interaction tables, add if they exist
 3. **This Month**: Set up automated type generation from Supabase schema
-

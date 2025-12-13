@@ -17,10 +17,7 @@ export async function GET(
     const userId = request.nextUrl.searchParams.get('userId');
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'User ID required' }, { status: 401 });
     }
 
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -63,7 +60,7 @@ export async function GET(
     const response = await fetch(lemlistUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Basic ${encoded}`,
+        Authorization: `Basic ${encoded}`,
         'Content-Type': 'application/json',
       },
     });
@@ -71,9 +68,9 @@ export async function GET(
     if (!response.ok) {
       const errorText = await response.text();
       return NextResponse.json(
-        { 
+        {
           error: `Lemlist API error: ${response.status}`,
-          details: errorText 
+          details: errorText,
         },
         { status: response.status }
       );
@@ -84,12 +81,11 @@ export async function GET(
   } catch (error) {
     console.error('Error proxying Lemlist API request:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch campaign detail',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
   }
 }
-

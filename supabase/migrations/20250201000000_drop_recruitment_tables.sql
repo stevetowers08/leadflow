@@ -110,3 +110,5 @@ END $$;
 COMMENT ON TABLE companies IS 'Company profiles for LeadFlow. Recruitment-specific fields have been removed.';
 COMMENT ON TABLE leads IS 'Event-captured leads with OCR data. Primary lead management table for LeadFlow.';
 
+
+

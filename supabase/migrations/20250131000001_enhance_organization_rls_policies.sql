@@ -272,3 +272,5 @@ COMMENT ON FUNCTION get_user_organization_ids IS 'Returns all organization IDs f
 COMMENT ON FUNCTION get_current_organization_id IS 'Returns the current active organization ID for the authenticated user';
 COMMENT ON FUNCTION user_has_organization_access IS 'Checks if user has access to a specific organization';
 
+
+

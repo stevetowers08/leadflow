@@ -17,17 +17,18 @@ const __dirname = dirname(__filename);
 
 dotenv.config({ path: '.env.local' });
 
-const supabaseUrl = 
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 
-  process.env.VITE_SUPABASE_URL;
-const serviceRoleKey = 
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const serviceRoleKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
   console.error('❌ Missing required environment variables:');
   console.error('   NEXT_PUBLIC_SUPABASE_URL or VITE_SUPABASE_URL');
-  console.error('   SUPABASE_SERVICE_ROLE_KEY or VITE_SUPABASE_SERVICE_ROLE_KEY');
+  console.error(
+    '   SUPABASE_SERVICE_ROLE_KEY or VITE_SUPABASE_SERVICE_ROLE_KEY'
+  );
   process.exit(1);
 }
 
@@ -44,18 +45,21 @@ async function createLeadsTable() {
     console.log('');
 
     // Read the migration SQL
-    const migrationPath = join(__dirname, '../../supabase/migrations/20250128000002_create_leads_table.sql');
+    const migrationPath = join(
+      __dirname,
+      '../../supabase/migrations/20250128000002_create_leads_table.sql'
+    );
     const migrationSQL = readFileSync(migrationPath, 'utf-8');
 
     // Execute the migration
     const { data, error } = await supabase.rpc('exec_sql', {
-      sql: migrationSQL
+      sql: migrationSQL,
     });
 
     if (error) {
       // If RPC doesn't work, try direct query (split into statements)
       console.log('⚠️  RPC method failed, trying direct execution...');
-      
+
       // Split SQL into individual statements and execute
       const statements = migrationSQL
         .split(';')
@@ -66,18 +70,23 @@ async function createLeadsTable() {
         if (statement.trim()) {
           try {
             // Use REST API directly for DDL
-            const response = await fetch(`${supabaseUrl}/rest/v1/rpc/exec_sql`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': serviceRoleKey,
-                'Authorization': `Bearer ${serviceRoleKey}`,
-              },
-              body: JSON.stringify({ sql: statement }),
-            });
+            const response = await fetch(
+              `${supabaseUrl}/rest/v1/rpc/exec_sql`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  apikey: serviceRoleKey,
+                  Authorization: `Bearer ${serviceRoleKey}`,
+                },
+                body: JSON.stringify({ sql: statement }),
+              }
+            );
 
             if (!response.ok) {
-              console.warn(`⚠️  Statement failed: ${statement.substring(0, 50)}...`);
+              console.warn(
+                `⚠️  Statement failed: ${statement.substring(0, 50)}...`
+              );
             }
           } catch (err) {
             console.warn(`⚠️  Error executing statement: ${err.message}`);
@@ -90,7 +99,9 @@ async function createLeadsTable() {
       console.log('💡 Alternative: Please run the migration SQL manually:');
       console.log('');
       console.log('1. Go to Supabase Dashboard > SQL Editor');
-      console.log('2. Copy the SQL from: supabase/migrations/20250128000002_create_leads_table.sql');
+      console.log(
+        '2. Copy the SQL from: supabase/migrations/20250128000002_create_leads_table.sql'
+      );
       console.log('3. Paste and execute');
       console.log('');
       return;
@@ -109,16 +120,21 @@ async function createLeadsTable() {
     if (!tableError && tables && tables.length > 0) {
       console.log('✅ Verified: leads table exists');
     } else {
-      console.log('⚠️  Could not verify table creation. Please check Supabase dashboard.');
+      console.log(
+        '⚠️  Could not verify table creation. Please check Supabase dashboard.'
+      );
     }
-
   } catch (error) {
     console.error('');
     console.error('❌ Error:', error.message);
     console.error('');
-    console.error('💡 Please run the migration SQL manually in Supabase Dashboard:');
+    console.error(
+      '💡 Please run the migration SQL manually in Supabase Dashboard:'
+    );
     console.error('   1. Go to Supabase Dashboard > SQL Editor');
-    console.error('   2. Copy SQL from: supabase/migrations/20250128000002_create_leads_table.sql');
+    console.error(
+      '   2. Copy SQL from: supabase/migrations/20250128000002_create_leads_table.sql'
+    );
     console.error('   3. Paste and execute');
     console.error('');
     process.exit(1);
@@ -126,11 +142,3 @@ async function createLeadsTable() {
 }
 
 createLeadsTable();
-
-
-
-
-
-
-
-

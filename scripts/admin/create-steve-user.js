@@ -11,17 +11,18 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const supabaseUrl = 
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 
-  process.env.VITE_SUPABASE_URL;
-const serviceRoleKey = 
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const serviceRoleKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
   console.error('❌ Missing required environment variables:');
   console.error('   NEXT_PUBLIC_SUPABASE_URL or VITE_SUPABASE_URL');
-  console.error('   SUPABASE_SERVICE_ROLE_KEY or VITE_SUPABASE_SERVICE_ROLE_KEY');
+  console.error(
+    '   SUPABASE_SERVICE_ROLE_KEY or VITE_SUPABASE_SERVICE_ROLE_KEY'
+  );
   console.error('');
   console.error('Please check your .env.local file');
   process.exit(1);
@@ -38,7 +39,7 @@ async function createSteveUser() {
   try {
     const email = 'steve@polarislabs.io';
     const fullName = 'Steve Towers';
-    
+
     console.log(`🔍 Checking if user exists: ${email}`);
     console.log('');
 
@@ -50,11 +51,13 @@ async function createSteveUser() {
       throw new Error(`Failed to list users: ${listError.message}`);
     }
 
-    const existingUser = users.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    const existingUser = users.users.find(
+      u => u.email?.toLowerCase() === email.toLowerCase()
+    );
 
     if (existingUser) {
       console.log(`✅ User already exists: ${email} (ID: ${existingUser.id})`);
-      
+
       // Ensure user_profile exists
       const { data: profileData, error: profileError } = await supabase
         .from('user_profiles')
@@ -72,7 +75,9 @@ async function createSteveUser() {
         .select();
 
       if (profileError) {
-        throw new Error(`Failed to update user_profiles: ${profileError.message}`);
+        throw new Error(
+          `Failed to update user_profiles: ${profileError.message}`
+        );
       }
 
       console.log('   ✅ User profile updated');
@@ -88,17 +93,18 @@ async function createSteveUser() {
 
     // 2. Create new user via admin API
     console.log(`📋 Creating new user: ${email}`);
-    const { data: userData, error: createError } = await supabase.auth.admin.createUser({
-      email: email,
-      email_confirm: true, // Auto-confirm email
-      user_metadata: {
-        full_name: fullName,
-      },
-      app_metadata: {
-        provider: 'email',
-        providers: ['email'],
-      },
-    });
+    const { data: userData, error: createError } =
+      await supabase.auth.admin.createUser({
+        email: email,
+        email_confirm: true, // Auto-confirm email
+        user_metadata: {
+          full_name: fullName,
+        },
+        app_metadata: {
+          provider: 'email',
+          providers: ['email'],
+        },
+      });
 
     if (createError) {
       throw new Error(`Failed to create user: ${createError.message}`);
@@ -141,11 +147,15 @@ async function createSteveUser() {
           .single();
 
         if (updateError) {
-          throw new Error(`Failed to update user_profiles: ${updateError.message}`);
+          throw new Error(
+            `Failed to update user_profiles: ${updateError.message}`
+          );
         }
         console.log('   ✅ User profile updated');
       } else {
-        throw new Error(`Failed to create user_profiles: ${profileError.message}`);
+        throw new Error(
+          `Failed to create user_profiles: ${profileError.message}`
+        );
       }
     } else {
       console.log('   ✅ User profile created');
@@ -153,13 +163,17 @@ async function createSteveUser() {
 
     // 4. Generate password reset link (user will set their password)
     console.log('📋 Generating password reset link...');
-    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-      type: 'recovery',
-      email: email,
-    });
+    const { data: linkData, error: linkError } =
+      await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: email,
+      });
 
     if (linkError) {
-      console.warn('   ⚠️  Could not generate password reset link:', linkError.message);
+      console.warn(
+        '   ⚠️  Could not generate password reset link:',
+        linkError.message
+      );
       console.log('   💡 User can use "Forgot Password" to set their password');
     } else {
       const resetLink = linkData?.properties?.action_link;
@@ -180,7 +194,9 @@ async function createSteveUser() {
     console.log(`   Full Name: ${fullName}`);
     console.log('');
     console.log('💡 Next steps:');
-    console.log('   1. User should use the password reset link to set their password');
+    console.log(
+      '   1. User should use the password reset link to set their password'
+    );
     console.log('   2. Or user can use "Forgot Password" on the login page');
     console.log('   3. User can then sign in normally');
   } catch (error) {
@@ -192,11 +208,3 @@ async function createSteveUser() {
 }
 
 createSteveUser();
-
-
-
-
-
-
-
-

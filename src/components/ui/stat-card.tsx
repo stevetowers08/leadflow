@@ -35,12 +35,12 @@ export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
   ) => {
     const getTrendIcon = () => {
       if (trend === 'up' || (change !== undefined && change > 0)) {
-        return <TrendingUp className="h-4 w-4 text-success" />;
+        return <TrendingUp className='h-4 w-4 text-success' />;
       }
       if (trend === 'down' || (change !== undefined && change < 0)) {
-        return <TrendingDown className="h-4 w-4 text-destructive" />;
+        return <TrendingDown className='h-4 w-4 text-destructive' />;
       }
-      return <Minus className="h-4 w-4 text-muted-foreground" />;
+      return <Minus className='h-4 w-4 text-muted-foreground' />;
     };
 
     const getTrendColor = () => {
@@ -58,7 +58,7 @@ export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
     return (
       <Card
         ref={ref}
-        variant="minimal"
+        variant='minimal'
         interactive={!!onClick}
         onClick={onClick}
         className={cn(
@@ -67,15 +67,15 @@ export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
           className
         )}
       >
-        <CardContent className="p-6">
+        <CardContent className='p-6'>
           {loading ? (
-            <div className="space-y-3">
-              <div className="h-4 w-24 bg-muted animate-pulse rounded" />
-              <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+            <div className='space-y-3'>
+              <div className='h-4 w-24 bg-muted animate-pulse rounded' />
+              <div className='h-8 w-32 bg-muted animate-pulse rounded' />
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-2">
+              <div className='flex items-center justify-between mb-2'>
                 <p
                   className={cn(
                     designTokens.typography.body.muted,
@@ -100,7 +100,7 @@ export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
                   </div>
                 )}
               </div>
-              <div className="flex items-baseline justify-between">
+              <div className='flex items-baseline justify-between'>
                 <p
                   className={cn(
                     designTokens.typography.heading.h2,
@@ -117,11 +117,9 @@ export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
                     )}
                   >
                     {getTrendIcon()}
-                    {change !== undefined && (
-                      <span>{Math.abs(change)}%</span>
-                    )}
+                    {change !== undefined && <span>{Math.abs(change)}%</span>}
                     {changeLabel && (
-                      <span className="text-muted-foreground">
+                      <span className='text-muted-foreground'>
                         {changeLabel}
                       </span>
                     )}
@@ -136,8 +134,3 @@ export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
   }
 );
 StatCard.displayName = 'StatCard';
-
-
-
-
-

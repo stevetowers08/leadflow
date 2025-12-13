@@ -111,7 +111,7 @@ const toast = {
     });
   },
 
-  promise: <T,>(
+  promise: <T>(
     promise: Promise<T>,
     {
       loading,
@@ -136,5 +136,3 @@ const toast = {
 };
 
 export { toast };
-
-
