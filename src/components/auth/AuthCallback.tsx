@@ -29,16 +29,27 @@ const AuthCallback: React.FC = () => {
 
         if (error) {
           if (isDev) {
-            console.error('❌ Auth error in URL:', error, errorCode, errorDescription);
+            console.error(
+              '❌ Auth error in URL:',
+              error,
+              errorCode,
+              errorDescription
+            );
           }
 
           // Handle specific error cases
           if (errorCode === 'bad_oauth_state') {
             // Clear any stale auth state and prompt user to retry
             await supabase.auth.signOut();
-            localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
+            localStorage.removeItem(
+              'sb-' +
+                process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split(
+                  '.'
+                )[0] +
+                '-auth-token'
+            );
             sessionStorage.clear();
-            
+
             setErrorMessage(
               'Authentication session expired or invalid. Please try signing in again.'
             );
@@ -51,76 +62,62 @@ const AuthCallback: React.FC = () => {
           return;
         }
 
-        // PKCE Flow: Check for code in query parameters (Next.js/SSR flow)
-        // Note: This is a fallback - the route handler should handle this first
+        // PKCE Flow: Supabase uses PKCE by default when redirectTo is provided
+        // This is the secure, modern OAuth flow (implicit flow is deprecated)
         const code = urlParams.get('code');
         if (code) {
           if (isDev) {
-            console.log('⚠️ Authorization code found in client component - route handler should have handled this');
-            console.log('🔄 Falling back to client-side code exchange...');
+            console.log(
+              '✅ Authorization code found - exchanging via API route (PKCE flow)...'
+            );
           }
 
-          // Exchange code for session (PKCE flow) - fallback only
-          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          // Exchange code for session via API route (server-side for security)
+          try {
+            const response = await fetch('/api/auth/exchange-code', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ code }),
+            });
 
-          if (exchangeError) {
-            console.error('❌ Error exchanging code for session:', exchangeError);
-            setErrorMessage(exchangeError.message);
+            const result = await response.json();
+
+            if (!response.ok || result.error) {
+              console.error(
+                '❌ Error exchanging code for session:',
+                result.error
+              );
+              setErrorMessage(
+                result.error || 'Failed to exchange code for session'
+              );
+              setStatus('error');
+              return;
+            }
+
+            if (result.success) {
+              console.log('✅ Session created successfully via PKCE flow');
+              setStatus('success');
+
+              // Refresh user profile
+              await refreshProfile();
+
+              // Small delay to ensure auth context is updated
+              await new Promise(resolve => setTimeout(resolve, 500));
+
+              // Redirect to dashboard
+              router.push('/');
+              return;
+            }
+          } catch (fetchError) {
+            console.error('❌ Error calling exchange-code API:', fetchError);
+            setErrorMessage(
+              fetchError instanceof Error
+                ? fetchError.message
+                : 'Failed to exchange authorization code'
+            );
             setStatus('error');
-            return;
-          }
-
-          if (data.session) {
-            console.log('✅ Session created successfully');
-            setStatus('success');
-
-            // Refresh user profile
-            await refreshProfile();
-
-            // Small delay to ensure auth context is updated
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Redirect to dashboard
-            router.push('/');
-            return;
-          }
-        }
-
-        // Implicit Flow: Check for tokens in hash fragment (client-only flow)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-
-        if (accessToken) {
-          if (isDev) {
-            console.log('✅ Access token found in hash');
-          }
-
-          // Set the session manually
-          const { data, error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || '',
-          });
-
-          if (sessionError) {
-            console.error('❌ Error setting session:', sessionError);
-            setErrorMessage(sessionError.message);
-            setStatus('error');
-            return;
-          }
-
-          if (data.session) {
-            console.log('✅ Session set successfully');
-            setStatus('success');
-
-            // Refresh user profile
-            await refreshProfile();
-
-            // Small delay to ensure auth context is updated
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Redirect to dashboard
-            router.push('/');
             return;
           }
         }
@@ -138,13 +135,17 @@ const AuthCallback: React.FC = () => {
           router.push('/');
         } else {
           console.log('⚠️ No session found');
-          setErrorMessage('No session found after OAuth callback. Please try signing in again.');
+          setErrorMessage(
+            'No session found after OAuth callback. Please try signing in again.'
+          );
           setStatus('error');
         }
       } catch (error) {
         console.error('❌ Unexpected error in auth callback:', error);
         setErrorMessage(
-          error instanceof Error ? error.message : 'An unexpected error occurred'
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred'
         );
         setStatus('error');
       }
@@ -186,7 +187,9 @@ const AuthCallback: React.FC = () => {
           <h2 className='text-2xl font-bold text-foreground mb-2'>
             Authentication Successful
           </h2>
-          <p className='text-muted-foreground mb-6'>Redirecting to dashboard...</p>
+          <p className='text-muted-foreground mb-6'>
+            Redirecting to dashboard...
+          </p>
         </div>
       </div>
     );
