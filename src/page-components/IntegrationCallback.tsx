@@ -16,7 +16,8 @@ export default function IntegrationCallback() {
   const [searchParams] = useSearchParams();
   const router = useRouter();
 
-  // Use auth hook at component level (not in callbacks)
+  // Use auth hook - must be called unconditionally (React rules)
+  // This component should not be statically generated (handled by route config)
   const { user } = useAuth();
 
   // Ensure component only runs on client
