@@ -107,60 +107,68 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             !('error' in person)
         )
         .map(
-          (person: {
+          (lead: {
             id: string;
-            email_address?: string | null;
-            name?: string;
+            first_name?: string | null;
+            last_name?: string | null;
+            email?: string | null;
+            company?: string | null;
+            company_id?: string | null;
+            linkedin_url?: string | null;
+            job_title?: string | null;
             last_reply_at?: string | null;
-            created_at?: string | null;
             last_reply_message?: string | null;
-          }) => ({
-            id: person.id,
-            person_id: person.id,
-            linkedin_message_id: undefined,
-            subject: undefined,
-            participants: [
-              (
-                (person.email_address as string | null | undefined) ||
-                (person.name as string | undefined) ||
-                ''
+            created_at?: string | null;
+            updated_at?: string | null;
+          }) => {
+            const fullName =
+              `${lead.first_name || ''} ${lead.last_name || ''}`.trim() ||
+              'Unknown';
+            return {
+              id: lead.id,
+              person_id: lead.id,
+              linkedin_message_id: undefined,
+              subject: undefined,
+              participants: [(lead.email || fullName).toString()].filter(
+                Boolean
+              ),
+              last_message_at: (
+                (lead.last_reply_at as string | null | undefined) ||
+                (lead.created_at as string | null | undefined) ||
+                new Date().toISOString()
               ).toString(),
-            ].filter(Boolean),
-            last_message_at: (
-              (person.last_reply_at as string | null | undefined) ||
-              (person.created_at as string | null | undefined) ||
-              new Date().toISOString()
-            ).toString(),
-            is_read: !!(person.last_reply_message as string | null | undefined),
-            conversation_type: 'email' as const,
-            status: 'active' as const,
-            created_at: (
-              (person.created_at as string | null | undefined) ||
-              new Date().toISOString()
-            ).toString(),
-            updated_at: (
-              (person.updated_at as string | null | undefined) ||
-              new Date().toISOString()
-            ).toString(),
-            lead_name: ((person.name as string | undefined) || '').toString(),
-            lead_email: person.email_address
-              ? (person.email_address as string).toString()
-              : undefined,
-            lead_company: person.companies?.name?.toString() || undefined,
-            lead_company_website:
-              person.companies?.website?.toString() || undefined,
-            lead_job_title: person.company_role
-              ? (person.company_role as string).toString()
-              : undefined,
-            lead_linkedin_url: person.linkedin_url
-              ? (person.linkedin_url as string).toString()
-              : undefined,
-            message_count: 1,
-            // Add the actual message content
-            last_reply_message: person.last_reply_message
-              ? (person.last_reply_message as string).toString()
-              : undefined,
-          })
+              is_read: !!(lead.last_reply_message as string | null | undefined),
+              conversation_type: 'email' as const,
+              status: 'active' as const,
+              created_at: (
+                (lead.created_at as string | null | undefined) ||
+                new Date().toISOString()
+              ).toString(),
+              updated_at: (
+                (lead.updated_at as string | null | undefined) ||
+                new Date().toISOString()
+              ).toString(),
+              lead_name: fullName,
+              lead_email: lead.email
+                ? (lead.email as string).toString()
+                : undefined,
+              lead_company: lead.company
+                ? (lead.company as string).toString()
+                : undefined,
+              lead_company_website: undefined, // Not available in leads table
+              lead_job_title: lead.job_title
+                ? (lead.job_title as string).toString()
+                : undefined,
+              lead_linkedin_url: lead.linkedin_url
+                ? (lead.linkedin_url as string).toString()
+                : undefined,
+              message_count: 1,
+              // Add the actual message content
+              last_reply_message: lead.last_reply_message
+                ? (lead.last_reply_message as string).toString()
+                : undefined,
+            };
+          }
         );
 
       console.log('Transformed conversations:', conversations);

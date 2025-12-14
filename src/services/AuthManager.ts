@@ -197,9 +197,10 @@ export class AuthManager {
   async signInWithGoogle(): Promise<{ error: AuthError | null }> {
     try {
       // Get redirect URL - prefer environment variable, fallback to window.location.origin
+      // IMPORTANT: NEXT_PUBLIC_SITE_URL must be set in Vercel for production
       const siteUrl =
         process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-      const redirectTo = `${siteUrl}/auth/callback`;
+      const redirectTo = `${siteUrl.replace(/\/$/, '')}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

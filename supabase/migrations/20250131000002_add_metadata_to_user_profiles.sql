@@ -14,3 +14,6 @@ COMMENT ON COLUMN public.user_profiles.metadata IS 'Stores integration credentia
 
 
 
+
+
+

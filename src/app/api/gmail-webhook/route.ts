@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { APIErrorHandler } from '@/lib/api-error-handler';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { writeFile, appendFile } from 'fs/promises';
+import { join } from 'path';
 
 interface PubSubMessage {
   message: {
@@ -190,12 +192,81 @@ async function processGmailReply(
   }
 }
 
-export async function POST(request: NextRequest) {
+// Helper function for server-side logging
+async function logDebug(data: {
+  location: string;
+  message: string;
+  data?: unknown;
+  hypothesisId?: string;
+}) {
   try {
+    // Always log to console first for immediate visibility
+    console.log(`[DEBUG] ${data.location}: ${data.message}`, data.data);
+
+    const logPath = join(process.cwd(), '.cursor', 'debug.log');
+    const logEntry =
+      JSON.stringify({
+        ...data,
+        timestamp: Date.now(),
+        sessionId: 'debug-session',
+        runId: 'run1',
+      }) + '\n';
+
+    // Ensure directory exists
+    const fs = await import('fs/promises');
+    const dirPath = join(process.cwd(), '.cursor');
+    try {
+      await fs.access(dirPath);
+    } catch {
+      await fs.mkdir(dirPath, { recursive: true });
+    }
+
+    await appendFile(logPath, logEntry, 'utf8').catch(err => {
+      console.warn('[DEBUG] Failed to write log file:', err);
+    });
+  } catch (err) {
+    console.warn('[DEBUG] Logging error:', err);
+  }
+}
+
+export async function POST(request: NextRequest) {
+  // #region agent log
+  await logDebug({
+    location: 'gmail-webhook/route.ts:193',
+    message: 'POST handler entry',
+    data: { timestamp: Date.now() },
+    hypothesisId: 'A',
+  });
+  // #endregion
+  try {
+    // #region agent log
+    await logDebug({
+      location: 'gmail-webhook/route.ts:195',
+      message: 'Creating Supabase client',
+      data: { timestamp: Date.now() },
+      hypothesisId: 'C',
+    });
+    // #endregion
     const supabase = createServerSupabaseClient();
 
     // Parse Pub/Sub message
+    // #region agent log
+    await logDebug({
+      location: 'gmail-webhook/route.ts:198',
+      message: 'Before parsing request',
+      data: { timestamp: Date.now() },
+      hypothesisId: 'A',
+    });
+    // #endregion
     const pubSubMessage: PubSubMessage = await request.json();
+    // #region agent log
+    await logDebug({
+      location: 'gmail-webhook/route.ts:200',
+      message: 'After parsing request',
+      data: { hasMessage: !!pubSubMessage.message },
+      hypothesisId: 'A',
+    });
+    // #endregion
     const decodedData = JSON.parse(atob(pubSubMessage.message.data));
     const notification: GmailNotification = decodedData;
 
@@ -204,17 +275,71 @@ export async function POST(request: NextRequest) {
     );
 
     // Get user's Gmail access token
-    const { data: integration } = await supabase
-      .from('integrations' as never)
+    // #region agent log
+    await logDebug({
+      location: 'gmail-webhook/route.ts:207',
+      message: 'Querying integrations table',
+      data: { emailAddress: notification.emailAddress },
+      hypothesisId: 'A',
+    });
+    // #endregion
+    const { data: integration, error: integrationError } = await supabase
+      .from('integrations')
       .select('config')
       .eq('platform', 'gmail')
       .eq('connected', true)
       .ilike('config->>user_email', notification.emailAddress)
       .single();
 
+    // #region agent log
+    await logDebug({
+      location: 'gmail-webhook/route.ts:214',
+      message: 'Integration query result',
+      data: {
+        hasIntegration: !!integration,
+        hasError: !!integrationError,
+        errorMessage: integrationError?.message,
+        errorCode: integrationError?.code,
+      },
+      hypothesisId: 'A',
+    });
+    // #endregion
+
+    // Handle table not found or other expected errors gracefully
+    if (integrationError) {
+      const isTableNotFound =
+        integrationError.code === 'PGRST301' ||
+        integrationError.code === '42P01' ||
+        integrationError.message?.includes('schema cache') ||
+        integrationError.message?.includes('does not exist') ||
+        integrationError.message?.includes('Could not find the table');
+
+      if (isTableNotFound) {
+        console.log(
+          'Integrations table not found - Gmail integration not configured'
+        );
+        return new NextResponse('OK', { status: 200 });
+      }
+
+      // Log unexpected errors but don't fail the webhook
+      console.error('Error querying integrations:', integrationError);
+      return new NextResponse('OK', { status: 200 });
+    }
+
     const integrationTyped = integration as {
       config?: { access_token?: string; refresh_token?: string };
     } | null;
+    // #region agent log
+    await logDebug({
+      location: 'gmail-webhook/route.ts:218',
+      message: 'Integration check',
+      data: {
+        hasIntegration: !!integrationTyped,
+        hasConfig: !!integrationTyped?.config,
+      },
+      hypothesisId: 'A',
+    });
+    // #endregion
     if (!integrationTyped?.config) {
       console.log('No Gmail integration found');
       return new NextResponse('OK', { status: 200 });
@@ -237,6 +362,14 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    // #region agent log
+    await logDebug({
+      location: 'gmail-webhook/route.ts:240',
+      message: 'History response check',
+      data: { ok: historyResponse.ok, status: historyResponse.status },
+      hypothesisId: 'A',
+    });
+    // #endregion
     if (!historyResponse.ok) {
       if (historyResponse.status === 401) {
         console.log('Gmail token expired, skipping');
@@ -282,6 +415,17 @@ export async function POST(request: NextRequest) {
 
     return new NextResponse('OK', { status: 200 });
   } catch (error) {
+    // #region agent log
+    await logDebug({
+      location: 'gmail-webhook/route.ts:285',
+      message: 'Error caught',
+      data: {
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorName: error instanceof Error ? error.name : 'unknown',
+      },
+      hypothesisId: 'A',
+    });
+    // #endregion
     console.error('Gmail webhook error:', error);
     // Return 200 to prevent Pub/Sub retries for transient errors
     return new NextResponse('OK', { status: 200 });

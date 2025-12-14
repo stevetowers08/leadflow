@@ -37,9 +37,23 @@ export const useAuthState = () => {
       }
 
       // Get redirect URL - prefer environment variable, fallback to window.location.origin
+      // IMPORTANT: NEXT_PUBLIC_SITE_URL must be set in Vercel for production
+      // Format: https://your-app.vercel.app (no trailing slash)
       const siteUrl =
         process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-      const redirectTo = `${siteUrl}/auth/callback`;
+      const redirectTo = `${siteUrl.replace(/\/$/, '')}/auth/callback`;
+
+      // Log redirect URL for debugging (both dev and prod)
+      console.log('🔐 OAuth redirect URL:', redirectTo);
+      console.log(
+        '🔐 NEXT_PUBLIC_SITE_URL:',
+        process.env.NEXT_PUBLIC_SITE_URL ||
+          'not set (using window.location.origin)'
+      );
+      console.log(
+        '🔐 window.location.origin:',
+        typeof window !== 'undefined' ? window.location.origin : 'N/A'
+      );
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

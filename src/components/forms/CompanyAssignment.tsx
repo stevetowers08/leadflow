@@ -95,7 +95,9 @@ const CompanyAssignmentComponent = ({
 
       if (result.success) {
         setSelectedOwner(newOwnerId);
-        onAssignmentChange?.(result.data?.ownerName || null);
+        onAssignmentChange?.(
+          (result.data?.ownerName as string | undefined) || null
+        );
         toast({
           title: 'Company Assignment Updated',
           description: result.message,

@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 
     // Store watch information in integrations table
     const { error: integrationError } = await supabase
-      .from('integrations' as never)
+      .from('integrations')
       .upsert({
         platform: 'gmail',
         connected: true,

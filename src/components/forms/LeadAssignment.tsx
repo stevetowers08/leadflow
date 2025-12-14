@@ -84,7 +84,9 @@ const LeadAssignmentComponent = ({
 
       if (result.success) {
         setSelectedOwner(newOwnerId);
-        onAssignmentChange?.(result.data?.ownerName || null);
+        onAssignmentChange?.(
+          (result.data?.ownerName as string | undefined) || null
+        );
         toast({
           title: 'Assignment Updated',
           description: result.message,

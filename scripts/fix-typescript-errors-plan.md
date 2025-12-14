@@ -4,7 +4,7 @@
 
 All 19 tables in generated types exist in database:
 
-- activity*log, campaign_sequence*_, clients, client\__, companies, email_replies, email_sends, jobs, leadflow_leads, leads, people, user_profiles, user_settings, workflows
+- activity*log, campaign_sequence*\_, clients, client\_\_, companies, email_replies, email_sends, jobs, leadflow_leads, leads, people, user_profiles, user_settings, workflows
 
 ## ❌ Code References Non-Existent Tables
 

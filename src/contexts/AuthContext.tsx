@@ -148,16 +148,71 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Initialize authentication with robust error handling
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: 'AuthContext.tsx:150',
+        message: 'Auth initialization useEffect',
+        data: { timestamp: Date.now() },
+        timestamp: Date.now(),
+        sessionId: 'debug-session',
+        runId: 'run1',
+        hypothesisId: 'B',
+      }),
+    }).catch(() => {});
+    // #endregion
     let authStateSubscription: { unsubscribe: () => void } | null = null;
 
     const initializeAuth = async () => {
       try {
+        // #region agent log
+        fetch(
+          'http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              location: 'AuthContext.tsx:154',
+              message: 'initializeAuth entry',
+              data: { timestamp: Date.now() },
+              timestamp: Date.now(),
+              sessionId: 'debug-session',
+              runId: 'run1',
+              hypothesisId: 'B',
+            }),
+          }
+        ).catch(() => {});
+        // #endregion
         // Initializing authentication
         authState.setError(null);
 
         const authConfig = getAuthConfig();
 
         // Check if supabase client is properly initialized
+        // #region agent log
+        fetch(
+          'http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              location: 'AuthContext.tsx:161',
+              message: 'Supabase client check',
+              data: {
+                hasSupabase: !!supabase,
+                hasAuth: !!supabase?.auth,
+                timestamp: Date.now(),
+              },
+              timestamp: Date.now(),
+              sessionId: 'debug-session',
+              runId: 'run1',
+              hypothesisId: 'B',
+            }),
+          }
+        ).catch(() => {});
+        // #endregion
         if (!supabase || !supabase.auth) {
           throw new Error(
             'Supabase client not properly initialized. Check environment variables.'

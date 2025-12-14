@@ -23,3 +23,6 @@ echo "1. Generate types from Supabase: npx supabase gen types typescript"
 echo "2. Review and fix remaining errors manually"
 echo "3. Use type assertions strategically for migration period"
 
+
+
+

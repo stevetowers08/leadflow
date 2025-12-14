@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Get all active Gmail integrations
     const { data: integrations, error } = await supabase
-      .from('integrations' as never)
+      .from('integrations')
       .select('id, config')
       .eq('platform', 'gmail')
       .eq('connected', true);
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
           config?: unknown;
         };
         if (
+          !integrationTyped.id ||
           !integrationTyped.config ||
           typeof integrationTyped.config !== 'object' ||
           Array.isArray(integrationTyped.config)
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
 
         // Update integration with new watch data
         await supabase
-          .from('integrations' as never)
+          .from('integrations')
           .update({
             config: {
               ...(config as Record<string, unknown>),

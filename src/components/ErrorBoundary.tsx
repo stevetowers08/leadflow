@@ -209,6 +209,26 @@ export class BaseErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: 'ErrorBoundary.tsx:211',
+        message: 'Error caught in boundary',
+        data: {
+          errorMessage: error.message,
+          errorName: error.name,
+          componentName: this.props.componentName || 'Unknown',
+          timestamp: Date.now(),
+        },
+        timestamp: Date.now(),
+        sessionId: 'debug-session',
+        runId: 'run1',
+        hypothesisId: 'D',
+      }),
+    }).catch(() => {});
+    // #endregion
     const context: ErrorContext = {
       componentName: this.props.componentName || 'Unknown',
       timestamp: new Date(),
