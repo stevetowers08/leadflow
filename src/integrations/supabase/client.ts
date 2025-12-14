@@ -1,5 +1,5 @@
 import { validateEnvironment } from '@/utils/environmentValidation';
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from './types';
 
 // Defer validation to prevent initialization issues
@@ -13,7 +13,7 @@ const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // Development configuration
 const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
-type SupabaseBrowserClient = ReturnType<typeof createClient<Database>>;
+type SupabaseBrowserClient = ReturnType<typeof createBrowserClient<Database>>;
 
 // Lazy initialization to prevent module loading issues
 let _supabaseClient: SupabaseBrowserClient | null = null;
@@ -111,30 +111,11 @@ function getSupabaseClient() {
         return _supabaseClient;
       }
 
-      _supabaseClient = createClient<Database>(
+      // Use createBrowserClient from @supabase/ssr for SSR compatibility
+      // This reads from cookies set by server-side exchange-code route
+      _supabaseClient = createBrowserClient<Database>(
         SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY,
-        {
-          auth: {
-            persistSession: true, // Allow session persistence for real auth
-            autoRefreshToken: true, // Auto-refresh for real sessions
-            detectSessionInUrl: true, // Detect OAuth callbacks
-            flowType: 'pkce', // Explicitly use PKCE flow for OAuth
-            storage: (() => {
-              if (typeof window !== 'undefined') {
-                return (window as Window & { localStorage?: Storage })
-                  .localStorage as Storage | undefined;
-              }
-              return undefined;
-            })(),
-            storageKey: 'sb-auth-token', // Standard Supabase storage key
-          },
-          global: {
-            headers: {
-              apikey: SUPABASE_PUBLISHABLE_KEY,
-            },
-          },
-        }
+        SUPABASE_PUBLISHABLE_KEY
       );
       return _supabaseClient;
     }
@@ -184,22 +165,15 @@ function getSupabaseClient() {
       throw new Error('Missing Supabase environment variables');
     }
 
-    _supabaseClient = createClient<Database>(
+    // Use createBrowserClient from @supabase/ssr for SSR compatibility
+    // This reads from cookies set by server-side exchange-code route
+    // createBrowserClient automatically handles:
+    // - Reading sessions from cookies (set by server)
+    // - PKCE flow for OAuth
+    // - Session persistence and auto-refresh
+    _supabaseClient = createBrowserClient<Database>(
       SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY,
-      {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-          flowType: 'pkce', // Explicitly use PKCE flow for OAuth
-        },
-        global: {
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-          },
-        },
-      }
+      SUPABASE_PUBLISHABLE_KEY
     );
 
     // Supabase client created successfully
@@ -331,11 +305,13 @@ function getSupabaseClient() {
 
 // Export a getter function instead of direct client to prevent initialization issues
 export const supabase = new Proxy({} as SupabaseBrowserClient, {
-  get(target, prop) {
+  get(_target, prop: string | symbol) {
     const client = getSupabaseClient();
-    return (client as Record<string, unknown>)[prop];
+    // Forward property access - Proxy requires this pattern
+    // Double cast through unknown to satisfy TypeScript's strict type checking
+    return (client as unknown as Record<string | symbol, unknown>)[prop];
   },
-});
+}) as SupabaseBrowserClient;
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";

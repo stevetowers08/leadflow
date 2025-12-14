@@ -35,6 +35,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Ensure user profile exists (trigger should create it, but verify)
+    if (data.session.user) {
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', data.session.user.id)
+        .single();
+
+      // If profile doesn't exist, create it (fallback if trigger didn't fire)
+      if (profileError && profileError.code === 'PGRST116') {
+        const { error: insertError } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: data.session.user.id,
+            email: data.session.user.email || '',
+            full_name:
+              data.session.user.user_metadata?.full_name ||
+              data.session.user.user_metadata?.name ||
+              data.session.user.email?.split('@')[0] ||
+              'User',
+            role: 'user',
+            is_active: true,
+          });
+
+        if (insertError) {
+          console.error(
+            '❌ Error creating user profile in exchange-code:',
+            insertError
+          );
+          // Don't fail the auth flow if profile creation fails
+        }
+      }
+    }
+
     return NextResponse.json({ success: true, session: data.session });
   } catch (error) {
     console.error('Unexpected error in code exchange:', error);

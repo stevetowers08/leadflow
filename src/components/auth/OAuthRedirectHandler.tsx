@@ -17,10 +17,7 @@ export function OAuthRedirectHandler() {
     // Only run on client side
     if (typeof window === 'undefined') return;
 
-    // Skip if already on callback page
-    if (pathname === '/auth/callback') return;
-
-    // Check for OAuth tokens in hash fragment
+    // Check for OAuth tokens in hash fragment immediately
     const hash = window.location.hash.substring(1);
     if (!hash) return;
 
@@ -31,6 +28,9 @@ export function OAuthRedirectHandler() {
 
     // If we have OAuth tokens or errors in the hash, redirect to callback page
     if (accessToken || refreshToken || error) {
+      // Skip if already on callback page
+      if (pathname === '/auth/callback') return;
+
       // Preserve the hash fragment in the redirect
       const callbackUrl = `/auth/callback${window.location.hash}`;
       router.replace(callbackUrl);

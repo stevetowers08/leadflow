@@ -98,6 +98,45 @@ const AuthCallback: React.FC = () => {
 
             if (result.success) {
               console.log('✅ Session created successfully via PKCE flow');
+
+              // Get the session to ensure we have user data
+              const {
+                data: { session },
+              } = await supabase.auth.getSession();
+
+              if (session?.user) {
+                // Ensure user profile exists (trigger should create it, but verify)
+                const { data: profile, error: profileError } = await supabase
+                  .from('user_profiles')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .single();
+
+                // If profile doesn't exist, create it
+                if (profileError && profileError.code === 'PGRST116') {
+                  const { error: insertError } = await supabase
+                    .from('user_profiles')
+                    .insert({
+                      id: session.user.id,
+                      email: session.user.email || '',
+                      full_name:
+                        session.user.user_metadata?.full_name ||
+                        session.user.user_metadata?.name ||
+                        session.user.email?.split('@')[0] ||
+                        'User',
+                      role: 'user',
+                      is_active: true,
+                    });
+
+                  if (insertError) {
+                    console.error(
+                      '❌ Error creating user profile:',
+                      insertError
+                    );
+                  }
+                }
+              }
+
               setStatus('success');
 
               // Refresh user profile
@@ -158,6 +197,37 @@ const AuthCallback: React.FC = () => {
 
           if (data.session) {
             console.log('✅ Session set from hash fragment (fallback)');
+
+            // Ensure user profile exists
+            if (data.session.user) {
+              const { data: profile, error: profileError } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('id', data.session.user.id)
+                .single();
+
+              // If profile doesn't exist, create it
+              if (profileError && profileError.code === 'PGRST116') {
+                const { error: insertError } = await supabase
+                  .from('user_profiles')
+                  .insert({
+                    id: data.session.user.id,
+                    email: data.session.user.email || '',
+                    full_name:
+                      data.session.user.user_metadata?.full_name ||
+                      data.session.user.user_metadata?.name ||
+                      data.session.user.email?.split('@')[0] ||
+                      'User',
+                    role: 'user',
+                    is_active: true,
+                  });
+
+                if (insertError) {
+                  console.error('❌ Error creating user profile:', insertError);
+                }
+              }
+            }
+
             setStatus('success');
             await refreshProfile();
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -173,6 +243,37 @@ const AuthCallback: React.FC = () => {
 
         if (session) {
           console.log('✅ Session already exists');
+
+          // Ensure user profile exists
+          if (session.user) {
+            const { data: profile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            // If profile doesn't exist, create it
+            if (profileError && profileError.code === 'PGRST116') {
+              const { error: insertError } = await supabase
+                .from('user_profiles')
+                .insert({
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  full_name:
+                    session.user.user_metadata?.full_name ||
+                    session.user.user_metadata?.name ||
+                    session.user.email?.split('@')[0] ||
+                    'User',
+                  role: 'user',
+                  is_active: true,
+                });
+
+              if (insertError) {
+                console.error('❌ Error creating user profile:', insertError);
+              }
+            }
+          }
+
           setStatus('success');
           await refreshProfile();
           await new Promise(resolve => setTimeout(resolve, 500));
