@@ -37,3 +37,4 @@ console.log('✅ For now, use Supabase CLI: npm run types:generate');
 
 
 
+
