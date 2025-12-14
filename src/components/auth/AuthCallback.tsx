@@ -160,11 +160,49 @@ const AuthCallback: React.FC = () => {
               // Refresh user profile
               await refreshProfile();
 
-              // Small delay to ensure auth context is updated
-              await new Promise(resolve => setTimeout(resolve, 500));
+              // Wait for session to be confirmed in cookies
+              // Best practice: Verify session exists before redirecting
+              let attempts = 0;
+              let sessionConfirmed = false;
+              while (attempts < 15 && !sessionConfirmed) {
+                const {
+                  data: { session: currentSession },
+                  error: sessionError,
+                } = await supabase.auth.getSession();
 
-              // Redirect to dashboard
-              router.push('/');
+                if (currentSession?.user && !sessionError) {
+                  console.log(
+                    '✅ Session confirmed in cookies before redirect'
+                  );
+                  sessionConfirmed = true;
+                  break;
+                }
+
+                if (sessionError) {
+                  console.warn('⚠️ Session check error:', sessionError);
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 200));
+                attempts++;
+              }
+
+              if (!sessionConfirmed) {
+                console.error(
+                  '❌ Session not confirmed after multiple attempts'
+                );
+                setErrorMessage(
+                  'Session could not be confirmed. Please try signing in again.'
+                );
+                setStatus('error');
+                return;
+              }
+
+              // Small delay to ensure cookies are fully set
+              await new Promise(resolve => setTimeout(resolve, 100));
+
+              // Use replace to avoid adding to history (best practice)
+              // This prevents back button issues
+              window.location.href = '/';
               return;
             }
           } catch (fetchError) {

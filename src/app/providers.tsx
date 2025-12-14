@@ -91,6 +91,53 @@ function ClientGuard({ children }: { children: React.ReactNode }) {
 function PermissionsWrapper({ children }: { children: React.ReactNode }) {
   const { user, userProfile, loading } = useAuth();
   const bypassAuth = shouldBypassAuth();
+  const [checkingSession, setCheckingSession] = React.useState(true);
+  const [hasSession, setHasSession] = React.useState(false);
+
+  // Check session directly from Supabase (not just context) to avoid race conditions
+  // This is critical for OAuth callbacks where context might not be updated yet
+  React.useEffect(() => {
+    const checkSession = async () => {
+      if (bypassAuth) {
+        setCheckingSession(false);
+        return;
+      }
+
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const hasValidSession = !!session?.user;
+        setHasSession(hasValidSession);
+      } catch (error) {
+        console.error('Error checking session:', error);
+        setHasSession(false);
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+
+    checkSession();
+
+    // Re-check session periodically if we don't have a user in context yet
+    // This handles the race condition where session exists but context hasn't updated
+    if (!user && !bypassAuth) {
+      const interval = setInterval(() => {
+        checkSession();
+      }, 500);
+
+      // Clear interval after 5 seconds or when user appears
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+      }, 5000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [bypassAuth, user]);
 
   // Check if user explicitly signed out in bypass mode
   const bypassDisabled =
@@ -100,7 +147,7 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
       : false;
 
   // Show loading state while checking auth (only if not bypassing)
-  if (loading && !bypassAuth) {
+  if ((loading || checkingSession) && !bypassAuth) {
     return (
       <div className='min-h-screen flex items-center justify-center'>
         <div className='text-center'>
@@ -117,7 +164,8 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
   }
 
   // Redirect to sign-in if no user and not bypassing
-  if (!bypassAuth && !user) {
+  // Check both context user and direct session to avoid race conditions
+  if (!bypassAuth && !user && !hasSession) {
     return <AuthPage />;
   }
 
