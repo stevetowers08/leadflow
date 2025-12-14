@@ -105,9 +105,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // No code provided - return the user to an error page with instructions
-  const redirectTo = new URL('/auth/callback', origin);
-  redirectTo.searchParams.set('error', 'no_code');
-  redirectTo.searchParams.set('message', 'No authorization code received');
-  return NextResponse.redirect(redirectTo);
+  // No code in query params - let page component handle hash fragments (implicit flow)
+  // Hash fragments are client-side only and cannot be accessed by route handlers
+  // The page component will handle tokens in the URL hash (#access_token=...)
+  return NextResponse.next();
 }
