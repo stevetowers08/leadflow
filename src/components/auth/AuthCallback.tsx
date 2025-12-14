@@ -85,13 +85,31 @@ const AuthCallback: React.FC = () => {
             const result = await response.json();
 
             if (!response.ok || result.error) {
-              console.error(
-                '❌ Error exchanging code for session:',
-                result.error
-              );
-              setErrorMessage(
-                result.error || 'Failed to exchange code for session'
-              );
+              console.error('❌ Error exchanging code for session:', {
+                error: result.error,
+                errorCode: result.errorCode,
+                errorStatus: result.errorStatus,
+                fullResponse: result,
+              });
+
+              // Provide more specific error messages
+              let errorMsg =
+                result.error || 'Failed to exchange code for session';
+              if (
+                result.errorCode === 'invalid_grant' ||
+                result.error?.includes('invalid_grant')
+              ) {
+                errorMsg =
+                  'Authorization code expired or invalid. This usually means the redirect URL is not configured correctly in Supabase. Please try signing in again.';
+              } else if (
+                result.errorCode === 'redirect_uri_mismatch' ||
+                result.error?.includes('redirect_uri')
+              ) {
+                errorMsg =
+                  'Redirect URL mismatch. The callback URL must be added to Supabase Auth settings.';
+              }
+
+              setErrorMessage(errorMsg);
               setStatus('error');
               return;
             }

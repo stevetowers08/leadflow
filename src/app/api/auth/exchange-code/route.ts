@@ -21,9 +21,20 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error('Failed to exchange code for session:', error);
+      const errorWithCode = error as Error & { code?: string };
+      console.error('Failed to exchange code for session:', {
+        message: error.message,
+        status: error.status,
+        name: error.name,
+        code: errorWithCode.code,
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+      });
       return NextResponse.json(
-        { error: error.message || 'Failed to exchange code for session' },
+        {
+          error: error.message || 'Failed to exchange code for session',
+          errorCode: errorWithCode.code,
+          errorStatus: error.status,
+        },
         { status: 400 }
       );
     }
