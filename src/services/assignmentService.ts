@@ -30,7 +30,7 @@ const measureOperation = async <T>(
 export interface AssignmentResult {
   success: boolean;
   message: string;
-  data?: any;
+  data?: Record<string, unknown>;
   error?: string;
 }
 
@@ -92,10 +92,10 @@ export class AssignmentService {
   }
 
   /**
-   * Assigns a single entity (lead, company, or job) to a user
+   * Assigns a single entity (lead or company) to a user
    */
   static async assignEntity(
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'leads' | 'companies',
     entityId: string,
     newOwnerId: string | null,
     assignedBy: string
@@ -110,10 +110,12 @@ export class AssignmentService {
         };
       }
 
-      // Validate entity exists
+      // Validate entity exists - use appropriate field selection
+      const selectFields =
+        entityType === 'leads' ? 'id, first_name, last_name' : 'id, name';
       const { data: entityData, error: entityError } = await supabase
         .from(entityType)
-        .select('id, name')
+        .select(selectFields)
         .eq('id', entityId)
         .single();
 
@@ -121,7 +123,7 @@ export class AssignmentService {
         return {
           success: false,
           message: 'Assignment failed',
-          error: `${entityType === 'people' ? 'person' : entityType.slice(0, -1)} not found`,
+          error: `${entityType === 'leads' ? 'lead' : entityType.slice(0, -1)} not found`,
         };
       }
 
@@ -180,7 +182,7 @@ export class AssignmentService {
    */
   static async bulkAssignEntities(
     entityIds: string[],
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'leads' | 'companies',
     newOwnerId: string,
     assignedBy: string
   ): Promise<BulkAssignmentResult> {
@@ -285,7 +287,7 @@ export class AssignmentService {
   static async getAssignmentHistory(
     entityType: string,
     entityId: string
-  ): Promise<any[]> {
+  ): Promise<Array<Record<string, unknown>>> {
     try {
       const { data, error } = await supabase
         .from('assignment_logs')
@@ -326,39 +328,13 @@ export class AssignmentService {
     byUser: Array<{ userId: string; userName: string; count: number }>;
   }> {
     try {
-      // Get total assigned vs unassigned
-      const [peopleStats, companiesStats, jobsStats] = await Promise.all([
-        supabase.from('people').select('owner_id', { count: 'exact' }),
-        supabase.from('companies').select('owner_id', { count: 'exact' }),
-        supabase.from('jobs').select('owner_id', { count: 'exact' }),
-      ]);
-
-      const totalAssigned =
-        (peopleStats.count || 0) +
-        (companiesStats.count || 0) +
-        (jobsStats.count || 0);
-
-      // Get unassigned counts
-      const [unassignedPeople, unassignedCompanies, unassignedJobs] =
-        await Promise.all([
-          supabase
-            .from('people')
-            .select('id', { count: 'exact' })
-            .is('owner_id', null),
-          supabase
-            .from('companies')
-            .select('id', { count: 'exact' })
-            .is('owner_id', null),
-          supabase
-            .from('jobs')
-            .select('id', { count: 'exact' })
-            .is('owner_id', null),
-        ]);
-
-      const unassigned =
-        (unassignedPeople.count || 0) +
-        (unassignedCompanies.count || 0) +
-        (unassignedJobs.count || 0);
+      // owner_id was removed - using client_id for multi-tenant architecture
+      // Assignment feature removed, return empty stats
+      return {
+        totalAssigned: 0,
+        unassigned: 0,
+        byUser: [],
+      };
 
       // Get assignment counts by user
       const { data: userStats } = await supabase

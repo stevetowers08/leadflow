@@ -34,7 +34,7 @@ export default function StepCard({
   };
 
   const getStepIcon = () => {
-    switch (step.type) {
+    switch (step.step_type) {
       case 'email':
         return <Mail className='w-4 h-4 text-primary' />;
       case 'wait':
@@ -45,11 +45,11 @@ export default function StepCard({
   };
 
   const getStepDetails = () => {
-    switch (step.type) {
+    switch (step.step_type) {
       case 'email':
-        return step.subject || 'No subject';
+        return step.email_subject || 'No subject';
       case 'wait':
-        return `Wait ${step.duration_value} ${step.duration_unit}`;
+        return `Wait ${step.wait_duration} ${step.wait_unit}`;
       case 'condition':
         return step.condition_type?.replace('_', ' ') || 'No condition';
     }

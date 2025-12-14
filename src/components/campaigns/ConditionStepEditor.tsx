@@ -42,22 +42,18 @@ export default function ConditionStepEditor({ step, onUpdate }: Props) {
                 What should trigger this condition?
               </Label>
               <Select
-                value={step.condition_type || 'email_opened'}
+                value={step.condition_type || 'opened'}
                 onValueChange={(
-                  value:
-                    | 'email_opened'
-                    | 'email_clicked'
-                    | 'email_replied'
-                    | 'custom'
+                  value: 'opened' | 'clicked' | 'replied' | 'custom'
                 ) => onUpdate({ condition_type: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='email_opened'>Email Opened</SelectItem>
-                  <SelectItem value='email_clicked'>Email Clicked</SelectItem>
-                  <SelectItem value='email_replied'>Email Replied</SelectItem>
+                  <SelectItem value='opened'>Email Opened</SelectItem>
+                  <SelectItem value='clicked'>Email Clicked</SelectItem>
+                  <SelectItem value='replied'>Email Replied</SelectItem>
                   <SelectItem value='custom'>Custom Condition</SelectItem>
                 </SelectContent>
               </Select>
@@ -78,9 +74,11 @@ export default function ConditionStepEditor({ step, onUpdate }: Props) {
                 type='number'
                 min='0'
                 max='168'
-                value={step.wait_duration || 24}
+                value={step.condition_wait_duration || 24}
                 onChange={e =>
-                  onUpdate({ wait_duration: parseInt(e.target.value) || 24 })
+                  onUpdate({
+                    condition_wait_duration: parseInt(e.target.value) || 24,
+                  })
                 }
                 placeholder='24'
               />
@@ -151,7 +149,7 @@ export default function ConditionStepEditor({ step, onUpdate }: Props) {
             <p className='text-sm text-muted-foreground'>
               After waiting{' '}
               <span className='font-semibold'>
-                {step.wait_duration || 24} hours
+                {step.condition_wait_duration || 24} hours
               </span>
               , check if the previous email was{' '}
               <span className='font-semibold'>

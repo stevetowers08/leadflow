@@ -16,7 +16,7 @@ export interface AsyncOperationState<T> {
   result: Result<T, AppError> | null;
 }
 
-export interface AsyncOperationOptions {
+export interface AsyncOperationOptions<T = unknown> {
   enableRetry?: boolean;
   maxRetries?: number;
   retryDelay?: number;
@@ -30,7 +30,7 @@ export interface AsyncOperationOptions {
 
 export function useAsyncOperation<T = unknown>(
   asyncFn: (...args: unknown[]) => Promise<T>,
-  options: AsyncOperationOptions = {}
+  options: AsyncOperationOptions<T> = {}
 ) {
   const {
     enableRetry = false,
@@ -102,7 +102,7 @@ export function useAsyncOperation<T = unknown>(
             isLoading: false,
             isSuccess: false,
             isError: true,
-            result,
+            result: { success: false, error: appError },
           });
 
           onError?.(appError);

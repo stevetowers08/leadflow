@@ -30,7 +30,7 @@ interface AssignmentActions {
 }
 
 interface UseOptimizedAssignmentProps {
-  entityType: 'people' | 'companies' | 'jobs';
+  entityType: 'companies' | 'leads';
   entityId: string;
   onSuccess?: () => void;
   onError?: (error: string) => void;
@@ -60,7 +60,7 @@ export const useOptimizedAssignment = ({
 
   // Check if user can assign
   const canAssign = useMemo(() => {
-    return hasRole('admin') || hasRole('owner') || hasRole('manager');
+    return hasRole('admin') || hasRole('manager');
   }, [hasRole]);
 
   // Fetch current assignment
@@ -71,27 +71,10 @@ export const useOptimizedAssignment = ({
       setAssignmentLoading(true);
       setAssignmentError(null);
 
-      const { data, error } = await supabase
-        .from(entityType)
-        .select(
-          `
-          owner_id,
-          user_profiles!owner_id (
-            id,
-            full_name,
-            email
-          )
-        `
-        )
-        .eq('id', entityId)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      setOwnerId(data.owner_id);
-      setOwnerName(data.user_profiles?.full_name || null);
+      // Assignment feature removed - owner_id no longer exists
+      // Using client_id for multi-tenant architecture instead
+      setOwnerId(null);
+      setOwnerName(null);
     } catch (error) {
       console.error('Error fetching assignment:', error);
       setAssignmentError(
@@ -137,37 +120,23 @@ export const useOptimizedAssignment = ({
           setOwnerName(null);
         }
 
-        // Perform the actual assignment
-        const { error } = await supabase
-          .from(entityType)
-          .update({ owner_id: userId })
-          .eq('id', entityId);
-
-        if (error) {
-          // Rollback optimistic update
-          setOwnerId(previousOwnerId);
-          setOwnerName(previousOwnerName);
-          throw error;
-        }
-
-        // Log assignment for audit trail
-        await supabase.from('assignment_history').insert({
-          entity_type: entityType,
-          entity_id: entityId,
-          previous_owner_id: previousOwnerId,
-          new_owner_id: userId,
-          assigned_by: user.id,
-          assigned_at: new Date().toISOString(),
-        });
+        // Assignment feature removed - owner_id no longer exists
+        // Using client_id for multi-tenant architecture instead
+        // No-op: assignment functionality has been removed
 
         // Trigger refresh of all lists
         refreshAssignmentLists();
-        refreshSpecificEntity(entityType, entityId);
+        // Map 'leads' to 'people' for legacy compatibility
+        const legacyEntityType = entityType === 'leads' ? 'people' : entityType;
+        refreshSpecificEntity(
+          legacyEntityType as 'people' | 'companies' | 'jobs',
+          entityId
+        );
 
         toast({
           title: 'Assignment Updated',
           description: userId
-            ? `Assigned to ${userData?.full_name || 'user'}`
+            ? `Assigned to ${ownerName || 'user'}`
             : 'Assignment removed',
         });
 

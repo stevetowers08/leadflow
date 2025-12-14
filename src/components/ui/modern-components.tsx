@@ -44,7 +44,8 @@ const glassCardVariants = cva(
 );
 
 export interface GlassCardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof glassCardVariants> {
   hover?: boolean;
   glow?: boolean;
@@ -101,7 +102,8 @@ const neumorphismCardVariants = cva(
 );
 
 export interface NeumorphismCardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof neumorphismCardVariants> {}
 
 const NeumorphismCard = forwardRef<HTMLDivElement, NeumorphismCardProps>(
@@ -155,7 +157,8 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
@@ -198,7 +201,8 @@ const inputVariants = cva(
 );
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
+  extends
+    Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
     VariantProps<typeof inputVariants> {}
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -234,7 +238,8 @@ const cardVariants = cva(
 );
 
 export interface CardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof cardVariants> {}
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -333,7 +338,8 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {}
 
 const Badge = forwardRef<HTMLDivElement, BadgeProps>(
@@ -374,7 +380,8 @@ const avatarVariants = cva(
 );
 
 export interface AvatarProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof avatarVariants> {}
 
 const Avatar = forwardRef<HTMLDivElement, AvatarProps>(

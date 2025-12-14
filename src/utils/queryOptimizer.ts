@@ -4,6 +4,7 @@
  */
 
 // Common column selections for different tables
+// Updated to match actual database schema (owner_id removed, using client_id)
 export const TABLE_COLUMNS = {
   companies: [
     'id',
@@ -17,10 +18,9 @@ export const TABLE_COLUMNS = {
     'logo_url',
     'created_at',
     'updated_at',
-    'owner_id',
+    'client_id',
     'pipeline_stage',
     'is_favourite',
-    'automation_active',
     'confidence_level',
     'lead_score',
     'score_reason',
@@ -34,12 +34,12 @@ export const TABLE_COLUMNS = {
     'linkedin_url',
     'employee_location',
     'company_role',
-    'lead_score',
-    'stage',
+    'score',
+    'people_stage',
     'confidence_level',
     'created_at',
     'updated_at',
-    'owner_id',
+    'client_id',
   ],
 
   jobs: [
@@ -56,18 +56,17 @@ export const TABLE_COLUMNS = {
     'priority',
     'created_at',
     'updated_at',
-    'owner_id',
+    'client_id',
   ],
 
-  interactions: [
+  // Note: interactions table doesn't exist - use activity_log instead
+  activity_log: [
     'id',
-    'person_id',
-    'interaction_type',
-    'occurred_at',
-    'subject',
-    'content',
+    'lead_id',
+    'timestamp',
+    'activity_type',
+    'metadata',
     'created_at',
-    'owner_id',
   ],
 
   user_profiles: [
@@ -104,11 +103,11 @@ export class QueryOptimizer {
   static getEssentialColumns(tableName: keyof typeof TABLE_COLUMNS): string {
     const essentialMap = {
       companies:
-        'id, name, website, industry, head_office, company_size, priority, logo_url, lead_score, owner_id, pipeline_stage, is_favourite, automation_active, confidence_level, score_reason, created_at',
+        'id, name, website, industry, head_office, company_size, priority, logo_url, lead_score, client_id, pipeline_stage, is_favourite, confidence_level, score_reason, created_at',
       people:
-        'id, name, company_id, email_address, company_role, stage, lead_score',
-      jobs: 'id, title, company_id, location, employment_type, seniority_level, priority',
-      interactions: 'id, person_id, interaction_type, occurred_at, subject',
+        'id, name, company_id, email_address, company_role, people_stage, score, client_id',
+      jobs: 'id, title, company_id, location, employment_type, seniority_level, priority, client_id',
+      activity_log: 'id, lead_id, timestamp, activity_type, metadata',
       user_profiles: 'id, email, full_name, role, is_active',
     };
 
@@ -130,7 +129,7 @@ export class QueryOptimizer {
       companies: 'id, name, industry, company_size, head_office',
       people: 'id, name, email_address, company_role, employee_location',
       jobs: 'id, title, location, employment_type, seniority_level',
-      interactions: 'id, person_id, interaction_type, subject, content',
+      activity_log: 'id, lead_id, timestamp, activity_type',
       user_profiles: 'id, email, full_name, role',
     };
 
@@ -194,8 +193,8 @@ export const OPTIMIZED_QUERIES = {
   // Get job details
   getJobDetails: () => QueryOptimizer.getDetailColumns('jobs'),
 
-  // Get interactions list
-  getInteractionsList: () => QueryOptimizer.getEssentialColumns('interactions'),
+  // Get activity log list (interactions table doesn't exist)
+  getActivityLogList: () => QueryOptimizer.getEssentialColumns('activity_log'),
 
   // Get user profiles
   getUserProfiles: () => QueryOptimizer.getDetailColumns('user_profiles'),
@@ -204,4 +203,5 @@ export const OPTIMIZED_QUERIES = {
   searchCompanies: () => QueryOptimizer.getSearchColumns('companies'),
   searchPeople: () => QueryOptimizer.getSearchColumns('people'),
   searchJobs: () => QueryOptimizer.getSearchColumns('jobs'),
+  searchActivityLog: () => QueryOptimizer.getSearchColumns('activity_log'),
 } as const;

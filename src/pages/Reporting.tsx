@@ -47,7 +47,11 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { CHART_COLORS, CHART_COLOR_ARRAY, STATUS_CHART_COLORS } from '@/constants/colors';
+import {
+  CHART_COLORS,
+  CHART_COLOR_ARRAY,
+  STATUS_CHART_COLORS,
+} from '@/constants/colors';
 import { LABELS, ERROR_MESSAGES, LOADING_MESSAGES } from '@/constants/strings';
 
 // Client-side mount guard wrapper
@@ -89,7 +93,11 @@ function ReportingContent() {
   });
 
   // Email analytics data - with error handling
-  const { data: emailData, isLoading: emailLoading, error: emailError } = useQuery({
+  const {
+    data: emailData,
+    isLoading: emailLoading,
+    error: emailError,
+  } = useQuery({
     queryKey: ['email-analytics', selectedPeriod],
     queryFn: async () => {
       try {
@@ -98,8 +106,12 @@ function ReportingContent() {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - daysBack);
 
-        // Try email_sends table first, fallback to emails table
-        let data: any[] = [];
+        // Get email sends from email_sends table
+        let data: Array<{
+          status?: string;
+          direction?: string;
+          sent_at?: string;
+        }> = [];
         let error = null;
 
         const { data: emailSendsData, error: emailSendsError } = await supabase
@@ -108,24 +120,18 @@ function ReportingContent() {
           .gte('sent_at', startDate.toISOString());
 
         if (emailSendsError) {
-          // Try emails table as fallback
-          const { data: emailsData, error: emailsError } = await supabase
-            .from('emails')
-            .select('direction, sent_at')
-            .gte('sent_at', startDate.toISOString());
-          
-          if (emailsError) {
-            console.warn('Email analytics: Both email_sends and emails tables not available:', emailsError);
-            error = emailsError;
-          } else {
-            data = emailsData || [];
-          }
+          console.warn(
+            'Email analytics: email_sends table not available:',
+            emailSendsError
+          );
+          error = emailSendsError;
+          data = emailsData || [];
         } else {
           data = emailSendsData || [];
         }
 
         const statusCounts = { sent: 0, delivered: 0, failed: 0, bounced: 0 };
-        
+
         // Handle both email_sends (with status) and emails (with direction) formats
         data?.forEach(email => {
           if (email.status) {
@@ -160,7 +166,6 @@ function ReportingContent() {
     retry: 1,
     staleTime: 5 * 60 * 1000,
   });
-
 
   // Leads data breakdown (companies + people)
   const leadsData = useMemo(() => {
@@ -266,14 +271,19 @@ function ReportingContent() {
                 {LABELS.FAILED_TO_LOAD} Reporting Data
               </h3>
               <p className='text-gray-600 text-center mb-4'>
-                {error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC}
+                {error instanceof Error
+                  ? error.message
+                  : ERROR_MESSAGES.GENERIC}
               </p>
               <div className='flex gap-2'>
                 <Button onClick={handleRefresh} variant='outline'>
                   <RefreshCw className='mr-2 h-4 w-4' />
                   {LABELS.RETRY}
                 </Button>
-                <Button onClick={() => window.location.reload()} variant='ghost'>
+                <Button
+                  onClick={() => window.location.reload()}
+                  variant='ghost'
+                >
                   {LABELS.RELOAD}
                 </Button>
               </div>
@@ -341,9 +351,7 @@ function ReportingContent() {
                 <div className='text-3xl font-bold text-blue-900'>
                   {leadflowMetrics.activeConversations}
                 </div>
-                <p className='text-xs text-blue-700 mt-1'>
-                  Threads in inbox
-                </p>
+                <p className='text-xs text-blue-700 mt-1'>Threads in inbox</p>
               </CardContent>
             </Card>
           </div>
@@ -353,7 +361,9 @@ function ReportingContent() {
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-2'>
             <Zap className='h-4 w-4 text-muted-foreground' />
-            <span className='text-sm text-muted-foreground'>Analytics Dashboard</span>
+            <span className='text-sm text-muted-foreground'>
+              Analytics Dashboard
+            </span>
           </div>
           <div className='flex items-center gap-3'>
             <select
@@ -451,27 +461,48 @@ function ReportingContent() {
                 <div className='mt-4 pt-4 border-t'>
                   <div className='grid grid-cols-3 gap-4 text-center'>
                     <div>
-                      <div className='text-sm text-muted-foreground'>Qualification Rate</div>
+                      <div className='text-sm text-muted-foreground'>
+                        Qualification Rate
+                      </div>
                       <div className='text-lg font-semibold'>
                         {reportingData.totalPeople > 0
-                          ? ((reportingData.peoplePipeline.qualified / reportingData.totalPeople) * 100).toFixed(1)
-                          : 0}%
+                          ? (
+                              (reportingData.peoplePipeline.qualified /
+                                reportingData.totalPeople) *
+                              100
+                            ).toFixed(1)
+                          : 0}
+                        %
                       </div>
                     </div>
                     <div>
-                      <div className='text-sm text-muted-foreground'>Conversion Rate</div>
+                      <div className='text-sm text-muted-foreground'>
+                        Conversion Rate
+                      </div>
                       <div className='text-lg font-semibold'>
                         {reportingData.totalPeople > 0
-                          ? ((reportingData.peoplePipeline.proceed / reportingData.totalPeople) * 100).toFixed(1)
-                          : 0}%
+                          ? (
+                              (reportingData.peoplePipeline.proceed /
+                                reportingData.totalPeople) *
+                              100
+                            ).toFixed(1)
+                          : 0}
+                        %
                       </div>
                     </div>
                     <div>
-                      <div className='text-sm text-muted-foreground'>Engagement Rate</div>
+                      <div className='text-sm text-muted-foreground'>
+                        Engagement Rate
+                      </div>
                       <div className='text-lg font-semibold'>
                         {reportingData.totalPeople > 0 && leadflowMetrics
-                          ? ((leadflowMetrics.activeConversations / reportingData.totalPeople) * 100).toFixed(1)
-                          : 0}%
+                          ? (
+                              (leadflowMetrics.activeConversations /
+                                reportingData.totalPeople) *
+                              100
+                            ).toFixed(1)
+                          : 0}
+                        %
                       </div>
                     </div>
                   </div>

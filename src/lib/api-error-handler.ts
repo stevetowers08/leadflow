@@ -27,7 +27,7 @@ export class APIErrorHandler {
       if (error.name === 'ValidationError') {
         return NextResponse.json(
           {
-            error: error.message,
+            message: error.message,
             code: 'VALIDATION_ERROR',
           },
           { status: 400 }
@@ -35,10 +35,13 @@ export class APIErrorHandler {
       }
 
       // Authentication errors
-      if (error.message.includes('Unauthorized') || error.message.includes('authentication')) {
+      if (
+        error.message.includes('Unauthorized') ||
+        error.message.includes('authentication')
+      ) {
         return NextResponse.json(
           {
-            error: 'Unauthorized',
+            message: 'Unauthorized',
             code: 'UNAUTHORIZED',
           },
           { status: 401 }
@@ -46,10 +49,13 @@ export class APIErrorHandler {
       }
 
       // Not found errors
-      if (error.message.includes('Not found') || error.message.includes('not found')) {
+      if (
+        error.message.includes('Not found') ||
+        error.message.includes('not found')
+      ) {
         return NextResponse.json(
           {
-            error: error.message,
+            message: error.message,
             code: 'NOT_FOUND',
           },
           { status: 404 }
@@ -69,7 +75,7 @@ export class APIErrorHandler {
     // Unknown error type
     return NextResponse.json(
       {
-        error: 'Internal server error',
+        message: 'Internal server error',
         code: 'UNKNOWN_ERROR',
       },
       { status: 500 }
@@ -79,7 +85,10 @@ export class APIErrorHandler {
   /**
    * Validate required environment variables
    */
-  static validateEnvVars(required: string[]): { missing: string[]; allPresent: boolean } {
+  static validateEnvVars(required: string[]): {
+    missing: string[];
+    allPresent: boolean;
+  } {
     const missing = required.filter(key => !process.env[key]);
 
     if (missing.length > 0) {
@@ -95,7 +104,10 @@ export class APIErrorHandler {
   /**
    * Validate request body structure
    */
-  static validateBody<T>(body: unknown, validator: (body: unknown) => body is T): {
+  static validateBody<T>(
+    body: unknown,
+    validator: (body: unknown) => body is T
+  ): {
     valid: boolean;
     data?: T;
     error?: string;
@@ -104,7 +116,7 @@ export class APIErrorHandler {
       if (!validator(body)) {
         return {
           valid: false,
-          error: 'Invalid request body structure',
+          message: 'Invalid request body structure',
         };
       }
       return {
@@ -114,10 +126,8 @@ export class APIErrorHandler {
     } catch (error) {
       return {
         valid: false,
-        error: error instanceof Error ? error.message : 'Validation failed',
+        message: error instanceof Error ? error.message : 'Validation failed',
       };
     }
   }
 }
-
-

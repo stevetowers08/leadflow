@@ -76,7 +76,7 @@ const LeadAssignmentComponent = ({
     setIsAssigning(true);
     try {
       const result = await AssignmentService.assignEntity(
-        'people',
+        'leads',
         leadId,
         newOwnerId,
         user.id

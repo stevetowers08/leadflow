@@ -29,7 +29,7 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('entity_tags')
+          .from('entity_tags' as never)
           .select(
             `
             tag_id,
@@ -47,12 +47,21 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
         if (error) throw error;
 
         const formattedTags =
-          data?.map(item => ({
-            id: item.tags.id,
-            name: item.tags.name,
-            color: item.tags.color,
-            description: item.tags.description,
-          })) || [];
+          data?.map(
+            (item: {
+              tags: {
+                id: string;
+                name: string;
+                color: string;
+                description: string | null;
+              };
+            }) => ({
+              id: item.tags.id,
+              name: item.tags.name,
+              color: item.tags.color,
+              description: item.tags.description,
+            })
+          ) || [];
 
         setTags(formattedTags);
       } catch (error) {
@@ -70,7 +79,7 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
 
   const addTag = async (tag: Tag) => {
     try {
-      const { error } = await supabase.from('entity_tags').insert({
+      const { error } = await supabase.from('entity_tags' as never).insert({
         entity_id: entityId,
         entity_type: entityType,
         tag_id: tag.id,
@@ -93,7 +102,7 @@ export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {
   const removeTag = async (tagId: string) => {
     try {
       const { error } = await supabase
-        .from('entity_tags')
+        .from('entity_tags' as never)
         .delete()
         .eq('entity_id', entityId)
         .eq('entity_type', entityType)

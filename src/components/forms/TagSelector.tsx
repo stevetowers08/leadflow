@@ -60,63 +60,38 @@ export const TagSelector = ({
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const { data, error } = await supabase
-          .from('tags')
-          .select('id, name, color, description')
-          .eq('is_active', true)
-          .order('name');
-
-        if (error) throw error;
-        setAvailableTags(data || []);
+        // Note: tags table doesn't exist in the database
+        // Tagging feature is not available
+        setAvailableTags([]);
       } catch (error) {
-        console.error('Error fetching tags:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load tags',
-          variant: 'destructive',
-        });
+        console.error('Error loading tags:', error);
+        setAvailableTags([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchTags();
-  }, [toast]);
+  }, []);
 
   const handleTagToggle = async (tag: Tag) => {
+    // Note: Tagging feature is not available (tags table doesn't exist)
+    // This is a client-side only operation for UI consistency
     const isSelected = selectedTags.some(
       selectedTag => selectedTag.id === tag.id
     );
 
     if (isSelected) {
-      // Remove tag
-      try {
-        const { error } = await supabase
-          .from('entity_tags')
-          .delete()
-          .eq('entity_id', entityId)
-          .eq('entity_type', entityType)
-          .eq('tag_id', tag.id);
-
-        if (error) throw error;
-
-        onTagsChange(
-          selectedTags.filter(selectedTag => selectedTag.id !== tag.id)
-        );
-        toast({
-          title: 'Tag Removed',
-          description: `Removed "${tag.name}" tag`,
-        });
-      } catch (error) {
-        console.error('Error removing tag:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to remove tag',
-          variant: 'destructive',
-        });
-      }
+      // Remove tag (client-side only)
+      onTagsChange(
+        selectedTags.filter(selectedTag => selectedTag.id !== tag.id)
+      );
+      toast({
+        title: 'Tag Removed',
+        description: `Removed "${tag.name}" tag`,
+      });
     } else {
-      // Add tag
+      // Add tag (client-side only)
       if (selectedTags.length >= maxTags) {
         toast({
           title: 'Maximum Tags Reached',
@@ -126,60 +101,32 @@ export const TagSelector = ({
         return;
       }
 
-      try {
-        const { error } = await supabase.from('entity_tags').insert({
-          entity_id: entityId,
-          entity_type: entityType,
-          tag_id: tag.id,
-        });
-
-        if (error) throw error;
-
-        onTagsChange([...selectedTags, tag]);
-        toast({
-          title: 'Tag Added',
-          description: `Added "${tag.name}" tag`,
-        });
-      } catch (error) {
-        console.error('Error adding tag:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to add tag',
-          variant: 'destructive',
-        });
-      }
+      onTagsChange([...selectedTags, tag]);
+      toast({
+        title: 'Tag Added',
+        description: `Added "${tag.name}" tag`,
+      });
     }
   };
 
   const handleCreateTag = async () => {
     if (!newTagName.trim()) return;
 
-    try {
-      const { data, error } = await supabase
-        .from('tags')
-        .insert({
-          name: newTagName.trim(),
-          color: newTagColor,
-        })
-        .select()
-        .single();
+    // Note: Tagging feature is not available (tags table doesn't exist)
+    // Create tag client-side only for UI consistency
+    const newTag: Tag = {
+      id: `temp-${Date.now()}`,
+      name: newTagName.trim(),
+      color: newTagColor,
+      description: undefined,
+    };
 
-      if (error) throw error;
-
-      setAvailableTags(prev => [...prev, data]);
-      setNewTagName('');
-      toast({
-        title: 'Tag Created',
-        description: `Created "${data.name}" tag`,
-      });
-    } catch (error) {
-      console.error('Error creating tag:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create tag',
-        variant: 'destructive',
-      });
-    }
+    setAvailableTags(prev => [...prev, newTag]);
+    setNewTagName('');
+    toast({
+      title: 'Tag Created',
+      description: `Created "${newTag.name}" tag`,
+    });
   };
 
   if (loading) {

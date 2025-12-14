@@ -17,9 +17,9 @@ interface IconOnlyAssignmentCellProps {
 
 interface UserProfile {
   id: string;
-  full_name: string;
+  full_name: string | null;
   email: string;
-  role: string;
+  role: string | null;
 }
 
 export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
@@ -40,7 +40,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Check if user can assign
-  const canAssign = hasRole('admin') || hasRole('owner');
+  const canAssign = hasRole('admin');
 
   // Fetch current owner details
   useEffect(() => {
@@ -70,8 +70,8 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
         if (error) {
           console.error('Error fetching current owner:', error);
           setCurrentOwner(null);
-        } else {
-          setCurrentOwner(data);
+        } else if (data && 'id' in data) {
+          setCurrentOwner(data as UserProfile);
         }
       } catch (error) {
         console.error('Error fetching current owner:', error);
@@ -147,14 +147,16 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
 
     setIsUpdating(true);
     try {
-      // Leads table uses owner_id, others use owner_id as well
-      const updateField = entityType === 'leads' ? 'owner_id' : 'owner_id';
-      const tableName = entityType;
-      
+      // Assignment removed - owner_id no longer exists
+      const tableName =
+        entityType === 'people'
+          ? 'leads'
+          : entityType === 'jobs'
+            ? 'leads'
+            : entityType;
       const { error } = await supabase
-        .from(tableName)
+        .from(tableName as never)
         .update({
-          [updateField]: newOwnerId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
@@ -197,13 +199,16 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
 
     setIsUpdating(true);
     try {
-      const updateField = entityType === 'leads' ? 'owner_id' : 'owner_id';
-      const tableName = entityType;
-      
+      // Assignment removed - owner_id no longer exists
+      const tableName =
+        entityType === 'people'
+          ? 'leads'
+          : entityType === 'jobs'
+            ? 'leads'
+            : entityType;
       const { error } = await supabase
-        .from(tableName)
+        .from(tableName as never)
         .update({
-          [updateField]: null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
@@ -260,7 +265,12 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
   if (!canAssign) {
     if (!currentOwner) {
       return (
-        <div className={cn('flex items-center justify-center overflow-hidden', className)}>
+        <div
+          className={cn(
+            'flex items-center justify-center overflow-hidden',
+            className
+          )}
+        >
           <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0'>
             <User className='w-3 h-3 text-muted-foreground' />
           </div>
@@ -269,14 +279,21 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
     }
 
     return (
-      <div className={cn('flex items-center justify-center overflow-hidden', className)}>
+      <div
+        className={cn(
+          'flex items-center justify-center overflow-hidden',
+          className
+        )}
+      >
         <div className='w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0'>
           <span className='text-xs font-medium text-orange-800'>
             {currentOwner.full_name
-              .split(' ')
-              .map(namePart => namePart[0])
-              .join('')
-              .toUpperCase()}
+              ? currentOwner.full_name
+                  .split(' ')
+                  .map(namePart => namePart[0])
+                  .join('')
+                  .toUpperCase()
+              : currentOwner.email?.charAt(0).toUpperCase() || '?'}
           </span>
         </div>
       </div>
@@ -294,16 +311,22 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
           isUpdating && 'opacity-50 pointer-events-none'
         )}
         onClick={handleClick}
-        title={currentOwner ? currentOwner.full_name : 'Unassigned'}
+        title={
+          currentOwner
+            ? currentOwner.full_name || currentOwner.email || 'Unassigned'
+            : 'Unassigned'
+        }
       >
         {currentOwner ? (
           <div className='w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center'>
             <span className='text-xs font-medium text-orange-800'>
               {currentOwner.full_name
-                .split(' ')
-                .map(namePart => namePart[0])
-                .join('')
-                .toUpperCase()}
+                ? currentOwner.full_name
+                    .split(' ')
+                    .map(namePart => namePart[0])
+                    .join('')
+                    .toUpperCase()
+                : currentOwner.email?.charAt(0).toUpperCase() || '?'}
             </span>
           </div>
         ) : (
@@ -329,7 +352,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
                     <Button
                       variant='ghost'
                       size='sm'
-                      onClick={(e) => {
+                      onClick={e => {
                         e.preventDefault();
                         e.stopPropagation();
                         handleUnassign();
@@ -344,7 +367,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
                   <Button
                     variant='ghost'
                     size='sm'
-                    onClick={(e) => {
+                    onClick={e => {
                       e.preventDefault();
                       e.stopPropagation();
                       setShowUserList(false);
@@ -368,7 +391,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
                 teamMembers.map(member => (
                   <button
                     key={member.id}
-                    onClick={(e) => {
+                    onClick={e => {
                       e.preventDefault();
                       e.stopPropagation();
                       handleAssign(member.id);
@@ -392,16 +415,18 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
                     {/* User Avatar */}
                     <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium mr-3'>
                       {member.full_name
-                        .split(' ')
-                        .map(namePart => namePart[0])
-                        .join('')
-                        .toUpperCase()}
+                        ? member.full_name
+                            .split(' ')
+                            .map(namePart => namePart[0])
+                            .join('')
+                            .toUpperCase()
+                        : member.email?.charAt(0).toUpperCase() || '?'}
                     </div>
 
                     {/* User Info */}
                     <div className='flex-1 min-w-0 text-left'>
                       <div className='font-medium truncate'>
-                        {member.full_name}
+                        {member.full_name || member.email || 'Unknown'}
                       </div>
                       <div className='text-xs text-muted-foreground truncate'>
                         {member.role}

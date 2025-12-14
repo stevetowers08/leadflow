@@ -116,7 +116,7 @@ export function useRetry<T extends (...args: unknown[]) => Promise<unknown>>(
           const result = await fn(...args);
           setIsRetrying(false);
           setRetryCount(0);
-          return result;
+          return result as Awaited<ReturnType<T>>;
         } catch (error) {
           lastError = error as Error;
 
@@ -153,7 +153,12 @@ export function useNetworkErrorHandler() {
   const { logError } = useErrorHandler();
 
   const handleNetworkError = useCallback(
-    (error: { code?: string; status?: number; url?: string; message?: string }) => {
+    (error: {
+      code?: string;
+      status?: number;
+      url?: string;
+      message?: string;
+    }) => {
       let severity: ErrorInfo['severity'] = 'medium';
       let message = 'Network error occurred';
 
@@ -161,7 +166,7 @@ export function useNetworkErrorHandler() {
         severity = 'high';
         message =
           'No internet connection. Please check your network and try again.';
-      } else if (error.status >= 500) {
+      } else if (error.status !== undefined && error.status >= 500) {
         severity = 'high';
         message = 'Server error. Please try again later.';
       } else if (error.status === 404) {
@@ -200,7 +205,16 @@ export function useApiErrorHandler() {
   const { handleNetworkError } = useNetworkErrorHandler();
 
   const handleApiError = useCallback(
-    (error: { code?: string; status?: number; message?: string; details?: string; hint?: string }, context?: Record<string, unknown>) => {
+    (
+      error: {
+        code?: string;
+        status?: number;
+        message?: string;
+        details?: string;
+        hint?: string;
+      },
+      context?: Record<string, unknown>
+    ) => {
       // Handle network errors
       if (error.code === 'NETWORK_ERROR' || error.message?.includes('fetch')) {
         return handleNetworkError(error);
@@ -249,7 +263,8 @@ export function useApiErrorHandler() {
       }
 
       // Handle generic errors
-      const severity = error.status >= 500 ? 'high' : 'medium';
+      const severity =
+        error.status !== undefined && error.status >= 500 ? 'high' : 'medium';
       logError(
         error.message || 'An unexpected error occurred',
         {

@@ -130,10 +130,10 @@ export class EnhancedAssignmentService {
   }
 
   /**
-   * Assigns a single entity (lead, company, or job) to a user
+   * Assigns a single entity (lead or company) to a user
    */
   static async assignEntity(
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'leads' | 'companies',
     entityId: string,
     newOwnerId: string | null,
     assignedBy: string
@@ -212,12 +212,12 @@ export class EnhancedAssignmentService {
    * Validates assignment input parameters
    */
   private static validateAssignmentInput(
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'leads' | 'companies',
     entityId: string,
     newOwnerId: string | null,
     assignedBy: string
   ): Result<void, AppError> {
-    if (!entityType || !['people', 'companies', 'jobs'].includes(entityType)) {
+    if (!entityType || !['leads', 'companies'].includes(entityType)) {
       return ResultBuilder.failure(
         ErrorFactory.create(
           ErrorType.VALIDATION_ERROR,
@@ -283,13 +283,16 @@ export class EnhancedAssignmentService {
    * Validates that an entity exists
    */
   private static async validateEntityExists(
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'leads' | 'companies',
     entityId: string
   ): Promise<Result<{ id: string; name: string }, AppError>> {
     try {
+      // Use appropriate field selection based on entity type
+      const selectFields =
+        entityType === 'leads' ? 'id, first_name, last_name' : 'id, name';
       const { data, error } = await supabase
         .from(entityType)
-        .select('id, name')
+        .select(selectFields)
         .eq('id', entityId)
         .single();
 
@@ -336,16 +339,17 @@ export class EnhancedAssignmentService {
    * Performs the actual assignment operation
    */
   private static async performAssignment(
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'leads' | 'companies',
     entityId: string,
     newOwnerId: string | null,
     assignedBy: string
   ): Promise<Result<AssignmentResult, AppError>> {
     try {
+      // Assignment removed - owner_id no longer exists
+      // Just update timestamp
       const { error: updateError } = await supabase
         .from(entityType)
         .update({
-          owner_id: newOwnerId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
@@ -408,7 +412,7 @@ export class EnhancedAssignmentService {
    */
   static async bulkAssignEntities(
     entityIds: string[],
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'leads' | 'companies',
     newOwnerId: string,
     assignedBy: string
   ): Promise<Result<BulkAssignmentResult, AppError>> {
@@ -493,7 +497,7 @@ export class EnhancedAssignmentService {
    */
   private static validateBulkAssignmentInput(
     entityIds: string[],
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'leads' | 'companies',
     newOwnerId: string,
     assignedBy: string
   ): Result<void, AppError> {

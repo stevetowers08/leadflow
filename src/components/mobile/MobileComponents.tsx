@@ -10,6 +10,7 @@ interface SwipeableProps {
   onSwipeDown?: () => void;
   threshold?: number;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const SwipeableComponent: React.FC<SwipeableProps> = ({
@@ -20,6 +21,7 @@ export const SwipeableComponent: React.FC<SwipeableProps> = ({
   onSwipeDown,
   threshold = 50,
   className,
+  style,
 }) => {
   const [startX, setStartX] = useState<number | null>(null);
   const [startY, setStartY] = useState<number | null>(null);
@@ -95,6 +97,7 @@ export const SwipeableComponent: React.FC<SwipeableProps> = ({
       )}
       style={{
         touchAction: 'pan-y pinch-zoom', // Allow vertical scroll and pinch zoom
+        ...style,
         WebkitTouchCallout: 'none', // Disable iOS callout
         WebkitUserSelect: 'none', // Disable text selection
         userSelect: 'none',

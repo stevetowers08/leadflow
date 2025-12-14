@@ -11,7 +11,7 @@ import {
 } from '@/hooks/useRetryLogic';
 import { useActionFeedback, useUserFeedback } from '@/hooks/useUserFeedback';
 import { supabase } from '@/integrations/supabase/client';
-import { insertCompanyWithOwner } from '@/utils/companyUtils';
+import { insertCompany } from '@/utils/companyUtils';
 
 export interface ServiceOptions {
   enableRetry?: boolean;
@@ -46,10 +46,16 @@ export function useSupabaseService<T = unknown>(
   const retryLogic = useDatabaseRetry(retryConfig);
   const actionFeedback = useActionFeedback();
   const errorHandler = useErrorHandler();
-  
-  const { handleSave, handleDelete, handleUpdate, handleCreate } = enableFeedback 
-    ? actionFeedback 
-    : { handleSave: undefined, handleDelete: undefined, handleUpdate: undefined, handleCreate: undefined };
+
+  const { handleSave, handleDelete, handleUpdate, handleCreate } =
+    enableFeedback
+      ? actionFeedback
+      : {
+          handleSave: undefined,
+          handleDelete: undefined,
+          handleUpdate: undefined,
+          handleCreate: undefined,
+        };
   const { logError } = enableErrorHandling
     ? errorHandler
     : { logError: () => {} };
@@ -66,10 +72,11 @@ export function useSupabaseService<T = unknown>(
 
   // Fetch data with retry and error handling
   const fetchData = useAsyncData(
-    async (query?: string) => {
+    async (...args: unknown[]) => {
+      const query = args[0] as string | undefined;
       return executeWithRetry(async () => {
         const { data, error } = await supabase
-          .from(tableName)
+          .from(tableName as never)
           .select(query || '*');
 
         if (error) throw error;
@@ -77,7 +84,6 @@ export function useSupabaseService<T = unknown>(
       }, `fetch-${tableName}`);
     },
     {
-      enableRetry,
       showSuccessToast: false,
       showErrorToast: enableFeedback,
       onError: error =>
@@ -87,15 +93,23 @@ export function useSupabaseService<T = unknown>(
 
   // Create record with retry and feedback
   const createRecord = useAsyncMutation(
-    async (record: Partial<T>) => {
+    async (...args: unknown[]) => {
+      const record = args[0] as Partial<T>;
       return executeWithRetry(async () => {
         // Special handling for companies to ensure owner_id is set
         if (tableName === 'companies') {
-          return await insertCompanyWithOwner(record);
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          const companyData = {
+            ...record,
+            owner_id: session?.user?.id || null,
+          };
+          return await insertCompany(companyData);
         }
 
         const { data, error } = await supabase
-          .from(tableName)
+          .from(tableName as never)
           .insert(record)
           .select()
           .single();
@@ -105,7 +119,6 @@ export function useSupabaseService<T = unknown>(
       }, `create-${tableName}`);
     },
     {
-      enableRetry,
       showSuccessToast: enableFeedback,
       showErrorToast: enableFeedback,
       successMessage: 'Record created successfully',
@@ -120,10 +133,11 @@ export function useSupabaseService<T = unknown>(
 
   // Update record with retry and feedback
   const updateRecord = useAsyncMutation(
-    async ({ id, updates }: { id: string; updates: Partial<T> }) => {
+    async (...args: unknown[]) => {
+      const { id, updates } = args[0] as { id: string; updates: Partial<T> };
       return executeWithRetry(async () => {
         const { data, error } = await supabase
-          .from(tableName)
+          .from(tableName as never)
           .update(updates)
           .eq('id', id)
           .select()
@@ -134,7 +148,6 @@ export function useSupabaseService<T = unknown>(
       }, `update-${tableName}`);
     },
     {
-      enableRetry,
       showSuccessToast: enableFeedback,
       showErrorToast: enableFeedback,
       successMessage: 'Record updated successfully',
@@ -149,16 +162,19 @@ export function useSupabaseService<T = unknown>(
 
   // Delete record with retry and feedback
   const deleteRecord = useAsyncMutation(
-    async (id: string) => {
+    async (...args: unknown[]) => {
+      const id = args[0] as string;
       return executeWithRetry(async () => {
-        const { error } = await supabase.from(tableName).delete().eq('id', id);
+        const { error } = await supabase
+          .from(tableName as never)
+          .delete()
+          .eq('id', id);
 
         if (error) throw error;
         return { id };
       }, `delete-${tableName}`);
     },
     {
-      enableRetry,
       showSuccessToast: enableFeedback,
       showErrorToast: enableFeedback,
       successMessage: 'Record deleted successfully',
@@ -173,20 +189,28 @@ export function useSupabaseService<T = unknown>(
 
   // Batch operations
   const batchCreate = useAsyncMutation(
-    async (records: Partial<T>[]) => {
+    async (...args: unknown[]) => {
+      const records = args[0] as Partial<T>[];
       return executeWithRetry(async () => {
         // Special handling for companies to ensure owner_id is set
         if (tableName === 'companies') {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
           const results = [];
           for (const record of records) {
-            const result = await insertCompanyWithOwner(record);
-            results.push(result[0]); // insertCompanyWithOwner returns an array
+            const companyData = {
+              ...record,
+              owner_id: session?.user?.id || null,
+            };
+            const result = await insertCompany(companyData);
+            results.push(result?.[0] || result); // insertCompany returns an array or single object
           }
           return results;
         }
 
         const { data, error } = await supabase
-          .from(tableName)
+          .from(tableName as never)
           .insert(records)
           .select();
 
@@ -195,10 +219,9 @@ export function useSupabaseService<T = unknown>(
       }, `batch-create-${tableName}`);
     },
     {
-      enableRetry,
       showSuccessToast: enableFeedback,
       showErrorToast: enableFeedback,
-      successMessage: `${records.length} records created successfully`,
+      successMessage: 'Records created successfully',
       errorMessage: 'Failed to create records',
       onError: error =>
         logError(error, { table: tableName, operation: 'batch-create' }),
@@ -206,12 +229,13 @@ export function useSupabaseService<T = unknown>(
   );
 
   const batchUpdate = useAsyncMutation(
-    async (updates: Array<{ id: string; updates: Partial<T> }>) => {
+    async (...args: unknown[]) => {
+      const updates = args[0] as Array<{ id: string; updates: Partial<T> }>;
       return executeWithRetry(async () => {
         const results = [];
         for (const { id, updates: recordUpdates } of updates) {
           const { data, error } = await supabase
-            .from(tableName)
+            .from(tableName as never)
             .update(recordUpdates)
             .eq('id', id)
             .select()
@@ -224,10 +248,9 @@ export function useSupabaseService<T = unknown>(
       }, `batch-update-${tableName}`);
     },
     {
-      enableRetry,
       showSuccessToast: enableFeedback,
       showErrorToast: enableFeedback,
-      successMessage: `${updates.length} records updated successfully`,
+      successMessage: 'Records updated successfully',
       errorMessage: 'Failed to update records',
       onError: error =>
         logError(error, { table: tableName, operation: 'batch-update' }),
@@ -244,9 +267,10 @@ export function useSupabaseService<T = unknown>(
     batchUpdate,
 
     // Retry state
-    retryState: retryLogic?.retryState,
     isRetrying: retryLogic?.isRetrying || false,
     retryCount: retryLogic?.retryCount || 0,
+    lastError: retryLogic?.lastError || null,
+    nextRetryAt: retryLogic?.nextRetryAt || null,
 
     // Utility functions
     refetch: fetchData.refetch,
@@ -270,9 +294,10 @@ export function useCompaniesService(options: ServiceOptions = {}) {
   return useSupabaseService('companies', options);
 }
 
-export function useJobsService(options: ServiceOptions = {}) {
-  return useSupabaseService('jobs', options);
-}
+// Jobs service removed - not in PDR
+// export function useJobsService(options: ServiceOptions = {}) {
+//   return useSupabaseService('jobs', options);
+// }
 
 // Network service wrapper for external APIs
 export function useNetworkService(options: ServiceOptions = {}) {
@@ -292,9 +317,11 @@ export function useNetworkService(options: ServiceOptions = {}) {
   const retryLogicHook = useNetworkRetry(retryConfig);
   const userFeedbackHook = useUserFeedback();
   const errorHandlerHook = useErrorHandler();
-  
+
   const retryLogic = enableRetry ? retryLogicHook : null;
-  const { showSuccess, showError } = enableFeedback ? userFeedbackHook : { showSuccess: undefined, showError: undefined };
+  const { showSuccess, showError } = enableFeedback
+    ? userFeedbackHook
+    : { showSuccess: undefined, showError: undefined };
   const { logError } = enableErrorHandling
     ? errorHandlerHook
     : { logError: () => {} };
@@ -310,7 +337,11 @@ export function useNetworkService(options: ServiceOptions = {}) {
   };
 
   const makeRequest = useAsyncOperation(
-    async ({ url, options }: { url: string; options?: RequestInit }) => {
+    async (...args: unknown[]) => {
+      const { url, options } = args[0] as {
+        url: string;
+        options?: RequestInit;
+      };
       return executeWithRetry(async () => {
         const method = (options?.method || 'GET').toUpperCase();
 
@@ -335,7 +366,6 @@ export function useNetworkService(options: ServiceOptions = {}) {
       }, `network-request-${url}`);
     },
     {
-      enableRetry,
       showSuccessToast: false,
       showErrorToast: enableFeedback,
       onError: error => logError(error, { operation: 'network-request' }),
@@ -344,9 +374,10 @@ export function useNetworkService(options: ServiceOptions = {}) {
 
   return {
     makeRequest,
-    retryState: retryLogic?.retryState,
     isRetrying: retryLogic?.isRetrying || false,
     retryCount: retryLogic?.retryCount || 0,
+    lastError: retryLogic?.lastError || null,
+    nextRetryAt: retryLogic?.nextRetryAt || null,
   };
 }
 
@@ -368,9 +399,11 @@ export function useAIService(options: ServiceOptions = {}) {
   const retryLogicHook = useApiRetry(retryConfig);
   const userFeedbackHook = useUserFeedback();
   const errorHandlerHook = useErrorHandler();
-  
+
   const retryLogic = enableRetry ? retryLogicHook : null;
-  const { showSuccess, showError } = enableFeedback ? userFeedbackHook : { showSuccess: undefined, showError: undefined };
+  const { showSuccess, showError } = enableFeedback
+    ? userFeedbackHook
+    : { showSuccess: undefined, showError: undefined };
   const { logError } = enableErrorHandling
     ? errorHandlerHook
     : { logError: () => {} };
@@ -386,13 +419,11 @@ export function useAIService(options: ServiceOptions = {}) {
   };
 
   const generateContent = useAsyncOperation(
-    async ({
-      prompt,
-      model = 'gpt-3.5-turbo',
-    }: {
-      prompt: string;
-      model?: string;
-    }) => {
+    async (...args: unknown[]) => {
+      const { prompt, model = 'gpt-3.5-turbo' } = args[0] as {
+        prompt: string;
+        model?: string;
+      };
       return executeWithRetry(async () => {
         const response = await fetch('/api/ai/generate', {
           method: 'POST',
@@ -408,7 +439,6 @@ export function useAIService(options: ServiceOptions = {}) {
       }, 'ai-generate');
     },
     {
-      enableRetry,
       showSuccessToast: false,
       showErrorToast: enableFeedback,
       onError: error => logError(error, { operation: 'ai-generate' }),
@@ -416,7 +446,11 @@ export function useAIService(options: ServiceOptions = {}) {
   );
 
   const analyzeData = useAsyncOperation(
-    async ({ data, analysisType }: { data: unknown; analysisType: string }) => {
+    async (...args: unknown[]) => {
+      const { data, analysisType } = args[0] as {
+        data: unknown;
+        analysisType: string;
+      };
       return executeWithRetry(async () => {
         const response = await fetch('/api/ai/analyze', {
           method: 'POST',
@@ -432,7 +466,6 @@ export function useAIService(options: ServiceOptions = {}) {
       }, 'ai-analyze');
     },
     {
-      enableRetry,
       showSuccessToast: false,
       showErrorToast: enableFeedback,
       onError: error => logError(error, { operation: 'ai-analyze' }),
@@ -442,8 +475,9 @@ export function useAIService(options: ServiceOptions = {}) {
   return {
     generateContent,
     analyzeData,
-    retryState: retryLogic?.retryState,
     isRetrying: retryLogic?.isRetrying || false,
     retryCount: retryLogic?.retryCount || 0,
+    lastError: retryLogic?.lastError || null,
+    nextRetryAt: retryLogic?.nextRetryAt || null,
   };
 }

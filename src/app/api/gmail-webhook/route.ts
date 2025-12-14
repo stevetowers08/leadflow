@@ -205,20 +205,23 @@ export async function POST(request: NextRequest) {
 
     // Get user's Gmail access token
     const { data: integration } = await supabase
-      .from('integrations')
+      .from('integrations' as never)
       .select('config')
       .eq('platform', 'gmail')
       .eq('connected', true)
       .ilike('config->>user_email', notification.emailAddress)
       .single();
 
-    if (!integration?.config) {
+    const integrationTyped = integration as {
+      config?: { access_token?: string; refresh_token?: string };
+    } | null;
+    if (!integrationTyped?.config) {
       console.log('No Gmail integration found');
       return new NextResponse('OK', { status: 200 });
     }
 
     // Type guard for config
-    const config = integration.config as { access_token?: string } | null;
+    const config = integrationTyped.config as { access_token?: string } | null;
     if (!config?.access_token) {
       console.log('No Gmail access token found');
       return new NextResponse('OK', { status: 200 });

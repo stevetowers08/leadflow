@@ -18,7 +18,10 @@ import {
   Zap,
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
-import { SCORE_RANGE_COLORS_100, SCORE_RANGE_COLORS_10 } from '@/constants/colors';
+import {
+  SCORE_RANGE_COLORS_100,
+  SCORE_RANGE_COLORS_10,
+} from '@/constants/colors';
 
 interface LeadScoreData {
   id: string;
@@ -152,22 +155,26 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
   );
   const [showInsights, setShowInsights] = useState(false);
 
-  // Process and categorize leads
-  const processedLeads = useMemo(() => {
-    // Detect score scale based on data - if max score > 10, use 0-100 ranges
+  // Determine score ranges based on data
+  const scoreRanges = useMemo(() => {
     const maxScore = leads.reduce((max, lead) => {
-      const scoreValue = lead.score ?? 
-        (typeof lead.lead_score === 'string' ? parseInt(lead.lead_score) : (lead.lead_score as number) || 0);
+      const scoreValue =
+        lead.score ??
+        (typeof lead.lead_score === 'string'
+          ? parseInt(lead.lead_score)
+          : (lead.lead_score as number) || 0);
       return Math.max(max, scoreValue);
     }, 0);
-    
-    const use10Scale = maxScore <= 10;
-    const scoreRanges = use10Scale ? scoreRanges10 : scoreRanges100;
-    
+    return maxScore <= 10 ? scoreRanges10 : scoreRanges100;
+  }, [leads]);
+
+  // Process and categorize leads
+  const processedLeads = useMemo(() => {
     return leads.map(lead => {
-      const score = lead.score ?? 
-        (typeof lead.lead_score === 'string' 
-          ? parseInt(lead.lead_score) 
+      const score =
+        lead.score ??
+        (typeof lead.lead_score === 'string'
+          ? parseInt(lead.lead_score)
           : (lead.lead_score as number) || 0);
       const range =
         scoreRanges.find(r => score >= r.min && score <= r.max) ||
@@ -181,7 +188,7 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
           priorityOrder[lead.priority as keyof typeof priorityOrder] || 0,
       };
     });
-  }, [leads]);
+  }, [leads, scoreRanges]);
 
   // Group leads by score range
   const leadsByRange = useMemo(() => {
@@ -194,7 +201,7 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
     });
 
     return groups;
-  }, [processedLeads]);
+  }, [processedLeads, scoreRanges]);
 
   // Sort leads within each group
   const sortedLeadsByRange = useMemo(() => {
@@ -356,7 +363,9 @@ export const MobileLeadScoring: React.FC<MobileLeadScoringProps> = ({
                 </span>
               </div>
               <div className='flex justify-between text-sm'>
-                <span className='text-muted-foreground'>Automation Active:</span>
+                <span className='text-muted-foreground'>
+                  Automation Active:
+                </span>
                 <span className='font-medium text-success'>
                   {insights.automationActive}
                 </span>

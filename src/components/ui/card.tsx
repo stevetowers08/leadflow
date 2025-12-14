@@ -17,14 +17,14 @@ const Card = React.forwardRef<
 
   const baseStyles = cn(
     'rounded-lg',
-    designTokens.borders.card,
+    designTokens.borders.card, // 2025 Best Practice: Subtle but visible borders for card definition
     designTokens.transitions.normal
   );
   const interactiveStyles = isInteractive
     ? cn(
         'cursor-pointer',
         designTokens.shadows.cardHover,
-        'hover:border-border/60'
+        'hover:border-border' // Enhanced border on hover for better feedback
       )
     : designTokens.shadows.cardStatic;
 
@@ -139,7 +139,13 @@ const CardFooter = React.forwardRef<
 CardFooter.displayName = 'CardFooter';
 
 // Compound component pattern (2025 best practice)
-const CardRoot = Card;
+const CardRoot = Card as typeof Card & {
+  Header: typeof CardHeader;
+  Title: typeof CardTitle;
+  Description: typeof CardDescription;
+  Content: typeof CardContent;
+  Footer: typeof CardFooter;
+};
 CardRoot.Header = CardHeader;
 CardRoot.Title = CardTitle;
 CardRoot.Description = CardDescription;

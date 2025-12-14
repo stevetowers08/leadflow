@@ -12,7 +12,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 export function useClientId() {
   const { user } = useAuth();
   const bypassAuth = shouldBypassAuth();
-  
+
   // Get organization from context (OrganizationProvider wraps the app)
   // Note: This will throw if OrganizationProvider is not in the tree, which is expected
   // The error is caught and we fall back to the query method
@@ -26,27 +26,19 @@ export function useClientId() {
     // Will fall back to querying client_users table directly
   }
 
-  // If we have organization context, use it directly (more efficient)
-  if (currentOrganization?.id) {
-    return {
-      data: currentOrganization.id,
-      isLoading: false,
-      error: null,
-    };
-  }
-
-  // Fallback: fetch from client_users (for backward compatibility or if context unavailable)
-  return useQuery({
+  // Always call useQuery (React hooks must be called unconditionally)
+  // If we have organization context, the query will be disabled and we'll return early
+  const queryResult = useQuery({
     queryKey: ['client-id', user?.id],
     queryFn: async () => {
       // Always use the actual user ID from auth context (even in bypassAuth mode)
       // The auth context now checks for actual session first in bypassAuth mode
       const userId = user?.id;
-      
+
       if (!userId) return null;
 
       const { data: clientUser, error } = await supabase
-        .from('client_users')
+        .from('client_users' as never)
         .select('client_id')
         .eq('user_id', userId)
         .maybeSingle();
@@ -57,17 +49,17 @@ export function useClientId() {
         // PGRST301 with infinite recursion = RLS policy issue (suppress error, return null)
         // Both are acceptable - client_users table is optional for single-tenant setups
         const errorMessage = getErrorMessage(error);
-        const isTableNotFound = 
-          error.code === 'PGRST301' || 
+        const isTableNotFound =
+          error.code === 'PGRST301' ||
           error.code === 'PGRST116' ||
           errorMessage?.includes('schema cache') ||
           errorMessage?.includes('does not exist') ||
           errorMessage?.includes('Could not find the table');
-        
-        const isInfiniteRecursion = 
+
+        const isInfiniteRecursion =
           errorMessage?.includes('infinite recursion') ||
           errorMessage?.includes('recursion detected');
-        
+
         // Suppress infinite recursion errors (RLS policy issue) and table not found errors
         if (!isTableNotFound && !isInfiniteRecursion) {
           logger.error('Error fetching client ID:', errorMessage, error);
@@ -75,12 +67,24 @@ export function useClientId() {
         return null;
       }
 
-      return clientUser?.client_id || null;
+      return (clientUser as { client_id?: string })?.client_id || null;
     },
-    enabled: !!user?.id || bypassAuth,
+    enabled: !currentOrganization?.id && (!!user?.id || bypassAuth),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false, // Don't retry if table doesn't exist
   });
+
+  // If we have organization context, use it directly (more efficient)
+  if (currentOrganization?.id) {
+    return {
+      data: currentOrganization.id,
+      isLoading: false,
+      error: null,
+    };
+  }
+
+  // Return query result as fallback
+  return queryResult;
 }
 
 // Helper function for components that need client_id synchronously
@@ -92,7 +96,7 @@ export async function getClientId(): Promise<string | null> {
   if (!user?.id) return null;
 
   const { data: clientUser, error } = await supabase
-    .from('client_users')
+    .from('client_users' as never)
     .select('client_id')
     .eq('user_id', user.id)
     .maybeSingle();
@@ -102,17 +106,17 @@ export async function getClientId(): Promise<string | null> {
     // PGRST301 with infinite recursion = RLS policy issue (suppress error, return null)
     // Both are acceptable - client_users table is optional
     const errorMessage = getErrorMessage(error);
-    const isTableNotFound = 
-      error.code === 'PGRST301' || 
+    const isTableNotFound =
+      error.code === 'PGRST301' ||
       error.code === 'PGRST116' ||
       errorMessage?.includes('schema cache') ||
       errorMessage?.includes('does not exist') ||
       errorMessage?.includes('Could not find the table');
-    
-    const isInfiniteRecursion = 
+
+    const isInfiniteRecursion =
       errorMessage?.includes('infinite recursion') ||
       errorMessage?.includes('recursion detected');
-    
+
     // Suppress infinite recursion errors (RLS policy issue) and table not found errors
     if (!isTableNotFound && !isInfiniteRecursion) {
       logger.error('Error fetching client ID:', errorMessage, error);
@@ -120,5 +124,5 @@ export async function getClientId(): Promise<string | null> {
     return null;
   }
 
-  return clientUser?.client_id || null;
+  return (clientUser as { client_id?: string })?.client_id || null;
 }

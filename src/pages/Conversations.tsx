@@ -17,7 +17,7 @@ import {
   Settings,
   User,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 // Client-side mount guard wrapper
@@ -112,16 +112,16 @@ const ConversationsContent: React.FC = () => {
   const loadPeople = async () => {
     try {
       const { data, error } = await supabase
-        .from('people')
-        .select('id, name, email_address')
-        .not('email_address', 'is', null)
-        .order('name', { ascending: true })
+        .from('leads')
+        .select('id, first_name, last_name, email')
+        .not('email', 'is', null)
+        .order('first_name', { ascending: true })
         .limit(500);
 
       if (error) throw error;
       setPeople(data || []);
     } catch (error) {
-      console.error('Failed to load people:', getErrorMessage(error), error);
+      console.error('Failed to load leads:', getErrorMessage(error), error);
     }
   };
 
@@ -142,13 +142,13 @@ const ConversationsContent: React.FC = () => {
         if (idList.length > 0) {
           (async () => {
             const { data, error } = await supabase
-              .from('people')
-              .select('id, email_address')
+              .from('leads')
+              .select('id, email')
               .in('id', idList)
-              .not('email_address', 'is', null);
+              .not('email', 'is', null);
             if (!error && data) {
               const emails = data
-                .map(p => p.email_address)
+                .map(p => p.email)
                 .filter((e): e is string => !!e);
               if (emails.length > 0) {
                 setComposeEmail(prev => ({ ...prev, to: emails.join(',') }));
@@ -208,8 +208,14 @@ const ConversationsContent: React.FC = () => {
       // Handle missing table gracefully
       if (error) {
         const errorMessage = error.message || '';
-        if (errorMessage.includes('schema cache') || errorMessage.includes('does not exist')) {
-          console.debug('Failed to load conversations: Could not find the table', error);
+        if (
+          errorMessage.includes('schema cache') ||
+          errorMessage.includes('does not exist')
+        ) {
+          console.debug(
+            'Failed to load conversations: Could not find the table',
+            error
+          );
           setThreads([]);
           return;
         }
@@ -235,7 +241,11 @@ const ConversationsContent: React.FC = () => {
 
       setThreads(transformedThreads);
     } catch (error) {
-      console.error('Failed to load conversations:', getErrorMessage(error), error);
+      console.error(
+        'Failed to load conversations:',
+        getErrorMessage(error),
+        error
+      );
     } finally {
       setLoading(false);
     }
@@ -313,13 +323,7 @@ const ConversationsContent: React.FC = () => {
     loadThreads();
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      loadEmailSignature();
-    }
-  }, [user]);
-
-  const loadEmailSignature = async () => {
+  const loadEmailSignature = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -336,18 +340,21 @@ const ConversationsContent: React.FC = () => {
           setEmailSignature('');
           return;
         }
-        
+
         // 42P01 = relation does not exist (table missing - migration not run)
         // 42704 = object does not exist (table missing)
-        if (error.code === '42P01' || error.code === '42704' || 
-            error.message?.includes('schema cache') || 
-            error.message?.includes('does not exist')) {
+        if (
+          error.code === '42P01' ||
+          error.code === '42704' ||
+          error.message?.includes('schema cache') ||
+          error.message?.includes('does not exist')
+        ) {
           // Table doesn't exist - this is expected if migration hasn't run
           // Silently fail and use empty signature
           setEmailSignature('');
           return;
         }
-        
+
         // For other errors, log them properly
         logSupabaseError(error, 'loading email signature');
         return;
@@ -362,14 +369,16 @@ const ConversationsContent: React.FC = () => {
       // Fallback error handling
       const errorMessage = getErrorMessage(error);
       // Only log if it's a meaningful error (not table missing)
-      if (!errorMessage.includes('schema cache') && 
-          !errorMessage.includes('does not exist')) {
+      if (
+        !errorMessage.includes('schema cache') &&
+        !errorMessage.includes('does not exist')
+      ) {
         logSupabaseError(error, 'loading email signature');
       }
       // Set empty signature as fallback
       setEmailSignature('');
     }
-  };
+  }, [user]);
 
   const getFullMessageWithSignature = (messageText: string): string => {
     if (!emailSignature) return messageText;
@@ -390,10 +399,15 @@ const ConversationsContent: React.FC = () => {
 
       if (error) {
         // Handle table missing errors gracefully
-        if (error.code === '42P01' || error.code === '42704' || 
-            error.message?.includes('schema cache') || 
-            error.message?.includes('does not exist')) {
-          alert('Settings table not available. Please ensure database migrations are up to date.');
+        if (
+          error.code === '42P01' ||
+          error.code === '42704' ||
+          error.message?.includes('schema cache') ||
+          error.message?.includes('does not exist')
+        ) {
+          alert(
+            'Settings table not available. Please ensure database migrations are up to date.'
+          );
           return;
         }
         throw error;
@@ -401,8 +415,10 @@ const ConversationsContent: React.FC = () => {
     } catch (error) {
       const errorMessage = getErrorMessage(error);
       // Only log meaningful errors
-      if (!errorMessage.includes('schema cache') && 
-          !errorMessage.includes('does not exist')) {
+      if (
+        !errorMessage.includes('schema cache') &&
+        !errorMessage.includes('does not exist')
+      ) {
         logSupabaseError(error, 'saving email signature');
       }
       alert('Failed to save signature. Please try again.');

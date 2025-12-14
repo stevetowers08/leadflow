@@ -1,17 +1,19 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 
-type PersonInsertData = Tables<'people'>['Insert'];
+type LeadInsertData = Tables<'leads'>['Insert'];
 
 /**
- * Handles people insertion with automatic duplicate resolution
+ * Handles leads insertion with automatic duplicate resolution
  * If a LinkedIn URL or email already exists, it will create unique versions
  */
-export const insertPersonWithDuplicateHandling = async (personData: PersonInsertData) => {
+export const insertPersonWithDuplicateHandling = async (
+  personData: LeadInsertData
+) => {
   try {
     // First attempt: try to insert as-is
     const { data, error } = await supabase
-      .from('people')
+      .from('leads')
       .insert(personData)
       .select();
 
@@ -34,7 +36,7 @@ export const insertPersonWithDuplicateHandling = async (personData: PersonInsert
 
         // Try inserting with the unique LinkedIn URL
         const { data: uniqueData, error: uniqueError } = await supabase
-          .from('people')
+          .from('leads')
           .insert({
             ...personData,
             linkedin_url: uniqueLinkedInUrl,
@@ -53,23 +55,23 @@ export const insertPersonWithDuplicateHandling = async (personData: PersonInsert
         return uniqueData;
       }
 
-      if (error.message.includes('email_address_key')) {
+      if (error.message.includes('email_key')) {
         console.log(
           'Duplicate email address detected, creating unique version...'
         );
 
         // Generate a unique email by adding a timestamp suffix
-        const originalEmail = personData.email_address;
+        const originalEmail = personData.email;
         const timestamp = Date.now();
         const [localPart, domain] = originalEmail.split('@');
         const uniqueEmail = `${localPart}_${timestamp}@${domain}`;
 
         // Try inserting with the unique email
         const { data: uniqueData, error: uniqueError } = await supabase
-          .from('people')
+          .from('leads')
           .insert({
             ...personData,
-            email_address: uniqueEmail,
+            email: uniqueEmail,
           })
           .select();
 
@@ -96,19 +98,19 @@ export const insertPersonWithDuplicateHandling = async (personData: PersonInsert
 
 /**
  * Alternative approach: Use upsert with conflict resolution
- * This will update existing people instead of creating duplicates
+ * This will update existing leads instead of creating duplicates
  */
-export const upsertPerson = async (personData: PersonInsertData) => {
+export const upsertPerson = async (personData: LeadInsertData) => {
   try {
     const { data, error } = await supabase
-      .from('people')
+      .from('leads')
       .upsert(
         {
           ...personData,
           updated_at: new Date().toISOString(),
         },
         {
-          onConflict: 'linkedin_url,email_address', // Handle conflicts on both fields
+          onConflict: 'linkedin_url,email', // Handle conflicts on both fields
           ignoreDuplicates: false,
         }
       )
@@ -133,7 +135,7 @@ export const upsertPerson = async (personData: PersonInsertData) => {
 export const checkLinkedInUrlExists = async (linkedinUrl: string) => {
   try {
     const { data, error } = await supabase
-      .from('people')
+      .from('leads')
       .select('id, linkedin_url')
       .eq('linkedin_url', linkedinUrl)
       .single();
@@ -156,9 +158,9 @@ export const checkLinkedInUrlExists = async (linkedinUrl: string) => {
 export const checkEmailExists = async (email: string) => {
   try {
     const { data, error } = await supabase
-      .from('people')
-      .select('id, email_address')
-      .eq('email_address', email)
+      .from('leads')
+      .select('id, email')
+      .eq('email', email)
       .single();
 
     if (error && error.code !== 'PGRST116') {
@@ -211,17 +213,19 @@ export const generateUniqueEmail = async (
 /**
  * Handle both LinkedIn URL and email duplicates in one function
  */
-export const insertPersonWithAllDuplicateHandling = async (personData: PersonInsertData) => {
+export const insertPersonWithAllDuplicateHandling = async (
+  personData: LeadInsertData
+) => {
   try {
     // Check for existing LinkedIn URL and email
     const linkedinExists = personData.linkedin_url
       ? await checkLinkedInUrlExists(personData.linkedin_url)
       : false;
-    const emailExists = personData.email_address
-      ? await checkEmailExists(personData.email_address)
+    const emailExists = personData.email
+      ? await checkEmailExists(personData.email)
       : false;
 
-    let processedData = { ...personData };
+    const processedData = { ...personData };
 
     // Handle LinkedIn URL duplicate
     if (linkedinExists && personData.linkedin_url) {
@@ -234,18 +238,16 @@ export const insertPersonWithAllDuplicateHandling = async (personData: PersonIns
     }
 
     // Handle email duplicate
-    if (emailExists && personData.email_address) {
-      processedData.email_address = await generateUniqueEmail(
-        personData.email_address
-      );
+    if (emailExists && personData.email) {
+      processedData.email = await generateUniqueEmail(personData.email);
       console.log(
-        `Email conflict resolved: ${personData.email_address} -> ${processedData.email_address}`
+        `Email conflict resolved: ${personData.email} -> ${processedData.email}`
       );
     }
 
     // Insert with processed data
     const { data, error } = await supabase
-      .from('people')
+      .from('leads')
       .insert(processedData)
       .select();
 

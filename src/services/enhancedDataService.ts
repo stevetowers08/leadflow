@@ -4,11 +4,11 @@ import {
   CACHE_PATTERNS,
   useAdvancedCaching,
   useOptimisticMutation,
-} from './useAdvancedCaching';
+} from '@/hooks/useAdvancedCaching';
 import {
   useMultiTableRealtime,
   useRealtimeSubscription,
-} from './useRealtimeSubscriptions';
+} from '@/hooks/useRealtimeSubscriptions';
 
 // Enhanced data service with caching and real-time updates
 export function useEnhancedDataService() {
@@ -17,14 +17,17 @@ export function useEnhancedDataService() {
     {
       table: 'people',
       events: ['INSERT', 'UPDATE', 'DELETE'],
-      onInsert: payload => {
-        console.log('🆕 New person added:', payload.new);
+      onInsert: (payload: unknown) => {
+        const p = payload as { new?: Record<string, unknown> };
+        console.log('🆕 New person added:', p.new);
       },
-      onUpdate: payload => {
-        console.log('🔄 Person updated:', payload.new);
+      onUpdate: (payload: unknown) => {
+        const p = payload as { new?: Record<string, unknown> };
+        console.log('🔄 Person updated:', p.new);
       },
-      onDelete: payload => {
-        console.log('🗑️ Person deleted:', payload.old);
+      onDelete: (payload: unknown) => {
+        const p = payload as { old?: Record<string, unknown> };
+        console.log('🗑️ Person deleted:', p.old);
       },
     },
     {
@@ -37,16 +40,7 @@ export function useEnhancedDataService() {
         console.log('🏢 Company updated:', payload.new);
       },
     },
-    {
-      table: 'jobs',
-      events: ['INSERT', 'UPDATE', 'DELETE'],
-      onInsert: payload => {
-        console.log('💼 New job added:', payload.new);
-      },
-      onUpdate: payload => {
-        console.log('💼 Job updated:', payload.new);
-      },
-    },
+    // Jobs table removed - not in PDR
     {
       table: 'activity_log',
       events: ['INSERT', 'UPDATE'],
@@ -82,24 +76,20 @@ export function useEnhancedLeadsService(
       const { column, ascending } = sort;
       const { search, status, ...otherFilters } = filters;
 
-      let query = supabase.from('people').select(
+      let query = supabase.from('leads').select(
         `
           id,
-          name,
+          first_name,
+          last_name,
+          email,
+          company,
           company_id,
-          email_address,
-          employee_location,
-          company_role,
-          stage,
-          score,
+          job_title,
+          status,
+          quality_rank,
           linkedin_url,
           created_at,
-          confidence_level,
-          companies!inner(
-            id,
-            name,
-            website
-          )
+          confidence_level
         `,
         { count: 'exact' }
       );
@@ -107,12 +97,12 @@ export function useEnhancedLeadsService(
       // Apply filters
       if (search) {
         query = query.or(
-          `name.ilike.%${search}%,company_role.ilike.%${search}%,email_address.ilike.%${search}%`
+          `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,company.ilike.%${search}%,job_title.ilike.%${search}%`
         );
       }
 
       if (status && status !== 'all') {
-        query = query.eq('people_stage', status);
+        query = query.eq('status', status);
       }
 
       // Apply other filters
@@ -256,10 +246,9 @@ export function useEnhancedDashboardService() {
       const [
         { data: people, error: peopleError },
         { data: companies, error: companiesError },
-        { data: jobs, error: jobsError },
         { data: activityLog, error: activityLogError },
       ] = await Promise.all([
-        supabase.from('people').select('id', { count: 'exact' }),
+        supabase.from('leads').select('id', { count: 'exact' }),
         supabase.from('companies').select('id', { count: 'exact' }),
         supabase.from('activity_log').select('id', { count: 'exact' }),
       ]);
@@ -283,9 +272,8 @@ export function useEnhancedDashboardService() {
 
   // Real-time subscription for dashboard updates
   useMultiTableRealtime([
-    { table: 'people', events: ['INSERT', 'DELETE'] },
+    { table: 'leads', events: ['INSERT', 'DELETE'] },
     { table: 'companies', events: ['INSERT', 'DELETE'] },
-    { table: 'jobs', events: ['INSERT', 'DELETE'] },
     { table: 'activity_log', events: ['INSERT'] },
   ]);
 
@@ -298,12 +286,12 @@ export function useEnhancedDashboardService() {
 
 // Optimistic mutations for common operations
 export function useOptimisticMutations() {
-  // Optimistic update for person stage
+  // Optimistic update for lead status
   const updatePersonStage = useOptimisticMutation(
     async ({ personId, newStage }: { personId: string; newStage: string }) => {
       const { data, error } = await supabase
-        .from('people')
-        .update({ stage: newStage, updated_at: new Date().toISOString() })
+        .from('leads')
+        .update({ status: newStage, updated_at: new Date().toISOString() })
         .eq('id', personId)
         .select()
         .single();
@@ -346,7 +334,6 @@ export function useOptimisticMutations() {
       invalidateQueries: [['companies'], ['dashboard']],
     }
   );
-
 
   return {
     updatePersonStage,

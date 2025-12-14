@@ -451,8 +451,8 @@ export const filterDataByPermissions = (
     try {
       const user = req.user!;
 
-      // Admin/Owner can see all data
-      if (user.role === 'admin' || user.role === 'owner') {
+      // Admin can see all data
+      if (user.role === 'admin') {
         return next();
       }
 
@@ -479,7 +479,8 @@ export const getUserAssignedEntities = async (
   const { data, error } = await supabase
     .from(entityType)
     .select('*')
-    .eq('owner_id', userId);
+    // owner_id removed - return empty array
+    .limit(0);
 
   if (error) {
     throw new Error(`Failed to get assigned ${entityType}: ${error.message}`);
@@ -491,8 +492,8 @@ export const getUserAssignedEntities = async (
 /**
  * Utility function to check if user is admin or owner
  */
-export const isAdminOrOwner = (user: AuthenticatedRequest['user']): boolean => {
-  return user?.role === 'admin' || user?.role === 'owner';
+export const isAdmin = (user: AuthenticatedRequest['user']): boolean => {
+  return user?.role === 'admin';
 };
 
 /**

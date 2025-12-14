@@ -30,7 +30,7 @@ export const useDatabaseDropdowns = (dropdownType: DropdownType) => {
 
         const { data, error } = await supabase.rpc('get_dropdown_options', {
           dropdown_type: dropdownType,
-        });
+        } as never);
 
         if (error) throw error;
 
@@ -55,7 +55,8 @@ export const useDatabaseDropdowns = (dropdownType: DropdownType) => {
 export const useCompanyStatusDropdown = () =>
   useDatabaseDropdowns('company_status');
 export const useLeadStageDropdown = () => useDatabaseDropdowns('lead_stage');
-export const useJobStatusDropdown = () => useDatabaseDropdowns('job_status');
+// Jobs removed - not in PDR
+// export const useJobStatusDropdown = () => useDatabaseDropdowns('job_status');
 export const usePriorityLevelDropdown = () =>
   useDatabaseDropdowns('priority_level');
 export const useAutomationStatusDropdown = () =>

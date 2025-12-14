@@ -126,7 +126,12 @@ export default function WaitStepConfig({ config, onChange }: Props) {
               <Label htmlFor='wait-unit'>Unit</Label>
               <Select
                 value={config.unit}
-                onValueChange={(unit: string) => onChange({ ...config, unit })}
+                onValueChange={(unit: string) =>
+                  onChange({
+                    ...config,
+                    unit: unit as 'hours' | 'days' | 'weeks' | 'minutes',
+                  })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />

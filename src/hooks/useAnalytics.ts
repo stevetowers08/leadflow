@@ -144,7 +144,8 @@ class AnalyticsTracker {
       url: window.location.href,
       path: window.location.pathname,
       referrer: typeof document !== 'undefined' ? document.referrer : '',
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      userAgent:
+        typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
       viewport: {
         width: window.innerWidth,
         height: window.innerHeight,
@@ -168,7 +169,8 @@ class AnalyticsTracker {
   }
 
   private handleScroll(): void {
-    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (typeof window === 'undefined' || typeof document === 'undefined')
+      return;
 
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const documentHeight =
@@ -259,7 +261,7 @@ class AnalyticsTracker {
     this.sendAnalytics();
   }
 
-  private getElementInfo(element: HTMLElement): Record<string, any> {
+  private getElementInfo(element: HTMLElement): Record<string, unknown> {
     return {
       tagName: element.tagName,
       id: element.id,
@@ -270,15 +272,15 @@ class AnalyticsTracker {
     };
   }
 
-  public trackEvent(event: string, properties?: Record<string, any>): void {
+  public trackEvent(event: string, properties?: Record<string, unknown>): void {
     if (!this.config.enabled) return;
 
     const analyticsEvent: AnalyticsEvent = {
       event,
       properties,
       timestamp: Date.now(),
-      userId: this.userId,
-      sessionId: this.sessionId,
+      userId: this.userId ?? undefined,
+      sessionId: this.sessionId ?? undefined,
     };
 
     this.events.push(analyticsEvent);
@@ -366,7 +368,7 @@ export const useAnalytics = () => {
   }, []);
 
   const trackEvent = useCallback(
-    (event: string, properties?: Record<string, any>) => {
+    (event: string, properties?: Record<string, unknown>) => {
       analyticsRef.current?.trackEvent(event, properties);
     },
     []
@@ -400,7 +402,7 @@ export const useClickTracking = (elementName: string) => {
   const { trackEvent } = useAnalytics();
 
   const trackClick = useCallback(
-    (properties?: Record<string, any>) => {
+    (properties?: Record<string, unknown>) => {
       trackEvent('click', { element: elementName, ...properties });
     },
     [elementName, trackEvent]
@@ -413,7 +415,7 @@ export const useFormTracking = (formName: string) => {
   const { trackEvent } = useAnalytics();
 
   const trackFormSubmit = useCallback(
-    (properties?: Record<string, any>) => {
+    (properties?: Record<string, unknown>) => {
       trackEvent('form_submit', { form: formName, ...properties });
     },
     [formName, trackEvent]
@@ -433,14 +435,14 @@ export const usePopupTracking = (popupName: string) => {
   const { trackEvent } = useAnalytics();
 
   const trackPopupOpen = useCallback(
-    (properties?: Record<string, any>) => {
+    (properties?: Record<string, unknown>) => {
       trackEvent('popup_open', { popup: popupName, ...properties });
     },
     [popupName, trackEvent]
   );
 
   const trackPopupClose = useCallback(
-    (properties?: Record<string, any>) => {
+    (properties?: Record<string, unknown>) => {
       trackEvent('popup_close', { popup: popupName, ...properties });
     },
     [popupName, trackEvent]

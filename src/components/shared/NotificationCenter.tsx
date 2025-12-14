@@ -10,20 +10,12 @@ import {
 } from '@/services/notificationService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
-import {
-  Bell,
-  Briefcase,
-  Calendar,
-  Loader2,
-  Mail,
-  User,
-} from 'lucide-react';
+import { Bell, Briefcase, Calendar, Loader2, Mail, User } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSlidePanel } from '@/contexts/SlidePanelContext';
 
 const NOTIFICATION_ICONS = {
-  new_jobs_discovered: Briefcase,
   email_response_received: Mail,
   meeting_reminder: Calendar,
   follow_up_reminder: User,
@@ -83,14 +75,14 @@ export const NotificationCenter: React.FC = () => {
           notification.action_type === 'navigate' &&
           notification.action_url
         ) {
-          setOpen(false);
+          closePanel();
           router.push(notification.action_url);
         }
       } catch (error) {
         console.error('Failed to handle notification click:', error);
       }
     },
-    [router, queryClient]
+    [router, queryClient, closePanel]
   );
 
   const handleMarkAllRead = useCallback(async () => {
@@ -160,12 +152,21 @@ export const NotificationCenter: React.FC = () => {
           </Button>
         }
       >
-        <Tabs value={tab} onValueChange={(v) => setTab(v as 'all' | 'unread')} className='flex flex-col h-full'>
+        <Tabs
+          value={tab}
+          onValueChange={v => setTab(v as 'all' | 'unread')}
+          className='flex flex-col h-full'
+        >
           <div className='flex items-center justify-between border-b px-3 py-2 -mx-6'>
             <TabsList className='bg-transparent'>
-              <TabsTrigger value='all' className='text-sm'>All</TabsTrigger>
+              <TabsTrigger value='all' className='text-sm'>
+                All
+              </TabsTrigger>
               <TabsTrigger value='unread' className='text-sm'>
-                Unread {unreadCount > 0 && <Badge className='ml-1'>{unreadCount}</Badge>}
+                Unread{' '}
+                {unreadCount > 0 && (
+                  <Badge className='ml-1'>{unreadCount}</Badge>
+                )}
               </TabsTrigger>
             </TabsList>
             {unreadCount > 0 && (
@@ -184,17 +185,24 @@ export const NotificationCenter: React.FC = () => {
                 <div className='flex items-center justify-center py-16'>
                   <div className='flex flex-col items-center gap-3'>
                     <Loader2 className='h-6 w-6 animate-spin text-primary' />
-                    <p className='text-sm text-muted-foreground'>Loading notifications...</p>
+                    <p className='text-sm text-muted-foreground'>
+                      Loading notifications...
+                    </p>
                   </div>
                 </div>
               ) : filteredNotifications.length === 0 ? (
                 <div className='px-3 py-6 text-center text-sm text-muted-foreground'>
-                  {tab === 'unread' ? 'No unread notifications' : 'No notifications'}
+                  {tab === 'unread'
+                    ? 'No unread notifications'
+                    : 'No notifications'}
                 </div>
               ) : (
                 <div>
                   {filteredNotifications.map(notification => {
-                    const Icon = NOTIFICATION_ICONS[notification.type] || Bell;
+                    const Icon =
+                      NOTIFICATION_ICONS[
+                        notification.type as keyof typeof NOTIFICATION_ICONS
+                      ] || Bell;
                     return (
                       <NotificationItem
                         key={notification.id}
@@ -231,7 +239,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       className='flex w-full items-start gap-3 border-b px-3 py-3 text-left hover:bg-accent transition-colors'
     >
       <div className='mt-1 text-muted-foreground flex-shrink-0'>
-        <Icon size={18} />
+        <Icon className='h-[18px] w-[18px]' />
       </div>
       <div className='flex-1 space-y-1 min-w-0'>
         <p

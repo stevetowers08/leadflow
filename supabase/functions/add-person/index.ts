@@ -18,7 +18,7 @@ interface PersonData {
   stage?: string;
   confidence_level?: string;
   lead_source?: string;
-  owner_id?: string;
+  // owner_id removed
   [key: string]: any;
 }
 

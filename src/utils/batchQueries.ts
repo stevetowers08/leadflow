@@ -31,37 +31,18 @@ export const batchFetchCompanyData = async (companyId: string) => {
   return data;
 };
 
-/**
- * Batch fetch job data with company and related leads
- */
-export const batchFetchJobData = async (jobId: string) => {
-  const { data, error } = await supabase
-    .from('jobs')
-    .select(
-      `
-      *,
-      companies!inner(*),
-      people:people(*)
-    `
-    )
-    .eq('id', jobId)
-    .single();
-
-  if (error) throw error;
-  return data;
-};
+// batchFetchJobData removed - jobs table no longer exists
 
 /**
- * Batch fetch lead data with company and related jobs
+ * Batch fetch lead data with company
  */
 export const batchFetchLeadData = async (leadId: string) => {
   const { data, error } = await supabase
-    .from('people')
+    .from('leads')
     .select(
       `
       *,
-      companies!inner(*),
-      jobs:jobs(*)
+      companies!inner(*)
     `
     )
     .eq('id', leadId)
@@ -80,43 +61,25 @@ export const batchFetchDashboardData = async () => {
   const sevenDaysFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
 
   // Parallel fetch of counts and recent data
-  const [countsResult, todayJobsResult, recentLeadsResult] = await Promise.all([
+  const [countsResult, recentLeadsResult] = await Promise.all([
     // Count queries
-    supabase.from('people').select('id', { count: 'exact', head: true }),
+    supabase.from('leads').select('id', { count: 'exact', head: true }),
     supabase.from('companies').select('id', { count: 'exact', head: true }),
-    supabase.from('jobs').select('id', { count: 'exact', head: true }),
-
-    // Today's jobs with minimal data
-    supabase
-      .from('jobs')
-      .select(
-        `
-        id,
-        title,
-        company_id,
-        location,
-        priority,
-        lead_score_job,
-        created_at,
-        companies!inner(name, logo_url, website)
-      `
-      )
-      .gte('created_at', today.toISOString().split('T')[0])
-      .order('created_at', { ascending: false })
-      .limit(5),
 
     // Recent leads with minimal data
     supabase
-      .from('people')
+      .from('leads')
       .select(
         `
         id,
-        name,
+        first_name,
+        last_name,
+        email,
+        company,
         company_id,
-        stage,
-        lead_score,
-        created_at,
-        companies!inner(name, logo_url, website)
+        status,
+        quality_rank,
+        created_at
       `
       )
       .order('created_at', { ascending: false })

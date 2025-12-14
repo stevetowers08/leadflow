@@ -9,11 +9,15 @@ import {
   XCircle,
 } from 'lucide-react';
 import { usePersonReplyAnalytics } from '../../hooks/useReplyAnalytics';
-import type { Person } from '../../types/database';
 import { getStatusDisplayText } from '../../utils/statusUtils';
 
 interface PersonReplyAnalyticsProps {
-  person: Person;
+  person: {
+    id: string;
+    name: string;
+    people_stage?: string | null;
+    reply_type?: 'interested' | 'not_interested' | 'maybe' | null;
+  };
   showDetails?: boolean;
 }
 
@@ -194,7 +198,12 @@ export function PersonReplyAnalytics({
 }
 
 interface PeopleReplySummaryProps {
-  people: Person[];
+  people: Array<{
+    id: string;
+    name: string;
+    people_stage?: string | null;
+    reply_type?: 'interested' | 'not_interested' | 'maybe' | null;
+  }>;
   showStageBreakdown?: boolean;
 }
 

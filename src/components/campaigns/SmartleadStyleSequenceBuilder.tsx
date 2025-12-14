@@ -63,7 +63,7 @@ export default function SmartleadStyleSequenceBuilder({
   sequence,
   onClose,
 }: Props) {
-  const { steps, loading, addStep, updateStep, deleteStep, reorderSteps } =
+  const { steps, isLoading, addStep, updateStep, deleteStep, reorderSteps } =
     useCampaignSteps(sequence.id);
   const { updateSequence } = useCampaignSequences();
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
@@ -91,7 +91,7 @@ export default function SmartleadStyleSequenceBuilder({
       try {
         await updateSequence.mutateAsync({
           id: sequence.id,
-          pause_on_reply: checked,
+          updates: { pause_on_reply: checked },
         });
         toast.success('Settings updated', {
           description: 'Auto-pause on reply setting saved',
@@ -250,13 +250,13 @@ export default function SmartleadStyleSequenceBuilder({
     }
   }, []);
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <Page title="Campaign Builder" loading={true}>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading campaign steps...</p>
+      <Page title='Campaign Builder' loading={true}>
+        <div className='flex items-center justify-center h-64'>
+          <div className='text-center'>
+            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4'></div>
+            <p className='text-muted-foreground'>Loading campaign steps...</p>
           </div>
         </div>
       </Page>
@@ -264,21 +264,21 @@ export default function SmartleadStyleSequenceBuilder({
   }
 
   return (
-    <div className="h-full flex flex-col bg-background overflow-hidden">
+    <div className='h-full flex flex-col bg-background overflow-hidden'>
       {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <div className='bg-card border-b border-border px-6 py-4 flex-shrink-0'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-4'>
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               onClick={onClose}
-              className="text-muted-foreground hover:text-foreground"
+              className='text-muted-foreground hover:text-foreground'
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className='w-4 h-4 mr-2' />
               Back
             </Button>
-            <div className="h-8 w-px bg-border" />
+            <div className='h-8 w-px bg-border' />
             {isEditingName ? (
               <Input
                 value={editedName}
@@ -292,40 +292,40 @@ export default function SmartleadStyleSequenceBuilder({
                     setIsEditingName(false);
                   }
                 }}
-                className="text-xl font-semibold h-8 px-2"
+                className='text-xl font-semibold h-8 px-2'
                 autoFocus
               />
             ) : (
               <button
                 onClick={() => setIsEditingName(true)}
-                className="flex items-center gap-2 group hover:bg-muted/50 rounded px-2 py-1 -ml-2 transition-colors"
-                aria-label="Edit sequence name"
+                className='flex items-center gap-2 group hover:bg-muted/50 rounded px-2 py-1 -ml-2 transition-colors'
+                aria-label='Edit sequence name'
               >
-                <h1 className="text-xl font-semibold text-foreground">
+                <h1 className='text-xl font-semibold text-foreground'>
                   {sequence.name || 'Untitled Campaign'}
                 </h1>
-                <Pencil className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Pencil className='w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity' />
               </button>
             )}
-            <Badge variant="secondary" className="capitalize">
+            <Badge variant='secondary' className='capitalize'>
               {sequence.status}
             </Badge>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">
-              <Save className="w-4 h-4 mr-2" />
+          <div className='flex items-center gap-3'>
+            <Button variant='outline' size='sm'>
+              <Save className='w-4 h-4 mr-2' />
               Save
             </Button>
-            <Button size="sm">
+            <Button size='sm'>
               {sequence.status === 'active' ? (
                 <>
-                  <Pause className="w-4 h-4 mr-2" />
+                  <Pause className='w-4 h-4 mr-2' />
                   Pause
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 mr-2" />
+                  <Play className='w-4 h-4 mr-2' />
                   Activate
                 </>
               )}
@@ -335,26 +335,26 @@ export default function SmartleadStyleSequenceBuilder({
       </div>
 
       {/* Settings Row */}
-      <div className="px-6 py-3 bg-muted/50 border-b border-border flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium text-foreground">
+      <div className='px-6 py-3 bg-muted/50 border-b border-border flex-shrink-0'>
+        <div className='flex items-center justify-between'>
+          <Label className='text-sm font-medium text-foreground'>
             Campaign Settings
           </Label>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
+          <div className='flex items-center gap-3'>
+            <div className='flex items-center gap-2'>
               <Switch
-                id="pause-on-reply"
+                id='pause-on-reply'
                 checked={pauseOnReply}
                 onCheckedChange={handlePauseOnReplyToggle}
               />
               <Label
-                htmlFor="pause-on-reply"
-                className="text-sm text-muted-foreground cursor-pointer"
+                htmlFor='pause-on-reply'
+                className='text-sm text-muted-foreground cursor-pointer'
               >
                 Auto-pause on reply
               </Label>
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className='text-xs text-muted-foreground'>
               {pauseOnReply
                 ? 'Sequence will pause when someone replies'
                 : 'Sequence will continue even after replies'}
@@ -363,32 +363,32 @@ export default function SmartleadStyleSequenceBuilder({
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className='flex flex-1 min-h-0 overflow-hidden'>
         {/* Left Panel - Vertical Timeline */}
-        <div className="w-80 bg-muted/30 border-r border-border p-6 overflow-y-auto flex-shrink-0">
-          <div className="space-y-6">
-            <div className="flex justify-center">
+        <div className='w-80 bg-muted/30 border-r border-border p-6 overflow-y-auto flex-shrink-0'>
+          <div className='space-y-6'>
+            <div className='flex justify-center'>
               <Button
                 onClick={() => setShowStepModal(true)}
-                className="flex items-center gap-2"
+                className='flex items-center gap-2'
               >
-                <Plus className="w-4 h-4" />
+                <Plus className='w-4 h-4' />
                 Add Step
               </Button>
             </div>
 
-            <div className="relative">
-              <div className="absolute left-6 top-0 bottom-0 w-px bg-border" />
+            <div className='relative'>
+              <div className='absolute left-6 top-0 bottom-0 w-px bg-border' />
 
-              <div className="space-y-4">
+              <div className='space-y-4'>
                 {steps.map((step, index) => {
                   const description = getStepDescription(step);
                   const isLast = index === steps.length - 1;
                   const isSelected = selectedStepId === step.id;
 
                   return (
-                    <div key={step.id} className="relative">
-                      <div className="absolute left-4 top-4 w-4 h-4 bg-primary/10 border-2 border-primary rounded-full flex items-center justify-center z-10">
+                    <div key={step.id} className='relative'>
+                      <div className='absolute left-4 top-4 w-4 h-4 bg-primary/10 border-2 border-primary rounded-full flex items-center justify-center z-10'>
                         {getStepIcon(step.step_type)}
                       </div>
 
@@ -400,57 +400,61 @@ export default function SmartleadStyleSequenceBuilder({
                         }`}
                         onClick={() => setSelectedStepId(step.id)}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-sm font-medium text-foreground mb-2">
+                        <CardContent className='p-4'>
+                          <div className='flex items-start justify-between'>
+                            <div className='flex-1 min-w-0'>
+                              <h3 className='text-sm font-medium text-foreground mb-2'>
                                 {getStepTitle(step, index)}
                               </h3>
 
-                              <div className="bg-muted rounded p-3 text-xs text-muted-foreground">
-                                <div className="font-medium">{description.type}</div>
-                                <div className="mt-1 truncate">{description.detail}</div>
+                              <div className='bg-muted rounded p-3 text-xs text-muted-foreground'>
+                                <div className='font-medium'>
+                                  {description.type}
+                                </div>
+                                <div className='mt-1 truncate'>
+                                  {description.detail}
+                                </div>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-1 ml-2">
+                            <div className='flex items-center gap-1 ml-2'>
                               <Button
-                                variant="ghost"
-                                size="sm"
+                                variant='ghost'
+                                size='sm'
                                 onClick={e => {
                                   e.stopPropagation();
                                   handleMoveStep(step.id, 'up');
                                 }}
                                 disabled={index === 0}
-                                className="p-1 h-6 w-6"
-                                aria-label="Move step up"
+                                className='p-1 h-6 w-6'
+                                aria-label='Move step up'
                               >
-                                <ChevronUp className="w-3 h-3" />
+                                <ChevronUp className='w-3 h-3' />
                               </Button>
                               <Button
-                                variant="ghost"
-                                size="sm"
+                                variant='ghost'
+                                size='sm'
                                 onClick={e => {
                                   e.stopPropagation();
                                   handleMoveStep(step.id, 'down');
                                 }}
                                 disabled={index === steps.length - 1}
-                                className="p-1 h-6 w-6"
-                                aria-label="Move step down"
+                                className='p-1 h-6 w-6'
+                                aria-label='Move step down'
                               >
-                                <ChevronDown className="w-3 h-3" />
+                                <ChevronDown className='w-3 h-3' />
                               </Button>
                               <Button
-                                variant="ghost"
-                                size="sm"
+                                variant='ghost'
+                                size='sm'
                                 onClick={e => {
                                   e.stopPropagation();
                                   handleDeleteClick(step.id);
                                 }}
-                                className="p-1 h-6 w-6 text-destructive hover:text-destructive"
-                                aria-label="Delete step"
+                                className='p-1 h-6 w-6 text-destructive hover:text-destructive'
+                                aria-label='Delete step'
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className='w-3 h-3' />
                               </Button>
                             </div>
                           </div>
@@ -458,16 +462,18 @@ export default function SmartleadStyleSequenceBuilder({
                       </Card>
 
                       {!isLast && (
-                        <div className="absolute left-6 top-16 w-px h-4 bg-border" />
+                        <div className='absolute left-6 top-16 w-px h-4 bg-border' />
                       )}
                     </div>
                   );
                 })}
 
                 {steps.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p className="text-sm">No steps yet</p>
-                    <p className="text-xs">Add your first step to get started</p>
+                  <div className='text-center py-8 text-muted-foreground'>
+                    <p className='text-sm'>No steps yet</p>
+                    <p className='text-xs'>
+                      Add your first step to get started
+                    </p>
                   </div>
                 )}
               </div>
@@ -476,35 +482,35 @@ export default function SmartleadStyleSequenceBuilder({
         </div>
 
         {/* Right Panel - Step Editor */}
-        <div className="flex-1 bg-background min-w-0 overflow-hidden">
+        <div className='flex-1 bg-background min-w-0 overflow-hidden'>
           {selectedStep ? (
-            <div className="h-full flex flex-col overflow-hidden">
-              <div className="border-b border-border px-6 py-4 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">
+            <div className='h-full flex flex-col overflow-hidden'>
+              <div className='border-b border-border px-6 py-4 flex-shrink-0'>
+                <div className='flex items-center justify-between'>
+                  <h2 className='text-lg font-semibold text-foreground'>
                     {getStepTitle(
                       selectedStep,
                       steps.findIndex(s => s.id === selectedStep.id)
                     )}
                   </h2>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4 mr-2" />
+                  <div className='flex items-center gap-2'>
+                    <Button variant='outline' size='sm'>
+                      <Eye className='w-4 h-4 mr-2' />
                       Preview
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Copy className="w-4 h-4 mr-2" />
+                    <Button variant='outline' size='sm'>
+                      <Copy className='w-4 h-4 mr-2' />
                       Duplicate
                     </Button>
                   </div>
                 </div>
               </div>
 
-              <div className="flex-1 p-6 space-y-6 overflow-y-auto min-h-0">
-                <div className="space-y-2">
-                  <Label htmlFor="step-name">Step Name</Label>
+              <div className='flex-1 p-6 space-y-6 overflow-y-auto min-h-0'>
+                <div className='space-y-2'>
+                  <Label htmlFor='step-name'>Step Name</Label>
                   <Input
-                    id="step-name"
+                    id='step-name'
                     value={selectedStep.name}
                     onChange={e => {
                       updateStep.mutate({
@@ -512,16 +518,16 @@ export default function SmartleadStyleSequenceBuilder({
                         updates: { name: e.target.value },
                       });
                     }}
-                    placeholder="Enter step name..."
+                    placeholder='Enter step name...'
                   />
                 </div>
 
                 {selectedStep.step_type === 'email' && (
                   <>
-                    <div className="space-y-2">
-                      <Label htmlFor="email-subject">Subject</Label>
+                    <div className='space-y-2'>
+                      <Label htmlFor='email-subject'>Subject</Label>
                       <Input
-                        id="email-subject"
+                        id='email-subject'
                         value={selectedStep.email_subject || ''}
                         onChange={e => {
                           updateStep.mutate({
@@ -529,14 +535,14 @@ export default function SmartleadStyleSequenceBuilder({
                             updates: { email_subject: e.target.value },
                           });
                         }}
-                        placeholder="Hi {{first_name}}, interested in {{company}}?"
+                        placeholder='Hi {{first_name}}, interested in {{company}}?'
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="email-body">Email Body</Label>
+                    <div className='space-y-2'>
+                      <Label htmlFor='email-body'>Email Body</Label>
                       <Textarea
-                        id="email-body"
+                        id='email-body'
                         value={selectedStep.email_body || ''}
                         onChange={e => {
                           updateStep.mutate({
@@ -544,13 +550,13 @@ export default function SmartleadStyleSequenceBuilder({
                             updates: { email_body: e.target.value },
                           });
                         }}
-                        placeholder="Enter your email content here..."
-                        className="min-h-[300px]"
+                        placeholder='Enter your email content here...'
+                        className='min-h-[300px]'
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="send-timing">Send Timing</Label>
+                    <div className='space-y-2'>
+                      <Label htmlFor='send-timing'>Send Timing</Label>
                       <Select
                         value={selectedStep.send_immediately || 'immediate'}
                         onValueChange={value => {
@@ -564,10 +570,10 @@ export default function SmartleadStyleSequenceBuilder({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="immediate">
+                          <SelectItem value='immediate'>
                             Send Immediately
                           </SelectItem>
-                          <SelectItem value="business_hours">
+                          <SelectItem value='business_hours'>
                             Send During Business Hours
                           </SelectItem>
                         </SelectContent>
@@ -594,7 +600,10 @@ export default function SmartleadStyleSequenceBuilder({
                         id: selectedStep.id,
                         updates: {
                           wait_duration: config.duration,
-                          wait_unit: config.unit,
+                          wait_unit:
+                            config.unit === 'minutes'
+                              ? 'hours'
+                              : (config.unit as 'hours' | 'days' | 'weeks'),
                           business_hours_only: config.businessHoursOnly,
                         },
                       });
@@ -604,14 +613,20 @@ export default function SmartleadStyleSequenceBuilder({
 
                 {selectedStep.step_type === 'condition' && (
                   <>
-                    <div className="space-y-2">
-                      <Label htmlFor="condition-type">Condition Type</Label>
+                    <div className='space-y-2'>
+                      <Label htmlFor='condition-type'>Condition Type</Label>
                       <Select
                         value={selectedStep.condition_type || 'opened'}
                         onValueChange={value => {
                           updateStep.mutate({
                             id: selectedStep.id,
-                            updates: { condition_type: value },
+                            updates: {
+                              condition_type: value as
+                                | 'opened'
+                                | 'clicked'
+                                | 'replied'
+                                | 'custom',
+                            },
                           });
                         }}
                       >
@@ -619,24 +634,24 @@ export default function SmartleadStyleSequenceBuilder({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="opened">Email Opened</SelectItem>
-                          <SelectItem value="clicked">Link Clicked</SelectItem>
-                          <SelectItem value="replied">Email Replied</SelectItem>
-                          <SelectItem value="bounced">Email Bounced</SelectItem>
-                          <SelectItem value="unsubscribed">
+                          <SelectItem value='opened'>Email Opened</SelectItem>
+                          <SelectItem value='clicked'>Link Clicked</SelectItem>
+                          <SelectItem value='replied'>Email Replied</SelectItem>
+                          <SelectItem value='bounced'>Email Bounced</SelectItem>
+                          <SelectItem value='unsubscribed'>
                             Unsubscribed
                           </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="condition-wait">
+                    <div className='space-y-2'>
+                      <Label htmlFor='condition-wait'>
                         Wait Duration Before Checking (hours)
                       </Label>
                       <Input
-                        id="condition-wait"
-                        type="number"
+                        id='condition-wait'
+                        type='number'
                         value={selectedStep.condition_wait_duration || 24}
                         onChange={e => {
                           updateStep.mutate({
@@ -646,26 +661,26 @@ export default function SmartleadStyleSequenceBuilder({
                             },
                           });
                         }}
-                        min="1"
+                        min='1'
                       />
                     </div>
                   </>
                 )}
               </div>
 
-              <div className="border-t border-border px-6 py-4 bg-muted/50 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
+              <div className='border-t border-border px-6 py-4 bg-muted/50 flex-shrink-0'>
+                <div className='flex items-center justify-between'>
+                  <div className='text-sm text-muted-foreground'>
                     All changes saved automatically
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <p className="text-lg mb-2">No step selected</p>
-                <p className="text-sm">
+            <div className='h-full flex items-center justify-center text-muted-foreground'>
+              <div className='text-center'>
+                <p className='text-lg mb-2'>No step selected</p>
+                <p className='text-sm'>
                   Select a step from the timeline to edit it
                 </p>
               </div>
@@ -693,7 +708,7 @@ export default function SmartleadStyleSequenceBuilder({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
             >
               Delete
             </AlertDialogAction>

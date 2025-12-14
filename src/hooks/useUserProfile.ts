@@ -21,12 +21,14 @@ export const useUserProfile = () => {
   const createFallbackProfile = useCallback((user: User): UserProfile => {
     return {
       id: user.id,
-      email: user.email,
+      email: user.email || '',
       full_name:
         user.user_metadata?.full_name || user.user_metadata?.name || 'User',
       role: 'user',
       user_limit: 100,
       is_active: true,
+      default_client_id: null,
+      metadata: {},
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

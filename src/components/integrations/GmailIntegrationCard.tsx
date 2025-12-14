@@ -122,8 +122,8 @@ export function GmailIntegrationCard() {
           </div>
           {status.connected && (
             <Badge
-              variant='success'
-              className='flex items-center gap-1.5 flex-shrink-0'
+              variant='default'
+              className='flex items-center gap-1.5 flex-shrink-0 bg-green-500 text-white border-green-600'
             >
               <CheckCircle2 className='h-3 w-3' />
               Connected

@@ -12,7 +12,7 @@ import {
   CrmSyncResult,
   EntityAction,
 } from '@/types/actions';
-import { Company, Person } from '@/types/database';
+import { Company, Lead } from '@/types/database';
 
 export class UnifiedActionService {
   /**
@@ -129,10 +129,10 @@ export class UnifiedActionService {
    * Get entities from database
    */
   private async getEntities(
-    entityType: 'company' | 'person',
+    entityType: 'company' | 'lead',
     entityIds: string[]
   ): Promise<Array<Record<string, unknown>>> {
-    const table = entityType === 'company' ? 'companies' : 'people';
+    const table = entityType === 'company' ? 'companies' : 'leads';
 
     const { data, error } = await supabase
       .from(table)
@@ -167,15 +167,15 @@ export class UnifiedActionService {
   /**
    * Map to Salesforce format
    */
-  private mapToSalesforce(entity: Company | Person): Record<string, unknown> {
-    if ('company_role' in entity) {
-      // Person entity
+  private mapToSalesforce(entity: Company | Lead): Record<string, unknown> {
+    if ('first_name' in entity || 'email' in entity) {
+      // Lead entity
       return {
-        FirstName: entity.name?.split(' ')[0] || '',
-        LastName: entity.name?.split(' ').slice(1).join(' ') || '',
-        Email: entity.email_address || '',
-        Title: entity.company_role || '',
-        Company: entity.company_name || '',
+        FirstName: entity.first_name || '',
+        LastName: entity.last_name || '',
+        Email: entity.email || '',
+        Title: entity.job_title || '',
+        Company: entity.company || '',
         Phone: entity.phone || '',
         LeadSource: 'Empowr CRM',
       };
@@ -195,15 +195,17 @@ export class UnifiedActionService {
   /**
    * Map to Pipedrive format
    */
-  private mapToPipedrive(entity: Company | Person): Record<string, unknown> {
-    if ('company_role' in entity) {
-      // Person entity
+  private mapToPipedrive(entity: Company | Lead): Record<string, unknown> {
+    if ('first_name' in entity || 'email' in entity) {
+      // Lead entity
+      const fullName =
+        `${entity.first_name || ''} ${entity.last_name || ''}`.trim();
       return {
-        name: entity.name || '',
-        email: entity.email_address || '',
+        name: fullName || '',
+        email: entity.email || '',
         phone: entity.phone || '',
-        org_name: entity.company_name || '',
-        title: entity.company_role || '',
+        org_name: entity.company || '',
+        title: entity.job_title || '',
       };
     } else {
       // Company entity
@@ -218,15 +220,15 @@ export class UnifiedActionService {
   /**
    * Map to Zoho format
    */
-  private mapToZoho(entity: Company | Person): Record<string, unknown> {
-    if ('company_role' in entity) {
-      // Person entity
+  private mapToZoho(entity: Company | Lead): Record<string, unknown> {
+    if ('first_name' in entity || 'email' in entity) {
+      // Lead entity
       return {
-        First_Name: entity.name?.split(' ')[0] || '',
-        Last_Name: entity.name?.split(' ').slice(1).join(' ') || '',
-        Email: entity.email_address || '',
-        Title: entity.company_role || '',
-        Company: entity.company_name || '',
+        First_Name: entity.first_name || '',
+        Last_Name: entity.last_name || '',
+        Email: entity.email || '',
+        Title: entity.job_title || '',
+        Company: entity.company || '',
         Phone: entity.phone || '',
       };
     } else {
@@ -268,11 +270,11 @@ export class UnifiedActionService {
    * Update local records with CRM IDs
    */
   private async updateLocalCrmIds(
-    entityType: 'company' | 'person',
+    entityType: 'company' | 'lead',
     entityIds: string[],
     crmIds: Record<string, string>
   ): Promise<void> {
-    const table = entityType === 'company' ? 'companies' : 'people';
+    const table = entityType === 'company' ? 'companies' : 'leads';
     const crmIdField =
       entityType === 'company' ? 'salesforce_id' : 'salesforce_contact_id';
 

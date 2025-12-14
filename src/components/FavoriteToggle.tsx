@@ -40,7 +40,13 @@ const FavoriteToggleComponent = ({
             : 'jobs';
 
       const { error } = await supabase
-        .from(tableName)
+        .from(
+          (tableName === 'people'
+            ? 'leads'
+            : tableName === 'jobs'
+              ? 'leads'
+              : tableName) as never
+        )
         .update({ is_favourite: newFavoriteStatus })
         .eq('id', entityId);
 

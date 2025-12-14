@@ -12,7 +12,11 @@ import { Users, Flame, Zap, Snowflake, Download } from 'lucide-react';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import type { Lead } from '@/types/database';
 import { Button } from '@/components/ui/button';
-import { exportLeadsToCSV, exportLeadsToJSON, downloadExport } from '@/services/exportService';
+import {
+  exportLeadsToCSV,
+  exportLeadsToJSON,
+  downloadExport,
+} from '@/services/exportService';
 import { toast } from 'sonner';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { FloatingActionBar } from '@/components/people/FloatingActionBar';
@@ -25,7 +29,11 @@ export default function LeadsPage() {
   const bulkSelection = useBulkSelection();
   const { data: campaigns = [] } = useAllCampaigns();
 
-  const { data: leads = [], isLoading, error } = useQuery({
+  const {
+    data: leads = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['leads'],
     queryFn: () => getLeads({ limit: 50 }), // Reduced initial load for performance
     enabled: shouldBypassAuth() || (!authLoading && !!user),
@@ -72,7 +80,7 @@ export default function LeadsPage() {
   const renderCheckbox = useCallback(
     (lead: Lead) => (
       <div
-        className="flex items-center justify-center"
+        className='flex items-center justify-center'
         data-bulk-checkbox
         onClick={e => e.stopPropagation()}
       >
@@ -91,7 +99,7 @@ export default function LeadsPage() {
       {
         key: 'checkbox',
         label: (
-          <div className="flex items-center justify-center" data-bulk-checkbox>
+          <div className='flex items-center justify-center' data-bulk-checkbox>
             <Checkbox
               checked={
                 leads.length > 0 &&
@@ -104,7 +112,7 @@ export default function LeadsPage() {
                   bulkSelection.deselectAll();
                 }
               }}
-              aria-label="Select all leads"
+              aria-label='Select all leads'
             />
           </div>
         ),
@@ -118,8 +126,10 @@ export default function LeadsPage() {
         label: 'Name',
         width: '200px',
         render: (_, lead) => {
-          const name = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || 'Unknown';
-          return <div className="font-medium">{name}</div>;
+          const name =
+            [lead.first_name, lead.last_name].filter(Boolean).join(' ') ||
+            'Unknown';
+          return <div className='font-medium'>{name}</div>;
         },
       },
       {
@@ -127,7 +137,7 @@ export default function LeadsPage() {
         label: 'Email',
         width: '250px',
         render: (_, lead) => (
-          <div className="text-muted-foreground">{lead.email || '-'}</div>
+          <div className='text-muted-foreground'>{lead.email || '-'}</div>
         ),
       },
       {
@@ -141,7 +151,7 @@ export default function LeadsPage() {
         label: 'Position',
         width: '200px',
         render: (_, lead) => (
-          <div className="text-muted-foreground">{lead.job_title || '-'}</div>
+          <div className='text-muted-foreground'>{lead.job_title || '-'}</div>
         ),
       },
       {
@@ -152,16 +162,26 @@ export default function LeadsPage() {
         render: (_, lead) => {
           const quality = lead.quality_rank || 'warm';
           const variants = {
-            hot: { icon: Flame, className: 'bg-destructive/10 text-destructive border-destructive/20' },
-            warm: { icon: Zap, className: 'bg-warning/10 text-warning border-warning/20' },
-            cold: { icon: Snowflake, className: 'bg-muted text-muted-foreground border-border' },
+            hot: {
+              icon: Flame,
+              className:
+                'bg-destructive/10 text-destructive border-destructive/20',
+            },
+            warm: {
+              icon: Zap,
+              className: 'bg-warning/10 text-warning border-warning/20',
+            },
+            cold: {
+              icon: Snowflake,
+              className: 'bg-muted text-muted-foreground border-border',
+            },
           };
           const variant = variants[quality] || variants.warm;
           const Icon = variant.icon;
-          
+
           return (
-            <Badge variant="outline" className={variant.className}>
-              <Icon className="h-3 w-3 mr-1" />
+            <Badge variant='outline' className={variant.className}>
+              <Icon className='h-3 w-3 mr-1' />
               {quality.charAt(0).toUpperCase() + quality.slice(1)}
             </Badge>
           );
@@ -180,7 +200,13 @@ export default function LeadsPage() {
             replied_manual: 'bg-primary/10 text-primary',
           };
           return (
-            <Badge variant="outline" className={statusColors[status] || statusColors.processing}>
+            <Badge
+              variant='outline'
+              className={
+                statusColors[status as keyof typeof statusColors] ||
+                statusColors.processing
+              }
+            >
               {status.replace('_', ' ')}
             </Badge>
           );
@@ -191,7 +217,7 @@ export default function LeadsPage() {
         label: 'Created',
         width: '120px',
         render: (_, lead) => (
-          <div className="text-sm text-muted-foreground">
+          <div className='text-sm text-muted-foreground'>
             {lead.created_at
               ? new Date(lead.created_at).toLocaleDateString('en-US', {
                   month: 'short',
@@ -250,7 +276,8 @@ export default function LeadsPage() {
       });
     } catch (error) {
       console.error('Export error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Please try again';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Please try again';
       toast.error('Export failed', {
         description: errorMessage,
       });
@@ -266,16 +293,22 @@ export default function LeadsPage() {
         return;
       }
 
-      const selectedLeadIds = bulkSelection.getSelectedIds(leads.map(l => l.id));
-      
+      const selectedLeadIds = bulkSelection.getSelectedIds(
+        leads.map(l => l.id)
+      );
+
       if (selectedLeadIds.length === 0) {
         toast.error('Error', { description: 'No leads selected' });
         return;
       }
 
       try {
-        const result = await bulkAddLeadsToCampaign(selectedLeadIds, campaignId, user.id);
-        
+        const result = await bulkAddLeadsToCampaign(
+          selectedLeadIds,
+          campaignId,
+          user.id
+        );
+
         if (result.success > 0) {
           toast.success('Success', {
             description: `Added ${result.success} lead(s) to ${campaignType === 'lemlist' ? 'Lemlist' : 'email'} campaign${result.failed > 0 ? ` (${result.failed} failed)` : ''}`,
@@ -283,13 +316,17 @@ export default function LeadsPage() {
           bulkSelection.deselectAll();
         } else {
           toast.error('Error', {
-            description: result.errors[0]?.error || 'Failed to add leads to campaign',
+            description:
+              result.errors[0]?.error || 'Failed to add leads to campaign',
           });
         }
       } catch (error) {
         console.error('Error adding leads to campaign:', error);
         toast.error('Error', {
-          description: error instanceof Error ? error.message : 'Failed to add leads to campaign',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Failed to add leads to campaign',
         });
       }
     },
@@ -318,59 +355,63 @@ export default function LeadsPage() {
 
   if (error) {
     return (
-      <Page stats={pageStats} title="Leads">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-destructive">Error loading leads</div>
+      <Page stats={pageStats} title='Leads'>
+        <div className='flex items-center justify-center h-64'>
+          <div className='text-destructive'>Error loading leads</div>
         </div>
       </Page>
     );
   }
 
   return (
-    <Page stats={pageStats} title="Leads" loading={isLoading}>
-      <div className="flex flex-col min-w-0 w-full">
-        <div className="flex items-center justify-between gap-2 mb-4 flex-shrink-0 w-full">
+    <Page stats={pageStats} title='Leads' loading={isLoading}>
+      <div className='flex flex-col min-w-0 w-full'>
+        <div className='flex items-center justify-between gap-2 mb-4 flex-shrink-0 w-full'>
           {actualSelectedCount > 0 && (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Badge variant="secondary">
-                {actualSelectedCount} {actualSelectedCount === 1 ? 'lead' : 'leads'} selected
+            <div className='flex items-center gap-2 flex-shrink-0'>
+              <Badge variant='secondary'>
+                {actualSelectedCount}{' '}
+                {actualSelectedCount === 1 ? 'lead' : 'leads'} selected
               </Badge>
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 onClick={() => bulkSelection.deselectAll()}
               >
                 Clear selection
               </Button>
             </div>
           )}
-          <div className="flex gap-2 ml-auto flex-shrink-0">
+          <div className='flex gap-2 ml-auto flex-shrink-0'>
             <Button
-              variant="outline"
-              size="sm"
+              variant='outline'
+              size='sm'
               onClick={() => handleExport('csv')}
               disabled={isExporting || leads.length === 0}
             >
-              <Download className="h-4 w-4 mr-2" />
+              <Download className='h-4 w-4 mr-2' />
               Export CSV
             </Button>
             <Button
-              variant="outline"
-              size="sm"
+              variant='outline'
+              size='sm'
               onClick={() => handleExport('json')}
               disabled={isExporting || leads.length === 0}
             >
-              <Download className="h-4 w-4 mr-2" />
+              <Download className='h-4 w-4 mr-2' />
               Export JSON
             </Button>
           </div>
         </div>
-        <div className="w-full min-w-0 flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 280px)' }}>
+        <div
+          className='w-full min-w-0 flex-1'
+          style={{ minHeight: '400px', maxHeight: 'calc(100vh - 280px)' }}
+        >
           <UnifiedTable
             data={leads}
             columns={columns}
             loading={isLoading}
-            emptyMessage="No leads captured yet. Start by capturing your first business card!"
+            emptyMessage='No leads captured yet. Start by capturing your first business card!'
             scrollable
             stickyHeaders
           />

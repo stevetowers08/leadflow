@@ -31,7 +31,6 @@ export interface DashboardChartData {
 }
 
 export class DashboardDataService {
-
   /**
    * Fetch recent activities (email threads + interactions)
    * Respects RLS by filtering through client relationships
@@ -53,9 +52,7 @@ export class DashboardDataService {
       // Fetch recent activities from activity_log
       const { data: activityData, error: activityError } = await supabase
         .from('activity_log')
-        .select(
-          'id, activity_type, timestamp, metadata, lead_id'
-        )
+        .select('id, activity_type, timestamp, metadata, lead_id')
         .order('timestamp', { ascending: false })
         .limit(20);
 
@@ -83,15 +80,14 @@ export class DashboardDataService {
             .in('id', leadIds);
 
           if (leadsError) {
-            console.error(
-              '[DashboardDataService] Query error:',
-              leadsError
-            );
+            console.error('[DashboardDataService] Query error:', leadsError);
           } else if (leadsData) {
             // Map leads for activity display
             leadsData.forEach(lead => {
               peopleMap.set(lead.id, {
-                name: `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown',
+                name:
+                  `${lead.first_name || ''} ${lead.last_name || ''}`.trim() ||
+                  'Unknown',
                 company_name: lead.company || undefined,
               });
             });
@@ -119,10 +115,18 @@ export class DashboardDataService {
           activities.push({
             id: activity.id,
             type: activityType,
-            title: (metadata?.subject as string) || activity.activity_type || 'Activity',
+            title:
+              (metadata?.subject as string) ||
+              activity.activity_type ||
+              'Activity',
             description:
-              (metadata?.content as string) || activity.activity_type || 'No details',
-            timestamp: activity.timestamp || activity.created_at || new Date().toISOString(),
+              (metadata?.content as string) ||
+              activity.activity_type ||
+              'No details',
+            timestamp:
+              activity.timestamp ||
+              activity.created_at ||
+              new Date().toISOString(),
             person_id: activity.lead_id, // Using lead_id as person_id for compatibility
           });
         });
@@ -163,7 +167,7 @@ export class DashboardDataService {
 
       const [leadsRes, companiesRes] = await Promise.all([
         supabase
-          .from('people')
+          .from('leads')
           .select('id', { count: 'exact', head: true })
           .gte('created_at', today),
         supabase
@@ -213,9 +217,9 @@ export class DashboardDataService {
 
     // Fetch all data for past 7 days in parallel
     // RLS policies should automatically filter by client_id
-    const [peopleRes, companiesRes, repliesRes] = await Promise.all([
+    const [leadsRes, companiesRes, repliesRes] = await Promise.all([
       supabase
-        .from('people')
+        .from('leads')
         .select('created_at')
         .gte('created_at', sevenDaysAgoISO)
         .catch(err => {

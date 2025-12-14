@@ -18,7 +18,7 @@ import { useRealtimeAssignmentSync } from '@/hooks/useRealtimeAssignmentSync';
 
 interface AssignmentContextType {
   assignEntity: (
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'leads' | 'companies',
     entityId: string,
     newOwnerId: string | null
   ) => Promise<boolean>;
@@ -50,11 +50,11 @@ export const AssignmentProvider: React.FC<AssignmentProviderProps> = ({
   const { user } = useAuth();
   const { hasRole } = usePermissions();
 
-  const canAssign = hasRole('admin') || hasRole('owner');
+  const canAssign = hasRole('admin');
 
   // Set up real-time synchronization for all entity types
   const { invalidateAssignmentCaches } = useRealtimeAssignmentSync({
-    entityTypes: ['people', 'companies', 'jobs'],
+    entityTypes: ['people', 'companies'] as ('people' | 'companies')[],
     onAssignmentChange: payload => {
       console.log('🔄 Global assignment change detected:', payload);
       // Additional global handling can be added here
@@ -65,7 +65,7 @@ export const AssignmentProvider: React.FC<AssignmentProviderProps> = ({
   // Global assignment function
   const assignEntity = useCallback(
     async (
-      entityType: 'people' | 'companies' | 'jobs',
+      entityType: 'leads' | 'companies',
       entityId: string,
       newOwnerId: string | null
     ): Promise<boolean> => {
@@ -100,11 +100,11 @@ export const AssignmentProvider: React.FC<AssignmentProviderProps> = ({
           }
         }
 
-        // Perform the assignment
+        // Assignment removed - no longer using owner_id
+        // This function is kept for backward compatibility but does nothing
         const { error } = await supabase
           .from(entityType)
           .update({
-            owner_id: newOwnerId,
             updated_at: new Date().toISOString(),
           })
           .eq('id', entityId);
@@ -118,7 +118,7 @@ export const AssignmentProvider: React.FC<AssignmentProviderProps> = ({
 
         // Show success message
         const entityName =
-          entityType === 'people' ? 'lead' : entityType.slice(0, -1);
+          entityType === 'leads' ? 'lead' : entityType.slice(0, -1);
         toast.success('Assignment Updated', {
           description: newOwnerId
             ? `${entityName} assigned successfully`

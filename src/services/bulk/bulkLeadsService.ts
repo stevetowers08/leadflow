@@ -1,8 +1,7 @@
 /**
  * Bulk Leads Service
- * 
- * Handles bulk operations for leads, including converting leads to people
- * and adding them to campaigns (both email and Lemlist)
+ *
+ * Handles bulk operations for leads and adding them to campaigns (both email and Lemlist)
  */
 
 import { supabase } from '@/integrations/supabase/client';
@@ -11,19 +10,15 @@ import { bulkAddPeopleToLemlistCampaign } from '../bulkLemlistService';
 import type { Lead } from '@/types/database';
 
 /**
- * Find or create people from leads
- * Matches by email, creates new people if not found
+ * Get lead IDs from leads (leads are already in the leads table)
  */
-async function findOrCreatePeopleFromLeads(
-  leads: Lead[],
-  userId: string
-): Promise<{ 
-  personIds: string[]; 
-  leadToPersonMap: Map<string, string>; // Maps lead ID to person ID
-  errors: Array<{ leadId: string; error: string }> 
+async function getLeadIdsFromLeads(leads: Lead[]): Promise<{
+  leadIds: string[];
+  leadToLeadMap: Map<string, string>; // Maps lead ID to lead ID (identity map)
+  errors: Array<{ leadId: string; error: string }>;
 }> {
-  const personIds: string[] = [];
-  const leadToPersonMap = new Map<string, string>();
+  const leadIds: string[] = [];
+  const leadToLeadMap = new Map<string, string>();
   const errors: Array<{ leadId: string; error: string }> = [];
 
   for (const lead of leads) {
@@ -36,74 +31,9 @@ async function findOrCreatePeopleFromLeads(
         continue;
       }
 
-      // Try to find existing person by email
-      const { data: existingPerson } = await supabase
-        .from('people')
-        .select('id')
-        .eq('email_address', lead.email.toLowerCase())
-        .single();
-
-      if (existingPerson) {
-        personIds.push(existingPerson.id);
-        leadToPersonMap.set(lead.id, existingPerson.id);
-        continue;
-      }
-
-      // Create new person from lead
-      const name = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || 'Unknown';
-      
-      // Find or create company if company name exists
-      let companyId: string | null = null;
-      if (lead.company) {
-        const { data: existingCompany } = await supabase
-          .from('companies')
-          .select('id')
-          .ilike('name', lead.company)
-          .single();
-
-        if (existingCompany) {
-          companyId = existingCompany.id;
-        } else {
-          // Create new company
-          const { data: newCompany } = await supabase
-            .from('companies')
-            .insert({
-              name: lead.company,
-              owner_id: userId,
-            })
-            .select('id')
-            .single();
-
-          if (newCompany) {
-            companyId = newCompany.id;
-          }
-        }
-      }
-
-      // Create person
-      const { data: newPerson, error: personError } = await supabase
-        .from('people')
-        .insert({
-          name,
-          email_address: lead.email.toLowerCase(),
-          company_id: companyId,
-          company_role: lead.job_title || null,
-          owner_id: userId,
-          lead_source: 'lead_capture',
-        })
-        .select('id')
-        .single();
-
-      if (personError || !newPerson) {
-        errors.push({
-          leadId: lead.id,
-          error: personError?.message || 'Failed to create person',
-        });
-        continue;
-      }
-
-      personIds.push(newPerson.id);
-      leadToPersonMap.set(lead.id, newPerson.id);
+      // Leads are already in the leads table, just use their IDs
+      leadIds.push(lead.id);
+      leadToLeadMap.set(lead.id, lead.id);
     } catch (error) {
       errors.push({
         leadId: lead.id,
@@ -112,7 +42,7 @@ async function findOrCreatePeopleFromLeads(
     }
   }
 
-  return { personIds, leadToPersonMap, errors };
+  return { leadIds, leadToLeadMap: leadToLeadMap, errors };
 }
 
 /**
@@ -122,10 +52,18 @@ export async function bulkAddLeadsToCampaign(
   leadIds: string[],
   campaignId: string,
   userId: string
-): Promise<{ success: number; failed: number; errors: Array<{ leadId: string; error: string }> }> {
+): Promise<{
+  success: number;
+  failed: number;
+  errors: Array<{ leadId: string; error: string }>;
+}> {
   try {
-    console.log('[bulkAddLeadsToCampaign] Starting', { leadIds: leadIds.length, campaignId, userId });
-    
+    console.log('[bulkAddLeadsToCampaign] Starting', {
+      leadIds: leadIds.length,
+      campaignId,
+      userId,
+    });
+
     // Fetch leads
     const { data: leads, error: leadsError } = await supabase
       .from('leads')
@@ -133,26 +71,41 @@ export async function bulkAddLeadsToCampaign(
       .in('id', leadIds);
 
     if (leadsError || !leads) {
-      console.error('[bulkAddLeadsToCampaign] Failed to fetch leads', leadsError);
+      console.error(
+        '[bulkAddLeadsToCampaign] Failed to fetch leads',
+        leadsError
+      );
       return {
         success: 0,
         failed: leadIds.length,
-        errors: [{ leadId: 'all', error: leadsError?.message || 'Failed to fetch leads' }],
+        errors: [
+          {
+            leadId: 'all',
+            error: leadsError?.message || 'Failed to fetch leads',
+          },
+        ],
       };
     }
 
     console.log('[bulkAddLeadsToCampaign] Fetched leads', leads.length);
 
-    // Convert leads to people
-    const { personIds, leadToPersonMap, errors: conversionErrors } = await findOrCreatePeopleFromLeads(leads, userId);
+    // Get lead IDs (leads are already in the leads table)
+    const {
+      leadIds,
+      leadToLeadMap,
+      errors: conversionErrors,
+    } = await getLeadIdsFromLeads(leads);
 
-    console.log('[bulkAddLeadsToCampaign] Converted to people', { 
-      personIds: personIds.length, 
-      conversionErrors: conversionErrors.length 
+    console.log('[bulkAddLeadsToCampaign] Processing leads', {
+      leadIds: leadIds.length,
+      conversionErrors: conversionErrors.length,
     });
 
-    if (personIds.length === 0) {
-      console.error('[bulkAddLeadsToCampaign] No people created', conversionErrors);
+    if (leadIds.length === 0) {
+      console.error(
+        '[bulkAddLeadsToCampaign] No valid leads',
+        conversionErrors
+      );
       return {
         success: 0,
         failed: leadIds.length,
@@ -162,21 +115,22 @@ export async function bulkAddLeadsToCampaign(
 
     // Check if it's a Lemlist campaign (ID starts with "cam_")
     const isLemlistCampaign = campaignId.startsWith('cam_');
-    console.log('[bulkAddLeadsToCampaign] Campaign type', { isLemlistCampaign, campaignId });
+    console.log('[bulkAddLeadsToCampaign] Campaign type', {
+      isLemlistCampaign,
+      campaignId,
+    });
 
     if (isLemlistCampaign) {
-      // Use Lemlist service
-      const result = await bulkAddPeopleToLemlistCampaign(userId, campaignId, personIds);
-      
-      // Map person IDs back to lead IDs for error reporting
-      // Create reverse map (person ID -> lead ID)
-      const personToLeadMap = new Map<string, string>();
-      leadToPersonMap.forEach((personId, leadId) => {
-        personToLeadMap.set(personId, leadId);
-      });
+      // Use Lemlist service - convert leads to format needed
+      const result = await bulkAddPeopleToLemlistCampaign(
+        userId,
+        campaignId,
+        leadIds
+      );
 
+      // Map lead IDs back to lead IDs for error reporting (identity map)
       const mappedErrors = result.errors.map(err => ({
-        leadId: personToLeadMap.get(err.personId) || 'unknown',
+        leadId: err.personId || 'unknown',
         error: err.error,
       }));
 
@@ -187,15 +141,12 @@ export async function bulkAddLeadsToCampaign(
       };
     } else {
       // Use regular email campaign service
-      console.log('[bulkAddLeadsToCampaign] Adding to email campaign', { personIds: personIds.length, campaignId });
-      const result = await bulkAddToCampaign(personIds, campaignId);
-      console.log('[bulkAddLeadsToCampaign] Email campaign result', result);
-      
-      // Map person IDs back to lead IDs for error reporting
-      const personToLeadMap = new Map<string, string>();
-      leadToPersonMap.forEach((personId, leadId) => {
-        personToLeadMap.set(personId, leadId);
+      console.log('[bulkAddLeadsToCampaign] Adding to email campaign', {
+        leadIds: leadIds.length,
+        campaignId,
       });
+      const result = await bulkAddToCampaign(leadIds, campaignId);
+      console.log('[bulkAddLeadsToCampaign] Email campaign result', result);
 
       return {
         success: result.successCount,
@@ -203,7 +154,7 @@ export async function bulkAddLeadsToCampaign(
         errors: [
           ...conversionErrors,
           ...result.errors.map(err => ({
-            leadId: personToLeadMap.get(err.id) || 'unknown',
+            leadId: err.id || 'unknown',
             error: err.error,
           })),
         ],
@@ -214,8 +165,12 @@ export async function bulkAddLeadsToCampaign(
     return {
       success: 0,
       failed: leadIds.length,
-      errors: [{ leadId: 'all', error: error instanceof Error ? error.message : 'Unknown error' }],
+      errors: [
+        {
+          leadId: 'all',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      ],
     };
   }
 }
-

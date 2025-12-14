@@ -8,12 +8,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export const REALTIME_CONFIG = {
   // Different subscription types for different data
   SUBSCRIPTION_TYPES: {
-    PEOPLE: 'people',
     COMPANIES: 'companies',
-    JOBS: 'jobs',
-    INTERACTIONS: 'interactions',
-    CAMPAIGNS: 'campaigns',
-    CAMPAIGN_PARTICIPANTS: 'campaign_participants',
+    LEADS: 'leads',
     USER_PROFILES: 'user_profiles',
   },
 
@@ -50,7 +46,11 @@ export function useRealtimeSubscription(
   const { toast } = useToast();
   const channelRef = useRef<RealtimeChannel | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [lastEvent, setLastEvent] = useState<{ eventType: string; payload: unknown; timestamp: Date } | null>(null);
+  const [lastEvent, setLastEvent] = useState<{
+    eventType: string;
+    payload: unknown;
+    timestamp: Date;
+  } | null>(null);
 
   const {
     events = [REALTIME_CONFIG.EVENTS.ALL],
@@ -117,39 +117,88 @@ export function useRealtimeSubscription(
   useEffect(() => {
     if (!enabled) return;
 
-    const channel = supabase
-      .channel(`${table}-changes`)
-      .on(
+    const channel = supabase.channel(`${table}-changes`);
+
+    // Subscribe to each event type separately
+    if (events.includes('*') || events.includes('INSERT')) {
+      channel.on(
         'postgres_changes',
         {
-          event: events.includes('*') ? '*' : events.join(','),
+          event: 'INSERT',
           schema: 'public',
           table: table,
           filter: filter,
         },
-        payload => {
-          debouncedEventHandler(payload.eventType, payload);
+        (payload: {
+          eventType?: 'INSERT' | 'UPDATE' | 'DELETE';
+          new?: Record<string, unknown>;
+          old?: Record<string, unknown>;
+          [key: string]: unknown;
+        }) => {
+          debouncedEventHandler('INSERT', payload);
         }
-      )
-      .subscribe(status => {
-        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-          console.log(`📡 Real-time subscription status for ${table}:`, status);
-        }
-        setIsConnected(status === 'SUBSCRIBED');
+      );
+    }
 
-        if (status === 'SUBSCRIBED') {
-          if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-            console.log(`✅ Successfully subscribed to ${table} changes`);
-          }
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error(`❌ Error subscribing to ${table} changes`);
-          toast({
-            title: 'Connection Error',
-            description: `Failed to connect to real-time updates for ${table}`,
-            variant: 'destructive',
-          });
+    if (events.includes('*') || events.includes('UPDATE')) {
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: table,
+          filter: filter,
+        },
+        (payload: {
+          eventType?: 'INSERT' | 'UPDATE' | 'DELETE';
+          new?: Record<string, unknown>;
+          old?: Record<string, unknown>;
+          [key: string]: unknown;
+        }) => {
+          debouncedEventHandler('UPDATE', payload);
         }
-      });
+      );
+    }
+
+    if (events.includes('*') || events.includes('DELETE')) {
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: table,
+          filter: filter,
+        },
+        (payload: {
+          eventType?: 'INSERT' | 'UPDATE' | 'DELETE';
+          new?: Record<string, unknown>;
+          old?: Record<string, unknown>;
+          [key: string]: unknown;
+        }) => {
+          debouncedEventHandler('DELETE', payload);
+        }
+      );
+    }
+
+    channel.subscribe(status => {
+      if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+        console.log(`📡 Real-time subscription status for ${table}:`, status);
+      }
+      setIsConnected(status === 'SUBSCRIBED');
+
+      if (status === 'SUBSCRIBED') {
+        if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
+          console.log(`✅ Successfully subscribed to ${table} changes`);
+        }
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error(`❌ Error subscribing to ${table} changes`);
+        toast({
+          title: 'Connection Error',
+          description: `Failed to connect to real-time updates for ${table}`,
+          variant: 'destructive',
+        });
+      }
+    });
 
     channelRef.current = channel;
 
@@ -207,7 +256,9 @@ export function useMultiTableRealtime(
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [connections, setConnections] = useState<Record<string, boolean>>({});
-  const [lastEvents, setLastEvents] = useState<Record<string, { eventType: string; payload: unknown; timestamp: Date }>>({});
+  const [lastEvents, setLastEvents] = useState<
+    Record<string, { eventType: string; payload: unknown; timestamp: Date }>
+  >({});
 
   const { enabled = true, debounceMs = 100 } = options;
 
@@ -217,30 +268,41 @@ export function useMultiTableRealtime(
 
     const channels: RealtimeChannel[] = [];
     const connectionStates: Record<string, boolean> = {};
-    const eventStates: Record<string, { eventType: string; payload: unknown; timestamp: Date }> = {};
+    const eventStates: Record<
+      string,
+      { eventType: string; payload: unknown; timestamp: Date }
+    > = {};
 
     tables.forEach(
       ({ table, events = ['*'], filter, onInsert, onUpdate, onDelete }) => {
-        const channel = supabase
-          .channel(`${table}-multi-subscription`)
-          .on(
+        const channel = supabase.channel(`${table}-multi-subscription`);
+
+        // Subscribe to each event type separately
+        if (events.includes('*') || events.includes('INSERT')) {
+          channel.on(
             'postgres_changes',
             {
-              event: events.includes('*') ? '*' : events.join(','),
+              event: 'INSERT',
               schema: 'public',
               table: table,
               filter: filter,
             },
-            payload => {
+            (payload: {
+              eventType?: 'INSERT' | 'UPDATE' | 'DELETE';
+              new?: Record<string, unknown>;
+              old?: Record<string, unknown>;
+              [key: string]: unknown;
+            }) => {
               // Debounced event handling
               setTimeout(() => {
+                const eventType = 'INSERT';
                 console.log(
-                  `🔄 Multi-table ${payload.eventType} event for ${table}:`,
+                  `🔄 Multi-table ${eventType} event for ${table}:`,
                   payload
                 );
 
                 eventStates[table] = {
-                  eventType: payload.eventType,
+                  eventType,
                   payload,
                   timestamp: new Date(),
                 };
@@ -251,36 +313,110 @@ export function useMultiTableRealtime(
                 queryClient.invalidateQueries({ queryKey: ['dashboard'] });
 
                 // Call custom handlers
-                switch (payload.eventType) {
-                  case REALTIME_CONFIG.EVENTS.INSERT:
-                    if (onInsert) onInsert(payload);
-                    break;
-                  case REALTIME_CONFIG.EVENTS.UPDATE:
-                    if (onUpdate) onUpdate(payload);
-                    break;
-                  case REALTIME_CONFIG.EVENTS.DELETE:
-                    if (onDelete) onDelete(payload);
-                    break;
-                }
+                if (onInsert) onInsert(payload);
               }, debounceMs);
             }
-          )
-          .subscribe(status => {
-            console.log(
-              `📡 Multi-table subscription status for ${table}:`,
-              status
-            );
-            connectionStates[table] = status === 'SUBSCRIBED';
-            setConnections({ ...connectionStates });
+          );
+        }
 
-            if (status === 'CHANNEL_ERROR') {
-              toast({
-                title: 'Connection Error',
-                description: `Failed to connect to real-time updates for ${table}`,
-                variant: 'destructive',
-              });
+        if (events.includes('*') || events.includes('UPDATE')) {
+          channel.on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: table,
+              filter: filter,
+            },
+            (payload: {
+              eventType?: 'INSERT' | 'UPDATE' | 'DELETE';
+              new?: Record<string, unknown>;
+              old?: Record<string, unknown>;
+              [key: string]: unknown;
+            }) => {
+              // Debounced event handling
+              setTimeout(() => {
+                const eventType = 'UPDATE';
+                console.log(
+                  `🔄 Multi-table ${eventType} event for ${table}:`,
+                  payload
+                );
+
+                eventStates[table] = {
+                  eventType,
+                  payload,
+                  timestamp: new Date(),
+                };
+                setLastEvents({ ...eventStates });
+
+                // Invalidate queries
+                queryClient.invalidateQueries({ queryKey: [table] });
+                queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+
+                // Call custom handlers
+                if (onUpdate) onUpdate(payload);
+              }, debounceMs);
             }
-          });
+          );
+        }
+
+        if (events.includes('*') || events.includes('DELETE')) {
+          channel.on(
+            'postgres_changes',
+            {
+              event: 'DELETE',
+              schema: 'public',
+              table: table,
+              filter: filter,
+            },
+            (payload: {
+              eventType?: 'INSERT' | 'UPDATE' | 'DELETE';
+              new?: Record<string, unknown>;
+              old?: Record<string, unknown>;
+              [key: string]: unknown;
+            }) => {
+              // Debounced event handling
+              setTimeout(() => {
+                const eventType = 'DELETE';
+                console.log(
+                  `🔄 Multi-table ${eventType} event for ${table}:`,
+                  payload
+                );
+
+                eventStates[table] = {
+                  eventType,
+                  payload,
+                  timestamp: new Date(),
+                };
+                setLastEvents({ ...eventStates });
+
+                // Invalidate queries
+                queryClient.invalidateQueries({ queryKey: [table] });
+                queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+
+                // Call custom handlers
+                if (onDelete) onDelete(payload);
+              }, debounceMs);
+            }
+          );
+        }
+
+        channel.subscribe(status => {
+          console.log(
+            `📡 Multi-table subscription status for ${table}:`,
+            status
+          );
+          connectionStates[table] = status === 'SUBSCRIBED';
+          setConnections({ ...connectionStates });
+
+          if (status === 'CHANNEL_ERROR') {
+            toast({
+              title: 'Connection Error',
+              description: `Failed to connect to real-time updates for ${table}`,
+              variant: 'destructive',
+            });
+          }
+        });
 
         channels.push(channel);
       }
@@ -396,6 +532,21 @@ export function useRealtimePresence(
       await channelRef.current.track(data);
     }
   }, []);
+
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    const channel = channelRef.current;
+    if (channel) {
+      const checkConnection = () => {
+        setIsConnected(channel.state === 'joined');
+      };
+      checkConnection();
+      // Check connection status periodically
+      const interval = setInterval(checkConnection, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [channelName, enabled]);
 
   return {
     presence,

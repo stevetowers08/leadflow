@@ -44,10 +44,10 @@ export const useSearchFilter = (
   // Load state from URL or localStorage
   useEffect(() => {
     if (persistInUrl) {
-      const urlSearchTerm = searchParams.get('search') || '';
+      const urlSearchTerm = searchParams?.get('search') || '';
       const urlFilters: Record<string, string> = {};
 
-      searchParams.forEach((value, key) => {
+      searchParams?.forEach((value, key) => {
         if (key !== 'search') {
           urlFilters[key] = value;
         }
@@ -67,7 +67,10 @@ export const useSearchFilter = (
           }
         } catch (error) {
           if (process.env.NODE_ENV === 'development') {
-            console.warn('Failed to load search filters from localStorage:', error);
+            console.warn(
+              'Failed to load search filters from localStorage:',
+              error
+            );
           }
         }
       }
@@ -77,7 +80,7 @@ export const useSearchFilter = (
   // Save state to URL or localStorage
   const saveState = useCallback(() => {
     if (persistInUrl) {
-      const urlParams = new URLSearchParams(searchParams.toString());
+      const urlParams = new URLSearchParams(searchParams?.toString() || '');
 
       if (debouncedSearchTerm) {
         urlParams.set('search', debouncedSearchTerm);
@@ -94,7 +97,9 @@ export const useSearchFilter = (
       });
 
       const queryString = urlParams.toString();
-      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      const newUrl = queryString
+        ? `${pathname || ''}?${queryString}`
+        : pathname || '';
       router.replace(newUrl);
     } else {
       // Save to localStorage

@@ -1,6 +1,12 @@
 import { useToast } from '@/hooks/use-toast';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 export interface RetryConfig {
   maxRetries: number;
@@ -24,18 +30,27 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxDelay: 10000,
   backoffMultiplier: 2,
   jitter: true,
-  retryCondition: error => {
+  retryCondition: (error: unknown) => {
     // Retry on network errors, timeouts, and 5xx server errors
-    if (error.name === 'AbortError' || error.message?.includes('timeout'))
+    const err = error as {
+      name?: string;
+      message?: string;
+      status?: number;
+      code?: string;
+    };
+    if (err.name === 'AbortError' || err.message?.includes('timeout'))
       return true;
-    if (error.status >= 500) return true;
-    if (error.code === 'NETWORK_ERROR') return true;
+    if (err.status !== undefined && err.status >= 500) return true;
+    if (err.code === 'NETWORK_ERROR') return true;
     return false;
   },
 };
 
 export function useRetryLogic(config: Partial<RetryConfig> = {}) {
-  const retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config };
+  const retryConfig = useMemo(
+    () => ({ ...DEFAULT_RETRY_CONFIG, ...config }),
+    [config]
+  );
   const [retryState, setRetryState] = useState<RetryState>({
     isRetrying: false,
     retryCount: 0,
@@ -154,14 +169,7 @@ export function useRetryLogic(config: Partial<RetryConfig> = {}) {
 
       throw lastError;
     },
-    [
-      retryConfig,
-      retryState.retryCount,
-      shouldRetry,
-      calculateDelay,
-      toast,
-      logError,
-    ]
+    [retryConfig, shouldRetry, calculateDelay, toast, logError]
   );
 
   const cancelRetry = useCallback(() => {
@@ -210,13 +218,19 @@ export function useRetryLogic(config: Partial<RetryConfig> = {}) {
 export function useNetworkRetry(config: Partial<RetryConfig> = {}) {
   return useRetryLogic({
     ...config,
-    retryCondition: error => {
+    retryCondition: (error: unknown) => {
       // Network-specific retry conditions
-      if (error.name === 'AbortError') return true;
-      if (error.code === 'NETWORK_ERROR') return true;
-      if (error.message?.includes('fetch')) return true;
-      if (error.status >= 500) return true;
-      if (error.status === 408) return true; // Request timeout
+      const err = error as {
+        name?: string;
+        code?: string;
+        message?: string;
+        status?: number;
+      };
+      if (err.name === 'AbortError') return true;
+      if (err.code === 'NETWORK_ERROR') return true;
+      if (err.message?.includes('fetch')) return true;
+      if (err.status !== undefined && err.status >= 500) return true;
+      if (err.status === 408) return true; // Request timeout
       return false;
     },
   });
@@ -225,12 +239,13 @@ export function useNetworkRetry(config: Partial<RetryConfig> = {}) {
 export function useApiRetry(config: Partial<RetryConfig> = {}) {
   return useRetryLogic({
     ...config,
-    retryCondition: error => {
+    retryCondition: (error: unknown) => {
       // API-specific retry conditions
-      if (error.status >= 500) return true;
-      if (error.status === 408) return true; // Request timeout
-      if (error.status === 429) return true; // Rate limited
-      if (error.code === 'NETWORK_ERROR') return true;
+      const err = error as { status?: number; code?: string };
+      if (err.status !== undefined && err.status >= 500) return true;
+      if (err.status === 408) return true; // Request timeout
+      if (err.status === 429) return true; // Rate limited
+      if (err.code === 'NETWORK_ERROR') return true;
       return false;
     },
   });
@@ -239,11 +254,12 @@ export function useApiRetry(config: Partial<RetryConfig> = {}) {
 export function useDatabaseRetry(config: Partial<RetryConfig> = {}) {
   return useRetryLogic({
     ...config,
-    retryCondition: error => {
+    retryCondition: (error: unknown) => {
       // Database-specific retry conditions
-      if (error.code === 'PGRST301') return true; // Connection timeout
-      if (error.code === 'PGRST116') return true; // Row level security
-      if (error.status >= 500) return true;
+      const err = error as { code?: string; status?: number };
+      if (err.code === 'PGRST301') return true; // Connection timeout
+      if (err.code === 'PGRST116') return true; // Row level security
+      if (err.status !== undefined && err.status >= 500) return true;
       return false;
     },
   });

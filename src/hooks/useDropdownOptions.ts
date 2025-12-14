@@ -26,7 +26,7 @@ export const useDatabaseDropdowns = (dropdownType: string) => {
 
         const { data, error } = await supabase.rpc('get_dropdown_options', {
           dropdown_type: dropdownType,
-        });
+        } as never);
 
         if (error) throw error;
 
@@ -70,7 +70,7 @@ export const useReferenceOptions = (
     const fetchReferenceOptions = async () => {
       try {
         const { data, error } = await supabase
-          .from(tableName)
+          .from(tableName as never)
           .select('id, name')
           .order('name');
 

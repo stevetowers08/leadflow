@@ -4,10 +4,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { SmallSlidePanel } from '@/components/ui/SmallSlidePanel';
 import { useClientId } from '@/hooks/useClientId';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  generateMockRecentActivity,
-  shouldUseMockData,
-} from '@/utils/mockData';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Activity,
@@ -25,7 +21,7 @@ import { useSlidePanel } from '@/contexts/SlidePanelContext';
 interface ActivityItem {
   id: string;
   type: 'email' | 'note' | 'meeting' | 'call' | 'interaction';
-  entity_type: 'company' | 'person' | 'contact';
+  entity_type: 'company' | 'lead';
   entity_name: string;
   entity_id: string;
   description: string;
@@ -51,8 +47,7 @@ const ACTIVITY_COLORS = {
 
 const ENTITY_ICONS = {
   company: Briefcase,
-  person: User,
-  job: Briefcase,
+  lead: User,
 };
 
 export const RecentActivityButton: React.FC = () => {
@@ -67,21 +62,13 @@ export const RecentActivityButton: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Use mock data in development if enabled
-      if (shouldUseMockData()) {
-        const mockActivities = generateMockRecentActivity();
-        setActivities(mockActivities);
-        setIsLoading(false);
-        return;
-      }
-
       const items: ActivityItem[] = [];
 
       // Interactions table removed - no longer used
 
       // Fetch notes
       let notesQuery = supabase
-        .from('notes')
+        .from('notes' as never) // Notes removed - not in PDR, keeping for now to avoid breaking
         .select('id, content, created_at, entity_id, entity_type')
         .order('created_at', { ascending: false })
         .limit(50);
@@ -100,21 +87,37 @@ export const RecentActivityButton: React.FC = () => {
 
       if (!notesError && notes) {
         for (const note of notes) {
+          if (!note || typeof note !== 'object' || !('id' in note)) continue;
+          const noteData = note as {
+            id: string;
+            entity_type: string;
+            entity_id: string;
+            content: string;
+            created_at: string;
+          };
           items.push({
-            id: note.id,
+            id: noteData.id,
             type: 'note',
-            entity_type: note.entity_type as 'company' | 'person',
-            entity_name: note.entity_id, // We'll enrich this below
-            entity_id: note.entity_id,
-            description: note.content,
-            timestamp: note.created_at,
+            entity_type: noteData.entity_type as 'company' | 'lead',
+            entity_name: noteData.entity_id, // We'll enrich this below
+            entity_id: noteData.entity_id,
+            description: noteData.content,
+            timestamp: noteData.created_at,
           });
         }
 
         // Enrich company names for notes
         const companyIds = Array.from(
           new Set(
-            notes.filter(n => n.entity_type === 'company').map(n => n.entity_id)
+            notes
+              .filter(
+                (n): n is { entity_type: string; entity_id: string } =>
+                  typeof n === 'object' &&
+                  n !== null &&
+                  'entity_type' in n &&
+                  (n as { entity_type: string }).entity_type === 'company'
+              )
+              .map(n => n.entity_id)
           )
         );
 
@@ -226,7 +229,9 @@ export const RecentActivityButton: React.FC = () => {
                 {activities.map(activity => {
                   const Icon = ACTIVITY_ICONS[activity.type] || Activity;
                   const EntityIcon =
-                    ENTITY_ICONS[activity.entity_type] || Briefcase;
+                    ENTITY_ICONS[
+                      activity.entity_type as keyof typeof ENTITY_ICONS
+                    ] || Briefcase;
                   const colorClass =
                     ACTIVITY_COLORS[activity.type] ||
                     'bg-gray-100 text-muted-foreground';

@@ -12,28 +12,34 @@
  */
 
 import { useIsMobile } from '@/hooks/use-mobile';
-import {
-  ReactNode,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import dynamic from 'next/dynamic';
 
 // Lazy load heavy components for better initial load performance
 // Using Next.js dynamic import instead of React.lazy for better Next.js 16/Turbopack compatibility
-const AppSidebar = dynamic(() => import('@/components/app-sidebar').then(mod => ({ default: mod.AppSidebar })), {
-  ssr: false,
-  loading: () => null,
-});
+const AppSidebar = dynamic(
+  () =>
+    import('@/components/app-sidebar').then(mod => ({
+      default: mod.AppSidebar,
+    })),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+);
 
-const TopNavigationBar = dynamic(() => import('./TopNavigationBar').then(mod => ({ default: mod.TopNavigationBar })), {
-  ssr: false,
-  loading: () => null,
-});
+const TopNavigationBar = dynamic(
+  () =>
+    import('./TopNavigationBar').then(mod => ({
+      default: mod.TopNavigationBar,
+    })),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+);
 
 const MobileNav = dynamic(() => import('../mobile/MobileNav'), {
   ssr: false,
@@ -98,7 +104,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     };
 
     // Check for route patterns (e.g., /workflows/sequence/[id])
-    let data = routeData[pathname];
+    let data = pathname ? routeData[pathname] : undefined;
     if (!data && pathname) {
       if (pathname.startsWith('/workflows')) {
         data = routeData['/workflows'];
@@ -120,7 +126,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     };
   }, [pageTitle, pathname]);
 
-
   const topNavHeight = 48;
   const mobileBottomNavHeight = 80;
 
@@ -134,14 +139,14 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
 
   return (
     <SidebarProvider>
-      <AppSidebar variant="inset" />
-      <SidebarInset className="min-w-0">
+      <AppSidebar variant='inset' />
+      <SidebarInset className='min-w-0'>
         {/* Top Navigation - Fixed position with glassmorphism */}
         <TopNavigationBar
           pageTitle={currentPageTitle}
           pageSubheading={currentPageSubheading}
           onSearch={onSearch}
-          className="sticky top-0 z-40 safe-area-inset-top"
+          className='sticky top-0 z-40 safe-area-inset-top'
           style={{
             height: `${topNavHeight}px`,
             paddingTop: isMobile ? 'env(safe-area-inset-top, 0px)' : 0,

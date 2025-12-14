@@ -48,7 +48,7 @@ export function useSimplifiedCampaigns() {
     queryFn: async () => {
       console.log('🔍 Fetching simplified campaigns...');
       const { data, error } = await supabase
-        .from('simplified_campaigns')
+        .from('simplified_campaigns' as never)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -58,7 +58,7 @@ export function useSimplifiedCampaigns() {
       }
 
       console.log('✅ Simplified campaigns fetched:', data);
-      return data as SimplifiedCampaign[];
+      return data as unknown as SimplifiedCampaign[];
     },
   });
 
@@ -69,7 +69,7 @@ export function useSimplifiedCampaigns() {
       steps: CampaignStep[];
     }) => {
       const { data, error } = await supabase
-        .from('simplified_campaigns')
+        .from('simplified_campaigns' as never)
         .insert([
           {
             name: formData.name,
@@ -82,7 +82,7 @@ export function useSimplifiedCampaigns() {
         .single();
 
       if (error) throw error;
-      return data as SimplifiedCampaign;
+      return data as unknown as SimplifiedCampaign;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['simplified-campaigns'] });
@@ -98,14 +98,14 @@ export function useSimplifiedCampaigns() {
       updates: Partial<SimplifiedCampaign>;
     }) => {
       const { data, error } = await supabase
-        .from('simplified_campaigns')
+        .from('simplified_campaigns' as never)
         .update(updates)
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      return data as SimplifiedCampaign;
+      return data as unknown as SimplifiedCampaign;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['simplified-campaigns'] });
@@ -115,7 +115,7 @@ export function useSimplifiedCampaigns() {
   const deleteCampaign = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('simplified_campaigns')
+        .from('simplified_campaigns' as never)
         .delete()
         .eq('id', id);
 
@@ -148,13 +148,13 @@ export function useSimplifiedCampaignSteps(campaignId: string) {
     queryKey: ['simplified-campaign', campaignId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('simplified_campaigns')
+        .from('simplified_campaigns' as never)
         .select('*')
         .eq('id', campaignId)
         .single();
 
       if (error) throw error;
-      return data as SimplifiedCampaign;
+      return data as unknown as SimplifiedCampaign;
     },
     enabled: !!campaignId,
   });
@@ -162,14 +162,14 @@ export function useSimplifiedCampaignSteps(campaignId: string) {
   const updateSteps = useMutation({
     mutationFn: async (steps: CampaignStep[]) => {
       const { data, error } = await supabase
-        .from('simplified_campaigns')
+        .from('simplified_campaigns' as never)
         .update({ steps })
         .eq('id', campaignId)
         .select()
         .single();
 
       if (error) throw error;
-      return data as SimplifiedCampaign;
+      return data as unknown as SimplifiedCampaign;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -185,14 +185,14 @@ export function useSimplifiedCampaignSteps(campaignId: string) {
       const newSteps = [...currentSteps, step];
 
       const { data, error } = await supabase
-        .from('simplified_campaigns')
+        .from('simplified_campaigns' as never)
         .update({ steps: newSteps })
         .eq('id', campaignId)
         .select()
         .single();
 
       if (error) throw error;
-      return data as SimplifiedCampaign;
+      return data as unknown as SimplifiedCampaign;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -215,14 +215,14 @@ export function useSimplifiedCampaignSteps(campaignId: string) {
       newSteps[index] = step;
 
       const { data, error } = await supabase
-        .from('simplified_campaigns')
+        .from('simplified_campaigns' as never)
         .update({ steps: newSteps })
         .eq('id', campaignId)
         .select()
         .single();
 
       if (error) throw error;
-      return data as SimplifiedCampaign;
+      return data as unknown as SimplifiedCampaign;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -238,14 +238,14 @@ export function useSimplifiedCampaignSteps(campaignId: string) {
       const newSteps = currentSteps.filter((_, i) => i !== index);
 
       const { data, error } = await supabase
-        .from('simplified_campaigns')
+        .from('simplified_campaigns' as never)
         .update({ steps: newSteps })
         .eq('id', campaignId)
         .select()
         .single();
 
       if (error) throw error;
-      return data as SimplifiedCampaign;
+      return data as unknown as SimplifiedCampaign;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -258,14 +258,14 @@ export function useSimplifiedCampaignSteps(campaignId: string) {
   const reorderSteps = useMutation({
     mutationFn: async (reorderedSteps: CampaignStep[]) => {
       const { data, error } = await supabase
-        .from('simplified_campaigns')
+        .from('simplified_campaigns' as never)
         .update({ steps: reorderedSteps })
         .eq('id', campaignId)
         .select()
         .single();
 
       if (error) throw error;
-      return data as SimplifiedCampaign;
+      return data as unknown as SimplifiedCampaign;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -300,7 +300,7 @@ export function useSimplifiedCampaignLeads(campaignId: string) {
     queryKey: ['simplified-campaign-leads', campaignId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('simplified_campaign_leads')
+        .from('simplified_campaign_leads' as never)
         .select(
           `
           *,
@@ -321,7 +321,7 @@ export function useSimplifiedCampaignLeads(campaignId: string) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as (SimplifiedCampaignLead & {
+      return data as unknown as (SimplifiedCampaignLead & {
         people: Record<string, unknown>;
       })[];
     },
@@ -340,7 +340,7 @@ export function useSimplifiedCampaignLeads(campaignId: string) {
       }));
 
       const { data, error } = await supabase
-        .from('simplified_campaign_leads')
+        .from('simplified_campaign_leads' as never)
         .insert(leadData)
         .select();
 
@@ -358,7 +358,7 @@ export function useSimplifiedCampaignLeads(campaignId: string) {
   const updateLeadStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { data, error } = await supabase
-        .from('simplified_campaign_leads')
+        .from('simplified_campaign_leads' as never)
         .update({ status })
         .eq('id', id)
         .select()
@@ -377,7 +377,7 @@ export function useSimplifiedCampaignLeads(campaignId: string) {
   const removeLead = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('simplified_campaign_leads')
+        .from('simplified_campaign_leads' as never)
         .delete()
         .eq('id', id);
 
@@ -411,7 +411,7 @@ export function useCampaignEmailLogs(campaignId: string) {
     queryKey: ['campaign-email-logs', campaignId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('campaign_email_logs')
+        .from('campaign_email_logs' as never)
         .select(
           `
           *,

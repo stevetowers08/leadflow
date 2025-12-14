@@ -36,8 +36,8 @@ class StatusAutomationService {
   }
 
   /**
-   * Update person status when message sent
-   * Automatically progresses: new → proceed
+   * Update lead status when message sent
+   * Automatically progresses: active → active (status maintained)
    */
   async onMessageSent(
     personId: string,
@@ -45,8 +45,8 @@ class StatusAutomationService {
   ): Promise<void> {
     try {
       const { data, error } = await supabase
-        .from('people')
-        .update({ people_stage: 'proceed' })
+        .from('leads')
+        .update({ status: 'active', email_sent: true })
         .eq('id', personId)
         .select()
         .single();
@@ -56,7 +56,7 @@ class StatusAutomationService {
       if (!options.skipNotification && this.toastHandler) {
         this.toastHandler({
           title: 'Status Updated',
-          description: 'Lead updated to "Proceed" after sending message',
+          description: 'Lead updated after sending message',
           variant: 'success',
         });
       }
@@ -105,7 +105,7 @@ class StatusAutomationService {
 
   /**
    * Update statuses when response received
-   * Person: proceed → qualified
+   * Lead: active → replied_manual
    * Company: outreach_started → replied
    */
   async onResponseReceived(
@@ -115,11 +115,11 @@ class StatusAutomationService {
     options: StatusUpdateOptions = {}
   ): Promise<void> {
     try {
-      // Update person
+      // Update lead
       await supabase
-        .from('people')
+        .from('leads')
         .update({
-          people_stage: 'qualified',
+          status: 'replied_manual',
           last_reply_at: new Date().toISOString(),
           last_reply_message: responseContent,
         })
@@ -135,7 +135,7 @@ class StatusAutomationService {
       if (!options.skipNotification && this.toastHandler) {
         this.toastHandler({
           title: 'Response Received',
-          description: 'Lead updated to "Qualified", company to "Replied"',
+          description: 'Lead updated to "Replied", company to "Replied"',
           variant: 'success',
         });
       }
@@ -201,7 +201,7 @@ class StatusAutomationService {
   }
 
   /**
-   * Batch update multiple people at once
+   * Batch update multiple leads at once
    */
   async batchUpdatePeople(
     personIds: string[],
@@ -210,8 +210,8 @@ class StatusAutomationService {
   ): Promise<void> {
     try {
       await supabase
-        .from('people')
-        .update({ people_stage: stage })
+        .from('leads')
+        .update({ status: stage })
         .in('id', personIds);
 
       if (!options.skipNotification && this.toastHandler) {

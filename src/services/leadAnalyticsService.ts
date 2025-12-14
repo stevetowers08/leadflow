@@ -1,6 +1,6 @@
 /**
  * Lead Analytics Service
- * 
+ *
  * PDR Section: Insights Screen (Section 5)
  * Provides analytics data aligned with PDR requirements:
  * - Total Leads, Response Rate, Hot Leads, Avg Response Time
@@ -24,20 +24,20 @@ export interface LeadAnalyticsMetrics {
   hotLeadsPercentage: number;
   avgResponseTime: number; // Hours
   avgResponseTimeChange: number; // Hours faster/slower
-  
+
   // Lead Quality Distribution
   qualityDistribution: {
     hot: number;
     warm: number;
     cold: number;
   };
-  
+
   // Capture Timeline (time series data)
   captureTimeline: Array<{
     date: string;
     count: number;
   }>;
-  
+
   // Workflow Performance
   workflowPerformance: Array<{
     workflowName: string;
@@ -48,11 +48,16 @@ export interface LeadAnalyticsMetrics {
     openedPercentage: number;
     repliedPercentage: number;
   }>;
-  
+
   // Recent Activity
   recentActivity: Array<{
     id: string;
-    type: 'lead_captured' | 'email_sent' | 'email_opened' | 'email_replied' | 'workflow_paused';
+    type:
+      | 'lead_captured'
+      | 'email_sent'
+      | 'email_opened'
+      | 'email_replied'
+      | 'workflow_paused';
     description: string;
     timestamp: string;
     leadId?: string;
@@ -93,14 +98,14 @@ export class LeadAnalyticsService {
         this.getResponseMetrics(startDate, endDate),
       ]);
 
-      const totalLeadsChange = previousPeriodLeads > 0
-        ? ((totalLeads - previousPeriodLeads) / previousPeriodLeads) * 100
-        : 0;
+      const totalLeadsChange =
+        previousPeriodLeads > 0
+          ? ((totalLeads - previousPeriodLeads) / previousPeriodLeads) * 100
+          : 0;
 
       const hotLeads = qualityDistribution.hot;
-      const hotLeadsPercentage = totalLeads > 0
-        ? (hotLeads / totalLeads) * 100
-        : 0;
+      const hotLeadsPercentage =
+        totalLeads > 0 ? (hotLeads / totalLeads) * 100 : 0;
 
       return {
         totalLeads,
@@ -214,7 +219,7 @@ export class LeadAnalyticsService {
     }
 
     const distribution = { hot: 0, warm: 0, cold: 0 };
-    data?.forEach((lead) => {
+    data?.forEach(lead => {
       if (lead.quality_rank === 'hot') distribution.hot++;
       else if (lead.quality_rank === 'warm') distribution.warm++;
       else if (lead.quality_rank === 'cold') distribution.cold++;
@@ -244,7 +249,7 @@ export class LeadAnalyticsService {
 
     // Group by date (day)
     const timelineMap = new Map<string, number>();
-    data?.forEach((lead) => {
+    data?.forEach(lead => {
       if (lead.created_at) {
         const date = new Date(lead.created_at).toISOString().split('T')[0];
         timelineMap.set(date, (timelineMap.get(date) || 0) + 1);
@@ -262,15 +267,17 @@ export class LeadAnalyticsService {
   private static async getWorkflowPerformance(
     startDate: string,
     endDate: string
-  ): Promise<Array<{
-    workflowName: string;
-    sent: number;
-    opened: number;
-    replied: number;
-    sentPercentage: number;
-    openedPercentage: number;
-    repliedPercentage: number;
-  }>> {
+  ): Promise<
+    Array<{
+      workflowName: string;
+      sent: number;
+      opened: number;
+      replied: number;
+      sentPercentage: number;
+      openedPercentage: number;
+      repliedPercentage: number;
+    }>
+  > {
     // Get workflows with their leads
     const { data: workflows, error: workflowsError } = await supabase
       .from('workflows')
@@ -281,15 +288,19 @@ export class LeadAnalyticsService {
       // Check if it's a table not found or RLS blocking (common, non-critical errors)
       const errorCode = workflowsError.code;
       const errorMessage = workflowsError.message || '';
-      
+
       // PGRST116 = no rows found (normal), 42P01 = relation does not exist (table missing)
       // These are expected in some cases and don't need error logging
-      if (errorCode === 'PGRST116' || errorCode === '42P01' || 
-          errorMessage.includes('relation') || errorMessage.includes('does not exist')) {
+      if (
+        errorCode === 'PGRST116' ||
+        errorCode === '42P01' ||
+        errorMessage.includes('relation') ||
+        errorMessage.includes('does not exist')
+      ) {
         // Table might not exist or RLS is blocking - this is expected in some setups
         return [];
       }
-      
+
       // Log other errors only if they have meaningful content
       logSupabaseError(workflowsError, 'fetching workflows');
       return [];
@@ -317,42 +328,33 @@ export class LeadAnalyticsService {
         .gte('created_at', startDate)
         .lte('created_at', endDate);
 
-      const leadIds = workflowLeads?.map((l) => l.id) || [];
+      const leadIds = workflowLeads?.map(l => l.id) || [];
 
       if (leadIds.length === 0) continue;
 
-      // Get email sends for these leads
-      // Note: email_sends uses person_id/contact_id, not lead_id
-      // We need to check if leads are linked to people or use activity_log
+      // Get email sends from campaign_sequence_executions for these leads
       const { data: emailSends } = await supabase
-        .from('email_sends')
-        .select('id, opened_at, metadata, person_id, contact_id')
-        .gte('sent_at', startDate)
-        .lte('sent_at', endDate);
+        .from('campaign_sequence_executions')
+        .select(
+          'id, opened_at, clicked_at, replied_at, executed_at, lead_id, status'
+        )
+        .in('lead_id', leadIds)
+        .eq('status', 'sent')
+        .gte('executed_at', startDate)
+        .lte('executed_at', endDate);
 
-      // Filter email sends that match our leads (if leads have person_id or via activity_log)
-      const relevantEmailSends = emailSends?.filter((e) => {
-        // Check if email send is related to a lead in this workflow
-        // This is a simplified check - in practice, you might need to join through people table
-        return true; // For now, include all sends in the period
-      }) || [];
-
-      // Get replies from emails table (if it has lead_id) or activity_log
+      // Get replies from activity_log for these leads
       const { data: replies } = await supabase
-        .from('emails')
-        .select('id, lead_id')
-        .eq('direction', 'inbound')
-        .gte('sent_at', startDate)
-        .lte('sent_at', endDate);
+        .from('activity_log')
+        .select('id, lead_id, timestamp')
+        .in('lead_id', leadIds)
+        .eq('activity_type', 'email_replied')
+        .gte('timestamp', startDate)
+        .lte('timestamp', endDate);
 
-      // Filter replies for leads in this workflow
-      const relevantReplies = replies?.filter((r) => 
-        r.lead_id && leadIds.includes(r.lead_id)
-      ) || [];
-
-      const sent = relevantEmailSends.length;
-      const opened = relevantEmailSends.filter((e) => e.opened_at).length;
-      const replied = relevantReplies.length;
+      const sent = emailSends?.length || 0;
+      const opened = emailSends?.filter(e => e.opened_at).length || 0;
+      const replied = replies?.length || 0;
 
       performance.push({
         workflowName: workflow.name || 'Unnamed Workflow',
@@ -374,13 +376,20 @@ export class LeadAnalyticsService {
   private static async getRecentActivity(
     startDate: string,
     endDate: string
-  ): Promise<Array<{
-    id: string;
-    type: 'lead_captured' | 'email_sent' | 'email_opened' | 'email_replied' | 'workflow_paused';
-    description: string;
-    timestamp: string;
-    leadId?: string;
-  }>> {
+  ): Promise<
+    Array<{
+      id: string;
+      type:
+        | 'lead_captured'
+        | 'email_sent'
+        | 'email_opened'
+        | 'email_replied'
+        | 'workflow_paused';
+      description: string;
+      timestamp: string;
+      leadId?: string;
+    }>
+  > {
     const activities = [];
 
     // Get recent leads (captured)
@@ -392,8 +401,9 @@ export class LeadAnalyticsService {
       .order('created_at', { ascending: false })
       .limit(10);
 
-    recentLeads?.forEach((lead) => {
-      const name = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown';
+    recentLeads?.forEach(lead => {
+      const name =
+        `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown';
       activities.push({
         id: `lead-${lead.id}`,
         type: 'lead_captured' as const,
@@ -412,8 +422,12 @@ export class LeadAnalyticsService {
       .order('timestamp', { ascending: false })
       .limit(10);
 
-    activityLogs?.forEach((log) => {
-      let type: 'email_sent' | 'email_opened' | 'email_replied' | 'workflow_paused';
+    activityLogs?.forEach(log => {
+      let type:
+        | 'email_sent'
+        | 'email_opened'
+        | 'email_replied'
+        | 'workflow_paused';
       let description = '';
 
       if (log.activity_type === 'email_sent') {
@@ -443,7 +457,10 @@ export class LeadAnalyticsService {
 
     // Sort by timestamp and return top 10
     return activities
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      )
       .slice(0, 10);
   }
 
@@ -460,10 +477,10 @@ export class LeadAnalyticsService {
     avgResponseTime: number;
     avgResponseTimeChange: number;
   }> {
-    // Get all email sends (email_sends uses person_id/contact_id, not lead_id)
+    // Get all email sends from email_sends table
     const { data: emailSends } = await supabase
       .from('email_sends')
-      .select('id, person_id, contact_id, sent_at, opened_at')
+      .select('id, person_id, lead_id, sent_at, opened_at, metadata')
       .gte('sent_at', startDate)
       .lte('sent_at', endDate);
 
@@ -477,8 +494,7 @@ export class LeadAnalyticsService {
       };
     }
 
-    // Get replies from emails table (if it has lead_id) or activity_log
-    // For now, we'll use activity_log to track replies
+    // Get replies from activity_log and email_replies
     const { data: replyActivities } = await supabase
       .from('activity_log')
       .select('lead_id, timestamp, metadata')
@@ -486,21 +502,23 @@ export class LeadAnalyticsService {
       .gte('timestamp', startDate)
       .lte('timestamp', endDate);
 
-    // Also try emails table if it exists with lead_id
+    // Get replies from email_replies table
     const { data: emailReplies } = await supabase
-      .from('emails')
-      .select('lead_id, sent_at')
-      .eq('direction', 'inbound')
-      .gte('sent_at', startDate)
-      .lte('sent_at', endDate);
+      .from('email_replies')
+      .select('lead_id, person_id, received_at')
+      .gte('received_at', startDate)
+      .lte('received_at', endDate);
 
     // Combine replies from both sources
     const allReplies = [
-      ...(replyActivities?.map((a) => ({
+      ...(replyActivities?.map(a => ({
         lead_id: a.lead_id,
         sent_at: a.timestamp,
       })) || []),
-      ...(emailReplies || []),
+      ...(emailReplies?.map(r => ({
+        lead_id: r.lead_id,
+        sent_at: r.received_at,
+      })) || []),
     ];
 
     const totalSent = emailSends.length;
@@ -512,28 +530,26 @@ export class LeadAnalyticsService {
     let totalResponseTime = 0;
     let responseCount = 0;
 
-    allReplies.forEach((reply) => {
-      // Find corresponding email send (simplified - match by lead_id if available)
-      const sentEmail = emailSends.find((e) => {
-        // Try to match via lead_id if available in metadata or via person_id
-        return reply.lead_id && (
-          (e as any).lead_id === reply.lead_id ||
-          (e as any).metadata?.lead_id === reply.lead_id
-        );
+    allReplies.forEach(reply => {
+      // Find corresponding email send by matching lead_id
+      const sentEmail = emailSends.find(e => {
+        return reply.lead_id && e.lead_id === reply.lead_id;
       });
-      
+
       if (sentEmail && sentEmail.sent_at && reply.sent_at) {
         const sentTime = new Date(sentEmail.sent_at).getTime();
         const replyTime = new Date(reply.sent_at).getTime();
         const hours = (replyTime - sentTime) / (1000 * 60 * 60);
-        if (hours > 0 && hours < 720) { // Reasonable range: 0-30 days
+        if (hours > 0 && hours < 720) {
+          // Reasonable range: 0-30 days
           totalResponseTime += hours;
           responseCount++;
         }
       }
     });
 
-    const avgResponseTime = responseCount > 0 ? totalResponseTime / responseCount : 0;
+    const avgResponseTime =
+      responseCount > 0 ? totalResponseTime / responseCount : 0;
 
     // Get previous period metrics for comparison
     const previousStart = new Date(startDate);
@@ -542,7 +558,7 @@ export class LeadAnalyticsService {
 
     const { data: prevEmailSends } = await supabase
       .from('email_sends')
-      .select('id, person_id, contact_id, sent_at')
+      .select('id, lead_id, sent_at')
       .gte('sent_at', previousStart.toISOString())
       .lte('sent_at', previousEnd.toISOString());
 
@@ -554,35 +570,35 @@ export class LeadAnalyticsService {
       .lte('timestamp', previousEnd.toISOString());
 
     const { data: prevEmailReplies } = await supabase
-      .from('emails')
-      .select('lead_id, sent_at')
-      .eq('direction', 'inbound')
-      .gte('sent_at', previousStart.toISOString())
-      .lte('sent_at', previousEnd.toISOString());
+      .from('email_replies')
+      .select('lead_id, received_at')
+      .gte('received_at', previousStart.toISOString())
+      .lte('received_at', previousEnd.toISOString());
 
     const prevAllReplies = [
-      ...(prevReplyActivities?.map((a) => ({
+      ...(prevReplyActivities?.map(a => ({
         lead_id: a.lead_id,
         sent_at: a.timestamp,
       })) || []),
-      ...(prevEmailReplies || []),
+      ...(prevEmailReplies?.map(r => ({
+        lead_id: r.lead_id,
+        sent_at: r.received_at,
+      })) || []),
     ];
 
     const prevTotalSent = prevEmailSends?.length || 0;
     const prevTotalReplied = prevAllReplies.length;
-    const prevResponseRate = prevTotalSent > 0 ? (prevTotalReplied / prevTotalSent) * 100 : 0;
+    const prevResponseRate =
+      prevTotalSent > 0 ? (prevTotalReplied / prevTotalSent) * 100 : 0;
     const responseRateChange = responseRate - prevResponseRate;
 
     // Calculate previous period avg response time
     let prevTotalResponseTime = 0;
     let prevResponseCount = 0;
 
-    prevAllReplies.forEach((reply) => {
-      const sentEmail = prevEmailSends?.find((e) => {
-        return reply.lead_id && (
-          (e as any).lead_id === reply.lead_id ||
-          (e as any).metadata?.lead_id === reply.lead_id
-        );
+    prevAllReplies.forEach(reply => {
+      const sentEmail = prevEmailSends?.find(e => {
+        return reply.lead_id && e.lead_id === reply.lead_id;
       });
       if (sentEmail && sentEmail.sent_at && reply.sent_at) {
         const sentTime = new Date(sentEmail.sent_at).getTime();
@@ -595,7 +611,8 @@ export class LeadAnalyticsService {
       }
     });
 
-    const prevAvgResponseTime = prevResponseCount > 0 ? prevTotalResponseTime / prevResponseCount : 0;
+    const prevAvgResponseTime =
+      prevResponseCount > 0 ? prevTotalResponseTime / prevResponseCount : 0;
     const avgResponseTimeChange = avgResponseTime - prevAvgResponseTime;
 
     // Benchmark: Industry average is typically 8-10% for cold outreach
@@ -613,7 +630,10 @@ export class LeadAnalyticsService {
   /**
    * Get date range based on period filter
    */
-  private static getDateRange(period: string): { startDate: string; endDate: string } {
+  private static getDateRange(period: string): {
+    startDate: string;
+    endDate: string;
+  } {
     const endDate = new Date();
     let startDate: Date;
 
@@ -635,4 +655,3 @@ export class LeadAnalyticsService {
     };
   }
 }
-

@@ -191,21 +191,26 @@ export function usePerformanceMonitor() {
       // Prefetch critical data
       const criticalQueries = [
         {
-          key: ['people'],
-          fn: () => supabase.from('people').select('id, name, stage').limit(50),
+          key: ['leads'],
+          fn: async () => {
+            const { data, error } = await supabase
+              .from('leads')
+              .select('id, first_name, last_name, status')
+              .limit(50);
+            if (error) throw error;
+            return data;
+          },
         },
         {
           key: ['companies'],
-          fn: () =>
-            supabase
+          fn: async () => {
+            const { data, error } = await supabase
               .from('companies')
               .select('id, name, pipeline_stage')
-              .limit(50),
-        },
-        {
-          key: ['jobs'],
-          fn: () =>
-            supabase.from('jobs').select('id, title, priority').limit(50),
+              .limit(50);
+            if (error) throw error;
+            return data;
+          },
         },
       ];
 
@@ -213,7 +218,7 @@ export function usePerformanceMonitor() {
         criticalQueries.map(({ key, fn }) =>
           queryClient.prefetchQuery({
             queryKey: key,
-            queryFn: fn,
+            queryFn: fn as () => Promise<unknown>,
             staleTime: 2 * 60 * 1000,
           })
         )
@@ -298,12 +303,24 @@ export function useDatabasePerformanceMonitor() {
   const checkDatabasePerformance = useCallback(async () => {
     try {
       // Get database statistics
-      const { data: stats, error } = await supabase
-        .rpc('get_database_stats')
-        .single();
+      // Note: RPC function may not be in types, using type assertion
+      const { data: stats, error } = await (
+        supabase.rpc as unknown as (name: string) => {
+          single: <T>() => Promise<{ data: T | null; error: unknown }>;
+        }
+      )('get_database_stats').single<{
+        active_connections?: number;
+        slow_queries?: number;
+        query_count?: number;
+        avg_query_time?: number;
+      }>();
 
       if (error) {
         console.error('Failed to get database stats:', error);
+        return;
+      }
+
+      if (!stats) {
         return;
       }
 

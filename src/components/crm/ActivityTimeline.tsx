@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { generateMockActivities, shouldUseMockData } from '@/utils/mockData';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import {
   ChevronDown,
@@ -56,30 +55,14 @@ export const ActivityTimeline = ({
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchActivities();
-  }, [fetchActivities]);
-
   const fetchActivities = useCallback(async () => {
     setIsLoading(true);
     try {
       const allActivities: ActivityItem[] = [];
 
-      // Use mock data in development if enabled
-      if (shouldUseMockData()) {
-        const mockActivities = generateMockActivities(
-          entityId,
-          entityName,
-          entityType
-        );
-        setActivities(mockActivities);
-        setIsLoading(false);
-        return;
-      }
-
-      // Fetch LinkedIn messages
+      // Fetch LinkedIn messages (conversations table not in Database type)
       const { data: conversations } = await supabase
-        .from('conversations')
+        .from('conversations' as never)
         .select(
           `
           id,
@@ -94,24 +77,34 @@ export const ActivityTimeline = ({
         .order('last_message_at', { ascending: false });
 
       if (conversations) {
-        for (const conv of conversations) {
+        for (const conv of conversations as Array<{
+          id: string;
+          person_id: string;
+          people?: { name?: string } | null;
+        }>) {
           const { data: messages } = await supabase
-            .from('conversation_messages')
+            .from('conversation_messages' as never)
             .select('*')
             .eq('conversation_id', conv.id)
             .order('sent_at', { ascending: false })
             .limit(1);
 
-          if (messages && messages[0]) {
-            const message = messages[0];
+          if (messages && Array.isArray(messages) && messages[0]) {
+            const message = messages[0] as {
+              id: string;
+              content?: string;
+              sent_at?: string;
+              created_at?: string;
+              sender_name?: string;
+            };
             allActivities.push({
               id: `linkedin_${message.id}`,
               type: 'linkedin_message',
               title: 'LinkedIn Message',
-              description: message.content,
-              timestamp: message.sent_at || message.created_at,
+              description: message.content || '',
+              timestamp: message.sent_at || message.created_at || '',
               author: message.sender_name || 'Unknown',
-              leadName: conv.people?.name,
+              leadName: conv.people?.name || undefined,
               leadId: conv.person_id,
               icon: Linkedin,
               color: 'bg-blue-100 text-primary',
@@ -121,9 +114,9 @@ export const ActivityTimeline = ({
         }
       }
 
-      // Fetch email messages
+      // Fetch email messages (email_threads table not in Database type)
       const { data: emailThreads } = await supabase
-        .from('email_threads')
+        .from('email_threads' as never)
         .select(
           `
           id,
@@ -137,24 +130,35 @@ export const ActivityTimeline = ({
         .order('last_message_at', { ascending: false });
 
       if (emailThreads) {
-        for (const thread of emailThreads) {
+        for (const thread of emailThreads as Array<{
+          id: string;
+          person_id: string;
+          people?: { name?: string } | null;
+        }>) {
           const { data: emails } = await supabase
-            .from('email_messages')
+            .from('email_messages' as never)
             .select('*')
             .eq('thread_id', thread.id)
             .order('sent_at', { ascending: false })
             .limit(1);
 
-          if (emails && emails[0]) {
-            const email = emails[0];
+          if (emails && Array.isArray(emails) && emails[0]) {
+            const email = emails[0] as {
+              id: string;
+              body_text?: string;
+              subject?: string;
+              sent_at?: string;
+              created_at?: string;
+              from_email?: string;
+            };
             allActivities.push({
               id: `email_${email.id}`,
               type: 'email_message',
               title: 'Email Message',
               description: email.body_text || email.subject || 'Email sent',
-              timestamp: email.sent_at || email.created_at,
-              author: email.from_email,
-              leadName: thread.people?.name,
+              timestamp: email.sent_at || email.created_at || '',
+              author: email.from_email || 'Unknown',
+              leadName: thread.people?.name || undefined,
               leadId: thread.person_id,
               icon: EmailIcon,
               color: 'bg-green-100 text-success',
@@ -164,64 +168,47 @@ export const ActivityTimeline = ({
         }
       }
 
-      // Fetch automation steps from people table
+      // Fetch automation steps from leads table
       const { data: personData } = await supabase
-        .from('people')
+        .from('leads')
         .select('*')
         .eq('id', entityId)
         .single();
 
       if (personData) {
-        // Stage changes
-        if (personData.stage_updated) {
+        // Stage changes - use status field from leads table
+        const leadData = personData as {
+          status?: string;
+          stage_updated?: string | null;
+          updated_at?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          name?: string;
+        };
+        if (leadData.stage_updated) {
+          const status = leadData.status || 'unknown';
+          const leadName =
+            leadData.name ||
+            (leadData.first_name && leadData.last_name
+              ? `${leadData.first_name} ${leadData.last_name}`.trim()
+              : null) ||
+            'Unknown';
           allActivities.push({
             id: `stage_change_${entityId}`,
             type: 'stage_change',
-            title: `Stage Updated to ${personData.stage}`,
-            description: `Lead moved to ${personData.stage} stage`,
-            timestamp: personData.stage_updated,
-            leadName: personData.name,
+            title: `Stage Updated to ${status}`,
+            description: `Lead moved to ${status} stage`,
+            timestamp: leadData.stage_updated || leadData.updated_at || '',
+            leadName,
             leadId: entityId,
             icon: User,
             color: 'bg-orange-100 text-warning',
-            metadata: { newStage: personData.stage },
+            metadata: { newStage: status },
           });
         }
       }
 
-      // Fetch notes
-      const { data: notes } = await supabase
-        .from('notes')
-        .select(
-          `
-          id,
-          content,
-          author_id,
-          created_at,
-          user_profiles!inner(full_name)
-        `
-        )
-        .eq('entity_id', entityId)
-        .eq('entity_type', entityType)
-        .order('created_at', { ascending: false });
-
-      if (notes) {
-        for (const note of notes) {
-          allActivities.push({
-            id: `note_${note.id}`,
-            type: 'note',
-            title: 'Note Added',
-            description: note.content,
-            timestamp: note.created_at,
-            author: note.user_profiles?.full_name || 'Unknown',
-            leadName: entityName,
-            leadId: entityId,
-            icon: FileText,
-            color: 'bg-gray-100 text-muted-foreground',
-            metadata: { noteId: note.id },
-          });
-        }
-      }
+      // Notes removed - not in PDR
 
       // Sort all activities by timestamp
       allActivities.sort(
@@ -235,6 +222,10 @@ export const ActivityTimeline = ({
       setIsLoading(false);
     }
   }, [entityId, entityType, entityName]);
+
+  useEffect(() => {
+    fetchActivities();
+  }, [fetchActivities]);
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);

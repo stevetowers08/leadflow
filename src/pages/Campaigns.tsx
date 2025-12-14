@@ -91,41 +91,52 @@ function CampaignsContent() {
       const analyticsMap: Record<string, CampaignAnalytics> = {};
 
       for (const sequence of sequences) {
-        // Get email sends for this campaign sequence from metadata
-        const { data: emailSends } = await supabase
-          .from('email_sends')
-          .select('status, metadata')
-          .eq('metadata->>campaign_sequence_id', sequence.id);
+        // Get email sends for this campaign sequence from campaign_sequence_executions
+        // Campaign sequences removed - not in PDR. Use workflows and activity_log instead.
+        const emailSends: never[] = [];
+        // const { data: emailSends } = await supabase
+        //   .from('campaign_sequence_executions')
+        //   .select('status, opened_at, clicked_at, replied_at, bounced_at')
+        //   .eq('sequence_id', sequence.id);
 
         const analytics: CampaignAnalytics = {
-          total_sent: emailSends?.length || 0,
-          total_opened: 0, // Gmail API doesn't track opens
-          total_replied: 0,
+          total_sent:
+            emailSends?.filter(
+              es => es.status === 'sent' || es.status === 'delivered'
+            ).length || 0,
+          total_opened: emailSends?.filter(es => es.opened_at).length || 0,
+          total_replied: emailSends?.filter(es => es.replied_at).length || 0,
           total_bounced:
-            emailSends?.filter(es => es.status === 'bounced').length || 0,
-          total_positive_replies: 0,
+            emailSends?.filter(es => es.status === 'bounced' || es.bounced_at)
+              .length || 0,
+          total_positive_replies: 0, // Would need sentiment analysis from activity_log metadata
           total_sender_bounced: 0,
         };
 
-        // Get replies for people in this sequence
-        const { data: sequenceLeads } = await supabase
-          .from('campaign_sequence_leads')
-          .select('lead_id')
-          .eq('sequence_id', sequence.id);
+        // Get replies from activity_log for leads in this sequence
+        // Campaign sequences removed - not in PDR
+        const sequenceLeads: never[] = [];
+        // const { data: sequenceLeads } = await supabase
+        //   .from('campaign_sequence_leads')
+        //   .select('lead_id')
+        //   .eq('sequence_id', sequence.id);
 
         if (sequenceLeads && sequenceLeads.length > 0) {
           const leadIds = sequenceLeads.map(l => l.lead_id);
 
-          // Get email replies for these leads
+          // Get email replies from activity_log
           const { data: replies } = await supabase
-            .from('email_replies')
-            .select('id, sentiment')
-            .in('person_id', leadIds);
+            .from('activity_log')
+            .select('id, metadata')
+            .in('lead_id', leadIds)
+            .eq('activity_type', 'email_replied');
 
           if (replies) {
             analytics.total_replied = replies.length;
+            // Check metadata for sentiment if available
             analytics.total_positive_replies = replies.filter(
-              r => r.sentiment === 'positive'
+              r =>
+                (r.metadata as { sentiment?: string })?.sentiment === 'positive'
             ).length;
           }
         }
@@ -167,8 +178,8 @@ function CampaignsContent() {
         status: 'draft',
       });
       // Use workflows route if we're on /workflows, otherwise use campaigns
-      const basePath = window.location.pathname.startsWith('/workflows') 
-        ? '/workflows' 
+      const basePath = window.location.pathname.startsWith('/workflows')
+        ? '/workflows'
         : '/campaigns';
       router.push(`${basePath}/sequence/${newSequence.id}`);
     } catch (error) {
@@ -201,219 +212,230 @@ function CampaignsContent() {
 
   const handleOpenSequenceBuilder = (sequence: CampaignSequence) => {
     // Use workflows route if we're on /workflows, otherwise use campaigns
-    const basePath = window.location.pathname.startsWith('/workflows') 
-      ? '/workflows' 
+    const basePath = window.location.pathname.startsWith('/workflows')
+      ? '/workflows'
       : '/campaigns';
     router.push(`${basePath}/sequence/${sequence.id}`);
   };
 
   return (
     <Page title='Campaigns' hideHeader>
-      <Tabs defaultValue="email" className="space-y-4">
+      <Tabs defaultValue='email' className='space-y-4'>
         <TabsList>
-          <TabsTrigger value="email">Email</TabsTrigger>
-          <TabsTrigger value="lemlist">Lemlist</TabsTrigger>
+          <TabsTrigger value='email'>Email</TabsTrigger>
+          <TabsTrigger value='lemlist'>Lemlist</TabsTrigger>
         </TabsList>
 
         {/* Email Tab */}
-        <TabsContent value="email" className="space-y-4">
+        <TabsContent value='email' className='space-y-4'>
           {/* Header Section with Filters and Search */}
           <div className='flex justify-between items-center'>
-          <div className='flex items-center gap-4'>
-            {/* Filter Dropdown */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className='w-[200px] h-8 border-gray-300'>
-                <SelectValue placeholder='All Campaigns' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>All Campaigns</SelectItem>
-                <SelectItem value='draft'>Draft</SelectItem>
-                <SelectItem value='active'>Active</SelectItem>
-                <SelectItem value='paused'>Paused</SelectItem>
-                <SelectItem value='completed'>Completed</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className='flex items-center gap-4'>
+              {/* Filter Dropdown */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className='w-[200px] h-8 border-gray-300'>
+                  <SelectValue placeholder='All Campaigns' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='all'>All Campaigns</SelectItem>
+                  <SelectItem value='draft'>Draft</SelectItem>
+                  <SelectItem value='active'>Active</SelectItem>
+                  <SelectItem value='paused'>Paused</SelectItem>
+                  <SelectItem value='completed'>Completed</SelectItem>
+                </SelectContent>
+              </Select>
 
-            {/* Search */}
-            <div className='relative'>
-              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
-              <Input
-                placeholder='Search Campaigns'
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className='pl-10 h-8 w-[200px] border-gray-300'
-              />
-            </div>
-          </div>
-
-          {/* Create Campaign Button */}
-          <Button
-            onClick={handleCreateNewSequence}
-            className='h-8 bg-purple-600 hover:bg-purple-700 text-white'
-          >
-            <Plus className='h-4 w-4 mr-2' />
-            Create Campaign
-          </Button>
-        </div>
-
-        {/* Campaign Details and Report */}
-        {isLoading ? (
-          <div className='space-y-4'>
-            {[...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className='bg-gray-100 rounded-lg h-20 animate-pulse'
-              ></div>
-            ))}
-          </div>
-        ) : filteredSequences.length === 0 ? (
-          <Card>
-            <CardContent className='flex flex-col items-center justify-center py-12'>
-              <Target className='h-12 w-12 text-muted-foreground mb-4' />
-              <h3 className='text-lg font-semibold mb-2'>No campaigns found</h3>
-              <p className='text-muted-foreground text-center mb-4'>
-                {searchTerm
-                  ? 'No campaigns match your search criteria.'
-                  : 'Create your first campaign to start organizing your outreach efforts.'}
-              </p>
-              {!searchTerm && (
-                <Button onClick={handleCreateNewSequence}>
-                  <Plus className='h-4 w-4 mr-2' />
-                  Create Your First Campaign
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className='bg-white rounded-lg border border-gray-300 overflow-hidden'>
-            {/* Campaign Details and Report Header */}
-            <div className='bg-gray-50 border-b border-gray-300 px-6 py-3'>
-              <div className='flex justify-between items-center'>
-                <h3 className='text-lg font-semibold text-foreground'>
-                  Campaign Details
-                </h3>
-                <h3 className='text-lg font-semibold text-foreground'>Report</h3>
+              {/* Search */}
+              <div className='relative'>
+                <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+                <Input
+                  placeholder='Search Campaigns'
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className='pl-10 h-8 w-[200px] border-gray-300'
+                />
               </div>
             </div>
 
-            {/* Campaign Rows */}
-            <div className='divide-y divide-gray-300'>
-              {filteredSequences.map(sequence => {
-                const statusColor =
-                  STATUS_COLORS[
-                    sequence.status as keyof typeof STATUS_COLORS
-                  ] || 'bg-gray-100 text-foreground';
+            {/* Create Campaign Button */}
+            <Button
+              onClick={handleCreateNewSequence}
+              className='h-8 bg-purple-600 hover:bg-purple-700 text-white'
+            >
+              <Plus className='h-4 w-4 mr-2' />
+              Create Campaign
+            </Button>
+          </div>
 
-                return (
-                  <div
-                    key={sequence.id}
-                    className='px-6 py-3 hover:bg-gray-50 transition-colors cursor-pointer'
-                    onClick={() => handleOpenSequenceBuilder(sequence)}
-                  >
-                    <div className='flex items-center justify-between'>
-                      {/* Campaign Details */}
-                      <div className='flex items-center space-x-4 flex-1'>
-                        <div className='flex items-center space-x-3'>
-                          <div className='w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center'>
-                            <Edit className='h-4 w-4 text-gray-600' />
-                          </div>
-                          <div>
-                            <div className='flex items-center space-x-2'>
-                              <h4 className='text-sm font-medium text-purple-600 hover:text-purple-700'>
-                                {sequence.name}
-                              </h4>
-                              <ExternalLink className='h-3 w-3 text-gray-400' />
-                            </div>
-                            <div className='flex items-center space-x-2 text-xs text-gray-500 mt-1'>
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
-                              >
-                                {sequence.status.charAt(0).toUpperCase() +
-                                  sequence.status.slice(1)}
-                              </span>
-                              <span>ΓÇó</span>
-                              <span>
-                                Created At:{' '}
-                                {format(
-                                  new Date(sequence.created_at),
-                                  'dd MMM, hh:mm a'
-                                )}
-                              </span>
-                              <span>ΓÇó</span>
-                              <span>{sequence.total_leads || 0} sequences</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+          {/* Campaign Details and Report */}
+          {isLoading ? (
+            <div className='space-y-4'>
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className='bg-gray-100 rounded-lg h-20 animate-pulse'
+                ></div>
+              ))}
+            </div>
+          ) : filteredSequences.length === 0 ? (
+            <Card>
+              <CardContent className='flex flex-col items-center justify-center py-12'>
+                <Target className='h-12 w-12 text-muted-foreground mb-4' />
+                <h3 className='text-lg font-semibold mb-2'>
+                  No campaigns found
+                </h3>
+                <p className='text-muted-foreground text-center mb-4'>
+                  {searchTerm
+                    ? 'No campaigns match your search criteria.'
+                    : 'Create your first campaign to start organizing your outreach efforts.'}
+                </p>
+                {!searchTerm && (
+                  <Button onClick={handleCreateNewSequence}>
+                    <Plus className='h-4 w-4 mr-2' />
+                    Create Your First Campaign
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className='bg-white rounded-lg border border-gray-300 overflow-hidden'>
+              {/* Campaign Details and Report Header */}
+              <div className='bg-gray-50 border-b border-gray-300 px-6 py-3'>
+                <div className='flex justify-between items-center'>
+                  <h3 className='text-lg font-semibold text-foreground'>
+                    Campaign Details
+                  </h3>
+                  <h3 className='text-lg font-semibold text-foreground'>
+                    Report
+                  </h3>
+                </div>
+              </div>
 
-                      {/* Statistics */}
-                      <div className='flex items-center space-x-6'>
-                        <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-purple-600'>
-                            {campaignAnalytics[sequence.id]?.total_sent || 0}
-                          </div>
-                          <div className='flex items-center gap-1 mt-1'>
-                            <Mail className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>Sent</span>
+              {/* Campaign Rows */}
+              <div className='divide-y divide-gray-300'>
+                {filteredSequences.map(sequence => {
+                  const statusColor =
+                    STATUS_COLORS[
+                      sequence.status as keyof typeof STATUS_COLORS
+                    ] || 'bg-gray-100 text-foreground';
+
+                  return (
+                    <div
+                      key={sequence.id}
+                      className='px-6 py-3 hover:bg-gray-50 transition-colors cursor-pointer'
+                      onClick={() => handleOpenSequenceBuilder(sequence)}
+                    >
+                      <div className='flex items-center justify-between'>
+                        {/* Campaign Details */}
+                        <div className='flex items-center space-x-4 flex-1'>
+                          <div className='flex items-center space-x-3'>
+                            <div className='w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center'>
+                              <Edit className='h-4 w-4 text-gray-600' />
+                            </div>
+                            <div>
+                              <div className='flex items-center space-x-2'>
+                                <h4 className='text-sm font-medium text-purple-600 hover:text-purple-700'>
+                                  {sequence.name}
+                                </h4>
+                                <ExternalLink className='h-3 w-3 text-gray-400' />
+                              </div>
+                              <div className='flex items-center space-x-2 text-xs text-gray-500 mt-1'>
+                                <span
+                                  className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
+                                >
+                                  {sequence.status.charAt(0).toUpperCase() +
+                                    sequence.status.slice(1)}
+                                </span>
+                                <span>ΓÇó</span>
+                                <span>
+                                  Created At:{' '}
+                                  {format(
+                                    new Date(sequence.created_at),
+                                    'dd MMM, hh:mm a'
+                                  )}
+                                </span>
+                                <span>ΓÇó</span>
+                                <span>
+                                  {sequence.total_leads || 0} sequences
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-purple-600'>
-                            {campaignAnalytics[sequence.id]?.total_opened || 0}
+
+                        {/* Statistics */}
+                        <div className='flex items-center space-x-6'>
+                          <div className='flex flex-col items-center justify-center min-w-[80px]'>
+                            <div className='text-2xl font-bold text-purple-600'>
+                              {campaignAnalytics[sequence.id]?.total_sent || 0}
+                            </div>
+                            <div className='flex items-center gap-1 mt-1'>
+                              <Mail className='h-4 w-4 text-gray-500' />
+                              <span className='text-xs text-gray-600'>
+                                Sent
+                              </span>
+                            </div>
                           </div>
-                          <div className='flex items-center gap-1 mt-1'>
-                            <MailOpen className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>
-                              Opened
-                            </span>
+                          <div className='flex flex-col items-center justify-center min-w-[80px]'>
+                            <div className='text-2xl font-bold text-purple-600'>
+                              {campaignAnalytics[sequence.id]?.total_opened ||
+                                0}
+                            </div>
+                            <div className='flex items-center gap-1 mt-1'>
+                              <MailOpen className='h-4 w-4 text-gray-500' />
+                              <span className='text-xs text-gray-600'>
+                                Opened
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                        <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-blue-500'>
-                            {campaignAnalytics[sequence.id]?.total_replied || 0}
+                          <div className='flex flex-col items-center justify-center min-w-[80px]'>
+                            <div className='text-2xl font-bold text-blue-500'>
+                              {campaignAnalytics[sequence.id]?.total_replied ||
+                                0}
+                            </div>
+                            <div className='flex items-center gap-1 mt-1'>
+                              <Reply className='h-4 w-4 text-gray-500' />
+                              <span className='text-xs text-gray-600'>
+                                Replied
+                              </span>
+                            </div>
                           </div>
-                          <div className='flex items-center gap-1 mt-1'>
-                            <Reply className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>
-                              Replied
-                            </span>
+                          <div className='flex flex-col items-center justify-center min-w-[80px]'>
+                            <div className='text-2xl font-bold text-green-600'>
+                              {campaignAnalytics[sequence.id]
+                                ?.total_positive_replies || 0}
+                            </div>
+                            <div className='flex items-center gap-1 mt-1'>
+                              <DollarSign className='h-4 w-4 text-gray-500' />
+                              <span className='text-xs text-gray-600'>
+                                Positive
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                        <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-green-600'>
-                            {campaignAnalytics[sequence.id]
-                              ?.total_positive_replies || 0}
-                          </div>
-                          <div className='flex items-center gap-1 mt-1'>
-                            <DollarSign className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>
-                              Positive
-                            </span>
-                          </div>
-                        </div>
-                        <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-red-600'>
-                            {campaignAnalytics[sequence.id]?.total_bounced || 0}
-                          </div>
-                          <div className='flex items-center gap-1 mt-1'>
-                            <AlertTriangle className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>
-                              Bounced
-                            </span>
+                          <div className='flex flex-col items-center justify-center min-w-[80px]'>
+                            <div className='text-2xl font-bold text-red-600'>
+                              {campaignAnalytics[sequence.id]?.total_bounced ||
+                                0}
+                            </div>
+                            <div className='flex items-center gap-1 mt-1'>
+                              <AlertTriangle className='h-4 w-4 text-gray-500' />
+                              <span className='text-xs text-gray-600'>
+                                Bounced
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
         </TabsContent>
 
         {/* Lemlist Tab */}
-        <TabsContent value="lemlist">
+        <TabsContent value='lemlist'>
           <LemlistCampaignsView />
         </TabsContent>
       </Tabs>

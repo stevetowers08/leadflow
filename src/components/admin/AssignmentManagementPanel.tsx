@@ -63,7 +63,7 @@ export const AssignmentManagementPanel: React.FC = () => {
   const { user } = useAuth();
   const { hasRole } = usePermissions();
 
-  const canManageAssignments = hasRole('admin') || hasRole('owner');
+  const canManageAssignments = hasRole('admin');
 
   useEffect(() => {
     if (canManageAssignments) {
@@ -156,8 +156,8 @@ export const AssignmentManagementPanel: React.FC = () => {
       <Alert>
         <AlertTriangle className='h-4 w-4' />
         <AlertDescription>
-          You don&apos;t have permission to manage assignments. Only administrators
-          and owners can access this panel.
+          You don&apos;t have permission to manage assignments. Only
+          administrators and owners can access this panel.
         </AlertDescription>
       </Alert>
     );

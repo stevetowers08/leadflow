@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 
     // Store watch information in integrations table
     const { error: integrationError } = await supabase
-      .from('integrations')
+      .from('integrations' as never)
       .upsert({
         platform: 'gmail',
         connected: true,
@@ -125,7 +125,10 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error in gmail-watch-setup:', error);
-    const errorResponse = APIErrorHandler.handleError(error, 'gmail-watch-setup');
+    const errorResponse = APIErrorHandler.handleError(
+      error,
+      'gmail-watch-setup'
+    );
     const headers = new Headers(errorResponse.headers);
     Object.entries(corsHeaders).forEach(([key, value]) => {
       headers.set(key, value);
@@ -136,5 +139,3 @@ export async function POST(request: NextRequest) {
     });
   }
 }
-
-

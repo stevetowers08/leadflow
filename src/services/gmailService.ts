@@ -266,20 +266,20 @@ export class GmailService {
       const toEmails = this.extractEmails(toHeader.value);
       const subject = subjectHeader?.value || '';
 
-      const { data: person } = await supabase
-        .from('people')
+      const { data: lead } = await supabase
+        .from('leads')
         .select('id')
-        .eq('email_address', fromEmail)
+        .eq('email', fromEmail)
         .single();
 
-      if (!person) return null;
+      if (!lead) return null;
 
       const bodyText = this.extractEmailBody(gmailMessage.payload);
       const bodyHtml = this.extractEmailBodyHtml(gmailMessage.payload);
 
       const threadData = {
         gmail_thread_id: gmailMessage.threadId,
-        person_id: person.id,
+        lead_id: lead.id, // Changed from person_id
         subject,
         participants: [fromEmail, ...toEmails],
         last_message_at: new Date(
@@ -379,14 +379,14 @@ export class GmailService {
       // Automatically update statuses after successful email send
       if (request.personId) {
         try {
-          // Get company_id from person
-          const { data: person } = await supabase
-            .from('people')
+          // Get company_id from lead
+          const { data: lead } = await supabase
+            .from('leads')
             .select('company_id, id')
             .eq('id', request.personId)
             .single();
 
-          if (person?.id) {
+          if (lead?.id) {
             // Check if this is first message - celebrate
             await checkAndCelebrateFirstMessage(person.id);
 
@@ -569,7 +569,8 @@ export class GmailService {
         metadata: {
           operation: operationType,
           status: 'error',
-          error_message: error instanceof Error ? error.message : 'Unknown error',
+          error_message:
+            error instanceof Error ? error.message : 'Unknown error',
         } as unknown as Json,
       });
     } catch (logError) {

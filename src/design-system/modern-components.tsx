@@ -5,13 +5,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  EnhancedTable,
-  EnhancedTableBody,
-  EnhancedTableCell,
-  EnhancedTableHead,
-  EnhancedTableHeader,
-  EnhancedTableRow,
-} from '@/components/ui/enhanced-table';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { Loader2, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import React from 'react';
@@ -154,7 +154,9 @@ export const ModernMetricCard: React.FC<ModernMetricCardProps> = ({
         ) : (
           <>
             <div className='flex items-center justify-between'>
-              <p className='text-sm font-medium text-muted-foreground'>{title}</p>
+              <p className='text-sm font-medium text-muted-foreground'>
+                {title}
+              </p>
               {change !== undefined && (
                 <div
                   className={`flex items-center space-x-1 text-sm ${getTrendColor()}`}
@@ -193,7 +195,9 @@ export const ModernSectionHeader: React.FC<ModernSectionHeaderProps> = ({
     <div className='flex items-center justify-between mb-6'>
       <div>
         <h2 className='text-xl font-semibold text-foreground'>{title}</h2>
-        {subtitle && <p className='text-sm text-muted-foreground mt-1'>{subtitle}</p>}
+        {subtitle && (
+          <p className='text-sm text-muted-foreground mt-1'>{subtitle}</p>
+        )}
       </div>
       {actions && <div className='flex items-center space-x-2'>{actions}</div>}
     </div>
@@ -233,11 +237,11 @@ export const DataTable: React.FC<DataTableProps> = ({
 
   return (
     <div className='bg-white rounded-lg border border-border'>
-      <EnhancedTable dualScrollbars={false} stickyHeader={true}>
-        <EnhancedTableHeader>
-          <EnhancedTableRow className='transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-border bg-muted/50'>
+      <Table>
+        <TableHeader>
+          <TableRow className='transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-border bg-muted/50'>
             {columns.map(column => (
-              <EnhancedTableHead
+              <TableHead
                 key={column.key}
                 className={cn(
                   'text-sm font-semibold text-muted-foreground uppercase tracking-wider',
@@ -265,13 +269,13 @@ export const DataTable: React.FC<DataTableProps> = ({
                 >
                   <span>{column.label}</span>
                 </div>
-              </EnhancedTableHead>
+              </TableHead>
             ))}
-          </EnhancedTableRow>
-        </EnhancedTableHeader>
-        <EnhancedTableBody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {data.map((row, index) => (
-            <EnhancedTableRow
+            <TableRow
               key={index}
               className={cn(
                 'data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-muted/80 hover:shadow-sm hover:border-border transition-colors duration-200 group',
@@ -283,7 +287,7 @@ export const DataTable: React.FC<DataTableProps> = ({
               onClick={onRowClick ? () => onRowClick(row) : undefined}
             >
               {columns.map(column => (
-                <EnhancedTableCell
+                <TableCell
                   key={column.key}
                   className={cn(
                     'align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0',
@@ -303,16 +307,16 @@ export const DataTable: React.FC<DataTableProps> = ({
                   ) : (
                     <div className='min-w-0'>
                       <div className='text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis'>
-                        {row[column.key] || '-'}
+                        {String(row[column.key] ?? '-')}
                       </div>
                     </div>
                   )}
-                </EnhancedTableCell>
+                </TableCell>
               ))}
-            </EnhancedTableRow>
+            </TableRow>
           ))}
-        </EnhancedTableBody>
-      </EnhancedTable>
+        </TableBody>
+      </Table>
     </div>
   );
 };

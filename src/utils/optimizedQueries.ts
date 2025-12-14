@@ -67,15 +67,11 @@ export class OptimizedQueries {
       // Get unassigned counts efficiently
       Promise.all([
         supabase
-          .from('people')
+          .from('leads')
           .select('*', { count: 'exact', head: true })
           .is('owner_id', null),
         supabase
           .from('companies')
-          .select('*', { count: 'exact', head: true })
-          .is('owner_id', null),
-        supabase
-          .from('jobs')
           .select('*', { count: 'exact', head: true })
           .is('owner_id', null),
       ]),
@@ -272,7 +268,7 @@ export class OptimizedQueries {
     // Note: company_assignments_with_users is a VIEW, not a table
     // See migration: 20250130000004_optimize_user_assignment_queries.sql
     let query = supabase.from('company_assignments_with_users').select('*');
-    
+
     if (filters.stage && filters.stage !== 'all') {
       query = query.eq('pipeline_stage', filters.stage);
     }

@@ -118,7 +118,7 @@ export const useFocusTrap = ({
         returnFocusElement.focus();
       } else if (returnFocusRef?.current) {
         // Fallback if ref was updated
-        returnFocusRef.current.focus();
+        (returnFocusRef.current as HTMLElement).focus();
       }
     };
   }, [enabled, initialFocusRef, returnFocusRef]);

@@ -197,15 +197,18 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
               {/* First page button */}
               <PaginationItem>
                 <PaginationPrevious
-                  onClick={() => hasPreviousPage && onPageChange(1)}
+                  onClick={
+                    !hasPreviousPage || loading
+                      ? undefined
+                      : () => onPageChange(1)
+                  }
                   className={cn(
                     'cursor-pointer transition-colors',
-                    !hasPreviousPage
+                    !hasPreviousPage || loading
                       ? 'pointer-events-none opacity-50'
                       : 'hover:bg-gray-100'
                   )}
                   aria-label='Go to first page'
-                  disabled={!hasPreviousPage || loading}
                 >
                   <ArrowLeft className='h-4 w-4' />
                 </PaginationPrevious>
@@ -214,17 +217,18 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
               {/* Previous button */}
               <PaginationItem>
                 <PaginationPrevious
-                  onClick={() =>
-                    hasPreviousPage && onPageChange(currentPage - 1)
+                  onClick={
+                    !hasPreviousPage || loading
+                      ? undefined
+                      : () => onPageChange(currentPage - 1)
                   }
                   className={cn(
                     'cursor-pointer transition-colors',
-                    !hasPreviousPage
+                    !hasPreviousPage || loading
                       ? 'pointer-events-none opacity-50'
                       : 'hover:bg-gray-100'
                   )}
                   aria-label='Go to previous page'
-                  disabled={!hasPreviousPage || loading}
                 >
                   <ChevronLeft className='h-4 w-4' />
                 </PaginationPrevious>
@@ -238,7 +242,6 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                       onClick={() => onPageChange(1)}
                       className='cursor-pointer hover:bg-gray-100 transition-colors'
                       aria-label='Go to page 1'
-                      disabled={loading}
                     >
                       1
                     </PaginationLink>
@@ -263,7 +266,6 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                     )}
                     aria-label={`Go to page ${page}`}
                     aria-current={page === currentPage ? 'page' : undefined}
-                    disabled={loading}
                   >
                     {page}
                   </PaginationLink>
@@ -281,7 +283,6 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                       onClick={() => onPageChange(totalPages)}
                       className='cursor-pointer hover:bg-gray-100 transition-colors'
                       aria-label={`Go to page ${totalPages}`}
-                      disabled={loading}
                     >
                       {totalPages}
                     </PaginationLink>
@@ -300,7 +301,6 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                       : 'hover:bg-gray-100'
                   )}
                   aria-label='Go to next page'
-                  disabled={!hasNextPage || loading}
                 >
                   <ChevronRight className='h-4 w-4' />
                 </PaginationNext>
@@ -317,7 +317,6 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                       : 'hover:bg-gray-100'
                   )}
                   aria-label='Go to last page'
-                  disabled={!hasNextPage || loading}
                 >
                   <ArrowRight className='h-4 w-4' />
                 </PaginationNext>
@@ -354,7 +353,6 @@ export const CompactPaginationControls: React.FC<{
         variant='outline'
         size='sm'
         onClick={() => hasPreviousPage && onPageChange(currentPage - 1)}
-        disabled={!hasPreviousPage || loading}
         className='h-8 w-8 p-0'
         aria-label='Go to previous page'
       >
@@ -369,7 +367,6 @@ export const CompactPaginationControls: React.FC<{
         variant='outline'
         size='sm'
         onClick={() => hasNextPage && onPageChange(currentPage + 1)}
-        disabled={!hasNextPage || loading}
         className='h-8 w-8 p-0'
         aria-label='Go to next page'
       >

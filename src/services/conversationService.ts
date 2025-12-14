@@ -2,7 +2,7 @@ import { supabase } from '../integrations/supabase/client';
 
 export interface Conversation {
   id: string;
-  person_id: string;
+  lead_id: string; // Changed from person_id
   message_id?: string;
   subject?: string;
   participants: string[];
@@ -13,10 +13,12 @@ export interface Conversation {
   created_at: string;
   updated_at: string;
   // Joined data
-  person_name?: string;
-  person_email?: string;
-  person_company?: string;
-  person_linkedin_url?: string;
+  lead_name?: string; // Changed from person_name
+  lead_email?: string; // Changed from person_email
+  lead_company?: string; // Changed from person_company
+  lead_company_website?: string; // Changed from person_company_website
+  lead_job_title?: string; // Changed from person_job_title
+  lead_linkedin_url?: string; // Changed from person_linkedin_url
   message_count?: number;
   // Message content
   last_reply_message?: string;
@@ -25,7 +27,7 @@ export interface Conversation {
 export interface ConversationMessage {
   id: string;
   conversation_id: string;
-  person_id: string;
+  lead_id: string; // Changed from person_id
   message_id?: string;
   sender_type: 'us' | 'them' | 'system';
   sender_name?: string;
@@ -37,13 +39,14 @@ export interface ConversationMessage {
   received_at: string;
   created_at: string;
   updated_at: string;
+  expandi_status?: 'pending' | 'sent' | 'delivered' | 'failed';
 }
 
 export class ConversationService {
   async testConnection(): Promise<boolean> {
     try {
       const { data, error } = await supabase
-        .from('people')
+        .from('leads')
         .select('id')
         .limit(1);
 
@@ -60,17 +63,20 @@ export class ConversationService {
   }): Promise<Conversation[]> {
     // Get conversations with filters
 
-    // Get people who have conversations (messaged, replied, connected stages)
+    // Get leads who have conversations (messaged, replied, connected stages)
     let query = supabase
-      .from('people')
+      .from('leads')
       .select(
         `
         id,
-        name,
-        email_address,
+        first_name,
+        last_name,
+        email,
         company,
+        company_id,
+        job_title,
         linkedin_url,
-        stage,
+        status,
         last_reply_at,
         last_reply_channel,
         last_reply_message,
@@ -79,7 +85,6 @@ export class ConversationService {
         updated_at
       `
       )
-      // .in('stage', ['messaged', 'replied', 'connected'])
       .order('last_reply_message', { ascending: false, nullsFirst: false })
       .order('last_reply_at', { ascending: false, nullsFirst: false });
 
@@ -95,31 +100,31 @@ export class ConversationService {
 
     // Transform raw data to conversation format
 
-    // Transform people data to conversation format
-    return (data || []).map(person => ({
-      id: person.id,
-      person_id: person.id,
-      message_id: undefined,
-      subject: undefined,
-      participants: [person.email_address || person.name].filter(Boolean),
-      last_message_at: person.last_reply_at || person.created_at,
-      is_read: !!person.last_reply_at,
-      conversation_type:
-        person.last_reply_channel === 'email' ? 'email' : 'linkedin',
-      status:
-        person.people_stage === 'new_lead'
-          ? 'active'
-          : person.people_stage === 'new_lead'
-            ? 'active'
-            : 'active',
-      created_at: person.created_at,
-      updated_at: person.updated_at,
-      person_name: person.name,
-      person_email: person.email_address,
-      person_company: person.company,
-      person_linkedin_url: person.linkedin_url,
-      message_count: 1, // Simplified for now
-    }));
+    // Transform leads data to conversation format
+    return (data || []).map(lead => {
+      const fullName =
+        `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown';
+      return {
+        id: lead.id,
+        lead_id: lead.id,
+        message_id: undefined,
+        subject: undefined,
+        participants: [lead.email || fullName].filter(Boolean),
+        last_message_at: lead.last_reply_at || lead.created_at,
+        is_read: !!lead.last_reply_at,
+        conversation_type:
+          lead.last_reply_channel === 'email' ? 'email' : 'linkedin',
+        status: lead.status === 'replied_manual' ? 'active' : 'active',
+        created_at: lead.created_at,
+        updated_at: lead.updated_at,
+        lead_name: fullName,
+        lead_email: lead.email,
+        lead_company: lead.company,
+        lead_job_title: lead.job_title,
+        lead_linkedin_url: lead.linkedin_url,
+        message_count: 1, // Simplified for now
+      };
+    });
   }
 
   async getConversationMessages(
@@ -127,12 +132,14 @@ export class ConversationService {
   ): Promise<ConversationMessage[]> {
     // conversation_messages table removed - using activity_log instead
     // Return empty array for now
-    console.warn('conversation_messages table removed - use activity_log instead');
+    console.warn(
+      'conversation_messages table removed - use activity_log instead'
+    );
     return [];
   }
 
   async createConversation(conversationData: {
-    person_id: string;
+    lead_id: string; // Changed from person_id
     message_id?: string;
     subject?: string;
     participants: string[];
@@ -140,12 +147,14 @@ export class ConversationService {
   }): Promise<Conversation> {
     // conversations table removed - using activity_log instead
     console.warn('conversations table removed - use activity_log instead');
-    throw new Error('Conversations table removed - use activity_log for tracking');
+    throw new Error(
+      'Conversations table removed - use activity_log for tracking'
+    );
   }
 
   async addMessage(messageData: {
     conversation_id: string;
-    person_id: string;
+    lead_id: string; // Changed from person_id
     message_id?: string;
     sender_type: 'us' | 'them' | 'system';
     sender_name?: string;
@@ -157,8 +166,12 @@ export class ConversationService {
     expandi_message_id?: string;
   }): Promise<ConversationMessage> {
     // conversation_messages table removed - using activity_log instead
-    console.warn('conversation_messages table removed - use activity_log instead');
-    throw new Error('Conversation messages table removed - use activity_log for tracking');
+    console.warn(
+      'conversation_messages table removed - use activity_log instead'
+    );
+    throw new Error(
+      'Conversation messages table removed - use activity_log for tracking'
+    );
 
     if (error) throw error;
 
@@ -167,9 +180,9 @@ export class ConversationService {
     //   .from('conversations')
     //   .update({
     //     last_message_at: messageData.sent_at || new Date().toISOString(),
-        // updated_at: new Date().toISOString(),
-      // })
-      // .eq('id', messageData.conversation_id);
+    // updated_at: new Date().toISOString(),
+    // })
+    // .eq('id', messageData.conversation_id);
 
     return data;
   }
@@ -186,7 +199,9 @@ export class ConversationService {
     expandiMessageId?: string
   ): Promise<void> {
     // conversation_messages table removed - using activity_log instead
-    console.warn('conversation_messages table removed - use activity_log instead');
+    console.warn(
+      'conversation_messages table removed - use activity_log instead'
+    );
     // No-op for now
   }
 
@@ -198,16 +213,16 @@ export class ConversationService {
     return null;
   }
 
-  private async findPersonByEmailOrName(
+  private async findLeadByEmailOrName(
     email?: string,
     name?: string
   ): Promise<Record<string, unknown> | null> {
-    let query = supabase.from('people').select('*');
+    let query = supabase.from('leads').select('*');
 
     if (email) {
-      query = query.eq('email_address', email);
+      query = query.eq('email', email);
     } else if (name) {
-      query = query.ilike('name', `%${name}%`);
+      query = query.or(`first_name.ilike.%${name}%,last_name.ilike.%${name}%`);
     } else {
       return null;
     }
@@ -260,50 +275,50 @@ export class ConversationService {
         { count: linkedinConversations },
         { count: emailConversations },
       ] = await Promise.all([
-        // Total conversations - people who have actually replied
+        // Total conversations - leads who have actually replied
         supabase
-          .from('people')
+          .from('leads')
           .select('*', { count: 'exact', head: true })
           .not('last_reply_message', 'is', null)
           .neq('last_reply_message', ''),
 
-        // Unread conversations - people messaged but no reply yet
+        // Unread conversations - leads messaged but no reply yet
         supabase
-          .from('people')
+          .from('leads')
           .select('*', { count: 'exact', head: true })
-          .eq('people_stage', 'new_lead')
+          .eq('status', 'active')
           .is('last_reply_at', null),
 
-        // Active conversations - people who have replied (true conversations)
+        // Active conversations - leads who have replied (true conversations)
         supabase
-          .from('people')
+          .from('leads')
           .select('*', { count: 'exact', head: true })
           .not('last_reply_message', 'is', null)
           .neq('last_reply_message', ''),
 
-        // Messages today - people with message sent today
+        // Messages today - leads with message sent today
         supabase
-          .from('people')
+          .from('leads')
           .select('*', { count: 'exact', head: true })
           .gte('last_reply_at', today),
 
-        // Messages this week - people with message sent this week
+        // Messages this week - leads with message sent this week
         supabase
-          .from('people')
+          .from('leads')
           .select('*', { count: 'exact', head: true })
           .gte('last_reply_at', weekAgo),
 
-        // LinkedIn conversations - people with LinkedIn replies
+        // LinkedIn conversations - leads with LinkedIn replies
         supabase
-          .from('people')
+          .from('leads')
           .select('*', { count: 'exact', head: true })
           .not('last_reply_message', 'is', null)
           .neq('last_reply_message', '')
           .eq('last_reply_channel', 'linkedin'),
 
-        // Email conversations - people with email replies
+        // Email conversations - leads with email replies
         supabase
-          .from('people')
+          .from('leads')
           .select('*', { count: 'exact', head: true })
           .not('last_reply_message', 'is', null)
           .neq('last_reply_message', '')

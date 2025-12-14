@@ -64,7 +64,7 @@ export const UserSelector: React.FC<UserSelectorProps> = ({
         .order('full_name');
 
       if (error) throw error;
-      setUsers(data || []);
+      setUsers((data || []) as UserProfile[]);
     } catch (error) {
       console.error('Error loading users:', error);
     } finally {

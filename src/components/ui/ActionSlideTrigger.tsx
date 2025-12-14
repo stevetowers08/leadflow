@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ActionSlidePanel, type ActionItem } from './ActionSlidePanel';
 import { cn } from '@/lib/utils';
 
+export type { ActionItem };
+
 interface ActionSlideTriggerProps {
   actions: ActionItem[];
   title?: string;
@@ -31,7 +33,7 @@ export const ActionSlideTrigger: React.FC<ActionSlideTriggerProps> = ({
     <>
       <Button
         variant={variant}
-        size={size}
+        size={size === 'md' ? 'sm' : size}
         onClick={() => setIsOpen(true)}
         className={cn('gap-2', className)}
       >
@@ -52,4 +54,3 @@ export const ActionSlideTrigger: React.FC<ActionSlideTriggerProps> = ({
     </>
   );
 };
-

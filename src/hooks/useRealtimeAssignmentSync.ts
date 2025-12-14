@@ -6,6 +6,7 @@
 import { useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface RealtimeAssignmentOptions {
   entityTypes?: ('people' | 'companies' | 'jobs')[];
@@ -58,81 +59,20 @@ export const useRealtimeAssignmentSync = (
     [queryClient]
   );
 
-  // Handle assignment changes
-  const handleAssignmentChange = useCallback(
-    (payload: any) => {
-      const { new: newRecord, old: oldRecord, eventType, table } = payload;
-
-      if (eventType === 'UPDATE' && newRecord && oldRecord) {
-        const oldOwnerId = oldRecord.owner_id;
-        const newOwnerId = newRecord.owner_id;
-
-        // Only trigger if owner actually changed
-        if (oldOwnerId !== newOwnerId) {
-          console.log('🔄 Assignment changed via real-time:', {
-            entityType: table,
-            entityId: newRecord.id,
-            oldOwnerId,
-            newOwnerId,
-          });
-
-          // Invalidate caches
-          invalidateAssignmentCaches(table, newRecord.id);
-
-          // Call custom handler if provided
-          onAssignmentChange?.({
-            entityType: table as 'people' | 'companies' | 'jobs',
-            entityId: newRecord.id,
-            newOwnerId,
-            oldOwnerId,
-          });
-        }
-      }
-    },
-    [invalidateAssignmentCaches, onAssignmentChange]
-  );
+  // Assignment feature removed - owner_id no longer exists
+  // Using client_id for multi-tenant architecture instead
+  const handleAssignmentChange = useCallback(() => {
+    // No-op: assignment functionality has been removed
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
 
-    const channels: any[] = [];
+    const channels: RealtimeChannel[] = [];
 
-    // Set up subscriptions for each entity type
-    entityTypes.forEach(entityType => {
-      const channel = supabase
-        .channel(`${entityType}-assignment-sync`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: entityType,
-            filter: 'owner_id=neq.null',
-          },
-          handleAssignmentChange
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: entityType,
-            filter: 'owner_id=is.null',
-          },
-          handleAssignmentChange
-        )
-        .subscribe(status => {
-          if (status === 'SUBSCRIBED') {
-            if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
-              console.log(`✅ Real-time subscription active for ${entityType}`);
-            }
-          } else if (status === 'CHANNEL_ERROR') {
-            console.error(`❌ Real-time subscription error for ${entityType}`);
-          }
-        });
-
-      channels.push(channel);
-    });
+    // Assignment feature removed - owner_id no longer exists
+    // Real-time assignment sync disabled
+    // No subscriptions needed
 
     return () => {
       console.log('🧹 Cleaning up real-time subscriptions...');
@@ -144,7 +84,7 @@ export const useRealtimeAssignmentSync = (
         }
       });
     };
-  }, [entityTypes.join(','), enabled]); // Remove handleAssignmentChange from dependencies
+  }, [enabled, entityTypes]);
 
   return {
     invalidateAssignmentCaches,

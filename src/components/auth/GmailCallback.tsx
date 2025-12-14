@@ -5,10 +5,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { secureGmailService } from '../../../services/secureGmailService';
+import { secureGmailService } from '@/services/secureGmailService';
 
 export const GmailCallback: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
@@ -16,6 +16,12 @@ export const GmailCallback: React.FC = () => {
   const [message, setMessage] = useState('');
 
   const handleGmailCallback = useCallback(async () => {
+    if (!searchParams) {
+      setStatus('error');
+      setMessage('Unable to read URL parameters');
+      return;
+    }
+
     try {
       const code = searchParams.get('code');
       const error = searchParams.get('error');
@@ -55,7 +61,7 @@ export const GmailCallback: React.FC = () => {
       setMessage('Processing Gmail authentication...');
 
       // Handle the callback with state validation
-      await secureGmailService.handleGmailCallback(code, state);
+      await secureGmailService.handleGmailCallback(code, state || undefined);
 
       setStatus('success');
       setMessage('Gmail connected successfully!');

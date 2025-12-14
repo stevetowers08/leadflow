@@ -72,9 +72,20 @@ export function useAdvancedCaching<T>(
     retryDelay = 1000,
   } = options;
 
-  const cacheTime = CACHE_CONFIG[cacheType];
+  // Map cacheType to CACHE_CONFIG keys
+  const cacheTimeMap: Record<typeof cacheType, number> = {
+    STATIC: CACHE_CONFIG.STATIC_DATA,
+    DYNAMIC: CACHE_CONFIG.DYNAMIC_DATA,
+    REAL_TIME: CACHE_CONFIG.REAL_TIME_DATA,
+    USER: CACHE_CONFIG.USER_DATA,
+  };
+
+  const cacheTime = cacheTimeMap[cacheType];
   const staleTime = CACHE_CONFIG.STALE_TIME[cacheType];
-  const refetchInterval = CACHE_CONFIG.REFETCH_INTERVALS[cacheType];
+  const rawRefetchInterval = CACHE_CONFIG.REFETCH_INTERVALS[cacheType];
+  // Type guard: ensure refetchInterval is number | false (not boolean which includes true)
+  const refetchInterval: number | false =
+    typeof rawRefetchInterval === 'number' ? rawRefetchInterval : false;
 
   const query = useQuery({
     queryKey,
@@ -321,28 +332,26 @@ export function useBackgroundSync() {
       // Sync critical data in background
       const criticalQueries = [
         {
-          key: ['people'],
-          fn: () =>
-            supabase
-              .from('people')
-              .select('id, name, stage, updated_at')
-              .limit(100),
+          key: ['leads'],
+          fn: async () => {
+            const { data, error } = await supabase
+              .from('leads')
+              .select('id, first_name, last_name, status, updated_at')
+              .limit(100);
+            if (error) throw error;
+            return data;
+          },
         },
         {
           key: ['companies'],
-          fn: () =>
-            supabase
+          fn: async () => {
+            const { data, error } = await supabase
               .from('companies')
               .select('id, name, pipeline_stage, updated_at')
-              .limit(100),
-        },
-        {
-          key: ['jobs'],
-          fn: () =>
-            supabase
-              .from('jobs')
-              .select('id, title, priority, updated_at')
-              .limit(100),
+              .limit(100);
+            if (error) throw error;
+            return data;
+          },
         },
       ];
 
@@ -350,7 +359,7 @@ export function useBackgroundSync() {
         criticalQueries.map(({ key, fn }) =>
           queryClient.prefetchQuery({
             queryKey: key,
-            queryFn: fn,
+            queryFn: fn as () => Promise<unknown>,
             staleTime: CACHE_CONFIG.STALE_TIME.DYNAMIC,
           })
         )

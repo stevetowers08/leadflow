@@ -62,12 +62,15 @@ export function ResponsiveTable<T = unknown>({
     return columns.map((col, index) => ({
       key: col.key,
       label: typeof col.label === 'string' ? col.label : `Column ${index + 1}`,
-      render:
-        col.render ||
-        ((item: T) => {
+      render: (item: T) => {
+        if (col.render) {
+          // If render function exists, call it with the item's value
           const value = (item as Record<string, unknown>)[col.key];
-          return value ? String(value) : '-';
-        }),
+          return col.render(value as unknown, item, index);
+        }
+        const value = (item as Record<string, unknown>)[col.key];
+        return value ? String(value) : '-';
+      },
       primary: mobilePrimaryColumns
         ? mobilePrimaryColumns.includes(col.key)
         : index < 2, // Default: first 2 columns are primary
@@ -107,7 +110,11 @@ export function ResponsiveTable<T = unknown>({
   }
 
   // On desktop, table removed
-  return <div className="flex items-center justify-center h-full text-muted-foreground">Table removed</div>;
+  return (
+    <div className='flex items-center justify-center h-full text-muted-foreground'>
+      Table removed
+    </div>
+  );
 }
 
 // Re-export for convenience

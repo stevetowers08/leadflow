@@ -1,10 +1,10 @@
 /**
- * Bulk People Operations Service
+ * Bulk Leads Operations Service
  *
- * Handles all bulk operations for people (decision makers):
+ * Handles all bulk operations for leads:
  * 1. Delete - Bulk delete with confirmation
  * 2. Favourite - Bulk favourite/unfavourite
- * 3. Export CSV - Download selected people as CSV
+ * 3. Export CSV - Download selected leads as CSV
  * 4. Sync to CRM - Send to n8n webhook for CRM sync
  * 5. Add to Campaign - Bulk enroll in campaigns
  *
@@ -16,7 +16,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { Person } from '@/types/database';
+import { Lead } from '@/types/database';
 
 const BATCH_SIZE = 50;
 
@@ -29,8 +29,8 @@ export interface BulkOperationResult {
 }
 
 /**
- * Bulk Delete People
- * Deletes selected people in batches
+ * Bulk Delete Leads
+ * Deletes selected leads in batches
  */
 export const bulkDeletePeople = async (
   peopleIds: string[]
@@ -43,7 +43,7 @@ export const bulkDeletePeople = async (
     for (let i = 0; i < peopleIds.length; i += BATCH_SIZE) {
       const batch = peopleIds.slice(i, i + BATCH_SIZE);
 
-      const { error } = await supabase.from('people').delete().in('id', batch);
+      const { error } = await supabase.from('leads').delete().in('id', batch);
 
       if (error) {
         batch.forEach(id => errors.push({ id, error: error.message }));
@@ -59,8 +59,8 @@ export const bulkDeletePeople = async (
       errors,
       message:
         errors.length === 0
-          ? `Successfully deleted ${successCount} people`
-          : `Deleted ${successCount} people with ${errors.length} errors`,
+          ? `Successfully deleted ${successCount} leads`
+          : `Deleted ${successCount} leads with ${errors.length} errors`,
     };
   } catch (error) {
     return {
@@ -68,14 +68,14 @@ export const bulkDeletePeople = async (
       successCount,
       errorCount: peopleIds.length - successCount,
       errors: [{ id: 'all', error: (error as Error).message }],
-      message: 'Failed to delete people',
+      message: 'Failed to delete leads',
     };
   }
 };
 
 /**
- * Bulk Favourite/Unfavourite People
- * Toggles favourite status for selected people
+ * Bulk Favourite/Unfavourite Leads
+ * Toggles favourite status for selected leads
  */
 export const bulkFavouritePeople = async (
   peopleIds: string[],
@@ -90,7 +90,7 @@ export const bulkFavouritePeople = async (
       const batch = peopleIds.slice(i, i + BATCH_SIZE);
 
       const { error } = await supabase
-        .from('people')
+        .from('leads')
         .update({ is_favourite: isFavourite })
         .in('id', batch);
 
@@ -109,8 +109,8 @@ export const bulkFavouritePeople = async (
       errors,
       message:
         errors.length === 0
-          ? `Successfully ${action} ${successCount} people`
-          : `${action} ${successCount} people with ${errors.length} errors`,
+          ? `Successfully ${action} ${successCount} leads`
+          : `${action} ${successCount} leads with ${errors.length} errors`,
     };
   } catch (error) {
     return {
@@ -124,28 +124,28 @@ export const bulkFavouritePeople = async (
 };
 
 /**
- * Bulk Export People to CSV
- * Downloads selected people as CSV file
+ * Bulk Export Leads to CSV
+ * Downloads selected leads as CSV file
  */
 export const bulkExportPeople = async (
   peopleIds: string[]
 ): Promise<BulkOperationResult> => {
   try {
-    // Fetch all selected people with company data
+    // Fetch all selected leads with company data
     const { data, error } = await supabase
-      .from('people')
+      .from('leads')
       .select(
         `
         id,
-        name,
-        email_address,
-        company_role,
-        employee_location,
+        first_name,
+        last_name,
+        email,
+        job_title,
+        company,
         linkedin_url,
-        score,
-        people_stage,
-        created_at,
-        companies!left(name, website, industry)
+        quality_rank,
+        status,
+        created_at
       `
       )
       .in('id', peopleIds);
@@ -153,36 +153,32 @@ export const bulkExportPeople = async (
     if (error) throw error;
 
     // Convert to CSV format
-    const people = data as Person[];
+    const leads = data as Lead[];
     const headers = [
-      'Name',
+      'First Name',
+      'Last Name',
       'Email',
-      'Role',
-      'Location',
+      'Job Title',
       'Company',
-      'Company Website',
-      'Industry',
       'LinkedIn',
-      'Score',
-      'Stage',
+      'Quality Rank',
+      'Status',
       'Created Date',
     ];
 
     const csvRows = [
       headers.join(','),
-      ...people.map(person =>
+      ...leads.map(lead =>
         [
-          `"${person.name || ''}"`,
-          `"${person.email_address || ''}"`,
-          `"${person.company_role || ''}"`,
-          `"${person.employee_location || ''}"`,
-          `"${person.company_name || ''}"`,
-          `"${person.company_website || ''}"`,
-          `"${(person.companies as Record<string, unknown>)?.industry || ''}"`,
-          `"${person.linkedin_url || ''}"`,
-          `"${person.score || ''}"`,
-          `"${person.people_stage || ''}"`,
-          `"${person.created_at ? new Date(person.created_at).toLocaleDateString() : ''}"`,
+          `"${lead.first_name || ''}"`,
+          `"${lead.last_name || ''}"`,
+          `"${lead.email || ''}"`,
+          `"${lead.job_title || ''}"`,
+          `"${lead.company || ''}"`,
+          `"${lead.linkedin_url || ''}"`,
+          `"${lead.quality_rank || ''}"`,
+          `"${lead.status || ''}"`,
+          `"${lead.created_at ? new Date(lead.created_at).toLocaleDateString() : ''}"`,
         ].join(',')
       ),
     ];
@@ -199,7 +195,7 @@ export const bulkExportPeople = async (
     link.setAttribute('href', url);
     link.setAttribute(
       'download',
-      `people_export_${new Date().toISOString().split('T')[0]}.csv`
+      `leads_export_${new Date().toISOString().split('T')[0]}.csv`
     );
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
@@ -212,7 +208,7 @@ export const bulkExportPeople = async (
       successCount: people.length,
       errorCount: 0,
       errors: [],
-      message: `Successfully exported ${people.length} people to CSV`,
+      message: `Successfully exported ${leads.length} leads to CSV`,
     };
   } catch (error) {
     return {
@@ -220,28 +216,23 @@ export const bulkExportPeople = async (
       successCount: 0,
       errorCount: peopleIds.length,
       errors: [{ id: 'all', error: (error as Error).message }],
-      message: 'Failed to export people',
+      message: 'Failed to export leads',
     };
   }
 };
 
 /**
- * Bulk Sync People to CRM (n8n webhook)
- * Sends selected people to n8n webhook for CRM synchronization
+ * Bulk Sync Leads to CRM (n8n webhook)
+ * Sends selected leads to n8n webhook for CRM synchronization
  */
 export const bulkSyncToCRM = async (
   peopleIds: string[]
 ): Promise<BulkOperationResult> => {
   try {
-    // Fetch all selected people with full details
+    // Fetch all selected leads with full details
     const { data, error } = await supabase
-      .from('people')
-      .select(
-        `
-        *,
-        companies!left(*)
-      `
-      )
+      .from('leads')
+      .select('*')
       .in('id', peopleIds);
 
     if (error) throw error;
@@ -267,8 +258,8 @@ export const bulkSyncToCRM = async (
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        action: 'bulk_sync_people',
-        people: data,
+        action: 'bulk_sync_leads',
+        leads: data,
         timestamp: new Date().toISOString(),
       }),
     });
@@ -282,7 +273,7 @@ export const bulkSyncToCRM = async (
       successCount: peopleIds.length,
       errorCount: 0,
       errors: [],
-      message: `Successfully synced ${peopleIds.length} people to CRM`,
+      message: `Successfully synced ${peopleIds.length} leads to CRM`,
     };
   } catch (error) {
     return {
@@ -290,14 +281,14 @@ export const bulkSyncToCRM = async (
       successCount: 0,
       errorCount: peopleIds.length,
       errors: [{ id: 'all', error: (error as Error).message }],
-      message: 'Failed to sync people to CRM',
+      message: 'Failed to sync leads to CRM',
     };
   }
 };
 
 /**
- * Bulk Add People to Campaign Sequence
- * Enrolls selected people in a specific campaign sequence
+ * Bulk Add Leads to Campaign Sequence
+ * Enrolls selected leads in a specific campaign sequence
  */
 export const bulkAddToCampaign = async (
   peopleIds: string[],
@@ -357,8 +348,8 @@ export const bulkAddToCampaign = async (
       errors,
       message:
         errors.length === 0
-          ? `Successfully added ${successCount} people to ${campaign.name}`
-          : `Added ${successCount} people to ${campaign.name} with ${errors.length} errors`,
+          ? `Successfully added ${successCount} leads to ${campaign.name}`
+          : `Added ${successCount} leads to ${campaign.name} with ${errors.length} errors`,
     };
   } catch (error) {
     return {
@@ -366,14 +357,14 @@ export const bulkAddToCampaign = async (
       successCount,
       errorCount: peopleIds.length - successCount,
       errors: [{ id: 'all', error: (error as Error).message }],
-      message: 'Failed to add people to campaign sequence',
+      message: 'Failed to add leads to campaign sequence',
     };
   }
 };
 
 /**
- * Bulk Update People Stage
- * Updates the stage for selected people
+ * Bulk Update Leads Status
+ * Updates the status for selected leads
  */
 export const bulkUpdateStage = async (
   peopleIds: string[],
@@ -388,9 +379,9 @@ export const bulkUpdateStage = async (
       const batch = peopleIds.slice(i, i + BATCH_SIZE);
 
       const { error } = await supabase
-        .from('people')
+        .from('leads')
         .update({
-          people_stage: newStage,
+          status: newStage,
           updated_at: new Date().toISOString(),
         })
         .in('id', batch);
@@ -409,8 +400,8 @@ export const bulkUpdateStage = async (
       errors,
       message:
         errors.length === 0
-          ? `Successfully updated ${successCount} people to ${newStage}`
-          : `Updated ${successCount} people with ${errors.length} errors`,
+          ? `Successfully updated ${successCount} leads to ${newStage}`
+          : `Updated ${successCount} leads with ${errors.length} errors`,
     };
   } catch (error) {
     return {
@@ -418,7 +409,7 @@ export const bulkUpdateStage = async (
       successCount,
       errorCount: peopleIds.length - successCount,
       errors: [{ id: 'all', error: (error as Error).message }],
-      message: 'Failed to update people stage',
+      message: 'Failed to update leads status',
     };
   }
 };

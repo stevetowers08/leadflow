@@ -45,9 +45,9 @@ export default function WaitStepEditor({ step, onUpdate }: Props) {
                 <Input
                   type='number'
                   min='1'
-                  value={step.duration_value || 1}
+                  value={step.wait_duration || 1}
                   onChange={e =>
-                    onUpdate({ duration_value: parseInt(e.target.value) || 1 })
+                    onUpdate({ wait_duration: parseInt(e.target.value) || 1 })
                   }
                   placeholder='1'
                 />
@@ -58,9 +58,9 @@ export default function WaitStepEditor({ step, onUpdate }: Props) {
                   Duration Unit
                 </Label>
                 <Select
-                  value={step.duration_unit || 'days'}
+                  value={step.wait_unit || 'days'}
                   onValueChange={(value: 'hours' | 'days' | 'weeks') =>
-                    onUpdate({ duration_unit: value })
+                    onUpdate({ wait_unit: value })
                   }
                 >
                   <SelectTrigger>
@@ -134,7 +134,7 @@ export default function WaitStepEditor({ step, onUpdate }: Props) {
             <p className='text-sm text-muted-foreground'>
               This step will wait for{' '}
               <span className='font-semibold'>
-                {step.duration_value || 1} {step.duration_unit || 'days'}
+                {step.wait_duration || 1} {step.wait_unit || 'days'}
               </span>
               {step.business_hours_only && ' (business hours only)'} before
               proceeding to the next step.

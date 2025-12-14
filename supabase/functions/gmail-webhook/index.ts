@@ -159,7 +159,9 @@ async function processGmailReply(
     const sentiment = await analyzeSentiment(bodyPlain || bodyHtml || '');
 
     // Insert email_reply record
-    const receivedAt = new Date(parseInt(String(message.internalDate || Date.now())));
+    const receivedAt = new Date(
+      parseInt(String(message.internalDate || Date.now()))
+    );
     const { data: reply, error: insertError } = await supabase
       .from('email_replies')
       .insert({
@@ -209,21 +211,11 @@ async function processGmailReply(
         }
       );
     }
-      },
-      owner_id: interaction.people.id, // Use person's owner
-    });
+    // owner_id removed
 
     // Create notification for email response received
-    // Get the user_id who should receive the notification
-    const { data: ownerUser } = await supabase
-      .from('people')
-      .select('owner_id')
-      .eq('id', person.id)
-      .single();
-
-    const notificationUserId =
-      ownerUser?.owner_id ||
-      integration?.user_id;
+    // Use integration user_id since owner_id is removed
+    const notificationUserId = integration?.user_id;
 
     if (notificationUserId) {
       await supabase.from('user_notifications').insert({

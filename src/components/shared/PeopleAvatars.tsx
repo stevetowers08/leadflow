@@ -1,9 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Person } from '@/types/database';
+import { Lead } from '@/types/database';
 import React from 'react';
 
 interface PeopleAvatarsProps {
-  people: Person[];
+  people: Lead[];
   onPersonClick: (personId: string) => void;
   maxVisible?: number;
 }
@@ -20,7 +20,10 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
   const visiblePeople = people.slice(0, maxVisible);
   const remainingCount = people.length - maxVisible;
 
-  const getInitials = (name: string) => {
+  const getInitials = (lead: Lead) => {
+    const firstName = lead.first_name || '';
+    const lastName = lead.last_name || '';
+    const name = `${firstName} ${lastName}`.trim();
     if (!name || name.trim() === '') return '??';
     const parts = name
       .trim()
@@ -29,6 +32,10 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
     if (parts.length === 0) return '??';
     if (parts.length === 1) return parts[0][0].toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase().slice(0, 2);
+  };
+
+  const getName = (lead: Lead) => {
+    return `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Lead';
   };
 
   return (
@@ -42,8 +49,8 @@ export const PeopleAvatars: React.FC<PeopleAvatarsProps> = ({
             onPersonClick(person.id);
           }}
         >
-          <AvatarImage src={undefined} alt={person.name || 'Person'} />
-          <AvatarFallback>{getInitials(person.name || '?')}</AvatarFallback>
+          <AvatarImage src={undefined} alt={getName(person)} />
+          <AvatarFallback>{getInitials(person)}</AvatarFallback>
         </Avatar>
       ))}
       {remainingCount > 0 && (

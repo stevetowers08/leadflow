@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 
-interface MobileTableColumn<T> {
+export interface MobileTableColumn<T> {
   key: string;
   label: string;
   render: (item: T) => React.ReactNode;
@@ -180,9 +180,13 @@ export function EnhancedMobileTable<
         const rowElement = rowRefs.current[swipedRowId];
         let target: Node | null = null;
 
-        if ('target' in event) {
+        if (event instanceof MouseEvent) {
           target = event.target as Node;
-        } else if (event.touches && event.touches.length > 0) {
+        } else if (
+          event instanceof TouchEvent &&
+          event.touches &&
+          event.touches.length > 0
+        ) {
           target = event.touches[0].target as Node;
         }
 

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useCampaignSteps } from '@/hooks/useCampaignSequences';
-import { CampaignSequence } from '@/types/campaign.types';
+import { CampaignSequence, CampaignStep } from '@/types/campaign.types';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -27,7 +27,7 @@ interface Props {
 }
 
 const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
-  const { steps, loading, addStep, updateStep, deleteStep, reorderSteps } =
+  const { steps, isLoading, addStep, updateStep, deleteStep, reorderSteps } =
     useCampaignSteps(sequence.id);
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -45,6 +45,13 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
       }
     },
     [addStep]
+  );
+
+  const handleUpdateStep = useCallback(
+    async (stepId: string, updates: Partial<CampaignStep>) => {
+      await updateStep.mutateAsync({ id: stepId, updates });
+    },
+    [updateStep]
   );
 
   const handleDragEnd = useCallback(
@@ -292,7 +299,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
         {/* Right Panel - Step Editor */}
         <div className='flex-1 bg-white overflow-y-auto'>
           {selectedStep ? (
-            <StepEditor step={selectedStep} onUpdate={updateStep.mutateAsync} />
+            <StepEditor step={selectedStep} onUpdate={handleUpdateStep} />
           ) : (
             <div className='h-full flex items-center justify-center text-muted-foreground'>
               <div className='text-center'>

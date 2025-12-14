@@ -16,7 +16,7 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "incremental": true,
-    /* Path Aliases */
+    /* Path Aliases - Next.js 16 best practice */
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

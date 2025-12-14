@@ -35,24 +35,34 @@ async function queryRelevantData(
   supabase: ReturnType<typeof createServerSupabaseClient>,
   message: string
 ) {
-  // Simplified: query recent jobs, leads, companies
-  const [jobsResult, leadsResult, companiesResult] = await Promise.all([
-    supabase.from('jobs').select('id, title, location').limit(5),
-    supabase.from('leads').select('id, first_name, last_name, email, status').limit(5),
+  // Simplified: query recent leads, companies
+  const [leadsResult, companiesResult] = await Promise.all([
+    supabase
+      .from('leads')
+      .select('id, first_name, last_name, email, status')
+      .limit(5),
     supabase.from('companies').select('id, name, industry').limit(5),
   ]);
 
   return {
-    recentJobs: jobsResult.data || [],
     recentLeads: leadsResult.data || [],
     recentCompanies: companiesResult.data || [],
   };
 }
 
 interface DataQueryResult {
-  recentJobs: Array<{ id: string; title: string; location: string | null }>;
-  recentLeads: Array<{ id: string; first_name: string | null; last_name: string | null; email: string | null; status: string | null }>;
-  recentCompanies: Array<{ id: string; name: string | null; industry: string | null }>;
+  recentLeads: Array<{
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    status: string | null;
+  }>;
+  recentCompanies: Array<{
+    id: string;
+    name: string | null;
+    industry: string | null;
+  }>;
 }
 
 interface ChatMessage {
@@ -61,12 +71,12 @@ interface ChatMessage {
   timestamp: string;
 }
 
-function buildContextualPrompt(message: string, dataQuery: DataQueryResult, history: ChatMessage[]): string {
-  let prompt = `You are a helpful AI assistant for a recruitment CRM system. Answer questions about jobs, people, and companies.\n\n`;
-
-  if (dataQuery.recentJobs.length > 0) {
-    prompt += `Recent Jobs:\n${JSON.stringify(dataQuery.recentJobs, null, 2)}\n\n`;
-  }
+function buildContextualPrompt(
+  message: string,
+  dataQuery: DataQueryResult,
+  history: ChatMessage[]
+): string {
+  let prompt = `You are a helpful AI assistant for a LeadFlow CRM system. Answer questions about leads and companies.\n\n`;
 
   if (dataQuery.recentLeads.length > 0) {
     prompt += `Recent Leads:\n${JSON.stringify(dataQuery.recentLeads, null, 2)}\n\n`;
@@ -116,7 +126,9 @@ export async function POST(request: NextRequest) {
 
     if (!envCheck.allPresent) {
       return APIErrorHandler.handleError(
-        new Error(`Missing environment variables: ${envCheck.missing.join(', ')}`),
+        new Error(
+          `Missing environment variables: ${envCheck.missing.join(', ')}`
+        ),
         'ai-chat'
       );
     }
@@ -169,5 +181,3 @@ export async function POST(request: NextRequest) {
     return APIErrorHandler.handleError(error, 'ai-chat');
   }
 }
-
-

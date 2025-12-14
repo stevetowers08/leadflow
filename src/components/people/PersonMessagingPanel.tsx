@@ -21,7 +21,14 @@ import {
   SendEmailRequest,
   secureGmailService,
 } from '@/services/secureGmailService';
-import { Person } from '@/types/database';
+// Person type is Contact - using inline type definition
+type Person = {
+  id: string;
+  name: string;
+  email_address: string | null;
+  company_id: string | null;
+  [key: string]: unknown;
+};
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   Check,
@@ -87,78 +94,75 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
 
       const allConversations: Conversation[] = [];
 
-      // Fetch LinkedIn conversations
-      const { data: linkedInConversations } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('person_id', person.id)
-        .order('last_message_at', { ascending: false })
-        .limit(10);
+      // Note: conversations and conversation_messages tables don't exist in the database
+      // LinkedIn conversations feature is not available
+      // const linkedInConversations: never[] = [];
+      //
+      // for (const conv of linkedInConversations || []) {
+      //   const { data: messages } = await supabase
+      //     .from('conversation_messages')
+      //     .select('*')
+      //     .eq('conversation_id', conv.id)
+      //     .order('sent_at', { ascending: false })
+      //     .limit(5);
+      //
+      //   if (messages && messages.length > 0) {
+      //     allConversations.push({
+      //       id: conv.id,
+      //       conversation_type: 'linkedin',
+      //       subject: conv.subject || 'LinkedIn Conversation',
+      //       last_message_at: conv.last_message_at,
+      //       messages: messages.map(m => ({
+      //         id: m.id,
+      //         conversation_id: m.conversation_id,
+      //         content: m.content,
+      //         sender_type: m.sender_type,
+      //         sent_at: m.sent_at || m.created_at,
+      //         sender_name: m.sender_name,
+      //         conversation_type: 'linkedin',
+      //       })),
+      //     });
+      //   }
+      // }
 
-      for (const conv of linkedInConversations || []) {
-        const { data: messages } = await supabase
-          .from('conversation_messages')
-          .select('*')
-          .eq('conversation_id', conv.id)
-          .order('sent_at', { ascending: false })
-          .limit(5);
-
-        if (messages && messages.length > 0) {
-          allConversations.push({
-            id: conv.id,
-            conversation_type: 'linkedin',
-            subject: conv.subject || 'LinkedIn Conversation',
-            last_message_at: conv.last_message_at,
-            messages: messages.map(m => ({
-              id: m.id,
-              conversation_id: m.conversation_id,
-              content: m.content,
-              sender_type: m.sender_type,
-              sent_at: m.sent_at || m.created_at,
-              sender_name: m.sender_name,
-              conversation_type: 'linkedin',
-            })),
-          });
-        }
-      }
-
-      // Fetch email threads
-      const { data: emailThreads } = await supabase
-        .from('email_threads')
-        .select('*')
-        .eq('person_id', person.id)
-        .order('last_message_at', { ascending: false })
-        .limit(10);
-
-      for (const thread of emailThreads || []) {
-        const { data: messages } = await supabase
-          .from('email_messages')
-          .select('*')
-          .eq('thread_id', thread.id)
-          .order('sent_at', { ascending: false })
-          .limit(5);
-
-        if (messages && messages.length > 0) {
-          allConversations.push({
-            id: thread.id,
-            conversation_type: 'email',
-            subject: thread.subject || 'Email Thread',
-            last_message_at: thread.last_message_at,
-            messages: messages.map(m => ({
-              id: m.id,
-              thread_id: m.thread_id,
-              content: m.body_text,
-              subject: m.subject,
-              body_text: m.body_text,
-              sender_type:
-                m.from_email === person.email_address ? 'them' : 'us',
-              sent_at: m.sent_at || m.created_at,
-              sender_name: m.from_name || m.from_email,
-              conversation_type: 'email',
-            })),
-          });
-        }
-      }
+      // Note: email_threads and email_messages tables don't exist in the database
+      // Email threads feature is not available
+      // const { data: emailThreads } = await supabase
+      //   .from('email_threads')
+      //   .select('*')
+      //   .eq('person_id', person.id)
+      //   .order('last_message_at', { ascending: false })
+      //   .limit(10);
+      //
+      // for (const thread of emailThreads || []) {
+      //   const { data: messages } = await supabase
+      //     .from('email_messages')
+      //     .select('*')
+      //     .eq('thread_id', thread.id)
+      //     .order('sent_at', { ascending: false })
+      //     .limit(5);
+      //
+      //   if (messages && messages.length > 0) {
+      //     allConversations.push({
+      //       id: thread.id,
+      //       conversation_type: 'email',
+      //       subject: thread.subject || 'Email Thread',
+      //       last_message_at: thread.last_message_at,
+      //       messages: messages.map(m => ({
+      //         id: m.id,
+      //         thread_id: m.thread_id,
+      //         content: m.body_text,
+      //         subject: m.subject,
+      //         body_text: m.body_text,
+      //         sender_type:
+      //           m.from_email === person.email_address ? 'them' : 'us',
+      //         sent_at: m.sent_at || m.created_at,
+      //         sender_name: m.from_name || m.from_email,
+      //         conversation_type: 'email',
+      //       })),
+      //     });
+      //   }
+      // }
 
       // Sort by last_message_at
       allConversations.sort(
@@ -246,7 +250,7 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
 
         // Add person to campaign
         const { error } = await supabase
-          .from('campaign_sequence_leads')
+          .from('campaign_sequence_leads' as never)
           .insert({
             sequence_id: selectedCampaign,
             lead_id: person.id,

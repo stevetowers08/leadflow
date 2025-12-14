@@ -1,8 +1,8 @@
 import { supabase } from '../integrations/supabase/client';
 
 export interface ReplyAnalytics {
-  people_stage: string;
-  total_people: number;
+  status: string; // Changed from people_stage
+  total_leads: number; // Changed from total_people
   total_replies: number;
   reply_rate_percent: number;
   interested_count: number;
@@ -18,14 +18,14 @@ export interface ReplyIntentBreakdown {
 
 export interface StageReplyAnalytics {
   stage: string;
-  total_people: number;
+  total_leads: number; // Changed from total_people
   total_replies: number;
   reply_rate_percent: number;
   intent_breakdown: ReplyIntentBreakdown[];
 }
 
 export interface OverallReplyMetrics {
-  total_people: number;
+  total_leads: number; // Changed from total_people
   total_replies: number;
   overall_reply_rate: number;
   interested_count: number;
@@ -72,7 +72,7 @@ export class AnalyticsService {
 
     return (
       data || {
-        total_people: 0,
+        total_leads: 0,
         total_replies: 0,
         overall_reply_rate: 0,
         interested_count: 0,

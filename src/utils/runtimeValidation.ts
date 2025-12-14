@@ -101,37 +101,24 @@ export class DatabaseValidator {
     try {
       const checks = [];
 
-      // Check for orphaned people without companies
-      const { data: orphanedPeople } = await supabase
-        .from('people')
+      // Check for orphaned leads without companies (optional - company_id can be null)
+      const { data: orphanedLeads } = await supabase
+        .from('leads')
         .select('id, company_id')
         .not('company_id', 'is', null)
         .is('company_id', null);
 
       checks.push({
-        check: 'orphaned_people',
-        passed: orphanedPeople?.length === 0,
-        count: orphanedPeople?.length || 0,
+        check: 'orphaned_leads',
+        passed: orphanedLeads?.length === 0,
+        count: orphanedLeads?.length || 0,
       });
 
-      // Check for orphaned jobs without companies
-      const { data: orphanedJobs } = await supabase
-        .from('jobs')
-        .select('id, company_id')
-        .not('company_id', 'is', null)
-        .is('company_id', null);
-
-      checks.push({
-        check: 'orphaned_jobs',
-        passed: orphanedJobs?.length === 0,
-        count: orphanedJobs?.length || 0,
-      });
-
-      // Check for invalid stage values
+      // Check for invalid status values
       const { data: invalidStages } = await supabase
-        .from('people')
-        .select('id, people_stage')
-        .not('people_stage', 'in', ['new', 'qualified', 'proceed', 'skip']);
+        .from('leads')
+        .select('id, status')
+        .not('status', 'in', ['processing', 'active', 'replied_manual']);
 
       checks.push({
         check: 'invalid_stages',
@@ -168,25 +155,20 @@ export class ApiValidator {
   static async validateReportingService(): Promise<ValidationResult> {
     try {
       // Test the reporting service with a simple query
-      const { data: peopleCount } = await supabase
-        .from('people')
+      const { data: leadsCount } = await supabase
+        .from('leads')
         .select('id', { count: 'exact', head: true });
 
       const { data: companiesCount } = await supabase
         .from('companies')
         .select('id', { count: 'exact', head: true });
 
-      const { data: jobsCount } = await supabase
-        .from('jobs')
-        .select('id', { count: 'exact', head: true });
-
       return {
         success: true,
         message: 'Reporting service validation successful',
         details: {
-          peopleCount: peopleCount || 0,
+          leadsCount: leadsCount || 0,
           companiesCount: companiesCount || 0,
-          jobsCount: jobsCount || 0,
         },
         timestamp: new Date().toISOString(),
       };

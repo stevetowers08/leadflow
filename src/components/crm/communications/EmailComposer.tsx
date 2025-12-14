@@ -14,11 +14,11 @@ import { useToast } from '@/hooks/use-toast';
 import { EmailTemplate } from '@/services/secureGmailService';
 import { Paperclip, Send } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { Tables } from '../../../integrations/supabase/types';
+import type { Lead } from '@/types/database';
 import { SendEmailRequest, gmailService } from '../../../services/gmailService';
 
 interface EmailComposerProps {
-  selectedPerson?: Tables<'people'>;
+  selectedPerson?: Lead;
   onSent?: () => void;
   variant?: 'default' | 'compact';
 }
@@ -30,7 +30,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
 }) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    to: selectedPerson?.email_address || '',
+    to: selectedPerson?.email || '',
     subject: '',
     body: '',
   });
@@ -38,17 +38,16 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
 
   useEffect(() => {
-    if (selectedPerson?.email_address) {
+    if (selectedPerson?.email) {
       setFormData(prev => ({
         ...prev,
-        to: selectedPerson.email_address || prev.to,
+        to: selectedPerson.email || prev.to,
       }));
     }
-  }, [selectedPerson?.email_address]);
+  }, [selectedPerson?.email]);
 
   useEffect(() => {
     loadTemplates();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadTemplates = async () => {
@@ -87,9 +86,12 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
     }
 
     // Validate email addresses
-    const emailList = formData.to.split(',').map(email => email.trim()).filter(Boolean);
+    const emailList = formData.to
+      .split(',')
+      .map(email => email.trim())
+      .filter(Boolean);
     const invalidEmails = emailList.filter(email => !validateEmail(email));
-    
+
     if (invalidEmails.length > 0) {
       toast({
         title: 'Invalid Email Address',
@@ -117,7 +119,10 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
 
       // Reset form but preserve "to" field in compact mode
       setFormData({
-        to: variant === 'compact' && selectedPerson?.email_address ? selectedPerson.email_address : '',
+        to:
+          variant === 'compact' && selectedPerson?.email
+            ? selectedPerson.email
+            : '',
         subject: '',
         body: '',
       });
@@ -127,7 +132,10 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
       console.error('Failed to send email:', error);
       toast({
         title: 'Failed to Send Email',
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred',
         variant: 'destructive',
       });
     } finally {
@@ -168,20 +176,22 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
       )}
 
       <div className='space-y-1.5'>
-        <Label htmlFor='to' className='text-sm'>To</Label>
+        <Label htmlFor='to' className='text-sm'>
+          To
+        </Label>
         <Input
           id='to'
           value={formData.to}
-          onChange={e =>
-            setFormData(prev => ({ ...prev, to: e.target.value }))
-          }
+          onChange={e => setFormData(prev => ({ ...prev, to: e.target.value }))}
           placeholder='recipient@example.com'
           className={variant === 'compact' ? 'h-9' : ''}
         />
       </div>
 
       <div className='space-y-1.5'>
-        <Label htmlFor='subject' className='text-sm'>Subject</Label>
+        <Label htmlFor='subject' className='text-sm'>
+          Subject
+        </Label>
         <Input
           id='subject'
           value={formData.subject}
@@ -194,7 +204,9 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
       </div>
 
       <div className='space-y-1.5'>
-        <Label htmlFor='body' className='text-sm'>Message</Label>
+        <Label htmlFor='body' className='text-sm'>
+          Message
+        </Label>
         <Textarea
           id='body'
           value={formData.body}
@@ -207,7 +219,9 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
         />
       </div>
 
-      <div className={`flex items-center gap-2 pt-1 ${variant === 'compact' ? 'justify-end' : ''}`}>
+      <div
+        className={`flex items-center gap-2 pt-1 ${variant === 'compact' ? 'justify-end' : ''}`}
+      >
         <Button variant='ghost' size='sm' className='h-8' type='button'>
           <Paperclip className='h-4 w-4' />
         </Button>

@@ -47,7 +47,9 @@ export const TopCompanies: React.FC<TopCompaniesProps> = ({ topCompanies }) => {
       cellType: 'regular',
       align: 'center',
       render: (_, company) => {
-        const activityScore = company.people_count + company.interactions_count;
+        const companyData = company as TopCompaniesProps['topCompanies'][0];
+        const activityScore =
+          companyData.people_count + companyData.interactions_count;
         return (
           <div className='flex items-center'>
             <div className='w-16 bg-gray-200 rounded-full h-2 mr-2'>
@@ -58,7 +60,9 @@ export const TopCompanies: React.FC<TopCompaniesProps> = ({ topCompanies }) => {
                 }}
               ></div>
             </div>
-            <span className='text-sm text-muted-foreground'>{activityScore}</span>
+            <span className='text-sm text-muted-foreground'>
+              {activityScore}
+            </span>
           </div>
         );
       },
@@ -76,7 +80,7 @@ export const TopCompanies: React.FC<TopCompaniesProps> = ({ topCompanies }) => {
         <CardTitle>Top Companies by Activity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-center h-32 text-muted-foreground">
+        <div className='flex items-center justify-center h-32 text-muted-foreground'>
           Table removed
         </div>
       </CardContent>

@@ -1,7 +1,7 @@
 'use client';
 
 import { SearchResults } from '@/components/search/SearchResults';
-import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
+// CompanyDetailsSlideOut removed - companies are enrichment data only, not a main entity per PDR
 import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
 import { useSearch } from '@/contexts/SearchContext';
 import { cn } from '@/lib/utils';
@@ -217,13 +217,7 @@ const GlobalSearchDropdownContent: React.FC<GlobalSearchDropdownProps> = ({
       )}
 
       {/* Slide-Outs for Search Results */}
-      {selectedEntityType === 'company' && (
-        <CompanyDetailsSlideOut
-          companyId={selectedEntityId}
-          isOpen={isSlideOutOpen}
-          onClose={handleCloseSlideOut}
-        />
-      )}
+      {/* Company slide-out removed - companies are enrichment data only per PDR */}
       {selectedEntityType === 'person' && (
         <PersonDetailsSlideOut
           personId={selectedEntityId}

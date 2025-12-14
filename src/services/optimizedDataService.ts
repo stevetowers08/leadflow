@@ -4,32 +4,25 @@ import { subWeeks, subDays } from 'date-fns';
 
 export interface OptimizedDashboardData {
   metrics: {
-    totalPeople: number;
+    totalLeads: number;
     totalCompanies: number;
-    totalJobs: number;
-    peopleThisWeek: number;
+    leadsThisWeek: number;
     companiesThisWeek: number;
-    jobsThisWeek: number;
     activeAutomations: number;
     automationSuccessRate: number;
   };
-  recentPeople: Array<{
+  recentLeads: Array<{
     id: string;
-    name: string;
-    email_address?: string | null;
-    company_name?: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    email?: string | null;
+    company?: string | null;
     created_at: string;
   }>;
   recentCompanies: Array<{
     id: string;
     name: string;
     industry?: string | null;
-    created_at: string;
-  }>;
-  recentJobs: Array<{
-    id: string;
-    title: string;
-    company_name?: string | null;
     created_at: string;
   }>;
 }
@@ -51,69 +44,51 @@ export class OptimizedDataService {
 
           const oneWeekAgo = subWeeks(new Date(), 1);
 
-          const [peopleResult, companiesResult, jobsResult] = await Promise.all(
-            [
-              supabase
-                .from('people')
-                .select(
-                  'id, name, email_address, created_at, owner_id, companies(name)'
-                )
-                .order('created_at', { ascending: false })
-                .limit(20),
+          const [leadsResult, companiesResult] = await Promise.all([
+            supabase
+              .from('leads')
+              .select(
+                'id, first_name, last_name, email, company, created_at, user_id'
+              )
+              .order('created_at', { ascending: false })
+              .limit(20),
 
-              supabase
-                .from('companies')
-                .select('id, name, industry, created_at, owner_id')
-                .order('created_at', { ascending: false })
-                .limit(15),
+            supabase
+              .from('companies')
+              .select('id, name, industry, created_at, client_id')
+              .order('created_at', { ascending: false })
+              .limit(15),
+          ]);
 
-              supabase
-                .from('jobs')
-                .select('id, title, created_at, owner_id, companies(name)')
-                .order('created_at', { ascending: false })
-                .limit(15),
-            ]
-          );
-
-          const people = peopleResult.data || [];
+          const leads = leadsResult.data || [];
           const companies = companiesResult.data || [];
-          const jobs = jobsResult.data || [];
 
           const data: OptimizedDashboardData = {
             metrics: {
-              totalPeople: people.length,
+              totalLeads: leads.length,
               totalCompanies: companies.length,
-              totalJobs: jobs.length,
-              peopleThisWeek: people.filter(
-                p => new Date(p.created_at) >= oneWeekAgo
+              leadsThisWeek: leads.filter(
+                l => new Date(l.created_at) >= oneWeekAgo
               ).length,
               companiesThisWeek: companies.filter(
                 c => new Date(c.created_at) >= oneWeekAgo
               ).length,
-              jobsThisWeek: jobs.filter(
-                j => new Date(j.created_at) >= oneWeekAgo
-              ).length,
               activeAutomations: 0, // Simplified for now
               automationSuccessRate: 0,
             },
-            recentPeople: people.map(p => ({
-              id: p.id,
-              name: p.name,
-              email_address: p.email_address,
-              company_name: p.companies?.name || null,
-              created_at: p.created_at,
+            recentLeads: leads.map(l => ({
+              id: l.id,
+              first_name: l.first_name,
+              last_name: l.last_name,
+              email: l.email,
+              company: l.company,
+              created_at: l.created_at,
             })),
             recentCompanies: companies.map(c => ({
               id: c.id,
               name: c.name,
               industry: c.industry,
               created_at: c.created_at,
-            })),
-            recentJobs: jobs.map(j => ({
-              id: j.id,
-              title: j.title,
-              company_name: j.companies?.name || null,
-              created_at: j.created_at,
             })),
           };
 
@@ -129,18 +104,15 @@ export class OptimizedDataService {
   private static getDefaultData(): OptimizedDashboardData {
     return {
       metrics: {
-        totalPeople: 0,
+        totalLeads: 0,
         totalCompanies: 0,
-        totalJobs: 0,
-        peopleThisWeek: 0,
+        leadsThisWeek: 0,
         companiesThisWeek: 0,
-        jobsThisWeek: 0,
         activeAutomations: 0,
         automationSuccessRate: 0,
       },
-      recentPeople: [],
+      recentLeads: [],
       recentCompanies: [],
-      recentJobs: [],
     };
   }
 }

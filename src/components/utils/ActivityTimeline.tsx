@@ -41,7 +41,7 @@ export const ActivityTimeline = ({
   const fetchActivities = async () => {
     try {
       const { data: lead, error } = await supabase
-        .from('People')
+        .from('leads')
         .select(
           `
           "Last Contact Date",
@@ -77,163 +77,225 @@ export const ActivityTimeline = ({
       const timelineActivities: Activity[] = [];
 
       // Lead created
-      if (lead.created_at) {
+      if (error) {
+        console.error('Error fetching lead:', error);
+        return;
+      }
+      if (!lead || typeof lead !== 'object') {
+        return;
+      }
+      const leadData = lead as Record<string, unknown>;
+      if ('created_at' in leadData && leadData.created_at) {
         timelineActivities.push({
-          id: `created-${lead.created_at}`,
+          id: `created-${leadData.created_at}`,
           type: 'lead_created',
           title: 'Lead Added',
           description: `${leadName || 'Lead'} was added to the system`,
-          date: lead.created_at,
-          icon: Users,
+          date: String(leadData.created_at),
+          icon: Users as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-blue-100 text-primary',
         });
       }
 
       // Connection Request
-      if (lead['Connection Request Date']) {
+      if (
+        'Connection Request Date' in leadData &&
+        leadData['Connection Request Date']
+      ) {
         timelineActivities.push({
-          id: `connection-request-${lead['Connection Request Date']}`,
+          id: `connection-request-${leadData['Connection Request Date']}`,
           type: 'connection_request',
           title: 'LinkedIn Connection Sent',
           description:
-            lead['Connection Request'] || 'Connection request sent on LinkedIn',
-          date: lead['Connection Request Date'],
-          icon: UserCheck,
+            (leadData['Connection Request'] as string) ||
+            'Connection request sent on LinkedIn',
+          date: String(leadData['Connection Request Date']),
+          icon: UserCheck as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-accent/20 text-accent',
         });
       }
 
       // Connection Accepted
-      if (lead['Connection Accepted Date']) {
+      if (
+        'Connection Accepted Date' in leadData &&
+        leadData['Connection Accepted Date']
+      ) {
         timelineActivities.push({
-          id: `connection-accepted-${lead['Connection Accepted Date']}`,
+          id: `connection-accepted-${leadData['Connection Accepted Date']}`,
           type: 'connection_accepted',
           title: 'LinkedIn Connection Accepted',
           description: 'LinkedIn connection request was accepted',
-          date: lead['Connection Accepted Date'],
-          icon: UserCheck,
+          date: String(leadData['Connection Accepted Date']),
+          icon: UserCheck as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-green-100 text-success',
         });
       }
 
       // LinkedIn Connected Message
-      if (lead['LinkedIn Connected'] && lead['Connection Accepted Date']) {
+      if (
+        'LinkedIn Connected' in leadData &&
+        leadData['LinkedIn Connected'] &&
+        'Connection Accepted Date' in leadData &&
+        leadData['Connection Accepted Date']
+      ) {
         timelineActivities.push({
-          id: `linkedin-message-${lead['Connection Accepted Date']}`,
+          id: `linkedin-message-${leadData['Connection Accepted Date']}`,
           type: 'linkedin_message',
           title: 'LinkedIn Message Sent',
           description:
-            lead['LinkedIn Connected Message'] ||
+            (leadData['LinkedIn Connected Message'] as string) ||
             'Follow-up message sent on LinkedIn',
-          date: lead['Connection Accepted Date'],
-          icon: MessageCircle,
+          date: String(leadData['Connection Accepted Date']),
+          icon: MessageCircle as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-purple-100 text-purple-700',
         });
       }
 
       // Email Sent
-      if (lead['Email Sent Date']) {
+      if ('Email Sent Date' in leadData && leadData['Email Sent Date']) {
         timelineActivities.push({
-          id: `email-sent-${lead['Email Sent Date']}`,
+          id: `email-sent-${leadData['Email Sent Date']}`,
           type: 'email_sent',
           title: 'Email Sent',
-          description: lead['Email Sent'] || 'Email sent to prospect',
-          date: lead['Email Sent Date'],
-          icon: Mail,
+          description:
+            (leadData['Email Sent'] as string) || 'Email sent to prospect',
+          date: String(leadData['Email Sent Date']),
+          icon: Mail as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-orange-100 text-warning',
         });
       }
 
       // Email Reply
-      if (lead['Email Reply Date']) {
+      if ('Email Reply Date' in leadData && leadData['Email Reply Date']) {
         timelineActivities.push({
-          id: `email-reply-${lead['Email Reply Date']}`,
+          id: `email-reply-${leadData['Email Reply Date']}`,
           type: 'email_reply',
           title: 'Email Reply Received',
-          description: lead['Email Reply'] || 'Prospect replied to email',
-          date: lead['Email Reply Date'],
-          icon: Mail,
+          description:
+            (leadData['Email Reply'] as string) || 'Prospect replied to email',
+          date: String(leadData['Email Reply Date']),
+          icon: Mail as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-green-100 text-success',
         });
       }
 
       // Message Sent
-      if (lead['Message Sent Date']) {
+      if ('Message Sent Date' in leadData && leadData['Message Sent Date']) {
         timelineActivities.push({
-          id: `message-sent-${lead['Message Sent Date']}`,
+          id: `message-sent-${leadData['Message Sent Date']}`,
           type: 'message_sent',
           title: 'Message Sent',
-          description: lead['Last Message'] || 'Message sent to prospect',
-          date: lead['Message Sent Date'],
-          icon: MessageCircle,
+          description:
+            (leadData['Last Message'] as string) || 'Message sent to prospect',
+          date: String(leadData['Message Sent Date']),
+          icon: MessageCircle as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-blue-100 text-primary',
         });
       }
 
       // Response Date
-      if (lead['Response Date']) {
+      if ('Response Date' in leadData && leadData['Response Date']) {
         timelineActivities.push({
-          id: `response-${lead['Response Date']}`,
+          id: `response-${leadData['Response Date']}`,
           type: 'response_received',
           title: 'Response Received',
           description: 'Prospect responded to outreach',
-          date: lead['Response Date'],
-          icon: MessageCircle,
+          date: String(leadData['Response Date']),
+          icon: MessageCircle as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-green-100 text-success',
         });
       }
 
       // Meeting Booked
-      if (lead['Meeting Date']) {
+      if ('Meeting Date' in leadData && leadData['Meeting Date']) {
+        const meetingDate = String(leadData['Meeting Date']);
         timelineActivities.push({
-          id: `meeting-${lead['Meeting Date']}`,
+          id: `meeting-${meetingDate}`,
           type: 'meeting_booked',
           title:
-            lead['Meeting Booked'] === 'Yes'
+            (leadData['Meeting Booked'] as string) === 'Yes'
               ? 'Meeting Scheduled'
               : 'Meeting Planned',
-          description: `Meeting scheduled for ${format(parseISO(lead['Meeting Date']), "PPP 'at' p")}`,
-          date: lead['Meeting Date'],
-          icon: Calendar,
+          description: `Meeting scheduled for ${format(parseISO(meetingDate), "PPP 'at' p")}`,
+          date: meetingDate,
+          icon: Calendar as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-emerald-100 text-emerald-700',
         });
       }
 
       // Stage Updates
-      if (lead['Stage Updated']) {
+      if ('Stage Updated' in leadData && leadData['Stage Updated']) {
         timelineActivities.push({
-          id: `stage-update-${lead['Stage Updated']}`,
+          id: `stage-update-${leadData['Stage Updated']}`,
           type: 'stage_update',
           title: 'Stage Updated',
-          description: `Lead stage changed to: ${lead['Stage'] || 'Unknown'}`,
-          date: lead['Stage Updated'],
-          icon: FileText,
+          description: `Lead stage changed to: ${(leadData['Stage'] as string) || 'Unknown'}`,
+          date: String(leadData['Stage Updated']),
+          icon: FileText as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-gray-100 text-foreground',
         });
       }
 
       // Automation Activities
-      if (lead['Automation Date']) {
+      if ('Automation Date' in leadData && leadData['Automation Date']) {
         timelineActivities.push({
-          id: `automation-${lead['Automation Date']}`,
+          id: `automation-${leadData['Automation Date']}`,
           type: 'automation',
           title: 'Automation Activity',
-          description: `Automation status: ${lead['Automation Status'] || 'Unknown'}`,
-          date: lead['Automation Date'],
-          icon: Clock,
+          description: `Automation status: ${(leadData['Automation Status'] as string) || 'Unknown'}`,
+          date: String(leadData['Automation Date']),
+          icon: Clock as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-violet-100 text-violet-700',
         });
       }
 
       // Last Contact
-      if (lead['Last Contact Date']) {
+      if ('Last Contact Date' in leadData && leadData['Last Contact Date']) {
         timelineActivities.push({
-          id: `last-contact-${lead['Last Contact Date']}`,
+          id: `last-contact-${leadData['Last Contact Date']}`,
           type: 'last_contact',
           title: 'Last Contact',
-          description: lead['Last Message'] || 'Last contact with prospect',
-          date: lead['Last Contact Date'],
-          icon: Phone,
+          description:
+            (leadData['Last Message'] as string) ||
+            'Last contact with prospect',
+          date: String(leadData['Last Contact Date']),
+          icon: Phone as React.ComponentType<{
+            className?: string;
+            size?: number;
+          }>,
           color: 'bg-accent/20 text-accent',
         });
       }

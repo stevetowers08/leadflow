@@ -16,12 +16,7 @@ export function useMeetingReminders() {
     if (!user?.id) return;
 
     try {
-      // Get user's client_id if available
-      const { data: clientUser } = await supabase
-        .from('client_users')
-        .select('client_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // Multi-tenant removed - not in PDR. All users see their own data via RLS.
 
       // Check for companies with meetings scheduled in next 24 hours
       const tomorrow = new Date();
@@ -39,7 +34,7 @@ export function useMeetingReminders() {
       // Check if notification already exists for today
       const today = new Date().toISOString().split('T')[0];
       const { data: existingNotifications } = await supabase
-        .from('user_notifications')
+        .from('user_notifications' as never)
         .select('id')
         .eq('user_id', user.id)
         .eq('type', 'meeting_reminder')
@@ -48,7 +43,10 @@ export function useMeetingReminders() {
 
       const existingCompanyIds = new Set(
         (existingNotifications || [])
-          .map(n => n.metadata?.company_id)
+          .map(
+            (n: { metadata?: { company_id?: string } }) =>
+              n.metadata?.company_id
+          )
           .filter(Boolean)
       );
 
@@ -95,12 +93,7 @@ export function useFollowUpReminders() {
     if (!user?.id) return;
 
     try {
-      // Get user's client_id if available
-      const { data: clientUser } = await supabase
-        .from('client_users')
-        .select('client_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // Multi-tenant removed - not in PDR. All users see their own data via RLS.
 
       // Find people in 'proceed' stage who need follow-up
       // Consider people who:
@@ -112,12 +105,10 @@ export function useFollowUpReminders() {
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
       const query = supabase
-        .from('people')
-        .select('id, name, last_activity, people_stage')
-        .eq('people_stage', 'meeting_scheduled')
-        .or(
-          `last_activity.is.null,last_activity.lt.${threeDaysAgo.toISOString()}`
-        );
+        .from('leads')
+        .select('id, first_name, last_name, updated_at, status')
+        .eq('status', 'replied_manual')
+        .or(`updated_at.is.null,updated_at.lt.${threeDaysAgo.toISOString()}`);
 
       // Note: people table does not have client_id column; scoping by client
       // should be done via mapping tables if needed. Skip client filter here.
@@ -131,15 +122,15 @@ export function useFollowUpReminders() {
       // Filter to only those who have sent at least one email
       const { data: emailSends } = await supabase
         .from('email_sends')
-        .select('person_id')
+        .select('lead_id')
         .eq('status', 'sent')
         .in(
-          'person_id',
+          'lead_id',
           peopleNeedingFollowUp.map(p => p.id)
         );
 
       const peopleWithEmails = new Set(
-        (emailSends || []).map(e => e.person_id)
+        (emailSends || []).map(e => e.lead_id).filter(Boolean)
       );
 
       const peopleToNotify = peopleNeedingFollowUp.filter(p =>
@@ -153,7 +144,7 @@ export function useFollowUpReminders() {
       // Check if notification already exists for today
       const today = new Date().toISOString().split('T')[0];
       const { data: existingNotification } = await supabase
-        .from('user_notifications')
+        .from('user_notifications' as never)
         .select('id')
         .eq('user_id', user.id)
         .eq('type', 'follow_up_reminder')

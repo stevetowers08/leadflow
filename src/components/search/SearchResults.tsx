@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { SearchResult } from '@/services/globalSearchService';
 import {
@@ -24,12 +24,10 @@ interface SearchResultsProps {
 
 const getTypeIcon = (type: SearchResult['type']) => {
   switch (type) {
-    case 'person':
-      return User;
+    case 'lead':
+      return Briefcase;
     case 'company':
       return Building2;
-    case 'contact':
-      return Briefcase;
     default:
       return User;
   }
@@ -37,12 +35,10 @@ const getTypeIcon = (type: SearchResult['type']) => {
 
 const getTypeColor = (type: SearchResult['type']) => {
   switch (type) {
-    case 'person':
-      return 'bg-blue-100 text-primary border-primary/20';
-    case 'company':
-      return 'bg-green-100 text-success border-green-200';
     case 'lead':
       return 'bg-purple-100 text-purple-800 border-purple-200';
+    case 'company':
+      return 'bg-green-100 text-success border-green-200';
     default:
       return 'bg-gray-100 text-foreground border-border';
   }
@@ -50,12 +46,10 @@ const getTypeColor = (type: SearchResult['type']) => {
 
 const getTypeLabel = (type: SearchResult['type']) => {
   switch (type) {
-    case 'person':
-      return 'Person';
-    case 'company':
-      return 'Company';
     case 'lead':
       return 'Lead';
+    case 'company':
+      return 'Company';
     default:
       return 'Unknown';
   }
@@ -93,7 +87,7 @@ const SearchResultItem: React.FC<{
 
   return (
     <Card className='cursor-pointer transition-all' onClick={handleClick}>
-      <Card.Content className='p-4'>
+      <CardContent className='p-4'>
         <div className='flex items-start gap-3'>
           {/* Icon */}
           <div
@@ -135,82 +129,93 @@ const SearchResultItem: React.FC<{
 
             {/* Metadata */}
             <div className='flex items-center gap-4 text-xs text-muted-foreground'>
-              {/* Email for people */}
-              {result.type === 'person' && result.metadata?.email && (
+              {result.type === 'lead' &&
+              result.metadata &&
+              'email' in result.metadata &&
+              result.metadata.email ? (
                 <div className='flex items-center gap-1'>
                   <Mail className='w-3 h-3' />
                   <span className='truncate max-w-32'>
-                    {result.metadata.email}
+                    {String(result.metadata.email)}
                   </span>
                 </div>
-              )}
+              ) : null}
 
-              {/* Location */}
-              {result.metadata?.employeeLocation && (
+              {result.metadata &&
+              'employeeLocation' in result.metadata &&
+              result.metadata.employeeLocation ? (
                 <div className='flex items-center gap-1'>
                   <MapPin className='w-3 h-3' />
                   <span className='truncate max-w-24'>
-                    {result.metadata.employeeLocation}
+                    {String(result.metadata.employeeLocation)}
                   </span>
                 </div>
-              )}
+              ) : null}
 
-              {/* Company size for companies */}
-              {result.type === 'company' && result.metadata?.companySize && (
+              {result.type === 'company' &&
+              result.metadata &&
+              'companySize' in result.metadata &&
+              result.metadata.companySize ? (
                 <div className='flex items-center gap-1'>
                   <Building2 className='w-3 h-3' />
-                  <span>{result.metadata.companySize}</span>
+                  <span>{String(result.metadata.companySize)}</span>
                 </div>
-              )}
+              ) : null}
 
               {/* Posted date for jobs */}
-              {result.type === 'contact' && result.metadata?.postedDate && (
+              {result.type === 'lead' &&
+              result.metadata &&
+              'postedDate' in result.metadata &&
+              result.metadata.postedDate ? (
                 <div className='flex items-center gap-1'>
                   <Clock className='w-3 h-3' />
-                  <span>{formatDate(result.metadata.postedDate)}</span>
+                  <span>{formatDate(String(result.metadata.postedDate))}</span>
                 </div>
-              )}
+              ) : null}
 
-              {/* Lead score */}
-              {result.metadata?.leadScore && (
+              {result.metadata &&
+              'leadScore' in result.metadata &&
+              result.metadata.leadScore ? (
                 <div className='flex items-center gap-1'>
                   <Star className='w-3 h-3' />
-                  <span>{result.metadata.leadScore}</span>
+                  <span>{String(result.metadata.leadScore)}</span>
                 </div>
-              )}
+              ) : null}
 
-              {/* Automation status */}
-              {result.metadata?.automationActive && (
+              {result.metadata &&
+              'automationActive' in result.metadata &&
+              result.metadata.automationActive ? (
                 <div className='flex items-center gap-1 text-success'>
                   <Zap className='w-3 h-3' />
                   <span>Automated</span>
                 </div>
-              )}
+              ) : null}
 
-              {/* Priority */}
-              {result.metadata?.priority && (
+              {result.metadata &&
+              'priority' in result.metadata &&
+              result.metadata.priority ? (
                 <Badge
                   variant='outline'
                   className={cn(
                     'text-xs',
-                    result.metadata.priority === 'high' ||
-                      result.metadata.priority === 'urgent'
+                    String(result.metadata.priority) === 'high' ||
+                      String(result.metadata.priority) === 'urgent'
                       ? 'bg-red-100 text-destructive border-red-200'
-                      : result.metadata.priority === 'medium'
+                      : String(result.metadata.priority) === 'medium'
                         ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
                         : 'bg-gray-100 text-foreground border-border'
                   )}
                 >
-                  {result.metadata.priority}
+                  {String(result.metadata.priority)}
                 </Badge>
-              )}
+              ) : null}
             </div>
           </div>
 
           {/* External link indicator */}
           <ExternalLink className='w-4 h-4 text-muted-foreground flex-shrink-0' />
         </div>
-      </Card.Content>
+      </CardContent>
     </Card>
   );
 };
@@ -226,7 +231,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
       <div className={cn('space-y-3', className)}>
         {Array.from({ length: 3 }).map((_, index) => (
           <Card key={index} className='border border-border bg-white'>
-            <Card.Content className='p-4'>
+            <CardContent className='p-4'>
               <div className='flex items-start gap-3'>
                 <div className='w-10 h-10 bg-gray-200 rounded-lg animate-pulse' />
                 <div className='flex-1 space-y-2'>
@@ -235,7 +240,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                   <div className='h-3 bg-gray-200 rounded animate-pulse w-2/3' />
                 </div>
               </div>
-            </Card.Content>
+            </CardContent>
           </Card>
         ))}
       </div>

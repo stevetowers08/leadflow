@@ -26,18 +26,20 @@ export function useAllCampaigns() {
       // Fetch email campaigns
       try {
         const { data: emailCampaigns, error: emailError } = await supabase
-          .from('campaign_sequences')
+          .from('campaign_sequences' as never)
           .select('id, name')
           .eq('status', 'active')
           .order('name', { ascending: true });
 
         if (!emailError && emailCampaigns) {
           allCampaigns.push(
-            ...emailCampaigns.map(c => ({
-              id: c.id,
-              name: c.name,
-              type: 'email' as const,
-            }))
+            ...(emailCampaigns as Array<{ id: string; name: string }>).map(
+              c => ({
+                id: c.id,
+                name: c.name,
+                type: 'email' as const,
+              })
+            )
           );
         }
       } catch (emailErr) {

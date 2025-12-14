@@ -107,26 +107,51 @@ function StageAnalyticsTable({ data }: StageAnalyticsTableProps) {
       </CardHeader>
       <CardContent>
         <div className='space-y-4'>
-          {data.map(stage => (
-            <div key={stage.people_stage} className='space-y-2'>
+          {data.map((stage, index) => (
+            <div
+              key={
+                'status' in stage && stage.status
+                  ? String(stage.status)
+                  : `stage-${index}`
+              }
+              className='space-y-2'
+            >
               <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-2'>
                   <Badge variant='outline'>
-                    {getStatusDisplayText(stage.people_stage)}
+                    {getStatusDisplayText(
+                      'status' in stage && stage.status
+                        ? String(stage.status)
+                        : 'unknown'
+                    )}
                   </Badge>
                   <span className='text-sm text-muted-foreground'>
-                    {stage.total_people} people
+                    {'total_leads' in stage &&
+                    typeof stage.total_leads === 'number'
+                      ? stage.total_leads
+                      : 0}{' '}
+                    people
                   </span>
                 </div>
                 <div className='text-sm font-medium'>
-                  {stage.reply_rate_percent.toFixed(1)}% reply rate
+                  {'reply_rate_percent' in stage &&
+                  typeof stage.reply_rate_percent === 'number'
+                    ? stage.reply_rate_percent.toFixed(1)
+                    : '0.0'}
+                  % reply rate
                 </div>
               </div>
 
               <div className='grid grid-cols-4 gap-4 text-sm'>
                 <div className='flex items-center gap-1'>
                   <CheckCircle className='h-4 w-4 text-success' />
-                  <span>{stage.interested_count} interested</span>
+                  <span>
+                    {'interested_count' in stage &&
+                    typeof stage.interested_count === 'number'
+                      ? stage.interested_count
+                      : 0}{' '}
+                    interested
+                  </span>
                 </div>
                 <div className='flex items-center gap-1'>
                   <XCircle className='h-4 w-4 text-destructive' />
@@ -286,7 +311,7 @@ export function ReplyAnalyticsDashboard() {
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
         <ReplyAnalyticsCard
           title='Total People'
-          value={overall.total_people || 0}
+          value={overall.total_leads || 0}
           subtitle='In your pipeline'
           icon={<Users className='h-4 w-4' />}
           color='blue'
@@ -319,7 +344,7 @@ export function ReplyAnalyticsDashboard() {
         <ReplyRateCard
           title='Overall Reply Rate'
           rate={overall.overall_reply_rate}
-          total={overall.total_people || 0}
+          total={overall.total_leads || 0}
           color='blue'
         />
         <ReplyRateCard
@@ -331,10 +356,9 @@ export function ReplyAnalyticsDashboard() {
         <ReplyRateCard
           title='Conversion Rate'
           rate={
-            ((overall.interested_count || 0) / (overall.total_people || 1)) *
-            100
+            ((overall.interested_count || 0) / (overall.total_leads || 1)) * 100
           }
-          total={overall.total_people || 0}
+          total={overall.total_leads || 0}
           color='purple'
         />
       </div>
@@ -358,7 +382,7 @@ export function ReplyAnalyticsDashboard() {
             <div className='space-y-3'>
               {topPerforming.map((stage, index) => (
                 <div
-                  key={stage.people_stage}
+                  key={stage.status}
                   className='flex items-center justify-between p-3 border rounded-lg'
                 >
                   <div className='flex items-center gap-3'>
@@ -367,10 +391,14 @@ export function ReplyAnalyticsDashboard() {
                     </div>
                     <div>
                       <div className='font-medium'>
-                        {getStatusDisplayText(stage.people_stage)}
+                        {getStatusDisplayText(
+                          'status' in stage && stage.status
+                            ? String(stage.status)
+                            : 'unknown'
+                        )}
                       </div>
                       <div className='text-sm text-muted-foreground'>
-                        {stage.total_people} people, {stage.total_replies}{' '}
+                        {stage.total_leads} people, {stage.total_replies}{' '}
                         replies
                       </div>
                     </div>

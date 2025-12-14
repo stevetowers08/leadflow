@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ActionSlideTrigger, type ActionItem } from '@/components/ui/ActionSlideTrigger';
+import {
+  ActionSlideTrigger,
+  type ActionItem,
+} from '@/components/ui/ActionSlideTrigger';
 import { useToast } from '@/hooks/use-toast';
 import { useBulkActionConfirmation } from '@/contexts/ConfirmationContext';
 import {
@@ -29,7 +32,7 @@ export interface BulkAction<T extends { id: string } = { id: string }> {
   confirmationMessage?: string;
 }
 
-interface BulkActionsProps<T> {
+interface BulkActionsProps<T extends { id: string }> {
   selectedItems: T[];
   onSelectionChange: (items: T[]) => void;
   allItems: T[];
@@ -117,7 +120,9 @@ export function BulkActions<T extends { id: string }>({
         <Checkbox
           checked={isAllSelected}
           ref={el => {
-            if (el) el.indeterminate = isPartiallySelected;
+            if (el && 'indeterminate' in el) {
+              (el as HTMLInputElement).indeterminate = isPartiallySelected;
+            }
           }}
           onCheckedChange={handleSelectAll}
         />
@@ -204,7 +209,10 @@ export const createBulkActions = <T extends { id: string }>(
     actions.push({
       id: 'export',
       label: 'Export',
-      icon: Download,
+      icon: Download as React.ComponentType<{
+        className?: string;
+        size?: number;
+      }>,
       action: onExport,
       variant: 'secondary',
     });
@@ -215,14 +223,20 @@ export const createBulkActions = <T extends { id: string }>(
       {
         id: 'mark-active',
         label: 'Mark Active',
-        icon: CheckCircle,
+        icon: CheckCircle as React.ComponentType<{
+          className?: string;
+          size?: number;
+        }>,
         action: items => onUpdateStatus(items, 'active'),
         variant: 'secondary',
       },
       {
         id: 'mark-inactive',
         label: 'Mark Inactive',
-        icon: XCircle,
+        icon: XCircle as React.ComponentType<{
+          className?: string;
+          size?: number;
+        }>,
         action: items => onUpdateStatus(items, 'inactive'),
         variant: 'secondary',
       }
@@ -233,10 +247,10 @@ export const createBulkActions = <T extends { id: string }>(
     actions.push({
       id: 'assign',
       label: 'Assign',
-      icon: Users,
-      action: items => {
+      icon: Users as React.ComponentType<{ className?: string; size?: number }>,
+      action: async items => {
         const assignee = prompt('Enter assignee name:');
-        if (assignee) onAssign(items, assignee);
+        if (assignee) await onAssign(items, assignee);
       },
       variant: 'secondary',
     });
@@ -246,7 +260,10 @@ export const createBulkActions = <T extends { id: string }>(
     actions.push({
       id: 'archive',
       label: 'Archive',
-      icon: Archive,
+      icon: Archive as React.ComponentType<{
+        className?: string;
+        size?: number;
+      }>,
       action: onArchive,
       variant: 'secondary',
     });
@@ -256,7 +273,10 @@ export const createBulkActions = <T extends { id: string }>(
     actions.push({
       id: 'delete',
       label: 'Delete',
-      icon: Trash2,
+      icon: Trash2 as React.ComponentType<{
+        className?: string;
+        size?: number;
+      }>,
       action: onDelete,
       variant: 'destructive',
       requiresConfirmation: true,

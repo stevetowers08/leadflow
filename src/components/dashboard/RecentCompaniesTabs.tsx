@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { CompanyDetailsSlideOut } from '@/components/slide-out/CompanyDetailsSlideOut';
+// CompanyDetailsSlideOut removed - companies are enrichment data only per PDR
 import { designTokens } from '@/design-system/tokens';
 import { cn } from '@/lib/utils';
 import type { RecentCompany } from '@/services/dashboardService';
@@ -34,7 +34,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
 
   // Get company logo using stored/provider helper
-  const getCompanyLogo = (company: RecentCompany) => {
+  const getCompanyLogo = (company: RecentCompany & { logo?: string }) => {
     if (company.logo) return company.logo;
     return getCompanyLogoUrlSync(company.name, company.website || undefined);
   };
@@ -278,15 +278,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
         </CardContent>
       </Card>
 
-      {/* Company Details Slide-Out */}
-      <CompanyDetailsSlideOut
-        companyId={selectedCompanyId}
-        isOpen={isSlideOutOpen}
-        onClose={() => {
-          setIsSlideOutOpen(false);
-          setSelectedCompanyId(null);
-        }}
-      />
+      {/* Company Details Slide-Out removed - companies are enrichment data only per PDR */}
     </>
   );
 };

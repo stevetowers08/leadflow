@@ -42,7 +42,7 @@ export default function SimplifiedCampaignSequenceBuilder({
   sequence,
   onClose,
 }: Props) {
-  const { steps, loading, addStep, updateStep, deleteStep, reorderSteps } =
+  const { steps, isLoading, addStep, updateStep, deleteStep, reorderSteps } =
     useCampaignSteps(sequence.id);
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -459,7 +459,9 @@ export default function SimplifiedCampaignSequenceBuilder({
                           onValueChange={value => {
                             updateStep.mutate({
                               id: selectedStep.id,
-                              updates: { wait_unit: value },
+                              updates: {
+                                wait_unit: value as 'hours' | 'days' | 'weeks',
+                              },
                             });
                           }}
                         >
@@ -505,7 +507,13 @@ export default function SimplifiedCampaignSequenceBuilder({
                         onValueChange={value => {
                           updateStep.mutate({
                             id: selectedStep.id,
-                            updates: { condition_type: value },
+                            updates: {
+                              condition_type: value as
+                                | 'opened'
+                                | 'clicked'
+                                | 'replied'
+                                | 'custom',
+                            },
                           });
                         }}
                       >

@@ -1,5 +1,16 @@
 # Cursor AI Rules for LeadFlow
 
+## ⛔ CRITICAL: FILE CREATION RULES
+
+**NEVER CREATE DOCUMENTATION FILES:**
+- ❌ NO `.md` files (markdown, reports, summaries, progress files)
+- ❌ NO documentation unless explicitly requested
+- ❌ NO "comprehensive check" reports, cleanup summaries, or progress files
+- ✅ Provide summaries in chat only
+- ✅ Only create code files (.ts, .tsx, .js, .jsx, .json, etc.)
+
+**This rule overrides any request that might imply documentation creation.**
+
 ## 🎯 Project Overview
 
 LeadFlow is an AI-powered Event Lead Capture & Automation tool built with React, TypeScript, and Supabase. The focus is on OCR-based business card scanning, lead management, and email automation workflows.
@@ -227,13 +238,14 @@ src/
 
 ## 🚫 Don't Do This
 
-1. **Don't add recruitment features** - Jobs, candidates, placements have been removed
-2. **Don't use old status values** - Use the new simplified enums
-3. **Don't bypass RLS** - Always use authenticated queries
-4. **Don't use `any` type** - Define proper types
-5. **Don't mutate props** - React props are immutable
-6. **Don't fetch in render** - Use useEffect or React Query
-7. **Don't hardcode status strings** - Use status utilities
+1. **NEVER create documentation files** - NO .md files, reports, summaries, or documentation unless explicitly asked. Provide summaries in chat only. (See CRITICAL section above)
+2. **Don't add recruitment features** - Jobs, candidates, placements have been removed
+3. **Don't use old status values** - Use the new simplified enums
+4. **Don't bypass RLS** - Always use authenticated queries
+5. **Don't use `any` type** - Define proper types
+6. **Don't mutate props** - React props are immutable
+7. **Don't fetch in render** - Use useEffect or React Query
+8. **Don't hardcode status strings** - Use status utilities
 
 ## ✅ Do This
 

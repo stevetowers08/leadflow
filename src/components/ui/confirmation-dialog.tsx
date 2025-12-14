@@ -189,9 +189,14 @@ export function ConfirmationDialog({
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            variant={getConfirmVariant()}
             disabled={isLoading}
-            className={cn(isLoading && 'opacity-50 cursor-not-allowed')}
+            className={cn(
+              getConfirmVariant() === 'destructive' &&
+                'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+              getConfirmVariant() === 'default' &&
+                'bg-primary text-primary-foreground hover:bg-primary/90',
+              isLoading && 'opacity-50 cursor-not-allowed'
+            )}
           >
             {isLoading ? (
               <div className='flex items-center gap-2'>

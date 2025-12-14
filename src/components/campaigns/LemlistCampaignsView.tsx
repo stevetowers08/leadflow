@@ -1,6 +1,6 @@
 /**
  * Lemlist Campaigns View
- * 
+ *
  * Displays campaigns from lemlist (read-only, cannot create)
  * Matches the layout and design of the Email campaigns tab
  */
@@ -18,11 +18,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, RefreshCw, ExternalLink, Search, Mail, MailOpen, Reply, DollarSign, AlertTriangle, Target, Edit, Plus, Users, ArrowRight } from 'lucide-react';
+import {
+  Loader2,
+  RefreshCw,
+  ExternalLink,
+  Search,
+  Mail,
+  MailOpen,
+  Reply,
+  DollarSign,
+  AlertTriangle,
+  AlertCircle,
+  Target,
+  Edit,
+  Plus,
+  Users,
+  ArrowRight,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { getLemlistCampaigns } from '@/services/lemlistWorkflowService';
 import { useAuth } from '@/contexts/AuthContext';
-import { lemlistService, type LemlistCampaign } from '@/services/lemlistService';
+import {
+  lemlistService,
+  type LemlistCampaign,
+} from '@/services/lemlistService';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import {
@@ -64,9 +83,13 @@ export function LemlistCampaignsView() {
     Record<string, LemlistCampaignAnalytics>
   >({});
   const [showAddLeadsDialog, setShowAddLeadsDialog] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<LemlistCampaign | null>(null);
+  const [selectedCampaign, setSelectedCampaign] =
+    useState<LemlistCampaign | null>(null);
 
-  const handleAddLeadsClick = (e: React.MouseEvent, campaign: LemlistCampaign) => {
+  const handleAddLeadsClick = (
+    e: React.MouseEvent,
+    campaign: LemlistCampaign
+  ) => {
     e.stopPropagation(); // Prevent row click
     setSelectedCampaign(campaign);
     setShowAddLeadsDialog(true);
@@ -93,16 +116,16 @@ export function LemlistCampaignsView() {
       setError(null);
 
       const loadedCampaigns = await getLemlistCampaigns(user.id);
-      
+
       // Fetch email counts for campaigns (not available in list endpoint)
       // Process sequentially with rate limiting to avoid overwhelming API
       const campaignsWithCounts: LemlistCampaign[] = [];
       for (const campaign of loadedCampaigns) {
         try {
           const detail = await lemlistService.getCampaignDetail(campaign.id);
-          campaignsWithCounts.push({ 
-            ...campaign, 
-            emailCount: detail.emailCount || campaign.emailCount || 0 
+          campaignsWithCounts.push({
+            ...campaign,
+            emailCount: detail.emailCount || campaign.emailCount || 0,
           });
           // Rate limiting: small delay between requests
           if (loadedCampaigns.indexOf(campaign) < loadedCampaigns.length - 1) {
@@ -112,13 +135,14 @@ export function LemlistCampaignsView() {
           campaignsWithCounts.push(campaign);
         }
       }
-      
+
       setCampaigns(campaignsWithCounts);
-      
+
       // Load analytics for all campaigns
       await loadCampaignAnalytics(campaignsWithCounts);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load campaigns';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to load campaigns';
       setError(errorMessage);
       if (!showRefreshing) {
         toast.error('Failed to load Lemlist campaigns', {
@@ -155,7 +179,7 @@ export function LemlistCampaignsView() {
           total_bounced: stats.total_bounced,
           total_positive_replies: stats.total_positive_replies,
         };
-        
+
         // Rate limiting: 200ms delay between requests (best practice)
         // Prevents hitting API rate limits
         if (campaignsToLoad.indexOf(campaign) < campaignsToLoad.length - 1) {
@@ -189,9 +213,9 @@ export function LemlistCampaignsView() {
         campaign.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus =
-        statusFilter === 'all' || 
+        statusFilter === 'all' ||
         campaign.status === statusFilter ||
-        (statusFilter === 'active' && campaign.status === 'running');
+        (statusFilter === 'active' && campaign.status === 'active');
 
       return matchesSearch && matchesStatus;
     });
@@ -199,38 +223,40 @@ export function LemlistCampaignsView() {
 
   if (error) {
     return (
-      <div className="space-y-4">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
+      <div className='space-y-4'>
+        <Alert variant='destructive'>
+          <AlertCircle className='h-4 w-4' />
           <AlertDescription>
             {error.includes('credentials not found') ? (
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <p>Please connect Lemlist in Settings first.</p>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open('/settings/integrations', '_blank')}
+                  variant='outline'
+                  size='sm'
+                  onClick={() =>
+                    window.open('/settings/integrations', '_blank')
+                  }
                 >
                   Go to Settings
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <p>{error}</p>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant='outline'
+                  size='sm'
                   onClick={() => loadCampaigns(true)}
                   disabled={refreshing}
                 >
                   {refreshing ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                       Refreshing...
                     </>
                   ) : (
                     <>
-                      <RefreshCw className="mr-2 h-4 w-4" />
+                      <RefreshCw className='mr-2 h-4 w-4' />
                       Retry
                     </>
                   )}
@@ -244,7 +270,7 @@ export function LemlistCampaignsView() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {/* Header Section with Filters and Search - Matching Email Tab */}
       <div className='flex justify-between items-center'>
         <div className='flex items-center gap-4'>
@@ -276,7 +302,7 @@ export function LemlistCampaignsView() {
 
         {/* Refresh Button */}
         <Button
-          variant="outline"
+          variant='outline'
           onClick={() => loadCampaigns(true)}
           disabled={refreshing}
           className='h-8'
@@ -317,7 +343,7 @@ export function LemlistCampaignsView() {
             </p>
             {!searchTerm && (
               <Button
-                variant="outline"
+                variant='outline'
                 onClick={() => window.open('https://app.lemlist.com', '_blank')}
               >
                 <ExternalLink className='h-4 w-4 mr-2' />
@@ -342,9 +368,8 @@ export function LemlistCampaignsView() {
           <div className='divide-y divide-gray-300'>
             {filteredCampaigns.map(campaign => {
               const statusColor =
-                STATUS_COLORS[
-                  (campaign.status === 'running' ? 'active' : campaign.status) as keyof typeof STATUS_COLORS
-                ] || 'bg-gray-100 text-foreground';
+                STATUS_COLORS[campaign.status as keyof typeof STATUS_COLORS] ||
+                'bg-gray-100 text-foreground';
               const analytics = campaignAnalytics[campaign.id] || {
                 total_sent: 0,
                 total_opened: 0,
@@ -367,9 +392,11 @@ export function LemlistCampaignsView() {
                         </div>
                         <div>
                           <div className='flex items-center space-x-2'>
-                            <h4 
+                            <h4
                               className='text-sm font-medium text-purple-600 hover:text-purple-700 cursor-pointer'
-                              onClick={() => window.open('https://app.lemlist.com', '_blank')}
+                              onClick={() =>
+                                window.open('https://app.lemlist.com', '_blank')
+                              }
                             >
                               {campaign.name}
                             </h4>
@@ -379,7 +406,8 @@ export function LemlistCampaignsView() {
                             <span
                               className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
                             >
-                              {campaign.status === 'running' ? 'Active' : campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                              {campaign.status.charAt(0).toUpperCase() +
+                                campaign.status.slice(1)}
                             </span>
                             <span>•</span>
                             <span>
@@ -390,7 +418,10 @@ export function LemlistCampaignsView() {
                               )}
                             </span>
                             <span>•</span>
-                            <span>{campaign.emailCount} email{campaign.emailCount !== 1 ? 's' : ''}</span>
+                            <span>
+                              {campaign.emailCount} email
+                              {campaign.emailCount !== 1 ? 's' : ''}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -402,7 +433,7 @@ export function LemlistCampaignsView() {
                       <Button
                         variant='outline'
                         size='sm'
-                        onClick={(e) => handleAddLeadsClick(e, campaign)}
+                        onClick={e => handleAddLeadsClick(e, campaign)}
                         className='h-8 gap-2'
                       >
                         <Plus className='h-4 w-4' />
@@ -476,80 +507,82 @@ export function LemlistCampaignsView() {
 
       {/* Add Leads Dialog - Simple 2025 Best Practice Pattern */}
       <Dialog open={showAddLeadsDialog} onOpenChange={setShowAddLeadsDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className='sm:max-w-md'>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+            <DialogTitle className='flex items-center gap-2'>
+              <Users className='h-5 w-5' />
               Add Leads to Campaign
             </DialogTitle>
             <DialogDescription>
               Add people to <strong>{selectedCampaign?.name}</strong>
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Add leads to <strong>{selectedCampaign?.name}</strong> using one of these methods:
+
+          <div className='space-y-4 py-4'>
+            <div className='space-y-3'>
+              <p className='text-sm text-muted-foreground'>
+                Add leads to <strong>{selectedCampaign?.name}</strong> using one
+                of these methods:
               </p>
-              
-              <div className="space-y-3">
-                <div className="p-3 border rounded-lg bg-muted/50">
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
+
+              <div className='space-y-3'>
+                <div className='p-3 border rounded-lg bg-muted/50'>
+                  <h4 className='text-sm font-medium mb-2 flex items-center gap-2'>
+                    <Users className='h-4 w-4' />
                     Method 1: From People Page (Recommended)
                   </h4>
-                  <ol className="list-decimal list-inside space-y-1 text-xs text-muted-foreground ml-2">
+                  <ol className='list-decimal list-inside space-y-1 text-xs text-muted-foreground ml-2'>
                     <li>Go to the People page</li>
                     <li>Select people you want to add</li>
                     <li>Use workflows to add them to this Lemlist campaign</li>
                   </ol>
                 </div>
 
-                <div className="p-3 border rounded-lg bg-muted/50">
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <ExternalLink className="h-4 w-4" />
+                <div className='p-3 border rounded-lg bg-muted/50'>
+                  <h4 className='text-sm font-medium mb-2 flex items-center gap-2'>
+                    <ExternalLink className='h-4 w-4' />
                     Method 2: Direct in Lemlist
                   </h4>
-                  <p className="text-xs text-muted-foreground">
+                  <p className='text-xs text-muted-foreground'>
                     Open this campaign in Lemlist and add leads directly there.
                   </p>
                 </div>
               </div>
             </div>
-            
+
             <Alert>
-              <AlertDescription className="text-xs">
-                <strong>Note:</strong> Only people with email addresses can be added to Lemlist campaigns.
+              <AlertDescription className='text-xs'>
+                <strong>Note:</strong> Only people with email addresses can be
+                added to Lemlist campaigns.
               </AlertDescription>
             </Alert>
           </div>
 
-          <DialogFooter className="flex-col sm:flex-row gap-2">
+          <DialogFooter className='flex-col sm:flex-row gap-2'>
             <Button
-              variant="outline"
+              variant='outline'
               onClick={() => setShowAddLeadsDialog(false)}
-              className="w-full sm:w-auto"
+              className='w-full sm:w-auto'
             >
               Close
             </Button>
             <Button
               onClick={handleGoToPeople}
-              className="gap-2 w-full sm:w-auto"
+              className='gap-2 w-full sm:w-auto'
             >
               Go to People Page
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className='h-4 w-4' />
             </Button>
             <Button
-              variant="secondary"
+              variant='secondary'
               onClick={() => {
                 setShowAddLeadsDialog(false);
                 window.open('https://app.lemlist.com', '_blank');
               }}
-              className="gap-2 w-full sm:w-auto"
+              className='gap-2 w-full sm:w-auto'
             >
               Open in Lemlist
-              <ExternalLink className="h-4 w-4" />
+              <ExternalLink className='h-4 w-4' />
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -557,4 +590,3 @@ export function LemlistCampaignsView() {
     </div>
   );
 }
-

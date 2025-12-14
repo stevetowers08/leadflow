@@ -614,14 +614,20 @@ export class SecureGmailService {
     let body = template.body_text || '';
     let bodyHtml = template.body_html;
 
-    // Replace placeholders with person data
+    // Replace placeholders with lead data
+    const fullName =
+      `${personData.first_name || ''} ${personData.last_name || ''}`.trim();
     const placeholders = {
-      '{{name}}': personData.name || '',
-      '{{email}}': personData.email_address || '',
-      '{{company}}': personData.company_name || '',
-      '{{job_title}}': personData.company_role || '',
-      '{{first_name}}': personData.name?.split(' ')[0] || '',
-      '{{last_name}}': personData.name?.split(' ').slice(1).join(' ') || '',
+      '{{name}}': fullName || '',
+      '{{email}}': personData.email || personData.email_address || '',
+      '{{company}}': personData.company || personData.company_name || '',
+      '{{job_title}}': personData.job_title || personData.company_role || '',
+      '{{first_name}}':
+        personData.first_name || personData.name?.split(' ')[0] || '',
+      '{{last_name}}':
+        personData.last_name ||
+        personData.name?.split(' ').slice(1).join(' ') ||
+        '',
     };
 
     // Replace placeholders in subject

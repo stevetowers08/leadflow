@@ -72,20 +72,20 @@ async function setupSecureAuth() {
       }
     }
 
-    // 3. Set up the first user as owner
+    // 3. Set up the first user as admin
     if (authUsers.users.length > 0) {
       const firstUser = authUsers.users[0];
-      console.log(`\n👑 Setting ${firstUser.email} as owner...`);
+      console.log(`\n👑 Setting ${firstUser.email} as admin...`);
 
       const { error: updateError } = await supabase
         .from('user_profiles')
-        .update({ role: 'owner' })
+        .update({ role: 'admin' })
         .eq('id', firstUser.id);
 
       if (updateError) {
-        console.error(`   ❌ Failed to set owner: ${updateError.message}`);
+        console.error(`   ❌ Failed to set admin: ${updateError.message}`);
       } else {
-        console.log(`   ✅ ${firstUser.email} is now the owner`);
+        console.log(`   ✅ ${firstUser.email} is now the admin`);
       }
     }
 
@@ -101,10 +101,8 @@ async function setupSecureAuth() {
 
     console.log(`   ✅ Created ${profiles.length} user profiles`);
 
-    const ownerCount = profiles.filter(p => p.role === 'owner').length;
     const adminCount = profiles.filter(p => p.role === 'admin').length;
 
-    console.log(`   👑 Owners: ${ownerCount}`);
     console.log(`   👨‍💼 Admins: ${adminCount}`);
 
     console.log('\n🎉 Secure authentication setup complete!');

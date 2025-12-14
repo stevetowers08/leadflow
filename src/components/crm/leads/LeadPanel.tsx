@@ -15,7 +15,7 @@ import {
   Globe,
   Linkedin,
 } from 'lucide-react';
-import { Conversation } from '../services/conversationService';
+import { Conversation } from '@/services/conversationService';
 import { cn } from '@/lib/utils';
 
 interface LeadPanelProps {
@@ -65,25 +65,13 @@ export const LeadPanel: React.FC<LeadPanelProps> = ({
   }
 
   const getConversationTypeIcon = () => {
-    switch (conversation.conversation_type) {
-      case 'linkedin':
-        return <Linkedin className='h-4 w-4 text-primary' />;
-      case 'email':
-        return <Mail className='h-4 w-4 text-success' />;
-      default:
-        return <MessageSquare className='h-4 w-4 text-muted-foreground' />;
-    }
+    // LinkedIn not supported in current Conversation type
+    return <Mail className='h-4 w-4 text-success' />;
   };
 
   const getConversationTypeBadge = () => {
-    switch (conversation.conversation_type) {
-      case 'linkedin':
-        return <StatusBadge status='LinkedIn' size='sm' />;
-      case 'email':
-        return <StatusBadge status='Email' size='sm' />;
-      default:
-        return <StatusBadge status='Unknown' size='sm' />;
-    }
+    // LinkedIn not supported in current Conversation type
+    return <StatusBadge status='Email' size='sm' />;
   };
 
   return (
@@ -98,7 +86,9 @@ export const LeadPanel: React.FC<LeadPanelProps> = ({
             <h2 className='text-lg font-semibold text-foreground'>
               Lead Information
             </h2>
-            <p className='text-sm text-muted-foreground'>Contact details and profile</p>
+            <p className='text-sm text-muted-foreground'>
+              Contact details and profile
+            </p>
           </div>
         </div>
 
@@ -109,16 +99,16 @@ export const LeadPanel: React.FC<LeadPanelProps> = ({
           </div>
           <div className='flex-1'>
             <h3 className='text-lg font-semibold text-foreground mb-1'>
-              {conversation.person_name || 'Unknown Person'}
+              {conversation.lead_name || 'Unknown Person'}
             </h3>
             <div className='flex items-center gap-2 mb-2'>
               {getConversationTypeIcon()}
               {getConversationTypeBadge()}
             </div>
-            {conversation.person_company && (
+            {conversation.lead_company && (
               <div className='flex items-center gap-1 text-sm text-muted-foreground'>
                 <Building2 className='h-4 w-4' />
-                <span>{conversation.person_company}</span>
+                <span>{conversation.lead_company}</span>
               </div>
             )}
           </div>
@@ -135,13 +125,13 @@ export const LeadPanel: React.FC<LeadPanelProps> = ({
           </h4>
 
           <div className='space-y-3'>
-            {conversation.person_email && (
+            {conversation.lead_email && (
               <div className='flex items-center gap-3 p-3 bg-muted rounded-lg'>
                 <Mail className='h-4 w-4 text-muted-foreground' />
                 <div className='flex-1'>
                   <p className='text-sm font-medium text-foreground'>Email</p>
                   <p className='text-sm text-muted-foreground'>
-                    {conversation.person_email}
+                    {conversation.lead_email}
                   </p>
                 </div>
                 <Button
@@ -154,11 +144,13 @@ export const LeadPanel: React.FC<LeadPanelProps> = ({
               </div>
             )}
 
-            {conversation.person_linkedin_url && (
+            {conversation.lead_linkedin_url && (
               <div className='flex items-center gap-3 p-3 bg-muted rounded-lg'>
                 <Linkedin className='h-4 w-4 text-primary' />
                 <div className='flex-1'>
-                  <p className='text-sm font-medium text-foreground'>LinkedIn</p>
+                  <p className='text-sm font-medium text-foreground'>
+                    LinkedIn
+                  </p>
                   <p className='text-sm text-muted-foreground'>View Profile</p>
                 </div>
                 <Button
@@ -166,7 +158,7 @@ export const LeadPanel: React.FC<LeadPanelProps> = ({
                   size='sm'
                   className='text-primary hover:text-primary'
                   onClick={() =>
-                    window.open(conversation.person_linkedin_url, '_blank')
+                    window.open(conversation.lead_linkedin_url, '_blank')
                   }
                 >
                   <ExternalLink className='h-4 w-4' />
@@ -185,7 +177,9 @@ export const LeadPanel: React.FC<LeadPanelProps> = ({
 
           <div className='space-y-3'>
             <div className='flex items-center justify-between p-3 bg-muted rounded-lg'>
-              <span className='text-sm font-medium text-foreground'>Status</span>
+              <span className='text-sm font-medium text-foreground'>
+                Status
+              </span>
               <Badge
                 variant={
                   conversation.status === 'active' ? 'default' : 'secondary'
@@ -232,7 +226,9 @@ export const LeadPanel: React.FC<LeadPanelProps> = ({
 
         {/* Quick Actions */}
         <div className='space-y-4'>
-          <h4 className='text-sm font-semibold text-foreground'>Quick Actions</h4>
+          <h4 className='text-sm font-semibold text-foreground'>
+            Quick Actions
+          </h4>
 
           <div className='space-y-2'>
             <Button
@@ -240,20 +236,20 @@ export const LeadPanel: React.FC<LeadPanelProps> = ({
               size='sm'
               className='w-full justify-start'
               onClick={() =>
-                window.open(conversation.person_linkedin_url, '_blank')
+                window.open(conversation.lead_linkedin_url, '_blank')
               }
             >
               <Linkedin className='h-4 w-4 mr-2' />
               View LinkedIn Profile
             </Button>
 
-            {conversation.person_email && (
+            {conversation.lead_email && (
               <Button
                 variant='outline'
                 size='sm'
                 className='w-full justify-start'
                 onClick={() =>
-                  window.open(`mailto:${conversation.person_email}`, '_blank')
+                  window.open(`mailto:${conversation.lead_email}`, '_blank')
                 }
               >
                 <Mail className='h-4 w-4 mr-2' />

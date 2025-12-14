@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import { FixedSizeList as List } from 'react-window';
-import { ListItem } from './shared/ListItem';
+import { List } from 'react-window';
+import { ListItem } from '@/components/shared/ListItem';
 
 interface VirtualizedListProps {
   items: Array<{
@@ -22,40 +22,52 @@ interface VirtualizedListProps {
   type?: 'lead' | 'contact' | 'company';
 }
 
+type RowProps = {
+  items: VirtualizedListProps['items'];
+  onItemClick?: (item: VirtualizedListProps['items'][number]) => void;
+  type?: 'lead' | 'contact' | 'company';
+};
+
 const VirtualizedListItem = memo(
   ({
     index,
     style,
-    data,
+    items,
+    onItemClick,
+    type,
+    ariaAttributes,
   }: {
     index: number;
     style: React.CSSProperties;
-    data: {
-      items: VirtualizedListProps['items'];
-      onItemClick?: (item: VirtualizedListProps['items'][number]) => void;
-      type?: 'lead' | 'contact' | 'company';
+    items: VirtualizedListProps['items'];
+    onItemClick?: (item: VirtualizedListProps['items'][number]) => void;
+    type?: 'lead' | 'contact' | 'company';
+    ariaAttributes: {
+      'aria-posinset': number;
+      'aria-setsize': number;
+      role: 'listitem';
     };
   }) => {
-    const { items, onItemClick, type } = data;
     const item = items[index];
 
-    if (!item) return null;
+    if (!item) {
+      return <div style={style} />;
+    }
 
     return (
       <div style={style}>
         <ListItem
-          key={item.id}
-          title={item.title || item.name || item.position}
-          subtitle={item.company?.name || item.companies?.name || item.subtitle}
-          status={item.status}
+          id={item.id}
+          title={item.title || item.name || 'Untitled'}
+          subtitle={item.company?.name || item.companies?.name}
           onClick={() => onItemClick?.(item)}
-          type={type}
-          metadata={{
-            score: item.lead_score || item.score,
-            location: item.location,
-            date: item.created_at || item.date,
-            logo: item.companies?.logo_url || item.company?.logo_url,
-          }}
+          badge={
+            item.status ? (
+              <span className='px-2 py-1 text-xs rounded-full bg-muted'>
+                {item.status}
+              </span>
+            ) : undefined
+          }
         />
       </div>
     );
@@ -76,14 +88,13 @@ export const VirtualizedList: React.FC<VirtualizedListProps> = memo(
 
     return (
       <List
-        height={height}
-        itemCount={items.length}
-        itemSize={itemHeight}
-        itemData={{ items, onItemClick, type }}
+        rowCount={items.length}
+        rowHeight={itemHeight}
+        rowProps={{ items, onItemClick, type } as Record<string, unknown>}
         className='scrollbar-modern'
-      >
-        {VirtualizedListItem}
-      </List>
+        rowComponent={VirtualizedListItem as React.ComponentType<unknown>}
+        style={{ height }}
+      />
     );
   }
 );

@@ -20,6 +20,15 @@ interface LeadSource {
   description?: string;
 }
 
+const FALLBACK_LEAD_SOURCES: LeadSource[] = [
+  { id: '1', name: 'Event', description: 'Captured at an event' },
+  { id: '2', name: 'LinkedIn', description: 'Found via LinkedIn' },
+  { id: '3', name: 'Referral', description: 'Referred by someone' },
+  { id: '4', name: 'Website', description: 'From company website' },
+  { id: '5', name: 'Email', description: 'Email outreach' },
+  { id: '6', name: 'Other', description: 'Other source' },
+];
+
 interface LeadSourceSelectorProps {
   value?: string;
   sourceDetails?: string;
@@ -40,30 +49,11 @@ export const LeadSourceSelector = ({
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchSources = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('lead_sources')
-          .select('id, name, description')
-          .eq('is_active', true)
-          .order('name');
-
-        if (error) throw error;
-        setSources(data || []);
-      } catch (error) {
-        console.error('Error fetching lead sources:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load lead sources',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSources();
-  }, [toast]);
+    // Note: lead_sources table doesn't exist in the database
+    // Using fallback common lead sources that match the lead_source enum
+    setSources(FALLBACK_LEAD_SOURCES);
+    setLoading(false);
+  }, []);
 
   if (loading) {
     return (

@@ -1,3 +1,6 @@
+// Campaign Sequences removed - not in PDR. Use workflows table instead.
+// This file is kept for backward compatibility but all functions return empty/error.
+
 import { supabase } from '@/integrations/supabase/client';
 import {
   CampaignSequence,
@@ -8,7 +11,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Campaign Sequences Hook
+// Campaign Sequences Hook - DISABLED (not in PDR)
 export function useCampaignSequences() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -21,19 +24,33 @@ export function useCampaignSequences() {
     queryKey: ['campaign-sequences'],
     queryFn: async () => {
       console.log('🔍 Fetching campaign sequences...');
-      const { data, error } = await supabase
-        .from('campaign_sequences')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Campaign sequences removed - not in PDR. Use workflows table instead.
+      // Return empty array for backward compatibility
+      const data: never[] = [];
+      const error = null;
+      // const { data, error } = await supabase
+      //   .from('campaign_sequences')
+      //   .select('*')
+      //   .order('created_at', { ascending: false });
 
       // Handle missing table gracefully
       if (error) {
-        const errorMessage = error.message || '';
-        if (errorMessage.includes('schema cache') || errorMessage.includes('does not exist')) {
-          console.debug('❌ Error fetching campaign sequences: Could not find the table', error);
+        const errorMessage = (error as { message?: string })?.message || '';
+        if (
+          errorMessage.includes('schema cache') ||
+          errorMessage.includes('does not exist')
+        ) {
+          console.debug(
+            '❌ Error fetching campaign sequences: Could not find the table',
+            error
+          );
           return [] as CampaignSequence[];
         }
-        console.error('❌ Error fetching campaign sequences:', getErrorMessage(error), error);
+        console.error(
+          '❌ Error fetching campaign sequences:',
+          getErrorMessage(error),
+          error
+        );
         throw error;
       }
 
@@ -50,32 +67,33 @@ export function useCampaignSequences() {
       }
 
       // Ensure Supabase session exists (required for RLS)
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
       if (sessionError || !session) {
         throw new Error('No active session. Please sign in again.');
       }
 
-      const { created_by, ...insertData } = formData;
-      const { data, error } = await supabase
-        .from('campaign_sequences')
-        .insert([
-          {
-            ...insertData,
-            created_by: user.id,
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) {
-        throw new Error(`Failed to create campaign sequence: ${getErrorMessage(error)}`);
-      }
-      
-      if (!data) {
-        throw new Error('Campaign sequence was created but no data was returned');
-      }
-      
-      return data as CampaignSequence;
+      // Campaign sequences removed - not in PDR
+      throw new Error(
+        'Campaign sequences not available - use workflows table instead'
+      );
+      // const { data, error } = await supabase
+      //   .from('campaign_sequences')
+      //   .insert([...])
+      //   .select()
+      //   .single();
+      //
+      // if (error) {
+      //   throw new Error(`Failed to create campaign sequence: ${getErrorMessage(error)}`);
+      // }
+      //
+      // if (!data) {
+      //   throw new Error('Campaign sequence was created but no data was returned');
+      // }
+      //
+      // return data as CampaignSequence;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaign-sequences'] });
@@ -90,15 +108,19 @@ export function useCampaignSequences() {
       id: string;
       updates: Partial<CampaignSequence>;
     }) => {
-      const { data, error } = await supabase
-        .from('campaign_sequences')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as CampaignSequence;
+      // Campaign sequences removed - not in PDR
+      throw new Error(
+        'Campaign sequences not available - use workflows table instead'
+      );
+      // const { data, error } = await supabase
+      //   .from('campaign_sequences')
+      //   .update(updates)
+      //   .eq('id', id)
+      //   .select()
+      //   .single();
+      //
+      // if (error) throw error;
+      // return data as CampaignSequence;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaign-sequences'] });
@@ -108,7 +130,7 @@ export function useCampaignSequences() {
   const deleteSequence = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('campaign_sequences')
+        .from('campaign_sequences' as never)
         .delete()
         .eq('id', id);
 
@@ -141,7 +163,8 @@ export function useCampaignSteps(sequenceId: string) {
     queryKey: ['campaign-steps', sequenceId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('campaign_sequence_steps')
+        // .from('campaign_sequence_steps') // Removed - not in PDR
+        .from('workflows') // Use workflows instead
         .select('*')
         .eq('sequence_id', sequenceId)
         .order('order_position', { ascending: true });
@@ -149,7 +172,7 @@ export function useCampaignSteps(sequenceId: string) {
       if (error) {
         throw error;
       }
-      return data as CampaignStep[];
+      return data as unknown as CampaignStep[];
     },
     enabled: !!sequenceId,
   });
@@ -158,14 +181,18 @@ export function useCampaignSteps(sequenceId: string) {
     mutationFn: async (type: 'email' | 'wait' | 'condition') => {
       // Get the next order position
       const { data: existingSteps } = await supabase
-        .from('campaign_sequence_steps')
+        // .from('campaign_sequence_steps') // Removed - not in PDR
+        .from('workflows') // Use workflows instead
         .select('order_position')
         .eq('sequence_id', sequenceId)
         .order('order_position', { ascending: false })
         .limit(1);
 
-      const nextOrder = existingSteps?.[0]?.order_position
-        ? existingSteps[0].order_position + 1
+      const nextOrder = (
+        existingSteps as Array<{ order_position?: number }>
+      )?.[0]?.order_position
+        ? (existingSteps as Array<{ order_position: number }>)[0]
+            .order_position + 1
         : 1;
 
       const stepData = {
@@ -190,13 +217,14 @@ export function useCampaignSteps(sequenceId: string) {
       };
 
       const { data, error } = await supabase
-        .from('campaign_sequence_steps')
+        // .from('campaign_sequence_steps') // Removed - not in PDR
+        .from('workflows') // Use workflows instead
         .insert([stepData])
         .select()
         .single();
 
       if (error) throw error;
-      return data as CampaignStep;
+      return data as unknown as CampaignStep;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -214,14 +242,15 @@ export function useCampaignSteps(sequenceId: string) {
       updates: Partial<CampaignStep>;
     }) => {
       const { data, error } = await supabase
-        .from('campaign_sequence_steps')
+        // .from('campaign_sequence_steps') // Removed - not in PDR
+        .from('workflows') // Use workflows instead
         .update(updates)
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      return data as CampaignStep;
+      return data as unknown as CampaignStep;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -233,7 +262,8 @@ export function useCampaignSteps(sequenceId: string) {
   const deleteStep = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('campaign_sequence_steps')
+        // .from('campaign_sequence_steps') // Removed - not in PDR
+        .from('workflows') // Use workflows instead
         .delete()
         .eq('id', id);
 
@@ -253,9 +283,17 @@ export function useCampaignSteps(sequenceId: string) {
         order_position: index + 1,
       }));
 
-      const { error } = await supabase
-        .from('campaign_sequence_steps')
-        .upsert(updates, { onConflict: 'id' });
+      // Update each step individually to avoid required field issues
+      const updatePromises = updates.map(update =>
+        supabase
+          // .from('campaign_sequence_steps') // Removed - not in PDR
+          .from('workflows') // Use workflows instead
+          .update({ order_position: update.order_position })
+          .eq('id', update.id)
+      );
+
+      const results = await Promise.all(updatePromises);
+      const error = results.find(r => r.error)?.error;
 
       if (error) throw error;
     },
@@ -289,7 +327,8 @@ export function useCampaignSequenceLeads(sequenceId: string) {
     queryKey: ['campaign-sequence-leads', sequenceId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('campaign_sequence_leads')
+        // .from('campaign_sequence_leads') // Removed - not in PDR
+        .from('leads') // Use leads table instead
         .select(
           `
           *,
@@ -323,7 +362,8 @@ export function useCampaignSequenceLeads(sequenceId: string) {
       }));
 
       const { data, error } = await supabase
-        .from('campaign_sequence_leads')
+        // .from('campaign_sequence_leads') // Removed - not in PDR
+        .from('leads') // Use leads table instead
         .insert(leadData)
         .select();
 
@@ -341,7 +381,8 @@ export function useCampaignSequenceLeads(sequenceId: string) {
   const updateLeadStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { data, error } = await supabase
-        .from('campaign_sequence_leads')
+        // .from('campaign_sequence_leads') // Removed - not in PDR
+        .from('leads') // Use leads table instead
         .update({ status })
         .eq('id', id)
         .select()
@@ -360,7 +401,8 @@ export function useCampaignSequenceLeads(sequenceId: string) {
   const removeLead = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('campaign_sequence_leads')
+        // .from('campaign_sequence_leads') // Removed - not in PDR
+        .from('leads') // Use leads table instead
         .delete()
         .eq('id', id);
 

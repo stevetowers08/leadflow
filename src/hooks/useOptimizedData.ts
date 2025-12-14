@@ -24,23 +24,14 @@ export function useOptimizedData(options: UseOptimizedDataOptions = {}) {
       setLoading(true);
       setError(null);
 
-      const startTime = monitor.current.startTracking();
+      monitor.current.startTracking();
       const result = await OptimizedDataService.getDashboardData();
-      monitor.current.endTracking('useOptimizedData', startTime);
+      monitor.current.endTracking();
 
       setData(result);
     } catch (err) {
       setError(err as Error);
-      monitor.current.logError(
-        {
-          component: 'useOptimizedData',
-          action: 'fetchData',
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          url: window.location.href,
-        },
-        err as Error
-      );
+      monitor.current.logError();
     } finally {
       setLoading(false);
     }

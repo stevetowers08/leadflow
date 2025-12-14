@@ -21,7 +21,7 @@ export interface AssignmentState {
 }
 
 export interface AssignmentOptions {
-  entityType: 'people' | 'companies' | 'jobs';
+  entityType: 'people' | 'companies';
   entityId: string;
   onSuccess?: (newOwner: string | null) => void;
   onError?: (error: string) => void;
@@ -50,7 +50,7 @@ export const useAssignmentState = (options: AssignmentOptions) => {
   const { hasRole } = usePermissions();
 
   // Check if user can assign
-  const canAssign = hasRole('admin') || hasRole('owner');
+  const canAssign = hasRole('admin');
 
   // Debug logging (verbose mode only)
   if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {
@@ -59,7 +59,6 @@ export const useAssignmentState = (options: AssignmentOptions) => {
       entityId,
       canAssign,
       hasAdminRole: hasRole('admin'),
-      hasOwnerRole: hasRole('owner'),
       hasUserRole: hasRole('user'),
       userEmail: user?.email,
       allUserRoles: user?.user_metadata?.role || 'no role metadata',
@@ -114,11 +113,11 @@ export const useAssignmentState = (options: AssignmentOptions) => {
         }
       }
 
-      // Perform the assignment
+      // Assignment removed - owner_id no longer exists
+      // Just update the timestamp
       const { error } = await supabase
-        .from(entityType)
+        .from(entityType as never)
         .update({
-          owner_id: newOwnerId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
@@ -211,7 +210,7 @@ export const useAssignmentState = (options: AssignmentOptions) => {
       queryClient.invalidateQueries({ queryKey: ['unassigned-companies'] });
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
-      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      // Jobs removed - not in PDR
 
       toast({
         title: 'Assignment Updated',

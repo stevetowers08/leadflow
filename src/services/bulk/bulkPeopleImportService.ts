@@ -18,8 +18,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { Person } from '@/types/database';
-import { normalizePeopleStage } from '@/utils/statusUtils';
+import { Lead } from '@/types/database';
 
 const BATCH_SIZE = 50;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -46,21 +45,21 @@ export interface FieldMapping {
 
 // Standard field mappings (flexible - user can override)
 const DEFAULT_FIELD_MAPPINGS: FieldMapping[] = [
-  { csvColumn: 'Name', dbField: 'name', required: true },
-  { csvColumn: 'Email', dbField: 'email_address', required: false },
-  { csvColumn: 'Email Address', dbField: 'email_address', required: false },
-  { csvColumn: 'Role', dbField: 'company_role', required: false },
-  { csvColumn: 'Company Role', dbField: 'company_role', required: false },
-  { csvColumn: 'Location', dbField: 'employee_location', required: false },
-  { csvColumn: 'Employee Location', dbField: 'employee_location', required: false },
-  { csvColumn: 'Company', dbField: 'company_name', required: false },
-  { csvColumn: 'Company Name', dbField: 'company_name', required: false },
-  { csvColumn: 'Company Website', dbField: 'company_website', required: false },
-  { csvColumn: 'Website', dbField: 'company_website', required: false },
+  { csvColumn: 'First Name', dbField: 'first_name', required: false },
+  { csvColumn: 'Last Name', dbField: 'last_name', required: false },
+  { csvColumn: 'Name', dbField: 'name', required: false }, // Will be split into first/last
+  { csvColumn: 'Email', dbField: 'email', required: false },
+  { csvColumn: 'Email Address', dbField: 'email', required: false },
+  { csvColumn: 'Phone', dbField: 'phone', required: false },
+  { csvColumn: 'Job Title', dbField: 'job_title', required: false },
+  { csvColumn: 'Role', dbField: 'job_title', required: false },
+  { csvColumn: 'Company', dbField: 'company', required: false },
+  { csvColumn: 'Company Name', dbField: 'company', required: false },
   { csvColumn: 'LinkedIn', dbField: 'linkedin_url', required: false },
   { csvColumn: 'LinkedIn URL', dbField: 'linkedin_url', required: false },
-  { csvColumn: 'Stage', dbField: 'people_stage', required: false },
-  { csvColumn: 'Score', dbField: 'score', required: false },
+  { csvColumn: 'Status', dbField: 'status', required: false },
+  { csvColumn: 'Stage', dbField: 'status', required: false },
+  { csvColumn: 'Quality Rank', dbField: 'quality_rank', required: false },
 ];
 
 /**
@@ -70,21 +69,23 @@ const DEFAULT_FIELD_MAPPINGS: FieldMapping[] = [
 export function parseCSV(content: string): CSVRow[] {
   // Remove UTF-8 BOM if present (Excel compatibility)
   const cleanContent = content.replace(/^\uFEFF/, '');
-  
+
   const lines = cleanContent.split(/\r?\n/).filter(line => line.trim());
   if (lines.length < 2) {
-    throw new Error('CSV file must have at least a header row and one data row');
+    throw new Error(
+      'CSV file must have at least a header row and one data row'
+    );
   }
 
   // Parse header row
   const headers = parseCSVLine(lines[0]);
-  
+
   // Parse data rows
   const rows: CSVRow[] = [];
   for (let i = 1; i < lines.length; i++) {
     const values = parseCSVLine(lines[i]);
     if (values.length === 0) continue; // Skip empty rows
-    
+
     const row: CSVRow = {};
     headers.forEach((header, index) => {
       row[header.trim()] = values[index]?.trim() || '';
@@ -102,11 +103,11 @@ function parseCSVLine(line: string): string[] {
   const values: string[] = [];
   let current = '';
   let inQuotes = false;
-  
+
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
     const nextChar = line[i + 1];
-    
+
     if (char === '"') {
       if (inQuotes && nextChar === '"') {
         // Escaped quote
@@ -124,10 +125,10 @@ function parseCSVLine(line: string): string[] {
       current += char;
     }
   }
-  
+
   // Add last field
   values.push(current);
-  
+
   return values;
 }
 
@@ -138,18 +139,6 @@ function isValidEmail(email: string): boolean {
   if (!email) return false;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
-}
-
-/**
- * Normalize stage value to match database enum
- * Uses the normalizePeopleStage utility for consistency
- */
-function normalizeStage(stage: string | null | undefined): string | null {
-  if (!stage) return null;
-  
-  // Use the centralized utility function for consistency
-  const normalized = normalizePeopleStage(stage);
-  return normalized || null;
 }
 
 /**
@@ -174,22 +163,12 @@ async function findOrCreateCompany(
       return existing.id;
     }
 
-    // Get current user for owner_id (RLS compliance)
-    let ownerId: string | null = null;
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      ownerId = user?.id || null;
-    } catch {
-      // If auth fails, owner_id will be null
-    }
-
     // Create new company
     const { data: newCompany, error: createError } = await supabase
       .from('companies')
       .insert({
         name: companyName,
         website: website || null,
-        owner_id: ownerId,
         created_at: new Date().toISOString(),
       })
       .select('id')
@@ -216,12 +195,12 @@ async function transformRow(
   fieldMappings: FieldMapping[]
 ): Promise<{ data: Record<string, unknown> | null; errors: string[] }> {
   const errors: string[] = [];
-  const personData: Record<string, unknown> = {};
+  const leadData: Record<string, unknown> = {};
 
   // Apply field mappings
   for (const mapping of fieldMappings) {
     const csvValue = row[mapping.csvColumn];
-    
+
     if (mapping.required && (!csvValue || csvValue.trim() === '')) {
       errors.push(`Required field "${mapping.csvColumn}" is missing`);
       continue;
@@ -229,78 +208,89 @@ async function transformRow(
 
     if (csvValue && csvValue.trim() !== '') {
       switch (mapping.dbField) {
-        case 'name':
-          personData.name = csvValue.trim();
+        case 'first_name':
+          leadData.first_name = csvValue.trim();
           break;
-        case 'email_address':
+        case 'last_name':
+          leadData.last_name = csvValue.trim();
+          break;
+        case 'name': {
+          // Split name into first and last
+          const nameParts = csvValue.trim().split(/\s+/);
+          leadData.first_name = nameParts[0] || '';
+          leadData.last_name = nameParts.slice(1).join(' ') || null;
+          break;
+        }
+        case 'email':
           if (!isValidEmail(csvValue)) {
             errors.push(`Invalid email format: ${csvValue}`);
           } else {
-            personData.email_address = csvValue.trim().toLowerCase();
+            leadData.email = csvValue.trim().toLowerCase();
           }
           break;
-        case 'company_role':
-          personData.company_role = csvValue.trim();
+        case 'phone':
+          leadData.phone = csvValue.trim();
           break;
-        case 'employee_location':
-          personData.employee_location = csvValue.trim();
+        case 'job_title':
+          leadData.job_title = csvValue.trim();
+          break;
+        case 'company':
+          leadData.company = csvValue.trim();
           break;
         case 'linkedin_url':
-          personData.linkedin_url = csvValue.trim();
+          leadData.linkedin_url = csvValue.trim();
           break;
-        case 'people_stage': {
-          const normalizedStage = normalizeStage(csvValue);
-          if (normalizedStage) {
-            personData.people_stage = normalizedStage;
+        case 'status': {
+          // Normalize status to valid enum values
+          const status = csvValue.trim().toLowerCase();
+          if (['processing', 'active', 'replied_manual'].includes(status)) {
+            leadData.status = status;
+          } else {
+            // Map legacy statuses
+            if (['new', 'new_lead'].includes(status)) {
+              leadData.status = 'active';
+            } else if (['replied', 'replied_manual'].includes(status)) {
+              leadData.status = 'replied_manual';
+            } else {
+              leadData.status = 'active'; // Default
+            }
           }
           break;
         }
-        case 'score': {
-          const score = parseFloat(csvValue);
-          if (!isNaN(score)) {
-            personData.score = score;
+        case 'quality_rank': {
+          const rank = csvValue.trim().toLowerCase();
+          if (['hot', 'warm', 'cold'].includes(rank)) {
+            leadData.quality_rank = rank;
           }
           break;
         }
-        case 'company_name':
-        case 'company_website':
-          // These will be handled separately for company creation
-          break;
       }
     }
   }
 
-  // Handle company separately
+  // Handle company separately - store company name in lead, optionally link to companies table
   const companyName = row['Company'] || row['Company Name'] || '';
   const companyWebsite = row['Company Website'] || row['Website'] || '';
-  
-  if (companyName) {
+
+  if (companyName && !leadData.company) {
+    leadData.company = companyName;
+    // Optionally create/link company
     const companyId = await findOrCreateCompany(companyName, companyWebsite);
     if (companyId) {
-      personData.company_id = companyId;
+      leadData.company_id = companyId;
     }
   }
 
   // Set defaults
-  if (!personData.name) {
-    errors.push('Name is required');
+  if (!leadData.first_name && !leadData.last_name) {
+    errors.push('First name or last name is required');
   }
 
-  personData.created_at = new Date().toISOString();
-  personData.people_stage = personData.people_stage || 'new_lead';
-
-  // Get current user for owner_id (RLS compliance)
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      personData.owner_id = user.id;
-    }
-  } catch {
-    // If auth fails, owner_id will be null (RLS will handle)
-  }
+  leadData.created_at = new Date().toISOString();
+  leadData.status = leadData.status || 'active';
 
   return {
-    data: errors.length === 0 ? personData : null,
+    data: errors.length === 0 ? leadData : null,
     errors,
   };
 }
@@ -312,27 +302,28 @@ async function checkDuplicate(
   personData: Record<string, unknown>
 ): Promise<boolean> {
   try {
-    if (personData.email_address) {
+    if (personData.email) {
       const { data } = await supabase
-        .from('people')
+        .from('leads')
         .select('id')
-        .eq('email_address', personData.email_address as string)
+        .eq('email', personData.email as string)
         .limit(1);
-      
+
       if (data && data.length > 0) {
         return true;
       }
     }
 
-    // Also check by name + company if no email
-    if (personData.name && personData.company_id) {
+    // Also check by first_name + last_name + company if no email
+    if (personData.first_name && personData.last_name && personData.company) {
       const { data } = await supabase
-        .from('people')
+        .from('leads')
         .select('id')
-        .eq('name', personData.name as string)
-        .eq('company_id', personData.company_id as string)
+        .eq('first_name', personData.first_name as string)
+        .eq('last_name', personData.last_name as string)
+        .eq('company', personData.company as string)
         .limit(1);
-      
+
       if (data && data.length > 0) {
         return true;
       }
@@ -346,7 +337,7 @@ async function checkDuplicate(
 
 /**
  * Bulk Import People from CSV
- * 
+ *
  * @param file - CSV file to import
  * @param fieldMappings - Optional custom field mappings (uses defaults if not provided)
  * @param skipDuplicates - Whether to skip duplicate records
@@ -358,7 +349,11 @@ export async function bulkImportPeople(
   skipDuplicates: boolean = true,
   onProgress?: (progress: { processed: number; total: number }) => void
 ): Promise<ImportResult> {
-  const errors: Array<{ row: number; error: string; data?: Record<string, unknown> }> = [];
+  const errors: Array<{
+    row: number;
+    error: string;
+    data?: Record<string, unknown>;
+  }> = [];
   const warnings: Array<{ row: number; warning: string }> = [];
   let successCount = 0;
   let skippedCount = 0;
@@ -371,7 +366,12 @@ export async function bulkImportPeople(
         successCount: 0,
         errorCount: 0,
         skippedCount: 0,
-        errors: [{ row: 0, error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` }],
+        errors: [
+          {
+            row: 0,
+            error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`,
+          },
+        ],
         warnings: [],
         message: 'File too large',
       };
@@ -469,7 +469,7 @@ export async function bulkImportPeople(
 
     // Insert batches
     for (const batch of batches) {
-      const { error } = await supabase.from('people').insert(batch);
+      const { error } = await supabase.from('leads').insert(batch);
 
       if (error) {
         batch.forEach((_, index) => {
@@ -504,13 +504,9 @@ export async function bulkImportPeople(
       successCount,
       errorCount: errors.length + 1,
       skippedCount,
-      errors: [
-        ...errors,
-        { row: 0, error: (error as Error).message },
-      ],
+      errors: [...errors, { row: 0, error: (error as Error).message }],
       warnings,
       message: `Import failed: ${(error as Error).message}`,
     };
   }
 }
-

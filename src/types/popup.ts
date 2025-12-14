@@ -4,31 +4,21 @@
  */
 
 import { Tables } from '@/integrations/supabase/types';
+import { Lead } from '@/types/database';
 
 // Base types from Supabase
 export type Company = Tables<'companies'>;
-export type Contact = Tables<'contacts'>;
-export type Job = Tables<'jobs'>;
 // Interaction type removed - table no longer exists
 // export type Interaction = Tables<'interactions'>;
 
-// Legacy alias for backward compatibility during migration
-export type Person = Contact;
-
 // Popup-specific types
-export interface PopupLead extends Contact {
+export interface PopupLead extends Lead {
   company?: Company;
   // interactions?: Interaction[]; // Removed - interactions table no longer exists
 }
 
-export interface PopupJob extends Job {
-  company?: Company;
-  relatedLeads?: PopupLead[];
-}
-
 export interface PopupCompany extends Company {
   relatedLeads?: PopupLead[];
-  relatedJobs?: PopupJob[];
 }
 
 // Selected items for bulk operations
@@ -36,20 +26,13 @@ export interface SelectedLead extends PopupLead {
   selected?: boolean;
 }
 
-export interface SelectedJob extends PopupJob {
-  selected?: boolean;
-}
-
 // Popup data interfaces
 export interface PopupData {
   company?: PopupCompany;
   lead?: PopupLead;
-  job?: PopupJob;
   relatedLeads?: PopupLead[];
-  relatedJobs?: PopupJob[];
   relatedCompanies?: PopupCompany[];
   errorRelatedLeads?: Error | null;
-  errorRelatedJobs?: Error | null;
   errorRelatedCompanies?: Error | null;
 }
 

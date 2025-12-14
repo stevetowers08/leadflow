@@ -48,24 +48,20 @@ export const useLeads = (
       const { column, ascending } = sort;
       const { search, status, ...otherFilters } = filters;
 
-      let query = supabase.from('people').select(
+      let query = supabase.from('leads').select(
         `
           id,
-          name,
+          first_name,
+          last_name,
+          email,
+          company,
           company_id,
-          email_address,
-          employee_location,
-          company_role,
-          stage,
-          lead_score,
+          job_title,
+          status,
+          quality_rank,
           linkedin_url,
           created_at,
-          confidence_level,
-          companies!inner(
-            id,
-            name,
-            website
-          )
+          confidence_level
         `,
         { count: 'exact' }
       );
@@ -73,12 +69,12 @@ export const useLeads = (
       // Apply filters
       if (search) {
         query = query.or(
-          `name.ilike.%${search}%,company_role.ilike.%${search}%,email_address.ilike.%${search}%`
+          `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,company.ilike.%${search}%,job_title.ilike.%${search}%`
         );
       }
 
       if (status && status !== 'all') {
-        query = query.eq('people_stage', status);
+        query = query.eq('status', status);
       }
 
       // Apply other filters
@@ -110,7 +106,7 @@ export const useLeads = (
     },
     enabled: options.enabled !== false,
     staleTime: options.staleTime || 2 * 60 * 1000, // 2 minutes
-    cacheTime: options.cacheTime || 5 * 60 * 1000, // 5 minutes
+    gcTime: options.cacheTime || 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
     refetchOnWindowFocus: options.refetchOnWindowFocus || false,
   });
 };
@@ -132,9 +128,7 @@ export const useCompanies = (
       // Build the main query with counts using a single optimized query
       let query = supabase.from('companies').select(
         `
-          *,
-          people_count:people(count),
-          jobs_count:jobs(count)
+          *
         `,
         { count: 'exact' }
       );
@@ -147,9 +141,8 @@ export const useCompanies = (
       }
 
       if (status && status !== 'all') {
-        if (status === 'active') {
-          query = query.eq('automation_active', true);
-        } else if (status === 'qualified') {
+        // automation_active field removed - use workflow_status from leads instead
+        if (status === 'qualified') {
           query = query.eq('confidence_level', 'high');
         } else if (status === 'prospect') {
           query = query.eq('confidence_level', 'medium');
@@ -187,7 +180,7 @@ export const useCompanies = (
     },
     enabled: options.enabled !== false,
     staleTime: options.staleTime || 2 * 60 * 1000,
-    cacheTime: options.cacheTime || 5 * 60 * 1000,
+    gcTime: options.cacheTime || 5 * 60 * 1000, // formerly cacheTime
     refetchOnWindowFocus: options.refetchOnWindowFocus || false,
   });
 };
@@ -204,22 +197,31 @@ export const useDashboardStats = (options: QueryOptions = {}) => {
       const todayDateString = sydneyDate.toISOString().split('T')[0];
 
       // Use materialized view for dashboard metrics and optimized queries
-      const [dashboardMetrics, todayJobs, expiringJobs] = await Promise.all([
+      const [dashboardMetrics] = await Promise.all([
         // Get dashboard metrics from materialized view
-        supabase.from('dashboard_metrics').select('*').single(),
-
+        supabase
+          .from('dashboard_metrics' as never)
+          .select('*')
+          .single(),
       ]);
 
+      const metrics = dashboardMetrics.data as unknown as {
+        total_leads?: number;
+        total_companies?: number;
+        active_automations?: number;
+        avg_lead_score?: number;
+      } | null;
+
       return {
-        totalLeads: dashboardMetrics.data?.total_leads || 0,
-        totalCompanies: dashboardMetrics.data?.total_companies || 0,
-        activeAutomations: dashboardMetrics.data?.active_automations || 0,
-        avgLeadScore: dashboardMetrics.data?.avg_lead_score || 0,
+        totalLeads: metrics?.total_leads || 0,
+        totalCompanies: metrics?.total_companies || 0,
+        activeAutomations: metrics?.active_automations || 0,
+        avgLeadScore: metrics?.avg_lead_score || 0,
       };
     },
     enabled: options.enabled !== false,
     staleTime: options.staleTime || 1 * 60 * 1000, // 1 minute for stats
-    cacheTime: options.cacheTime || 5 * 60 * 1000,
+    gcTime: options.cacheTime || 5 * 60 * 1000, // formerly cacheTime
     refetchOnWindowFocus: options.refetchOnWindowFocus || false,
   });
 };
@@ -233,38 +235,35 @@ export const useInfiniteLeads = (
 ) => {
   return useInfiniteQuery({
     queryKey: ['leads-infinite', sort, filters, pageSize],
+    initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
       const { column, ascending } = sort;
       const { search, status, ...otherFilters } = filters;
 
-      let query = supabase.from('people').select(`
+      let query = supabase.from('leads').select(`
           id,
-          name,
+          first_name,
+          last_name,
+          email,
+          company,
           company_id,
-          email_address,
-          employee_location,
-          company_role,
-          stage,
-          lead_score,
+          job_title,
+          status,
+          quality_rank,
           linkedin_url,
           created_at,
-          confidence_level,
-          companies!inner(
-            id,
-            name,
-            website
-          )
+          confidence_level
         `);
 
       // Apply filters
       if (search) {
         query = query.or(
-          `name.ilike.%${search}%,company_role.ilike.%${search}%,email_address.ilike.%${search}%`
+          `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,company.ilike.%${search}%,job_title.ilike.%${search}%`
         );
       }
 
       if (status && status !== 'all') {
-        query = query.eq('people_stage', status);
+        query = query.eq('status', status);
       }
 
       // Apply other filters
@@ -296,7 +295,7 @@ export const useInfiniteLeads = (
     getNextPageParam: lastPage => lastPage.nextCursor,
     enabled: options.enabled !== false,
     staleTime: options.staleTime || 2 * 60 * 1000,
-    cacheTime: options.cacheTime || 5 * 60 * 1000,
+    gcTime: options.cacheTime || 5 * 60 * 1000, // formerly cacheTime
     refetchOnWindowFocus: options.refetchOnWindowFocus || false,
   });
 };
@@ -311,7 +310,7 @@ export const usePrefetchData = () => {
         queryKey: ['popup-lead', leadId],
         queryFn: async () => {
           const { data, error } = await supabase
-            .from('people')
+            .from('leads')
             .select(
               `
             *,
@@ -325,8 +324,6 @@ export const usePrefetchData = () => {
               company_size,
               lead_score,
               score_reason,
-              automation_active,
-              automation_started_at,
               priority,
               confidence_level,
               is_favourite,

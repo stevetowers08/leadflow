@@ -42,7 +42,13 @@ export function useAILeadScoring(
     isLoading,
     error,
     retry,
-  } = useAsyncOperation<AIScore>();
+  } = useAsyncOperation<AIScore>(async (...args: unknown[]) => {
+    const fn = args[0] as () => Promise<AIScore>;
+    if (typeof fn !== 'function') {
+      throw new Error('Function is required');
+    }
+    return await fn();
+  });
 
   const calculateScore = useCallback(
     async (leadData: {
@@ -108,7 +114,13 @@ export function useAILeadOptimization(
     isLoading,
     error,
     retry,
-  } = useAsyncOperation<LeadOptimization>();
+  } = useAsyncOperation<LeadOptimization>(async (...args: unknown[]) => {
+    const fn = args[0] as () => Promise<LeadOptimization>;
+    if (typeof fn !== 'function') {
+      throw new Error('Function is required');
+    }
+    return await fn();
+  });
 
   const optimizeOutreach = useCallback(
     async (leadData: {

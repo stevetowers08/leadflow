@@ -1,4 +1,4 @@
-import { NotesSection } from '@/components/NotesSection';
+// Notes removed - not in PDR
 import { StatusBadge } from '@/components/StatusBadge';
 import { ScoreBadge } from '@/components/shared/ScoreBadge';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +27,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getCompanyLogoUrlSync } from '@/services/logoService';
 import { useStatusAutomation } from '@/services/statusAutomationService';
-import { Company, Interaction, Person } from '@/types/database';
+import { Company, Lead } from '@/types/database';
+// Interaction type removed - using inline type
+type Interaction = {
+  id: string;
+  [key: string]: unknown;
+};
 import { bulkAddToCampaign } from '@/services/bulk/bulkPeopleService';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
@@ -67,17 +72,16 @@ interface PersonDetailsSlideOutProps {
   isOpen: boolean;
   onClose: () => void;
   onUpdate?: () => void;
-  initialTab?: 'overview' | 'company' | 'notes' | 'ai' | 'activity';
+  initialTab?: 'overview' | 'company' | 'ai' | 'activity';
 }
-
 
 const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
   memo(({ personId, isOpen, onClose, onUpdate, initialTab }) => {
     const router = useRouter();
     const { user } = useAuth();
-    const [person, setPerson] = useState<Person | null>(null);
+    const [person, setPerson] = useState<Lead | null>(null);
     const [company, setCompany] = useState<Company | null>(null);
-    const [otherPeople, setOtherPeople] = useState<Person[]>([]);
+    const [otherPeople, setOtherPeople] = useState<Lead[]>([]);
     const [campaigns, setCampaigns] = useState<
       Array<{ id: string; name: string }>
     >([]);
@@ -86,7 +90,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
     >([]);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
-    const [notesCount, setNotesCount] = useState<number>(0);
+    // Notes removed - not in PDR
     const [showCampaignSelect, setShowCampaignSelect] = useState(false);
     const { toast } = useToast();
     const statusAutomation = useStatusAutomation();
@@ -105,59 +109,62 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
       setLoading(true);
       try {
-        // Fetch person details
+        // Fetch lead details
         const { data: personData, error: personError } = await supabase
-          .from('people')
+          .from('leads')
           .select('*')
           .eq('id', personId)
           .single();
 
         if (personError) throw personError;
-        setPerson(personData as Person);
+        setPerson(personData as Lead);
 
-        // Fetch company if person has company_id
-        if (personData.company_id) {
+        // Fetch company if lead has company_id
+        if ('company_id' in personData && personData.company_id) {
           const { data: companyData, error: companyError } = await supabase
             .from('companies')
             .select('*')
-            .eq('id', personData.company_id)
+            .eq('id', String(personData.company_id))
             .single();
 
           if (!companyError && companyData) {
             setCompany(companyData as Company);
 
-            // Fetch other people at same company
+            // Fetch other leads at same company
             const { data: otherPeopleData, error: otherPeopleError } =
               await supabase
-                .from('people')
+                .from('leads')
                 .select('*')
                 .eq('company_id', personData.company_id)
                 .neq('id', personId)
                 .limit(5);
 
             if (!otherPeopleError && otherPeopleData) {
-              setOtherPeople(otherPeopleData as Person[]);
+              setOtherPeople(otherPeopleData as Lead[]);
             }
-
           }
         }
 
         // Fetch notes count
         if (personData?.id) {
-          const { count: notesCount, error: notesError } = await supabase
-            .from('notes')
-            .select('id', { count: 'exact', head: true })
-            .eq('entity_id', personData.id)
-            .eq('entity_type', 'person');
+          // Notes table doesn't exist - using placeholder
+          const notesCount = 0;
+          const notesError = null;
+          // const { count: notesCount, error: notesError } = await supabase
+          //   .from('notes')
+          //   .select('id', { count: 'exact', head: true })
+          //   .eq('entity_id', personData.id)
+          //   .eq('entity_type', 'person');
 
-          if (!notesError && notesCount !== null) {
-            setNotesCount(notesCount);
-          }
+          // Notes table doesn't exist - skip setting count
+          // if (!notesError && notesCount !== null) {
+          //   setNotesCount(notesCount);
+          // }
 
           // Fetch enrolled campaigns
           try {
             const { data: enrolledData, error: enrolledError } = await supabase
-              .from('campaign_sequence_leads')
+              .from('campaign_sequence_leads' as never)
               .select(
                 `
                 id,
@@ -170,37 +177,62 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
             if (enrolledError) {
               // Check if table doesn't exist
-              if (enrolledError.message?.includes('schema cache') || enrolledError.message?.includes('does not exist')) {
-                console.warn('[PersonDetailsSlideOut] campaign_sequence_leads table not found. Migration may not have been run.');
+              if (
+                enrolledError.message?.includes('schema cache') ||
+                enrolledError.message?.includes('does not exist')
+              ) {
+                console.warn(
+                  '[PersonDetailsSlideOut] campaign_sequence_leads table not found. Migration may not have been run.'
+                );
                 setEnrolledCampaigns([]);
               } else {
-                console.error('[PersonDetailsSlideOut] Error fetching enrolled campaigns:', getErrorMessage(enrolledError), enrolledError);
+                console.error(
+                  '[PersonDetailsSlideOut] Error fetching enrolled campaigns:',
+                  getErrorMessage(enrolledError),
+                  enrolledError
+                );
                 setEnrolledCampaigns([]);
               }
             } else if (enrolledData) {
               setEnrolledCampaigns(
                 enrolledData
                   .filter(
-                    item =>
+                    (item: { campaign_sequences?: unknown }) =>
                       item.campaign_sequences &&
                       typeof item.campaign_sequences === 'object' &&
                       !Array.isArray(item.campaign_sequences)
                   )
-                  .map(item => ({
-                    id:
-                      (item.campaign_sequences as { id: string; name: string })
-                        .id || '',
-                    name:
-                      (item.campaign_sequences as { id: string; name: string })
-                        .name || '',
-                    status: item.status,
-                  }))
+                  .map(
+                    (item: {
+                      campaign_sequences?: { id?: string; name?: string };
+                      status?: string;
+                    }) => ({
+                      id:
+                        (
+                          item.campaign_sequences as {
+                            id: string;
+                            name: string;
+                          }
+                        ).id || '',
+                      name:
+                        (
+                          item.campaign_sequences as {
+                            id: string;
+                            name: string;
+                          }
+                        ).name || '',
+                      status: item.status || 'active',
+                    })
+                  )
               );
             } else {
               setEnrolledCampaigns([]);
             }
           } catch (err) {
-            console.error('[PersonDetailsSlideOut] Error in enrolled campaigns query:', err);
+            console.error(
+              '[PersonDetailsSlideOut] Error in enrolled campaigns query:',
+              err
+            );
             setEnrolledCampaigns([]);
           }
         }
@@ -226,47 +258,74 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
     useEffect(() => {
       const fetchCampaigns = async () => {
         try {
-          const allCampaigns: Array<{ id: string; name: string; type?: 'email' | 'lemlist' }> = [];
+          const allCampaigns: Array<{
+            id: string;
+            name: string;
+            type?: 'email' | 'lemlist';
+          }> = [];
 
           // Fetch email campaigns
           try {
             const { data: emailCampaigns, error: emailError } = await supabase
-              .from('campaign_sequences')
+              .from('campaign_sequences' as never)
               .select('id, name')
               .eq('status', 'active')
               .order('name', { ascending: true });
 
             if (!emailError && emailCampaigns) {
-              allCampaigns.push(...emailCampaigns.map(c => ({ ...c, type: 'email' as const })));
+              allCampaigns.push(
+                ...(emailCampaigns as Array<{ id: string; name: string }>).map(
+                  c => ({ ...c, type: 'email' as const })
+                )
+              );
             }
           } catch (emailErr) {
             // Silently handle missing table
-            if (!getErrorMessage(emailErr).includes('schema cache') && !getErrorMessage(emailErr).includes('does not exist')) {
-              console.error('[PersonDetailsSlideOut] Error fetching email campaigns:', emailErr);
+            if (
+              !getErrorMessage(emailErr).includes('schema cache') &&
+              !getErrorMessage(emailErr).includes('does not exist')
+            ) {
+              console.error(
+                '[PersonDetailsSlideOut] Error fetching email campaigns:',
+                emailErr
+              );
             }
           }
 
           // Fetch Lemlist campaigns
           if (user) {
             try {
-              const { getLemlistCampaigns } = await import('@/services/lemlistWorkflowService');
+              const { getLemlistCampaigns } =
+                await import('@/services/lemlistWorkflowService');
               const lemlistCampaigns = await getLemlistCampaigns(user.id);
-              allCampaigns.push(...lemlistCampaigns.map(c => ({ 
-                id: c.id, 
-                name: `[Lemlist] ${c.name}`,
-                type: 'lemlist' as const 
-              })));
+              allCampaigns.push(
+                ...lemlistCampaigns.map(c => ({
+                  id: c.id,
+                  name: `[Lemlist] ${c.name}`,
+                  type: 'lemlist' as const,
+                }))
+              );
             } catch (lemlistErr) {
               // Silently handle Lemlist errors (credentials not set, etc.)
-              console.debug('[PersonDetailsSlideOut] Could not fetch Lemlist campaigns:', lemlistErr);
+              console.debug(
+                '[PersonDetailsSlideOut] Could not fetch Lemlist campaigns:',
+                lemlistErr
+              );
             }
           }
 
           setCampaigns(allCampaigns);
         } catch (error) {
           const errorMessage = getErrorMessage(error);
-          if (!errorMessage.includes('schema cache') && !errorMessage.includes('does not exist')) {
-            console.error('[PersonDetailsSlideOut] Error fetching campaigns:', errorMessage, error);
+          if (
+            !errorMessage.includes('schema cache') &&
+            !errorMessage.includes('does not exist')
+          ) {
+            console.error(
+              '[PersonDetailsSlideOut] Error fetching campaigns:',
+              errorMessage,
+              error
+            );
           }
           setCampaigns([]);
         }
@@ -290,8 +349,8 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
       try {
         const { error } = await supabase
-          .from('people')
-          .update({ people_stage: newStage })
+          .from('leads')
+          .update({ status: newStage })
           .eq('id', person.id);
 
         if (error) throw error;
@@ -338,7 +397,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
     const handleSendMessage = useCallback(() => {
       if (!personId) return;
-      if (!person?.email_address) {
+      if (!person || !('email_address' in person) || !person.email_address) {
         toast({
           title: 'No Email Address',
           description: 'This contact does not have an email address.',
@@ -347,29 +406,35 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
         return;
       }
       setShowComposeEmail(true);
-    }, [personId, person?.email_address, toast]);
+    }, [personId, person, toast]);
 
     const handleAddToCampaign = useCallback(
       async (campaignId: string) => {
         if (!personId || !user) return;
-        
+
         // Check if it's a Lemlist campaign (ID starts with "cam_")
         const isLemlistCampaign = campaignId.startsWith('cam_');
-        
+
         if (isLemlistCampaign) {
           // Use Lemlist service
           try {
-            const { bulkAddPeopleToLemlistCampaign } = await import('@/services/bulkLemlistService');
-            const result = await bulkAddPeopleToLemlistCampaign(user.id, campaignId, [personId]);
-            
+            const { bulkAddPeopleToLemlistCampaign } =
+              await import('@/services/bulkLemlistService');
+            const result = await bulkAddPeopleToLemlistCampaign(
+              user.id,
+              campaignId,
+              [personId]
+            );
+
             toast({
               title: result.success > 0 ? 'Success' : 'Error',
-              description: result.success > 0 
-                ? `Added ${result.success} lead(s) to Lemlist campaign`
-                : result.errors[0]?.error || 'Failed to add lead to campaign',
+              description:
+                result.success > 0
+                  ? `Added ${result.success} lead(s) to Lemlist campaign`
+                  : result.errors[0]?.error || 'Failed to add lead to campaign',
               variant: result.success > 0 ? 'default' : 'destructive',
             });
-            
+
             if (result.success > 0) {
               setShowCampaignSelect(false);
               fetchPersonDetails();
@@ -378,7 +443,10 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
           } catch (error) {
             toast({
               title: 'Error',
-              description: error instanceof Error ? error.message : 'Failed to add lead to Lemlist campaign',
+              description:
+                error instanceof Error
+                  ? error.message
+                  : 'Failed to add lead to Lemlist campaign',
               variant: 'destructive',
             });
           }
@@ -405,7 +473,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
       return format(new Date(dateString), 'MMM d, yyyy');
     };
 
-
     const handleCompanyClick = (companyId: string) => {
       onClose();
       router.push(`/companies?id=${companyId}`);
@@ -416,7 +483,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
       onClose();
       router.push(`/people?id=${clickedPersonId}`);
     };
-
 
     // All hooks must be called before any early returns
     const tabOptions: TabOption[] = useMemo(
@@ -434,14 +500,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
           count: 0,
           icon: Sparkles,
         },
-        {
-          id: 'notes' as const,
-          label: 'Notes',
-          count: notesCount,
-          icon: StickyNote,
-        },
+        // Notes tab removed - not in PDR
       ],
-      [notesCount]
+      []
     );
 
     const personDetailsItems: GridItem[] = useMemo(
@@ -456,17 +517,23 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
         },
         {
           label: 'Email',
-          value: person?.email_address ? (
-            <a
-              href={`mailto:${person.email_address}`}
-              className='text-primary hover:text-primary flex items-center gap-1'
-            >
-              <Mail className='h-3 w-3' />
-              {person.email_address}
-            </a>
-          ) : (
-            '-'
-          ),
+          value:
+            (person && 'email_address' in person && person.email_address) ||
+            (person && 'email' in person && person.email) ? (
+              <a
+                href={`mailto:${'email_address' in person && person.email_address ? String(person.email_address) : 'email' in person && person.email ? String(person.email) : ''}`}
+                className='text-primary hover:text-primary flex items-center gap-1'
+              >
+                <Mail className='h-3 w-3' />
+                {'email_address' in person && person.email_address
+                  ? String(person.email_address)
+                  : 'email' in person && person.email
+                    ? String(person.email)
+                    : 'No email'}
+              </a>
+            ) : (
+              '-'
+            ),
         },
         {
           label: 'Location',
@@ -499,8 +566,8 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               Match Score
             </span>
           ),
-          value: person?.lead_score ? (
-            <ScoreBadge score={person.lead_score} variant='compact' />
+          value: person?.score ? (
+            <ScoreBadge score={person.score} variant='compact' />
           ) : (
             '-'
           ),
@@ -697,7 +764,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                 </Button>
               )}
               <IconOnlyAssignmentCell
-                ownerId={person.owner_id}
+                ownerId={null}
                 entityId={person.id}
                 entityType='people'
                 onAssignmentChange={() => {
@@ -708,7 +775,13 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               <UnifiedStatusDropdown
                 entityId={person.id}
                 entityType='people'
-                currentStatus={person.people_stage || 'new_lead'}
+                currentStatus={
+                  'people_stage' in person && person.people_stage
+                    ? String(person.people_stage)
+                    : 'status' in person && person.status
+                      ? String(person.status)
+                      : 'new_lead'
+                }
                 availableStatuses={[
                   'new_lead',
                   'message_sent',
@@ -736,7 +809,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               <TabNavigation
                 tabs={tabOptions}
                 activeTab={activeTab}
-                onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
+                onTabChange={tabId => setActiveTab(tabId as typeof activeTab)}
                 variant='pill'
                 size='sm'
                 className='w-full mr-0 pr-0'
@@ -746,11 +819,11 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
             {/* Tab Content - Scrollable */}
             <div className='flex-1 overflow-y-auto overflow-x-hidden select-text m-0 p-0'>
               {activeTab === 'overview' && (
-              <div className='space-y-4 px-6 pb-8'>
+                <div className='space-y-4 px-6 pb-8'>
                   {/* Divider */}
                   <div className='w-full border-t border-border'></div>
 
-                {/* Person Details moved to sidebar */}
+                  {/* Person Details moved to sidebar */}
 
                   {/* Campaign Enrollment Section */}
                   {enrolledCampaigns.length > 0 && (
@@ -837,12 +910,16 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                         )}
                         {otherPeople.length > 0 && (
                           <div className='mt-8'>
-                            <SlideOutSection title={`Other Company Contacts (${otherPeople.length})`}>
+                            <SlideOutSection
+                              title={`Other Company Contacts (${otherPeople.length})`}
+                            >
                               <div className='space-y-3'>
                                 {otherPeople.map(otherPerson => (
                                   <div
                                     key={otherPerson.id}
-                                    onClick={() => handlePersonClick(otherPerson.id)}
+                                    onClick={() =>
+                                      handlePersonClick(otherPerson.id)
+                                    }
                                     className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-gray-100 transition-colors cursor-pointer'
                                   >
                                     <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
@@ -853,7 +930,8 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                                         {otherPerson.name}
                                       </div>
                                       <div className='text-xs text-muted-foreground truncate'>
-                                        {otherPerson.company_role || 'No role specified'}
+                                        {otherPerson.company_role ||
+                                          'No role specified'}
                                       </div>
                                       {otherPerson.employee_location && (
                                         <div className='text-xs text-muted-foreground truncate mt-0.5'>
@@ -861,12 +939,15 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                                         </div>
                                       )}
                                     </div>
-                                    {otherPerson.people_stage && (
+                                    {'people_stage' in otherPerson &&
+                                    otherPerson.people_stage ? (
                                       <StatusBadge
-                                        status={otherPerson.people_stage}
+                                        status={String(
+                                          otherPerson.people_stage
+                                        )}
                                         size='sm'
                                       />
-                                    )}
+                                    ) : null}
                                   </div>
                                 ))}
                               </div>
@@ -876,7 +957,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                       </SlideOutSection>
                     </div>
                   )}
-
                 </div>
               )}
 
@@ -894,69 +974,48 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                 </div>
               )}
 
-              {activeTab === 'notes' && (
-                <div className='flex flex-col px-6'>
-                  <NotesSection
-                    entityId={personId || ''}
-                    entityType='person'
-                    entityName={person?.name || 'Person'}
-                    className='px-0'
-                  />
-                </div>
-              )}
+              {/* Notes tab removed - not in PDR */}
 
               {activeTab === 'ai' && (
                 <div className='flex flex-col px-6'>
                   <div className='mt-6 mb-8'>
-                    <SlideOutSection
-                      title={
-                        <span className='flex items-center gap-1.5'>
-                          <Sparkles className='h-4 w-4' /> Email AI Message
-                        </span>
-                      }
-                    >
+                    <SlideOutSection title='Email AI Message'>
                       {person?.email_ai_message ? (
                         <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
                           {person.email_ai_message}
                         </div>
                       ) : (
-                        <div className='text-sm text-muted-foreground'>No email AI message</div>
+                        <div className='text-sm text-muted-foreground'>
+                          No email AI message
+                        </div>
                       )}
                     </SlideOutSection>
                   </div>
 
                   <div className='mt-6 mb-8'>
-                    <SlideOutSection
-                      title={
-                        <span className='flex items-center gap-1.5'>
-                          <Sparkles className='h-4 w-4' /> LinkedIn AI Message
-                        </span>
-                      }
-                    >
+                    <SlideOutSection title='LinkedIn AI Message'>
                       {person?.linkedin_ai_message ? (
                         <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
                           {person.linkedin_ai_message}
                         </div>
                       ) : (
-                        <div className='text-sm text-muted-foreground'>No LinkedIn AI message</div>
+                        <div className='text-sm text-muted-foreground'>
+                          No LinkedIn AI message
+                        </div>
                       )}
                     </SlideOutSection>
                   </div>
 
                   <div className='mt-6 mb-12'>
-                    <SlideOutSection
-                      title={
-                        <span className='flex items-center gap-1.5'>
-                          <Sparkles className='h-4 w-4' /> User AI Message
-                        </span>
-                      }
-                    >
+                    <SlideOutSection title='User AI Message'>
                       {person?.ai_user_message ? (
                         <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
                           {person.ai_user_message}
                         </div>
                       ) : (
-                        <div className='text-sm text-muted-foreground'>No user AI message</div>
+                        <div className='text-sm text-muted-foreground'>
+                          No user AI message
+                        </div>
                       )}
                     </SlideOutSection>
                   </div>
@@ -983,7 +1042,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   <div className='flex items-center gap-3'>
                     <User className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>Name</span>
+                      <span className='text-xs text-muted-foreground'>
+                        Name
+                      </span>
                       <span className='text-sm text-foreground font-medium text-right'>
                         {person?.name || '-'}
                       </span>
@@ -994,9 +1055,13 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   <div className='flex items-center gap-3'>
                     <Building2 className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>Company</span>
+                      <span className='text-xs text-muted-foreground'>
+                        Company
+                      </span>
                       <button
-                        onClick={() => company?.id && handleCompanyClick(company.id)}
+                        onClick={() =>
+                          company?.id && handleCompanyClick(company.id)
+                        }
                         className='flex items-center gap-2 text-right hover:underline'
                         title='View company'
                       >
@@ -1025,16 +1090,27 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   <div className='flex items-center gap-3'>
                     <Mail className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>Email</span>
-                      {person?.email_address ? (
+                      <span className='text-xs text-muted-foreground'>
+                        Email
+                      </span>
+                      {(person &&
+                        'email_address' in person &&
+                        person.email_address) ||
+                      (person && 'email' in person && person.email) ? (
                         <a
-                          href={`mailto:${person.email_address}`}
+                          href={`mailto:${'email_address' in person && person.email_address ? String(person.email_address) : 'email' in person && person.email ? String(person.email) : ''}`}
                           className='text-sm text-primary hover:text-primary underline text-right'
                         >
-                          {person.email_address}
+                          {'email_address' in person && person.email_address
+                            ? String(person.email_address)
+                            : 'email' in person && person.email
+                              ? String(person.email)
+                              : 'No email'}
                         </a>
                       ) : (
-                        <span className='text-sm text-muted-foreground text-right'>-</span>
+                        <span className='text-sm text-muted-foreground text-right'>
+                          -
+                        </span>
                       )}
                     </div>
                   </div>
@@ -1043,7 +1119,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   <div className='flex items-center gap-3'>
                     <MapPin className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>Location</span>
+                      <span className='text-xs text-muted-foreground'>
+                        Location
+                      </span>
                       <span className='text-sm text-foreground text-right'>
                         {person?.employee_location
                           ? person.employee_location
@@ -1059,7 +1137,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   <div className='flex items-center gap-3'>
                     <Link2 className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>LinkedIn</span>
+                      <span className='text-xs text-muted-foreground'>
+                        LinkedIn
+                      </span>
                       {person?.linkedin_url ? (
                         <a
                           href={person.linkedin_url}
@@ -1070,7 +1150,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                           Profile
                         </a>
                       ) : (
-                        <span className='text-sm text-muted-foreground text-right'>-</span>
+                        <span className='text-sm text-muted-foreground text-right'>
+                          -
+                        </span>
                       )}
                     </div>
                   </div>
@@ -1079,12 +1161,16 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   <div className='flex items-center gap-3'>
                     <Sparkles className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>Match Score</span>
+                      <span className='text-xs text-muted-foreground'>
+                        Match Score
+                      </span>
                       <div className='text-right'>
-                        {person?.lead_score ? (
-                          <ScoreBadge score={person.lead_score} variant='compact' />
+                        {person?.score ? (
+                          <ScoreBadge score={person.score} variant='compact' />
                         ) : (
-                          <span className='text-sm text-muted-foreground'>-</span>
+                          <span className='text-sm text-muted-foreground'>
+                            -
+                          </span>
                         )}
                       </div>
                     </div>
@@ -1114,7 +1200,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   <div className='flex items-center gap-3'>
                     <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>Added</span>
+                      <span className='text-xs text-muted-foreground'>
+                        Added
+                      </span>
                       <span className='text-sm text-foreground text-right'>
                         {person?.created_at
                           ? formatDistanceToNow(new Date(person.created_at), {
@@ -1129,16 +1217,22 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                   <div className='flex items-center gap-3'>
                     <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                     <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>Jobs</span>
+                      <span className='text-xs text-muted-foreground'>
+                        Jobs
+                      </span>
                       <button
                         onClick={() => {
                           setActiveTab('overview');
                           const el = document.getElementById('jobs-section');
-                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          if (el)
+                            el.scrollIntoView({
+                              behavior: 'smooth',
+                              block: 'start',
+                            });
                         }}
                         className='text-sm text-primary hover:text-primary underline text-right'
                       >
-                        {jobs.length}
+                        {0}
                       </button>
                     </div>
                   </div>
@@ -1188,7 +1282,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
             </DialogHeader>
             <div className='mt-2'>
               <EmailComposer
-                selectedPerson={person as Tables<'people'>}
+                selectedPerson={person as Lead}
                 variant='compact'
                 onSent={() => {
                   setShowComposeEmail(false);
@@ -1200,8 +1294,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
         </Dialog>
       </SlideOutPanel>
     );
-  }
-);
+  });
 
 PersonDetailsSlideOutComponent.displayName = 'PersonDetailsSlideOutComponent';
 

@@ -46,7 +46,7 @@ export const RecentInteractions: React.FC<RecentInteractionsProps> = ({
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(String(value))}`}
         >
-          {value}
+          {String(value)}
         </span>
       ),
     },
@@ -84,7 +84,7 @@ export const RecentInteractions: React.FC<RecentInteractionsProps> = ({
         <CardTitle>Recent Interactions</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-center h-32 text-muted-foreground">
+        <div className='flex items-center justify-center h-32 text-muted-foreground'>
           Table removed
         </div>
       </CardContent>

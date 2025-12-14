@@ -13,19 +13,19 @@ interface Props {
 }
 
 export default function EmailStepEditor({ step, onUpdate }: Props) {
-  const [subject, setSubject] = useState(step.subject || '');
-  const [body, setBody] = useState(step.body || '');
+  const [subject, setSubject] = useState(step.email_subject || '');
+  const [body, setBody] = useState(step.email_body || '');
   const [showPreview, setShowPreview] = useState(false);
   const subjectInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubjectChange = (value: string) => {
     setSubject(value);
-    onUpdate({ subject: value });
+    onUpdate({ email_subject: value });
   };
 
   const handleBodyChange = (value: string) => {
     setBody(value);
-    onUpdate({ body: value });
+    onUpdate({ email_body: value });
   };
 
   const insertVariable = (variable: string, target: 'subject' | 'body') => {
@@ -38,7 +38,7 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
       const newValue =
         subject.slice(0, start) + placeholder + subject.slice(end);
       setSubject(newValue);
-      onUpdate({ subject: newValue });
+      onUpdate({ email_subject: newValue });
 
       // Set cursor position after inserted variable
       setTimeout(() => {
@@ -51,7 +51,7 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
     } else if (target === 'body') {
       const newValue = body + placeholder;
       setBody(newValue);
-      onUpdate({ body: newValue });
+      onUpdate({ email_body: newValue });
     }
   };
 
@@ -185,10 +185,10 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
               <label className='flex items-center gap-2'>
                 <input
                   type='checkbox'
-                  checked={step.send_as === 'business_hours'}
+                  checked={step.send_immediately !== 'immediate'}
                   onChange={e =>
                     onUpdate({
-                      send_as: e.target.checked
+                      send_immediately: e.target.checked
                         ? 'business_hours'
                         : 'immediate',
                     })
@@ -207,7 +207,9 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
             <div className='border border-border rounded-lg overflow-hidden'>
               {/* Preview Header */}
               <div className='bg-muted px-4 py-3 border-b border-border'>
-                <div className='text-xs text-muted-foreground mb-1'>Subject:</div>
+                <div className='text-xs text-muted-foreground mb-1'>
+                  Subject:
+                </div>
                 <div className='font-semibold text-foreground'>
                   {replaceVariablesWithExamples(subject)}
                 </div>

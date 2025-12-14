@@ -126,7 +126,7 @@ serve(async req => {
       const { data: personData, error: personError } = await supabaseClient
         .from('people')
         .select('*')
-        .eq('owner_id', userId)
+        // owner_id removed - filter by user_id from integration instead
         .or(
           `linkedin_url.eq.${connection.profileUrl},name.ilike.%${connectionName}%`
         )

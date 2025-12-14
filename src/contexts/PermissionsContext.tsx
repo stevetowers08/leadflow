@@ -49,7 +49,8 @@ const DEFAULT_ROLES: Role[] = [
   {
     id: 'owner',
     name: 'Owner',
-    description: 'Full system control. Can create organisations, set user limits, manage billing, and promote users to admin',
+    description:
+      'Full system control. Can create organisations, set user limits, manage billing, and promote users to admin',
     isDefault: false,
     permissions: [
       {
@@ -309,7 +310,8 @@ const DEFAULT_ROLES: Role[] = [
   {
     id: 'admin',
     name: 'Administrator',
-    description: 'Main person for an organisation. Can invite users to their organisation based on limits set by owner',
+    description:
+      'Main person for an organisation. Can invite users to their organisation based on limits set by owner',
     isDefault: false,
     permissions: [
       {
@@ -689,7 +691,8 @@ const DEFAULT_ROLES: Role[] = [
   {
     id: 'user',
     name: 'User',
-    description: 'Standard user with full data access (cannot invite users or create organisations)',
+    description:
+      'Standard user with full data access (cannot invite users or create organisations)',
     isDefault: true,
     permissions: [
       {
@@ -913,11 +916,10 @@ export function PermissionsProvider({
           }
         }
 
-        // Fallback: try owner first, then user
-        const ownerRole = roles.find(role => role.id === 'owner');
+        // Fallback: use user role
         const defaultRole = roles.find(role => role.id === 'user');
 
-        const roleToUse = ownerRole || defaultRole;
+        const roleToUse = defaultRole;
 
         if (roleToUse) {
           if (process.env.NEXT_PUBLIC_VERBOSE_LOGS === 'true') {

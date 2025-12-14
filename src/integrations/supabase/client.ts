@@ -78,7 +78,7 @@ function getSupabaseClient() {
               data: { subscription: { unsubscribe: () => {} } },
             }),
           },
-        } as SupabaseBrowserClient;
+        } as unknown as SupabaseBrowserClient;
         return _supabaseClient;
       }
 
@@ -90,8 +90,13 @@ function getSupabaseClient() {
             persistSession: true, // Allow session persistence for real auth
             autoRefreshToken: true, // Auto-refresh for real sessions
             detectSessionInUrl: true, // Detect OAuth callbacks
-            storage:
-              typeof window !== 'undefined' ? window.localStorage : undefined,
+            storage: (() => {
+              if (typeof window !== 'undefined') {
+                return (window as Window & { localStorage?: Storage })
+                  .localStorage as Storage | undefined;
+              }
+              return undefined;
+            })(),
             storageKey: 'sb-auth-token', // Standard Supabase storage key
           },
           global: {
@@ -147,15 +152,20 @@ function getSupabaseClient() {
     // Test connection (async, non-blocking) - only on client
     if (typeof window !== 'undefined') {
       setTimeout(() => {
-        _supabaseClient
-          ?.from('companies')
-          .select('count', { count: 'exact', head: true })
-          .then(({ count, error }) => {
-            if (error && IS_DEVELOPMENT) {
-              console.error('❌ Supabase connection test failed:', error);
+        Promise.resolve(
+          _supabaseClient
+            ?.from('companies')
+            .select('count', { count: 'exact', head: true })
+        )
+          .then(result => {
+            if (result?.error && IS_DEVELOPMENT) {
+              console.error(
+                '❌ Supabase connection test failed:',
+                result.error
+              );
             }
           })
-          .catch(err => {
+          .catch((err: unknown) => {
             if (IS_DEVELOPMENT) {
               console.error('❌ Supabase connection error:', err);
             }
@@ -214,7 +224,7 @@ function getSupabaseClient() {
           data: { subscription: { unsubscribe: () => {} } },
         }),
       },
-    } as SupabaseBrowserClient;
+    } as unknown as SupabaseBrowserClient;
     return _supabaseClient;
   }
 }
@@ -223,7 +233,7 @@ function getSupabaseClient() {
 export const supabase = new Proxy({} as SupabaseBrowserClient, {
   get(target, prop) {
     const client = getSupabaseClient();
-    return client[prop];
+    return (client as Record<string, unknown>)[prop];
   },
 });
 

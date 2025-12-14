@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Mail, Send, Users, X } from 'lucide-react';
 import React, { useState } from 'react';
-import { Tables } from '../../../integrations/supabase/types';
+import type { Lead } from '@/types/database';
 import { EmailAutomationModal } from './EmailAutomationModal';
 
 interface EmailBulkActionsProps {
-  selectedLeads: Tables<'people'>[];
+  selectedLeads: Lead[];
   onActionComplete: () => void;
 }
 
@@ -21,7 +21,7 @@ export const EmailBulkActions: React.FC<EmailBulkActionsProps> = ({
     // In a real implementation, you'd open a bulk email composer
     console.log(
       'Bulk email to:',
-      selectedLeads.map(lead => lead.email_address)
+      selectedLeads.map(lead => lead.email)
     );
     onActionComplete();
   };
@@ -35,7 +35,7 @@ export const EmailBulkActions: React.FC<EmailBulkActionsProps> = ({
     onActionComplete();
   };
 
-  const validEmails = selectedLeads.filter(lead => lead.email_address);
+  const validEmails = selectedLeads.filter(lead => lead.email);
 
   return (
     <>

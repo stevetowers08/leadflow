@@ -67,171 +67,25 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
       setIsUpdating(true);
 
       try {
-        // Jobs require client_id for proper multi-tenant isolation (industry best practice)
-        if (entityType === 'jobs') {
-          if (!user?.id) {
-            throw new Error('No user found');
-          }
-
-          // In bypassAuth mode, allow operations even if clientId is not yet loaded
-          // The clientId will be fetched in the background
-          if (!bypassAuth) {
-            // Wait for clientId to load if still loading (only in non-bypass mode)
-            if (clientIdLoading) {
-              throw new Error('Please wait, loading client information...');
-            }
-
-            // clientId is required for all operations (following Salesforce/HubSpot pattern)
-            if (!clientId) {
-              throw new Error(
-                'Client organization required. Please contact support to set up your account.'
-              );
-            }
-          } else if (!clientId && !clientIdLoading) {
-            // In bypassAuth mode, if clientId is still null after loading, try to fetch it
-            // This handles the case where the mock user might not have a client_id yet
-            console.warn('BypassAuth mode: clientId not found, attempting to fetch...');
-          }
-
-          // Use client_jobs table for multi-tenant isolation
-          // In bypassAuth mode, if clientId is missing, we'll try to get it or use a fallback
-          let finalClientId = clientId;
-          
-          if (!finalClientId && bypassAuth) {
-            // Try to fetch clientId one more time
-            const { data: clientUser } = await supabase
-              .from('client_users')
-              .select('client_id')
-              .eq('user_id', user.id)
-              .maybeSingle();
-            
-            finalClientId = clientUser?.client_id || null;
-            
-            if (!finalClientId) {
-              // In bypassAuth dev mode, if no client_id exists, we can't update client_jobs
-              // Fall back to updating jobs.qualification_status directly (dev-only)
-              console.warn('BypassAuth: No client_id found, updating jobs table directly');
-              const { error: jobsError } = await supabase
-                .from('jobs')
-                .update({
-                  qualification_status: newStatus,
-                  qualified_at: newStatus === 'qualify' ? new Date().toISOString() : null,
-                  qualified_by: newStatus === 'qualify' ? user.id : null,
-                })
-                .eq('id', entityId);
-              
-              if (jobsError) throw jobsError;
-              // Skip webhook and return early since we used fallback update
-              onStatusChange?.();
-              toast({
-                title: 'Status updated',
-                description: `Changed to ${getStatusDisplayText(newStatus)}`,
-              });
-              setIsUpdating(false);
-              return;
-            }
-          }
-          
-          if (!finalClientId) {
-            throw new Error(
-              'Client organization required. Please contact support to set up your account.'
-            );
-          }
-
-          const { error } = await supabase.from('client_jobs').upsert(
-            {
-              client_id: finalClientId,
-              job_id: entityId,
-              status: newStatus,
-              priority_level: 'medium',
-              qualified_by: user.id,
-              qualified_at:
-                newStatus === 'qualify' ? new Date().toISOString() : null,
-            },
-            { onConflict: 'client_id,job_id' }
-          );
-
-          if (error) throw error;
-
-          // Send webhook asynchronously (fire and forget)
-          // Best practice: Don't block UI on webhook delivery
-          if (newStatus === 'qualify') {
-            // Fire and forget - don't await
-            (async () => {
-              try {
-                // Get the job to fetch company_id
-                const { data: jobData } = await supabase
-                  .from('jobs')
-                  .select('company_id')
-                  .eq('id', entityId)
-                  .maybeSingle();
-
-                if (jobData?.company_id && finalClientId) {
-                  const webhookPayload = {
-                    job_id: entityId,
-                    company_id: jobData.company_id,
-                    client_id: finalClientId,
-                    user_id: user.id,
-                  };
-
-                  console.log(
-                    '[Webhook] Invoking webhook with payload:',
-                    webhookPayload
-                  );
-
-                  const { error: webhookError, data: webhookData } =
-                    await supabase.functions.invoke(
-                      'job-qualification-webhook',
-                      {
-                        body: webhookPayload,
-                      }
-                    );
-
-                  if (webhookError) {
-                    console.error(
-                      '[Webhook] Failed to send job qualification webhook:',
-                      webhookError
-                    );
-                  } else {
-                    console.log(
-                      `[Webhook] Successfully triggered job qualification webhook for job ${entityId}`
-                    );
-                    console.log('[Webhook] Response:', webhookData);
-                  }
-                }
-              } catch (webhookErr) {
-                console.error(
-                  '[Webhook] Error in webhook delivery:',
-                  webhookErr
-                );
-                // Non-blocking: Webhook failure doesn't affect job qualification
-              }
-            })();
-          }
-        } else {
-          // People, Companies, and Leads update directly
-          let statusField: string;
-          let tableName: string;
-          
-          if (entityType === 'leads') {
-            tableName = 'leads';
-            statusField = 'status'; // PDR Section 7: leads table uses 'status' field
-          } else if (entityType === 'people') {
-            tableName = 'people';
-            statusField = 'people_stage';
-          } else {
-            tableName = entityType;
-            statusField = 'pipeline_stage';
-          }
-
+        // Note: jobs and people entity types removed - recruitment features removed
+        // Update status for leads or companies
+        if (entityType === 'leads') {
           const { error } = await supabase
-            .from(tableName)
+            .from('leads')
             .update({
-              [statusField]: newStatus,
+              status: newStatus,
               updated_at: new Date().toISOString(),
             })
             .eq('id', entityId);
-
+          if (error) throw error;
+        } else if (entityType === 'companies') {
+          const { error } = await supabase
+            .from('companies')
+            .update({
+              pipeline_stage: newStatus,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', entityId);
           if (error) throw error;
         }
 
@@ -308,81 +162,79 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
         'transition-colors',
         'h-8',
         'min-w-[140px]',
-        isDisabled
-          ? 'opacity-50 cursor-not-allowed'
-          : 'cursor-pointer'
+        isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
       );
 
   return (
     <div>
       <DropdownMenu>
-        <DropdownMenuTrigger
-        disabled={isDisabled}
-        className={triggerStyles}
-      >
-        {isCellVariant ? (
-          <>
-            <span className='text-xs font-medium'>{displayText}</span>
-            {!isDisabled && (
-              <ChevronDown className='h-3 w-3 flex-shrink-0' />
-            )}
-          </>
-        ) : (
-          <>
-            <div className='flex items-center gap-2 flex-1'>
-              <div
-                className={cn(
-                  'w-2 h-2 rounded-full flex-shrink-0',
-                  statusIndicatorClass
-                )}
-              />
-              <span className='text-foreground font-medium text-sm'>
-                {displayText}
-              </span>
-            </div>
-            {!isDisabled && (
-              <ChevronDown className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-            )}
-          </>
-        )}
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent
-        align='start'
-        side='bottom'
-        sideOffset={4}
-        className='w-[180px] p-1'
-      >
-        {availableStatuses.map(status => {
-          const isSelected = status === localStatus;
-          const statusClassString = getUnifiedStatusClass(status);
-          const bgClass = statusClassString.split(' ')[0] || 'bg-gray-100';
-
-          return (
-            <DropdownMenuItem
-              key={status}
-              onClick={() => updateStatus(status)}
-              disabled={isSelected}
-              className={cn(
-                'flex items-center justify-between gap-2 cursor-pointer px-2.5 py-1.5 rounded-md text-sm',
-                'transition-colors text-foreground',
-                isSelected ? 'bg-primary/10 font-medium' : 'hover:bg-muted'
-              )}
-            >
-              <div className='flex items-center gap-2 flex-1 min-w-0'>
+        <DropdownMenuTrigger disabled={isDisabled} className={triggerStyles}>
+          {isCellVariant ? (
+            <>
+              <span className='text-xs font-medium'>{displayText}</span>
+              {!isDisabled && <ChevronDown className='h-3 w-3 flex-shrink-0' />}
+            </>
+          ) : (
+            <>
+              <div className='flex items-center gap-2 flex-1'>
                 <div
-                  className={cn('w-2 h-2 rounded-full flex-shrink-0', bgClass)}
+                  className={cn(
+                    'w-2 h-2 rounded-full flex-shrink-0',
+                    statusIndicatorClass
+                  )}
                 />
-                <span className='truncate'>{getStatusDisplayText(status)}</span>
+                <span className='text-foreground font-medium text-sm'>
+                  {displayText}
+                </span>
               </div>
-              {isSelected && (
-                <Check className='h-4 w-4 text-primary flex-shrink-0' />
+              {!isDisabled && (
+                <ChevronDown className='h-4 w-4 text-muted-foreground flex-shrink-0' />
               )}
-            </DropdownMenuItem>
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+            </>
+          )}
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          align='start'
+          side='bottom'
+          sideOffset={4}
+          className='w-[180px] p-1'
+        >
+          {availableStatuses.map(status => {
+            const isSelected = status === localStatus;
+            const statusClassString = getUnifiedStatusClass(status);
+            const bgClass = statusClassString.split(' ')[0] || 'bg-gray-100';
+
+            return (
+              <DropdownMenuItem
+                key={status}
+                onClick={() => updateStatus(status)}
+                disabled={isSelected}
+                className={cn(
+                  'flex items-center justify-between gap-2 cursor-pointer px-2.5 py-1.5 rounded-md text-sm',
+                  'transition-colors text-foreground',
+                  isSelected ? 'bg-primary/10 font-medium' : 'hover:bg-muted'
+                )}
+              >
+                <div className='flex items-center gap-2 flex-1 min-w-0'>
+                  <div
+                    className={cn(
+                      'w-2 h-2 rounded-full flex-shrink-0',
+                      bgClass
+                    )}
+                  />
+                  <span className='truncate'>
+                    {getStatusDisplayText(status)}
+                  </span>
+                </div>
+                {isSelected && (
+                  <Check className='h-4 w-4 text-primary flex-shrink-0' />
+                )}
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

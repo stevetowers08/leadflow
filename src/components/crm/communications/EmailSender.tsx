@@ -2,34 +2,34 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { AlertCircle, Eye, Loader2, Mail, Send, User } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Tables } from '../../../integrations/supabase/types';
+import type { Lead } from '@/types/database';
 import {
-    EmailTemplate,
-    SendEmailRequest,
-    secureGmailService,
+  EmailTemplate,
+  SendEmailRequest,
+  secureGmailService,
 } from '../../../services/secureGmailService';
 
 interface EmailSenderProps {
-  selectedPerson?: Tables<'people'>;
+  selectedPerson?: Lead;
   onEmailSent?: () => void;
 }
 

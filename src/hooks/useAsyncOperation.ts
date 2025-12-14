@@ -11,7 +11,7 @@ export interface AsyncOperationState<T = unknown> {
   lastExecutedAt: Date | null;
 }
 
-export interface AsyncOperationOptions {
+export interface AsyncOperationOptions<T = unknown> {
   retryOptions?: {
     maxRetries: number;
     delay: number;
@@ -28,7 +28,7 @@ export interface AsyncOperationOptions {
 
 export function useAsyncOperation<T = unknown>(
   asyncFn: (...args: unknown[]) => Promise<T>,
-  options: AsyncOperationOptions = {}
+  options: AsyncOperationOptions<T> = {}
 ) {
   const {
     retryOptions = { maxRetries: 3, delay: 1000, backoffMultiplier: 2 },
@@ -214,7 +214,8 @@ export function useAsyncBatchOperation<T = unknown>(
 
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
 
-  const operation = useAsyncOperation<T[]>(async (items: T[]) => {
+  const operation = useAsyncOperation<T[]>(async (...args: unknown[]) => {
+    const items = args[0] as T[];
     const results: T[] = [];
     const batches = [];
 
@@ -226,16 +227,18 @@ export function useAsyncBatchOperation<T = unknown>(
     setProgress({ completed: 0, total: items.length });
 
     // Process each batch
+    let completedCount = 0;
     for (const batch of batches) {
       const batchResults = await batchFn(batch);
       results.push(...batchResults);
+      completedCount += batch.length;
 
-      setProgress(prev => ({
-        completed: prev.completed + batch.length,
+      setProgress({
+        completed: completedCount,
         total: items.length,
-      }));
+      });
 
-      onProgress?.(prev.completed + batch.length, items.length);
+      onProgress?.(completedCount, items.length);
     }
 
     return results;

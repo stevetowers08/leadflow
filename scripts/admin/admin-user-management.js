@@ -32,7 +32,7 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
   },
 });
 
-const AVAILABLE_ROLES = ['owner', 'admin', 'recruiter', 'viewer'];
+const AVAILABLE_ROLES = ['admin', 'user'];
 
 async function listUsers() {
   try {

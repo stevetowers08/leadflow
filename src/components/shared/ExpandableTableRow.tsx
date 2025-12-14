@@ -1,7 +1,12 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Person } from '@/types/database';
+// Person type is not exported from database.ts - using inline type
+type Person = {
+  id: string;
+  name: string;
+  [key: string]: unknown;
+};
 import {
   Calendar,
   ChevronDown,
@@ -89,7 +94,8 @@ const PersonSubRow: React.FC<{
               >
                 {person.name}
               </button>
-              {person.people_stage && (
+              {person.people_stage &&
+              typeof person.people_stage === 'string' ? (
                 <span
                   className={cn(
                     'px-2 py-0.5 text-xs font-medium rounded-full border',
@@ -98,37 +104,41 @@ const PersonSubRow: React.FC<{
                 >
                   {person.people_stage.replace('_', ' ')}
                 </span>
-              )}
-              {person.lead_score && (
+              ) : null}
+              {person.score != null ? (
                 <div className='w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground'>
-                  {person.lead_score}
+                  {String(person.score)}
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Additional Details */}
             <div className='flex items-center gap-4 text-sm text-muted-foreground'>
-              {person.company_role && (
+              {person.company_role &&
+              typeof person.company_role === 'string' ? (
                 <span className='font-medium'>{person.company_role}</span>
-              )}
-              {person.email_address && (
+              ) : null}
+              {person.email_address &&
+              typeof person.email_address === 'string' ? (
                 <div className='flex items-center gap-1'>
                   <Mail className='w-3 h-3' />
                   <span className='truncate'>{person.email_address}</span>
                 </div>
-              )}
-              {person.employee_location && (
+              ) : null}
+              {person.employee_location &&
+              typeof person.employee_location === 'string' ? (
                 <div className='flex items-center gap-1'>
                   <MapPin className='w-3 h-3' />
                   <span className='truncate'>{person.employee_location}</span>
                 </div>
-              )}
-              {person.last_interaction_at && (
+              ) : null}
+              {person.last_interaction_at &&
+              typeof person.last_interaction_at === 'string' ? (
                 <div className='flex items-center gap-1'>
                   <Calendar className='w-3 h-3' />
                   <span>Last: {formatDate(person.last_interaction_at)}</span>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -236,7 +246,7 @@ export const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
                   {column.render ? (
                     column.render(value, parentRow, index)
                   ) : (
-                    <span>{value || '-'}</span>
+                    <span>{value != null ? String(value) : '-'}</span>
                   )}
                 </div>
               </div>

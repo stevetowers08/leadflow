@@ -1,4 +1,4 @@
-import { Campaign } from '@/types/database';
+import type { Campaign } from '@/types/database';
 
 export interface CampaignStats {
   sent: number;
@@ -19,13 +19,11 @@ export const mockCampaigns: CampaignWithStats[] = [
     id: '1',
     name: 'Untitled Campaign',
     description: 'Q1 LinkedIn outreach campaign for tech companies',
-    campaign_type: 'linkedin',
+    campaign_type: 'social_media',
     status: 'draft',
     target_audience: 'Software engineers at Series A startups',
     messaging_template:
       'Personalised connection requests with value proposition',
-    linkedin_message:
-      "Hi {{name}}, I noticed you're {{title}} at {{company}}. I'd love to connect and share some insights about our latest product.",
     email_subject: null,
     email_template: null,
     follow_up_message:
@@ -54,7 +52,6 @@ export const mockCampaigns: CampaignWithStats[] = [
     status: 'draft',
     target_audience: 'CTOs and VPs of Engineering at Fortune 500 companies',
     messaging_template: 'Cold email outreach with case studies',
-    linkedin_message: null,
     email_subject: "Quick question about {{company}}'s hiring plans",
     email_template:
       'Hi {{name}}, I hope this email finds you well. I wanted to reach out regarding...',
@@ -80,12 +77,10 @@ export const mockCampaigns: CampaignWithStats[] = [
     id: '3',
     name: 'Q4 Sales Outreach',
     description: 'Multi-channel campaign targeting SaaS companies',
-    campaign_type: 'linkedin',
+    campaign_type: 'social_media',
     status: 'active',
     target_audience: 'Sales Directors at B2B SaaS companies',
     messaging_template: 'Personalised outreach with industry insights',
-    linkedin_message:
-      "Hi {{name}}, I saw your recent post about {{company}}'s growth. I'd love to share some insights that might be relevant.",
     email_subject: 'Partnership opportunity for {{company}}',
     email_template:
       "Hi {{name}}, I hope you're doing well. I wanted to reach out about a potential partnership opportunity.",
@@ -116,7 +111,6 @@ export const mockCampaigns: CampaignWithStats[] = [
     status: 'paused',
     target_audience: 'Enterprise decision makers',
     messaging_template: 'Professional email outreach with demo invitations',
-    linkedin_message: null,
     email_subject: 'Exclusive demo invitation for {{company}}',
     email_template:
       'Hi {{name}}, I hope this email finds you well. I wanted to personally invite you to an exclusive demo of our enterprise solution.',
@@ -143,13 +137,11 @@ export const mockCampaigns: CampaignWithStats[] = [
     id: '5',
     name: 'Startup Accelerator Program',
     description: 'Outreach to startup founders and accelerators',
-    campaign_type: 'linkedin',
-    status: 'completed',
+    campaign_type: 'social_media',
+    status: 'paused',
     target_audience: 'Startup founders and accelerator program managers',
     messaging_template:
       'Value-driven outreach with accelerator program benefits',
-    linkedin_message:
-      "Hi {{name}}, I noticed {{company}} is part of the startup ecosystem. I'd love to share how we can help accelerate your growth.",
     email_subject: 'Accelerator program opportunity for {{company}}',
     email_template:
       "Hi {{name}}, I hope you're doing well. I wanted to reach out about our accelerator program that might be perfect for {{company}}.",

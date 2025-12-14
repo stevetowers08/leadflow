@@ -6,6 +6,8 @@
  * Hardcoded user credentials below are DEV-ONLY fallbacks.
  */
 
+import { User } from '@supabase/supabase-js';
+
 export interface AuthConfig {
   bypassAuth: boolean;
   mockUser: {
@@ -114,24 +116,24 @@ export const getMockUser = () => {
       aud: 'authenticated',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      email_confirmed_at: null,
+      email_confirmed_at: undefined,
       phone: '',
-      confirmed_at: null,
-      last_sign_in_at: null,
+      confirmed_at: undefined,
+      last_sign_in_at: undefined,
       role: 'authenticated',
       factors: [],
       identities: [],
-      recovery_sent_at: null,
-      new_email: null,
-      invited_at: null,
-      action_link: null,
-      email_change_sent_at: null,
-      new_phone: null,
-      phone_change_sent_at: null,
-      reauthentication_sent_at: null,
-      reauthentication_token: null,
+      recovery_sent_at: undefined,
+      new_email: undefined,
+      invited_at: undefined,
+      action_link: undefined,
+      email_change_sent_at: undefined,
+      new_phone: undefined,
+      phone_change_sent_at: undefined,
+      reauthentication_sent_at: undefined,
+      reauthentication_token: undefined,
       is_anonymous: false,
-    };
+    } as User;
   }
 
   return {
@@ -149,17 +151,17 @@ export const getMockUser = () => {
     role: 'authenticated',
     factors: [],
     identities: [],
-    recovery_sent_at: null,
-    new_email: null,
-    invited_at: null,
-    action_link: null,
-    email_change_sent_at: null,
-    new_phone: null,
-    phone_change_sent_at: null,
-    reauthentication_sent_at: null,
-    reauthentication_token: null,
+    recovery_sent_at: undefined,
+    new_email: undefined,
+    invited_at: undefined,
+    action_link: undefined,
+    email_change_sent_at: undefined,
+    new_phone: undefined,
+    phone_change_sent_at: undefined,
+    reauthentication_sent_at: undefined,
+    reauthentication_token: undefined,
     is_anonymous: false,
-  };
+  } as User;
 };
 
 /**

@@ -36,7 +36,7 @@ import { useAuth } from '@/contexts/AuthContext';
 interface BulkAssignmentDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  entityType: 'people' | 'companies' | 'jobs';
+  entityType: 'leads' | 'companies';
   entityIds: string[];
   entityNames: string[];
   onAssignmentComplete: () => void;
@@ -58,12 +58,7 @@ export const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   const [loadingMembers, setLoadingMembers] = useState(true);
   const { user } = useAuth();
 
-  const entityTypeLabel =
-    entityType === 'people'
-      ? 'leads'
-      : entityType === 'companies'
-        ? 'companies'
-        : 'jobs';
+  const entityTypeLabel = entityType === 'leads' ? 'leads' : 'companies';
   const entityCount = entityIds.length;
 
   useEffect(() => {
@@ -202,7 +197,9 @@ export const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
                 )}
                 <AlertDescription
                   className={
-                    assignmentResult.success ? 'text-success' : 'text-destructive'
+                    assignmentResult.success
+                      ? 'text-success'
+                      : 'text-destructive'
                   }
                 >
                   {assignmentResult.success ? (

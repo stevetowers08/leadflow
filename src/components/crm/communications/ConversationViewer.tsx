@@ -30,6 +30,7 @@ import {
   ConversationMessage,
 } from '../../../services/conversationService';
 import { cn } from '@/lib/utils';
+import { getCompanyLogoUrlSync } from '@/services/logoService';
 
 interface ConversationViewerProps {
   conversation: Conversation | null;
@@ -61,10 +62,10 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
       const mockMessage: ConversationMessage = {
         id: `msg-${conversation.id}`,
         conversation_id: conversation.id,
-        person_id: conversation.person_id,
+        lead_id: conversation.lead_id,
         sender_type: 'them',
-        sender_name: conversation.person_name || 'Unknown',
-        sender_email: conversation.person_email,
+        sender_name: conversation.lead_name || 'Unknown',
+        sender_email: conversation.lead_email,
         content: conversation.last_reply_message || 'No message content',
         message_type: 'reply',
         is_read: conversation.is_read,
@@ -186,15 +187,15 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0'>
-              {conversation.person_company_website ? (
+              {conversation.lead_company_website ? (
                 <img
                   src={
                     getCompanyLogoUrlSync(
-                      conversation.person_company || '',
-                      conversation.person_company_website
+                      conversation.lead_company || '',
+                      conversation.lead_company_website
                     ) || ''
                   }
-                  alt={conversation.person_company}
+                  alt={conversation.lead_company}
                   className='w-10 h-10 rounded-lg object-cover'
                   onError={e => {
                     e.currentTarget.style.display = 'none';
@@ -207,28 +208,28 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
                 />
               ) : null}
               <div
-                className={`w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold ${conversation.person_company_website ? 'hidden' : 'flex'}`}
+                className={`w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold ${conversation.lead_company_website ? 'hidden' : 'flex'}`}
               >
-                {conversation.person_company
-                  ? conversation.person_company.charAt(0).toUpperCase()
+                {conversation.lead_company
+                  ? conversation.lead_company.charAt(0).toUpperCase()
                   : '?'}
               </div>
             </div>
             <div>
               <h2 className='text-lg font-semibold text-foreground'>
-                {conversation.person_name || 'Unknown Person'}
+                {conversation.lead_name || 'Unknown Person'}
               </h2>
               <div className='flex items-center gap-3 text-sm text-muted-foreground'>
-                {conversation.person_job_title && (
+                {conversation.lead_job_title && (
                   <span className='font-medium'>
-                    {conversation.person_job_title}
+                    {conversation.lead_job_title}
                   </span>
                 )}
-                {conversation.person_company && (
+                {conversation.lead_company && (
                   <>
-                    {conversation.person_job_title && <span>•</span>}
+                    {conversation.lead_job_title && <span>•</span>}
                     <span className='font-medium'>
-                      {conversation.person_company}
+                      {conversation.lead_company}
                     </span>
                   </>
                 )}
@@ -263,7 +264,9 @@ export const ConversationViewer: React.FC<ConversationViewerProps> = ({
             <div className='flex flex-col items-center justify-center h-32 text-muted-foreground'>
               <MessageSquare className='h-12 w-12 mb-3 opacity-30' />
               <p className='text-sm font-medium'>No messages found</p>
-              <p className='text-xs text-muted-foreground'>Messages will appear here</p>
+              <p className='text-xs text-muted-foreground'>
+                Messages will appear here
+              </p>
             </div>
           ) : (
             <div className='p-6 space-y-8'>

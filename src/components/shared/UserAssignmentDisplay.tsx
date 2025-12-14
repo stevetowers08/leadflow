@@ -20,9 +20,9 @@ interface UserAssignmentDisplayProps {
 
 interface UserProfile {
   id: string;
-  full_name: string;
+  full_name: string | null;
   email: string;
-  role: string;
+  role: string | null;
 }
 
 export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
@@ -59,7 +59,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
     canAssign,
     assignToUser,
   } = useAssignmentState({
-    entityType: tableName as 'people' | 'companies' | 'jobs',
+    entityType: tableName as 'people' | 'companies',
     entityId,
     onSuccess: () => {
       // Trigger refresh of all assignment lists
@@ -81,7 +81,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
   // Load team members when user list is shown
   useEffect(() => {
     if (showUserList) {
-      loadTeamMembers();
+      fetchTeamMembers();
     }
   }, [showUserList]);
 
@@ -115,7 +115,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
     currentOwnerName,
     teamMembersCount: teamMembers.length,
     permissionsLoading,
-    userRole: permissionsContext?.userRole || 'unknown',
+    userRole: 'unknown', // userRole not available in PermissionsContext
   });
 
   // Fetch team members for assignment
@@ -132,7 +132,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
         throw error;
       }
 
-      setTeamMembers(data || []);
+      setTeamMembers((data || []) as UserProfile[]);
     } catch (error) {
       console.error('❌ Error fetching team members:', error);
     }
@@ -336,10 +336,12 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
                     {/* User Avatar */}
                     <div className='w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium mr-3'>
                       {member.full_name
-                        .split(' ')
-                        .map(namePart => namePart[0])
-                        .join('')
-                        .toUpperCase()}
+                        ? member.full_name
+                            .split(' ')
+                            .map(namePart => namePart[0])
+                            .join('')
+                            .toUpperCase()
+                        : member.email?.charAt(0).toUpperCase() || '?'}
                     </div>
 
                     {/* User Info */}

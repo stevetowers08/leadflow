@@ -26,8 +26,7 @@ const tabsVariants = cva(
     variants: {
       variant: {
         default: 'bg-transparent text-muted-foreground hover:text-foreground',
-        active:
-          'bg-transparent text-primary border-b-2 border-primary',
+        active: 'bg-transparent text-primary border-b-2 border-primary',
         glass:
           'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 border border-white/20',
         neumorphism:
@@ -47,7 +46,8 @@ const tabsVariants = cva(
 );
 
 export interface TabProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof tabsVariants> {
   active?: boolean;
 }
@@ -117,7 +117,8 @@ const filterVariants = cva(
 );
 
 export interface FilterProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof filterVariants> {
   label?: string;
   icon?: React.ReactNode;
@@ -168,7 +169,8 @@ const searchVariants = cva(
 );
 
 export interface SearchInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
+  extends
+    Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
     VariantProps<typeof searchVariants> {
   onClear?: () => void;
 }
@@ -234,7 +236,8 @@ const actionButtonVariants = cva(
 );
 
 export interface ActionButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof actionButtonVariants> {
   icon?: React.ReactNode;
   loading?: boolean;
@@ -290,7 +293,8 @@ const tableHeaderVariants = cva(
 );
 
 export interface TableHeaderProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof tableHeaderVariants> {
   sortable?: boolean;
   sortDirection?: 'asc' | 'desc' | null;
@@ -359,7 +363,8 @@ const dropdownVariants = cva('relative inline-block text-left', {
 });
 
 export interface DropdownProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof dropdownVariants> {
   trigger: React.ReactNode;
   children: React.ReactNode;

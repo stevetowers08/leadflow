@@ -56,10 +56,10 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'owner' | 'admin' | 'user';
+  role: 'admin' | 'user';
   user_limit: number | null;
   is_active: boolean | null;
-  default_client_id: string | null; // Multi-client: user's default/current client
+  // default_client_id removed - multi-tenant not in PDR
   created_at: string | null;
   updated_at: string | null;
 }
@@ -70,46 +70,32 @@ export interface Company {
   website: string | null;
   linkedin_url: string | null;
   head_office: string | null;
-  industry_id: string | null;
+  industry: string | null;
+  company_size: string | null;
   confidence_level: 'low' | 'medium' | 'high' | null;
   lead_score: string | null;
   score_reason: string | null;
   is_favourite: boolean | null;
-  ai_info: AiInfo | null;
-  key_info_raw: KeyInfoRaw | null;
-  loxo_company_id: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-  industry: string | null;
-  company_size: string | null;
   priority: string | null;
   logo_url: string | null;
   logo_cached_at: string | null;
   owner_id: string | null;
+  // client_id removed - not in PDR
   lead_source: string | null;
   source_details: string | null;
   source_date: string | null;
-  pipeline_stage:
-    | 'new_lead'
-    | 'qualified'
-    | 'message_sent'
-    | 'replied'
-    | 'interested'
-    | 'meeting_scheduled'
-    | 'proposal_sent'
-    | 'negotiation'
-    | 'closed_won'
-    | 'closed_lost'
-    | 'on_hold'
-    | null;
-  airtable_id: string | null;
-  added_by_client_id: string | null;
-  added_manually: boolean | null;
-  source: string | null;
-  normalized_company_size: string | null;
+  pipeline_stage: string | null;
   last_activity: string | null;
   funding_raised: number | null;
   estimated_arr: number | null;
+  ai_company_intelligence: Metadata | null;
+  ai_marketi_info: Metadata | null;
+  ai_funding: Metadata | null;
+  ai_new_location: Metadata | null;
+  key_info_raw: KeyInfoRaw | null;
+  loxo_company_id: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 /**
@@ -118,31 +104,29 @@ export interface Company {
  * Updated: February 2025 - LeadFlow Cleanup (Recruitment features removed)
  */
 
-export interface Contact {
+// Lead interface matching PDR Section 7 - leads table structure
+export interface Lead {
   id: string;
-  name: string;
-  company_id: string | null;
-  email_address: string | null;
-  employee_location: string | null;
-  company_role: string | null;
-  score: number | null;
-  last_reply_at: string | null;
-  last_reply_channel: string | null;
-  last_reply_message: string | null;
-  last_interaction_at: string | null;
-  owner_id: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-  confidence_level: string | null;
-  email_draft: string | null;
-  stage_updated: string | null;
-  is_favourite: boolean | null;
-  favourite: boolean | null;
-  jobs: string | null;
-  lead_source: string | null;
-  reply_type: 'interested' | 'not_interested' | 'maybe' | null;
-  people_stage:
-    | 'new_lead'
+  user_id: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  phone: string | null;
+  company: string | null; // Company name string
+  company_id: string | null; // Foreign key to companies table
+  job_title: string | null;
+  scan_image_url: string | null;
+  quality_rank: 'hot' | 'warm' | 'cold' | null;
+  ai_summary: string | null;
+  ai_icebreaker: string | null;
+  status:
+    | 'processing'
+    | 'active'
+    | 'replied_manual'
+    | 'new'
+    | 'qualified'
+    | 'proceed'
+    | 'skip'
     | 'message_sent'
     | 'replied'
     | 'interested'
@@ -150,33 +134,39 @@ export interface Contact {
     | 'meeting_completed'
     | 'follow_up'
     | 'not_interested'
-    | null;
-  linkedin_url: string | null;
-  last_activity: string | null;
-  // Joined fields
-  company_name?: string | null;
-  company_website?: string | null;
-}
-
-// Legacy alias for backward compatibility during migration
-export type Person = Contact;
-
-// Lead interface matching PDR Section 7 - leads table structure
-export interface Lead {
-  id: string;
-  user_id: string | null;
-  owner_id: string | null;
-  first_name: string | null;
-  last_name: string | null;
-  email: string | null;
-  company: string | null;
-  job_title: string | null;
-  scan_image_url: string | null;
-  quality_rank: 'hot' | 'warm' | 'cold' | null;
-  ai_summary: string | null;
-  ai_icebreaker: string | null;
-  status: 'processing' | 'active' | 'replied_manual';
+    | 'draft'
+    | 'completed'
+    | 'paused_replied'; // Consolidated statuses
+  workflow_id: string | null;
+  workflow_status: 'active' | 'paused' | 'completed' | null;
+  enrichment_data: Metadata | null;
+  enrichment_timestamp: string | null;
   gmail_thread_id: string | null;
+  notes: string | null;
+  // owner_id and client_id removed - not in PDR (multi-tenant removed)
+  employee_location: string | null; // From Contact
+  company_role: string | null; // From Contact
+  score: number | null; // From Contact
+  last_interaction_at: string | null; // From Contact
+  last_activity: string | null; // From Contact
+  confidence_level: 'low' | 'medium' | 'high' | null; // From Contact (using Lead's enum)
+  email_draft: string | null; // From Contact
+  is_favourite: boolean | null; // From Contact
+  lead_source: string | null; // From Contact
+  source_details: string | null; // From Contact
+  source_date: string | null; // From Contact
+  reply_type: 'interested' | 'not_interested' | 'maybe' | null; // From Contact
+  decision_maker_notes: string | null; // From Contact
+  ai_user_message: string | null; // From Contact
+  email_ai_message: string | null; // From Contact
+  linkedin_ai_message: string | null; // From Contact
+  email_sent: boolean | null; // From Contact
+  last_reply_at: string | null; // From Contact
+  last_reply_channel: string | null; // From Contact
+  last_reply_message: string | null; // From Contact
+  stage_updated: string | null; // From Contact
+  linkedin_url: string | null; // From Contact
+  lemlist_lead_id: string | null; // From LeadflowLead
   created_at: string | null;
   updated_at: string | null;
   // Computed fields for display
@@ -253,7 +243,7 @@ export interface ReplyAnalyticsSummary {
 export interface EmailReply {
   id: string;
   interaction_id: string | null;
-  contact_id: string | null;
+  lead_id: string | null; // Changed from contact_id
   company_id: string | null;
   gmail_message_id: string;
   gmail_thread_id: string;
@@ -276,95 +266,33 @@ export interface EmailReply {
   updated_at: string;
 }
 
-export interface Interaction {
+// Activity log for tracking lead activities
+export interface ActivityLog {
   id: string;
-  contact_id: string;
-  interaction_type:
+  lead_id: string | null;
+  timestamp: string | null;
+  activity_type:
     | 'email_sent'
-    | 'email_reply'
-    | 'meeting_booked'
-    | 'meeting_held'
-    | 'disqualified'
-    | 'note';
-  occurred_at: string;
-  subject: string | null;
-  content: string | null;
-  template_id: string | null;
+    | 'email_opened'
+    | 'email_clicked'
+    | 'email_replied'
+    | 'workflow_paused'
+    | 'workflow_resumed'
+    | 'lead_created'
+    | 'lead_updated'
+    | 'workflow_assigned'
+    | 'manual_note';
   metadata: Metadata | null;
   created_at: string | null;
-  owner_id: string | null;
 }
 
-export interface Client {
-  id: string;
-  name: string;
-  email: string | null;
-  company: string | null;
-  accounts: Metadata | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
+// Multi-tenant client organizations - REMOVED (not in PDR)
+// export interface Client { ... }
+// export interface ClientDecisionMakerOutreach { ... }
+// export interface ClientUser { ... }
 
-export interface ClientDecisionMakerOutreach {
-  id: string;
-  client_id: string;
-  decision_maker_id: string;
-  outreach_status: string | null;
-  last_contact_date: string | null;
-  next_follow_up_date: string | null;
-  notes: string | null;
-  context: Metadata | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-export interface ClientUser {
-  id: string;
-  client_id: string;
-  user_id: string;
-  role: string | null;
-  is_primary_contact: boolean | null;
-  joined_at: string | null;
-}
-
-export interface Campaign {
-  id: string;
-  name: string;
-  description: string | null;
-  status: 'draft' | 'active' | 'paused' | null;
-  start_date: string | null;
-  end_date: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-export interface CampaignParticipant {
-  id: string;
-  campaign_id: string;
-  contact_id: string;
-  joined_at: string | null;
-  completed_at: string | null;
-}
-
-export interface CampaignMessage {
-  id: string;
-  campaign_id: string;
-  step_number: number | null;
-  channel: string | null;
-  subject: string | null;
-  body: string | null;
-  delay_days: number | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-export interface CampaignAnalytics {
-  id: string;
-  campaign_id: string;
-  metric_name: string | null;
-  metric_value: number | null;
-  recorded_at: string | null;
-}
+// Campaign interfaces - complete definitions are below (line 403+)
+// Removed duplicates to avoid type conflicts
 
 export interface Integration {
   id: string;
@@ -378,7 +306,7 @@ export interface Integration {
 export interface Note {
   id: string;
   entity_id: string;
-  entity_type: 'lead' | 'company' | 'contact';
+  entity_type: 'lead' | 'company'; // Removed 'contact'
   content: string;
   author_id: string;
   created_at: string;
@@ -398,7 +326,7 @@ export interface Tag {
 export interface EntityTag {
   id: string;
   entity_id: string;
-  entity_type: 'company' | 'contact';
+  entity_type: 'company' | 'lead'; // Changed from 'contact'
   tag_id: string;
   created_at: string | null;
 }
@@ -431,7 +359,7 @@ export interface Campaign {
 export interface CampaignParticipant {
   id: string;
   campaign_id: string;
-  contact_id: string;
+  lead_id: string; // Changed from contact_id to match current schema
   status:
     | 'pending'
     | 'sent'
@@ -497,8 +425,6 @@ export interface AssignmentLog {
   id: string;
   entity_type: string;
   entity_id: string;
-  old_owner_id: string | null;
-  new_owner_id: string | null;
   assigned_by: string;
   assigned_at: string | null;
   notes: string | null;
@@ -572,6 +498,7 @@ export interface Invitation {
   updated_at: string | null;
 }
 
+// Multi-tenant client organizations
 export interface Client {
   id: string;
   name: string;
@@ -584,30 +511,26 @@ export interface Client {
   monthly_budget: number | null;
   settings: Settings | null;
   is_active: boolean | null;
-  // Cost tracking
-  current_month_spend: number | null;
-  last_month_spend: number | null;
-  total_spend: number | null;
-  total_savings: number | null;
-  budget_alert_threshold: number | null;
-  budget_exceeded: boolean | null;
   created_at: string | null;
   updated_at: string | null;
 }
 
+// Maps users to their client organizations with roles
 export interface ClientUser {
   id: string;
   client_id: string;
   user_id: string;
-  role: 'owner' | 'admin' | 'user';
+  role: 'admin' | 'recruiter' | 'viewer';
   is_primary_contact: boolean | null;
   joined_at: string | null;
 }
 
+// Tracks which decision makers each client is contacting
 export interface ClientDecisionMakerOutreach {
   id: string;
   client_id: string;
   decision_maker_id: string;
+  job_id: string | null; // Recruitment field - may be null
   status:
     | 'identified'
     | 'researching'
@@ -620,7 +543,8 @@ export interface ClientDecisionMakerOutreach {
     | 'follow_up'
     | 'qualified'
     | 'not_interested'
-    | 'no_response';
+    | 'no_response'
+    | null;
   outreach_method:
     | 'email'
     | 'linkedin'
@@ -699,3 +623,34 @@ export interface ErrorSetting {
   created_at: string | null;
   updated_at: string | null;
 }
+
+// User settings table
+export interface UserSettings {
+  id: string;
+  user_id: string | null;
+  notifications: Metadata | null;
+  preferences: Metadata | null;
+  security: Metadata | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+// Workflow table
+export interface Workflow {
+  id: string;
+  name: string;
+  description: string | null;
+  email_provider: 'lemlist' | 'gmail' | null;
+  lemlist_campaign_id: string | null;
+  gmail_sequence: Metadata | null;
+  pause_rules: Metadata | null;
+  created_by: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+// Campaign sequence tables - REMOVED (not in PDR. Use workflows table instead)
+// All CampaignSequence interfaces removed
+
+// LeadFlow leads table - REMOVED (not in PDR, use leads table)
+// LeadflowLead interface removed

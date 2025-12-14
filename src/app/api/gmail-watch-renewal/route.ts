@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Get all active Gmail integrations
     const { data: integrations, error } = await supabase
-      .from('integrations')
+      .from('integrations' as never)
       .select('id, config')
       .eq('platform', 'gmail')
       .eq('connected', true);
@@ -50,13 +50,23 @@ export async function POST(request: NextRequest) {
     for (const integration of integrations) {
       try {
         // Type guard: ensure config is an object
-        if (!integration.config || typeof integration.config !== 'object' || Array.isArray(integration.config)) {
-          console.error(`Invalid config for integration ${integration.id}`);
+        const integrationTyped = integration as {
+          id?: string;
+          config?: unknown;
+        };
+        if (
+          !integrationTyped.config ||
+          typeof integrationTyped.config !== 'object' ||
+          Array.isArray(integrationTyped.config)
+        ) {
+          console.error(
+            `Invalid config for integration ${integrationTyped.id || 'unknown'}`
+          );
           errorCount++;
           continue;
         }
 
-        const config = integration.config as {
+        const config = integrationTyped.config as {
           access_token?: string;
           watch_expiration?: string;
           watch_history_id?: string;
@@ -67,7 +77,7 @@ export async function POST(request: NextRequest) {
 
         if (!access_token || !watch_expiration) {
           console.error(
-            `Missing required config for integration ${integration.id}`
+            `Missing required config for integration ${integrationTyped.id}`
           );
           errorCount++;
           continue;
@@ -118,7 +128,7 @@ export async function POST(request: NextRequest) {
 
         // Update integration with new watch data
         await supabase
-          .from('integrations')
+          .from('integrations' as never)
           .update({
             config: {
               ...(config as Record<string, unknown>),
@@ -127,7 +137,7 @@ export async function POST(request: NextRequest) {
             },
             updated_at: new Date().toISOString(),
           })
-          .eq('id', integration.id);
+          .eq('id', integrationTyped.id);
 
         renewedCount++;
       } catch (error) {

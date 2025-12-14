@@ -66,7 +66,7 @@ async function createSteveUser() {
             id: existingUser.id,
             email: email,
             full_name: fullName,
-            role: 'owner',
+            role: 'admin',
             is_active: true,
             updated_at: new Date().toISOString(),
           },
@@ -85,7 +85,7 @@ async function createSteveUser() {
       console.log('📝 User details:');
       console.log(`   Email: ${email}`);
       console.log(`   ID: ${existingUser.id}`);
-      console.log(`   Role: owner`);
+      console.log(`   Role: admin`);
       console.log('');
       console.log('💡 User can sign in with their existing password');
       return;
@@ -138,7 +138,7 @@ async function createSteveUser() {
           .update({
             email: email,
             full_name: fullName,
-            role: 'owner',
+            role: 'admin',
             is_active: true,
             updated_at: new Date().toISOString(),
           })

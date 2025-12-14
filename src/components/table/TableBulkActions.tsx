@@ -1,6 +1,8 @@
 import { BulkAction, BulkActions } from '../utils/BulkActions';
 
-interface TableBulkActionsProps<T> {
+interface TableBulkActionsProps<
+  T extends Record<string, unknown> & { id: string },
+> {
   selectedItems: T[];
   onSelectionChange: (items: T[]) => void;
   allItems: T[];

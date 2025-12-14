@@ -85,19 +85,19 @@ export class ReportingService {
    */
   private static async getCoreCounts() {
     try {
-      const [peopleResult, companiesResult] = await Promise.all([
-        supabase.from('people').select('id', { count: 'exact', head: true }),
+      const [leadsResult, companiesResult] = await Promise.all([
+        supabase.from('leads').select('id', { count: 'exact', head: true }),
         supabase.from('companies').select('id', { count: 'exact', head: true }),
       ]);
 
       // Handle errors gracefully
-      if (peopleResult.error)
-        logSupabaseError(peopleResult.error, 'counting people');
+      if (leadsResult.error)
+        logSupabaseError(leadsResult.error, 'counting leads');
       if (companiesResult.error)
         logSupabaseError(companiesResult.error, 'counting companies');
 
       return {
-        totalPeople: peopleResult.count || 0,
+        totalPeople: leadsResult.count || 0,
         totalCompanies: companiesResult.count || 0,
       };
     } catch (error) {
@@ -111,13 +111,10 @@ export class ReportingService {
   }
 
   /**
-   * Get people pipeline breakdown by stage
+   * Get leads pipeline breakdown by status
    */
   private static async getPeoplePipeline() {
-    // Try both field names for compatibility
-    const { data, error } = await supabase
-      .from('people')
-      .select('people_stage, stage');
+    const { data, error } = await supabase.from('leads').select('status');
 
     if (error) {
       console.error('Error fetching people pipeline:', error);
@@ -132,27 +129,21 @@ export class ReportingService {
       skip: 0,
     };
 
-    data?.forEach(person => {
-      // Support both field names
-      const personObj = person as Record<string, unknown>;
-      const stage = (personObj.stage || personObj.people_stage) as
-        | string
-        | undefined;
+    data?.forEach(lead => {
+      const stage = lead.status as string | undefined;
       if (!stage) return;
 
       switch (stage) {
-        case 'new':
-        case 'new_lead':
+        case 'processing':
           pipeline.new++;
           break;
-        case 'qualified':
-        case 'qualify':
+        case 'replied_manual':
           pipeline.qualified++;
           break;
-        case 'proceed':
+        case 'active':
           pipeline.proceed++;
           break;
-        case 'skip':
+        default:
           pipeline.skip++;
           break;
       }
@@ -177,24 +168,26 @@ export class ReportingService {
       companyMap.set(company.id, company.name);
     });
 
-    // Recent people added
-    const { data: recentPeople } = await supabase
-      .from('people')
-      .select('id, name, created_at, company_id')
+    // Recent leads added
+    const { data: recentLeads } = await supabase
+      .from('leads')
+      .select('id, first_name, last_name, company, created_at, company_id')
       .gte('created_at', startDate)
       .lte('created_at', endDate)
       .order('created_at', { ascending: false })
       .limit(5);
 
-    recentPeople?.forEach(person => {
+    recentLeads?.forEach(lead => {
+      const fullName =
+        `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown';
       const companyName =
-        companyMap.get(person.company_id) || 'Unknown Company';
+        lead.company || companyMap.get(lead.company_id) || 'Unknown Company';
       activities.push({
-        id: `person-${person.id}`,
+        id: `lead-${lead.id}`,
         type: 'person_added' as const,
-        description: `New person added: ${person.name} at ${companyName}`,
-        timestamp: person.created_at,
-        entityId: person.id,
+        description: `New lead added: ${fullName} at ${companyName}`,
+        timestamp: lead.created_at,
+        entityId: lead.id,
       });
     });
 
@@ -245,9 +238,9 @@ export class ReportingService {
     startDate: string,
     endDate: string
   ) {
-    const [peopleResult, companiesResult] = await Promise.all([
+    const [leadsResult, companiesResult] = await Promise.all([
       supabase
-        .from('people')
+        .from('leads')
         .select('id', { count: 'exact', head: true })
         .lte('created_at', endDate),
       supabase

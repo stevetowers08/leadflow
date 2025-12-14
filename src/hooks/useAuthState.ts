@@ -22,10 +22,17 @@ export const useAuthState = () => {
       // Check if Google OAuth is configured
       const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
       if (!googleClientId || googleClientId.includes('your-google-client-id')) {
-        const authError = new Error(
-          'Google OAuth is not configured. Please contact your administrator.'
-        );
-        setError(authError.message);
+        const errorMessage =
+          'Google OAuth is not configured. Please contact your administrator.';
+        setError(errorMessage);
+        // Create an AuthError-compatible object
+        const authError = {
+          name: 'AuthError',
+          message: errorMessage,
+          status: 400,
+          code: 'oauth_not_configured',
+          __isAuthError: true,
+        } as unknown as AuthError;
         return { error: authError };
       }
 
@@ -87,7 +94,7 @@ export const useAuthState = () => {
         const allKeys = Object.keys(localStorage);
         allKeys.forEach(key => {
           if (
-            key.includes('supabase') || 
+            key.includes('supabase') ||
             key.includes('sb-') ||
             key.includes('auth') ||
             key.includes('token') ||

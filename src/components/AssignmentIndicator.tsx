@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 
 interface AssignmentIndicatorProps {
   entityId: string;
-  entityType: 'lead' | 'company' | 'job';
+  entityType: 'lead' | 'company';
   className?: string;
 }
 
@@ -27,28 +27,10 @@ export const AssignmentIndicator = ({
     }
 
     const checkAssignment = async () => {
-      try {
-        const tableName =
-          entityType === 'lead'
-            ? 'people'
-            : entityType === 'company'
-              ? 'companies'
-              : 'jobs';
-        const { data, error } = await supabase
-          .from(tableName)
-          .select('owner_id')
-          .eq('id', entityId)
-          .single();
-
-        if (error) throw error;
-
-        setIsAssigned(data?.owner_id === user.id);
-      } catch (error) {
-        console.error('Error checking assignment:', error);
-        setIsAssigned(false);
-      } finally {
-        setLoading(false);
-      }
+      // Assignment feature removed - owner_id no longer exists
+      // Using client_id for multi-tenant architecture instead
+      setLoading(false);
+      setIsAssigned(false);
     };
 
     checkAssignment();

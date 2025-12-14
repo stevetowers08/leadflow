@@ -4,11 +4,11 @@ import { subWeeks } from 'date-fns';
 
 export interface DashboardMetrics {
   // Core Metrics (aligned with reporting)
-  totalPeople: number;
+  totalLeads: number;
   totalCompanies: number;
 
   // Activity Metrics
-  peopleThisWeek: number;
+  leadsThisWeek: number;
   companiesThisWeek: number;
 
   // Automation Metrics
@@ -19,12 +19,9 @@ export interface DashboardMetrics {
   pipelineBreakdown: Record<string, number>;
 
   // Assignment Metrics
-  favoritePeople: number;
-  unassignedPeople: number;
+  favoriteLeads: number;
+  unassignedLeads: number;
   unassignedCompanies: number;
-
-  // Owner Stats
-  ownerStats: Record<string, number>;
 }
 
 export interface RecentItem {
@@ -36,12 +33,14 @@ export interface RecentItem {
   notes_count?: number;
 }
 
-export interface RecentPerson extends RecentItem {
-  email_address?: string | null;
-  company_role?: string | null;
-  employee_location?: string | null;
+export interface RecentLead extends RecentItem {
+  email?: string | null;
+  job_title?: string | null;
+  company?: string | null;
   company_name?: string | null;
   company_logo_url?: string | null;
+  reply_type?: 'interested' | 'not_interested' | 'maybe' | null;
+  status?: string | null;
 }
 
 export interface RecentCompany extends RecentItem {
@@ -54,7 +53,7 @@ export interface RecentCompany extends RecentItem {
 
 export interface DashboardData {
   metrics: DashboardMetrics;
-  recentPeople: RecentPerson[];
+  recentLeads: RecentLead[];
   recentCompanies: RecentCompany[];
   recentActivities: Array<{
     id: string;
@@ -62,7 +61,7 @@ export interface DashboardData {
     subject?: string | null;
     content?: string | null;
     occurred_at: string;
-    person_name?: string | null;
+    lead_name?: string | null;
     company_name?: string | null;
   }>;
   companiesOverTime: Array<{
@@ -70,9 +69,9 @@ export interface DashboardData {
     newCompanies: number;
     automatedCompanies: number;
   }>;
-  peopleAutomationOverTime: Array<{
+  leadsAutomationOverTime: Array<{
     date: string;
-    peopleWithAutomation: number;
+    leadsWithAutomation: number;
     automationActivity: number;
   }>;
 }
@@ -93,29 +92,28 @@ export class DashboardService {
 
       // Fetch all data in parallel
       const [
-        peopleCount,
+        leadsCount,
         companiesCount,
-        peopleThisWeek,
+        leadsThisWeek,
         companiesThisWeek,
-        recentPeopleData,
+        recentLeadsData,
         recentCompaniesData,
         recentActivitiesData,
         pipelineData,
         automationData,
         favoritesData,
-        unassignedPeopleData,
+        unassignedLeadsData,
         unassignedCompaniesData,
-        ownersData,
-        personNotesData,
+        leadNotesData,
         companyNotesData,
       ] = await Promise.all([
         // Counts
-        supabase.from('people').select('*', { count: 'exact', head: true }),
+        supabase.from('leads').select('*', { count: 'exact', head: true }),
         supabase.from('companies').select('*', { count: 'exact', head: true }),
 
         // This week counts
         supabase
-          .from('people')
+          .from('leads')
           .select('*', { count: 'exact', head: true })
           .gte('created_at', oneWeekAgo.toISOString()),
         supabase
@@ -125,18 +123,18 @@ export class DashboardService {
 
         // Recent items with notes count - fix the foreign key references
         supabase
-          .from('people')
+          .from('leads')
           .select(
             `
           id,
-          name,
-          email_address,
-          company_role,
-          employee_location,
-          people_stage,
+          first_name,
+          last_name,
+          email,
+          company,
+          job_title,
+          status,
           created_at,
-          owner_id,
-          companies(name, logo_url)
+          reply_type
         `
           )
           .order('created_at', { ascending: false })
@@ -154,8 +152,7 @@ export class DashboardService {
           logo_url,
           company_size,
           pipeline_stage,
-          created_at,
-          owner_id
+          created_at
         `
           )
           .order('created_at', { ascending: false })
@@ -177,30 +174,25 @@ export class DashboardService {
           .limit(10),
 
         // Pipeline breakdown
-        supabase.from('people').select('people_stage'),
+        supabase.from('leads').select('status'),
 
-        // Automation metrics - check for automation_started_at
+        // Automation metrics - using workflow_status from leads
         supabase
-          .from('people')
-          .select('automation_started_at, people_stage, company_id')
-          .not('automation_started_at', 'is', null),
+          .from('leads')
+          .select('workflow_status, status, company, created_at')
+          .not('workflow_status', 'is', null),
 
         // Favorites and unassigned
         supabase
-          .from('people')
+          .from('leads')
           .select('*', { count: 'exact', head: true })
           .eq('is_favourite', true),
-        supabase
-          .from('people')
-          .select('*', { count: 'exact', head: true })
-          .is('owner_id', null),
-        supabase
-          .from('companies')
-          .select('*', { count: 'exact', head: true })
-          .is('owner_id', null),
 
-        // Owner stats
-        supabase.from('people').select('owner_id'),
+        // Unassigned leads
+        supabase
+          .from('leads')
+          .select('*', { count: 'exact', head: true })
+          .is('owner_id', null),
 
         // Notes removed - using leads.notes field instead
         // Return empty arrays for compatibility
@@ -210,17 +202,9 @@ export class DashboardService {
 
       // Process pipeline breakdown
       const pipelineBreakdown: Record<string, number> = {};
-      pipelineData.data?.forEach(person => {
-        const stage = person.people_stage || 'Unassigned';
+      pipelineData.data?.forEach(lead => {
+        const stage = lead.status || 'Unassigned';
         pipelineBreakdown[stage] = (pipelineBreakdown[stage] || 0) + 1;
-      });
-
-      // Process owner stats
-      const ownerStats: Record<string, number> = {};
-      ownersData.data?.forEach(person => {
-        if (person.owner_id) {
-          ownerStats[person.owner_id] = (ownerStats[person.owner_id] || 0) + 1;
-        }
       });
 
       // Calculate automation success rate based on companies with people automated
@@ -235,20 +219,19 @@ export class DashboardService {
 
       const dashboardData: DashboardData = {
         metrics: {
-          totalPeople: peopleCount.count || 0,
+          totalLeads: leadsCount.count || 0,
           totalCompanies: companiesCount.count || 0,
-          peopleThisWeek: peopleThisWeek.count || 0,
+          leadsThisWeek: leadsThisWeek.count || 0,
           companiesThisWeek: companiesThisWeek.count || 0,
           activeAutomations: automationData.data?.length || 0,
           automationSuccessRate,
           pipelineBreakdown,
-          favoritePeople: favoritesData.count || 0,
-          unassignedPeople: unassignedPeopleData.count || 0,
+          favoriteLeads: favoritesData.count || 0,
+          unassignedLeads: unassignedLeadsData.count || 0,
           unassignedCompanies: unassignedCompaniesData.count || 0,
-          ownerStats,
         },
-        recentPeople: this.processRecentPeople(
-          recentPeopleData.data || [],
+        recentLeads: this.processRecentLeads(
+          recentLeadsData.data || [],
           [] // Notes table removed
         ),
         recentCompanies: this.processRecentCompanies(
@@ -262,7 +245,7 @@ export class DashboardService {
           recentCompaniesData.data || [],
           automationData.data || []
         ),
-        peopleAutomationOverTime: this.generatePeopleAutomationOverTime(
+        leadsAutomationOverTime: this.generateLeadsAutomationOverTime(
           automationData.data || []
         ),
       };
@@ -275,49 +258,59 @@ export class DashboardService {
       // Return mock data on error
       return {
         metrics: {
-          totalPeople: 0,
+          totalLeads: 0,
           totalCompanies: 0,
-          peopleThisWeek: 0,
+          leadsThisWeek: 0,
           companiesThisWeek: 0,
           activeAutomations: 0,
           automationSuccessRate: 0,
           pipelineBreakdown: {},
-          favoritePeople: 0,
-          unassignedPeople: 0,
+          favoriteLeads: 0,
+          unassignedLeads: 0,
           unassignedCompanies: 0,
-          ownerStats: {},
         },
-        recentPeople: [],
+        recentLeads: [],
         recentCompanies: [],
         recentActivities: [],
         companiesOverTime: [],
-        peopleAutomationOverTime: [],
+        leadsAutomationOverTime: [],
       };
     }
   }
 
-  private static processRecentPeople(
-    people: Record<string, unknown>[],
+  private static processRecentLeads(
+    leads: Record<string, unknown>[],
     notes: Record<string, unknown>[]
-  ): RecentPerson[] {
+  ): RecentLead[] {
     const notesCount = new Map<string, number>();
     notes.forEach(note => {
       const count = notesCount.get(note.entity_id) || 0;
       notesCount.set(note.entity_id, count + 1);
     });
 
-    return people.map(person => ({
-      id: person.id,
-      name: person.name || 'Unknown',
-      email: person.email_address || '',
-      role: person.company_role || 'Unknown Role',
-      company: person.companies?.name || 'Unknown Company',
-      companyLogo: person.companies?.logo_url || '',
-      stage: person.people_stage || 'New',
-      created_at: person.created_at,
-      owner_id: person.owner_id,
-      notes_count: notesCount.get(person.id) || 0,
-    }));
+    return leads.map(lead => {
+      const fullName =
+        `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown';
+      return {
+        id: lead.id as string,
+        name: fullName,
+        email: (lead.email as string) || null,
+        job_title: (lead.job_title as string) || null,
+        company: (lead.company as string) || null,
+        company_name: (lead.company as string) || null,
+        company_logo_url: null,
+        status: (lead.status as string) || null,
+        created_at: lead.created_at as string,
+        assigned_to: null,
+        reply_type:
+          (lead.reply_type as
+            | 'interested'
+            | 'not_interested'
+            | 'maybe'
+            | null) || null,
+        notes_count: notesCount.get(lead.id as string) || 0,
+      };
+    });
   }
 
   private static processRecentCompanies(
@@ -340,7 +333,7 @@ export class DashboardService {
       employee_count: company.company_size || 0,
       stage: company.pipeline_stage || 'New',
       created_at: company.created_at,
-      assigned_to: company.owner_id,
+      assigned_to: null,
       notes_count: notesCount.get(company.id) || 0,
     }));
   }
@@ -379,15 +372,16 @@ export class DashboardService {
       {} as Record<string, number>
     );
 
-    // Count unique companies automated by date
+    // Count unique companies automated by date (using workflow_status from leads)
     const automationByDate = automationData.reduce(
-      (acc, person) => {
-        if (person.automation_started_at && person.company_id) {
-          const date = new Date(person.automation_started_at)
+      (acc, lead) => {
+        if (lead.workflow_status && lead.company) {
+          const date = new Date(lead.created_at as string)
             .toISOString()
             .split('T')[0];
           if (!acc[date]) acc[date] = new Set();
-          acc[date].add(person.company_id);
+          // Use company name as identifier since we don't have company_id in leads
+          acc[date].add(lead.company as string);
         }
         return acc;
       },
@@ -414,11 +408,11 @@ export class DashboardService {
     });
   }
 
-  private static generatePeopleAutomationOverTime(
+  private static generateLeadsAutomationOverTime(
     automationData: Record<string, unknown>[]
   ): Array<{
     date: string;
-    peopleWithAutomation: number;
+    leadsWithAutomation: number;
     automationActivity: number;
   }> {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -427,11 +421,11 @@ export class DashboardService {
       return date.toISOString().split('T')[0];
     });
 
-    // Count people with automation started by date
+    // Count leads with automation started by date (using workflow_status from leads)
     const automationByDate = automationData.reduce(
-      (acc, person) => {
-        if (person.automation_started_at) {
-          const date = new Date(person.automation_started_at)
+      (acc, lead) => {
+        if (lead.workflow_status) {
+          const date = new Date(lead.created_at as string)
             .toISOString()
             .split('T')[0];
           acc[date] = (acc[date] || 0) + 1;
@@ -444,14 +438,14 @@ export class DashboardService {
     // Interactions table removed - no automation activity to count
     const activityByDate: Record<string, number> = {};
 
-    let cumulativePeopleWithAutomation = 0;
+    let cumulativeLeadsWithAutomation = 0;
 
     return last7Days.map(date => {
-      cumulativePeopleWithAutomation += automationByDate[date] || 0;
+      cumulativeLeadsWithAutomation += automationByDate[date] || 0;
 
       return {
         date,
-        peopleWithAutomation: cumulativePeopleWithAutomation,
+        leadsWithAutomation: cumulativeLeadsWithAutomation,
         automationActivity: activityByDate[date] || 0,
       };
     });

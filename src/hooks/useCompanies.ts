@@ -26,16 +26,12 @@ interface Company {
   company_size?: string;
   lead_score?: string;
   score_reason?: string;
-  automation_active?: boolean;
-  automation_started_at?: string;
   priority?: string;
   confidence_level?: string;
   is_favourite?: boolean;
   created_at: string;
   updated_at: string;
   logo_url?: string;
-  people_count?: number;
-  jobs_count?: number;
 }
 
 interface CompaniesResponse {
@@ -70,8 +66,6 @@ export function useCompanies(
           company_size,
           lead_score,
           score_reason,
-          automation_active,
-          automation_started_at,
           priority,
           confidence_level,
           is_favourite,
@@ -90,9 +84,8 @@ export function useCompanies(
       }
 
       if (filters.status && filters.status !== 'all') {
-        if (filters.status === 'active') {
-          query = query.eq('automation_active', true);
-        } else if (filters.status === 'qualified') {
+        // automation_active field removed - use workflow_status from leads instead
+        if (filters.status === 'qualified') {
           query = query.eq('confidence_level', 'high');
         } else if (filters.status === 'prospect') {
           query = query.eq('confidence_level', 'medium');
@@ -119,23 +112,33 @@ export function useCompanies(
         throw new Error(`Failed to fetch companies: ${error.message}`);
       }
 
-      // Get people count for each company
+      // Get leads count for each company
       const companiesWithCounts = await Promise.all(
         (data || []).map(async company => {
-          const { count: peopleCount } = await supabase
-            .from('people')
+          const { count: leadsCount } = await supabase
+            .from('leads')
             .select('*', { count: 'exact', head: true })
             .eq('company_id', company.id);
 
-          const { count: jobsCount } = await supabase
-            .from('jobs')
-            .select('*', { count: 'exact', head: true })
-            .eq('company_id', company.id);
-
+          // Convert null to undefined for TypeScript compatibility (only for nullable fields)
           return {
             ...company,
-            people_count: peopleCount || 0,
-            jobs_count: jobsCount || 0,
+            website: company.website ?? undefined,
+            linkedin_url: company.linkedin_url ?? undefined,
+            head_office: company.head_office ?? undefined,
+            industry: company.industry ?? undefined,
+            company_size: company.company_size ?? undefined,
+            lead_score: company.lead_score ?? undefined,
+            priority: company.priority ?? undefined,
+            confidence_level: company.confidence_level ?? undefined,
+            score_reason: company.score_reason ?? undefined,
+            logo_url: company.logo_url ?? undefined,
+            is_favourite: company.is_favourite ?? false,
+            // created_at and updated_at are required, ensure they're always strings
+            created_at: company.created_at || new Date().toISOString(),
+            updated_at: company.updated_at || new Date().toISOString(),
+            people_count: leadsCount || 0,
+            // jobs_count removed - not in PDR
           };
         })
       );
@@ -148,7 +151,7 @@ export function useCompanies(
       };
     },
     staleTime: options?.staleTime || 2 * 60 * 1000, // 2 minutes
-    cacheTime: options?.cacheTime || 5 * 60 * 1000, // 5 minutes
+    gcTime: options?.cacheTime || 5 * 60 * 1000, // 5 minutes (cacheTime renamed to gcTime in v5)
     refetchOnWindowFocus: options?.refetchOnWindowFocus || false,
   });
 }

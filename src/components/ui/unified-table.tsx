@@ -62,7 +62,10 @@ export interface UnifiedTableProps<T = unknown> {
   onToggleGroup?: (groupLabel: string) => void;
   tableId?: string; // used to persist per-table preferences
   getRowClassName?: (row: T, index: number) => string; // Custom row className
-  getRowProps?: (row: T, index: number) => { isEnriched?: boolean; className?: string }; // Row-specific props
+  getRowProps?: (
+    row: T,
+    index: number
+  ) => { isEnriched?: boolean; className?: string }; // Row-specific props
 }
 
 // Compound Component Pattern - Table Sub-components
@@ -120,12 +123,16 @@ export const TableRow = React.forwardRef<
       tabIndex={onClick ? 0 : undefined}
       aria-label={onClick ? `Row ${(index || 0) + 1}` : undefined}
       onClick={handleClick}
-      onKeyDown={onClick ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      } : undefined}
+      onKeyDown={
+        onClick
+          ? e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
       {...props}
     >
       {children}
@@ -180,7 +187,14 @@ export const TableHead = React.forwardRef<
   }
 >(
   (
-    { className, align = 'left', isFirst = false, isLast = false, isSticky = false, ...props },
+    {
+      className,
+      align = 'left',
+      isFirst = false,
+      isLast = false,
+      isSticky = false,
+      ...props
+    },
     ref
   ) => (
     <ShadcnTableHead
@@ -198,7 +212,7 @@ export const TableHead = React.forwardRef<
         className
       )}
       style={{
-        ...(isSticky && { 
+        ...(isSticky && {
           position: 'sticky',
           top: 0,
           zIndex: 30,
@@ -244,7 +258,8 @@ export function UnifiedTable<T = unknown>({
     () =>
       columns.map(col => ({
         id: col.key,
-        header: col.label as React.ReactNode,
+        header: () => (typeof col.label === 'string' ? col.label : col.label),
+        accessorFn: (row: T) => (row as Record<string, unknown>)[col.key],
         // We render cells ourselves, so cell isn't needed here
         size: col.width ? parseInt(col.width, 10) : undefined,
         minSize: col.minWidth ? parseInt(col.minWidth, 10) : undefined,
@@ -412,16 +427,14 @@ export function UnifiedTable<T = unknown>({
         )}
       >
         <div
-          ref={el => {
-            scrollContainerRef.current = el;
-          }}
+          ref={scrollContainerRef}
           className={cn(
             scrollable && 'flex-1 min-h-0 min-w-0 overflow-auto',
             !scrollable && 'w-full overflow-x-auto'
           )}
         >
           <table
-            role="table"
+            role='table'
             aria-label={tableId ? `Table: ${tableId}` : 'Data table'}
             style={{
               tableLayout: 'fixed',
@@ -435,11 +448,12 @@ export function UnifiedTable<T = unknown>({
             <colgroup>
               {orderedColumns.map(column => {
                 // Handle 'auto' width for dynamic sizing
-                const widthPx = column.width === 'auto' 
-                  ? column.minWidth || '150px'
-                  : column.width || column.minWidth || '150px';
+                const widthPx =
+                  column.width === 'auto'
+                    ? column.minWidth || '150px'
+                    : column.width || column.minWidth || '150px';
                 const isAuto = column.width === 'auto';
-                
+
                 if (isAuto) {
                   return (
                     <col
@@ -451,13 +465,15 @@ export function UnifiedTable<T = unknown>({
                     />
                   );
                 }
-                
+
                 // Round pixel values to prevent sub-pixel rendering issues
                 const widthStr = widthPx.toString().trim();
                 const widthMatch = widthStr.match(/^(\d+(?:\.\d+)?)/);
-                const widthNum = widthMatch ? Math.round(parseFloat(widthMatch[1])) : 150;
+                const widthNum = widthMatch
+                  ? Math.round(parseFloat(widthMatch[1]))
+                  : 150;
                 const roundedWidth = `${widthNum}px`;
-                
+
                 return (
                   <col
                     key={column.key}
@@ -473,7 +489,9 @@ export function UnifiedTable<T = unknown>({
             <TableHeader
               className={cn(
                 'bg-muted',
-                isScrolled && scrollable && 'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
+                isScrolled &&
+                  scrollable &&
+                  'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
               )}
             >
               <tr className='border-b border-border'>
@@ -527,7 +545,9 @@ export function UnifiedTable<T = unknown>({
                         colSpan={columns.length}
                         className='text-center py-8'
                       >
-                        <div className='text-muted-foreground'>{emptyMessage}</div>
+                        <div className='text-muted-foreground'>
+                          {emptyMessage}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -589,46 +609,55 @@ export function UnifiedTable<T = unknown>({
                           {isExpanded &&
                             group.data.map((row, index) => {
                               const rowProps = getRowProps?.(row, index) || {};
-                              const customClassName = getRowClassName?.(row, index);
+                              const customClassName = getRowClassName?.(
+                                row,
+                                index
+                              );
                               return (
-                              <TableRow
-                                key={`${group.label}-${index}`}
-                                index={index}
-                                onClick={() => onRowClick?.(row, index)}
-                                className={cn('bg-white', rowProps.className, customClassName)}
-                                isEnriched={rowProps.isEnriched}
-                              >
-                                {orderedColumns.map((column, colIndex) => {
-                                  const statusValue =
-                                    (column.cellType === 'status' ||
-                                      column.cellType === 'ai-score') &&
-                                    column.getStatusValue
-                                      ? column.getStatusValue(row)
-                                      : undefined;
+                                <TableRow
+                                  key={`${group.label}-${index}`}
+                                  index={index}
+                                  onClick={() => onRowClick?.(row, index)}
+                                  className={cn(
+                                    'bg-white',
+                                    rowProps.className,
+                                    customClassName
+                                  )}
+                                  isEnriched={rowProps.isEnriched}
+                                >
+                                  {orderedColumns.map((column, colIndex) => {
+                                    const statusValue =
+                                      (column.cellType === 'status' ||
+                                        column.cellType === 'ai-score') &&
+                                      column.getStatusValue
+                                        ? column.getStatusValue(row)
+                                        : undefined;
 
-                                  const value = (
-                                    row as Record<string, unknown>
-                                  )[column.key];
+                                    const value = (
+                                      row as Record<string, unknown>
+                                    )[column.key];
 
-                          return (
-                            <TableCell
-                              key={`${group.label}-${index}-${colIndex}`}
-                              cellType={column.cellType}
-                              align={column.align}
-                              statusValue={statusValue}
-                              style={{
-                                ...(column.maxWidth && { maxWidth: column.maxWidth }),
-                              }}
-                            >
-                              {column.render ? (
-                                column.render(value, row, index)
-                              ) : (
-                                <span>{value || '-'}</span>
-                              )}
-                            </TableCell>
-                          );
-                                })}
-                              </TableRow>
+                                    return (
+                                      <TableCell
+                                        key={`${group.label}-${index}-${colIndex}`}
+                                        cellType={column.cellType}
+                                        align={column.align}
+                                        statusValue={statusValue}
+                                        style={{
+                                          ...(column.maxWidth && {
+                                            maxWidth: column.maxWidth,
+                                          }),
+                                        }}
+                                      >
+                                        {column.render ? (
+                                          column.render(value, row, index)
+                                        ) : (
+                                          <span>{String(value ?? '-')}</span>
+                                        )}
+                                      </TableCell>
+                                    );
+                                  })}
+                                </TableRow>
                               );
                             })}
                         </React.Fragment>
@@ -638,51 +667,55 @@ export function UnifiedTable<T = unknown>({
                     data.map((row, index) => {
                       const rowProps = getRowProps?.(row, index) || {};
                       const customClassName = getRowClassName?.(row, index);
-                      const rowId = (row as Record<string, unknown>)?.id as string | undefined;
+                      const rowId = (row as Record<string, unknown>)?.id as
+                        | string
+                        | undefined;
                       const handleRowClick = onRowClick
                         ? () => onRowClick(row, index)
                         : undefined;
                       return (
-                      <TableRow
-                        key={rowId ? `row-${rowId}` : `row-${index}`}
-                        index={index}
-                        onClick={handleRowClick}
-                        className={cn(rowProps.className, customClassName)}
-                        isEnriched={rowProps.isEnriched}
-                      >
-                        {orderedColumns.map((column, colIndex) => {
-                          // Get status value for status and ai-score cells
-                          const statusValue =
-                            (column.cellType === 'status' ||
-                              column.cellType === 'ai-score') &&
-                            column.getStatusValue
-                              ? column.getStatusValue(row)
-                              : undefined;
+                        <TableRow
+                          key={rowId ? `row-${rowId}` : `row-${index}`}
+                          index={index}
+                          onClick={handleRowClick}
+                          className={cn(rowProps.className, customClassName)}
+                          isEnriched={rowProps.isEnriched}
+                        >
+                          {orderedColumns.map((column, colIndex) => {
+                            // Get status value for status and ai-score cells
+                            const statusValue =
+                              (column.cellType === 'status' ||
+                                column.cellType === 'ai-score') &&
+                              column.getStatusValue
+                                ? column.getStatusValue(row)
+                                : undefined;
 
-                          // Extract the value for this column
-                          const value = (row as Record<string, unknown>)[
-                            column.key
-                          ];
+                            // Extract the value for this column
+                            const value = (row as Record<string, unknown>)[
+                              column.key
+                            ];
 
-                          return (
-                            <TableCell
-                              key={`${index}-${colIndex}`}
-                              cellType={column.cellType}
-                              align={column.align}
-                              statusValue={statusValue}
-                              style={{
-                                ...(column.maxWidth && { maxWidth: column.maxWidth }),
-                              }}
-                            >
-                              {column.render ? (
-                                column.render(value, row, index)
-                              ) : (
-                                <span>{value || '-'}</span>
-                              )}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
+                            return (
+                              <TableCell
+                                key={`${index}-${colIndex}`}
+                                cellType={column.cellType}
+                                align={column.align}
+                                statusValue={statusValue}
+                                style={{
+                                  ...(column.maxWidth && {
+                                    maxWidth: column.maxWidth,
+                                  }),
+                                }}
+                              >
+                                {column.render ? (
+                                  column.render(value, row, index)
+                                ) : (
+                                  <span>{String(value ?? '-')}</span>
+                                )}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
                       );
                     });
               })()}
@@ -719,5 +752,4 @@ UnifiedTable.Cell = TableCell;
 UnifiedTable.Head = TableHead;
 
 // Explicit exports
-export { UnifiedTable };
 export default UnifiedTable;

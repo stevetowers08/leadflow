@@ -109,8 +109,8 @@ export const useTableSorting = (data: Record<string, unknown>[]) => {
       ];
 
       if (dateKeys.includes(sortConfig.key)) {
-        const aDate = new Date(aValue || 0);
-        const bDate = new Date(bValue || 0);
+        const aDate = new Date(String(aValue || 0));
+        const bDate = new Date(String(bValue || 0));
         return sortConfig.direction === 'asc'
           ? aDate.getTime() - bDate.getTime()
           : bDate.getTime() - aDate.getTime();

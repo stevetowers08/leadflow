@@ -4,22 +4,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import {
-    Calendar,
-    CheckCircle,
-    Clock,
-    Mail,
-    Search,
-    Send,
-    TrendingUp,
-    Users,
-    XCircle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Mail,
+  Search,
+  Send,
+  TrendingUp,
+  Users,
+  XCircle,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../../integrations/supabase/client';
@@ -93,7 +93,14 @@ export const EmailDashboard: React.FC = () => {
 
       // Transform data
       const transformedData =
-        data?.map(send => ({
+        (
+          data as Array<
+            EmailSend & {
+              people?: { name?: string } | null;
+              email_templates?: { name?: string } | null;
+            }
+          >
+        )?.map(send => ({
           ...send,
           person_name: send.people?.name,
           template_name: send.email_templates?.name,

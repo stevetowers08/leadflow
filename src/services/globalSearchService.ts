@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface SearchResult {
   id: string;
-  type: 'person' | 'company' | 'lead';
+  type: 'company' | 'lead';
   title: string;
   subtitle?: string;
   description?: string;
@@ -18,7 +18,7 @@ export interface GlobalSearchOptions {
 
 export class GlobalSearchService {
   /**
-   * Search across people, companies, and leads
+   * Search across companies and leads
    */
   static async search(
     query: string,
@@ -37,20 +37,13 @@ export class GlobalSearchService {
 
     try {
       // Execute all searches in parallel
-      const [peopleResults, companiesResults, leadsResults] = await Promise.all(
-        [
-          this.searchPeople(searchTerm, limit),
-          this.searchCompanies(searchTerm, limit),
-          this.searchLeads(searchTerm, limit),
-        ]
-      );
+      const [companiesResults, leadsResults] = await Promise.all([
+        this.searchCompanies(searchTerm, limit),
+        this.searchLeads(searchTerm, limit),
+      ]);
 
       // Combine and score results
       const allResults = [
-        ...peopleResults.map(result => ({
-          ...result,
-          type: 'person' as const,
-        })),
         ...companiesResults.map(result => ({
           ...result,
           type: 'company' as const,
@@ -75,57 +68,6 @@ export class GlobalSearchService {
   }
 
   /**
-   * Search people
-   */
-  private static async searchPeople(
-    searchTerm: string,
-    limit: number
-  ): Promise<SearchResult[]> {
-    const { data, error } = await supabase
-      .from('people')
-      .select(
-        `
-        id,
-        name,
-        email_address,
-        company_role,
-        employee_location,
-        stage,
-        lead_score,
-        companies!inner(
-          id,
-          name,
-          industry
-        )
-      `
-      )
-      .or(
-        `name.ilike.%${searchTerm}%,email_address.ilike.%${searchTerm}%,company_role.ilike.%${searchTerm}%`
-      )
-      .limit(limit);
-
-    if (error) {
-      console.error('People search error:', error);
-      return [];
-    }
-
-    return (data || []).map(person => ({
-      id: person.id,
-      title: person.name || 'Unknown',
-      subtitle: person.company_role || 'No role specified',
-      description: `${person.companies?.name || 'Unknown Company'} • ${person.employee_location || 'No location'}`,
-      metadata: {
-        email: person.email_address,
-        stage: person.people_stage,
-        leadScore: person.score,
-        companyId: person.companies?.id,
-        companyName: person.companies?.name,
-        industry: person.companies?.industry,
-      },
-    }));
-  }
-
-  /**
    * Search companies
    */
   private static async searchCompanies(
@@ -143,8 +85,7 @@ export class GlobalSearchService {
         company_size,
         website,
         lead_score,
-        priority,
-        automation_active
+        priority
       `
       )
       .or(
@@ -159,6 +100,7 @@ export class GlobalSearchService {
 
     return (data || []).map(company => ({
       id: company.id,
+      type: 'company' as const,
       title: company.name || 'Unknown Company',
       subtitle: company.industry || 'No industry specified',
       description: `${company.head_office || 'No location'} • ${company.company_size || 'Unknown size'}`,
@@ -166,7 +108,6 @@ export class GlobalSearchService {
         website: company.website,
         leadScore: company.lead_score,
         priority: company.priority,
-        automationActive: company.automation_active,
         companySize: company.company_size,
       },
     }));
@@ -206,6 +147,7 @@ export class GlobalSearchService {
 
     return (data || []).map(lead => ({
       id: lead.id,
+      type: 'lead' as const,
       title:
         `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown',
       subtitle: lead.job_title || 'No title',
@@ -263,15 +205,11 @@ export class GlobalSearchService {
     });
 
     // Boost scores for active/important items
-    if (result.type === 'person' && result.metadata?.stage === 'new') {
+    if (result.type === 'lead' && result.metadata?.status === 'active') {
       score += 20;
     }
 
     if (result.type === 'company' && result.metadata?.automationActive) {
-      score += 15;
-    }
-
-    if (result.type === 'job' && result.metadata?.automationActive) {
       score += 15;
     }
 
@@ -315,12 +253,12 @@ export class GlobalSearchService {
         }
 
         // Add company names from metadata
+        const companyName = result.metadata?.companyName;
         if (
-          result.metadata?.companyName
-            ?.toLowerCase()
-            .includes(query.toLowerCase())
+          typeof companyName === 'string' &&
+          companyName.toLowerCase().includes(query.toLowerCase())
         ) {
-          suggestions.add(result.metadata.companyName);
+          suggestions.add(companyName);
         }
       });
 

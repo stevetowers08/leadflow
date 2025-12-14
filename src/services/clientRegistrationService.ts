@@ -1,7 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Client, UserProfile } from '@/types/database';
+import { UserProfile } from '@/types/database';
 import { createClient } from '@supabase/supabase-js';
 
+// NOTE: Client registration removed - multi-tenant feature not in PDR
+// This service is kept for backward compatibility but will not create clients
 export interface ClientRegistrationData {
   name: string;
   email: string;
@@ -9,7 +11,6 @@ export interface ClientRegistrationData {
   fullName?: string;
   industry?: string;
   contactPhone?: string;
-  // Password is optional - if not provided, invitation link will be sent
   password?: string;
 }
 
@@ -17,16 +18,18 @@ export interface ClientRegistrationData {
 function getAdminClient() {
   // Only works in server-side context (API routes, server components)
   if (typeof window !== 'undefined') {
-    throw new Error('Admin client can only be used server-side. Use API route /api/clients/invite instead.');
+    throw new Error(
+      'Admin client can only be used server-side. Use API route /api/clients/invite instead.'
+    );
   }
-  
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
+
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error('Missing Supabase admin credentials');
   }
-  
+
   return createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
@@ -37,22 +40,18 @@ function getAdminClient() {
 
 export interface ClientRegistrationResult {
   success: boolean;
-  client?: Client;
   userProfile?: UserProfile;
   error?: string;
 }
 
 /**
- * Complete client registration process
+ * Register user (simplified - no multi-tenant clients per PDR)
  *
  * 1. Creates Supabase auth user
  * 2. Creates user profile
- * 3. Creates client record
- * 4. Links user to client (client_users)
- * 5. Creates default job filter config
  *
- * @param registrationData - Client registration information
- * @returns Registration result with client and user data
+ * @param registrationData - User registration information
+ * @returns Registration result with user data
  */
 export async function registerNewClient(
   registrationData: ClientRegistrationData
@@ -62,15 +61,15 @@ export async function registerNewClient(
     if (!registrationData.email || !registrationData.name) {
       return {
         success: false,
-        error: 'Missing required fields (email and company name)',
+        error: 'Missing required fields (email and name)',
       };
     }
 
-    const fullName = registrationData.fullName || registrationData.email.split('@')[0];
+    const fullName =
+      registrationData.fullName || registrationData.email.split('@')[0];
 
     // If no password provided, use API route for server-side registration with invitation
     if (!registrationData.password) {
-      // Use API route to handle server-side registration with invitation link
       const response = await fetch('/api/clients/register', {
         method: 'POST',
         headers: {
@@ -87,19 +86,16 @@ export async function registerNewClient(
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Failed to create client');
+        throw new Error(result.error || 'Failed to create user');
       }
 
-      // Return the result from API route (includes invitation link)
       return {
         success: true,
-        client: result.client as Client,
         userProfile: result.userProfile as UserProfile,
       };
     }
 
     // Password provided: Use regular sign-up flow
-    // Step 1: Create auth user with password
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: registrationData.email,
       password: registrationData.password,
@@ -118,7 +114,7 @@ export async function registerNewClient(
 
     const userId = authData.user.id;
 
-    // Step 2: Create user profile
+    // Create user profile
     const { data: profileData, error: profileError } = await supabase
       .from('user_profiles')
       .insert({
@@ -133,89 +129,25 @@ export async function registerNewClient(
 
     if (profileError) {
       console.error('Error creating user profile:', profileError);
-      // Clean up auth user if profile creation fails
       await supabase.auth.admin.deleteUser(userId);
       throw profileError;
     }
 
-    // Step 3: Create client record
-    // NOTE: Actual database schema: id, name, email, company, accounts, created_at, updated_at
-    const { data: clientData, error: clientError } = await supabase
-      .from('clients')
-      .insert({
-        name: registrationData.name,
-        email: registrationData.email,
-        company: registrationData.companyName || registrationData.name,
-        accounts: {}, // Store additional data in accounts JSONB if needed
-      })
-      .select()
-      .single();
-
-    if (clientError) {
-      console.error('Error creating client:', clientError);
-      // Clean up on failure
-      await supabase.from('user_profiles').delete().eq('id', userId);
-      await supabase.auth.admin.deleteUser(userId);
-      throw clientError;
-    }
-
-    // Step 4: Link user to client
-    const { error: clientUserError } = await supabase
-      .from('client_users')
-      .insert({
-        client_id: clientData.id,
-        user_id: userId,
-        role: 'owner',
-        is_primary_contact: true,
-      });
-
-    if (clientUserError) {
-      console.error('Error linking user to client:', clientUserError);
-      // Clean up on failure
-      await supabase.from('clients').delete().eq('id', clientData.id);
-      await supabase.from('user_profiles').delete().eq('id', userId);
-      await supabase.auth.admin.deleteUser(userId);
-      throw clientUserError;
-    }
-
-    // Step 5: Create default job filter config (optional)
-    // NOTE: platform field is REQUIRED in actual database
-    // Config is inactive by default - user must configure and activate it
-    const { error: configError } = await supabase
-      .from('job_filter_configs')
-      .insert({
-        client_id: clientData.id,
-        user_id: userId,
-        config_name: 'Default Configuration',
-        platform: 'linkedin', // Required field - default to LinkedIn
-        is_active: false, // Inactive until user configures it
-      });
-
-    if (configError) {
-      console.warn(
-        'Warning: Could not create default filter config:',
-        configError
-      );
-      // Don't fail the whole registration for this
-    }
-
     return {
       success: true,
-      client: clientData as Client,
       userProfile: profileData as UserProfile,
     };
   } catch (error) {
-    console.error('Client registration error:', error);
+    console.error('User registration error:', error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : 'Failed to register client',
+      error: error instanceof Error ? error.message : 'Failed to register user',
     };
   }
 }
 
 /**
- * Register client via OAuth (Google/LinkedIn)
+ * Register user via OAuth (Google/LinkedIn) - simplified per PDR
  * This is called after OAuth completion
  */
 export async function registerClientAfterOAuth(
@@ -227,9 +159,7 @@ export async function registerClientAfterOAuth(
   }
 ): Promise<ClientRegistrationResult> {
   try {
-    const companyName = metadata.company || metadata.full_name || 'New Client';
-
-    // Step 1: Create user profile
+    // Create user profile
     const { data: profileData, error: profileError } = await supabase
       .from('user_profiles')
       .insert({
@@ -249,66 +179,15 @@ export async function registerClientAfterOAuth(
       }
     }
 
-    // Step 2: Create client record
-    const { data: clientData, error: clientError } = await supabase
-      .from('clients')
-      .insert({
-        name: metadata.full_name || companyName,
-        company_name: companyName,
-        contact_email: email,
-        subscription_tier: 'starter',
-        subscription_status: 'trial',
-        is_active: true,
-        settings: {},
-      })
-      .select()
-      .single();
-
-    if (clientError) throw clientError;
-
-    // Step 3: Link user to client
-    const { error: clientUserError } = await supabase
-      .from('client_users')
-      .insert({
-        client_id: clientData.id,
-        user_id: userId,
-        role: 'owner',
-        is_primary_contact: true,
-      });
-
-    if (clientUserError) throw clientUserError;
-
-    // Step 4: Create default job filter config (inactive by default)
-    // Same as regular registration - user must configure and activate it
-    const { error: configError } = await supabase
-      .from('job_filter_configs')
-      .insert({
-        client_id: clientData.id,
-        user_id: userId,
-        config_name: 'Default Configuration',
-        platform: 'linkedin', // Required field - default to LinkedIn
-        is_active: false, // Inactive until user configures it
-      });
-
-    if (configError) {
-      console.warn(
-        'Warning: Could not create default filter config:',
-        configError
-      );
-      // Don't fail the whole registration for this
-    }
-
     return {
       success: true,
-      client: clientData as Client,
       userProfile: profileData as UserProfile,
     };
   } catch (error) {
-    console.error('OAuth client registration error:', error);
+    console.error('OAuth user registration error:', error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : 'Failed to register client',
+      error: error instanceof Error ? error.message : 'Failed to register user',
     };
   }
 }

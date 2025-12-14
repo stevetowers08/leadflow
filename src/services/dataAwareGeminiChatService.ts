@@ -25,12 +25,8 @@ export interface ChatContext {
 }
 
 export interface DataQueryResult {
-  type: 'companies' | 'leads' | 'jobs' | 'mixed';
-  data:
-    | CompanyData[]
-    | LeadData[]
-    | JobData[]
-    | (CompanyData | LeadData | JobData)[];
+  type: 'companies' | 'leads' | 'mixed';
+  data: CompanyData[] | LeadData[] | (CompanyData | LeadData)[];
   query: string;
 }
 
@@ -49,29 +45,17 @@ interface CompanyData {
 
 interface LeadData {
   id: string;
-  name: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  company?: string;
   company_id?: string;
-  company_role?: string;
-  email_address?: string;
-  employee_location?: string;
-  stage?: string;
-  lead_score?: number;
+  job_title?: string;
+  status?: string;
+  quality_rank?: string;
   linkedin_url?: string;
   created_at: string;
   last_reply_at?: string;
-}
-
-interface JobData {
-  id: string;
-  title: string;
-  company_id?: string;
-  location?: string;
-  description?: string;
-  employment_type?: string;
-  seniority_level?: string;
-  salary?: string;
-  function?: string;
-  created_at: string;
 }
 
 class DataAwareGeminiChatService {
@@ -86,11 +70,10 @@ class DataAwareGeminiChatService {
   /**
    * System message that defines the AI's role and capabilities
    */
-  private readonly SYSTEM_MESSAGE = `You are a recruitment CRM assistant. You can access:
+  private readonly SYSTEM_MESSAGE = `You are a LeadFlow CRM assistant. You can access:
 
 - Companies (id, name, industry, size, location, score)
-- Leads (id, name, company_id, role, location, stage, score)  
-- Jobs (id, title, location, type, level)
+- Leads (id, first_name, last_name, email, company, job_title, status, quality_rank)
 
 Leads are linked to companies via company_id. Be concise and direct. Use bullet points for lists. No bold formatting.`;
 
@@ -253,22 +236,11 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
       queryTypes.push('leads');
     }
 
-    if (
-      message.includes('job') ||
-      message.includes('jobs') ||
-      message.includes('position') ||
-      message.includes('role')
-    ) {
-      queries.push(this.queryJobs(userMessage));
-      queryTypes.push('jobs');
-    }
-
     // If no specific intent detected, query all data types
     if (queries.length === 0) {
       queries.push(this.queryCompanies(userMessage));
       queries.push(this.queryLeads(userMessage));
-      queries.push(this.queryJobs(userMessage));
-      queryTypes.push('companies', 'leads', 'jobs');
+      queryTypes.push('companies', 'leads');
     }
 
     // Execute queries in parallel
@@ -278,7 +250,7 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
     return {
       type:
         queryTypes.length === 1
-          ? (queryTypes[0] as 'companies' | 'leads' | 'jobs')
+          ? (queryTypes[0] as 'companies' | 'leads')
           : 'mixed',
       data: allData,
       query: userMessage,
@@ -312,9 +284,7 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
         query = query.ilike('company_size', '%small%');
       }
 
-      if (message.includes('automated') || message.includes('automation')) {
-        query = query.eq('automation_active', true);
-      }
+      // Note: automation_active field doesn't exist - removed filter
 
       const { data, error } = await query.order('created_at', {
         ascending: false,
@@ -333,14 +303,14 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
   }
 
   /**
-   * Query leads/people based on user message
+   * Query leads based on user message
    */
   private async queryLeads(userMessage: string): Promise<LeadData[]> {
     try {
       let query = supabase
-        .from('people')
+        .from('leads')
         .select(
-          'id, name, company_id, company_role, employee_location, stage, lead_score'
+          'id, first_name, last_name, email, company, company_id, job_title, status, quality_rank, linkedin_url, created_at'
         )
         .limit(5);
 
@@ -353,24 +323,26 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
         message.includes('manager')
       ) {
         query = query.or(
-          'company_role.ilike.%senior%,company_role.ilike.%director%,company_role.ilike.%manager%'
+          'job_title.ilike.%senior%,job_title.ilike.%director%,job_title.ilike.%manager%'
         );
       }
 
       if (message.includes('sales') || message.includes('marketing')) {
-        query = query.or(
-          'company_role.ilike.%sales%,company_role.ilike.%marketing%'
-        );
+        query = query.or('job_title.ilike.%sales%,job_title.ilike.%marketing%');
       }
 
       if (message.includes('replied') || message.includes('responded')) {
-        query = query.not('last_reply_at', 'is', null);
+        query = query.eq('status', 'replied_manual');
       } else if (message.includes('new') || message.includes('fresh')) {
-        query = query.is('last_reply_at', null);
+        query = query.eq('status', 'active');
       }
 
-      if (message.includes('high score') || message.includes('high scoring')) {
-        query = query.gte('lead_score', 80);
+      if (message.includes('hot') || message.includes('high quality')) {
+        query = query.eq('quality_rank', 'hot');
+      } else if (message.includes('warm')) {
+        query = query.eq('quality_rank', 'warm');
+      } else if (message.includes('cold')) {
+        query = query.eq('quality_rank', 'cold');
       }
 
       const { data, error } = await query.order('created_at', {
@@ -385,51 +357,6 @@ Leads are linked to companies via company_id. Be concise and direct. Use bullet 
       return data || [];
     } catch (error) {
       console.error('Error in queryLeads:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Query jobs based on user message
-   */
-  private async queryJobs(userMessage: string): Promise<JobData[]> {
-    try {
-      let query = supabase
-        .from('jobs')
-        .select('id, title, location, employment_type, seniority_level')
-        .limit(5);
-
-      // Add filters based on message content
-      const message = userMessage.toLowerCase();
-
-      if (message.includes('remote') || message.includes('work from home')) {
-        query = query.ilike('location', '%remote%');
-      }
-
-      if (message.includes('senior') || message.includes('lead')) {
-        query = query.or(
-          'title.ilike.%senior%,title.ilike.%lead%,seniority_level.ilike.%senior%'
-        );
-      }
-
-      if (message.includes('sales') || message.includes('marketing')) {
-        query = query.or(
-          'title.ilike.%sales%,title.ilike.%marketing%,function.ilike.%sales%,function.ilike.%marketing%'
-        );
-      }
-
-      const { data, error } = await query.order('created_at', {
-        ascending: false,
-      });
-
-      if (error) {
-        console.error('Error querying jobs:', error);
-        return [];
-      }
-
-      return data || [];
-    } catch (error) {
-      console.error('Error in queryJobs:', error);
       return [];
     }
   }
@@ -573,7 +500,6 @@ Please provide a helpful response based on the CRM data and conversation context
         'conversation_history',
         'companies_analysis',
         'leads_analysis',
-        'jobs_analysis',
         'real_time_data',
       ],
     };

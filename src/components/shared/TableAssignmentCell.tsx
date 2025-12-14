@@ -17,9 +17,9 @@ interface TableAssignmentCellProps {
 
 interface UserProfile {
   id: string;
-  full_name: string;
+  full_name: string | null;
   email: string;
-  role: string;
+  role: string | null;
 }
 
 export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
@@ -38,7 +38,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
   const { toast } = useToast();
 
   // Check if user can assign
-  const canAssign = hasRole('admin') || hasRole('owner');
+  const canAssign = hasRole('admin');
 
   // Fetch current owner details
   useEffect(() => {
@@ -71,8 +71,8 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
             console.error('Error fetching current owner:', error);
           }
           setCurrentOwner(null);
-        } else {
-          setCurrentOwner(data);
+        } else if (data && 'id' in data) {
+          setCurrentOwner(data as UserProfile);
         }
       } catch (error) {
         console.error('Error fetching current owner:', error);
@@ -97,7 +97,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
         throw error;
       }
 
-      setTeamMembers(data || []);
+      setTeamMembers((data || []) as UserProfile[]);
     } catch (error) {
       console.error('Error fetching team members:', error);
     }
@@ -108,10 +108,16 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
 
     setIsUpdating(true);
     try {
+      // Assignment removed - owner_id no longer exists
+      const tableName =
+        entityType === 'people'
+          ? 'leads'
+          : entityType === 'jobs'
+            ? 'leads'
+            : entityType;
       const { error } = await supabase
-        .from(entityType)
+        .from(tableName as never)
         .update({
-          owner_id: newOwnerId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
@@ -151,10 +157,16 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
 
     setIsUpdating(true);
     try {
+      // Assignment removed - owner_id no longer exists
+      const tableName =
+        entityType === 'people'
+          ? 'leads'
+          : entityType === 'jobs'
+            ? 'leads'
+            : entityType;
       const { error } = await supabase
-        .from(entityType)
+        .from(tableName as never)
         .update({
-          owner_id: null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', entityId);
@@ -204,7 +216,12 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
   if (!canAssign) {
     if (!currentOwner) {
       return (
-        <div className={cn('flex items-center gap-2 text-muted-foreground', className)}>
+        <div
+          className={cn(
+            'flex items-center gap-2 text-muted-foreground',
+            className
+          )}
+        >
           <User className='w-4 h-4' />
           <span className='text-sm'>Unassigned</span>
         </div>
@@ -216,14 +233,16 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
         <div className='w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center'>
           <span className='text-xs font-medium text-orange-800'>
             {currentOwner.full_name
-              .split(' ')
-              .map(namePart => namePart[0])
-              .join('')
-              .toUpperCase()}
+              ? currentOwner.full_name
+                  .split(' ')
+                  .map(namePart => namePart[0])
+                  .join('')
+                  .toUpperCase()
+              : currentOwner.email?.charAt(0).toUpperCase() || '?'}
           </span>
         </div>
         <span className='text-sm font-medium text-foreground'>
-          {currentOwner.full_name}
+          {currentOwner.full_name || currentOwner.email || 'Unknown'}
         </span>
       </div>
     );
@@ -244,14 +263,16 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
             <div className='w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center'>
               <span className='text-xs font-medium text-orange-800'>
                 {currentOwner.full_name
-                  .split(' ')
-                  .map(namePart => namePart[0])
-                  .join('')
-                  .toUpperCase()}
+                  ? currentOwner.full_name
+                      .split(' ')
+                      .map(namePart => namePart[0])
+                      .join('')
+                      .toUpperCase()
+                  : currentOwner.email?.charAt(0).toUpperCase() || '?'}
               </span>
             </div>
             <span className='text-sm font-medium text-foreground'>
-              {currentOwner.full_name}
+              {currentOwner.full_name || currentOwner.email || 'Unknown'}
             </span>
           </>
         ) : (
@@ -316,16 +337,18 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
                     {/* User Avatar */}
                     <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium mr-3'>
                       {member.full_name
-                        .split(' ')
-                        .map(namePart => namePart[0])
-                        .join('')
-                        .toUpperCase()}
+                        ? member.full_name
+                            .split(' ')
+                            .map(namePart => namePart[0])
+                            .join('')
+                            .toUpperCase()
+                        : member.email?.charAt(0).toUpperCase() || '?'}
                     </div>
 
                     {/* User Info */}
                     <div className='flex-1 min-w-0 text-left'>
                       <div className='font-medium truncate'>
-                        {member.full_name}
+                        {member.full_name || member.email || 'Unknown'}
                       </div>
                       <div className='text-xs text-muted-foreground truncate'>
                         {member.role}

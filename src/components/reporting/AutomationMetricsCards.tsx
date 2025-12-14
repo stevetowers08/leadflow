@@ -1,12 +1,11 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { MessageSquare, TrendingUp, UserPlus } from 'lucide-react';
+import { CheckCircle, MessageSquare, TrendingUp, UserPlus } from 'lucide-react';
 import React from 'react';
 
 interface AutomationMetricsCardsProps {
   data: {
-    totalPeople: number;
+    totalLeads: number; // Changed from totalPeople
     totalCompanies: number;
-    totalJobs: number;
     totalInteractions: number;
   };
   period: '7d' | '30d' | '90d';

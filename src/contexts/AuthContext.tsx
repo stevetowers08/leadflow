@@ -12,12 +12,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { AuthError, Session, User } from '@supabase/supabase-js';
 import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
 } from 'react';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
@@ -115,8 +115,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       authState.setSession(null);
 
       // Wait a bit before retrying
-      await new Promise(resolve => {
-        setSafeTimeout(resolve, RETRY_DELAY);
+      await new Promise<void>(resolve => {
+        setSafeTimeout(() => resolve(), RETRY_DELAY);
       });
 
       // Get fresh session
@@ -168,10 +168,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (authConfig.bypassAuth) {
           // Check if user explicitly signed out (bypass disabled flag)
           // Check both sessionStorage and localStorage for persistence
-          const bypassDisabled = typeof window !== 'undefined' 
-            ? (sessionStorage.getItem('bypass-auth-disabled') === 'true' ||
-               localStorage.getItem('bypass-auth-disabled') === 'true')
-            : false;
+          const bypassDisabled =
+            typeof window !== 'undefined'
+              ? sessionStorage.getItem('bypass-auth-disabled') === 'true' ||
+                localStorage.getItem('bypass-auth-disabled') === 'true'
+              : false;
 
           if (bypassDisabled) {
             // User explicitly signed out - don't auto-login
@@ -193,7 +194,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           if (session?.user) {
             // Use actual authenticated user from Supabase (preferred in bypass mode)
-            console.log('🔐 BypassAuth: Using actual authenticated user:', session.user.email);
+            console.log(
+              '🔐 BypassAuth: Using actual authenticated user:',
+              session.user.email
+            );
             if (isMountedRef.current) {
               authState.setUser(session.user);
               authState.setSession(session);
@@ -203,7 +207,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } else {
             // No actual session - use mock user for development
             // This allows dev work without needing to sign in
-            console.log('🔐 BypassAuth: No session found, using mock user for development');
+            console.log(
+              '🔐 BypassAuth: No session found, using mock user for development'
+            );
             const mockUser = getMockUser();
             const mockUserProfile = getMockUserProfile();
 
@@ -239,7 +245,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Get initial session (if not already retrieved in bypassAuth mode)
         let session = authState.session;
         let error;
-        
+
         // If we already have a session from bypassAuth check, use it
         // Otherwise, get the session normally
         if (!session && (!authConfig.bypassAuth || !authState.user)) {
@@ -252,7 +258,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             throw error;
           }
         }
-        
+
         // If we have a session from bypassAuth mode, make sure it's set
         if (session && !authState.session) {
           authState.setSession(session);
@@ -352,18 +358,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (session?.user) {
             // Set loading to false immediately - user is authenticated
             authState.setLoading(false);
-            
+
             // Load profile (non-blocking)
             if (lastProcessedUserIdRef.current !== session.user.id) {
               lastProcessedUserIdRef.current = session.user.id;
-              
+
               // Fetch profile asynchronously
-              supabase
-                .from('user_profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single()
-                .then(({ data: existingProfile, error: profileError }) => {
+              (async () => {
+                try {
+                  const { data: existingProfile, error: profileError } =
+                    await supabase
+                      .from('user_profiles')
+                      .select('*')
+                      .eq('id', session.user.id)
+                      .single();
+
                   if (isMountedRef.current) {
                     if (existingProfile && !profileError) {
                       userProfile.setUserProfile(existingProfile);
@@ -373,14 +382,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                       );
                     }
                   }
-                })
-                .catch(() => {
+                } catch {
                   if (isMountedRef.current) {
                     userProfile.setUserProfile(
                       userProfile.createFallbackProfile(session.user)
                     );
                   }
-                });
+                }
+              })();
             }
           } else {
             if (isMountedRef.current) {

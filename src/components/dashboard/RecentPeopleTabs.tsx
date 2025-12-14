@@ -5,7 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import type { RecentPerson } from '@/services/dashboardService';
+// RecentPerson type - inline definition
+type RecentPerson = {
+  id: string;
+  name: string;
+  email_address?: string | null;
+  company_role?: string | null;
+  employee_location?: string | null;
+  company_name?: string | null;
+  company_logo_url?: string | null;
+  people_stage?: string | null;
+  reply_type?: string | null;
+  created_at: string;
+  [key: string]: unknown;
+};
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -70,12 +83,14 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
             <h4 className='font-medium text-foreground truncate'>
               {person.name}
             </h4>
-            {person.notes_count && person.notes_count > 0 && (
+            {person.notes_count &&
+            typeof person.notes_count === 'number' &&
+            person.notes_count > 0 ? (
               <div className='flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full'>
                 <StickyNote className='h-3 w-3' />
                 <span>{person.notes_count}</span>
               </div>
-            )}
+            ) : null}
             {/* Reply Type Badge */}
             {person.reply_type && (
               <div
@@ -171,7 +186,16 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
       {/* Reply Analytics Summary */}
       <div className='mt-3 pt-3 border-t border-gray-100'>
         <PersonReplyAnalytics
-          person={person as RecentPerson}
+          person={{
+            id: person.id,
+            name: person.name,
+            people_stage: person.people_stage || null,
+            reply_type: (person.reply_type === 'interested' ||
+            person.reply_type === 'not_interested' ||
+            person.reply_type === 'maybe'
+              ? person.reply_type
+              : null) as 'interested' | 'not_interested' | 'maybe' | null,
+          }}
           showDetails={false}
         />
       </div>

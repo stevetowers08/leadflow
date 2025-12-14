@@ -68,7 +68,17 @@ export const Badge: React.FC<BadgeProps> = ({
       }
       return (
         <AIScoreBadge
-          leadData={leadData}
+          leadData={
+            leadData as {
+              name: string;
+              company: string;
+              role: string;
+              location: string;
+              experience?: string;
+              industry?: string;
+              company_size?: string;
+            }
+          }
           initialScore={
             typeof value === 'number' ? value : parseInt(String(value))
           }

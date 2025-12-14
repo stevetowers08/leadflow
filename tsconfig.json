@@ -5,11 +5,8 @@
   },
   "include": [
     "next-env.d.ts",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    ".next"
+    ".next/types/**/*.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ]
 }
