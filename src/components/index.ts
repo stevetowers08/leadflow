@@ -2,9 +2,6 @@
 // Forms
 export * from './forms';
 
-// Tables
-export * from './tables';
-
 // Layout
 export * from './layout';
 

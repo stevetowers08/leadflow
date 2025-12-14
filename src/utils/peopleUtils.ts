@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
+import { logger } from '@/utils/productionLogger';
 
 type LeadInsertData = Tables<'leads'>['Insert'];
 
@@ -18,14 +19,14 @@ export const insertPersonWithDuplicateHandling = async (
       .select();
 
     if (!error) {
-      console.log('Person inserted successfully:', data);
+      logger.debug('Person inserted successfully:', data);
       return data;
     }
 
     // Handle duplicate key errors
     if (error.code === '23505') {
       if (error.message.includes('linkedin_url_key')) {
-        console.log(
+        logger.debug(
           'Duplicate LinkedIn URL detected, creating unique version...'
         );
 
@@ -44,19 +45,19 @@ export const insertPersonWithDuplicateHandling = async (
           .select();
 
         if (uniqueError) {
-          console.error(
+          logger.error(
             'Failed to insert person even with unique LinkedIn URL:',
             uniqueError
           );
           throw uniqueError;
         }
 
-        console.log('Person inserted with unique LinkedIn URL:', uniqueData);
+        logger.debug('Person inserted with unique LinkedIn URL:', uniqueData);
         return uniqueData;
       }
 
       if (error.message.includes('email_key')) {
-        console.log(
+        logger.debug(
           'Duplicate email address detected, creating unique version...'
         );
 
@@ -76,14 +77,14 @@ export const insertPersonWithDuplicateHandling = async (
           .select();
 
         if (uniqueError) {
-          console.error(
+          logger.error(
             'Failed to insert person even with unique email:',
             uniqueError
           );
           throw uniqueError;
         }
 
-        console.log('Person inserted with unique email:', uniqueData);
+        logger.debug('Person inserted with unique email:', uniqueData);
         return uniqueData;
       }
     }
@@ -91,7 +92,7 @@ export const insertPersonWithDuplicateHandling = async (
     // If it's not a duplicate key error, throw it
     throw error;
   } catch (error) {
-    console.error('Failed to insert person:', error);
+    logger.error('Failed to insert person:', error);
     throw error;
   }
 };
@@ -117,14 +118,14 @@ export const upsertPerson = async (personData: LeadInsertData) => {
       .select();
 
     if (error) {
-      console.error('Error upserting person:', error);
+      logger.error('Error upserting person:', error);
       throw error;
     }
 
-    console.log('Person upserted successfully:', data);
+    logger.debug('Person upserted successfully:', data);
     return data;
   } catch (error) {
-    console.error('Failed to upsert person:', error);
+    logger.error('Failed to upsert person:', error);
     throw error;
   }
 };
@@ -170,7 +171,7 @@ export const checkEmailExists = async (email: string) => {
 
     return !!data; // Returns true if person exists, false if not
   } catch (error) {
-    console.error('Error checking if email exists:', error);
+    logger.error('Error checking if email exists:', error);
     throw error;
   }
 };
@@ -232,7 +233,7 @@ export const insertPersonWithAllDuplicateHandling = async (
       processedData.linkedin_url = await generateUniqueLinkedInUrl(
         personData.linkedin_url
       );
-      console.log(
+      logger.debug(
         `LinkedIn URL conflict resolved: ${personData.linkedin_url} -> ${processedData.linkedin_url}`
       );
     }
@@ -240,7 +241,7 @@ export const insertPersonWithAllDuplicateHandling = async (
     // Handle email duplicate
     if (emailExists && personData.email) {
       processedData.email = await generateUniqueEmail(personData.email);
-      console.log(
+      logger.debug(
         `Email conflict resolved: ${personData.email} -> ${processedData.email}`
       );
     }
@@ -252,17 +253,17 @@ export const insertPersonWithAllDuplicateHandling = async (
       .select();
 
     if (error) {
-      console.error(
-        'Failed to insert person after conflict resolution:',
-        error
-      );
+      logger.error('Failed to insert person after conflict resolution:', error);
       throw error;
     }
 
-    console.log('Person inserted successfully with conflict resolution:', data);
+    logger.debug(
+      'Person inserted successfully with conflict resolution:',
+      data
+    );
     return data;
   } catch (error) {
-    console.error('Failed to insert person with conflict resolution:', error);
+    logger.error('Failed to insert person with conflict resolution:', error);
     throw error;
   }
 };

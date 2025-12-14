@@ -8,7 +8,7 @@ import {
   gmailService,
   EmailThread,
   EmailMessage,
-} from '../../../services/gmailService';
+} from '@/services/gmailService';
 
 interface EmailThreadViewerProps {
   threadId: string;

@@ -26,7 +26,7 @@ import {
   EmailTemplate,
   SendEmailRequest,
   secureGmailService,
-} from '../../../services/secureGmailService';
+} from '@/services/secureGmailService';
 
 interface EmailSenderProps {
   selectedPerson?: Lead;

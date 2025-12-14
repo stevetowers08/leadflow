@@ -186,7 +186,11 @@ export class SecureGmailService {
       process.env.NEXT_PUBLIC_SITE_URL ||
       (typeof window !== 'undefined'
         ? window.location.origin
-        : 'http://localhost:8086');
+        : process.env.NODE_ENV === 'development'
+          ? 'http://localhost:3000'
+          : (() => {
+              throw new Error('NEXT_PUBLIC_SITE_URL is required in production');
+            })());
     this.redirectUri = `${origin}/auth/gmail-callback`;
 
     if (!this.clientId) {

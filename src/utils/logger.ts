@@ -50,7 +50,7 @@ class Logger {
   warn(message: string, ...args: unknown[]): void {
     console.warn(`[WARN] ${this.formatMessage(message)}`, ...args);
 
-    // TODO: Send to error tracking in production
+    // Send to error tracking in production
     if (this.isProduction) {
       this.sendToErrorTracking('warning', message, args);
     }
@@ -134,9 +134,8 @@ class Logger {
     message: string,
     data: unknown[]
   ): void {
-    // TODO: Integrate with Sentry or similar service
-    // Example:
-    // Sentry.captureMessage(message, {
+    // Error tracking integration can be added here
+    // Example: Sentry.captureMessage(message, {
     //   level,
     //   extra: { data },
     // });

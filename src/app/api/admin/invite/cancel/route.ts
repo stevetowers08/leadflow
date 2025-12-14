@@ -1,43 +1,77 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  getAuthenticatedUser,
+  checkAdminPermission,
+  isValidUUID,
+  errorResponse,
+  successResponse,
+} from '@/lib/api/admin-helpers';
 
 /**
  * Cancel invitation
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
+    // Check authentication
+    const { user, error: authError } = await getAuthenticatedUser();
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return authError || errorResponse('Unauthorized', 401);
     }
 
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile || !['admin', 'owner'].includes(profile.role)) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
+    // Check admin permission
+    const { authorized, error: permError } = await checkAdminPermission(
+      user.id
+    );
+    if (!authorized || permError) {
+      return permError || errorResponse('Insufficient permissions', 403);
     }
 
-    const body = await request.json();
+    // Parse and validate request body
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return errorResponse('Invalid request body', 400);
+    }
+
     const { invitationId } = body;
 
-    if (!invitationId) {
-      return NextResponse.json(
-        { error: 'Invitation ID is required' },
-        { status: 400 }
-      );
+    if (!invitationId || typeof invitationId !== 'string') {
+      return errorResponse('Invitation ID is required', 400);
+    }
+
+    if (!isValidUUID(invitationId)) {
+      return errorResponse('Invalid invitation ID format', 400);
+    }
+
+    const supabase = await createClient();
+
+    // Get invitation to check ownership
+    const { data: invitation, error: inviteError } = await supabase
+      .from('invitations')
+      .select('id, status, invited_by')
+      .eq('id', invitationId)
+      .maybeSingle();
+
+    if (inviteError || !invitation) {
+      return errorResponse('Invitation not found', 404);
+    }
+
+    if (invitation.status !== 'pending') {
+      return errorResponse('Can only cancel pending invitations', 400);
+    }
+
+    // Check if user owns the invitation or is admin
+    if (invitation.invited_by !== user.id) {
+      // Verify user is admin (already checked, but extra safety)
+      const { authorized } = await checkAdminPermission(user.id);
+      if (!authorized) {
+        return errorResponse(
+          'You can only cancel invitations you created',
+          403
+        );
+      }
     }
 
     // Update invitation status
@@ -49,26 +83,15 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('Error cancelling invitation:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to cancel invitation' },
-        { status: 500 }
-      );
+      return errorResponse('Failed to cancel invitation', 500);
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Invitation cancelled successfully',
-    });
+    return successResponse({}, 'Invitation cancelled successfully');
   } catch (error) {
     console.error('Unexpected error in cancel route:', error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred',
-      },
-      { status: 500 }
+    return errorResponse(
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      500
     );
   }
 }

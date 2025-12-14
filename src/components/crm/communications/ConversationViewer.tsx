@@ -28,7 +28,7 @@ import {
   conversationService,
   Conversation,
   ConversationMessage,
-} from '../../../services/conversationService';
+} from '@/services/conversationService';
 import { cn } from '@/lib/utils';
 import { getCompanyLogoUrlSync } from '@/services/logoService';
 

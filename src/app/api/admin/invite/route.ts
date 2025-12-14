@@ -1,5 +1,14 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  getAuthenticatedUser,
+  checkAdminPermission,
+  isValidEmail,
+  isValidRole,
+  errorResponse,
+  successResponse,
+  type AllowedRole,
+} from '@/lib/api/admin-helpers';
 
 /**
  * Admin-only API route to invite users
@@ -7,73 +16,68 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-
     // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
+    const { user, error: authError } = await getAuthenticatedUser();
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return authError || errorResponse('Unauthorized', 401);
     }
 
-    // Check if user is admin/owner
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profile) {
-      return NextResponse.json(
-        { error: 'User profile not found' },
-        { status: 404 }
-      );
+    // Check admin permission
+    const { authorized, error: permError } = await checkAdminPermission(
+      user.id
+    );
+    if (!authorized || permError) {
+      return permError || errorResponse('Insufficient permissions', 403);
     }
 
-    if (!['admin', 'owner'].includes(profile.role)) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions. Admin or owner role required.' },
-        { status: 403 }
-      );
+    // Parse and validate request body
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return errorResponse('Invalid request body', 400);
     }
 
-    const body = await request.json();
     const { email, role = 'user' } = body;
 
-    if (!email || !email.includes('@')) {
-      return NextResponse.json(
-        { error: 'Valid email address is required' },
-        { status: 400 }
+    // Validate email
+    if (!email || typeof email !== 'string') {
+      return errorResponse('Email address is required', 400);
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!isValidEmail(normalizedEmail)) {
+      return errorResponse('Invalid email address format', 400);
+    }
+
+    // Validate role
+    if (!isValidRole(role)) {
+      return errorResponse(
+        `Invalid role. Must be one of: ${['user', 'admin', 'manager', 'viewer'].join(', ')}`,
+        400
       );
     }
+
+    const supabase = await createClient();
 
     // Check if user already exists
     const { data: existingUser } =
-      await supabase.auth.admin.getUserByEmail(email);
+      await supabase.auth.admin.getUserByEmail(normalizedEmail);
 
     if (existingUser?.user) {
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 400 }
-      );
+      return errorResponse('User with this email already exists', 400);
     }
 
     // Check for existing pending invitation
     const { data: existingInvitation } = await supabase
       .from('invitations')
       .select('*')
-      .eq('email', email.toLowerCase())
+      .eq('email', normalizedEmail)
       .eq('status', 'pending')
-      .single();
+      .maybeSingle();
 
     if (existingInvitation) {
-      return NextResponse.json(
-        { error: 'Invitation already sent to this email' },
-        { status: 400 }
-      );
+      return errorResponse('Invitation already sent to this email', 400);
     }
 
     // Get admin client for inviteUserByEmail
@@ -81,10 +85,7 @@ export async function POST(request: NextRequest) {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
+      return errorResponse('Server configuration error', 500);
     }
 
     const { createClient: createAdminClient } =
@@ -100,8 +101,8 @@ export async function POST(request: NextRequest) {
     const { data: invitation, error: inviteError } = await supabase
       .from('invitations')
       .insert({
-        email: email.toLowerCase(),
-        role,
+        email: normalizedEmail,
+        role: role as AllowedRole,
         invited_by: user.id,
         expires_at: new Date(
           Date.now() + 7 * 24 * 60 * 60 * 1000
@@ -112,17 +113,14 @@ export async function POST(request: NextRequest) {
 
     if (inviteError) {
       console.error('Error creating invitation record:', inviteError);
-      return NextResponse.json(
-        { error: 'Failed to create invitation record' },
-        { status: 500 }
-      );
+      return errorResponse('Failed to create invitation record', 500);
     }
 
     // Send invitation via Supabase (magic link)
     const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/auth/accept-invite?token=${invitation.token}`;
 
-    const { data: inviteData, error: inviteUserError } =
-      await adminClient.auth.admin.inviteUserByEmail(email, {
+    const { error: inviteUserError } =
+      await adminClient.auth.admin.inviteUserByEmail(normalizedEmail, {
         redirectTo,
         data: {
           role,
@@ -135,34 +133,28 @@ export async function POST(request: NextRequest) {
       await supabase.from('invitations').delete().eq('id', invitation.id);
 
       console.error('Error sending invitation:', inviteUserError);
-      return NextResponse.json(
-        {
-          error: inviteUserError.message || 'Failed to send invitation email',
-        },
-        { status: 500 }
+      return errorResponse(
+        inviteUserError.message || 'Failed to send invitation email',
+        500
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      invitation: {
-        id: invitation.id,
-        email: invitation.email,
-        role: invitation.role,
-        expires_at: invitation.expires_at,
+    return successResponse(
+      {
+        invitation: {
+          id: invitation.id,
+          email: invitation.email,
+          role: invitation.role,
+          expires_at: invitation.expires_at,
+        },
       },
-      message: 'Invitation sent successfully',
-    });
+      'Invitation sent successfully'
+    );
   } catch (error) {
     console.error('Unexpected error in invite route:', error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred',
-      },
-      { status: 500 }
+    return errorResponse(
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      500
     );
   }
 }

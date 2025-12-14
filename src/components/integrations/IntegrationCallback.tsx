@@ -13,7 +13,7 @@ export default function IntegrationCallback() {
   );
   const [message, setMessage] = useState('');
   const [mounted, setMounted] = useState(false);
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
 
   // Use auth hook - must be called unconditionally (React rules)
@@ -27,7 +27,7 @@ export default function IntegrationCallback() {
 
   const handleCallback = useCallback(async () => {
     // Don't run auth-dependent logic during SSR
-    if (!mounted) return;
+    if (!mounted || !searchParams) return;
 
     try {
       const code = searchParams.get('code');

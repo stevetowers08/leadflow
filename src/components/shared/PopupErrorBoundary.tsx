@@ -32,7 +32,7 @@ export class PopupErrorBoundary extends Component<Props, State> {
 
     // Log to external service in production
     if (process.env.NODE_ENV === 'production') {
-      // TODO: Send to error tracking service
+      // Error tracking can be integrated here (e.g., Sentry)
       console.error('Production error:', {
         error: error.message,
         stack: error.stack,

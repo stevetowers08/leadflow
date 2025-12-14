@@ -1,4 +1,4 @@
-import { BulkAction, BulkActions } from '../utils/BulkActions';
+import { BulkAction, BulkActions } from '../shared/BulkActions';
 
 interface TableBulkActionsProps<
   T extends Record<string, unknown> & { id: string },

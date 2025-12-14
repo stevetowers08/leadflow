@@ -59,7 +59,7 @@ interface EnhancedMobileTableProps<T> {
   maxPrimaryColumns?: number; // Max primary columns to show (default: 2)
 }
 
-export function EnhancedMobileTable<
+function EnhancedMobileTableComponent<
   T extends Record<string, unknown> & { id: string },
 >({
   data,
@@ -427,6 +427,11 @@ export function EnhancedMobileTable<
     </div>
   );
 }
+
+// Memoize EnhancedMobileTable to prevent unnecessary re-renders
+export const EnhancedMobileTable = React.memo(
+  EnhancedMobileTableComponent
+) as typeof EnhancedMobileTableComponent;
 
 // Default swipe actions for common use cases
 const defaultSwipeActions = {

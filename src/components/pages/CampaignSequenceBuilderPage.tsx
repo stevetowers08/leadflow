@@ -44,9 +44,11 @@ function CampaignSequenceBuilderContent() {
         setTimeout(() => setSequence(foundSequence), 0);
       } else if (!isLoading) {
         // Sequence not found, redirect based on current path
-        const basePath = typeof window !== 'undefined' && window.location.pathname.startsWith('/workflows')
-          ? '/workflows'
-          : '/campaigns';
+        const basePath =
+          typeof window !== 'undefined' &&
+          window.location.pathname.startsWith('/workflows')
+            ? '/workflows'
+            : '/campaigns';
         router.push(basePath);
       }
     }
@@ -54,9 +56,11 @@ function CampaignSequenceBuilderContent() {
 
   const handleClose = () => {
     // Redirect based on current path
-    const basePath = typeof window !== 'undefined' && window.location.pathname.startsWith('/workflows')
-      ? '/workflows'
-      : '/campaigns';
+    const basePath =
+      typeof window !== 'undefined' &&
+      window.location.pathname.startsWith('/workflows')
+        ? '/workflows'
+        : '/campaigns';
     router.push(basePath);
   };
 
@@ -83,9 +87,11 @@ function CampaignSequenceBuilderContent() {
           </p>
           <button
             onClick={() => {
-              const basePath = typeof window !== 'undefined' && window.location.pathname.startsWith('/workflows')
-                ? '/workflows'
-                : '/campaigns';
+              const basePath =
+                typeof window !== 'undefined' &&
+                window.location.pathname.startsWith('/workflows')
+                  ? '/workflows'
+                  : '/campaigns';
               router.push(basePath);
             }}
             className='px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700'

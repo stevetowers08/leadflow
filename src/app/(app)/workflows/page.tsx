@@ -1,12 +1,22 @@
 'use client';
 
-// Use existing Campaigns component - it's the campaign builder
-// The campaign sequence builder is the visual campaign builder
-import Campaigns from '@/pages/Campaigns';
+// Lazy load Campaigns component for better initial load performance
+import nextDynamic from 'next/dynamic';
+
+const Campaigns = nextDynamic(() => import('@/components/pages/Campaigns'), {
+  ssr: false,
+  loading: () => (
+    <div className='min-h-screen flex items-center justify-center bg-background'>
+      <div className='text-center'>
+        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+        <p className='text-muted-foreground'>Loading campaigns...</p>
+      </div>
+    </div>
+  ),
+});
 
 export const dynamic = 'force-dynamic';
 
 export default function CampaignsPage() {
   return <Campaigns />;
 }
-

@@ -47,7 +47,7 @@ interface ResponsiveTableProps<T = unknown> {
   }>;
 }
 
-export function ResponsiveTable<T = unknown>({
+function ResponsiveTableComponent<T = unknown>({
   data,
   columns,
   mobilePrimaryColumns,
@@ -116,6 +116,11 @@ export function ResponsiveTable<T = unknown>({
     </div>
   );
 }
+
+// Memoize ResponsiveTable to prevent unnecessary re-renders
+export const ResponsiveTable = React.memo(
+  ResponsiveTableComponent
+) as typeof ResponsiveTableComponent;
 
 // Re-export for convenience
 export { ResponsiveTable as Table };

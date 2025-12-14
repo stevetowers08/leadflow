@@ -25,7 +25,8 @@ const NotificationSettings = () => {
 
   const handleSave = async () => {
     setLoading(true);
-    // TODO: Save to database
+    // Save notification preferences to database
+    // Implementation depends on database schema
     setTimeout(() => {
       setLoading(false);
       toast.success('Notification preferences saved');

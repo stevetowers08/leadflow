@@ -202,7 +202,7 @@ export const TableHead = React.forwardRef<
       className={cn(
         'px-4 py-1 h-[40px]',
         'text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap',
-        'border-b border-border border-r border-border last:border-r-0',
+        'border-b border-r border-border last:border-r-0',
         'box-border',
         !isSticky && isFirst && 'rounded-tl-md',
         !isSticky && isLast && 'rounded-tr-md',
@@ -227,7 +227,7 @@ export const TableHead = React.forwardRef<
 TableHead.displayName = 'TableHead';
 
 // Main UnifiedTable Component
-export function UnifiedTable<T = unknown>({
+function UnifiedTableComponent<T = unknown>({
   data,
   columns,
   pagination = true,
@@ -744,12 +744,25 @@ export function UnifiedTable<T = unknown>({
   return tableStructure;
 }
 
-// Export compound components for advanced usage
-UnifiedTable.Header = TableHeader;
-UnifiedTable.Body = TableBody;
-UnifiedTable.Row = TableRow;
-UnifiedTable.Cell = TableCell;
-UnifiedTable.Head = TableHead;
+// Memoize UnifiedTable to prevent unnecessary re-renders
+const MemoizedUnifiedTable = React.memo(UnifiedTableComponent) as <T = unknown>(
+  props: UnifiedTableProps<T>
+) => React.ReactElement;
+
+// Create typed export with compound components
+export const UnifiedTable = Object.assign(MemoizedUnifiedTable, {
+  Header: TableHeader,
+  Body: TableBody,
+  Row: TableRow,
+  Cell: TableCell,
+  Head: TableHead,
+}) as typeof MemoizedUnifiedTable & {
+  Header: typeof TableHeader;
+  Body: typeof TableBody;
+  Row: typeof TableRow;
+  Cell: typeof TableCell;
+  Head: typeof TableHead;
+};
 
 // Explicit exports
 export default UnifiedTable;

@@ -19,35 +19,6 @@ type SupabaseBrowserClient = ReturnType<typeof createBrowserClient<Database>>;
 let _supabaseClient: SupabaseBrowserClient | null = null;
 
 function getSupabaseClient() {
-  // #region agent log
-  if (typeof window !== 'undefined') {
-    try {
-      const logData = {
-        location: 'supabase/client.ts:21',
-        message: 'getSupabaseClient entry',
-        data: {
-          hasClient: !!_supabaseClient,
-          isSSR: typeof window === 'undefined',
-          timestamp: Date.now(),
-        },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        runId: 'run1',
-        hypothesisId: 'C',
-      };
-      fetch(
-        'http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(logData),
-        }
-      ).catch(e => console.warn('Debug log failed:', e));
-    } catch (e) {
-      // Silently ignore debug logging errors
-    }
-  }
-  // #endregion
   if (_supabaseClient) return _supabaseClient;
 
   try {
@@ -151,30 +122,6 @@ function getSupabaseClient() {
       }
     }
 
-    // #region agent log
-    if (typeof window !== 'undefined') {
-      fetch(
-        'http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            location: 'supabase/client.ts:129',
-            message: 'Before creating client',
-            data: {
-              hasUrl: !!SUPABASE_URL,
-              hasKey: !!SUPABASE_PUBLISHABLE_KEY,
-              timestamp: Date.now(),
-            },
-            timestamp: Date.now(),
-            sessionId: 'debug-session',
-            runId: 'run1',
-            hypothesisId: 'C',
-          }),
-        }
-      ).catch(() => {});
-    }
-    // #endregion
     // Validate environment variables with strict checks (2025 best practice)
     // Check for both undefined and empty strings
     const isValidUrl =
@@ -320,53 +267,8 @@ function getSupabaseClient() {
       }, 100);
     }
 
-    // #region agent log
-    if (typeof window !== 'undefined') {
-      fetch(
-        'http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            location: 'supabase/client.ts:176',
-            message: 'Client created successfully',
-            data: { timestamp: Date.now() },
-            timestamp: Date.now(),
-            sessionId: 'debug-session',
-            runId: 'run1',
-            hypothesisId: 'C',
-          }),
-        }
-      ).catch(() => {});
-    }
-    // #endregion
     return _supabaseClient;
   } catch (error) {
-    // #region agent log
-    if (typeof window !== 'undefined') {
-      fetch(
-        'http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            location: 'supabase/client.ts:178',
-            message: 'Client creation error',
-            data: {
-              errorMessage:
-                error instanceof Error ? error.message : String(error),
-              errorName: error instanceof Error ? error.name : 'unknown',
-              timestamp: Date.now(),
-            },
-            timestamp: Date.now(),
-            sessionId: 'debug-session',
-            runId: 'run1',
-            hypothesisId: 'C',
-          }),
-        }
-      ).catch(() => {});
-    }
-    // #endregion
     if (IS_DEVELOPMENT) {
       console.error('❌ Failed to create Supabase client:', error);
     }

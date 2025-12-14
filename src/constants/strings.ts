@@ -37,7 +37,8 @@ export const PLACEHOLDER_TEXT = {
   COMPANY: 'Enter company name',
   WEBSITE: 'https://example.com',
   LOGO: 'https://example.com/logo.png',
-  WEBHOOK: 'https://your-webhook-url.com/chat',
+  WEBHOOK:
+    process.env.NEXT_PUBLIC_WEBHOOK_URL || 'https://your-webhook-url.com/chat',
 } as const;
 
 export const LABELS = {

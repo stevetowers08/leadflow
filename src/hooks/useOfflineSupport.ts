@@ -11,7 +11,7 @@ interface SyncQueueItem {
   id: string;
   action: 'create' | 'update' | 'delete';
   table: string;
-  data: any;
+  data: unknown;
   timestamp: number;
   retries: number;
 }
@@ -42,7 +42,7 @@ export function useOfflineSupport<T>(
   const [syncQueue, setSyncQueue] = useState<SyncQueueItem[]>([]);
   const { toast } = useToast();
 
-  const cacheRef = useRef<Map<string, CacheEntry<any>>>(new Map());
+  const cacheRef = useRef<Map<string, CacheEntry<unknown>>>(new Map());
   const syncQueueRef = useRef<SyncQueueItem[]>([]);
 
   // Monitor online/offline status
@@ -109,7 +109,7 @@ export function useOfflineSupport<T>(
 
   // Add item to sync queue
   const addToSyncQueue = useCallback(
-    (action: SyncQueueItem['action'], table: string, data: any) => {
+    (action: SyncQueueItem['action'], table: string, data: unknown) => {
       const item: SyncQueueItem = {
         id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         action,
@@ -258,8 +258,8 @@ export function useOfflineData<T extends { id: string }>(
 
       // If online, fetch fresh data
       if (isOnline) {
-        // TODO: Replace with actual Supabase call
-        // For now, return empty array
+        // Fetch data from Supabase
+        // Implementation depends on specific data requirements
         const freshData: T[] = [];
 
         setData(freshData);

@@ -124,12 +124,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     try {
       // Check if public sign-ups are disabled (invitation-only mode)
+      const normalizedEmail = email.trim().toLowerCase();
       const { data: invitation } = await supabase
         .from('invitations')
         .select('*')
-        .eq('email', email.toLowerCase())
+        .eq('email', normalizedEmail)
         .eq('status', 'pending')
-        .single();
+        .maybeSingle();
 
       if (!invitation) {
         setError(
@@ -176,7 +177,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setHeadline('');
       setLoading(null);
 
-      // TODO: Show success toast
+      // Success toast can be shown here using toast() from sonner
     } catch (err) {
       console.error('Email sign-up error:', err);
       setError('An unexpected error occurred. Please try again.');

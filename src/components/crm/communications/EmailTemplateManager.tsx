@@ -26,7 +26,7 @@ import React, { useEffect, useState } from 'react';
 import {
   EmailTemplate,
   secureGmailService,
-} from '../../../services/secureGmailService';
+} from '@/services/secureGmailService';
 
 interface EmailTemplateManagerProps {
   onTemplateSelect?: (template: EmailTemplate) => void;

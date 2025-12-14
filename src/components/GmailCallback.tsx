@@ -1,8 +1,11 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { secureGmailService } from '../services/secureGmailService';
+import { secureGmailService } from '@/services/secureGmailService';
 
 export const GmailCallback: React.FC = () => {
   const searchParams = useSearchParams();
@@ -10,132 +13,137 @@ export const GmailCallback: React.FC = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
   );
-  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState('');
 
-  const handleGmailCallback = useCallback(
-    async (code: string) => {
-      try {
-        setStatus('loading');
-        await secureGmailService.handleGmailCallback(code);
-        setStatus('success');
+  const handleGmailCallback = useCallback(async () => {
+    if (!searchParams) {
+      setStatus('error');
+      setMessage('Unable to read URL parameters');
+      return;
+    }
 
-        // Redirect to conversations page
-        router.push('/conversations');
-      } catch (error) {
-        setStatus('error');
-        setError(
-          error instanceof Error ? error.message : 'Authentication failed'
-        );
-      }
-    },
-    [router]
-  );
-
-  useEffect(() => {
-    const processCallback = async () => {
-      if (!searchParams) {
-        setStatus('error');
-        setError('No search parameters available');
-        return;
-      }
-
+    try {
       const code = searchParams.get('code');
       const error = searchParams.get('error');
+      const state = searchParams.get('state');
 
       if (error) {
-        setStatus('error');
-        setError(error);
-        return;
+        // Provide helpful error messages for common OAuth errors
+        let errorMessage = `Gmail authentication failed: ${error}`;
+
+        if (error === 'invalid_client') {
+          errorMessage =
+            'OAuth client not found. Please verify:\n' +
+            '1. Client ID is correct in Google Cloud Console\n' +
+            '2. No trailing spaces in NEXT_PUBLIC_GOOGLE_CLIENT_ID\n' +
+            '3. OAuth client exists and is enabled\n' +
+            '4. Redirect URI matches: ' +
+            window.location.origin +
+            '/auth/gmail-callback';
+        } else if (error === 'redirect_uri_mismatch') {
+          errorMessage =
+            'Redirect URI mismatch. Ensure this URI is registered in Google Cloud Console:\n' +
+            window.location.origin +
+            '/auth/gmail-callback';
+        } else if (error === 'access_denied') {
+          errorMessage =
+            'Gmail access was denied. Please try again and grant permission.';
+        }
+
+        throw new Error(errorMessage);
       }
 
-      if (code) {
-        await handleGmailCallback(code);
-      } else {
-        setStatus('error');
-        setError('No authorization code received');
+      if (!code) {
+        throw new Error('No authorization code received');
       }
-    };
 
-    processCallback();
-  }, [searchParams, handleGmailCallback]);
+      setStatus('loading');
+      setMessage('Processing Gmail authentication...');
+
+      // Handle the callback with state validation
+      await secureGmailService.handleGmailCallback(code, state || undefined);
+
+      setStatus('success');
+      setMessage('Gmail connected successfully!');
+
+      // Redirect to conversations page after 2 seconds
+      setTimeout(() => {
+        router.push('/inbox');
+      }, 2000);
+    } catch (error) {
+      console.error('Gmail callback error:', error);
+      setStatus('error');
+      setMessage(
+        error instanceof Error ? error.message : 'Authentication failed'
+      );
+    }
+  }, [searchParams, router]);
+
+  useEffect(() => {
+    handleGmailCallback();
+  }, [handleGmailCallback]);
 
   const handleRetry = () => {
-    router.push('/conversations');
+    router.push('/inbox');
   };
 
-  // Minimal loading state
-  if (status === 'loading') {
-    return (
-      <div className='min-h-screen flex items-center justify-center bg-muted'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
-          <p className='text-muted-foreground'>Connecting Gmail...</p>
-        </div>
-      </div>
-    );
-  }
+  const getStatusIcon = () => {
+    switch (status) {
+      case 'loading':
+        return <Loader2 className='h-8 w-8 animate-spin text-primary' />;
+      case 'success':
+        return <CheckCircle className='h-8 w-8 text-green-500' />;
+      case 'error':
+        return <XCircle className='h-8 w-8 text-destructive' />;
+    }
+  };
 
-  // Success state
-  if (status === 'success') {
-    return (
-      <div className='min-h-screen flex items-center justify-center bg-muted'>
-        <div className='text-center'>
-          <div className='mb-4'>
-            <svg
-              className='mx-auto h-12 w-12 text-green-500'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'
-            >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M5 13l4 4L19 7'
-              />
-            </svg>
-          </div>
-          <h2 className='text-2xl font-bold text-foreground mb-2'>
-            Gmail Connected
-          </h2>
-          <p className='text-muted-foreground mb-6'>
-            Redirecting to conversations...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const getStatusColor = () => {
+    switch (status) {
+      case 'loading':
+        return 'text-primary';
+      case 'success':
+        return 'text-success';
+      case 'error':
+        return 'text-destructive';
+    }
+  };
 
-  // Error state
   return (
     <div className='min-h-screen flex items-center justify-center bg-muted'>
-      <div className='text-center max-w-md mx-auto p-6'>
-        <div className='mb-4'>
-          <svg
-            className='mx-auto h-12 w-12 text-destructive'
-            fill='none'
-            stroke='currentColor'
-            viewBox='0 0 24 24'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              strokeWidth={2}
-              d='M6 18L18 6M6 6l12 12'
-            />
-          </svg>
-        </div>
-        <h2 className='text-2xl font-bold text-foreground mb-2'>
-          Connection Failed
-        </h2>
-        <p className='text-muted-foreground text-sm mb-6'>{error}</p>
-        <button
-          onClick={handleRetry}
-          className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'
-        >
-          Go to Conversations
-        </button>
-      </div>
+      <Card className='w-full max-w-md'>
+        <CardContent className='p-8 text-center'>
+          <div className='mb-6'>{getStatusIcon()}</div>
+
+          <h2 className={`text-xl font-semibold mb-2 ${getStatusColor()}`}>
+            {status === 'loading' && 'Connecting Gmail...'}
+            {status === 'success' && 'Gmail Connected!'}
+            {status === 'error' && 'Connection Failed'}
+          </h2>
+
+          <p className='text-muted-foreground mb-6'>{message}</p>
+
+          {status === 'success' && (
+            <p className='text-sm text-muted-foreground mb-4'>
+              Redirecting to email dashboard...
+            </p>
+          )}
+
+          {status === 'error' && (
+            <Button onClick={handleRetry} className='w-full'>
+              Try Again
+            </Button>
+          )}
+
+          {status === 'loading' && (
+            <div className='space-y-2'>
+              <div className='text-sm text-muted-foreground'>
+                Please wait while we connect your Gmail account...
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -4,8 +4,7 @@ import './globals.css';
 import { Providers } from './providers';
 import { LayoutWrapper } from './LayoutWrapper';
 
-// TODO: Update to Geist Sans per PDR Section 3
-// For now keeping Inter, can be updated to Geist when available
+// Using Inter font - can be updated to Geist Sans per design system requirements
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {

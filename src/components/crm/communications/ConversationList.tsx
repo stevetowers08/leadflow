@@ -10,7 +10,7 @@ import {
   Search,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { Conversation } from '../../../services/conversationService';
+import { Conversation } from '@/services/conversationService';
 import { StatusBadge } from '../../StatusBadge';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';

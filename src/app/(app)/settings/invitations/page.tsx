@@ -82,7 +82,8 @@ export default function InvitationsPage() {
       const { data, error } = await supabase
         .from('invitations')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(1000); // Reasonable limit
 
       if (error) throw error;
       setInvitations(data || []);
@@ -97,7 +98,8 @@ export default function InvitationsPage() {
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!inviteForm.email || !inviteForm.email.includes('@')) {
+    const email = inviteForm.email.trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast.error('Please enter a valid email address');
       return;
     }
@@ -107,7 +109,7 @@ export default function InvitationsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: inviteForm.email,
+          email: email,
           role: inviteForm.role,
         }),
       });

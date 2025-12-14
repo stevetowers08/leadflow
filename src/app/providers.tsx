@@ -56,90 +56,17 @@ function AppInitialization({ children }: { children: React.ReactNode }) {
   useNotificationTriggers();
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'providers.tsx:57',
-        message: 'AppInitialization useEffect',
-        data: { timestamp: Date.now() },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        runId: 'run1',
-        hypothesisId: 'B',
-      }),
-    }).catch(() => {});
-    // #endregion
     // Initialize console filtering to suppress browser extension noise
     initializeConsoleFilter();
 
     // Initialize error handling system
     const initErrorHandling = async () => {
       try {
-        // #region agent log
-        fetch(
-          'http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              location: 'providers.tsx:63',
-              message: 'initErrorHandling entry',
-              data: { timestamp: Date.now() },
-              timestamp: Date.now(),
-              sessionId: 'debug-session',
-              runId: 'run1',
-              hypothesisId: 'D',
-            }),
-          }
-        ).catch(() => {});
-        // #endregion
         // Get admin email from environment or user profile
         const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || undefined;
         await initializeErrorHandling(adminEmail);
         setupGlobalErrorHandlers();
-        // #region agent log
-        fetch(
-          'http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              location: 'providers.tsx:67',
-              message: 'initErrorHandling success',
-              data: { timestamp: Date.now() },
-              timestamp: Date.now(),
-              sessionId: 'debug-session',
-              runId: 'run1',
-              hypothesisId: 'D',
-            }),
-          }
-        ).catch(() => {});
-        // #endregion
       } catch (error) {
-        // #region agent log
-        fetch(
-          'http://127.0.0.1:7242/ingest/01e36b46-c269-4815-ad0a-9aee92c9938f',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              location: 'providers.tsx:69',
-              message: 'initErrorHandling error',
-              data: {
-                errorMessage:
-                  error instanceof Error ? error.message : String(error),
-                timestamp: Date.now(),
-              },
-              timestamp: Date.now(),
-              sessionId: 'debug-session',
-              runId: 'run1',
-              hypothesisId: 'D',
-            }),
-          }
-        ).catch(() => {});
-        // #endregion
         console.error('Failed to initialize error handling:', error);
       }
     };

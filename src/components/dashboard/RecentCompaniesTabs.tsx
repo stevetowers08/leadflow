@@ -87,109 +87,112 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
     }
   };
 
-  const renderCompanyCard = (company: RecentCompany) => (
-    <div
-      key={company.id}
-      className={cn(
-        'px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer group',
-        designTokens.borders.card,
-        designTokens.borders.cardHover
-      )}
-      onClick={() => {
-        setSelectedCompanyId(company.id);
-        setIsSlideOutOpen(true);
-      }}
-    >
-      <div className='flex items-center gap-3'>
-        {/* Company Logo Only */}
-        <div className='flex-shrink-0 w-8 h-8 rounded-md border border-border bg-white flex items-center justify-center'>
-          {getCompanyLogo(company) ? (
-            <img
-              src={getCompanyLogo(company)!}
-              alt={company.name}
-              className='w-full h-full rounded-md object-contain'
-              onError={e => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.parentElement!.style.display = 'none';
-              }}
-            />
-          ) : (
-            <Building2 className='h-4 w-4 text-muted-foreground' />
-          )}
-        </div>
+  const renderCompanyCard = React.useCallback(
+    (company: RecentCompany) => (
+      <div
+        key={company.id}
+        className={cn(
+          'px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer group',
+          designTokens.borders.card,
+          designTokens.borders.cardHover
+        )}
+        onClick={() => {
+          setSelectedCompanyId(company.id);
+          setIsSlideOutOpen(true);
+        }}
+      >
+        <div className='flex items-center gap-3'>
+          {/* Company Logo Only */}
+          <div className='flex-shrink-0 w-8 h-8 rounded-md border border-border bg-white flex items-center justify-center'>
+            {getCompanyLogo(company) ? (
+              <img
+                src={getCompanyLogo(company)!}
+                alt={company.name}
+                className='w-full h-full rounded-md object-contain'
+                onError={e => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.style.display = 'none';
+                }}
+              />
+            ) : (
+              <Building2 className='h-4 w-4 text-muted-foreground' />
+            )}
+          </div>
 
-        {/* Company Info */}
-        <div className='flex-1 min-w-0'>
-          <div className='font-semibold text-sm truncate'>{company.name}</div>
-          <div className='text-xs text-muted-foreground truncate'>
-            {company.industry && company.head_office
-              ? `${company.industry} • ${company.head_office}`
-              : company.industry || company.head_office || 'No industry'}
+          {/* Company Info */}
+          <div className='flex-1 min-w-0'>
+            <div className='font-semibold text-sm truncate'>{company.name}</div>
+            <div className='text-xs text-muted-foreground truncate'>
+              {company.industry && company.head_office
+                ? `${company.industry} • ${company.head_office}`
+                : company.industry || company.head_office || 'No industry'}
+            </div>
+          </div>
+
+          {/* Stage, Employee Count and Notes */}
+          <div className='flex items-center gap-2 flex-shrink-0'>
+            {company.employee_count && (
+              <div className='flex items-center gap-1 text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded-full'>
+                <Users className='h-3 w-3' />
+                <span>{formatEmployeeCount(company.employee_count)}</span>
+              </div>
+            )}
+            {company.stage && (
+              <Badge
+                variant='outline'
+                className={`text-xs ${getStageColor(company.stage)}`}
+              >
+                {company.stage
+                  .replace(/_/g, ' ')
+                  .replace(/\b\w/g, letter => letter.toUpperCase())}
+              </Badge>
+            )}
+            {company.notes_count && company.notes_count > 0 && (
+              <div className='flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full'>
+                <StickyNote className='h-3 w-3' />
+                <span>{company.notes_count}</span>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Stage, Employee Count and Notes */}
-        <div className='flex items-center gap-2 flex-shrink-0'>
-          {company.employee_count && (
-            <div className='flex items-center gap-1 text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded-full'>
-              <Users className='h-3 w-3' />
-              <span>{formatEmployeeCount(company.employee_count)}</span>
-            </div>
-          )}
-          {company.stage && (
-            <Badge
-              variant='outline'
-              className={`text-xs ${getStageColor(company.stage)}`}
-            >
-              {company.stage
-                .replace(/_/g, ' ')
-                .replace(/\b\w/g, letter => letter.toUpperCase())}
-            </Badge>
-          )}
-          {company.notes_count && company.notes_count > 0 && (
-            <div className='flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full'>
-              <StickyNote className='h-3 w-3' />
-              <span>{company.notes_count}</span>
-            </div>
-          )}
-        </div>
       </div>
-    </div>
+    ),
+    [setSelectedCompanyId, setIsSlideOutOpen]
   );
 
-  const renderCompaniesList = (
-    companiesList: RecentCompany[],
-    emptyMessage: string
-  ) => {
-    if (loading) {
+  const renderCompaniesList = React.useCallback(
+    (companiesList: RecentCompany[], emptyMessage: string) => {
+      if (loading) {
+        return (
+          <div className='space-y-3'>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className='p-4 bg-muted rounded-lg animate-pulse'>
+                <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
+                <div className='h-3 bg-gray-200 rounded w-1/2 mb-1'></div>
+                <div className='h-3 bg-gray-200 rounded w-2/3'></div>
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      if (companiesList.length === 0) {
+        return (
+          <div className='text-center py-8 text-muted-foreground'>
+            <Building2 className='h-8 w-8 mx-auto mb-2 opacity-50' />
+            <p className='text-sm'>{emptyMessage}</p>
+          </div>
+        );
+      }
+
       return (
-        <div className='space-y-3'>
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className='p-4 bg-muted rounded-lg animate-pulse'>
-              <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
-              <div className='h-3 bg-gray-200 rounded w-1/2 mb-1'></div>
-              <div className='h-3 bg-gray-200 rounded w-2/3'></div>
-            </div>
-          ))}
+        <div className='space-y-3 max-h-[400px] overflow-y-auto'>
+          {companiesList.slice(0, 5).map(renderCompanyCard)}
         </div>
       );
-    }
-
-    if (companiesList.length === 0) {
-      return (
-        <div className='text-center py-8 text-muted-foreground'>
-          <Building2 className='h-8 w-8 mx-auto mb-2 opacity-50' />
-          <p className='text-sm'>{emptyMessage}</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className='space-y-3 max-h-[400px] overflow-y-auto'>
-        {companiesList.slice(0, 5).map(renderCompanyCard)}
-      </div>
-    );
-  };
+    },
+    [loading, renderCompanyCard]
+  );
 
   return (
     <>

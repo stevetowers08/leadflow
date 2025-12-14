@@ -42,7 +42,7 @@ export default function AcceptInvitePage() {
           .select('email, role, status, expires_at')
           .eq('token', token)
           .eq('status', 'pending')
-          .single();
+          .maybeSingle();
 
         if (inviteError || !data) {
           setError('Invalid or expired invitation link.');

@@ -68,7 +68,7 @@ export const GmailCallback: React.FC = () => {
 
       // Redirect to conversations page after 2 seconds
       setTimeout(() => {
-        router.push('/conversations');
+        router.push('/inbox');
       }, 2000);
     } catch (error) {
       console.error('Gmail callback error:', error);
@@ -84,7 +84,7 @@ export const GmailCallback: React.FC = () => {
   }, [handleGmailCallback]);
 
   const handleRetry = () => {
-    router.push('/conversations');
+    router.push('/inbox');
   };
 
   const getStatusIcon = () => {
