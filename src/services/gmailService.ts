@@ -185,7 +185,10 @@ export class GmailService {
       );
     }
 
-    const redirectUri = `${window.location.origin}/auth/gmail-callback`;
+    // Prioritize NEXT_PUBLIC_SITE_URL for production consistency
+    // Only use window.location.origin as fallback for local development
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const redirectUri = `${origin}/auth/gmail-callback`;
 
     const scope =
       'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';

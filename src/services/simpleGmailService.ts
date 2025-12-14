@@ -55,11 +55,13 @@ export class SimpleGmailService {
     // Trim whitespace and newlines from client ID
     this.clientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim();
 
-    // Only access window on client-side (Next.js may render on server)
+    // Prioritize NEXT_PUBLIC_SITE_URL for production consistency
+    // Only use window.location.origin as fallback for local development
     const origin =
-      typeof window !== 'undefined'
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (typeof window !== 'undefined'
         ? window.location.origin
-        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:8086';
+        : 'http://localhost:8086');
     this.redirectUri = `${origin}/auth/gmail-callback`;
 
     if (!this.clientId) {

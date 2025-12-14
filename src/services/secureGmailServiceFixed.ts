@@ -284,10 +284,15 @@ export class SecureGmailService {
 
   constructor() {
     this.clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
-    this.redirectUri = `${window.location.origin}/auth/gmail-callback`;
+    // Prioritize NEXT_PUBLIC_SITE_URL for production consistency
+    // Only use window.location.origin as fallback for local development
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    this.redirectUri = `${origin}/auth/gmail-callback`;
 
     if (!this.clientId) {
-      throw new Error('VITE_GOOGLE_CLIENT_ID environment variable is required');
+      throw new Error(
+        'NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is required'
+      );
     }
   }
 
