@@ -122,6 +122,50 @@ const AuthCallback: React.FC = () => {
           }
         }
 
+        // Fallback: Check for tokens in hash fragment (deprecated implicit flow)
+        // This should NOT happen if redirectTo is properly configured, but we handle it as a fallback
+        const hashParams = new URLSearchParams(
+          window.location.hash.substring(1)
+        );
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+
+        if (accessToken) {
+          if (isDev) {
+            console.warn(
+              '⚠️ WARNING: Tokens found in hash fragment (implicit flow). This is deprecated.'
+            );
+            console.warn(
+              '⚠️ Supabase should use PKCE flow (code in query params) when redirectTo is provided.'
+            );
+            console.warn(
+              '⚠️ Check your Supabase configuration - this should not happen in normal operation.'
+            );
+          }
+
+          // Set the session manually (fallback only)
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || '',
+          });
+
+          if (sessionError) {
+            console.error('❌ Error setting session from hash:', sessionError);
+            setErrorMessage(sessionError.message);
+            setStatus('error');
+            return;
+          }
+
+          if (data.session) {
+            console.log('✅ Session set from hash fragment (fallback)');
+            setStatus('success');
+            await refreshProfile();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            router.push('/');
+            return;
+          }
+        }
+
         // Try to get session from Supabase (might already be set)
         const {
           data: { session },
