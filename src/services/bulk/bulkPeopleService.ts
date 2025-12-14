@@ -246,8 +246,7 @@ export const bulkSyncToCRM = async (
         successCount: 0,
         errorCount: peopleIds.length,
         errors: [{ id: 'config', error: 'N8N webhook URL not configured' }],
-        message:
-          'CRM sync not configured. Please set VITE_N8N_WEBHOOK_URL in .env',
+        message: 'CRM sync not configured. Please set N8N_WEBHOOK_URL in .env',
       };
     }
 

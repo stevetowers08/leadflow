@@ -47,20 +47,32 @@ export function useClientId() {
         // PGRST116 = no rows found, which is acceptable
         // PGRST301 = table not found in schema cache (table may not exist or migration not run)
         // PGRST301 with infinite recursion = RLS policy issue (suppress error, return null)
+        // ENV_MISSING = Supabase environment variables not configured (mock client)
         // Both are acceptable - client_users table is optional for single-tenant setups
         const errorMessage = getErrorMessage(error);
+        const errorCode = (error as { code?: string })?.code;
+        const errorString = String(errorMessage || error);
+
+        // Check for suppressible errors (2025 best practice: comprehensive error detection)
         const isTableNotFound =
-          error.code === 'PGRST301' ||
-          error.code === 'PGRST116' ||
-          errorMessage?.includes('schema cache') ||
-          errorMessage?.includes('does not exist') ||
-          errorMessage?.includes('Could not find the table');
+          errorCode === 'PGRST301' ||
+          errorCode === 'PGRST116' ||
+          errorCode === 'ENV_MISSING' ||
+          errorString.includes('schema cache') ||
+          errorString.includes('does not exist') ||
+          errorString.includes('Could not find the table') ||
+          errorString.includes(
+            'Missing or invalid Supabase environment variables'
+          ) ||
+          errorString.includes('Missing Supabase environment variables') ||
+          errorString.includes('NEXT_PUBLIC_SUPABASE_URL') ||
+          errorString.includes('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 
         const isInfiniteRecursion =
-          errorMessage?.includes('infinite recursion') ||
-          errorMessage?.includes('recursion detected');
+          errorString.includes('infinite recursion') ||
+          errorString.includes('recursion detected');
 
-        // Suppress infinite recursion errors (RLS policy issue) and table not found errors
+        // Suppress infinite recursion errors (RLS policy issue), table not found errors, and env missing errors
         if (!isTableNotFound && !isInfiniteRecursion) {
           logger.error('Error fetching client ID:', errorMessage, error);
         }
@@ -104,20 +116,32 @@ export async function getClientId(): Promise<string | null> {
   if (error) {
     // PGRST116 = no rows found, PGRST301 = table not found
     // PGRST301 with infinite recursion = RLS policy issue (suppress error, return null)
+    // ENV_MISSING = Supabase environment variables not configured (mock client)
     // Both are acceptable - client_users table is optional
     const errorMessage = getErrorMessage(error);
+    const errorCode = (error as { code?: string })?.code;
+    const errorString = String(errorMessage || error);
+
+    // Check for suppressible errors (2025 best practice: comprehensive error detection)
     const isTableNotFound =
-      error.code === 'PGRST301' ||
-      error.code === 'PGRST116' ||
-      errorMessage?.includes('schema cache') ||
-      errorMessage?.includes('does not exist') ||
-      errorMessage?.includes('Could not find the table');
+      errorCode === 'PGRST301' ||
+      errorCode === 'PGRST116' ||
+      errorCode === 'ENV_MISSING' ||
+      errorString.includes('schema cache') ||
+      errorString.includes('does not exist') ||
+      errorString.includes('Could not find the table') ||
+      errorString.includes(
+        'Missing or invalid Supabase environment variables'
+      ) ||
+      errorString.includes('Missing Supabase environment variables') ||
+      errorString.includes('NEXT_PUBLIC_SUPABASE_URL') ||
+      errorString.includes('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 
     const isInfiniteRecursion =
-      errorMessage?.includes('infinite recursion') ||
-      errorMessage?.includes('recursion detected');
+      errorString.includes('infinite recursion') ||
+      errorString.includes('recursion detected');
 
-    // Suppress infinite recursion errors (RLS policy issue) and table not found errors
+    // Suppress infinite recursion errors (RLS policy issue), table not found errors, and env missing errors
     if (!isTableNotFound && !isInfiniteRecursion) {
       logger.error('Error fetching client ID:', errorMessage, error);
     }

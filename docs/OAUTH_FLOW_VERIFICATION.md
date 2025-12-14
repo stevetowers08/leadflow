@@ -9,7 +9,7 @@
 - ✅ **RLS Policies**: All 3 policies active (insert, view, update)
 - ✅ **Server Client**: Uses `createServerClient` from `@supabase/ssr` (cookies)
 - ✅ **Client Client**: Uses `createBrowserClient` from `@supabase/ssr` (reads cookies)
-- ✅ **Middleware**: Session refresh middleware configured
+- ⚠️ **Middleware**: Optional - not needed since session refresh is handled client-side
 - ✅ **Fallback Layers**: 3 layers of profile creation protection
 
 ## What Happens for New OAuth Users
@@ -78,8 +78,8 @@
 3. **Supabase** → Processes OAuth → Redirects to app: `/auth/callback?code=...`
 4. **Client** → Detects `code` → Calls `/api/auth/exchange-code`
 5. **Server** → Exchanges code → Saves session to **cookies** (HTTP-only)
-6. **Middleware** → Refreshes session on each request
-7. **Client** → `createBrowserClient` reads from **cookies** automatically
+6. **Client** → `createBrowserClient` reads from **cookies** automatically
+7. **Client** → Auto-refreshes session when needed (handled by Supabase client)
 
 ### Profile Creation Flow
 
@@ -90,7 +90,6 @@
 ## File Structure
 
 ```
-├── middleware.ts                          # Session refresh (Supabase best practice)
 ├── src/
 │   ├── integrations/supabase/
 │   │   └── client.ts                     # createBrowserClient (reads cookies)

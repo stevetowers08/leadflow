@@ -1,11 +1,15 @@
-﻿import IntegrationsPage from '@/components/IntegrationsPage';
+import IntegrationsPage from '@/components/IntegrationsPage';
 import NotificationSettings from '@/components/crm/settings/NotificationSettings';
 import ProfileSettings from '@/components/crm/settings/ProfileSettings';
-import { SettingsSidebar, getSettingsSections } from '@/components/crm/settings/SettingsSidebar';
+import {
+  SettingsSidebar,
+  getSettingsSections,
+} from '@/components/crm/settings/SettingsSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 import { usePageMeta } from '@/hooks/usePageMeta';
-import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import React, { useState, useEffect } from 'react';
 
 // Client-side mount guard wrapper
 const Settings: React.FC = () => {
@@ -34,6 +38,7 @@ const Settings: React.FC = () => {
 const SettingsContent: React.FC = () => {
   const { user, loading } = useAuth();
   const { hasRole } = usePermissions();
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState('profile');
 
   usePageMeta({
@@ -46,6 +51,13 @@ const SettingsContent: React.FC = () => {
     section => section.available && !section.isExternal
   );
 
+  // Redirect to dedicated invitations page when invitations section is selected
+  useEffect(() => {
+    if (activeSection === 'invitations') {
+      router.push('/settings/invitations');
+    }
+  }, [activeSection, router]);
+
   const renderContent = () => {
     switch (activeSection) {
       case 'profile':
@@ -57,6 +69,13 @@ const SettingsContent: React.FC = () => {
       case 'integrations':
         return <IntegrationsPage />;
 
+      case 'invitations':
+        return (
+          <div className='flex items-center justify-center py-12'>
+            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -65,8 +84,8 @@ const SettingsContent: React.FC = () => {
   return (
     <div className='flex bg-white h-full overflow-hidden'>
       {/* Left Sidebar - Settings Navigation */}
-      <SettingsSidebar 
-        activeSection={activeSection} 
+      <SettingsSidebar
+        activeSection={activeSection}
         onSectionChange={setActiveSection}
       />
 

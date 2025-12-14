@@ -1,7 +1,8 @@
 import { cn } from '@/lib/utils';
-import { Bell, Plug, User } from 'lucide-react';
+import { Bell, Plug, User, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { usePermissions } from '@/contexts/PermissionsContext';
 
 export interface SettingsSection {
   id: string;
@@ -39,6 +40,14 @@ export function getSettingsSections(): SettingsSection[] {
       available: true,
       href: '/settings',
     },
+    {
+      id: 'invitations',
+      label: 'User Invitations',
+      icon: Mail,
+      description: 'Manage user invitations and access',
+      available: true,
+      href: '/settings/invitations',
+    },
   ];
 }
 
@@ -47,15 +56,29 @@ interface SettingsSidebarProps {
   onSectionChange?: (sectionId: string) => void;
 }
 
-export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSidebarProps) {
+export function SettingsSidebar({
+  activeSection,
+  onSectionChange,
+}: SettingsSidebarProps) {
   const pathname = usePathname();
+  const { hasPermission } = usePermissions();
 
   const settingsSections = getSettingsSections();
-  const availableSections = settingsSections.filter(section => section.available);
+  const availableSections = settingsSections.filter(section => {
+    if (section.id === 'invitations') {
+      return hasPermission('users_invite');
+    }
+    return section.available;
+  });
 
   // Determine active section from pathname if not provided
-  const currentActiveSection = activeSection || 
-    (pathname?.startsWith('/settings') ? 'profile' : 'profile');
+  const currentActiveSection =
+    activeSection ||
+    (pathname?.startsWith('/settings/invitations')
+      ? 'invitations'
+      : pathname?.startsWith('/settings')
+        ? 'profile'
+        : 'profile');
 
   return (
     <div className='w-64 bg-muted border-r border-border flex flex-col flex-shrink-0'>
@@ -67,7 +90,11 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
             const isActive = currentActiveSection === section.id;
 
             // If onSectionChange is provided and section is internal, use button instead of Link
-            if (onSectionChange && !section.isExternal && section.href === '/settings') {
+            if (
+              onSectionChange &&
+              !section.isExternal &&
+              section.href === '/settings'
+            ) {
               return (
                 <button
                   key={section.id}
@@ -119,4 +146,3 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
     </div>
   );
 }
-

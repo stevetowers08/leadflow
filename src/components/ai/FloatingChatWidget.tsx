@@ -624,7 +624,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                             </div>
                             <div className='text-xs text-blue-900'>
                               This mode uses Google Gemini AI with direct access
-                              to your CRM data. Make sure VITE_GEMINI_API_KEY is
+                              to your CRM data. Make sure GEMINI_API_KEY is
                               configured in your environment.
                             </div>
                           </div>

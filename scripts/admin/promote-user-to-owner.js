@@ -11,11 +11,17 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 const SUPABASE_URL =
-  process.env.VITE_SUPABASE_URL || 'https://jedfundfhzytpnbjkspn.supabase.co';
-const SERVICE_ROLE_KEY = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.VITE_SUPABASE_URL ||
+  'https://jedfundfhzytpnbjkspn.supabase.co';
+const SERVICE_ROLE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SERVICE_ROLE_KEY) {
-  console.error('❌ Missing VITE_SUPABASE_SERVICE_ROLE_KEY in .env.local');
+  console.error(
+    '❌ Missing SUPABASE_SERVICE_ROLE_KEY (or VITE_SUPABASE_SERVICE_ROLE_KEY) in .env.local'
+  );
   console.error('Please add your service role key to .env.local file');
   process.exit(1);
 }

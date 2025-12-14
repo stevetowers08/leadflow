@@ -8,13 +8,18 @@
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config({ path: '.env.local' });
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const serviceRoleKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const serviceRoleKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
   console.error('❌ Missing required environment variables:');
-  console.error('   VITE_SUPABASE_URL');
-  console.error('   VITE_SUPABASE_SERVICE_ROLE_KEY');
+  console.error('   NEXT_PUBLIC_SUPABASE_URL (or VITE_SUPABASE_URL)');
+  console.error(
+    '   SUPABASE_SERVICE_ROLE_KEY (or VITE_SUPABASE_SERVICE_ROLE_KEY)'
+  );
   console.error('');
   console.error('Please check your .env.local file');
   process.exit(1);

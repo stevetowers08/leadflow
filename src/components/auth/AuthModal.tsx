@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -60,39 +61,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
     } catch (err) {
       console.error('Google sign-in error:', err);
-      const errorMessage =
-        err instanceof Error ? err.message : 'An unexpected error occurred';
-      setError(errorMessage);
-      setLoading(null);
-    }
-  };
-
-  const handleLinkedInSignIn = async () => {
-    setLoading('linkedin');
-    setError(null);
-
-    try {
-      const linkedinClientId = import.meta.env.LINKEDIN_CLIENT_ID;
-      if (
-        !linkedinClientId ||
-        linkedinClientId.includes('your-linkedin-client-id')
-      ) {
-        setError(
-          'LinkedIn OAuth is not configured. Please contact your administrator.'
-        );
-        setLoading(null);
-        return;
-      }
-
-      // LinkedIn sign-in removed - feature not available
-      const error: Error = new Error('LinkedIn sign-in is not available');
-
-      if (error) {
-        setError(error.message);
-        setLoading(null);
-      }
-    } catch (err) {
-      console.error('LinkedIn sign-in error:', err);
       const errorMessage =
         err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(errorMessage);
@@ -155,6 +123,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     try {
+      // Check if public sign-ups are disabled (invitation-only mode)
+      const { data: invitation } = await supabase
+        .from('invitations')
+        .select('*')
+        .eq('email', email.toLowerCase())
+        .eq('status', 'pending')
+        .single();
+
+      if (!invitation) {
+        setError(
+          'Sign-ups are invitation-only. Please contact your administrator for an invitation.'
+        );
+        setLoading(null);
+        return;
+      }
+
       const { registerNewClient } =
         await import('@/services/clientRegistrationService');
 
@@ -170,6 +154,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setError(result.error || 'Failed to create account');
         setLoading(null);
         return;
+      }
+
+      // Update invitation status if account created successfully
+      if (invitation) {
+        await supabase
+          .from('invitations')
+          .update({
+            status: 'accepted',
+            accepted_at: new Date().toISOString(),
+            accepted_by: result.userProfile?.id,
+          })
+          .eq('id', invitation.id);
       }
 
       // Success - close modal and show success message
@@ -261,31 +257,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                           />
                         </svg>
                         Continue with Google
-                      </>
-                    )}
-                  </Button>
-
-                  {/* LinkedIn Button */}
-                  <Button
-                    onClick={handleLinkedInSignIn}
-                    className='w-full h-10 bg-linkedin-blue hover:bg-linkedin-blue-dark text-white font-medium rounded-md flex items-center justify-center'
-                    disabled={loading !== null}
-                  >
-                    {loading === 'linkedin' ? (
-                      <>
-                        <Loader2 className='mr-3 h-4 w-4 animate-spin' />
-                        Signing in...
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          className='mr-3 h-4 w-4'
-                          viewBox='0 0 24 24'
-                          fill='currentColor'
-                        >
-                          <path d='M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z' />
-                        </svg>
-                        Continue with LinkedIn
                       </>
                     )}
                   </Button>
@@ -420,31 +391,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                           />
                         </svg>
                         Continue with Google
-                      </>
-                    )}
-                  </Button>
-
-                  {/* LinkedIn Button */}
-                  <Button
-                    onClick={handleLinkedInSignIn}
-                    className='w-full h-10 bg-linkedin-blue hover:bg-linkedin-blue-dark text-white font-medium rounded-md flex items-center justify-center'
-                    disabled={loading !== null}
-                  >
-                    {loading === 'linkedin' ? (
-                      <>
-                        <Loader2 className='mr-3 h-4 w-4 animate-spin' />
-                        Signing up...
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          className='mr-3 h-4 w-4'
-                          viewBox='0 0 24 24'
-                          fill='currentColor'
-                        >
-                          <path d='M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z' />
-                        </svg>
-                        Continue with LinkedIn
                       </>
                     )}
                   </Button>

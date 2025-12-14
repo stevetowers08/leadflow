@@ -23,11 +23,6 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-service-key-
 VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 
-# LinkedIn Integration
-LINKEDIN_CLIENT_ID=your-linkedin-client-id
-LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
-LINKEDIN_REDIRECT_URI=https://your-domain.com/auth/linkedin-callback
-
 # MCP Server Configuration
 PORT=3000
 NODE_ENV=production

@@ -2,15 +2,39 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+  let supabaseResponse = NextResponse.next({
+    request,
   });
 
+  // Validate environment variables with strict checks (2025 best practice)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const isValidUrl =
+    supabaseUrl &&
+    typeof supabaseUrl === 'string' &&
+    supabaseUrl.trim().length > 0;
+  const isValidKey =
+    supabaseAnonKey &&
+    typeof supabaseAnonKey === 'string' &&
+    supabaseAnonKey.trim().length > 0;
+
+  // If environment variables are missing, skip Supabase auth and allow request to proceed
+  // This prevents the middleware from crashing the app (2025 best practice)
+  if (!isValidUrl || !isValidKey) {
+    // In development, log a warning but don't block requests
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(
+        '⚠️ Middleware: Missing Supabase environment variables. Skipping authentication checks.'
+      );
+    }
+    // Allow request to proceed without auth checks
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl.trim(),
+    supabaseAnonKey.trim(),
     {
       cookies: {
         getAll() {
@@ -20,21 +44,60 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          response = NextResponse.next({
+          supabaseResponse = NextResponse.next({
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options)
           );
         },
       },
     }
   );
 
-  // Refresh session if expired - this will update cookies automatically
-  await supabase.auth.getUser();
+  // Safely get user, handle errors gracefully
+  let user = null;
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    user = authUser;
+  } catch (error) {
+    // If auth check fails, log in development but don't block request
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Middleware: Failed to get user:', error);
+    }
+  }
 
-  return response;
+  // Protect routes that require authentication
+  // Only enforce auth if Supabase is properly configured
+  const isProtectedRoute =
+    request.nextUrl.pathname.startsWith('/dashboard') ||
+    request.nextUrl.pathname.startsWith('/leads') ||
+    request.nextUrl.pathname.startsWith('/campaigns') ||
+    request.nextUrl.pathname.startsWith('/settings');
+
+  // Allow auth routes and public routes
+  const isAuthRoute =
+    request.nextUrl.pathname.startsWith('/auth') ||
+    request.nextUrl.pathname === '/sign-in' ||
+    request.nextUrl.pathname === '/';
+
+  // Only enforce auth checks if Supabase is configured
+  if (isValidUrl && isValidKey) {
+    if (isProtectedRoute && !user) {
+      const redirectUrl = new URL('/sign-in', request.url);
+      redirectUrl.searchParams.set('redirectedFrom', request.nextUrl.pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Redirect authenticated users away from auth pages
+    if (isAuthRoute && user && request.nextUrl.pathname !== '/') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
+  return supabaseResponse;
 }
 
 export const config = {
@@ -44,7 +107,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder files
+     * - public folder
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

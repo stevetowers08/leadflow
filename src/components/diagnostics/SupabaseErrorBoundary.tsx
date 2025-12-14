@@ -72,7 +72,7 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
       'database',
       'connection',
       'environment',
-      'VITE_SUPABASE',
+      'NEXT_PUBLIC_SUPABASE',
       'fetch',
     ];
 
@@ -88,7 +88,7 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
     if (this.isSupabaseError(error)) {
       if (
         error.message.includes('environment') ||
-        error.message.includes('VITE_SUPABASE')
+        error.message.includes('NEXT_PUBLIC_SUPABASE')
       ) {
         return 'Environment Configuration Error';
       }
@@ -124,11 +124,13 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
     if (this.isSupabaseError(error)) {
       if (
         error.message.includes('environment') ||
-        error.message.includes('VITE_SUPABASE')
+        error.message.includes('NEXT_PUBLIC_SUPABASE')
       ) {
         suggestions.push('Check your .env file configuration');
         suggestions.push('Verify Supabase URL and API keys are correct');
-        suggestions.push('Ensure environment variables start with VITE_');
+        suggestions.push(
+          'Ensure environment variables start with NEXT_PUBLIC_'
+        );
       }
       if (error.message.includes('auth')) {
         suggestions.push('Check your authentication configuration');
@@ -174,7 +176,9 @@ export class SupabaseErrorBoundary extends Component<Props, State> {
 
             {/* Error Message */}
             <div className='bg-red-50 border border-red-200 rounded-md p-4 mb-4'>
-              <h3 className='m-0 mb-2 text-red-900 text-sm font-bold'>Error Details:</h3>
+              <h3 className='m-0 mb-2 text-red-900 text-sm font-bold'>
+                Error Details:
+              </h3>
               <p className='text-red-800 text-xs font-mono m-0 break-words'>
                 {this.state.error.message}
               </p>
