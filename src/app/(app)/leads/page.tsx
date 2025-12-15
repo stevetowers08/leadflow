@@ -17,6 +17,7 @@ import {
   Calendar,
   Upload,
   Bolt,
+  Building2,
 } from 'lucide-react';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import type { Lead } from '@/types/database';
@@ -254,17 +255,29 @@ export default function LeadsPage() {
             lead.enrichment_status === 'enriching' ||
             lead.enrichment_status === 'pending';
           const isEnriched = lead.enrichment_status === 'completed';
+          const companyName = lead.company || '-';
 
           return (
             <div className='flex items-center gap-2'>
               {isEnriching ? (
                 <CellLoadingSpinner size='sm' />
               ) : (
-                <span
-                  className={cn(isEnriched && lead.company && 'font-medium')}
-                >
-                  {lead.company || '-'}
-                </span>
+                <>
+                  {companyName === '-' ? (
+                    <span className='text-muted-foreground'>-</span>
+                  ) : (
+                    <Badge
+                      variant='outline'
+                      className={cn(
+                        'rounded-full px-2 py-0.5 text-xs font-medium bg-muted/60 flex items-center gap-1',
+                        isEnriched && 'border-primary/40'
+                      )}
+                    >
+                      <Building2 className='h-3 w-3 text-muted-foreground' />
+                      <span>{companyName}</span>
+                    </Badge>
+                  )}
+                </>
               )}
             </div>
           );

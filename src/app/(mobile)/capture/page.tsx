@@ -716,7 +716,17 @@ export default function CapturePage() {
         <div className='flex items-center gap-3'>
           {(showName || showDate) && (
             <div className='text-white text-xs bg-white/20 px-2 py-1 rounded'>
-              {showName || 'Show'}
+              <span>{showName || 'Show'}</span>
+              {showDate && (
+                <span className='ml-1 opacity-80'>
+                  ·{' '}
+                  {new Date(showDate).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </span>
+              )}
             </div>
           )}
           <Button
