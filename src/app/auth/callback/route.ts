@@ -10,6 +10,11 @@ import { cookies } from 'next/headers';
  *
  * Reference: https://supabase.com/docs/guides/auth/server-side/nextjs
  */
+
+// Force dynamic rendering - this route must be server-rendered
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
@@ -17,14 +22,15 @@ export async function GET(request: NextRequest) {
   const errorDescription = requestUrl.searchParams.get('error_description');
   const next = requestUrl.searchParams.get('next') || '/'; // Support redirect to original page
 
-  // Handle OAuth errors - pass to page component for user-friendly display
-  // In Next.js App Router, route handlers take precedence, but we can use
-  // NextResponse.next() to let the page component handle error display
+  // Handle OAuth errors - redirect to home with error params
   if (error) {
     console.error('OAuth error:', { error, errorDescription });
-    // Let the page component handle error display
-    // The page.tsx will read the error params from the URL
-    return NextResponse.next();
+    const errorUrl = new URL('/', request.url);
+    errorUrl.searchParams.set('auth_error', error);
+    if (errorDescription) {
+      errorUrl.searchParams.set('error_description', errorDescription);
+    }
+    return NextResponse.redirect(errorUrl);
   }
 
   // If no code, redirect to home (might be a refresh or direct access)
@@ -64,21 +70,18 @@ export async function GET(request: NextRequest) {
 
     if (exchangeError) {
       console.error('Failed to exchange code for session:', exchangeError);
-      // Add error to URL and let page component handle display
-      requestUrl.searchParams.set('error', 'exchange_failed');
-      requestUrl.searchParams.set('error_description', exchangeError.message);
-      return NextResponse.next();
+      const errorUrl = new URL('/', request.url);
+      errorUrl.searchParams.set('auth_error', 'exchange_failed');
+      errorUrl.searchParams.set('error_description', exchangeError.message);
+      return NextResponse.redirect(errorUrl);
     }
 
     if (!data.session) {
       console.error('No session created after code exchange');
-      // Add error to URL and let page component handle display
-      requestUrl.searchParams.set('error', 'no_session');
-      requestUrl.searchParams.set(
-        'error_description',
-        'No session was created'
-      );
-      return NextResponse.next();
+      const errorUrl = new URL('/', request.url);
+      errorUrl.searchParams.set('auth_error', 'no_session');
+      errorUrl.searchParams.set('error_description', 'No session was created');
+      return NextResponse.redirect(errorUrl);
     }
 
     // Ensure user profile exists
@@ -123,12 +126,12 @@ export async function GET(request: NextRequest) {
     return redirectResponse;
   } catch (error) {
     console.error('Unexpected error in OAuth callback:', error);
-    // Add error to URL and let page component handle display
-    requestUrl.searchParams.set('error', 'unexpected_error');
-    requestUrl.searchParams.set(
+    const errorUrl = new URL('/', request.url);
+    errorUrl.searchParams.set('auth_error', 'unexpected_error');
+    errorUrl.searchParams.set(
       'error_description',
       error instanceof Error ? error.message : 'An unexpected error occurred'
     );
-    return NextResponse.next();
+    return NextResponse.redirect(errorUrl);
   }
 }
