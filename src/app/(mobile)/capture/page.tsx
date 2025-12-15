@@ -287,10 +287,25 @@ export default function CapturePage() {
 
         if (!ocrResponse.ok) {
           const errorData = await ocrResponse.json().catch(() => ({}));
-          throw new Error(
+
+          // Provide more specific error messages based on status code
+          let errorMessage =
             errorData.error ||
-              `OCR processing failed: ${ocrResponse.statusText}`
-          );
+            `OCR processing failed: ${ocrResponse.statusText}`;
+
+          if (ocrResponse.status === 503) {
+            errorMessage =
+              'OCR service is temporarily unavailable. Please try again later or contact support.';
+          } else if (ocrResponse.status === 429) {
+            errorMessage =
+              errorData.error ||
+              'OCR service rate limit exceeded. Please try again in a moment.';
+          } else if (ocrResponse.status >= 500) {
+            errorMessage =
+              'OCR service error. Please try again or contact support if the issue persists.';
+          }
+
+          throw new Error(errorMessage);
         }
 
         const responseData = await ocrResponse.json();
@@ -314,10 +329,18 @@ export default function CapturePage() {
               'Request timed out. Please check your connection and try again.';
           } else if (
             error.message.includes('network') ||
-            error.message.includes('fetch')
+            error.message.includes('fetch') ||
+            error.message.includes('Failed to fetch')
           ) {
+            // More specific network error message
             errorMessage =
-              'Network error. Please check your connection and try again.';
+              'Unable to connect to OCR service. Please check your internet connection and try again.';
+          } else if (
+            error.message.includes('service') ||
+            error.message.includes('unavailable')
+          ) {
+            // Service configuration errors
+            errorMessage = error.message;
           } else {
             errorMessage = error.message;
           }

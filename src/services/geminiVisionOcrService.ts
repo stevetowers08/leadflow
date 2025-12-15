@@ -64,13 +64,16 @@ export async function extractBusinessCardWithGemini(
   imageData: string | File | Blob,
   apiKey?: string
 ): Promise<BusinessCardData> {
-  const apiKeyToUse =
+  // Trim whitespace/newlines that might be present in env vars
+  const apiKeyToUse = (
     apiKey ||
     (typeof window === 'undefined'
       ? process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY
       : process.env.NEXT_PUBLIC_GEMINI_API_KEY) ||
     process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
-    process.env.VITE_GEMINI_API_KEY; // Fallback for legacy Vite format
+    process.env.VITE_GEMINI_API_KEY
+  ) // Fallback for legacy Vite format
+    ?.trim();
 
   if (!apiKeyToUse) {
     throw new Error(
@@ -118,7 +121,8 @@ export async function extractBusinessCardWithGemini(
 
   // Initialize Gemini
   const genAI = new GoogleGenerativeAI(apiKeyToUse);
-  // Use stable model (gemini-2.0-flash-001) instead of experimental for better quota limits
+  // Use stable model (gemini-2.0-flash-001) - supports vision/OCR
+  // Note: gemini-2.5-flash also available but 2.0-flash-001 is stable and supports OCR
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-001' });
 
   const prompt = `Extract all information from this business card image. 
@@ -145,14 +149,16 @@ Rules:
 - Do not include any text outside the JSON object`;
 
   try {
+    // Best practice: Image first, then prompt for better OCR results
+    // The SDK accepts array of parts where order matters for context
     const result = await model.generateContent([
-      prompt,
       {
         inlineData: {
           data: base64Data,
           mimeType: `image/${mimeType}`,
         },
       },
+      prompt,
     ]);
 
     const response = await result.response;
