@@ -32,7 +32,7 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Call Google AI API
-    const googleApiKey = Deno.env.get('GOOGLE_AI_API_KEY');
+    const googleApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!googleApiKey) {
       throw new Error('Google AI API key not configured');
     }
