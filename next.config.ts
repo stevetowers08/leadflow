@@ -46,6 +46,9 @@ const nextConfig: NextConfig = {
     // Server-only variables (no prefix) are automatically server-only
   },
 
+  // External packages that should not be bundled (moved from experimental)
+  serverExternalPackages: [],
+
   // Experimental features for Next.js 16 - 2025 Mobile Optimizations
   experimental: {
     // Optimize package imports for smaller bundles
@@ -59,8 +62,6 @@ const nextConfig: NextConfig = {
     ],
     // Enable modern CSS features
     optimizeCss: true,
-    // Server components optimizations
-    serverComponentsExternalPackages: [],
   },
 
   // TypeScript configuration

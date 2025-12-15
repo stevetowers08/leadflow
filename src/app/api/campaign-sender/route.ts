@@ -1,5 +1,4 @@
-// API route for Vercel cron job to trigger campaign sender
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { NextRequest, NextResponse } from 'next/server';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,20 +7,30 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE',
 };
 
-serve(async req => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: corsHeaders,
-    });
-  }
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
+export async function OPTIONS() {
+  return new NextResponse('ok', {
+    headers: corsHeaders,
+  });
+}
+
+export async function GET(request: NextRequest) {
+  return handleRequest(request);
+}
+
+export async function POST(request: NextRequest) {
+  return handleRequest(request);
+}
+
+async function handleRequest(request: NextRequest) {
   try {
     console.log('🕐 Cron job triggered campaign sender');
 
     // Call the Supabase Edge Function
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error('Missing Supabase environment variables');
@@ -48,31 +57,31 @@ serve(async req => {
     const result = await response.json();
     console.log('✅ Campaign sender completed:', result);
 
-    return new Response(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         success: true,
         message: 'Cron job executed successfully',
         campaignResult: result,
         timestamp: new Date().toISOString(),
-      }),
+      },
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: corsHeaders,
         status: 200,
       }
     );
   } catch (error) {
     console.error('💥 Cron job error:', error);
 
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString(),
-      }),
+    return NextResponse.json(
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      {
+        headers: corsHeaders,
         status: 500,
       }
     );
   }
-});
+}
