@@ -9,6 +9,10 @@ export const maxDuration = 60;
  * Security: Verifies Authorization header matches CRON_SECRET
  * Schedule: Daily at midnight (0 0 * * *) as configured in vercel.json
  *
+ * TODO: Set CRON_SECRET in Vercel for production security
+ *   Run: vercel env add CRON_SECRET production
+ *   Generate secret: openssl rand -hex 32
+ *
  * @see https://vercel.com/docs/cron-jobs
  */
 export async function GET(request: NextRequest) {
