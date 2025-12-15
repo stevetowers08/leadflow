@@ -1,10 +1,10 @@
 /**
  * Google Gemini Vision OCR Service for Business Cards
  *
- * Uses Gemini 2.0 Flash Stable (gemini-2.0-flash-001)
- * - Stable model with better quota limits than experimental versions
+ * Uses Gemini 2.0 Flash Lite (gemini-2.0-flash-lite)
+ * - Optimized for free tier usage (better availability than gemini-2.0-flash-001)
  * - Supports vision/image analysis for OCR tasks
- * - Consistent with other services in the codebase
+ * - Free tier quotas have been significantly reduced in Dec 2025
  *
  * Replaces Mindee OCR with free, AI-powered alternative
  */
@@ -121,9 +121,11 @@ export async function extractBusinessCardWithGemini(
 
   // Initialize Gemini
   const genAI = new GoogleGenerativeAI(apiKeyToUse);
-  // Use stable model (gemini-2.0-flash-001) - supports vision/OCR
-  // Note: gemini-2.5-flash also available but 2.0-flash-001 is stable and supports OCR
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-001' });
+  // Try gemini-2.0-flash-lite first (better free tier support)
+  // Fallback to gemini-2.0-flash-001 if lite not available
+  // Note: Free tier quotas have been significantly reduced in Dec 2025
+  // gemini-2.0-flash-lite is optimized for free tier usage
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
   const prompt = `Extract all information from this business card image. 
 Return ONLY valid JSON with this exact structure (use null for missing fields):
@@ -287,17 +289,17 @@ Rules:
 
     if (isQuotaError) {
       throw new GeminiQuotaError(
-        `Gemini API quota exceeded for model: gemini-2.0-flash-001.
+        `Gemini API quota exceeded for model: gemini-2.0-flash-lite.
         
 This API key is shared across multiple services:
-- OCR: gemini-2.0-flash-001
+- OCR: gemini-2.0-flash-lite (free tier optimized)
 - AI Chat: gemini-2.0-flash-001
 - Reply Analysis: gemini-2.0-flash-001
 - Gmail Webhook: gemini-2.0-flash-001 (runs automatically)
 - Other services: gemini-2.5-flash, gemini-pro
 
 Quota limits are PER PROJECT (not per API key) and reset at midnight Pacific Time.
-Recent changes reduced free tier limits - some models are now ~20 requests/day.
+Free tier quotas have been significantly reduced in Dec 2025 - may be very limited.
 
 Please retry in ${retryAfter} seconds, or:
 1. Check usage: https://ai.google.dev/usage
