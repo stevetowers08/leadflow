@@ -105,6 +105,20 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
 
       try {
         const { supabase } = await import('@/integrations/supabase/client');
+
+        // Check cookies first for debugging
+        if (typeof document !== 'undefined') {
+          const cookies = document.cookie.split(';').map(c => c.trim());
+          const supabaseCookies = cookies.filter(
+            c => c.startsWith('sb-') || c.includes('supabase')
+          );
+          console.log('🍪 Available cookies:', {
+            total: cookies.length,
+            supabaseCookies: supabaseCookies.length,
+            cookieNames: supabaseCookies.map(c => c.split('=')[0]),
+          });
+        }
+
         const {
           data: { session },
           error: sessionError,
@@ -116,6 +130,10 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
           userId: session?.user?.id,
           email: session?.user?.email,
           error: sessionError?.message,
+          pathname:
+            typeof window !== 'undefined'
+              ? window.location.pathname
+              : 'unknown',
         });
 
         setHasSession(hasValidSession);
@@ -127,25 +145,34 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
       }
     };
 
-    checkSession();
+    // Initial delay to allow cookies to be set after redirect
+    const initialDelay = setTimeout(() => {
+      checkSession();
+    }, 100);
 
     // Re-check session periodically if we don't have a user in context yet
     // This handles the race condition where session exists but context hasn't updated
+    // Increased timeout to 10 seconds for OAuth callback scenarios
     if (!user && !bypassAuth) {
       const interval = setInterval(() => {
         checkSession();
       }, 500);
 
-      // Clear interval after 5 seconds or when user appears
+      // Clear interval after 10 seconds (increased from 5)
       const timeout = setTimeout(() => {
         clearInterval(interval);
-      }, 5000);
+      }, 10000);
 
       return () => {
+        clearTimeout(initialDelay);
         clearInterval(interval);
         clearTimeout(timeout);
       };
     }
+
+    return () => {
+      clearTimeout(initialDelay);
+    };
   }, [bypassAuth, user]);
 
   // Check if user explicitly signed out in bypass mode

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -10,6 +10,8 @@ import { getLeadStats, getLeads } from '@/services/leadsService';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
 import { Users, Flame, Zap, Snowflake, Clock } from 'lucide-react';
+import { toast } from '@/utils/toast';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 /**
  * Overview Page - PDR Section 5.2
@@ -19,6 +21,46 @@ import { Users, Flame, Zap, Snowflake, Clock } from 'lucide-react';
  */
 const OverviewPage = React.memo(function OverviewPage() {
   const { user, loading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Handle OAuth errors from callback route
+  useEffect(() => {
+    const authError = searchParams.get('auth_error');
+    const errorDescription = searchParams.get('error_description');
+
+    if (authError) {
+      // Show user-friendly error message
+      let errorMessage = 'Authentication failed';
+
+      switch (authError) {
+        case 'exchange_failed':
+          errorMessage = 'Failed to complete sign-in. Please try again.';
+          break;
+        case 'no_session':
+          errorMessage =
+            'Session could not be created. Please try signing in again.';
+          break;
+        case 'unexpected_error':
+          errorMessage =
+            errorDescription || 'An unexpected error occurred during sign-in.';
+          break;
+        default:
+          errorMessage = errorDescription || 'Authentication error occurred.';
+      }
+
+      toast.error('Sign-in Failed', {
+        description: errorMessage,
+        duration: 8000,
+      });
+
+      // Clean up URL params
+      const url = new URL(window.location.href);
+      url.searchParams.delete('auth_error');
+      url.searchParams.delete('error_description');
+      router.replace(url.pathname + url.search, { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const { data: stats } = useQuery({
     queryKey: ['lead-stats'],

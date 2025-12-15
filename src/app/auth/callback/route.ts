@@ -39,14 +39,32 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Validate environment variables before proceeding
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ Missing Supabase environment variables:', {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseAnonKey,
+      });
+      const errorUrl = new URL('/', request.url);
+      errorUrl.searchParams.set('auth_error', 'configuration_error');
+      errorUrl.searchParams.set(
+        'error_description',
+        'Server configuration error. Please contact support.'
+      );
+      return NextResponse.redirect(errorUrl);
+    }
+
     // Create Supabase client with proper cookie handling for route handlers
     // Best practice: Create response object first, then set cookies on it during exchange
     const cookieStore = await cookies();
     const redirectResponse = NextResponse.redirect(new URL(next, request.url));
 
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      supabaseUrl.trim(),
+      supabaseAnonKey.trim(),
       {
         cookies: {
           getAll() {
