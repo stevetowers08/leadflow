@@ -1,13 +1,16 @@
 /**
  * OCR Processing API Route
- * 
+ *
  * PDR Section: Technical Specifications - OCR Implementation
  * Processes business card images using Google Gemini Vision API
  * Free tier: 15 RPM, 1,500 RPD
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { extractBusinessCardWithGemini } from '@/services/geminiVisionOcrService';
+import {
+  extractBusinessCardWithGemini,
+  GeminiQuotaError,
+} from '@/services/geminiVisionOcrService';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -43,7 +46,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Process with Gemini Vision OCR (server-side, use GEMINI_API_KEY)
-    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    const apiKey =
+      process.env.GEMINI_API_KEY ||
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
+      process.env.VITE_GEMINI_API_KEY; // Fallback for legacy Vite format
     const result = await extractBusinessCardWithGemini(imageFile, apiKey);
 
     return NextResponse.json({
@@ -52,15 +58,36 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('OCR processing error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
+
+    // Handle quota errors with 429 status
+    if (error instanceof GeminiQuotaError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          retryAfter: error.retryAfter,
+          code: 'QUOTA_EXCEEDED',
+        },
+        {
+          status: 429,
+          headers: error.retryAfter
+            ? {
+                'Retry-After': String(error.retryAfter),
+              }
+            : undefined,
+        }
+      );
+    }
+
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to process image';
     const errorStack = error instanceof Error ? error.stack : undefined;
     return NextResponse.json(
       {
         error: errorMessage,
-        details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+        details:
+          process.env.NODE_ENV === 'development' ? errorStack : undefined,
       },
       { status: 500 }
     );
   }
 }
-
