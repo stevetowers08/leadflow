@@ -28,7 +28,13 @@ import {
   type ImportResult,
   type FieldMapping,
 } from '@/services/bulk/bulkPeopleImportService';
-import { Upload, FileText, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import {
+  Upload,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+} from 'lucide-react';
 import React, { useState, useCallback } from 'react';
 import { toast } from '@/utils/toast';
 
@@ -50,9 +56,37 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
   const [skipDuplicates, setSkipDuplicates] = useState(true);
 
   const handleFileSelect = useCallback((selectedFile: File) => {
+    // Validate file extension
     if (!selectedFile.name.endsWith('.csv')) {
       toast.error('Invalid file type', {
         description: 'Please select a CSV file',
+      });
+      return;
+    }
+
+    // Validate MIME type for better security
+    const validMimeTypes = [
+      'text/csv',
+      'application/csv',
+      'text/plain',
+      'application/vnd.ms-excel',
+    ];
+    if (
+      selectedFile.type &&
+      !validMimeTypes.includes(selectedFile.type) &&
+      !selectedFile.type.includes('csv')
+    ) {
+      toast.error('Invalid file type', {
+        description: 'File must be a CSV file',
+      });
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      toast.error('File too large', {
+        description: `Maximum file size is ${MAX_FILE_SIZE / 1024 / 1024}MB`,
       });
       return;
     }
@@ -102,7 +136,7 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
         file,
         undefined, // Use default field mappings
         skipDuplicates,
-        (progressUpdate) => {
+        progressUpdate => {
           setProgress(progressUpdate);
         }
       );
@@ -126,7 +160,7 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
     } finally {
       setIsImporting(false);
     }
-  }, [file, skipDuplicates, toast, onImportComplete]);
+  }, [file, skipDuplicates, onImportComplete]);
 
   const handleClose = useCallback(() => {
     if (!isImporting) {
@@ -170,9 +204,10 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
                 <input
                   id='csv-file-input'
                   type='file'
-                  accept='.csv'
+                  accept='.csv,text/csv,application/csv'
                   onChange={handleFileInputChange}
                   className='hidden'
+                  aria-label='Select CSV file to import'
                 />
               </label>
               <p className='text-xs text-muted-foreground mt-4'>
@@ -207,7 +242,7 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
                   type='checkbox'
                   id='skip-duplicates'
                   checked={skipDuplicates}
-                  onChange={(e) => setSkipDuplicates(e.target.checked)}
+                  onChange={e => setSkipDuplicates(e.target.checked)}
                   className='rounded'
                 />
                 <label
@@ -248,7 +283,9 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
                   )}
                   <div className='flex-1'>
                     <AlertTitle>
-                      {result.success ? 'Import Complete' : 'Import Completed with Errors'}
+                      {result.success
+                        ? 'Import Complete'
+                        : 'Import Completed with Errors'}
                     </AlertTitle>
                     <AlertDescription>{result.message}</AlertDescription>
                   </div>
@@ -257,18 +294,24 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
 
               <div className='grid grid-cols-3 gap-2 text-sm'>
                 <div className='p-3 rounded-lg bg-green-50 border border-green-200'>
-                  <p className='font-semibold text-green-700'>{result.successCount}</p>
+                  <p className='font-semibold text-green-700'>
+                    {result.successCount}
+                  </p>
                   <p className='text-xs text-green-600'>Imported</p>
                 </div>
                 {result.errorCount > 0 && (
                   <div className='p-3 rounded-lg bg-red-50 border border-red-200'>
-                    <p className='font-semibold text-red-700'>{result.errorCount}</p>
+                    <p className='font-semibold text-red-700'>
+                      {result.errorCount}
+                    </p>
                     <p className='text-xs text-red-600'>Errors</p>
                   </div>
                 )}
                 {result.skippedCount > 0 && (
                   <div className='p-3 rounded-lg bg-yellow-50 border border-yellow-200'>
-                    <p className='font-semibold text-yellow-700'>{result.skippedCount}</p>
+                    <p className='font-semibold text-yellow-700'>
+                      {result.skippedCount}
+                    </p>
                     <p className='text-xs text-yellow-600'>Skipped</p>
                   </div>
                 )}
@@ -280,7 +323,10 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
                   <p className='text-sm font-medium mb-2'>Error Details:</p>
                   <div className='space-y-1'>
                     {result.errors.slice(0, 10).map((error, index) => (
-                      <div key={index} className='text-xs text-muted-foreground'>
+                      <div
+                        key={index}
+                        className='text-xs text-muted-foreground'
+                      >
                         <span className='font-medium'>Row {error.row}:</span>{' '}
                         {error.error}
                       </div>
@@ -302,7 +348,8 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
                     <div className='flex-1'>
                       <AlertTitle>Warnings</AlertTitle>
                       <AlertDescription>
-                        {result.warnings.length} record(s) were skipped as duplicates
+                        {result.warnings.length} record(s) were skipped as
+                        duplicates
                       </AlertDescription>
                     </div>
                   </div>
@@ -313,7 +360,11 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
         </div>
 
         <DialogFooter>
-          <Button variant='outline' onClick={handleClose} disabled={isImporting}>
+          <Button
+            variant='outline'
+            onClick={handleClose}
+            disabled={isImporting}
+          >
             {result ? 'Close' : 'Cancel'}
           </Button>
           {file && !isImporting && !result && (
@@ -335,4 +386,3 @@ export const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
     </Dialog>
   );
 };
-

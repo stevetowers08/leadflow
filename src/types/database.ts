@@ -141,6 +141,7 @@ export interface Lead {
   workflow_status: 'active' | 'paused' | 'completed' | null;
   enrichment_data: Metadata | null;
   enrichment_timestamp: string | null;
+  enrichment_status: 'pending' | 'enriching' | 'completed' | 'failed' | null;
   gmail_thread_id: string | null;
   show_name: string | null; // Exhibition/show name where lead was captured
   show_date: string | null; // Exhibition/show date (ISO date string)

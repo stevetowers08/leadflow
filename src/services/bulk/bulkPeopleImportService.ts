@@ -286,7 +286,9 @@ async function transformRow(
     errors.push('First name or last name is required');
   }
 
-  leadData.created_at = new Date().toISOString();
+  const now = new Date().toISOString();
+  leadData.created_at = now;
+  leadData.updated_at = now;
   leadData.status = leadData.status || 'active';
 
   return {
@@ -359,6 +361,30 @@ export async function bulkImportPeople(
   let skippedCount = 0;
 
   try {
+    // Get current user for user_id assignment
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return {
+        success: false,
+        successCount: 0,
+        errorCount: 0,
+        skippedCount: 0,
+        errors: [
+          {
+            row: 0,
+            error: 'User not authenticated. Please sign in to import leads.',
+          },
+        ],
+        warnings: [],
+        message: 'Authentication required',
+      };
+    }
+
+    const userId = user.id;
     // Validate file
     if (file.size > MAX_FILE_SIZE) {
       return {
@@ -449,6 +475,8 @@ export async function bulkImportPeople(
         }
       }
 
+      // Add user_id to each lead
+      personData.user_id = userId;
       currentBatch.push(personData);
 
       if (currentBatch.length >= BATCH_SIZE) {
@@ -468,13 +496,16 @@ export async function bulkImportPeople(
     }
 
     // Insert batches
-    for (const batch of batches) {
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
       const { error } = await supabase.from('leads').insert(batch);
 
       if (error) {
+        // More accurate row calculation for batch errors
+        const startRow = batchIndex * BATCH_SIZE + 2; // +2 for header row and 0-index
         batch.forEach((_, index) => {
           errors.push({
-            row: batches.indexOf(batch) * BATCH_SIZE + index + 2,
+            row: startRow + index,
             error: error.message,
           });
         });

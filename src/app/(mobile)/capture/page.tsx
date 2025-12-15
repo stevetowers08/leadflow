@@ -52,6 +52,15 @@ export default function CapturePage() {
   const [showSettings, setShowSettings] = useState(false);
   const [showName, setShowName] = useState<string>('');
   const [showDate, setShowDate] = useState<string>('');
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [manualData, setManualData] = useState({
+    firstName: '',
+    lastName: '',
+    company: '',
+    email: '',
+    jobTitle: '',
+    phone: '',
+  });
   const { user } = useAuth();
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -192,18 +201,144 @@ export default function CapturePage() {
     setIsCameraActive(false);
   };
 
+  const validateLeadData = (
+    firstName: string | null,
+    lastName: string | null,
+    company: string | null,
+    email?: string | null
+  ): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    const MIN_LENGTH = 2;
+    const MAX_LENGTH = 255; // Database field limit
+
+    // Validate first name
+    if (!firstName || firstName.trim().length < MIN_LENGTH) {
+      errors.push(
+        `First name is required and must be at least ${MIN_LENGTH} characters`
+      );
+    } else if (firstName.trim().length > MAX_LENGTH) {
+      errors.push(`First name must be no more than ${MAX_LENGTH} characters`);
+    }
+
+    // Validate last name
+    if (!lastName || lastName.trim().length < MIN_LENGTH) {
+      errors.push(
+        `Last name is required and must be at least ${MIN_LENGTH} characters`
+      );
+    } else if (lastName.trim().length > MAX_LENGTH) {
+      errors.push(`Last name must be no more than ${MAX_LENGTH} characters`);
+    }
+
+    // Validate company
+    if (!company || company.trim().length < MIN_LENGTH) {
+      errors.push(
+        `Company name is required and must be at least ${MIN_LENGTH} characters`
+      );
+    } else if (company.trim().length > MAX_LENGTH) {
+      errors.push(`Company name must be no more than ${MAX_LENGTH} characters`);
+    }
+
+    // Validate email format if provided (optional field)
+    if (email && email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        errors.push('Please enter a valid email address');
+      } else if (email.trim().length > 254) {
+        errors.push('Email address is too long (maximum 254 characters)');
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  };
+
+  const checkConfidenceScores = (
+    ocrData: BusinessCardData
+  ): { hasLowConfidence: boolean; warnings: string[] } => {
+    const warnings: string[] = [];
+    const LOW_CONFIDENCE_THRESHOLD = 0.7;
+
+    if (ocrData.confidence) {
+      if (
+        ocrData.confidence.fullName &&
+        ocrData.confidence.fullName < LOW_CONFIDENCE_THRESHOLD
+      ) {
+        warnings.push('Name extraction confidence is low');
+      }
+      if (
+        ocrData.confidence.company &&
+        ocrData.confidence.company < LOW_CONFIDENCE_THRESHOLD
+      ) {
+        warnings.push('Company name extraction confidence is low');
+      }
+    }
+
+    return {
+      hasLowConfidence: warnings.length > 0,
+      warnings,
+    };
+  };
+
   const saveLead = useCallback(
-    async (ocrData: BusinessCardData, imageUrl: string) => {
+    async (
+      leadData: {
+        firstName: string | null;
+        lastName: string | null;
+        company: string | null;
+        email?: string | null;
+        jobTitle?: string | null;
+        phone?: string | null;
+      },
+      imageUrl: string | null,
+      ocrData?: BusinessCardData
+    ) => {
       setIsSaving(true);
 
       try {
+        // Trim and validate required fields
+        const firstName = leadData.firstName?.trim() || null;
+        const lastName = leadData.lastName?.trim() || null;
+        const company = leadData.company?.trim() || null;
+        const email = leadData.email?.trim() || null;
+
+        // Validate with minimum length requirements and email format
+        const validation = validateLeadData(
+          firstName,
+          lastName,
+          company,
+          email
+        );
+        if (!validation.isValid) {
+          setSaveStatus('error');
+          toast.error('Invalid lead information', {
+            description: validation.errors.join('. '),
+            duration: 5000,
+          });
+          return;
+        }
+
+        // Check confidence scores if available
+        if (ocrData) {
+          const confidenceCheck = checkConfidenceScores(ocrData);
+          if (confidenceCheck.hasLowConfidence) {
+            toast.warning('Low OCR confidence detected', {
+              description:
+                confidenceCheck.warnings.join('. ') +
+                '. Please verify the information before saving.',
+              duration: 4000,
+            });
+          }
+        }
+
         await createLead({
-          first_name: ocrData.firstName || null,
-          last_name: ocrData.lastName || null,
-          email: ocrData.email || null,
-          company: ocrData.companyName || null,
-          job_title: ocrData.jobTitle || null,
-          phone: ocrData.phone || null,
+          first_name: firstName,
+          last_name: lastName,
+          email: leadData.email?.trim() || null,
+          company: company,
+          job_title: leadData.jobTitle?.trim() || null,
+          phone: leadData.phone?.trim() || null,
           scan_image_url: imageUrl,
           quality_rank: 'warm', // Default, can be updated later
           show_name: showName || null,
@@ -213,7 +348,7 @@ export default function CapturePage() {
 
         setSaveStatus('success');
         toast.success('Lead captured successfully!', {
-          description: `${ocrData.fullName || 'Lead'} has been saved`,
+          description: `${firstName} ${lastName} has been saved`,
         });
 
         // Reset after 2 seconds for next capture
@@ -225,6 +360,15 @@ export default function CapturePage() {
           setCapturedImage(null);
           setOcrResult(null);
           setSaveStatus('idle');
+          setShowManualEntry(false);
+          setManualData({
+            firstName: '',
+            lastName: '',
+            company: '',
+            email: '',
+            jobTitle: '',
+            phone: '',
+          });
           // Re-enable video track for next capture (Dec 2025 best practice)
           if (streamRef.current) {
             streamRef.current.getVideoTracks().forEach(track => {
@@ -315,8 +459,50 @@ export default function CapturePage() {
         const data = responseData.data as BusinessCardData;
         setOcrResult(data);
 
-        // Auto-save lead with OCR data
-        await saveLead(data, compressedImage);
+        // Pre-fill manual entry form with OCR data
+        setManualData({
+          firstName: data.firstName || '',
+          lastName: data.lastName || '',
+          company: data.companyName || '',
+          email: data.email || '',
+          jobTitle: data.jobTitle || '',
+          phone: data.phone || '',
+        });
+
+        // Validate required fields before auto-saving
+        const firstName = data.firstName?.trim() || null;
+        const lastName = data.lastName?.trim() || null;
+        const company = data.companyName?.trim() || null;
+        const email = data.email?.trim() || null;
+        const validation = validateLeadData(
+          firstName,
+          lastName,
+          company,
+          email
+        );
+
+        if (validation.isValid) {
+          // Auto-save lead with OCR data if valid
+          await saveLead(
+            {
+              firstName,
+              lastName,
+              company,
+              email: data.email,
+              jobTitle: data.jobTitle,
+              phone: data.phone,
+            },
+            compressedImage,
+            data
+          );
+        } else {
+          // Show manual entry form if validation fails
+          setShowManualEntry(true);
+          toast.warning('Incomplete OCR extraction', {
+            description: 'Please complete the required fields manually.',
+            duration: 5000,
+          });
+        }
       } catch (error) {
         logger.error('OCR processing error:', error);
         setSaveStatus('error');
@@ -347,8 +533,17 @@ export default function CapturePage() {
         }
 
         toast.error('Failed to process business card', {
-          description: errorMessage,
+          description:
+            errorMessage + ' You can enter the information manually.',
+          duration: 5000,
         });
+
+        // Show manual entry form on error
+        // Note: ocrResult may not be set if OCR failed completely
+        // Manual data will be empty, allowing user to enter manually
+        setShowManualEntry(true);
+        // Don't reset manualData here - it may have been pre-filled earlier
+        // If OCR completely failed, manualData will already be empty
 
         // Re-enable video track on error for retry
         if (streamRef.current) {
@@ -609,84 +804,289 @@ export default function CapturePage() {
         </div>
       )}
 
-      {/* Processing/Success Overlay */}
-      {(isProcessing || isSaving || saveStatus !== 'idle') && (
-        <div className='absolute inset-0 z-20 bg-black/80 flex items-center justify-center'>
-          <Card className='w-[90%] max-w-md'>
-            <CardContent className='p-6 space-y-4 text-center'>
-              {isProcessing && (
-                <>
-                  <Loader2 className='h-12 w-12 mx-auto animate-spin text-primary' />
-                  <h3 className='text-lg font-semibold'>
-                    Processing Business Card
-                  </h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Extracting contact details with OCR...
-                  </p>
-                </>
-              )}
-
-              {isSaving && (
-                <>
-                  <Loader2 className='h-12 w-12 mx-auto animate-spin text-primary' />
-                  <h3 className='text-lg font-semibold'>Saving Lead</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Adding to your leads...
-                  </p>
-                </>
-              )}
-
-              {saveStatus === 'success' && (
-                <>
-                  <CheckCircle2 className='h-12 w-12 mx-auto text-success' />
-                  <h3 className='text-lg font-semibold'>Lead Captured!</h3>
-                  {ocrResult && (
-                    <div className='text-sm space-y-1'>
-                      <p className='font-medium'>
-                        {ocrResult.fullName || 'Lead'}
-                      </p>
-                      {ocrResult.companyName && (
-                        <p className='text-muted-foreground'>
-                          {ocrResult.companyName}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  <p className='text-xs text-muted-foreground mt-2'>
-                    Ready for next capture...
-                  </p>
-                </>
-              )}
-
-              {saveStatus === 'error' && (
-                <>
-                  <AlertCircle className='h-12 w-12 mx-auto text-destructive' />
-                  <h3 className='text-lg font-semibold'>Processing Failed</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Please try capturing again
-                  </p>
-                  <Button
-                    onClick={() => {
-                      setCapturedImage(null);
-                      setOcrResult(null);
-                      setSaveStatus('idle');
-                      // Bug fix: Re-enable video track when retrying
-                      if (streamRef.current) {
-                        streamRef.current.getVideoTracks().forEach(track => {
-                          track.enabled = true;
-                        });
-                      }
-                    }}
-                    className='mt-4'
+      {/* Manual Entry Form */}
+      {showManualEntry && !isProcessing && !isSaving && (
+        <div className='absolute inset-0 z-30 bg-black/90 flex items-center justify-center p-4 overflow-y-auto'>
+          <Card className='w-full max-w-md max-h-[90vh] overflow-y-auto'>
+            <CardContent className='p-6 space-y-4'>
+              <div className='flex items-center justify-between mb-4'>
+                <h3 className='text-lg font-semibold'>Manual Entry</h3>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => {
+                    setShowManualEntry(false);
+                    setCapturedImage(null);
+                    setOcrResult(null);
+                    setSaveStatus('idle');
+                    if (streamRef.current) {
+                      streamRef.current.getVideoTracks().forEach(track => {
+                        track.enabled = true;
+                      });
+                    }
+                  }}
+                  aria-label='Close manual entry'
+                >
+                  <X className='h-5 w-5' />
+                </Button>
+              </div>
+              <p className='text-sm text-muted-foreground mb-4'>
+                Please complete the required fields to save this lead.
+              </p>
+              <div className='space-y-4'>
+                <div className='space-y-2'>
+                  <label
+                    htmlFor='manual-first-name'
+                    className='text-sm font-medium'
                   >
-                    Try Again
-                  </Button>
-                </>
-              )}
+                    First Name <span className='text-destructive'>*</span>
+                  </label>
+                  <Input
+                    id='manual-first-name'
+                    variant='mobile'
+                    placeholder='First name'
+                    value={manualData.firstName}
+                    onChange={e =>
+                      setManualData({
+                        ...manualData,
+                        firstName: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <label
+                    htmlFor='manual-last-name'
+                    className='text-sm font-medium'
+                  >
+                    Last Name <span className='text-destructive'>*</span>
+                  </label>
+                  <Input
+                    id='manual-last-name'
+                    variant='mobile'
+                    placeholder='Last name'
+                    value={manualData.lastName}
+                    onChange={e =>
+                      setManualData({ ...manualData, lastName: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <label
+                    htmlFor='manual-company'
+                    className='text-sm font-medium'
+                  >
+                    Company <span className='text-destructive'>*</span>
+                  </label>
+                  <Input
+                    id='manual-company'
+                    variant='mobile'
+                    placeholder='Company name'
+                    value={manualData.company}
+                    onChange={e =>
+                      setManualData({ ...manualData, company: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <label htmlFor='manual-email' className='text-sm font-medium'>
+                    Email
+                  </label>
+                  <Input
+                    id='manual-email'
+                    type='email'
+                    variant='mobile'
+                    placeholder='email@example.com'
+                    value={manualData.email}
+                    onChange={e =>
+                      setManualData({ ...manualData, email: e.target.value })
+                    }
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <label
+                    htmlFor='manual-job-title'
+                    className='text-sm font-medium'
+                  >
+                    Job Title
+                  </label>
+                  <Input
+                    id='manual-job-title'
+                    variant='mobile'
+                    placeholder='Job title'
+                    value={manualData.jobTitle}
+                    onChange={e =>
+                      setManualData({ ...manualData, jobTitle: e.target.value })
+                    }
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <label htmlFor='manual-phone' className='text-sm font-medium'>
+                    Phone
+                  </label>
+                  <Input
+                    id='manual-phone'
+                    type='tel'
+                    variant='mobile'
+                    placeholder='Phone number'
+                    value={manualData.phone}
+                    onChange={e =>
+                      setManualData({ ...manualData, phone: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+              <div className='flex gap-2 pt-4'>
+                <Button
+                  variant='outline'
+                  onClick={() => {
+                    setShowManualEntry(false);
+                    setCapturedImage(null);
+                    setOcrResult(null);
+                    setSaveStatus('idle');
+                    if (streamRef.current) {
+                      streamRef.current.getVideoTracks().forEach(track => {
+                        track.enabled = true;
+                      });
+                    }
+                  }}
+                  className='flex-1'
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={async e => {
+                    e.preventDefault();
+                    // Prevent double submission
+                    if (isSaving) return;
+
+                    await saveLead(
+                      {
+                        firstName: manualData.firstName,
+                        lastName: manualData.lastName,
+                        company: manualData.company,
+                        email: manualData.email,
+                        jobTitle: manualData.jobTitle,
+                        phone: manualData.phone,
+                      },
+                      capturedImage,
+                      ocrResult || undefined
+                    );
+                  }}
+                  className='flex-1'
+                  disabled={isSaving}
+                  type='button'
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Lead'
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
       )}
+
+      {/* Processing/Success Overlay */}
+      {(isProcessing || isSaving || saveStatus !== 'idle') &&
+        !showManualEntry && (
+          <div className='absolute inset-0 z-20 bg-black/80 flex items-center justify-center'>
+            <Card className='w-[90%] max-w-md'>
+              <CardContent className='p-6 space-y-4 text-center'>
+                {isProcessing && (
+                  <>
+                    <Loader2 className='h-12 w-12 mx-auto animate-spin text-primary' />
+                    <h3 className='text-lg font-semibold'>
+                      Processing Business Card
+                    </h3>
+                    <p className='text-sm text-muted-foreground'>
+                      Extracting contact details with OCR...
+                    </p>
+                  </>
+                )}
+
+                {isSaving && (
+                  <>
+                    <Loader2 className='h-12 w-12 mx-auto animate-spin text-primary' />
+                    <h3 className='text-lg font-semibold'>Saving Lead</h3>
+                    <p className='text-sm text-muted-foreground'>
+                      Adding to your leads...
+                    </p>
+                  </>
+                )}
+
+                {saveStatus === 'success' && (
+                  <>
+                    <CheckCircle2 className='h-12 w-12 mx-auto text-success' />
+                    <h3 className='text-lg font-semibold'>Lead Captured!</h3>
+                    {ocrResult && (
+                      <div className='text-sm space-y-1'>
+                        <p className='font-medium'>
+                          {ocrResult.fullName || 'Lead'}
+                        </p>
+                        {ocrResult.companyName && (
+                          <p className='text-muted-foreground'>
+                            {ocrResult.companyName}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    <p className='text-xs text-muted-foreground mt-2'>
+                      Ready for next capture...
+                    </p>
+                  </>
+                )}
+
+                {saveStatus === 'error' && (
+                  <>
+                    <AlertCircle className='h-12 w-12 mx-auto text-destructive' />
+                    <h3 className='text-lg font-semibold'>Processing Failed</h3>
+                    <p className='text-sm text-muted-foreground'>
+                      Please try capturing again
+                    </p>
+                    <div className='flex gap-2 mt-4'>
+                      <Button
+                        variant='outline'
+                        onClick={() => {
+                          setCapturedImage(null);
+                          setOcrResult(null);
+                          setSaveStatus('idle');
+                          if (streamRef.current) {
+                            streamRef.current
+                              .getVideoTracks()
+                              .forEach(track => {
+                                track.enabled = true;
+                              });
+                          }
+                        }}
+                        className='flex-1'
+                      >
+                        Try Again
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setShowManualEntry(true);
+                          setSaveStatus('idle');
+                        }}
+                        className='flex-1'
+                      >
+                        Enter Manually
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
       {/* Footer with Shutter Button */}
       {!isProcessing &&

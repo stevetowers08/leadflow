@@ -8,7 +8,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
 import { getLeads, getLeadStats } from '@/services/leadsService';
 import { useQuery } from '@tanstack/react-query';
-import { Users, Flame, Zap, Snowflake, Download, Calendar } from 'lucide-react';
+import {
+  Users,
+  Flame,
+  Zap,
+  Snowflake,
+  Download,
+  Calendar,
+  Upload,
+  Bolt,
+} from 'lucide-react';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import type { Lead } from '@/types/database';
 import { Button } from '@/components/ui/button';
@@ -29,13 +38,19 @@ import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { FloatingActionBar } from '@/components/people/FloatingActionBar';
 import { useAllCampaigns } from '@/hooks/useAllCampaigns';
 import { bulkAddLeadsToCampaign } from '@/services/bulk/bulkLeadsService';
+import { CSVImportDialog } from '@/components/people/CSVImportDialog';
+import { useQueryClient } from '@tanstack/react-query';
+import { CellLoadingSpinner } from '@/components/ui/cell-loading-spinner';
+import { cn } from '@/lib/utils';
 
 export default function LeadsPage() {
   const { user, loading: authLoading } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
   const [showFilter, setShowFilter] = useState<string>('all');
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const bulkSelection = useBulkSelection();
   const { data: campaigns = [] } = useAllCampaigns();
+  const queryClient = useQueryClient();
 
   const {
     data: leads = [],
@@ -161,25 +176,134 @@ export default function LeadsPage() {
       },
       {
         key: 'email',
-        label: 'Email',
-        width: '250px',
-        render: (_, lead) => (
-          <div className='text-muted-foreground'>{lead.email || '-'}</div>
+        label: (
+          <div className='flex items-center gap-1.5'>
+            <span>Email</span>
+            <Bolt className='h-3.5 w-3.5 text-yellow-500' />
+          </div>
         ),
+        width: '250px',
+        render: (_, lead) => {
+          const isEnriching =
+            lead.enrichment_status === 'enriching' ||
+            lead.enrichment_status === 'pending';
+          const isEnriched = lead.enrichment_status === 'completed';
+
+          return (
+            <div className='flex items-center gap-2'>
+              {isEnriching ? (
+                <CellLoadingSpinner size='sm' />
+              ) : (
+                <span
+                  className={cn(
+                    'text-muted-foreground',
+                    isEnriched && 'text-foreground font-medium'
+                  )}
+                >
+                  {lead.email || '-'}
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        key: 'phone',
+        label: (
+          <div className='flex items-center gap-1.5'>
+            <span>Phone</span>
+            <Bolt className='h-3.5 w-3.5 text-yellow-500' />
+          </div>
+        ),
+        width: '150px',
+        render: (_, lead) => {
+          const isEnriching =
+            lead.enrichment_status === 'enriching' ||
+            lead.enrichment_status === 'pending';
+          const isEnriched = lead.enrichment_status === 'completed';
+
+          return (
+            <div className='flex items-center gap-2'>
+              {isEnriching ? (
+                <CellLoadingSpinner size='sm' />
+              ) : (
+                <span
+                  className={cn(
+                    'text-muted-foreground',
+                    isEnriched && lead.phone && 'text-foreground font-medium'
+                  )}
+                >
+                  {lead.phone || '-'}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
       {
         key: 'company',
-        label: 'Company',
+        label: (
+          <div className='flex items-center gap-1.5'>
+            <span>Company</span>
+            <Bolt className='h-3.5 w-3.5 text-yellow-500' />
+          </div>
+        ),
         width: '200px',
-        render: (_, lead) => <div>{lead.company || '-'}</div>,
+        render: (_, lead) => {
+          const isEnriching =
+            lead.enrichment_status === 'enriching' ||
+            lead.enrichment_status === 'pending';
+          const isEnriched = lead.enrichment_status === 'completed';
+
+          return (
+            <div className='flex items-center gap-2'>
+              {isEnriching ? (
+                <CellLoadingSpinner size='sm' />
+              ) : (
+                <span
+                  className={cn(isEnriched && lead.company && 'font-medium')}
+                >
+                  {lead.company || '-'}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
       {
         key: 'job_title',
-        label: 'Position',
-        width: '200px',
-        render: (_, lead) => (
-          <div className='text-muted-foreground'>{lead.job_title || '-'}</div>
+        label: (
+          <div className='flex items-center gap-1.5'>
+            <span>Position</span>
+            <Bolt className='h-3.5 w-3.5 text-yellow-500' />
+          </div>
         ),
+        width: '200px',
+        render: (_, lead) => {
+          const isEnriching =
+            lead.enrichment_status === 'enriching' ||
+            lead.enrichment_status === 'pending';
+          const isEnriched = lead.enrichment_status === 'completed';
+
+          return (
+            <div className='flex items-center gap-2'>
+              {isEnriching ? (
+                <CellLoadingSpinner size='sm' />
+              ) : (
+                <span
+                  className={cn(
+                    'text-muted-foreground',
+                    isEnriched &&
+                      lead.job_title &&
+                      'text-foreground font-medium'
+                  )}
+                >
+                  {lead.job_title || '-'}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
       {
         key: 'quality_rank',
@@ -404,6 +528,14 @@ export default function LeadsPage() {
     toast.info('Send email functionality not yet implemented');
   }, []);
 
+  const handleImportComplete = useCallback(() => {
+    // Invalidate and refetch leads queries after import
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
+    queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['leads-all-for-filter'] });
+    setShowImportDialog(false);
+  }, [queryClient]);
+
   if (error) {
     return (
       <Page stats={pageStats} title='Leads'>
@@ -454,6 +586,14 @@ export default function LeadsPage() {
             <Button
               variant='outline'
               size='sm'
+              onClick={() => setShowImportDialog(true)}
+            >
+              <Upload className='h-4 w-4 mr-2' />
+              Import CSV
+            </Button>
+            <Button
+              variant='outline'
+              size='sm'
               onClick={() => handleExport('csv')}
               disabled={isExporting || leads.length === 0}
             >
@@ -499,6 +639,13 @@ export default function LeadsPage() {
         onAddToCampaign={handleAddToCampaign}
         onClear={() => bulkSelection.deselectAll()}
         campaigns={campaigns}
+      />
+
+      {/* CSV Import Dialog */}
+      <CSVImportDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        onImportComplete={handleImportComplete}
       />
     </Page>
   );
