@@ -151,16 +151,16 @@ export function useCampaignSequences() {
         user.id;
 
       // Get status from data.status or from pause_rules.status (fallback)
-      const workflowStatus =
+      const retrievedStatus =
         (data as { status?: string }).status ||
         (data.pause_rules as { status?: string })?.status ||
         'draft';
 
       // Map 'archived' -> 'completed' for CampaignSequence
       const mappedStatus =
-        workflowStatus === 'archived'
+        retrievedStatus === 'archived'
           ? 'completed'
-          : (workflowStatus as 'draft' | 'active' | 'paused' | 'completed');
+          : (retrievedStatus as 'draft' | 'active' | 'paused' | 'completed');
 
       const sequence: CampaignSequence = {
         id: data.id,
