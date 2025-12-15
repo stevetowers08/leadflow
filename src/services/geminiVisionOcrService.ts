@@ -1,8 +1,10 @@
 /**
  * Google Gemini Vision OCR Service for Business Cards
  *
- * Uses Gemini 2.0 Flash (latest vision-capable model)
- * Free tier: 15 RPM, 1,500 RPD
+ * Uses Gemini 2.0 Flash Stable (gemini-2.0-flash-001)
+ * - Stable model with better quota limits than experimental versions
+ * - Supports vision/image analysis for OCR tasks
+ * - Consistent with other services in the codebase
  *
  * Replaces Mindee OCR with free, AI-powered alternative
  */
@@ -116,7 +118,8 @@ export async function extractBusinessCardWithGemini(
 
   // Initialize Gemini
   const genAI = new GoogleGenerativeAI(apiKeyToUse);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+  // Use stable model (gemini-2.0-flash-001) instead of experimental for better quota limits
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-001' });
 
   const prompt = `Extract all information from this business card image. 
 Return ONLY valid JSON with this exact structure (use null for missing fields):
@@ -169,7 +172,7 @@ Rules:
     let parsed: Partial<BusinessCardData>;
     try {
       parsed = JSON.parse(jsonText);
-    } catch (parseError) {
+    } catch {
       // Try to extract JSON from text if wrapped in other content
       const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -278,7 +281,23 @@ Rules:
 
     if (isQuotaError) {
       throw new GeminiQuotaError(
-        `Gemini API quota exceeded. Free tier limits: 15 requests/minute, 1,500 requests/day. Please retry in ${retryAfter} seconds or upgrade your API plan.`,
+        `Gemini API quota exceeded for model: gemini-2.0-flash-001.
+        
+This API key is shared across multiple services:
+- OCR: gemini-2.0-flash-001
+- AI Chat: gemini-2.0-flash-001
+- Reply Analysis: gemini-2.0-flash-001
+- Gmail Webhook: gemini-2.0-flash-001 (runs automatically)
+- Other services: gemini-2.5-flash, gemini-pro
+
+Quota limits are PER PROJECT (not per API key) and reset at midnight Pacific Time.
+Recent changes reduced free tier limits - some models are now ~20 requests/day.
+
+Please retry in ${retryAfter} seconds, or:
+1. Check usage: https://ai.google.dev/usage
+2. Check limits: https://ai.google.dev/gemini-api/docs/rate-limits
+3. Use separate API keys/projects for different services
+4. Upgrade to paid tier for higher limits`,
         retryAfter
       );
     }
