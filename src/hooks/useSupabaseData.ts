@@ -60,6 +60,8 @@ export const useLeads = (
           status,
           quality_rank,
           linkedin_url,
+          show_name,
+          show_date,
           created_at,
           confidence_level
         `,
@@ -251,6 +253,8 @@ export const useInfiniteLeads = (
           status,
           quality_rank,
           linkedin_url,
+          show_name,
+          show_date,
           created_at,
           confidence_level
         `);

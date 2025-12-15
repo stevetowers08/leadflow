@@ -131,7 +131,7 @@ All colors MUST be HSL.
     --sidebar-glass-bg: linear-gradient(
       135deg,
       rgba(255, 255, 255, 0.85) 0%,
-      rgba(255, 255, 255, 0.90) 50%,
+      rgba(255, 255, 255, 0.9) 50%,
       rgba(248, 250, 252, 0.85) 100%
     );
     --sidebar-glass-border: rgba(229, 231, 235, 0.5);
@@ -487,7 +487,7 @@ All colors MUST be HSL.
     background: var(--sidebar-glass-bg);
     /* Note: backdrop-blur is applied via Tailwind class, not here to avoid text blur */
   }
-  
+
   /* Sidebar styles moved to component-level - see src/components/ui/sidebar.tsx */
 
   /* Focus and Hover States */
@@ -847,32 +847,42 @@ All colors MUST be HSL.
 
   /* Search input styles moved to component-level - customize Input component directly */
 
-  /* Touch device optimizations */
+  /* Touch device optimizations - 2025 Enhanced */
   @media (hover: none) and (pointer: coarse) {
     /* Remove hover effects on touch devices */
     .hover\:shadow-md:hover {
       box-shadow: none;
     }
 
-    /* Better touch feedback */
+    /* Better touch feedback - 2025: Optimized for INP */
     button:active,
     [role='button']:active {
       transform: scale(0.98);
-      transition: transform 0.1s ease;
+      transition: transform 0.05s ease-out; /* Faster for better INP */
+      will-change: transform; /* GPU acceleration */
     }
 
     /* Enhanced touch interactions */
     .touch-manipulation {
       touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1); /* Subtle feedback */
+      tap-highlight-color: rgba(0, 0, 0, 0.1);
     }
 
-    /* Improved focus indicators for touch */
+    /* Improved focus indicators for touch - 2025: Better contrast */
     button:focus-visible,
     [role='button']:focus-visible,
     a:focus-visible {
       outline: 2px solid hsl(var(--ring));
       outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* 2025: Minimum spacing between touch targets (8px) */
+    button + button,
+    [role='button'] + [role='button'],
+    a + a {
+      margin-left: 8px;
     }
 
     /* Sidebar focus styles moved to component-level - see src/components/ui/sidebar.tsx */

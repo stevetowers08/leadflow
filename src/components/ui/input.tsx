@@ -23,9 +23,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           'disabled:cursor-not-allowed disabled:opacity-50',
           'touch-manipulation',
           designTokens.typography.body.default,
-          'min-h-[48px] sm:min-h-8',
+          'min-h-[48px] sm:min-h-8', // 2025: 48px minimum on mobile (WCAG standard)
+          'text-base sm:text-sm', // 2025: 16px on mobile to prevent zoom
           variant === 'mobile' &&
-            cn(designTokens.typography.body.large, 'min-h-[48px]'),
+            cn(designTokens.typography.body.large, 'min-h-[48px]', 'text-base'),
           className
         )}
         ref={ref}

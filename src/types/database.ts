@@ -142,6 +142,8 @@ export interface Lead {
   enrichment_data: Metadata | null;
   enrichment_timestamp: string | null;
   gmail_thread_id: string | null;
+  show_name: string | null; // Exhibition/show name where lead was captured
+  show_date: string | null; // Exhibition/show date (ISO date string)
   notes: string | null;
   // owner_id and client_id removed - not in PDR (multi-tenant removed)
   employee_location: string | null; // From Contact

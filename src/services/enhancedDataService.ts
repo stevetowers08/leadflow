@@ -88,6 +88,8 @@ export function useEnhancedLeadsService(
           status,
           quality_rank,
           linkedin_url,
+          show_name,
+          show_date,
           created_at,
           confidence_level
         `,

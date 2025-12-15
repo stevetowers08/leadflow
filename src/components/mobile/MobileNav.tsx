@@ -121,6 +121,15 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
 
   return (
     <>
+      {/* Backdrop overlay for More menu */}
+      {showMoreMenu && (
+        <div
+          className='fixed inset-0 bg-black/20 z-[90] lg:hidden'
+          onClick={() => setShowMoreMenu(false)}
+          aria-hidden='true'
+        />
+      )}
+
       {/* Bottom Navigation Bar - 2025 Enhanced */}
       <nav
         className={cn(
@@ -233,14 +242,18 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
               )}
             </button>
 
-            {/* More Menu Dropdown */}
+            {/* More Menu Dropdown - Fixed positioning to prevent cut-off */}
             {showMoreMenu && (
               <div
-                className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-background border border-border rounded-2xl shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2 duration-200 max-h-[calc(100vh-120px)]'
+                className='fixed left-1/2 -translate-x-1/2 w-72 bg-background border border-border rounded-2xl shadow-xl z-[100] animate-in fade-in slide-in-from-bottom-2 duration-200 overflow-hidden'
                 data-more-menu
                 role='menu'
                 aria-label='Additional navigation options'
-                style={{ maxHeight: 'calc(100vh - 120px)' }}
+                onClick={e => e.stopPropagation()}
+                style={{
+                  maxHeight: 'calc(100vh - 160px)',
+                  bottom: `calc(100% + 8px + env(safe-area-inset-bottom, 0px))`,
+                }}
               >
                 <div className='py-2 max-h-[60vh] overflow-y-auto overscroll-contain'>
                   <div className='px-4 py-2.5 border-b border-border'>

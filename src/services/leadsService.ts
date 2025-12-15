@@ -1,6 +1,6 @@
 /**
  * Leads Service
- * 
+ *
  * PDR Section: Phase 1 MVP - Core Features
  * Handles lead creation, updates, and queries
  */
@@ -17,6 +17,8 @@ export interface CreateLeadInput {
   phone?: string | null;
   scan_image_url?: string | null;
   quality_rank?: 'hot' | 'warm' | 'cold' | null;
+  show_name?: string | null;
+  show_date?: string | null; // ISO date string (YYYY-MM-DD)
   notes?: string | null;
   user_id?: string | null;
 }
@@ -30,6 +32,8 @@ export interface UpdateLeadInput {
   phone?: string | null;
   quality_rank?: 'hot' | 'warm' | 'cold' | null;
   status?: 'processing' | 'active' | 'replied_manual';
+  show_name?: string | null;
+  show_date?: string | null; // ISO date string (YYYY-MM-DD)
   notes?: string | null;
   ai_summary?: string | null;
   ai_icebreaker?: string | null;
@@ -40,7 +44,9 @@ export interface UpdateLeadInput {
  */
 export async function createLead(input: CreateLeadInput): Promise<Lead> {
   // Get current user if not provided
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const userId = input.user_id || user?.id;
 
   const { data, error } = await supabase
@@ -115,6 +121,8 @@ export async function getLeads(options?: {
   offset?: number;
   quality_rank?: 'hot' | 'warm' | 'cold';
   status?: 'processing' | 'active' | 'replied_manual';
+  show_name?: string;
+  show_date?: string; // ISO date string (YYYY-MM-DD)
 }): Promise<Lead[]> {
   let query = supabase
     .from('leads')
@@ -127,6 +135,14 @@ export async function getLeads(options?: {
 
   if (options?.status) {
     query = query.eq('status', options.status);
+  }
+
+  if (options?.show_name) {
+    query = query.eq('show_name', options.show_name);
+  }
+
+  if (options?.show_date) {
+    query = query.eq('show_date', options.show_date);
   }
 
   if (options?.limit) {
@@ -150,10 +166,7 @@ export async function getLeads(options?: {
  * Delete a lead
  */
 export async function deleteLead(leadId: string): Promise<void> {
-  const { error } = await supabase
-    .from('leads')
-    .delete()
-    .eq('id', leadId);
+  const { error } = await supabase.from('leads').delete().eq('id', leadId);
 
   if (error) {
     throw new Error(`Failed to delete lead: ${error.message}`);
@@ -173,13 +186,35 @@ export async function getLeadStats(): Promise<{
   processing: number;
 }> {
   // Use count queries for better performance - only fetch counts, not data
-  const [totalResult, hotResult, warmResult, coldResult, activeResult, processingResult] = await Promise.all([
+  const [
+    totalResult,
+    hotResult,
+    warmResult,
+    coldResult,
+    activeResult,
+    processingResult,
+  ] = await Promise.all([
     supabase.from('leads').select('*', { count: 'exact', head: true }),
-    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('quality_rank', 'hot'),
-    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('quality_rank', 'warm'),
-    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('quality_rank', 'cold'),
-    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'processing'),
+    supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('quality_rank', 'hot'),
+    supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('quality_rank', 'warm'),
+    supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('quality_rank', 'cold'),
+    supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'active'),
+    supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'processing'),
   ]);
 
   if (totalResult.error) {
@@ -195,4 +230,3 @@ export async function getLeadStats(): Promise<{
     processing: processingResult.count || 0,
   };
 }
-

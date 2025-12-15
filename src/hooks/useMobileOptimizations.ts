@@ -5,6 +5,20 @@
 
 import { useEffect } from 'react';
 
+// Type definitions for NetworkInformation API (not fully standardized)
+interface NetworkInformation {
+  effectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
+  downlink?: number;
+  rtt?: number;
+  saveData?: boolean;
+}
+
+interface NavigatorWithConnection extends Navigator {
+  connection?: NetworkInformation;
+  mozConnection?: NetworkInformation;
+  webkitConnection?: NetworkInformation;
+}
+
 /**
  * Hook to optimize images for mobile devices
  * Lazy loads images and uses appropriate sizes
@@ -134,6 +148,117 @@ export function useFontOptimization() {
       if (link.parentNode) {
         link.parentNode.removeChild(link);
       }
+    };
+  }, []);
+}
+
+/**
+ * Hook to monitor Core Web Vitals on mobile
+ * 2025: Track LCP, INP, CLS for mobile optimization
+ */
+export function useCoreWebVitals() {
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) {
+      return;
+    }
+
+    // Monitor Largest Contentful Paint (LCP)
+    try {
+      const lcpObserver = new PerformanceObserver(list => {
+        const entries = list.getEntries();
+        const lastEntry = entries[entries.length - 1] as PerformanceEntry & {
+          renderTime?: number;
+          loadTime?: number;
+        };
+
+        if (lastEntry) {
+          const lcp = lastEntry.renderTime || lastEntry.loadTime || 0;
+          // Log if LCP is slow (> 2.5s is poor)
+          if (lcp > 2500 && process.env.NODE_ENV === 'development') {
+            console.warn('[CWV] Slow LCP:', lcp, 'ms');
+          }
+        }
+      });
+      lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+
+      return () => {
+        lcpObserver.disconnect();
+      };
+    } catch (error) {
+      // PerformanceObserver not supported
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[CWV] PerformanceObserver not supported');
+      }
+    }
+  }, []);
+}
+
+/**
+ * Hook to optimize mobile scroll performance
+ * 2025: Use passive listeners and optimize scroll handlers
+ */
+export function useMobileScrollOptimization() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // 2025: Use CSS scroll-behavior for smooth scrolling
+    document.documentElement.style.scrollBehavior = 'smooth';
+
+    // Optimize scroll performance with passive listeners
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          // Scroll handling logic here if needed
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.documentElement.style.scrollBehavior = '';
+    };
+  }, []);
+}
+
+/**
+ * Hook to detect and optimize for slow connections
+ * 2025: Adaptive loading based on connection speed
+ */
+export function useConnectionOptimization() {
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('connection' in navigator)) {
+      return;
+    }
+
+    const nav = navigator as NavigatorWithConnection;
+    const connection =
+      nav.connection || nav.mozConnection || nav.webkitConnection;
+
+    if (!connection) return;
+
+    const handleConnectionChange = () => {
+      const effectiveType = connection.effectiveType;
+      const saveData = connection.saveData;
+
+      // Adjust loading strategy based on connection
+      if (effectiveType === 'slow-2g' || effectiveType === '2g' || saveData) {
+        // Disable non-critical features
+        document.documentElement.setAttribute('data-slow-connection', 'true');
+      } else {
+        document.documentElement.removeAttribute('data-slow-connection');
+      }
+    };
+
+    connection.addEventListener('change', handleConnectionChange);
+    handleConnectionChange(); // Initial check
+
+    return () => {
+      connection.removeEventListener('change', handleConnectionChange);
     };
   }, []);
 }

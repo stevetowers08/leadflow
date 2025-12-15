@@ -8,10 +8,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
 import { getLeads, getLeadStats } from '@/services/leadsService';
 import { useQuery } from '@tanstack/react-query';
-import { Users, Flame, Zap, Snowflake, Download } from 'lucide-react';
+import { Users, Flame, Zap, Snowflake, Download, Calendar } from 'lucide-react';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import type { Lead } from '@/types/database';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   exportLeadsToCSV,
   exportLeadsToJSON,
@@ -26,6 +33,7 @@ import { bulkAddLeadsToCampaign } from '@/services/bulk/bulkLeadsService';
 export default function LeadsPage() {
   const { user, loading: authLoading } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
+  const [showFilter, setShowFilter] = useState<string>('all');
   const bulkSelection = useBulkSelection();
   const { data: campaigns = [] } = useAllCampaigns();
 
@@ -34,11 +42,30 @@ export default function LeadsPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['leads'],
-    queryFn: () => getLeads({ limit: 50 }), // Reduced initial load for performance
+    queryKey: ['leads', showFilter],
+    queryFn: () =>
+      getLeads({
+        limit: 50,
+        show_name: showFilter !== 'all' ? showFilter : undefined,
+      }),
     enabled: shouldBypassAuth() || (!authLoading && !!user),
     staleTime: 2 * 60 * 1000, // Cache for 2 minutes
   });
+
+  // Get unique show names for filter dropdown (fetch all leads once for dropdown)
+  const { data: allLeadsForFilter = [] } = useQuery({
+    queryKey: ['leads-all-for-filter'],
+    queryFn: () => getLeads({ limit: 1000 }),
+    enabled: shouldBypassAuth() || (!authLoading && !!user),
+    staleTime: 5 * 60 * 1000, // Cache longer since it's just for the dropdown
+  });
+
+  const showNames = useMemo(() => {
+    const uniqueShows = Array.from(
+      new Set(allLeadsForFilter.map(lead => lead.show_name).filter(Boolean))
+    ).sort();
+    return uniqueShows;
+  }, [allLeadsForFilter]);
 
   const { data: stats } = useQuery({
     queryKey: ['lead-stats'],
@@ -213,6 +240,30 @@ export default function LeadsPage() {
         },
       },
       {
+        key: 'show',
+        label: 'Show',
+        width: '180px',
+        render: (_, lead) => {
+          if (!lead.show_name)
+            return <div className='text-muted-foreground'>-</div>;
+          return (
+            <div className='flex flex-col gap-1'>
+              <div className='text-sm font-medium'>{lead.show_name}</div>
+              {lead.show_date && (
+                <div className='text-xs text-muted-foreground flex items-center gap-1'>
+                  <Calendar className='h-3 w-3' />
+                  {new Date(lead.show_date).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
+      {
         key: 'created_at',
         label: 'Created',
         width: '120px',
@@ -367,21 +418,38 @@ export default function LeadsPage() {
     <Page stats={pageStats} title='Leads' loading={isLoading}>
       <div className='flex flex-col min-w-0 w-full'>
         <div className='flex items-center justify-between gap-2 mb-4 flex-shrink-0 w-full'>
-          {actualSelectedCount > 0 && (
-            <div className='flex items-center gap-2 flex-shrink-0'>
-              <Badge variant='secondary'>
-                {actualSelectedCount}{' '}
-                {actualSelectedCount === 1 ? 'lead' : 'leads'} selected
-              </Badge>
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => bulkSelection.deselectAll()}
-              >
-                Clear selection
-              </Button>
-            </div>
-          )}
+          <div className='flex items-center gap-2 flex-shrink-0'>
+            {actualSelectedCount > 0 && (
+              <>
+                <Badge variant='secondary'>
+                  {actualSelectedCount}{' '}
+                  {actualSelectedCount === 1 ? 'lead' : 'leads'} selected
+                </Badge>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => bulkSelection.deselectAll()}
+                >
+                  Clear selection
+                </Button>
+              </>
+            )}
+            {showNames.length > 0 && (
+              <Select value={showFilter} onValueChange={setShowFilter}>
+                <SelectTrigger className='w-[200px]'>
+                  <SelectValue placeholder='Filter by show' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='all'>All Shows</SelectItem>
+                  {showNames.map(showName => (
+                    <SelectItem key={showName} value={showName}>
+                      {showName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
           <div className='flex gap-2 ml-auto flex-shrink-0'>
             <Button
               variant='outline'

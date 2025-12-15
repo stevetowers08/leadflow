@@ -80,17 +80,28 @@ class SupabaseErrorService {
         .maybeSingle();
 
       // Handle case where error_settings table doesn't exist yet
-      if (error && error.code === 'PGRST116') {
-        // Silently use default settings without logging
-        this.notificationSettings = {
-          emailNotifications: true,
-          notificationSeverity: ErrorSeverity.HIGH,
-          notificationEmail: user.email || undefined,
-        };
-        return;
-      }
-
+      // Check for various error codes that indicate table doesn't exist:
+      // PGRST116: relation does not exist
+      // PGRST205: no rows returned (this is OK with maybeSingle)
+      // Also check for 404 status codes from REST API
       if (error) {
+        const isTableMissing =
+          error.code === 'PGRST116' ||
+          error.code === '42P01' || // PostgreSQL relation does not exist
+          error.message?.includes('does not exist') ||
+          error.message?.includes('relation') ||
+          (error as { status?: number })?.status === 404;
+
+        if (isTableMissing) {
+          // Silently use default settings without logging
+          this.notificationSettings = {
+            emailNotifications: true,
+            notificationSeverity: ErrorSeverity.HIGH,
+            notificationEmail: user.email || undefined,
+          };
+          return;
+        }
+
         // Only log non-table-missing errors
         if (error.code !== 'PGRST205') {
           console.error('Failed to load notification settings:', error);
@@ -110,8 +121,21 @@ class SupabaseErrorService {
         };
       }
     } catch (error) {
+      // Check if error indicates table doesn't exist
+      const isTableMissing =
+        error &&
+        typeof error === 'object' &&
+        (('code' in error &&
+          (error.code === 'PGRST116' || error.code === '42P01')) ||
+          ('message' in error &&
+            typeof error.message === 'string' &&
+            (error.message.includes('does not exist') ||
+              error.message.includes('relation'))) ||
+          ('status' in error && error.status === 404));
+
       // Only log unexpected errors, not table missing errors
       if (
+        !isTableMissing &&
         error &&
         typeof error === 'object' &&
         'code' in error &&
@@ -189,9 +213,18 @@ class SupabaseErrorService {
 
       try {
         this.isLogging = true;
-        
+
         // Map ErrorCategory to API route's expected type
-        const categoryToTypeMap: Record<ErrorCategory, 'unhandled' | 'promise' | 'resource' | 'validation' | 'permission' | 'data' | 'unknown'> = {
+        const categoryToTypeMap: Record<
+          ErrorCategory,
+          | 'unhandled'
+          | 'promise'
+          | 'resource'
+          | 'validation'
+          | 'permission'
+          | 'data'
+          | 'unknown'
+        > = {
           [ErrorCategory.AUTHENTICATION]: 'permission',
           [ErrorCategory.DATABASE]: 'data',
           [ErrorCategory.NETWORK]: 'resource',
@@ -210,8 +243,12 @@ class SupabaseErrorService {
             message: errorData.message,
             stack: errorData.stack,
             timestamp: errorData.timestamp,
-            userAgent: errorData.user_agent || (typeof window !== 'undefined' ? window.navigator.userAgent : ''),
-            url: errorData.url || (typeof window !== 'undefined' ? window.location.href : ''),
+            userAgent:
+              errorData.user_agent ||
+              (typeof window !== 'undefined' ? window.navigator.userAgent : ''),
+            url:
+              errorData.url ||
+              (typeof window !== 'undefined' ? window.location.href : ''),
             type: categoryToTypeMap[category] || 'unknown',
             componentName: errorData.component_name,
             userId: errorData.user_id,
@@ -231,7 +268,7 @@ class SupabaseErrorService {
           // Use the returned ID from API
           errorData.id = result.id;
         }
-        
+
         this.isLogging = false;
       } catch (fetchError) {
         // Silently fail error logging to prevent cascading errors
@@ -603,7 +640,7 @@ class SupabaseErrorService {
 
       // Note: activity_log doesn't have user_id, severity, category, resolved fields
       // Using activity_type and metadata for filtering
-      let query = supabase
+      const query = supabase
         .from('activity_log')
         .select('*', { count: 'exact' })
         .eq('activity_type', 'manual_note')

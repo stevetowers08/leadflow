@@ -171,7 +171,7 @@ button[title*='Favorite'] {
   width: 32px;
 }
 
-/* 2025: Enhanced touch targets - 48px minimum (WCAG 2.5.5 Level AAA) */
+/* 2025: Enhanced touch targets - 48px minimum (WCAG 2.5.5 Level AAA, 2025 Standard) */
 @media (hover: none) and (pointer: coarse) {
   /* Ensure all interactive elements are at least 48px (2025 standard) */
   button:not([class*='min-h']):not([class*='h-']),
@@ -183,7 +183,15 @@ button[title*='Favorite'] {
     min-width: 48px;
     padding: 12px 16px; /* Better spacing for touch */
   }
-  
+
+  /* 2025: Ensure icon buttons meet minimum size */
+  button[class*='icon'],
+  button[aria-label],
+  [role='button'][aria-label] {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
   /* 2025: Spacing between touch targets (8px minimum) */
   button + button,
   [role='button'] + [role='button'],
@@ -216,7 +224,7 @@ button[title*='Favorite'] {
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
     tap-highlight-color: rgba(0, 0, 0, 0.1);
   }
-  
+
   /* 2025: Prevent text selection on interactive elements */
   button,
   [role='button'],
@@ -550,7 +558,7 @@ button[title*='Favorite'] {
     flex-direction: column;
     gap: clamp(0.75rem, 2.5vw, 1rem); /* Fluid gap sizing */
   }
-  
+
   /* 2025: Auto-fit grid for responsive layouts */
   .mobile-grid-auto {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
@@ -572,41 +580,211 @@ button[title*='Favorite'] {
   .mobile-spacing-xs {
     gap: clamp(0.25rem, 1vw, 0.5rem);
   }
-  
+
   .mobile-spacing-sm {
     gap: clamp(0.5rem, 2vw, 0.75rem);
   }
-  
+
   .mobile-spacing-md {
     gap: clamp(0.75rem, 3vw, 1rem);
   }
-  
+
   .mobile-spacing-lg {
     gap: clamp(1rem, 4vw, 1.5rem);
   }
-  
+
   /* Better padding for mobile cards and containers */
   .mobile-padding {
     padding: clamp(1rem, 4vw, 1.5rem);
   }
-  
+
   .mobile-padding-x {
     padding-left: clamp(1rem, 4vw, 1.5rem);
     padding-right: clamp(1rem, 4vw, 1.5rem);
   }
-  
+
   .mobile-padding-y {
     padding-top: clamp(0.75rem, 3vw, 1rem);
     padding-bottom: clamp(0.75rem, 3vw, 1rem);
   }
-  
+
   /* Improved touch spacing between interactive elements */
   .mobile-touch-spacing > * + * {
     margin-top: clamp(0.5rem, 2vw, 0.75rem);
   }
-  
+
   /* Better mobile margins */
   .mobile-margin-bottom {
     margin-bottom: clamp(1rem, 4vw, 1.5rem);
+  }
+}
+
+/* 2025: Core Web Vitals Optimizations */
+
+/* LCP (Largest Contentful Paint) - Optimize images and fonts */
+@media (max-width: 767px) {
+  /* Preload critical resources */
+  img[loading='lazy'] {
+    content-visibility: auto;
+  }
+
+  /* Optimize font loading */
+  @font-face {
+    font-display: swap; /* Better LCP */
+  }
+
+  /* Reduce layout shift with aspect ratios */
+  img:not([aspect-ratio]) {
+    aspect-ratio: attr(width) / attr(height);
+  }
+}
+
+/* CLS (Cumulative Layout Shift) - Prevent layout shifts */
+@media (max-width: 767px) {
+  /* Reserve space for images */
+  img {
+    height: auto;
+    max-width: 100%;
+  }
+
+  /* Reserve space for ads/embeds */
+  iframe,
+  embed,
+  object {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Prevent content jumping */
+  .mobile-stable-height {
+    min-height: 200px; /* Reserve minimum height */
+  }
+}
+
+/* INP (Interaction to Next Paint) - Optimize interactions */
+@media (max-width: 767px) {
+  /* Use passive event listeners where possible */
+  .mobile-smooth-interaction {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  /* Debounce scroll handlers */
+  .mobile-scroll-container {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Optimize button interactions */
+  button,
+  [role='button'] {
+    will-change: transform;
+  }
+
+  button:active,
+  [role='button']:active {
+    transform: scale(0.98);
+    transition: transform 0.05s ease-out;
+  }
+}
+
+/* 2025: Pull-to-refresh support */
+@media (max-width: 767px) {
+  .mobile-pull-refresh {
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Pull-to-refresh indicator */
+  .pull-refresh-indicator {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .pull-refresh-indicator.active {
+    opacity: 1;
+  }
+}
+
+/* 2025: Better loading states for mobile */
+@media (max-width: 767px) {
+  .mobile-skeleton {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-light)) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 0.5rem;
+  }
+
+  @keyframes skeleton-loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Optimize loading spinners */
+  .mobile-spinner {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+}
+
+/* 2025: Enhanced mobile performance - Content Visibility API */
+@media (max-width: 767px) {
+  /* Use content-visibility for off-screen content */
+  .mobile-lazy-content {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 200px;
+  }
+
+  /* Optimize long lists */
+  .mobile-virtual-list {
+    contain: layout style paint;
+  }
+}
+
+/* 2025: Better mobile form UX */
+@media (max-width: 767px) {
+  /* Prevent zoom on input focus (already 16px, but ensure it) */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important; /* Force 16px to prevent zoom */
+  }
+
+  /* Better input spacing */
+  .mobile-form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  /* Better error states */
+  .mobile-form-error {
+    color: hsl(var(--destructive));
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Better success states */
+  .mobile-form-success {
+    color: hsl(var(--success));
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 }

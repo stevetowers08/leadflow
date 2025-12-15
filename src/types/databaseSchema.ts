@@ -200,6 +200,8 @@ export const DATABASE_SCHEMA = {
       enrichment_data: 'jsonb',
       enrichment_timestamp: 'timestamptz',
       gmail_thread_id: 'text',
+      show_name: 'text',
+      show_date: 'date',
       user_id: 'uuid',
       owner_id: 'uuid',
       created_at: 'timestamptz',
@@ -248,6 +250,7 @@ export const DATABASE_SCHEMA = {
   // Foreign key relationships - Only existing tables
   FOREIGN_KEYS: {
     'companies.client_id': 'clients.id',
+    'leads.company_id': 'companies.id', // Leads can be linked to companies
     'leads.workflow_id': 'workflows.id',
     'leads.user_id': 'auth.users.id',
     'activity_log.lead_id': 'leads.id',

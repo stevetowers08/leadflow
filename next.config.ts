@@ -16,8 +16,14 @@ const nextConfig: NextConfig = {
   // TypeScript path aliases (configured in tsconfig.json)
   // Next.js automatically uses tsconfig.json paths
 
-  // Image optimization
+  // Image optimization - 2025 Best Practices
   images: {
+    formats: ['image/avif', 'image/webp'], // Modern formats for better compression
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840], // Responsive breakpoints
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384], // Icon and thumbnail sizes
+    minimumCacheTTL: 60, // Cache images for 60 seconds
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
       {
         protocol: 'https',
@@ -40,9 +46,9 @@ const nextConfig: NextConfig = {
     // Server-only variables (no prefix) are automatically server-only
   },
 
-  // Experimental features for Next.js 16
+  // Experimental features for Next.js 16 - 2025 Mobile Optimizations
   experimental: {
-    // Optimize package imports
+    // Optimize package imports for smaller bundles
     optimizePackageImports: [
       '@radix-ui/react-dialog',
       '@radix-ui/react-dropdown-menu',
@@ -51,6 +57,10 @@ const nextConfig: NextConfig = {
       'lucide-react',
       'recharts',
     ],
+    // Enable modern CSS features
+    optimizeCss: true,
+    // Server components optimizations
+    serverComponentsExternalPackages: [],
   },
 
   // TypeScript configuration

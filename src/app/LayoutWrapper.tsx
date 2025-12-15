@@ -8,15 +8,18 @@ import {
   usePreventDoubleTapZoom,
   useSmoothScroll,
   useServiceWorker,
+  useCoreWebVitals,
+  useMobileScrollOptimization,
+  useConnectionOptimization,
 } from '@/hooks/useMobileOptimizations';
 
 /**
  * LayoutWrapper - Updated for Route Groups
- * 
+ *
  * Route groups handle their own layouts:
  * - (mobile)/layout.tsx - Full viewport mobile layouts
  * - (app)/layout.tsx - Desktop sidebar layouts
- * 
+ *
  * This wrapper only handles root-level exclusions and mobile optimizations
  */
 export function LayoutWrapper({ children }: { children: ReactNode }) {
@@ -32,6 +35,9 @@ export function LayoutWrapper({ children }: { children: ReactNode }) {
   usePreventDoubleTapZoom();
   useSmoothScroll();
   useServiceWorker();
+  useCoreWebVitals();
+  useMobileScrollOptimization();
+  useConnectionOptimization();
 
   // Routes that should NOT have any layout wrapper
   // These are full-page routes like auth flows and OAuth callbacks

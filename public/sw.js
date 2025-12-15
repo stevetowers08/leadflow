@@ -70,6 +70,12 @@ if (isDevelopment) {
       return;
     }
 
+    // Skip caching for non-GET requests (POST, PUT, DELETE, etc.)
+    // Cache API only supports GET requests
+    if (request.method !== 'GET') {
+      return;
+    }
+
     // 2025: Different strategies for different resource types
     if (request.destination === 'image') {
       // Images: Cache-first strategy
@@ -88,6 +94,11 @@ if (isDevelopment) {
 
   // 2025: Cache-first strategy (for images)
   async function cacheFirst(request) {
+    // Only cache GET requests
+    if (request.method !== 'GET') {
+      return fetch(request);
+    }
+
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       return cachedResponse;
@@ -95,7 +106,7 @@ if (isDevelopment) {
 
     try {
       const networkResponse = await fetch(request);
-      if (networkResponse.ok) {
+      if (networkResponse.ok && request.method === 'GET') {
         const cache = await caches.open(RUNTIME_CACHE);
         cache.put(request, networkResponse.clone());
       }
@@ -109,9 +120,14 @@ if (isDevelopment) {
 
   // 2025: Network-first strategy (for dynamic content)
   async function networkFirst(request) {
+    // Only cache GET requests
+    if (request.method !== 'GET') {
+      return fetch(request);
+    }
+
     try {
       const networkResponse = await fetch(request);
-      if (networkResponse.ok) {
+      if (networkResponse.ok && request.method === 'GET') {
         const cache = await caches.open(RUNTIME_CACHE);
         cache.put(request, networkResponse.clone());
       }

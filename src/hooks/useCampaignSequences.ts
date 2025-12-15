@@ -23,15 +23,13 @@ export function useCampaignSequences() {
   } = useQuery({
     queryKey: ['campaign-sequences'],
     queryFn: async () => {
-      console.log('🔍 Fetching campaign sequences...');
-      // Campaign sequences removed - not in PDR. Use workflows table instead.
-      // Return empty array for backward compatibility
-      const data: never[] = [];
-      const error = null;
-      // const { data, error } = await supabase
-      //   .from('campaign_sequences')
-      //   .select('*')
-      //   .order('created_at', { ascending: false });
+      console.log('🔍 Fetching campaign sequences from workflows table...');
+
+      // Use workflows table instead of campaign_sequences
+      const { data, error } = await supabase
+        .from('workflows')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       // Handle missing table gracefully
       if (error) {
@@ -41,21 +39,55 @@ export function useCampaignSequences() {
           errorMessage.includes('does not exist')
         ) {
           console.debug(
-            '❌ Error fetching campaign sequences: Could not find the table',
+            '❌ Error fetching workflows: Could not find the table',
             error
           );
           return [] as CampaignSequence[];
         }
         console.error(
-          '❌ Error fetching campaign sequences:',
+          '❌ Error fetching workflows:',
           getErrorMessage(error),
           error
         );
         throw error;
       }
 
-      console.log('✅ Campaign sequences fetched:', data);
-      return data as CampaignSequence[];
+      // Map workflows to CampaignSequence format for backward compatibility
+      const mappedSequences: CampaignSequence[] = (data || []).map(workflow => {
+        // Handle both user_id (from database) and created_by (from type) fields
+        const userId =
+          (workflow as { user_id?: string; created_by?: string }).user_id ||
+          (workflow as { user_id?: string; created_by?: string }).created_by ||
+          user?.id ||
+          '';
+
+        // Get status from workflow.status or from pause_rules.status (fallback)
+        const workflowStatus =
+          (workflow as { status?: string }).status ||
+          (workflow.pause_rules as { status?: string })?.status ||
+          'draft';
+
+        // Map 'archived' -> 'completed' for CampaignSequence
+        const mappedStatus =
+          workflowStatus === 'archived'
+            ? 'completed'
+            : (workflowStatus as 'draft' | 'active' | 'paused' | 'completed');
+
+        return {
+          id: workflow.id,
+          name: workflow.name,
+          description: workflow.description || '',
+          status: mappedStatus,
+          created_at: workflow.created_at || new Date().toISOString(),
+          updated_at: workflow.updated_at || new Date().toISOString(),
+          created_by: userId,
+          total_leads: 0, // Will be calculated separately if needed
+          active_leads: 0, // Will be calculated separately if needed
+        };
+      });
+
+      console.log('✅ Campaign sequences fetched:', mappedSequences);
+      return mappedSequences;
     },
   });
 
@@ -75,25 +107,74 @@ export function useCampaignSequences() {
         throw new Error('No active session. Please sign in again.');
       }
 
-      // Campaign sequences removed - not in PDR
-      throw new Error(
-        'Campaign sequences not available - use workflows table instead'
-      );
-      // const { data, error } = await supabase
-      //   .from('campaign_sequences')
-      //   .insert([...])
-      //   .select()
-      //   .single();
-      //
-      // if (error) {
-      //   throw new Error(`Failed to create campaign sequence: ${getErrorMessage(error)}`);
-      // }
-      //
-      // if (!data) {
-      //   throw new Error('Campaign sequence was created but no data was returned');
-      // }
-      //
-      // return data as CampaignSequence;
+      // Create workflow instead of campaign_sequence
+      // Map status: 'completed' -> 'archived' for workflows
+      // Store status in pause_rules since workflows table may not have status column
+      const workflowStatus =
+        formData.status === 'completed'
+          ? 'archived'
+          : formData.status === 'active' ||
+              formData.status === 'paused' ||
+              formData.status === 'draft'
+            ? formData.status
+            : 'draft';
+
+      const { data, error } = await supabase
+        .from('workflows')
+        .insert({
+          name: formData.name,
+          description: formData.description || null,
+          email_provider: 'gmail', // Default to gmail for email campaigns
+          gmail_sequence: null,
+          pause_rules: { status: workflowStatus }, // Store status in pause_rules metadata
+          user_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(
+          `Failed to create campaign sequence: ${getErrorMessage(error)}`
+        );
+      }
+
+      if (!data) {
+        throw new Error(
+          'Campaign sequence was created but no data was returned'
+        );
+      }
+
+      // Map workflow back to CampaignSequence format
+      const userId =
+        (data as { user_id?: string; created_by?: string }).user_id ||
+        (data as { user_id?: string; created_by?: string }).created_by ||
+        user.id;
+
+      // Get status from data.status or from pause_rules.status (fallback)
+      const workflowStatus =
+        (data as { status?: string }).status ||
+        (data.pause_rules as { status?: string })?.status ||
+        'draft';
+
+      // Map 'archived' -> 'completed' for CampaignSequence
+      const mappedStatus =
+        workflowStatus === 'archived'
+          ? 'completed'
+          : (workflowStatus as 'draft' | 'active' | 'paused' | 'completed');
+
+      const sequence: CampaignSequence = {
+        id: data.id,
+        name: data.name,
+        description: data.description || '',
+        status: mappedStatus,
+        created_at: data.created_at || new Date().toISOString(),
+        updated_at: data.updated_at || new Date().toISOString(),
+        created_by: userId,
+        total_leads: 0,
+        active_leads: 0,
+      };
+
+      return sequence;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaign-sequences'] });
@@ -108,19 +189,86 @@ export function useCampaignSequences() {
       id: string;
       updates: Partial<CampaignSequence>;
     }) => {
-      // Campaign sequences removed - not in PDR
-      throw new Error(
-        'Campaign sequences not available - use workflows table instead'
-      );
-      // const { data, error } = await supabase
-      //   .from('campaign_sequences')
-      //   .update(updates)
-      //   .eq('id', id)
-      //   .select()
-      //   .single();
-      //
-      // if (error) throw error;
-      // return data as CampaignSequence;
+      // Map CampaignSequence updates to workflow format
+      const workflowUpdates: Record<string, unknown> = {};
+
+      if (updates.name !== undefined) workflowUpdates.name = updates.name;
+      if (updates.description !== undefined)
+        workflowUpdates.description = updates.description || null;
+      if (updates.status !== undefined) {
+        // Map 'completed' -> 'archived' for workflows
+        const workflowStatus =
+          updates.status === 'completed'
+            ? 'archived'
+            : updates.status === 'active' ||
+                updates.status === 'paused' ||
+                updates.status === 'draft'
+              ? updates.status
+              : 'draft';
+
+        // Try to update status field if it exists, otherwise store in pause_rules
+        workflowUpdates.status = workflowStatus;
+
+        // Also update pause_rules to include status as fallback
+        const { data: currentWorkflow } = await supabase
+          .from('workflows')
+          .select('pause_rules')
+          .eq('id', id)
+          .single();
+
+        const currentPauseRules =
+          (currentWorkflow?.pause_rules as Record<string, unknown>) || {};
+        workflowUpdates.pause_rules = {
+          ...currentPauseRules,
+          status: workflowStatus,
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('workflows')
+        .update(workflowUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (!data) {
+        throw new Error('Workflow was updated but no data was returned');
+      }
+
+      // Map workflow back to CampaignSequence format
+      const userId =
+        (data as { user_id?: string; created_by?: string }).user_id ||
+        (data as { user_id?: string; created_by?: string }).created_by ||
+        user?.id ||
+        '';
+
+      // Get status from data.status or from pause_rules.status (fallback)
+      const workflowStatus =
+        (data as { status?: string }).status ||
+        (data.pause_rules as { status?: string })?.status ||
+        'draft';
+
+      // Map 'archived' -> 'completed' for CampaignSequence
+      const mappedStatus =
+        workflowStatus === 'archived'
+          ? 'completed'
+          : (workflowStatus as 'draft' | 'active' | 'paused' | 'completed');
+
+      const sequence: CampaignSequence = {
+        id: data.id,
+        name: data.name,
+        description: data.description || '',
+        status: mappedStatus,
+        created_at: data.created_at || new Date().toISOString(),
+        updated_at: data.updated_at || new Date().toISOString(),
+        created_by: userId,
+        total_leads: 0,
+        active_leads: 0,
+      };
+
+      return sequence;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaign-sequences'] });
@@ -129,10 +277,7 @@ export function useCampaignSequences() {
 
   const deleteSequence = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('campaign_sequences' as never)
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('workflows').delete().eq('id', id);
 
       if (error) throw error;
     },

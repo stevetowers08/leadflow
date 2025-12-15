@@ -32,6 +32,8 @@ export const viewport: Viewport = {
     { media: '(prefers-color-scheme: dark)', color: '#0A1628' },
   ],
   viewportFit: 'cover', // Support for notched devices
+  // 2025: Enhanced mobile viewport settings
+  interactiveWidget: 'resizes-content', // Better handling of virtual keyboards
 };
 
 export default function RootLayout({
@@ -46,6 +48,15 @@ export default function RootLayout({
         <meta name='apple-mobile-web-app-capable' content='yes' />
         <meta name='apple-mobile-web-app-status-bar-style' content='default' />
         <meta name='format-detection' content='telephone=no' />
+        {/* 2025: Performance optimizations */}
+        <link rel='preconnect' href='https://fonts.googleapis.com' />
+        <link
+          rel='preconnect'
+          href='https://fonts.gstatic.com'
+          crossOrigin='anonymous'
+        />
+        <link rel='dns-prefetch' href='https://logo.clearbit.com' />
+        <link rel='dns-prefetch' href='https://ui-avatars.com' />
         <link rel='manifest' href='/manifest.json' />
         <script
           dangerouslySetInnerHTML={{
