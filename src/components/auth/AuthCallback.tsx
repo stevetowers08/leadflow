@@ -64,15 +64,21 @@ const AuthCallback: React.FC = () => {
 
         // PKCE Flow: Supabase uses PKCE by default when redirectTo is provided
         // This is the secure, modern OAuth flow (implicit flow is deprecated)
+        // NOTE: Server-side route handler (route.ts) should handle code exchange
+        // This client-side code is a fallback for edge cases
         const code = urlParams.get('code');
         if (code) {
           if (isDev) {
             console.log(
-              '✅ Authorization code found - exchanging via API route (PKCE flow)...'
+              '⚠️ Authorization code found in client component - this should be handled by server route handler'
+            );
+            console.log(
+              '⚠️ Falling back to client-side exchange (server route handler may have failed)'
             );
           }
 
           // Exchange code for session via API route (server-side for security)
+          // This is a fallback - the server route handler should handle this
           try {
             const response = await fetch('/api/auth/exchange-code', {
               method: 'POST',
@@ -200,8 +206,16 @@ const AuthCallback: React.FC = () => {
               // Small delay to ensure cookies are fully set
               await new Promise(resolve => setTimeout(resolve, 100));
 
+              // Log before redirect for debugging
+              console.log('🔄 Redirecting to home page', {
+                sessionExists: !!currentSession?.user,
+                userId: currentSession?.user?.id,
+                email: currentSession?.user?.email,
+              });
+
               // Use replace to avoid adding to history (best practice)
               // This prevents back button issues
+              // Full page reload ensures cookies are read
               window.location.href = '/';
               return;
             }

@@ -107,11 +107,20 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
         const { supabase } = await import('@/integrations/supabase/client');
         const {
           data: { session },
+          error: sessionError,
         } = await supabase.auth.getSession();
         const hasValidSession = !!session?.user;
+
+        console.log('🔍 PermissionsWrapper: Session check', {
+          hasSession: hasValidSession,
+          userId: session?.user?.id,
+          email: session?.user?.email,
+          error: sessionError?.message,
+        });
+
         setHasSession(hasValidSession);
       } catch (error) {
-        console.error('Error checking session:', error);
+        console.error('❌ Error checking session:', error);
         setHasSession(false);
       } finally {
         setCheckingSession(false);
@@ -165,7 +174,18 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
 
   // Redirect to sign-in if no user and not bypassing
   // Check both context user and direct session to avoid race conditions
-  if (!bypassAuth && !user && !hasSession) {
+  // IMPORTANT: Give session check time to complete before redirecting
+  // This handles the race condition where cookies exist but haven't been read yet
+  if (!bypassAuth && !user && !hasSession && !checkingSession) {
+    console.log('🔍 PermissionsWrapper: No user found', {
+      user: !!user,
+      hasSession,
+      loading,
+      checkingSession,
+      bypassAuth,
+      pathname:
+        typeof window !== 'undefined' ? window.location.pathname : 'unknown',
+    });
     return <AuthPage />;
   }
 
