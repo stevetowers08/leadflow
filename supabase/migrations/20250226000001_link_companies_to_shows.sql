@@ -68,3 +68,4 @@ COMMENT ON TABLE public.show_companies IS 'Junction table linking companies to s
 COMMENT ON COLUMN public.show_companies.show_id IS 'Foreign key to shows table';
 COMMENT ON COLUMN public.show_companies.company_id IS 'Foreign key to companies table';
 
+

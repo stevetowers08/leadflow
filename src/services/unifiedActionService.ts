@@ -288,18 +288,70 @@ export class UnifiedActionService {
 
   /**
    * Get campaign by ID
+   * Note: campaign_sequences table has been replaced with workflows table
    */
   private async getCampaign(
     campaignId: string
   ): Promise<CampaignSequence | null> {
+    // Use workflows table instead of campaign_sequences
     const { data, error } = await supabase
-      .from('campaign_sequences')
+      .from('workflows')
       .select('*')
       .eq('id', campaignId)
       .single();
 
-    if (error) return null;
-    return data;
+    if (error) {
+      // Handle missing table gracefully
+      const errorMessage = (error as { message?: string })?.message || '';
+      const isTableMissing =
+        error.code === 'PGRST116' ||
+        error.code === '42P01' ||
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('relation') ||
+        (error as { status?: number })?.status === 404;
+
+      if (isTableMissing) {
+        return null;
+      }
+      return null;
+    }
+
+    // Map workflow to CampaignSequence format
+    if (!data) return null;
+
+    const workflow = data as {
+      id: string;
+      name: string;
+      description?: string;
+      status?: string;
+      created_at?: string;
+      updated_at?: string;
+      created_by?: string;
+      user_id?: string;
+      pause_rules?: { status?: string };
+    };
+
+    // Map workflow status to campaign sequence status
+    const workflowStatus =
+      workflow.status ||
+      (workflow.pause_rules as { status?: string })?.status ||
+      'draft';
+    const mappedStatus =
+      workflowStatus === 'archived'
+        ? 'completed'
+        : (workflowStatus as 'draft' | 'active' | 'paused' | 'completed');
+
+    return {
+      id: workflow.id,
+      name: workflow.name,
+      description: workflow.description || '',
+      status: mappedStatus,
+      created_at: workflow.created_at || new Date().toISOString(),
+      updated_at: workflow.updated_at || new Date().toISOString(),
+      created_by: workflow.created_by || workflow.user_id || '',
+      total_leads: 0,
+      active_leads: 0,
+    };
   }
 
   /**
@@ -318,16 +370,81 @@ export class UnifiedActionService {
 
   /**
    * Get available campaigns
+   * Note: campaign_sequences table has been replaced with workflows table
    */
   async getAvailableCampaigns(): Promise<CampaignSequence[]> {
+    // Use workflows table instead of campaign_sequences
     const { data, error } = await supabase
-      .from('campaign_sequences')
+      .from('workflows')
       .select('*')
-      .in('status', ['active', 'draft'])
-      .order('status', { ascending: false }) // active first
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data || [];
+    if (error) {
+      // Handle missing table gracefully
+      const errorMessage = (error as { message?: string })?.message || '';
+      const isTableMissing =
+        error.code === 'PGRST116' ||
+        error.code === '42P01' ||
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('relation') ||
+        (error as { status?: number })?.status === 404;
+
+      if (isTableMissing) {
+        return []; // Return empty array if table doesn't exist
+      }
+      throw error;
+    }
+
+    // Map workflows to CampaignSequence format
+    const workflows = (data || []) as Array<{
+      id: string;
+      name: string;
+      description?: string;
+      status?: string;
+      created_at?: string;
+      updated_at?: string;
+      created_by?: string;
+      user_id?: string;
+      pause_rules?: { status?: string };
+    }>;
+
+    return workflows
+      .map(workflow => {
+        // Map workflow status to campaign sequence status
+        const workflowStatus =
+          workflow.status ||
+          (workflow.pause_rules as { status?: string })?.status ||
+          'draft';
+        const mappedStatus =
+          workflowStatus === 'archived'
+            ? 'completed'
+            : (workflowStatus as 'draft' | 'active' | 'paused' | 'completed');
+
+        // Filter to only active and draft campaigns
+        if (mappedStatus !== 'active' && mappedStatus !== 'draft') {
+          return null;
+        }
+
+        return {
+          id: workflow.id,
+          name: workflow.name,
+          description: workflow.description || '',
+          status: mappedStatus,
+          created_at: workflow.created_at || new Date().toISOString(),
+          updated_at: workflow.updated_at || new Date().toISOString(),
+          created_by: workflow.created_by || workflow.user_id || '',
+          total_leads: 0,
+          active_leads: 0,
+        };
+      })
+      .filter((campaign): campaign is CampaignSequence => campaign !== null)
+      .sort((a, b) => {
+        // Sort active first, then by created_at
+        if (a.status === 'active' && b.status !== 'active') return -1;
+        if (a.status !== 'active' && b.status === 'active') return 1;
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      });
   }
 }

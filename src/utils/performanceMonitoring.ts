@@ -416,7 +416,7 @@ class PerformanceMonitor {
 
     try {
       const report = this.generateReport();
-      await fetch('/api/analytics/performance', {
+      const response = await fetch('/api/analytics/performance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -427,8 +427,28 @@ class PerformanceMonitor {
           ...report,
         }),
       });
+
+      // Handle 404/405 errors gracefully (route might not exist)
+      if (
+        !response.ok &&
+        (response.status === 404 || response.status === 405)
+      ) {
+        logger.debug('Analytics performance endpoint not available, skipping');
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`Analytics endpoint returned ${response.status}`);
+      }
     } catch (error) {
-      logger.error('Failed to send performance data:', error);
+      // Only log non-404/405 errors
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (!errorMessage.includes('404') && !errorMessage.includes('405')) {
+        logger.error('Failed to send performance data:', error);
+      } else {
+        logger.debug('Analytics performance endpoint not available, skipping');
+      }
     }
   }
 }

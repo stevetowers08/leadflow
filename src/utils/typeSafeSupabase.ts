@@ -101,7 +101,22 @@ export const showsQueries = {
     }
 
     const { data, error } = await query;
-    if (error) throw error;
+
+    // Handle missing table gracefully
+    if (error) {
+      const errorMessage = (error as { message?: string })?.message || '';
+      const isTableMissing =
+        error.code === 'PGRST116' ||
+        error.code === '42P01' ||
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('relation') ||
+        (error as { status?: number })?.status === 404;
+
+      if (isTableMissing) {
+        return []; // Table doesn't exist, return empty array
+      }
+      throw error;
+    }
     return (data || []) as Show[];
   },
 
@@ -117,7 +132,17 @@ export const showsQueries = {
 
     const { data, error } = await query.single();
     if (error) {
-      if (error.code === 'PGRST116') return null;
+      const errorMessage = (error as { message?: string })?.message || '';
+      const isTableMissing =
+        error.code === 'PGRST116' ||
+        error.code === '42P01' ||
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('relation') ||
+        (error as { status?: number })?.status === 404;
+
+      if (isTableMissing || error.code === 'PGRST116') {
+        return null;
+      }
       throw error;
     }
     return data as Show;
@@ -132,7 +157,22 @@ export const showsQueries = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      const errorMessage = (error as { message?: string })?.message || '';
+      const isTableMissing =
+        error.code === 'PGRST116' ||
+        error.code === '42P01' ||
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('relation') ||
+        (error as { status?: number })?.status === 404;
+
+      if (isTableMissing) {
+        throw new Error(
+          'shows table does not exist. Please run the migration to create it.'
+        );
+      }
+      throw error;
+    }
     return data as Show;
   },
 };
@@ -219,37 +259,8 @@ export const integrationsQueries = {
 // ERROR LOGGING QUERIES
 // ============================================================================
 
-export const errorSettingsQueries = {
-  async getByUserId(userId: string): Promise<ErrorSettings | null> {
-    const { data, error } = await supabase
-      .from('error_settings' as never)
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data as ErrorSettings | null;
-  },
-
-  async upsert(
-    settings: Omit<ErrorSettings, 'id' | 'created_at' | 'updated_at'>
-  ): Promise<ErrorSettings> {
-    const { data, error } = await supabase
-      .from('error_settings' as never)
-      .upsert(
-        {
-          ...settings,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id' }
-      )
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as ErrorSettings;
-  },
-};
+// error_settings table removed - using simple defaults instead
+// No database queries needed for error settings
 
 export const errorNotificationsQueries = {
   async create(

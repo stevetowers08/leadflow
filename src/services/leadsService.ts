@@ -141,53 +141,75 @@ export async function getLeads(options?: {
   show_name?: string; // Legacy filter
   show_date?: string; // Legacy filter
 }): Promise<Lead[]> {
-  let query = supabase
-    .from('leads')
-    .select(
-      `
-      *,
-      companies(id, name, logo_url),
-      shows(id, name, start_date, end_date, city, venue)
-    `
-    )
-    .order('created_at', { ascending: false });
+  // Helper function to build query with optional shows join
+  const buildQuery = (includeShows: boolean) => {
+    const selectQuery = includeShows
+      ? `*, companies(id, name, logo_url), shows(id, name, start_date, end_date, city, venue)`
+      : `*, companies(id, name, logo_url)`;
 
-  if (options?.quality_rank) {
-    query = query.eq('quality_rank', options.quality_rank);
-  }
+    let query = supabase
+      .from('leads')
+      .select(selectQuery)
+      .order('created_at', { ascending: false });
 
-  if (options?.status) {
-    query = query.eq('status', options.status);
-  }
+    if (options?.quality_rank) {
+      query = query.eq('quality_rank', options.quality_rank);
+    }
 
-  if (options?.show_id) {
-    query = query.eq('show_id', options.show_id);
-  }
+    if (options?.status) {
+      query = query.eq('status', options.status);
+    }
 
-  if (options?.company_id) {
-    query = query.eq('company_id', options.company_id);
-  }
+    if (options?.show_id) {
+      query = query.eq('show_id', options.show_id);
+    }
 
-  // Legacy filters
-  if (options?.show_name) {
-    query = query.eq('show_name', options.show_name);
-  }
+    if (options?.company_id) {
+      query = query.eq('company_id', options.company_id);
+    }
 
-  if (options?.show_date) {
-    query = query.eq('show_date', options.show_date);
-  }
+    // Legacy filters
+    if (options?.show_name) {
+      query = query.eq('show_name', options.show_name);
+    }
 
-  if (options?.limit) {
-    query = query.limit(options.limit);
-  }
+    if (options?.show_date) {
+      query = query.eq('show_date', options.show_date);
+    }
 
-  if (options?.offset && options?.limit) {
-    query = query.range(options.offset, options.offset + options.limit - 1);
-  }
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
 
-  const { data, error } = await query;
+    if (options?.offset && options?.limit) {
+      query = query.range(options.offset, options.offset + options.limit - 1);
+    }
 
+    return query;
+  };
+
+  // Try with shows join first
+  const { data, error } = await buildQuery(true);
+
+  // If error is due to missing shows table, retry without shows join
   if (error) {
+    const errorMessage = (error as { message?: string })?.message || '';
+    const isMissingTable =
+      error.code === 'PGRST116' ||
+      error.code === '42P01' ||
+      errorMessage.includes('does not exist') ||
+      errorMessage.includes('relation') ||
+      (error as { status?: number })?.status === 400;
+
+    if (isMissingTable) {
+      // Retry without shows join
+      const { data: retryData, error: retryError } = await buildQuery(false);
+      if (retryError) {
+        throw new Error(`Failed to get leads: ${retryError.message}`);
+      }
+      return (retryData || []) as Lead[];
+    }
+
     throw new Error(`Failed to get leads: ${error.message}`);
   }
 

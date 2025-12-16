@@ -53,100 +53,36 @@ class SupabaseErrorService {
   }
 
   /**
-   * Load notification settings for the current user
+   * Load notification settings - simplified to use defaults
    */
   private async loadNotificationSettings(): Promise<void> {
     try {
-      // Safely get user - prevent errors during initialization
+      // Get user for email
       let user = null;
       try {
         const authResponse = await supabase.auth.getUser();
-        // Defensive check: ensure authResponse and data exist before accessing
-        if (authResponse?.data && authResponse.data.user) {
+        if (authResponse?.data?.user) {
           user = authResponse.data.user;
         }
-      } catch (authError) {
-        // Auth might fail during initialization - just return without settings
-        return;
+      } catch {
+        // Auth might fail - use defaults
       }
 
-      if (!user) return;
-
-      // Use type-safe helper for error_settings
-      const { data: settings, error } = await supabase
-        .from('error_settings' as never)
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      // Handle case where error_settings table doesn't exist yet
-      // Check for various error codes that indicate table doesn't exist:
-      // PGRST116: relation does not exist
-      // PGRST205: no rows returned (this is OK with maybeSingle)
-      // Also check for 404 status codes from REST API
-      if (error) {
-        const isTableMissing =
-          error.code === 'PGRST116' ||
-          error.code === '42P01' || // PostgreSQL relation does not exist
-          error.message?.includes('does not exist') ||
-          error.message?.includes('relation') ||
-          (error as { status?: number })?.status === 404;
-
-        if (isTableMissing) {
-          // Silently use default settings without logging
-          this.notificationSettings = {
-            emailNotifications: true,
-            notificationSeverity: ErrorSeverity.HIGH,
-            notificationEmail: user.email || undefined,
-          };
-          return;
-        }
-
-        // Only log non-table-missing errors
-        if (error.code !== 'PGRST205') {
-          console.error('Failed to load notification settings:', error);
-        }
-        return;
-      }
-
-      if (settings) {
-        this.notificationSettings = {
-          emailNotifications: settings.email_notifications ?? true,
-          notificationSeverity:
-            (settings.notification_severity as ErrorSeverity) ??
-            ErrorSeverity.HIGH,
-          notificationEmail: settings.notification_email ?? undefined,
-          slackWebhookUrl: settings.slack_webhook_url ?? undefined,
-          webhookUrl: settings.webhook_url ?? undefined,
-        };
-      }
-    } catch (error) {
-      // Check if error indicates table doesn't exist
-      const isTableMissing =
-        error &&
-        typeof error === 'object' &&
-        (('code' in error &&
-          (error.code === 'PGRST116' || error.code === '42P01')) ||
-          ('message' in error &&
-            typeof error.message === 'string' &&
-            (error.message.includes('does not exist') ||
-              error.message.includes('relation'))) ||
-          ('status' in error && error.status === 404));
-
-      // Only log unexpected errors, not table missing errors
-      if (
-        !isTableMissing &&
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code !== 'PGRST205'
-      ) {
-        console.error('Failed to load notification settings:', error);
-      }
-      // Set default settings on error
+      // Simple defaults - no database table needed
       this.notificationSettings = {
         emailNotifications: true,
         notificationSeverity: ErrorSeverity.HIGH,
+        notificationEmail: user?.email || this.adminEmail || undefined,
+        // Use env vars for webhooks if needed
+        slackWebhookUrl: process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL || undefined,
+        webhookUrl: process.env.NEXT_PUBLIC_ERROR_WEBHOOK_URL || undefined,
+      };
+    } catch {
+      // Always set defaults on any error
+      this.notificationSettings = {
+        emailNotifications: true,
+        notificationSeverity: ErrorSeverity.HIGH,
+        notificationEmail: this.adminEmail || undefined,
       };
     }
   }
@@ -597,7 +533,7 @@ class SupabaseErrorService {
   }
 
   /**
-   * Log notification attempt
+   * Log notification attempt - simplified, just log to console
    */
   private async logNotification(
     errorLogId: string,
@@ -606,21 +542,12 @@ class SupabaseErrorService {
     status: string,
     errorMessage?: string
   ): Promise<void> {
-    try {
-      // Note: error_notifications table doesn't exist in types - using type assertion
-      await supabase.from('error_notifications' as never).insert({
-        error_log_id: errorLogId,
-        notification_type: type,
-        recipient_email: type === 'email' ? recipient : undefined,
-        status,
-        error_message: errorMessage,
-        metadata: {
-          recipient,
-          type,
-        },
-      });
-    } catch (error) {
-      console.error('Failed to log notification:', error);
+    // Simple logging - no database table needed
+    if (status === 'failed') {
+      console.warn(
+        `Failed to send ${type} notification for error ${errorLogId}:`,
+        errorMessage
+      );
     }
   }
 
@@ -696,33 +623,19 @@ class SupabaseErrorService {
   }
 
   /**
-   * Update notification settings
+   * Update notification settings - simplified, just update in-memory
    */
   async updateNotificationSettings(
     settings: Partial<ErrorNotificationSettings>
   ): Promise<boolean> {
     try {
-      const authResponse = await supabase.auth.getUser();
-      const user = authResponse?.data?.user ?? null;
-      if (!user) return false;
-
-      // Note: error_settings table doesn't exist in types - using type assertion
-      const { error } = await supabase.from('error_settings' as never).upsert({
-        user_id: user.id,
-        email_notifications: settings.emailNotifications,
-        notification_severity: settings.notificationSeverity,
-        notification_email: settings.notificationEmail,
-        slack_webhook_url: settings.slackWebhookUrl,
-        webhook_url: settings.webhookUrl,
-      });
-
-      if (!error) {
-        await this.loadNotificationSettings();
-      }
-
-      return !error;
-    } catch (error) {
-      console.error('Failed to update notification settings:', error);
+      // Simple in-memory update - no database needed
+      this.notificationSettings = {
+        ...this.notificationSettings,
+        ...settings,
+      };
+      return true;
+    } catch {
       return false;
     }
   }
