@@ -12,10 +12,10 @@ export interface UserAssignment {
   role: string;
   total_leads: number;
   total_companies: number;
-  total_jobs: number;
   qualified_leads: number;
   active_companies: number;
-  active_jobs: number;
+  // Note: jobs fields removed - recruitment features have been removed
+  // Note: jobs fields removed - recruitment features have been removed
 }
 
 export interface LeadWithAssignment {
@@ -47,7 +47,7 @@ export interface CompanyWithAssignment {
   owner_email: string | null;
   owner_role: string | null;
   total_leads: number;
-  total_jobs: number;
+  // Note: total_jobs removed - recruitment features have been removed
 }
 
 export class UserAssignmentQueries {
@@ -56,13 +56,14 @@ export class UserAssignmentQueries {
    * Uses materialized view for optimal performance
    */
   static async getUserAssignmentStats(): Promise<UserAssignment[]> {
+    // Note: user_assignment_stats is a database view, not in TypeScript types
     const { data, error } = await supabase
-      .from('user_assignment_stats')
+      .from('user_assignment_stats' as never)
       .select('*')
       .order('total_leads', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as UserAssignment[];
   }
 
   /**
@@ -78,7 +79,10 @@ export class UserAssignmentQueries {
       offset?: number;
     } = {}
   ): Promise<LeadWithAssignment[]> {
-    let query = supabase.from('lead_assignments_with_users').select('*');
+    // Note: lead_assignments_with_users is a database view, not in TypeScript types
+    let query = supabase
+      .from('lead_assignments_with_users' as never)
+      .select('*');
 
     if (filters.ownerId) {
       query = query.eq('owner_id', filters.ownerId);
@@ -126,7 +130,10 @@ export class UserAssignmentQueries {
       offset?: number;
     } = {}
   ): Promise<CompanyWithAssignment[]> {
-    let query = supabase.from('company_assignments_with_users').select('*');
+    // Note: company_assignments_with_users is a database view, not in TypeScript types
+    let query = supabase
+      .from('company_assignments_with_users' as never)
+      .select('*');
 
     if (filters.ownerId) {
       query = query.eq('owner_id', filters.ownerId);
@@ -168,8 +175,9 @@ export class UserAssignmentQueries {
   static async getUnassignedLeads(
     limit: number = 50
   ): Promise<LeadWithAssignment[]> {
+    // Note: lead_assignments_with_users is a database view, not in TypeScript types
     const { data, error } = await supabase
-      .from('lead_assignments_with_users')
+      .from('lead_assignments_with_users' as never)
       .select('*')
       .is('owner_id', null)
       .order('created_at', { ascending: false })
@@ -186,8 +194,9 @@ export class UserAssignmentQueries {
   static async getUnassignedCompanies(
     limit: number = 50
   ): Promise<CompanyWithAssignment[]> {
+    // Note: company_assignments_with_users is a database view, not in TypeScript types
     const { data, error } = await supabase
-      .from('company_assignments_with_users')
+      .from('company_assignments_with_users' as never)
       .select('*')
       .is('owner_id', null)
       .order('created_at', { ascending: false })
@@ -202,7 +211,7 @@ export class UserAssignmentQueries {
    * More efficient than individual updates
    */
   static async batchAssignEntities(
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'people' | 'companies' | 'leads',
     entityIds: string[],
     ownerId: string
   ): Promise<void> {
@@ -219,7 +228,7 @@ export class UserAssignmentQueries {
    * More efficient than individual updates
    */
   static async batchUnassignEntities(
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'people' | 'companies' | 'leads',
     entityIds: string[]
   ): Promise<void> {
     const { error } = await supabase
@@ -240,10 +249,8 @@ export class UserAssignmentQueries {
       {
         leads: number;
         companies: number;
-        jobs: number;
         qualified_leads: number;
         active_companies: number;
-        active_jobs: number;
       }
     >
   > {
@@ -254,14 +261,23 @@ export class UserAssignmentQueries {
         acc[stat.id] = {
           leads: stat.total_leads,
           companies: stat.total_companies,
-          jobs: stat.total_jobs,
           qualified_leads: stat.qualified_leads,
           active_companies: stat.active_companies,
-          active_jobs: stat.active_jobs,
+          // Note: jobs fields removed - recruitment features have been removed
+          // Note: jobs fields removed - recruitment features have been removed
         };
         return acc;
       },
-      {} as Record<string, unknown>
+      {} as Record<
+        string,
+        {
+          leads: number;
+          companies: number;
+          qualified_leads: number;
+          active_companies: number;
+          // Note: jobs fields removed - recruitment features have been removed
+        }
+      >
     );
   }
 
@@ -270,7 +286,10 @@ export class UserAssignmentQueries {
    * Should be called periodically or after bulk operations
    */
   static async refreshAssignmentStats(): Promise<void> {
-    const { error } = await supabase.rpc('refresh_user_assignment_stats');
+    // Note: refresh_user_assignment_stats RPC may not exist in all projects
+    const { error } = await supabase.rpc(
+      'refresh_user_assignment_stats' as never
+    );
     if (error) throw error;
   }
 }
@@ -286,7 +305,7 @@ export const useUserAssignmentStats = () => {
     queryKey: ['user-assignment-stats'],
     queryFn: () => UserAssignmentQueries.getUserAssignmentStats(),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
   });
 };
 
@@ -299,7 +318,7 @@ export const useLeadsWithAssignments = (
     queryKey: ['leads-with-assignments', filters],
     queryFn: () => UserAssignmentQueries.getLeadsWithAssignments(filters),
     staleTime: 2 * 60 * 1000, // 2 minutes
-    cacheTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
   });
 };
 
@@ -312,7 +331,7 @@ export const useCompaniesWithAssignments = (
     queryKey: ['companies-with-assignments', filters],
     queryFn: () => UserAssignmentQueries.getCompaniesWithAssignments(filters),
     staleTime: 2 * 60 * 1000, // 2 minutes
-    cacheTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
   });
 };
 
@@ -325,7 +344,7 @@ export const useBatchAssignEntities = () => {
       entityIds,
       ownerId,
     }: {
-      entityType: 'people' | 'companies' | 'jobs';
+      entityType: 'people' | 'companies';
       entityIds: string[];
       ownerId: string;
     }) =>
@@ -351,7 +370,7 @@ export const useBatchUnassignEntities = () => {
       entityType,
       entityIds,
     }: {
-      entityType: 'people' | 'companies' | 'jobs';
+      entityType: 'people' | 'companies';
       entityIds: string[];
     }) => UserAssignmentQueries.batchUnassignEntities(entityType, entityIds),
     onSuccess: () => {

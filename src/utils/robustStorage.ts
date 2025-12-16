@@ -271,6 +271,7 @@ const getLocalStorage = () => {
     removeItem: () => {},
     clear: () => {},
     length: 0,
+    key: () => null,
   } as Storage;
 };
 
@@ -285,6 +286,7 @@ const getSessionStorage = () => {
     removeItem: () => {},
     clear: () => {},
     length: 0,
+    key: () => null,
   } as Storage;
 };
 

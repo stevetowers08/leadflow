@@ -1,4 +1,4 @@
-import { RecruitEdgeLogoHorizontal } from '@/components/RecruitEdgeLogo';
+import { LeadFlowLogoHorizontal } from '@/components/RecruitEdgeLogo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -102,7 +102,7 @@ export const SignIn: React.FC = () => {
     <div className='min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4'>
       {/* Company Logo - Top Left */}
       <div className='absolute top-6 left-6'>
-        <RecruitEdgeLogoHorizontal size={32} />
+        <LeadFlowLogoHorizontal size={32} />
       </div>
 
       {/* Main Login Card */}

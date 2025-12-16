@@ -66,7 +66,8 @@ export function SettingsSidebar({
   const settingsSections = getSettingsSections();
   const availableSections = settingsSections.filter(section => {
     if (section.id === 'invitations') {
-      return hasPermission('users_invite');
+      // Check for users invite permission - resource: 'users', action: 'invite'
+      return hasPermission('users', 'invite');
     }
     return section.available;
   });

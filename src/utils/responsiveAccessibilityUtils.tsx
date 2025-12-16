@@ -297,8 +297,7 @@ export const EnhancedMobileCard: React.FC<EnhancedMobileCardProps> = ({
 };
 
 // 4. Enhanced Mobile Button with Better Accessibility
-interface EnhancedMobileButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface EnhancedMobileButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
@@ -468,9 +467,6 @@ export const EnhancedLayout: React.FC<EnhancedLayoutProps> = ({ children }) => {
           {children}
         </div>
       </main>
-
-      {/* Floating Chat Widget */}
-      <FloatingChatWidget />
 
       {/* Mobile bottom navigation */}
       {isMobile && <MobileNav />}
@@ -705,15 +701,3 @@ export const responsiveCSS = `
   }
 }
 `;
-
-// Export all utilities
-export {
-  AccessibilityUtils,
-  BrowserCompatibility,
-  EnhancedLayout,
-  EnhancedMobileButton,
-  EnhancedMobileCard,
-  EnhancedTouchComponent,
-  responsiveCSS,
-  useMobile,
-};

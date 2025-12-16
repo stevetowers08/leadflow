@@ -11,10 +11,8 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import express from 'express';
-
-const app = express();
-app.use(express.json());
+// Note: Express removed - this is a Next.js app, not Express
+// MCP server runs via stdio transport, not HTTP
 
 // MCP Server implementation
 class CRMMCPServer {
@@ -23,7 +21,7 @@ class CRMMCPServer {
   constructor() {
     this.server = new Server(
       {
-        name: 'recruitedge-mcp',
+        name: 'leadflow-mcp',
         version: '1.0.0',
       },
       {
@@ -111,18 +109,37 @@ class CRMMCPServer {
     this.server.setRequestHandler(CallToolRequestSchema, async request => {
       const { name, arguments: args } = request.params;
 
+      if (!args || typeof args !== 'object') {
+        throw new Error('Invalid arguments provided');
+      }
+
       try {
         switch (name) {
           case 'get_company_info':
+            if (typeof args.companyId !== 'string') {
+              throw new Error('companyId must be a string');
+            }
             return await this.getCompanyInfo(args.companyId);
 
           case 'get_company_employees':
+            if (typeof args.companyId !== 'string') {
+              throw new Error('companyId must be a string');
+            }
             return await this.getCompanyEmployees(args.companyId);
 
           case 'search_leads':
-            return await this.searchLeads(args.query, args.limit || 10);
+            if (typeof args.query !== 'string') {
+              throw new Error('query must be a string');
+            }
+            return await this.searchLeads(
+              args.query,
+              typeof args.limit === 'number' ? args.limit : 10
+            );
 
           case 'get_lead_details':
+            if (typeof args.leadId !== 'string') {
+              throw new Error('leadId must be a string');
+            }
             return await this.getLeadDetails(args.leadId);
 
           default:

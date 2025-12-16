@@ -26,7 +26,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   title = 'Sign in to continue',
-  description = 'Access your professional recruitment dashboard',
+  description = 'Access your LeadFlow dashboard',
 }) => {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

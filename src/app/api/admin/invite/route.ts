@@ -61,10 +61,15 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Check if user already exists
-    const { data: existingUser } =
-      await supabase.auth.admin.getUserByEmail(normalizedEmail);
+    // Note: getUserByEmail doesn't exist in Supabase admin API
+    // We'll check via user_profiles table instead
+    const { data: existingProfile } = await supabase
+      .from('user_profiles')
+      .select('id, email')
+      .eq('email', normalizedEmail)
+      .maybeSingle();
 
-    if (existingUser?.user) {
+    if (existingProfile) {
       return errorResponse('User with this email already exists', 400);
     }
 

@@ -171,7 +171,7 @@ export function usePerformanceMonitor() {
 
     try {
       // Log optimization start in development only
-      if (import.meta.env.MODE === 'development') {
+      if (process.env.NODE_ENV === 'development') {
         console.log('🚀 Starting performance optimization...');
       }
 

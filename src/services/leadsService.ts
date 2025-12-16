@@ -7,18 +7,21 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Lead } from '@/types/database';
+import { linkCompanyToShow } from './showCompaniesService';
 
 export interface CreateLeadInput {
   first_name?: string | null;
   last_name?: string | null;
   email?: string | null;
   company?: string | null;
+  company_id?: string | null;
   job_title?: string | null;
   phone?: string | null;
   scan_image_url?: string | null;
   quality_rank?: 'hot' | 'warm' | 'cold' | null;
-  show_name?: string | null;
-  show_date?: string | null; // ISO date string (YYYY-MM-DD)
+  show_id?: string | null;
+  show_name?: string | null; // Legacy, use show_id
+  show_date?: string | null; // Legacy, use show_id
   notes?: string | null;
   user_id?: string | null;
 }
@@ -28,12 +31,14 @@ export interface UpdateLeadInput {
   last_name?: string | null;
   email?: string | null;
   company?: string | null;
+  company_id?: string | null;
   job_title?: string | null;
   phone?: string | null;
   quality_rank?: 'hot' | 'warm' | 'cold' | null;
   status?: 'processing' | 'active' | 'replied_manual';
-  show_name?: string | null;
-  show_date?: string | null; // ISO date string (YYYY-MM-DD)
+  show_id?: string | null;
+  show_name?: string | null; // Legacy
+  show_date?: string | null; // Legacy
   notes?: string | null;
   ai_summary?: string | null;
   ai_icebreaker?: string | null;
@@ -63,6 +68,16 @@ export async function createLead(input: CreateLeadInput): Promise<Lead> {
 
   if (error) {
     throw new Error(`Failed to create lead: ${error.message}`);
+  }
+
+  // Auto-link company to show if both are present
+  if (data.company_id && data.show_id) {
+    try {
+      await linkCompanyToShow(data.show_id, data.company_id);
+    } catch (linkError) {
+      // Don't fail lead creation if linking fails (might already be linked)
+      console.warn('Failed to link company to show:', linkError);
+    }
   }
 
   return data as Lead;
@@ -121,12 +136,20 @@ export async function getLeads(options?: {
   offset?: number;
   quality_rank?: 'hot' | 'warm' | 'cold';
   status?: 'processing' | 'active' | 'replied_manual';
-  show_name?: string;
-  show_date?: string; // ISO date string (YYYY-MM-DD)
+  show_id?: string;
+  company_id?: string;
+  show_name?: string; // Legacy filter
+  show_date?: string; // Legacy filter
 }): Promise<Lead[]> {
   let query = supabase
     .from('leads')
-    .select('*')
+    .select(
+      `
+      *,
+      companies(id, name, logo_url),
+      shows(id, name, start_date, end_date, city, venue)
+    `
+    )
     .order('created_at', { ascending: false });
 
   if (options?.quality_rank) {
@@ -137,6 +160,15 @@ export async function getLeads(options?: {
     query = query.eq('status', options.status);
   }
 
+  if (options?.show_id) {
+    query = query.eq('show_id', options.show_id);
+  }
+
+  if (options?.company_id) {
+    query = query.eq('company_id', options.company_id);
+  }
+
+  // Legacy filters
   if (options?.show_name) {
     query = query.eq('show_name', options.show_name);
   }

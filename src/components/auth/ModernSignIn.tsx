@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
-import { RecruitEdgeLogoHorizontal } from '@/components/RecruitEdgeLogo';
+import { LeadFlowLogoHorizontal } from '@/components/RecruitEdgeLogo';
 import { Loader2, EyeOff, Eye } from 'lucide-react';
 
 export const SignIn: React.FC = () => {
@@ -83,7 +83,7 @@ export const SignIn: React.FC = () => {
     <div className='min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4'>
       {/* Company Logo - Top Left */}
       <div className='absolute top-6 left-6'>
-        <RecruitEdgeLogoHorizontal size={32} />
+        <LeadFlowLogoHorizontal size={32} />
       </div>
 
       {/* Main Login Card */}

@@ -68,7 +68,7 @@ export default function InvitationsPage() {
     role: 'user' as 'user' | 'admin' | 'manager' | 'viewer',
   });
 
-  const canInvite = hasPermission('users_invite');
+  const canInvite = hasPermission('users', 'invite');
 
   useEffect(() => {
     if (user && canInvite) {
@@ -86,7 +86,8 @@ export default function InvitationsPage() {
         .limit(1000); // Reasonable limit
 
       if (error) throw error;
-      setInvitations(data || []);
+      // Type assertion: database returns invitations table structure
+      setInvitations((data || []) as Invitation[]);
     } catch (error) {
       console.error('Error loading invitations:', error);
       toast.error('Failed to load invitations');

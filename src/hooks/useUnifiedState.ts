@@ -34,7 +34,7 @@ export interface UnifiedActions {
   triggerRefresh: () => void;
   refreshAssignmentLists: () => void;
   refreshSpecificEntity: (
-    entityType: 'people' | 'companies' | 'jobs',
+    entityType: 'people' | 'companies',
     entityId: string
   ) => void;
 }
@@ -72,14 +72,13 @@ export const useUnifiedState = (): UnifiedState & UnifiedActions => {
     // Invalidate all relevant queries to trigger refetch
     queryClient.invalidateQueries({ queryKey: ['people'] });
     queryClient.invalidateQueries({ queryKey: ['companies'] });
-    queryClient.invalidateQueries({ queryKey: ['jobs'] });
     queryClient.invalidateQueries({ queryKey: ['entity-data'] });
 
     console.log('🔄 Assignment lists refreshed via React Query invalidation');
   }, [queryClient]);
 
   const refreshSpecificEntity = useCallback(
-    (entityType: 'people' | 'companies' | 'jobs', entityId: string) => {
+    (entityType: 'people' | 'companies', entityId: string) => {
       // Invalidate specific entity queries
       queryClient.invalidateQueries({ queryKey: [entityType, entityId] });
       queryClient.invalidateQueries({

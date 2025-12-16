@@ -112,7 +112,7 @@ const ConversationsContent: React.FC = () => {
   >([]);
 
   usePageMeta({
-    title: 'Conversations - RECRUITEDGE',
+    title: 'Conversations - LeadFlow',
     description: 'Manage all your email conversations with leads.',
   });
 
@@ -126,7 +126,15 @@ const ConversationsContent: React.FC = () => {
         .limit(500);
 
       if (error) throw error;
-      setPeople(data || []);
+      // Transform leads data to match expected people format
+      const transformedPeople = (data || []).map(lead => ({
+        id: lead.id,
+        name:
+          `${lead.first_name || ''} ${lead.last_name || ''}`.trim() ||
+          'Unknown',
+        email_address: lead.email || '',
+      }));
+      setPeople(transformedPeople);
     } catch (error) {
       console.error('Failed to load leads:', getErrorMessage(error), error);
     }
@@ -191,8 +199,9 @@ const ConversationsContent: React.FC = () => {
       setLoading(true);
 
       // Fetch email threads from Gmail sync
+      // Note: email_threads table may not exist in types - using type assertion
       const { data: emailThreads, error } = await supabase
-        .from('email_threads')
+        .from('email_threads' as never)
         .select(
           `
           id,
@@ -229,16 +238,40 @@ const ConversationsContent: React.FC = () => {
         throw error;
       }
 
-      const transformedThreads: EmailThread[] = (emailThreads || [])
-        .filter(thread => thread.people) // Only show threads with matching people
+      // Type assertion for query result with proper structure
+      interface EmailThreadQueryResult {
+        id: string;
+        gmail_thread_id: string;
+        subject: string | null;
+        last_message_at: string;
+        is_read: boolean;
+        people: {
+          id: string;
+          name: string | null;
+          email_address: string | null;
+          company_role: string | null;
+          companies: { name: string | null } | null;
+        } | null;
+      }
+
+      const transformedThreads: EmailThread[] = (
+        (emailThreads || []) as EmailThreadQueryResult[]
+      )
+        .filter(
+          (
+            thread
+          ): thread is EmailThreadQueryResult & {
+            people: NonNullable<EmailThreadQueryResult['people']>;
+          } => thread.people !== null
+        )
         .map(thread => ({
           id: thread.id,
           gmail_thread_id: thread.gmail_thread_id,
           person_id: thread.people.id,
           person_name: thread.people.name || 'Unknown',
           person_email: thread.people.email_address || '',
-          person_company: thread.people.companies?.name,
-          person_job_title: thread.people.company_role,
+          person_company: thread.people.companies?.name || undefined,
+          person_job_title: thread.people.company_role || undefined,
           subject: thread.subject || 'No subject',
           last_message_at: thread.last_message_at,
           is_read: thread.is_read,
@@ -263,29 +296,45 @@ const ConversationsContent: React.FC = () => {
       setMessagesLoading(true);
 
       // Fetch messages for this thread
+      // Note: email_messages table may not exist in types - using type assertion
       const { data: emailMessages, error } = await supabase
-        .from('email_messages')
+        .from('email_messages' as never)
         .select('*')
         .eq('thread_id', threadId)
         .order('received_at', { ascending: true });
 
       if (error) throw error;
 
-      const transformedMessages: EmailMessage[] = (emailMessages || []).map(
-        msg => ({
-          id: msg.id,
-          thread_id: msg.thread_id || threadId,
-          from_email: msg.from_email,
-          to_emails: msg.to_emails || [],
-          subject: msg.subject || '',
-          body_text: msg.body_text || '',
-          body_html: msg.body_html,
-          is_sent: msg.is_sent || false,
-          sent_at: msg.sent_at,
-          received_at: msg.received_at,
-          attachments: msg.attachments || [],
-        })
-      );
+      // Type assertion for email messages query result
+      interface EmailMessageQueryResult {
+        id: string;
+        thread_id: string;
+        from_email: string;
+        to_emails: string[] | null;
+        subject: string | null;
+        body_text: string | null;
+        body_html: string | null;
+        is_sent: boolean;
+        sent_at: string | null;
+        received_at: string;
+        attachments: unknown[] | null;
+      }
+
+      const transformedMessages: EmailMessage[] = (
+        (emailMessages || []) as EmailMessageQueryResult[]
+      ).map(msg => ({
+        id: msg.id,
+        thread_id: msg.thread_id || threadId,
+        from_email: msg.from_email,
+        to_emails: msg.to_emails || [],
+        subject: msg.subject || '',
+        body_text: msg.body_text || '',
+        body_html: msg.body_html || undefined,
+        is_sent: msg.is_sent || false,
+        sent_at: msg.sent_at || undefined,
+        received_at: msg.received_at,
+        attachments: (msg.attachments || []) as Record<string, unknown>[],
+      }));
 
       setMessages(transformedMessages);
     } catch (error) {
@@ -1322,7 +1371,7 @@ const ConversationsContent: React.FC = () => {
                     value={emailSignature}
                     onChange={e => setEmailSignature(e.target.value)}
                     placeholder='John Doe
-Recruitment Team
+LeadFlow Team
 john@company.com
 +1 234 567 8900'
                     className='w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary'

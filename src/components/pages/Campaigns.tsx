@@ -93,7 +93,14 @@ function CampaignsContent() {
       for (const sequence of sequences) {
         // Get email sends for this campaign sequence from campaign_sequence_executions
         // Campaign sequences removed - not in PDR. Use workflows and activity_log instead.
-        const emailSends: never[] = [];
+        // For now, return empty analytics since the feature is not implemented
+        interface EmailSend {
+          status?: string;
+          opened_at?: string | null;
+          replied_at?: string | null;
+          bounced_at?: string | null;
+        }
+        const emailSends: EmailSend[] = [];
         // const { data: emailSends } = await supabase
         //   .from('campaign_sequence_executions')
         //   .select('status, opened_at, clicked_at, replied_at, bounced_at')
@@ -101,13 +108,13 @@ function CampaignsContent() {
 
         const analytics: CampaignAnalytics = {
           total_sent:
-            emailSends?.filter(
+            emailSends.filter(
               es => es.status === 'sent' || es.status === 'delivered'
             ).length || 0,
-          total_opened: emailSends?.filter(es => es.opened_at).length || 0,
-          total_replied: emailSends?.filter(es => es.replied_at).length || 0,
+          total_opened: emailSends.filter(es => es.opened_at).length || 0,
+          total_replied: emailSends.filter(es => es.replied_at).length || 0,
           total_bounced:
-            emailSends?.filter(es => es.status === 'bounced' || es.bounced_at)
+            emailSends.filter(es => es.status === 'bounced' || es.bounced_at)
               .length || 0,
           total_positive_replies: 0, // Would need sentiment analysis from activity_log metadata
           total_sender_bounced: 0,
@@ -115,13 +122,17 @@ function CampaignsContent() {
 
         // Get replies from activity_log for leads in this sequence
         // Campaign sequences removed - not in PDR
-        const sequenceLeads: never[] = [];
+        // Campaign sequences removed - not in PDR. Use workflows and activity_log instead.
+        interface SequenceLead {
+          lead_id: string;
+        }
+        const sequenceLeads: SequenceLead[] = [];
         // const { data: sequenceLeads } = await supabase
         //   .from('campaign_sequence_leads')
         //   .select('lead_id')
         //   .eq('sequence_id', sequence.id);
 
-        if (sequenceLeads && sequenceLeads.length > 0) {
+        if (sequenceLeads.length > 0) {
           const leadIds = sequenceLeads.map(l => l.lead_id);
 
           // Get email replies from activity_log

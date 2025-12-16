@@ -43,6 +43,19 @@ import { CSVImportDialog } from '@/components/people/CSVImportDialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { CellLoadingSpinner } from '@/components/ui/cell-loading-spinner';
 import { cn } from '@/lib/utils';
+import { CompanyChip } from '@/components/shared/CompanyChip';
+import { ShowChip } from '@/components/shared/ShowChip';
+import { getShows } from '@/services/showsService';
+import type { Company, Show } from '@/types/database';
+
+// Type for Lead with joined relations from getLeads query
+type LeadWithRelations = Lead & {
+  companies?: Pick<Company, 'id' | 'name' | 'logo_url'> | null;
+  shows?: Pick<
+    Show,
+    'id' | 'name' | 'start_date' | 'end_date' | 'city' | 'venue'
+  > | null;
+};
 
 export default function LeadsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -53,6 +66,13 @@ export default function LeadsPage() {
   const { data: campaigns = [] } = useAllCampaigns();
   const queryClient = useQueryClient();
 
+  const { data: shows = [] } = useQuery({
+    queryKey: ['shows'],
+    queryFn: () => getShows(),
+    enabled: shouldBypassAuth() || (!authLoading && !!user),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const {
     data: leads = [],
     isLoading,
@@ -62,26 +82,11 @@ export default function LeadsPage() {
     queryFn: () =>
       getLeads({
         limit: 50,
-        show_name: showFilter !== 'all' ? showFilter : undefined,
+        show_id: showFilter !== 'all' ? showFilter : undefined,
       }),
     enabled: shouldBypassAuth() || (!authLoading && !!user),
-    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    staleTime: 2 * 60 * 1000,
   });
-
-  // Get unique show names for filter dropdown (fetch all leads once for dropdown)
-  const { data: allLeadsForFilter = [] } = useQuery({
-    queryKey: ['leads-all-for-filter'],
-    queryFn: () => getLeads({ limit: 1000 }),
-    enabled: shouldBypassAuth() || (!authLoading && !!user),
-    staleTime: 5 * 60 * 1000, // Cache longer since it's just for the dropdown
-  });
-
-  const showNames = useMemo(() => {
-    const uniqueShows = Array.from(
-      new Set(allLeadsForFilter.map(lead => lead.show_name).filter(Boolean))
-    ).sort();
-    return uniqueShows;
-  }, [allLeadsForFilter]);
 
   const { data: stats } = useQuery({
     queryKey: ['lead-stats'],
@@ -254,32 +259,39 @@ export default function LeadsPage() {
           const isEnriching =
             lead.enrichment_status === 'enriching' ||
             lead.enrichment_status === 'pending';
-          const isEnriched = lead.enrichment_status === 'completed';
-          const companyName = lead.company || '-';
 
           return (
             <div className='flex items-center gap-2'>
               {isEnriching ? (
                 <CellLoadingSpinner size='sm' />
               ) : (
-                <>
-                  {companyName === '-' ? (
-                    <span className='text-muted-foreground'>-</span>
-                  ) : (
-                    <Badge
-                      variant='outline'
-                      className={cn(
-                        'rounded-full px-2 py-0.5 text-xs font-medium bg-muted/60 flex items-center gap-1',
-                        isEnriched && 'border-primary/40'
-                      )}
-                    >
-                      <Building2 className='h-3 w-3 text-muted-foreground' />
-                      <span>{companyName}</span>
-                    </Badge>
-                  )}
-                </>
+                <CompanyChip
+                  company={
+                    (lead as LeadWithRelations).companies || {
+                      name: lead.company,
+                      logo_url: null,
+                    }
+                  }
+                />
               )}
             </div>
+          );
+        },
+      },
+      {
+        key: 'show',
+        label: 'Show',
+        width: '180px',
+        render: (_, lead) => {
+          return (
+            <ShowChip
+              show={
+                (lead as LeadWithRelations).shows || {
+                  name: lead.show_name,
+                  start_date: lead.show_date,
+                }
+              }
+            />
           );
         },
       },
@@ -381,22 +393,15 @@ export default function LeadsPage() {
         label: 'Show',
         width: '180px',
         render: (_, lead) => {
-          if (!lead.show_name)
-            return <div className='text-muted-foreground'>-</div>;
           return (
-            <div className='flex flex-col gap-1'>
-              <div className='text-sm font-medium'>{lead.show_name}</div>
-              {lead.show_date && (
-                <div className='text-xs text-muted-foreground flex items-center gap-1'>
-                  <Calendar className='h-3 w-3' />
-                  {new Date(lead.show_date).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
-                </div>
-              )}
-            </div>
+            <ShowChip
+              show={
+                (lead as LeadWithRelations).shows || {
+                  name: lead.show_name,
+                  start_date: lead.show_date,
+                }
+              }
+            />
           );
         },
       },
@@ -579,16 +584,16 @@ export default function LeadsPage() {
                 </Button>
               </>
             )}
-            {showNames.length > 0 && (
+            {shows.length > 0 && (
               <Select value={showFilter} onValueChange={setShowFilter}>
                 <SelectTrigger className='w-[200px]'>
                   <SelectValue placeholder='Filter by show' />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value='all'>All Shows</SelectItem>
-                  {showNames.map(showName => (
-                    <SelectItem key={showName} value={showName}>
-                      {showName}
+                  {shows.map(show => (
+                    <SelectItem key={show.id} value={show.id}>
+                      {show.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

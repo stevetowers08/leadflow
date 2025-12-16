@@ -340,6 +340,5 @@ export function useOptimisticMutations() {
   return {
     updatePersonStage,
     updateCompanyPipelineStage,
-    updateJobPriority,
   };
 }

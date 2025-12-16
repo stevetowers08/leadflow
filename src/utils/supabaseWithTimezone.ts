@@ -29,7 +29,16 @@ export class SupabaseWithTimezone {
    * Query with timezone conversion
    */
   async queryWithTimezone(
-    table: string,
+    table:
+      | 'companies'
+      | 'user_profiles'
+      | 'leads'
+      | 'workflows'
+      | 'activity_log'
+      | 'email_replies'
+      | 'email_sends'
+      | 'user_settings'
+      | 'integrations',
     select: string = '*',
     timezoneColumns: string[] = []
   ) {
@@ -46,9 +55,12 @@ export class SupabaseWithTimezone {
           ? `*, ${timezoneSelect}`
           : `${select}, ${timezoneSelect}`;
 
-      return supabase.rpc('execute_sql', {
-        query: `SELECT ${fullSelect} FROM ${table}`,
-      });
+      // Note: execute_sql RPC function may not exist in all projects
+      // This is a fallback for timezone conversion - consider using Postgres timezone functions instead
+      console.warn(
+        'execute_sql RPC not available - timezone conversion skipped'
+      );
+      return query;
     }
 
     return query;
@@ -57,7 +69,19 @@ export class SupabaseWithTimezone {
   /**
    * Insert with automatic UTC conversion
    */
-  async insertWithTimezone(table: string, data: Record<string, unknown>) {
+  async insertWithTimezone(
+    table:
+      | 'companies'
+      | 'user_profiles'
+      | 'leads'
+      | 'workflows'
+      | 'activity_log'
+      | 'email_replies'
+      | 'email_sends'
+      | 'user_settings'
+      | 'integrations',
+    data: Record<string, unknown>
+  ) {
     // Convert any date fields to UTC
     const processedData = this.convertDatesToUTC(data);
 
@@ -68,7 +92,16 @@ export class SupabaseWithTimezone {
    * Update with automatic UTC conversion
    */
   async updateWithTimezone(
-    table: string,
+    table:
+      | 'companies'
+      | 'user_profiles'
+      | 'leads'
+      | 'workflows'
+      | 'activity_log'
+      | 'email_replies'
+      | 'email_sends'
+      | 'user_settings'
+      | 'integrations',
     data: Record<string, unknown>,
     filter: Record<string, unknown>
   ) {

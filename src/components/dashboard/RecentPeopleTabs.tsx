@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { PersonReplyAnalytics } from '@/components/analytics/PersonReplyAnalytics';
-import { PersonDetailsSlideOut } from '@/components/slide-out/PersonDetailsSlideOut';
+import { LeadDetailsSlideOut } from '@/components/slide-out/LeadDetailsSlideOut';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -320,9 +320,9 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
         </CardContent>
       </Card>
 
-      {/* Person Details Slide-Out */}
-      <PersonDetailsSlideOut
-        personId={selectedPersonId}
+      {/* Lead Details Slide-Out */}
+      <LeadDetailsSlideOut
+        leadId={selectedPersonId}
         isOpen={isSlideOutOpen}
         onClose={() => {
           setIsSlideOutOpen(false);

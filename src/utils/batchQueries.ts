@@ -11,7 +11,7 @@ export interface BatchQueryOptions {
 }
 
 /**
- * Batch fetch company data with related leads and jobs
+ * Batch fetch company data with related leads
  * Replaces multiple separate queries with a single optimized query
  */
 export const batchFetchCompanyData = async (companyId: string) => {
@@ -20,7 +20,6 @@ export const batchFetchCompanyData = async (companyId: string) => {
     .select(
       `
       *,
-      jobs:jobs(*),
       people:people(*)
     `
     )
@@ -61,16 +60,17 @@ export const batchFetchDashboardData = async () => {
   const sevenDaysFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
 
   // Parallel fetch of counts and recent data
-  const [countsResult, recentLeadsResult] = await Promise.all([
-    // Count queries
-    supabase.from('leads').select('id', { count: 'exact', head: true }),
-    supabase.from('companies').select('id', { count: 'exact', head: true }),
+  const [leadsCountResult, companiesCountResult, recentLeadsResult] =
+    await Promise.all([
+      // Count queries
+      supabase.from('leads').select('id', { count: 'exact', head: true }),
+      supabase.from('companies').select('id', { count: 'exact', head: true }),
 
-    // Recent leads with minimal data
-    supabase
-      .from('leads')
-      .select(
-        `
+      // Recent leads with minimal data
+      supabase
+        .from('leads')
+        .select(
+          `
         id,
         first_name,
         last_name,
@@ -81,18 +81,16 @@ export const batchFetchDashboardData = async () => {
         quality_rank,
         created_at
       `
-      )
-      .order('created_at', { ascending: false })
-      .limit(5),
-  ]);
+        )
+        .order('created_at', { ascending: false })
+        .limit(5),
+    ]);
 
   return {
     counts: {
-      leads: countsResult[0].count,
-      companies: countsResult[1].count,
-      jobs: countsResult[2].count,
+      leads: leadsCountResult.count || 0,
+      companies: companiesCountResult.count || 0,
     },
-    todayJobs: todayJobsResult.data || [],
     recentLeads: recentLeadsResult.data || [],
   };
 };
@@ -101,7 +99,7 @@ export const batchFetchDashboardData = async () => {
  * Optimized list fetching with pagination
  */
 export const batchFetchListData = async (
-  table: 'jobs' | 'people' | 'companies',
+  table: 'people' | 'companies',
   options: {
     page?: number;
     limit?: number;

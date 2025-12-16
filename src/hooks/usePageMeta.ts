@@ -77,18 +77,18 @@ export const usePageMeta = (meta: PageMeta) => {
 
     // Cleanup function to restore default meta tags when component unmounts
     return () => {
-      document.title = 'RECRUITEDGE';
+      document.title = 'LeadFlow';
       updateMetaTag(
         'description',
         'Modern CRM platform for recruitment and lead management'
       );
-      updateMetaTag('og:title', 'RECRUITEDGE', true);
+      updateMetaTag('og:title', 'LeadFlow', true);
       updateMetaTag(
         'og:description',
         'Modern CRM platform for recruitment and lead management',
         true
       );
-      updateMetaTag('twitter:title', 'RECRUITEDGE');
+      updateMetaTag('twitter:title', 'LeadFlow');
       updateMetaTag(
         'twitter:description',
         'Modern CRM platform for recruitment and lead management'

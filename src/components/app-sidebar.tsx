@@ -9,6 +9,7 @@ import {
   GitMerge,
   BarChart3,
   Camera,
+  Calendar,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -24,7 +25,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { RecruitEdgeLogo } from '@/components/RecruitEdgeLogo';
+import { LeadFlowLogo } from '@/components/RecruitEdgeLogo';
 import { OrganizationSwitcher } from '@/components/shared/OrganizationSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
@@ -73,6 +74,11 @@ const data = {
       url: '/analytics',
       icon: BarChart3,
     },
+    {
+      title: 'Shows',
+      url: '/shows',
+      icon: Calendar,
+    },
   ],
   navSecondary: [
     {
@@ -104,7 +110,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className='data-[slot=sidebar-menu-button]:!p-1.5'
             >
               <Link href='/'>
-                <RecruitEdgeLogo className='text-base font-semibold' />
+                <LeadFlowLogo className='text-base font-semibold' />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

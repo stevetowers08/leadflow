@@ -27,10 +27,12 @@ const toast = {
           }
         : undefined,
       cancel: options?.cancel
-        ? {
-            label: options.cancel.label,
-            onClick: options.cancel.onClick,
-          }
+        ? options.cancel.onClick
+          ? {
+              label: options.cancel.label,
+              onClick: options.cancel.onClick,
+            }
+          : undefined
         : undefined,
     });
   },
@@ -46,10 +48,12 @@ const toast = {
           }
         : undefined,
       cancel: options?.cancel
-        ? {
-            label: options.cancel.label,
-            onClick: options.cancel.onClick,
-          }
+        ? options.cancel.onClick
+          ? {
+              label: options.cancel.label,
+              onClick: options.cancel.onClick,
+            }
+          : undefined
         : undefined,
     });
   },
@@ -65,10 +69,12 @@ const toast = {
           }
         : undefined,
       cancel: options?.cancel
-        ? {
-            label: options.cancel.label,
-            onClick: options.cancel.onClick,
-          }
+        ? options.cancel.onClick
+          ? {
+              label: options.cancel.label,
+              onClick: options.cancel.onClick,
+            }
+          : undefined
         : undefined,
     });
   },
@@ -84,10 +90,12 @@ const toast = {
           }
         : undefined,
       cancel: options?.cancel
-        ? {
-            label: options.cancel.label,
-            onClick: options.cancel.onClick,
-          }
+        ? options.cancel.onClick
+          ? {
+              label: options.cancel.label,
+              onClick: options.cancel.onClick,
+            }
+          : undefined
         : undefined,
     });
   },
@@ -103,10 +111,12 @@ const toast = {
           }
         : undefined,
       cancel: options?.cancel
-        ? {
-            label: options.cancel.label,
-            onClick: options.cancel.onClick,
-          }
+        ? options.cancel.onClick
+          ? {
+              label: options.cancel.label,
+              onClick: options.cancel.onClick,
+            }
+          : undefined
         : undefined,
     });
   },

@@ -12,6 +12,8 @@ export const DATABASE_SCHEMA = {
   // Table names - Only existing tables (verified via Supabase MCP)
   TABLES: {
     COMPANIES: 'companies',
+    SHOWS: 'shows',
+    SHOW_COMPANIES: 'show_companies',
     LEADS: 'leads',
     USER_PROFILES: 'user_profiles',
     USER_SETTINGS: 'user_settings',
@@ -181,6 +183,25 @@ export const DATABASE_SCHEMA = {
       created_at: 'timestamptz',
       updated_at: 'timestamptz',
     },
+    shows: {
+      id: 'uuid',
+      owner_id: 'uuid',
+      name: 'text',
+      start_date: 'date',
+      end_date: 'date',
+      city: 'text',
+      venue: 'text',
+      timezone: 'text',
+      status: 'text',
+      created_at: 'timestamptz',
+      updated_at: 'timestamptz',
+    },
+    show_companies: {
+      id: 'uuid',
+      show_id: 'uuid',
+      company_id: 'uuid',
+      created_at: 'timestamptz',
+    },
     leads: {
       id: 'uuid',
       first_name: 'text',
@@ -188,6 +209,8 @@ export const DATABASE_SCHEMA = {
       email: 'text',
       phone: 'text',
       company: 'text',
+      company_id: 'uuid',
+      show_id: 'uuid',
       job_title: 'text',
       quality_rank: 'text',
       scan_image_url: 'text',
@@ -251,8 +274,12 @@ export const DATABASE_SCHEMA = {
   FOREIGN_KEYS: {
     'companies.client_id': 'clients.id',
     'leads.company_id': 'companies.id', // Leads can be linked to companies
+    'leads.show_id': 'shows.id', // Leads can be linked to shows
+    'show_companies.show_id': 'shows.id', // Show companies junction table
+    'show_companies.company_id': 'companies.id', // Show companies junction table
     'leads.workflow_id': 'workflows.id',
     'leads.user_id': 'auth.users.id',
+    'shows.owner_id': 'auth.users.id',
     'activity_log.lead_id': 'leads.id',
     'campaign_sequence_leads.lead_id': 'leads.id',
     'campaign_sequence_leads.sequence_id': 'campaign_sequences.id',
@@ -321,8 +348,11 @@ export const COMMON_SELECTIONS = {
 
   user_profiles:
     'id, email, full_name, role, user_limit, is_active, created_at, updated_at, default_client_id',
+  shows:
+    'id, owner_id, name, start_date, end_date, city, venue, timezone, status, created_at, updated_at',
+  show_companies: 'id, show_id, company_id, created_at',
   leads:
-    'id, first_name, last_name, email, phone, company, job_title, quality_rank, scan_image_url, notes, ai_summary, ai_icebreaker, status, workflow_id, workflow_status, enrichment_data, enrichment_timestamp, gmail_thread_id, user_id, owner_id, created_at, updated_at',
+    'id, first_name, last_name, email, phone, company, company_id, show_id, job_title, quality_rank, scan_image_url, notes, ai_summary, ai_icebreaker, status, workflow_id, workflow_status, enrichment_data, enrichment_timestamp, gmail_thread_id, user_id, owner_id, created_at, updated_at',
   workflows:
     'id, name, description, created_by, email_provider, gmail_sequence, lemlist_campaign_id, pause_rules, created_at, updated_at',
   activity_log: 'id, lead_id, activity_type, timestamp, metadata, created_at',

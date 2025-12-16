@@ -9,9 +9,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface RealtimeAssignmentOptions {
-  entityTypes?: ('people' | 'companies' | 'jobs')[];
+  entityTypes?: ('people' | 'companies')[];
   onAssignmentChange?: (payload: {
-    entityType: 'people' | 'companies' | 'jobs';
+    entityType: 'people' | 'companies';
     entityId: string;
     newOwnerId: string | null;
     oldOwnerId: string | null;
@@ -23,7 +23,7 @@ export const useRealtimeAssignmentSync = (
   options: RealtimeAssignmentOptions = {}
 ) => {
   const {
-    entityTypes = ['people', 'companies', 'jobs'],
+    entityTypes = ['people', 'companies'],
     onAssignmentChange,
     enabled = true,
   } = options;
@@ -50,7 +50,6 @@ export const useRealtimeAssignmentSync = (
       // Invalidate main entity queries
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
-      queryClient.invalidateQueries({ queryKey: ['jobs'] });
       queryClient.invalidateQueries({ queryKey: ['leads-infinite'] });
 
       // Invalidate dashboard stats

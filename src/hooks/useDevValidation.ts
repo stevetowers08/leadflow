@@ -19,7 +19,7 @@ export function useDevValidation(
   }
 ) {
   useEffect(() => {
-    if (import.meta.env.NODE_ENV !== 'development') return;
+    if (process.env.NODE_ENV !== 'development') return;
 
     if (validationConfig?.requiredProps) {
       devValidation.validateComponentProps(
@@ -44,7 +44,7 @@ export function useDevValidation(
  */
 export function useDevValidationRunner() {
   useEffect(() => {
-    if (import.meta.env.NODE_ENV !== 'development') return;
+    if (process.env.NODE_ENV !== 'development') return;
 
     // Run validation checks on component mount in development
     devValidation.runDevValidation();
@@ -63,7 +63,7 @@ export function useDataValidation(
   }
 ) {
   useEffect(() => {
-    if (import.meta.env.NODE_ENV !== 'development') return;
+    if (process.env.NODE_ENV !== 'development') return;
     if (!validationRules) return;
 
     // Validate required fields

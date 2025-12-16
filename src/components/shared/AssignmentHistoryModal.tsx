@@ -17,7 +17,7 @@ import { formatDistanceToNow } from 'date-fns';
 interface AssignmentHistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  entityType: 'people' | 'companies' | 'jobs';
+  entityType: 'people' | 'companies';
   entityId: string;
   entityName: string;
 }

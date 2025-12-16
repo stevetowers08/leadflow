@@ -8,11 +8,11 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'RECRUITEDGE API',
+      title: 'LeadFlow API',
       version: '1.0.0',
       description: 'AI-powered recruitment platform API documentation',
       contact: {
-        name: 'RECRUITEDGE Support',
+        name: 'LeadFlow Support',
         email: 'support@4twenty.com.au',
       },
       license: {
@@ -24,7 +24,7 @@ const swaggerOptions = {
       {
         url:
           process.env.NODE_ENV === 'production'
-            ? 'https://recruitedge.vercel.app/api'
+            ? 'https://leadflow.vercel.app/api'
             : 'http://localhost:3000/api',
         description:
           process.env.NODE_ENV === 'production'
@@ -64,7 +64,7 @@ export const setupSwagger = (app: express.Application) => {
     swaggerUi.setup(specs, {
       explorer: true,
       customCss: '.swagger-ui .topbar { display: none }',
-      customSiteTitle: 'RECRUITEDGE API Documentation',
+      customSiteTitle: 'LeadFlow API Documentation',
     })
   );
 

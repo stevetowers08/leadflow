@@ -314,8 +314,6 @@ async function checkOwnership(
     tableName = 'companies';
   } else if (routePath.includes('/people') || routePath.includes('/leads')) {
     tableName = 'people';
-  } else if (routePath.includes('/jobs')) {
-    tableName = 'jobs';
   } else if (routePath.includes('/campaigns')) {
     tableName = 'campaigns';
   }
@@ -338,7 +336,7 @@ async function checkOwnership(
  * Middleware to check if user can access specific entity
  */
 export const checkEntityAccess = (
-  entityType: 'companies' | 'people' | 'jobs' | 'campaigns'
+  entityType: 'companies' | 'people' | 'campaigns'
 ) => {
   return async (
     req: AuthenticatedRequest,
@@ -385,7 +383,7 @@ export const checkEntityAccess = (
  * Middleware to check if user can assign entities
  */
 export const checkAssignmentPermission = (
-  entityType: 'companies' | 'people' | 'jobs' | 'campaigns'
+  entityType: 'companies' | 'people' | 'campaigns'
 ) => {
   return async (
     req: AuthenticatedRequest,
@@ -441,7 +439,7 @@ export const checkAssignmentPermission = (
  * Middleware to filter data based on user permissions
  */
 export const filterDataByPermissions = (
-  entityType: 'companies' | 'people' | 'jobs' | 'campaigns'
+  entityType: 'companies' | 'people' | 'campaigns'
 ) => {
   return async (
     req: AuthenticatedRequest,

@@ -43,7 +43,6 @@ class SupabaseErrorService {
   private notificationSettings: ErrorNotificationSettings | null = null;
   private adminEmail: string | null = null;
   private isLogging = false; // Guard flag to prevent recursive logging
-  private isLogging = false; // Guard flag to prevent recursive logging
 
   /**
    * Initialize the error service with admin email
@@ -73,8 +72,9 @@ class SupabaseErrorService {
 
       if (!user) return;
 
+      // Use type-safe helper for error_settings
       const { data: settings, error } = await supabase
-        .from('error_settings')
+        .from('error_settings' as never)
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -607,7 +607,8 @@ class SupabaseErrorService {
     errorMessage?: string
   ): Promise<void> {
     try {
-      await supabase.from('error_notifications').insert({
+      // Note: error_notifications table doesn't exist in types - using type assertion
+      await supabase.from('error_notifications' as never).insert({
         error_log_id: errorLogId,
         notification_type: type,
         recipient_email: type === 'email' ? recipient : undefined,
@@ -705,7 +706,8 @@ class SupabaseErrorService {
       const user = authResponse?.data?.user ?? null;
       if (!user) return false;
 
-      const { error } = await supabase.from('error_settings').upsert({
+      // Note: error_settings table doesn't exist in types - using type assertion
+      const { error } = await supabase.from('error_settings' as never).upsert({
         user_id: user.id,
         email_notifications: settings.emailNotifications,
         notification_severity: settings.notificationSeverity,

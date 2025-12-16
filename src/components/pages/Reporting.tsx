@@ -2,7 +2,7 @@
  * Modern Reporting Page - Real Data Integration
  *
  * Features:
- * - Tabbed interface for Jobs Discovery, Leads, and Emails
+ * - Tabbed interface for Leads and Emails
  * - Real data from database tables
  * - Dynamic metrics and analytics with charts
  * - Modern design aligned with app patterns
@@ -80,7 +80,7 @@ function ReportingContent() {
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>(
     '30d'
   );
-  const [activeTab, setActiveTab] = useState('jobs');
+  const [activeTab, setActiveTab] = useState('leads');
 
   const {
     data: reportingData,

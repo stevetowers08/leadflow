@@ -11,7 +11,7 @@ interface Tag {
 
 interface UseEntityTagsProps {
   entityId: string;
-  entityType: 'company' | 'person' | 'job';
+  entityType: 'company' | 'person';
 }
 
 export const useEntityTags = ({ entityId, entityType }: UseEntityTagsProps) => {

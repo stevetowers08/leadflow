@@ -198,48 +198,42 @@ export async function POST(request: NextRequest) {
     updateData.enrichment_data = enrichmentData as unknown as Json;
 
     // If company data is provided, update or create company record
+    // Note: leads table has 'company' (string) field, not 'company_id'
     if (payload.company_linkedin_url || payload.company_size || payload.arr) {
       const { data: lead } = await supabase
         .from('leads')
-        .select('company, company_id')
+        .select('company')
         .eq('id', payload.lead_id)
         .single();
 
       if (lead?.company) {
-        // Find or create company
-        let companyId = lead.company_id;
+        // Try to find existing company by name
+        const { data: existingCompany } = await supabase
+          .from('companies')
+          .select('id')
+          .eq('name', lead.company)
+          .maybeSingle();
+
+        let companyId: string | null = existingCompany?.id || null;
 
         if (!companyId) {
-          // Try to find existing company by name
-          const { data: existingCompany } = await supabase
+          // Create new company
+          const { data: newCompany } = await supabase
             .from('companies')
+            .insert({
+              name: lead.company,
+              linkedin_url: payload.company_linkedin_url || null,
+              company_size: payload.company_size || null,
+              estimated_arr: payload.arr || null,
+            })
             .select('id')
-            .eq('name', lead.company)
-            .maybeSingle();
+            .single();
 
-          if (existingCompany) {
-            companyId = existingCompany.id;
-          } else {
-            // Create new company
-            const { data: newCompany } = await supabase
-              .from('companies')
-              .insert({
-                name: lead.company,
-                linkedin_url: payload.company_linkedin_url || null,
-                company_size: payload.company_size || null,
-                estimated_arr: payload.arr || null,
-              })
-              .select('id')
-              .single();
-
-            if (newCompany) {
-              companyId = newCompany.id;
-            }
+          if (newCompany) {
+            companyId = newCompany.id;
           }
-        }
-
-        // Update company if we have company_id
-        if (companyId) {
+        } else {
+          // Update existing company
           const companyUpdate: Record<string, unknown> = {};
           if (payload.company_linkedin_url)
             companyUpdate.linkedin_url = payload.company_linkedin_url;
@@ -256,9 +250,10 @@ export async function POST(request: NextRequest) {
               })
               .eq('id', companyId);
           }
-
-          updateData.company_id = companyId;
         }
+
+        // Note: leads table doesn't have company_id field
+        // Company relationship is maintained via company name string field
       }
     }
 

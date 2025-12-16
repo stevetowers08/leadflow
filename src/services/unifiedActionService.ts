@@ -131,23 +131,23 @@ export class UnifiedActionService {
   private async getEntities(
     entityType: 'company' | 'lead',
     entityIds: string[]
-  ): Promise<Array<Record<string, unknown>>> {
+  ): Promise<Array<Company | Lead>> {
     const table = entityType === 'company' ? 'companies' : 'leads';
 
     const { data, error } = await supabase
-      .from(table)
+      .from(table as 'companies' | 'leads')
       .select('*')
       .in('id', entityIds);
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as Array<Company | Lead>;
   }
 
   /**
    * Map local data to CRM format
    */
   private mapToCrmFormat(
-    entities: (Company | Person)[],
+    entities: (Company | Lead)[],
     crmProvider: CrmProvider
   ): Record<string, unknown>[] {
     return entities.map(entity => {

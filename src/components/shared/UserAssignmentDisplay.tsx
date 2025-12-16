@@ -42,12 +42,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
     useAssignmentRefresh();
 
   // Map entityType to database table name
-  const tableName =
-    entityType === 'lead'
-      ? 'people'
-      : entityType === 'company'
-        ? 'companies'
-        : 'jobs';
+  const tableName = entityType === 'lead' ? 'people' : 'companies';
 
   // Use unified assignment state management
   const {
@@ -65,10 +60,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
       // Trigger refresh of all assignment lists
       refreshAssignmentLists();
       // Also refresh specific entity
-      refreshSpecificEntity(
-        tableName as 'people' | 'companies' | 'jobs',
-        entityId
-      );
+      refreshSpecificEntity(tableName as 'people' | 'companies', entityId);
       // Call the original callback
       onAssignmentChange?.();
       setShowUserList(false);
@@ -365,7 +357,7 @@ export const UserAssignmentDisplay: React.FC<UserAssignmentDisplayProps> = ({
       <AssignmentHistoryModal
         isOpen={showHistoryModal}
         onClose={() => setShowHistoryModal(false)}
-        entityType={tableName as 'people' | 'companies' | 'jobs'}
+        entityType={tableName as 'people' | 'companies'}
         entityId={entityId}
         entityName={`${entityType} ${entityId}`}
       />

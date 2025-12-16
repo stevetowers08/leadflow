@@ -13,9 +13,6 @@ export interface StatusColorScheme {
   // Lead Pipeline Stages
   leadStages: Record<string, ColorScheme>;
 
-  // Job Statuses
-  jobStatuses: Record<string, ColorScheme>;
-
   // Company Statuses
   companyStatuses: Record<string, ColorScheme>;
 
@@ -223,89 +220,6 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
       background: 'bg-error-solid',
       text: 'text-white',
       border: 'border-error-solid',
-    },
-  },
-
-  jobStatuses: {
-    'job-new': {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    new: {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    'new job': {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    'job-qualify': {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    qualify: {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    'job-skip': {
-      background: 'bg-error-solid',
-      text: 'text-white',
-      border: 'border-error-solid',
-    },
-    skip: {
-      background: 'bg-error-solid',
-      text: 'text-white',
-      border: 'border-error-solid',
-    },
-    'job-active': {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    active: {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    automated: {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    paused: {
-      background: 'bg-warning-solid',
-      text: 'text-white',
-      border: 'border-warning-solid',
-    },
-    'job-completed': {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    completed: {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    'job-failed': {
-      background: 'bg-error-solid',
-      text: 'text-white',
-      border: 'border-error-solid',
-    },
-    failed: {
-      background: 'bg-error-solid',
-      text: 'text-white',
-      border: 'border-error-solid',
-    },
-    '-': {
-      background: 'bg-neutral-solid',
-      text: 'text-white',
-      border: 'border-neutral-solid',
     },
   },
 
@@ -821,7 +735,6 @@ export function getUnifiedStatusColors(status: string): ColorScheme {
   // Search in all categories with early returns
   const categories = [
     // Prioritize context-specific mappings first to avoid cross-entity collisions
-    UNIFIED_COLOR_SCHEME.jobStatuses,
     UNIFIED_COLOR_SCHEME.companyStatuses,
     UNIFIED_COLOR_SCHEME.companyPipelineStages,
     // Then generic/people mappings

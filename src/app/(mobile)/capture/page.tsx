@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   CheckCircle2,
   Loader2,
@@ -18,6 +19,7 @@ import { toast } from 'sonner';
 import { logger } from '@/utils/productionLogger';
 import type { BusinessCardData } from '@/services/geminiVisionOcrService';
 import { compressImage } from '@/utils/imageCompression';
+import { ShowSelector } from '@/components/shared/ShowSelector';
 
 /**
  * Mobile Scanner Page - PDR Section 4.1
@@ -53,6 +55,9 @@ export default function CapturePage() {
   const [showName, setShowName] = useState<string>('');
   const [showDate, setShowDate] = useState<string>('');
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [currentShowId, setCurrentShowId] = useState<string | null>(null);
   const [manualData, setManualData] = useState({
     firstName: '',
     lastName: '',
@@ -62,6 +67,21 @@ export default function CapturePage() {
     phone: '',
   });
   const { user } = useAuth();
+
+  // Load current show from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('currentShowId');
+    if (stored) setCurrentShowId(stored);
+  }, []);
+
+  const handleShowChange = (showId: string | null) => {
+    setCurrentShowId(showId);
+    if (showId) {
+      localStorage.setItem('currentShowId', showId);
+    } else {
+      localStorage.removeItem('currentShowId');
+    }
+  };
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -332,6 +352,9 @@ export default function CapturePage() {
           }
         }
 
+        // Get current show from localStorage
+        const currentShowId = localStorage.getItem('currentShowId');
+
         await createLead({
           first_name: firstName,
           last_name: lastName,
@@ -341,8 +364,10 @@ export default function CapturePage() {
           phone: leadData.phone?.trim() || null,
           scan_image_url: imageUrl,
           quality_rank: 'warm', // Default, can be updated later
-          show_name: showName || null,
-          show_date: showDate || null,
+          show_id: currentShowId || null,
+          show_name: showName || null, // Legacy fallback
+          show_date: showDate || null, // Legacy fallback
+          notes: notes?.trim() || null,
           user_id: user?.id || null,
         });
 
@@ -361,6 +386,8 @@ export default function CapturePage() {
           setOcrResult(null);
           setSaveStatus('idle');
           setShowManualEntry(false);
+          setShowConfirmation(false);
+          setNotes('');
           setManualData({
             firstName: '',
             lastName: '',
@@ -389,7 +416,7 @@ export default function CapturePage() {
         setIsSaving(false);
       }
     },
-    [user?.id, showName, showDate]
+    [user?.id, showName, showDate, notes]
   );
 
   const processImage = useCallback(
@@ -469,7 +496,7 @@ export default function CapturePage() {
           phone: data.phone || '',
         });
 
-        // Validate required fields before auto-saving
+        // Validate required fields before showing confirmation
         const firstName = data.firstName?.trim() || null;
         const lastName = data.lastName?.trim() || null;
         const company = data.companyName?.trim() || null;
@@ -482,19 +509,9 @@ export default function CapturePage() {
         );
 
         if (validation.isValid) {
-          // Auto-save lead with OCR data if valid
-          await saveLead(
-            {
-              firstName,
-              lastName,
-              company,
-              email: data.email,
-              jobTitle: data.jobTitle,
-              phone: data.phone,
-            },
-            compressedImage,
-            data
-          );
+          // Show confirmation screen with name and company
+          setShowConfirmation(true);
+          setNotes(''); // Reset notes for new capture
         } else {
           // Show manual entry form if validation fails
           setShowManualEntry(true);
@@ -714,21 +731,13 @@ export default function CapturePage() {
       <div className='absolute top-0 z-10 w-full h-16 bg-gradient-to-b from-black/80 to-transparent p-4 flex items-center justify-between'>
         <div className='text-white font-semibold'>LeadFlow</div>
         <div className='flex items-center gap-3'>
-          {(showName || showDate) && (
-            <div className='text-white text-xs bg-white/20 px-2 py-1 rounded'>
-              <span>{showName || 'Show'}</span>
-              {showDate && (
-                <span className='ml-1 opacity-80'>
-                  ·{' '}
-                  {new Date(showDate).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
-                </span>
-              )}
-            </div>
-          )}
+          <div className='bg-white/10 rounded-md'>
+            <ShowSelector
+              value={currentShowId}
+              onValueChange={handleShowChange}
+              className='w-[160px] border-0 bg-transparent text-white [&>button]:text-white [&>button]:border-white/20'
+            />
+          </div>
           <Button
             variant='ghost'
             size='sm'
@@ -814,6 +823,151 @@ export default function CapturePage() {
         </div>
       )}
 
+      {/* Confirmation Screen */}
+      {showConfirmation && !isProcessing && !isSaving && ocrResult && (
+        <div className='absolute inset-0 z-30 bg-black/90 flex items-center justify-center p-4 overflow-y-auto'>
+          <Card className='w-full max-w-md max-h-[90vh] overflow-y-auto'>
+            <CardContent className='p-6 space-y-4'>
+              <div className='flex items-center justify-between mb-4'>
+                <h3 className='text-lg font-semibold'>Confirm Lead</h3>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => {
+                    setShowConfirmation(false);
+                    setCapturedImage(null);
+                    setOcrResult(null);
+                    setNotes('');
+                    if (streamRef.current) {
+                      streamRef.current.getVideoTracks().forEach(track => {
+                        track.enabled = true;
+                      });
+                    }
+                  }}
+                  aria-label='Close confirmation'
+                >
+                  <X className='h-5 w-5' />
+                </Button>
+              </div>
+              <div className='space-y-4'>
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium text-muted-foreground'>
+                    Name
+                  </label>
+                  <div className='text-lg font-semibold'>
+                    {ocrResult.fullName ||
+                      `${ocrResult.firstName || ''} ${ocrResult.lastName || ''}`.trim() ||
+                      'N/A'}
+                  </div>
+                </div>
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium text-muted-foreground'>
+                    Company
+                  </label>
+                  <div className='text-lg font-semibold'>
+                    {ocrResult.companyName || 'N/A'}
+                  </div>
+                </div>
+                {ocrResult.jobTitle && (
+                  <div className='space-y-2'>
+                    <label className='text-sm font-medium text-muted-foreground'>
+                      Job Title
+                    </label>
+                    <div className='text-base'>{ocrResult.jobTitle}</div>
+                  </div>
+                )}
+                {ocrResult.email && (
+                  <div className='space-y-2'>
+                    <label className='text-sm font-medium text-muted-foreground'>
+                      Email
+                    </label>
+                    <div className='text-base'>{ocrResult.email}</div>
+                  </div>
+                )}
+                {ocrResult.phone && (
+                  <div className='space-y-2'>
+                    <label className='text-sm font-medium text-muted-foreground'>
+                      Phone
+                    </label>
+                    <div className='text-base'>{ocrResult.phone}</div>
+                  </div>
+                )}
+                <div className='space-y-2'>
+                  <label
+                    htmlFor='confirmation-notes'
+                    className='text-sm font-medium'
+                  >
+                    Notes
+                  </label>
+                  <Textarea
+                    id='confirmation-notes'
+                    placeholder='Add any notes about this lead...'
+                    value={notes}
+                    onChange={e => setNotes(e.target.value)}
+                    className='min-h-[100px]'
+                  />
+                </div>
+              </div>
+              <div className='flex gap-2 pt-4'>
+                <Button
+                  variant='outline'
+                  onClick={() => {
+                    setShowConfirmation(false);
+                    setCapturedImage(null);
+                    setOcrResult(null);
+                    setNotes('');
+                    if (streamRef.current) {
+                      streamRef.current.getVideoTracks().forEach(track => {
+                        track.enabled = true;
+                      });
+                    }
+                  }}
+                  className='flex-1'
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={async e => {
+                    e.preventDefault();
+                    if (isSaving) return;
+
+                    const firstName = ocrResult.firstName?.trim() || null;
+                    const lastName = ocrResult.lastName?.trim() || null;
+                    const company = ocrResult.companyName?.trim() || null;
+
+                    await saveLead(
+                      {
+                        firstName,
+                        lastName,
+                        company,
+                        email: ocrResult.email,
+                        jobTitle: ocrResult.jobTitle,
+                        phone: ocrResult.phone,
+                      },
+                      capturedImage,
+                      ocrResult
+                    );
+                    setShowConfirmation(false);
+                  }}
+                  className='flex-1'
+                  disabled={isSaving}
+                  type='button'
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Lead'
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Manual Entry Form */}
       {showManualEntry && !isProcessing && !isSaving && (
         <div className='absolute inset-0 z-30 bg-black/90 flex items-center justify-center p-4 overflow-y-auto'>
@@ -829,6 +983,7 @@ export default function CapturePage() {
                     setCapturedImage(null);
                     setOcrResult(null);
                     setSaveStatus('idle');
+                    setNotes('');
                     if (streamRef.current) {
                       streamRef.current.getVideoTracks().forEach(track => {
                         track.enabled = true;
@@ -948,6 +1103,18 @@ export default function CapturePage() {
                     }
                   />
                 </div>
+                <div className='space-y-2'>
+                  <label htmlFor='manual-notes' className='text-sm font-medium'>
+                    Notes
+                  </label>
+                  <Textarea
+                    id='manual-notes'
+                    placeholder='Add any notes about this lead...'
+                    value={notes}
+                    onChange={e => setNotes(e.target.value)}
+                    className='min-h-[100px]'
+                  />
+                </div>
               </div>
               <div className='flex gap-2 pt-4'>
                 <Button
@@ -957,6 +1124,7 @@ export default function CapturePage() {
                     setCapturedImage(null);
                     setOcrResult(null);
                     setSaveStatus('idle');
+                    setNotes('');
                     if (streamRef.current) {
                       streamRef.current.getVideoTracks().forEach(track => {
                         track.enabled = true;
@@ -985,6 +1153,7 @@ export default function CapturePage() {
                       capturedImage,
                       ocrResult || undefined
                     );
+                    setShowManualEntry(false);
                   }}
                   className='flex-1'
                   disabled={isSaving}
@@ -1007,7 +1176,8 @@ export default function CapturePage() {
 
       {/* Processing/Success Overlay */}
       {(isProcessing || isSaving || saveStatus !== 'idle') &&
-        !showManualEntry && (
+        !showManualEntry &&
+        !showConfirmation && (
           <div className='absolute inset-0 z-20 bg-black/80 flex items-center justify-center'>
             <Card className='w-[90%] max-w-md'>
               <CardContent className='p-6 space-y-4 text-center'>
@@ -1069,6 +1239,8 @@ export default function CapturePage() {
                           setCapturedImage(null);
                           setOcrResult(null);
                           setSaveStatus('idle');
+                          setShowConfirmation(false);
+                          setNotes('');
                           if (streamRef.current) {
                             streamRef.current
                               .getVideoTracks()

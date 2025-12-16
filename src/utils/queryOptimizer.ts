@@ -106,7 +106,6 @@ export class QueryOptimizer {
         'id, name, website, industry, head_office, company_size, priority, logo_url, lead_score, client_id, pipeline_stage, is_favourite, confidence_level, score_reason, created_at',
       people:
         'id, name, company_id, email_address, company_role, people_stage, score, client_id',
-      jobs: 'id, title, company_id, location, employment_type, seniority_level, priority, client_id',
       activity_log: 'id, lead_id, timestamp, activity_type, metadata',
       user_profiles: 'id, email, full_name, role, is_active',
     };
@@ -187,12 +186,6 @@ export const OPTIMIZED_QUERIES = {
   // Get people details
   getPeopleDetails: () => QueryOptimizer.getDetailColumns('people'),
 
-  // Get jobs list with essential data
-  getJobsList: () => QueryOptimizer.getEssentialColumns('jobs'),
-
-  // Get job details
-  getJobDetails: () => QueryOptimizer.getDetailColumns('jobs'),
-
   // Get activity log list (interactions table doesn't exist)
   getActivityLogList: () => QueryOptimizer.getEssentialColumns('activity_log'),
 
@@ -202,6 +195,5 @@ export const OPTIMIZED_QUERIES = {
   // Search queries
   searchCompanies: () => QueryOptimizer.getSearchColumns('companies'),
   searchPeople: () => QueryOptimizer.getSearchColumns('people'),
-  searchJobs: () => QueryOptimizer.getSearchColumns('jobs'),
   searchActivityLog: () => QueryOptimizer.getSearchColumns('activity_log'),
 } as const;

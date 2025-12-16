@@ -10,7 +10,7 @@ import React, { useEffect, useState } from 'react';
 interface TableAssignmentCellProps {
   ownerId: string | null;
   entityId: string;
-  entityType: 'companies' | 'people' | 'jobs';
+  entityType: 'companies' | 'people';
   onAssignmentChange?: () => void;
   className?: string;
 }
@@ -109,12 +109,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
     setIsUpdating(true);
     try {
       // Assignment removed - owner_id no longer exists
-      const tableName =
-        entityType === 'people'
-          ? 'leads'
-          : entityType === 'jobs'
-            ? 'leads'
-            : entityType;
+      const tableName = entityType === 'people' ? 'leads' : entityType;
       const { error } = await supabase
         .from(tableName as never)
         .update({
@@ -158,12 +153,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
     setIsUpdating(true);
     try {
       // Assignment removed - owner_id no longer exists
-      const tableName =
-        entityType === 'people'
-          ? 'leads'
-          : entityType === 'jobs'
-            ? 'leads'
-            : entityType;
+      const tableName = entityType === 'people' ? 'leads' : entityType;
       const { error } = await supabase
         .from(tableName as never)
         .update({

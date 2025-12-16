@@ -129,7 +129,7 @@ export class DatabaseQueries {
    * Assignment feature removed - this is a no-op
    */
   static async updateAssignment(
-    table: 'people' | 'companies' | 'jobs',
+    table: 'people' | 'companies',
     entityId: string,
     ownerId: string | null
   ): Promise<void> {
@@ -141,12 +141,11 @@ export class DatabaseQueries {
    * Safe related entities fetching
    */
   static async getRelatedEntities(
-    entityType: 'contacts' | 'companies' | 'jobs',
+    entityType: 'contacts' | 'companies',
     companyId: string,
     excludeId?: string
   ): Promise<{
     leads: Record<string, unknown>[];
-    jobs: Record<string, unknown>[];
   }> {
     try {
       const [leadsResult] = await Promise.all([
@@ -175,7 +174,6 @@ export class DatabaseQueries {
 
       return {
         leads: leadsResult.data || [],
-        jobs: [], // Jobs table removed
       };
     } catch (error) {
       console.error(
@@ -230,7 +228,7 @@ export class QueryValidator {
    * Validate table name
    */
   static isValidTable(table: string): boolean {
-    return ['people', 'companies', 'jobs', 'user_profiles'].includes(table);
+    return ['people', 'companies', 'user_profiles'].includes(table);
   }
 
   /**

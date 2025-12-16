@@ -92,6 +92,10 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         title: 'Settings',
         subheading: 'Configure your LeadFlow settings and integrations',
       },
+      '/shows': {
+        title: 'Shows',
+        subheading: 'Manage your exhibition shows',
+      },
       // Legacy routes (for redirects)
       '/contacts': {
         title: 'Leads',
@@ -116,6 +120,8 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         data = routeData['/analytics'];
       } else if (pathname.startsWith('/settings')) {
         data = routeData['/settings'];
+      } else if (pathname.startsWith('/shows')) {
+        data = routeData['/shows'];
       }
     }
 

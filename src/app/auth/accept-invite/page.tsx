@@ -49,7 +49,8 @@ export default function AcceptInvitePage() {
           return;
         }
 
-        if (new Date(data.expires_at) < new Date()) {
+        // Check if invitation has expired
+        if (data.expires_at && new Date(data.expires_at) < new Date()) {
           setError(
             'This invitation has expired. Please contact your administrator.'
           );

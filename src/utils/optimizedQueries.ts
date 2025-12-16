@@ -191,7 +191,7 @@ export class OptimizedQueries {
    */
   static async batchUpdateAssignments(
     assignments: Array<{
-      entityType: 'people' | 'companies' | 'jobs';
+      entityType: 'people' | 'companies';
       entityId: string;
       ownerId: string | null;
     }>

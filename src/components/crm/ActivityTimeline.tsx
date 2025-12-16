@@ -19,7 +19,7 @@ import { useCallback, useEffect, useState } from 'react';
 interface ActivityTimelineProps {
   entityId: string;
   entityName: string;
-  entityType?: 'lead' | 'company' | 'job';
+  entityType?: 'lead' | 'company';
 }
 
 interface ActivityItem {

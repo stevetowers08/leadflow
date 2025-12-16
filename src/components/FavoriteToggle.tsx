@@ -32,21 +32,12 @@ const FavoriteToggleComponent = ({
       const newFavoriteStatus = !isFavorite;
 
       // Determine the table name based on entity type
-      const tableName =
-        entityType === 'lead'
-          ? 'people'
-          : entityType === 'company'
-            ? 'companies'
-            : 'jobs';
+      // Use leads table for leads, companies table for companies
+      const tableName: 'leads' | 'companies' =
+        entityType === 'lead' ? 'leads' : 'companies';
 
       const { error } = await supabase
-        .from(
-          (tableName === 'people'
-            ? 'leads'
-            : tableName === 'jobs'
-              ? 'leads'
-              : tableName) as never
-        )
+        .from(tableName)
         .update({ is_favourite: newFavoriteStatus })
         .eq('id', entityId);
 

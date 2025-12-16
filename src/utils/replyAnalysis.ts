@@ -19,7 +19,7 @@ export async function analyzeReplyMessage(
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
     const prompt = `
-Analyze the following message from a potential lead and determine their interest level in our recruitment services.
+Analyze the following message from a potential lead and determine their interest level in our services.
 
 Message: "${message}"
 

@@ -40,7 +40,10 @@ export class DatabaseValidator {
         return {
           success: false,
           message: 'Database connection failed',
-          details: error,
+          details:
+            error instanceof Error
+              ? { message: error.message, name: error.name }
+              : { error: String(error) },
           timestamp: new Date().toISOString(),
         };
       }
@@ -55,7 +58,10 @@ export class DatabaseValidator {
       return {
         success: false,
         message: 'Database connection error',
-        details: error,
+        details:
+          error instanceof Error
+            ? { message: error.message, name: error.name }
+            : { error: String(error) },
         timestamp: new Date().toISOString(),
       };
     }
@@ -63,11 +69,20 @@ export class DatabaseValidator {
 
   static async validateTableStructure(): Promise<ValidationResult> {
     try {
-      const requiredTables = ['people', 'companies', 'jobs', 'user_profiles'];
+      const requiredTables = ['people', 'companies', 'leads', 'user_profiles'];
       const results = [];
 
       for (const table of requiredTables) {
-        const { data, error } = await supabase.from(table).select('*').limit(1);
+        // Type-safe table access - only query tables that exist in our schema
+        const tableName = table as
+          | 'people'
+          | 'companies'
+          | 'leads'
+          | 'user_profiles';
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('*')
+          .limit(1);
 
         results.push({
           table,
@@ -84,14 +99,17 @@ export class DatabaseValidator {
           failedTables.length === 0
             ? 'All required tables are accessible'
             : `Missing or inaccessible tables: ${failedTables.map(t => t.table).join(', ')}`,
-        details: results,
+        details: { results },
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
       return {
         success: false,
         message: 'Table structure validation failed',
-        details: error,
+        details:
+          error instanceof Error
+            ? { message: error.message, name: error.name }
+            : { error: String(error) },
         timestamp: new Date().toISOString(),
       };
     }
@@ -134,14 +152,17 @@ export class DatabaseValidator {
           failedChecks.length === 0
             ? 'Data integrity checks passed'
             : `Data integrity issues found: ${failedChecks.map(c => c.check).join(', ')}`,
-        details: checks,
+        details: { checks },
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
       return {
         success: false,
         message: 'Data integrity validation failed',
-        details: error,
+        details:
+          error instanceof Error
+            ? { message: error.message, name: error.name }
+            : { error: String(error) },
         timestamp: new Date().toISOString(),
       };
     }
@@ -176,7 +197,10 @@ export class ApiValidator {
       return {
         success: false,
         message: 'Reporting service validation failed',
-        details: error,
+        details:
+          error instanceof Error
+            ? { message: error.message, name: error.name }
+            : { error: String(error) },
         timestamp: new Date().toISOString(),
       };
     }
@@ -204,7 +228,10 @@ export class ApiValidator {
       return {
         success: false,
         message: 'Auth service validation failed',
-        details: error,
+        details:
+          error instanceof Error
+            ? { message: error.message, name: error.name }
+            : { error: String(error) },
         timestamp: new Date().toISOString(),
       };
     }
@@ -259,7 +286,7 @@ export class ComponentValidator {
         typeErrors.length === 0
           ? `${componentName} has correct prop types`
           : `${componentName} has type errors: ${typeErrors.map(e => `${e.prop} (${e.actual} vs ${e.expected})`).join(', ')}`,
-      details: typeErrors,
+      details: { typeErrors },
       timestamp: new Date().toISOString(),
     };
   }
@@ -325,7 +352,10 @@ export class RuntimeTestRunner {
           const errorResult: ValidationResult = {
             success: false,
             message: `Test ${test.name} failed with error`,
-            details: error,
+            details:
+              error instanceof Error
+                ? { message: error.message, name: error.name }
+                : { error: String(error) },
             timestamp: new Date().toISOString(),
           };
           results.push(errorResult);
@@ -353,7 +383,10 @@ export class RuntimeTestRunner {
         const errorResult: ValidationResult = {
           success: false,
           message: `Test ${test.name} failed with error`,
-          details: error,
+          details:
+            error instanceof Error
+              ? { message: error.message, name: error.name }
+              : { error: String(error) },
           timestamp: new Date().toISOString(),
         };
         results.push(errorResult);
@@ -386,7 +419,7 @@ export const devValidation = {
    * Run validation in development mode
    */
   async runDevValidation(): Promise<void> {
-    if (import.meta.env.NODE_ENV !== 'development') {
+    if (process.env.NODE_ENV !== 'development') {
       console.warn('Dev validation should only run in development mode');
       return;
     }

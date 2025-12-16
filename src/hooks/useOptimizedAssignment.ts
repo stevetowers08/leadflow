@@ -129,7 +129,7 @@ export const useOptimizedAssignment = ({
         // Map 'leads' to 'people' for legacy compatibility
         const legacyEntityType = entityType === 'leads' ? 'people' : entityType;
         refreshSpecificEntity(
-          legacyEntityType as 'people' | 'companies' | 'jobs',
+          legacyEntityType as 'people' | 'companies',
           entityId
         );
 

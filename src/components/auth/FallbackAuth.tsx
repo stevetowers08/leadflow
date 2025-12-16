@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
-import { RecruitEdgeLogo } from '../RecruitEdgeLogo';
+import { LeadFlowLogo } from '../RecruitEdgeLogo';
 import { Loader2 } from 'lucide-react';
 
 export const FallbackAuth: React.FC = () => {
@@ -39,7 +39,7 @@ export const FallbackAuth: React.FC = () => {
     <div className='flex flex-col h-screen'>
       <div className='h-20 border-b border-border flex items-center justify-center'>
         <div className='flex items-center gap-3'>
-          <RecruitEdgeLogo size={32} />
+          <LeadFlowLogo size={32} />
           <div>
             <h1 className='text-xl font-semibold tracking-tight'>Sign In</h1>
             <p className='text-sm text-muted-foreground mt-1'>

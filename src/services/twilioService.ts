@@ -248,9 +248,18 @@ export class TwilioSMSService {
         );
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as { messages?: TwilioApiMessage[] };
 
-      return (data.messages || []).map((message: TwilioMessage) => ({
+      // Twilio API response includes additional fields not in our interface
+      interface TwilioApiMessage extends TwilioMessage {
+        date_created?: string;
+        date_updated?: string;
+        date_sent?: string;
+        error_code?: string;
+        error_message?: string;
+      }
+
+      return (data.messages || []).map((message: TwilioApiMessage) => ({
         sid: message.sid,
         status: message.status,
         to: message.to,

@@ -8,16 +8,7 @@ Transform exhibition leads into conversations by removing manual follow-up frict
 
 ## Product Requirements
 
-The complete Product Requirements Document (PDR) is available at [`docs/PDR`](docs/PDR). This document contains:
-
-- Executive summary and design philosophy
-- Complete app structure and navigation
-- Detailed screen specifications
-- Technical specifications (OCR, AI enrichment, workflow automation)
-- Database schema and architecture
-- Security and compliance requirements
-- Development phases and success metrics
-- Future enhancements roadmap
+LeadFlow is an AI-powered Event Lead Capture & Automation tool that transforms physical business cards into digital revenue through AI enrichment and multi-channel automation.
 
 ## Tech Stack
 
@@ -111,11 +102,8 @@ src/
 
 ## Documentation
 
-- **Product Requirements:** [`docs/PDR`](docs/PDR)
 - **Development Guide:** See `.cursor/rules/` for coding standards and architecture
 
 ## License
 
 See [LICENSE](LICENSE) file for details.
-
-

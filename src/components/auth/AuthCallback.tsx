@@ -125,15 +125,15 @@ const AuthCallback: React.FC = () => {
 
               // Get the session to ensure we have user data
               const {
-                data: { session },
+                data: { session: currentSession },
               } = await supabase.auth.getSession();
 
-              if (session?.user) {
+              if (currentSession?.user) {
                 // Ensure user profile exists (trigger should create it, but verify)
                 const { data: profile, error: profileError } = await supabase
                   .from('user_profiles')
                   .select('*')
-                  .eq('id', session.user.id)
+                  .eq('id', currentSession.user.id)
                   .single();
 
                 // If profile doesn't exist, create it
@@ -141,12 +141,12 @@ const AuthCallback: React.FC = () => {
                   const { error: insertError } = await supabase
                     .from('user_profiles')
                     .insert({
-                      id: session.user.id,
-                      email: session.user.email || '',
+                      id: currentSession.user.id,
+                      email: currentSession.user.email || '',
                       full_name:
-                        session.user.user_metadata?.full_name ||
-                        session.user.user_metadata?.name ||
-                        session.user.email?.split('@')[0] ||
+                        currentSession.user.user_metadata?.full_name ||
+                        currentSession.user.user_metadata?.name ||
+                        currentSession.user.email?.split('@')[0] ||
                         'User',
                       role: 'user',
                       is_active: true,
@@ -207,10 +207,13 @@ const AuthCallback: React.FC = () => {
               await new Promise(resolve => setTimeout(resolve, 100));
 
               // Log before redirect for debugging
+              const {
+                data: { session: redirectSession },
+              } = await supabase.auth.getSession();
               console.log('🔄 Redirecting to home page', {
-                sessionExists: !!currentSession?.user,
-                userId: currentSession?.user?.id,
-                email: currentSession?.user?.email,
+                sessionExists: !!redirectSession?.user,
+                userId: redirectSession?.user?.id,
+                email: redirectSession?.user?.email,
               });
 
               // Use replace to avoid adding to history (best practice)

@@ -55,8 +55,3 @@ export const LeadFlowLogoHorizontal = (
 export const LeadFlowLogoVertical = (
   props: Omit<LeadFlowLogoProps, 'variant'>
 ) => <LeadFlowLogo {...props} variant='vertical' />;
-
-// Legacy alias for backward compatibility
-export const RecruitEdgeLogo = LeadFlowLogo;
-export const RecruitEdgeLogoHorizontal = LeadFlowLogoHorizontal;
-export const RecruitEdgeLogoVertical = LeadFlowLogoVertical;

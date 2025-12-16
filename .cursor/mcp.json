@@ -1,8 +1,3 @@
 {
-  "mcpServers": {
-    "browser-tools": {
-      "command": "browser-tools-mcp",
-      "args": []
-    }
-  }
+  "mcpServers": {}
 }

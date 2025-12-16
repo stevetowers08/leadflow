@@ -195,19 +195,12 @@ export function getStatusDisplayText(status: string): string {
     proceed: 'Proceed',
     skip: 'Skip',
 
-    // Job qualification status
-    qualify: 'Qualified',
-    QUALIFY: 'Qualified',
-
     // Company pipeline stages - business pipeline campaigns
     NEW_LEAD: 'New Lead',
     qualified: 'Qualified',
     QUALIFIED: 'Qualified',
-    message_sent: 'Message Sent',
     MESSAGE_SENT: 'Message Sent',
-    replied: 'Replied',
     REPLIED: 'Replied',
-    interested: 'Interested',
     INTERESTED: 'Interested',
     'meeting scheduled': 'Meeting Scheduled',
     MEETING_SCHEDULED: 'Meeting Scheduled',
@@ -253,18 +246,8 @@ export function getStatusDisplayText(status: string): string {
     OWNER: 'Owner',
     admin: 'Admin',
     ADMIN: 'Admin',
-    recruiter: 'Recruiter',
-    RECRUITER: 'Recruiter',
     inactive: 'Inactive',
     INACTIVE: 'Inactive',
-
-    // Job priorities
-    HIGH: 'High',
-    high: 'High',
-    MEDIUM: 'Medium',
-    medium: 'Medium',
-    LOW: 'Low',
-    low: 'Low',
     'VERY HIGH': 'Very High',
     'very-high': 'Very High',
     'very high': 'Very High',

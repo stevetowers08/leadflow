@@ -31,8 +31,8 @@ class StatusAutomationService {
   /**
    * Initialize service with toast handler
    */
-  init(toast: ReturnType<typeof useToast>) {
-    this.toastHandler = toast;
+  init(toastHandler: ReturnType<typeof useToast>) {
+    this.toastHandler = toastHandler;
   }
 
   /**
@@ -54,16 +54,15 @@ class StatusAutomationService {
       if (error) throw error;
 
       if (!options.skipNotification && this.toastHandler) {
-        this.toastHandler({
+        this.toastHandler.toast({
           title: 'Status Updated',
           description: 'Lead updated after sending message',
-          variant: 'success',
         });
       }
     } catch (error) {
       console.error('Failed to update person status:', error);
       if (!options.skipNotification && this.toastHandler) {
-        this.toastHandler({
+        this.toastHandler.toast({
           title: 'Update Failed',
           description: 'Could not update lead status automatically',
           variant: 'destructive',
@@ -92,10 +91,9 @@ class StatusAutomationService {
       if (error) throw error;
 
       if (data && !options.skipNotification && this.toastHandler) {
-        this.toastHandler({
+        this.toastHandler.toast({
           title: 'Pipeline Updated',
           description: 'Company moved to "Outreach Started"',
-          variant: 'success',
         });
       }
     } catch (error) {
@@ -133,10 +131,9 @@ class StatusAutomationService {
         .eq('pipeline_stage', 'outreach_started');
 
       if (!options.skipNotification && this.toastHandler) {
-        this.toastHandler({
+        this.toastHandler.toast({
           title: 'Response Received',
           description: 'Lead updated to "Replied", company to "Replied"',
-          variant: 'success',
         });
       }
     } catch (error) {
@@ -160,10 +157,9 @@ class StatusAutomationService {
         .eq('id', companyId);
 
       if (!options.skipNotification && this.toastHandler) {
-        this.toastHandler({
+        this.toastHandler.toast({
           title: 'Meeting Scheduled',
           description: 'Company moved to "Meeting Scheduled"',
-          variant: 'success',
         });
       }
     } catch (error) {
@@ -215,10 +211,9 @@ class StatusAutomationService {
         .in('id', personIds);
 
       if (!options.skipNotification && this.toastHandler) {
-        this.toastHandler({
+        this.toastHandler.toast({
           title: 'Batch Updated',
           description: `Updated ${personIds.length} leads to "${stage}"`,
-          variant: 'success',
         });
       }
     } catch (error) {
@@ -239,7 +234,11 @@ export function useStatusAutomation() {
 
   // Initialize on mount
   React.useEffect(() => {
-    statusAutomation.init(toast);
+    statusAutomation.init({
+      toast,
+      dismiss: (toastId?: string) => {},
+      toasts: [],
+    });
   }, [toast]);
 
   return {

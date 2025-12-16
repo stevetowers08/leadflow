@@ -17,7 +17,6 @@ const NotificationSettings = () => {
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     inAppNotifications: true,
-    newJobsDiscovered: true,
     responsesReceived: true,
     meetingReminders: true,
     weeklyDigest: false,
@@ -92,20 +91,6 @@ const NotificationSettings = () => {
 
           <div className='border-t pt-4 space-y-4'>
             <h3 className='text-sm font-medium'>What to notify about:</h3>
-
-            {/* New Jobs */}
-            <div className='flex items-center justify-between py-2'>
-              <div className='space-y-0.5'>
-                <Label>New Jobs Discovered</Label>
-                <p className='text-sm text-muted-foreground'>
-                  Alert when new matching jobs are found
-                </p>
-              </div>
-              <Switch
-                checked={notifications.newJobsDiscovered}
-                onCheckedChange={() => handleToggle('newJobsDiscovered')}
-              />
-            </div>
 
             {/* Responses */}
             <div className='flex items-center justify-between py-2'>

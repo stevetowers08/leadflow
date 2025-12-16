@@ -10,7 +10,7 @@ import React, { useEffect, useRef, useState } from 'react';
 interface IconOnlyAssignmentCellProps {
   ownerId: string | null;
   entityId: string;
-  entityType: 'companies' | 'people' | 'jobs' | 'leads';
+  entityType: 'companies' | 'people' | 'leads';
   onAssignmentChange?: () => void;
   className?: string;
 }
@@ -148,12 +148,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
     setIsUpdating(true);
     try {
       // Assignment removed - owner_id no longer exists
-      const tableName =
-        entityType === 'people'
-          ? 'leads'
-          : entityType === 'jobs'
-            ? 'leads'
-            : entityType;
+      const tableName = entityType === 'people' ? 'leads' : entityType;
       const { error } = await supabase
         .from(tableName as never)
         .update({
@@ -200,12 +195,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
     setIsUpdating(true);
     try {
       // Assignment removed - owner_id no longer exists
-      const tableName =
-        entityType === 'people'
-          ? 'leads'
-          : entityType === 'jobs'
-            ? 'leads'
-            : entityType;
+      const tableName = entityType === 'people' ? 'leads' : entityType;
       const { error } = await supabase
         .from(tableName as never)
         .update({

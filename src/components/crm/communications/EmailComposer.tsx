@@ -11,11 +11,14 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { EmailTemplate } from '@/services/secureGmailService';
 import { Paperclip, Send } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { Lead } from '@/types/database';
-import { SendEmailRequest, gmailService } from '@/services/gmailService';
+import {
+  SendEmailRequest,
+  gmailService,
+  type EmailTemplate,
+} from '@/services/gmailService';
 
 interface EmailComposerProps {
   selectedPerson?: Lead;

@@ -1,5 +1,5 @@
 /**
- * Design Tokens for RECRUITEDGE
+ * Design Tokens for LeadFlow
  * Centralized design decisions for consistency
  */
 
@@ -220,11 +220,12 @@ export const designTokens = {
     cardStatic: 'transition-shadow duration-200 ease-out hover:shadow-md',
     // 2025 Microinteractions - Subtle feedback patterns
     microinteraction: 'transition-all duration-200 ease-out',
-    focusRing: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+    focusRing:
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
     // Smooth animations for state changes
     smooth: 'transition-all duration-300 ease-in-out',
   },
-  
+
   // Animations - 2025 Best Practices
   animations: {
     // Subtle pulse for attention

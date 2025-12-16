@@ -539,6 +539,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      invitations: {
+        Row: {
+          id: string;
+          email: string;
+          role: string;
+          invited_by: string;
+          invited_at: string | null;
+          expires_at: string | null;
+          status: string;
+          accepted_at: string | null;
+          accepted_by: string | null;
+          token: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          role: string;
+          invited_by: string;
+          invited_at?: string | null;
+          expires_at?: string | null;
+          status?: string;
+          accepted_at?: string | null;
+          accepted_by?: string | null;
+          token?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          role?: string;
+          invited_by?: string;
+          invited_at?: string | null;
+          expires_at?: string | null;
+          status?: string;
+          accepted_at?: string | null;
+          accepted_by?: string | null;
+          token?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

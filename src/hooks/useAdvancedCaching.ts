@@ -32,18 +32,10 @@ export const CACHE_CONFIG = {
 export const CACHE_PATTERNS = {
   PEOPLE: ['people', 'leads'],
   COMPANIES: ['companies'],
-  JOBS: ['jobs'],
   INTERACTIONS: ['interactions'],
   USER_PROFILES: ['user_profiles'],
   CAMPAIGNS: ['campaigns', 'campaign_participants', 'campaign_messages'],
-  ALL: [
-    'people',
-    'companies',
-    'jobs',
-    'interactions',
-    'user_profiles',
-    'campaigns',
-  ],
+  ALL: ['people', 'companies', 'interactions', 'user_profiles', 'campaigns'],
 };
 
 // Advanced caching hook with intelligent invalidation

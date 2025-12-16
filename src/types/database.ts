@@ -105,6 +105,20 @@ export interface Company {
  */
 
 // Lead interface matching PDR Section 7 - leads table structure
+export interface Show {
+  id: string;
+  owner_id: string | null;
+  name: string;
+  start_date: string | null; // ISO date string
+  end_date: string | null; // ISO date string
+  city: string | null;
+  venue: string | null;
+  timezone: string | null;
+  status: 'upcoming' | 'live' | 'ended';
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 export interface Lead {
   id: string;
   user_id: string | null;
@@ -114,6 +128,7 @@ export interface Lead {
   phone: string | null;
   company: string | null; // Company name string
   company_id: string | null; // Foreign key to companies table
+  show_id: string | null; // Foreign key to shows table
   job_title: string | null;
   scan_image_url: string | null;
   quality_rank: 'hot' | 'warm' | 'cold' | null;
@@ -143,8 +158,8 @@ export interface Lead {
   enrichment_timestamp: string | null;
   enrichment_status: 'pending' | 'enriching' | 'completed' | 'failed' | null;
   gmail_thread_id: string | null;
-  show_name: string | null; // Exhibition/show name where lead was captured
-  show_date: string | null; // Exhibition/show date (ISO date string)
+  show_name: string | null; // Exhibition/show name where lead was captured (legacy, use show_id)
+  show_date: string | null; // Exhibition/show date (ISO date string) (legacy, use show_id)
   notes: string | null;
   // owner_id and client_id removed - not in PDR (multi-tenant removed)
   employee_location: string | null; // From Contact
@@ -408,7 +423,6 @@ export interface BusinessProfile {
   company_size: string | null;
   target_company_size: string[] | null;
   target_industries: string[] | null;
-  target_job_titles: string[] | null;
   target_seniority_levels: string[] | null;
   target_locations: string[] | null;
   ideal_customer_profile: string | null;
@@ -523,7 +537,7 @@ export interface ClientUser {
   id: string;
   client_id: string;
   user_id: string;
-  role: 'admin' | 'recruiter' | 'viewer';
+  role: 'admin' | 'viewer';
   is_primary_contact: boolean | null;
   joined_at: string | null;
 }

@@ -57,9 +57,12 @@ export async function bulkAddLeadsToCampaign(
   failed: number;
   errors: Array<{ leadId: string; error: string }>;
 }> {
+  const leadIdsCount = leadIds.length;
+  const leadIdsArray = [...leadIds]; // Create a copy to avoid closure issues
+
   try {
     console.log('[bulkAddLeadsToCampaign] Starting', {
-      leadIds: leadIds.length,
+      leadIds: leadIdsCount,
       campaignId,
       userId,
     });
@@ -68,7 +71,7 @@ export async function bulkAddLeadsToCampaign(
     const { data: leads, error: leadsError } = await supabase
       .from('leads')
       .select('*')
-      .in('id', leadIds);
+      .in('id', leadIdsArray);
 
     if (leadsError || !leads) {
       console.error(
@@ -77,7 +80,7 @@ export async function bulkAddLeadsToCampaign(
       );
       return {
         success: 0,
-        failed: leadIds.length,
+        failed: leadIdsCount,
         errors: [
           {
             leadId: 'all',
@@ -90,25 +93,26 @@ export async function bulkAddLeadsToCampaign(
     console.log('[bulkAddLeadsToCampaign] Fetched leads', leads.length);
 
     // Get lead IDs (leads are already in the leads table)
+    // Type assertion needed: database query returns Supabase types, but function expects database.ts Lead type
     const {
-      leadIds,
+      leadIds: processedLeadIds,
       leadToLeadMap,
       errors: conversionErrors,
-    } = await getLeadIdsFromLeads(leads);
+    } = await getLeadIdsFromLeads(leads as Lead[]);
 
     console.log('[bulkAddLeadsToCampaign] Processing leads', {
-      leadIds: leadIds.length,
+      leadIds: processedLeadIds.length,
       conversionErrors: conversionErrors.length,
     });
 
-    if (leadIds.length === 0) {
+    if (processedLeadIds.length === 0) {
       console.error(
         '[bulkAddLeadsToCampaign] No valid leads',
         conversionErrors
       );
       return {
         success: 0,
-        failed: leadIds.length,
+        failed: leadIdsCount,
         errors: conversionErrors,
       };
     }
@@ -125,7 +129,7 @@ export async function bulkAddLeadsToCampaign(
       const result = await bulkAddPeopleToLemlistCampaign(
         userId,
         campaignId,
-        leadIds
+        processedLeadIds
       );
 
       // Map lead IDs back to lead IDs for error reporting (identity map)
@@ -142,10 +146,10 @@ export async function bulkAddLeadsToCampaign(
     } else {
       // Use regular email campaign service
       console.log('[bulkAddLeadsToCampaign] Adding to email campaign', {
-        leadIds: leadIds.length,
+        leadIds: processedLeadIds.length,
         campaignId,
       });
-      const result = await bulkAddToCampaign(leadIds, campaignId);
+      const result = await bulkAddToCampaign(processedLeadIds, campaignId);
       console.log('[bulkAddLeadsToCampaign] Email campaign result', result);
 
       return {
@@ -164,7 +168,7 @@ export async function bulkAddLeadsToCampaign(
     console.error('[bulkAddLeadsToCampaign] Error', error);
     return {
       success: 0,
-      failed: leadIds.length,
+      failed: leadIdsCount,
       errors: [
         {
           leadId: 'all',
