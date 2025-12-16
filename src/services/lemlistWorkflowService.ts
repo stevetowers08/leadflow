@@ -1,6 +1,6 @@
 /**
  * Lemlist Workflow Service
- * 
+ *
  * Handles loading lemlist credentials from database and adding leads to campaigns
  */
 
@@ -14,6 +14,11 @@ export async function loadLemlistCredentials(userId: string): Promise<{
   apiKey: string;
   email: string;
 } | null> {
+  // Guard against empty userId to prevent 400 errors
+  if (!userId || userId.trim() === '') {
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from('user_profiles')
@@ -59,9 +64,11 @@ export async function addLeadToLemlistCampaign(
 ) {
   // Load credentials from database
   const credentials = await loadLemlistCredentials(userId);
-  
+
   if (!credentials) {
-    throw new Error('Lemlist credentials not found. Please connect Lemlist in Settings.');
+    throw new Error(
+      'Lemlist credentials not found. Please connect Lemlist in Settings.'
+    );
   }
 
   // Set credentials in service
@@ -78,9 +85,11 @@ export async function addLeadToLemlistCampaign(
 export async function getLemlistCampaigns(userId: string) {
   // Load credentials from database
   const credentials = await loadLemlistCredentials(userId);
-  
+
   if (!credentials) {
-    throw new Error('Lemlist credentials not found. Please connect Lemlist in Settings.');
+    throw new Error(
+      'Lemlist credentials not found. Please connect Lemlist in Settings.'
+    );
   }
 
   // Set credentials in service
@@ -107,9 +116,11 @@ export async function bulkAddLeadsToLemlistCampaign(
 ) {
   // Load credentials from database
   const credentials = await loadLemlistCredentials(userId);
-  
+
   if (!credentials) {
-    throw new Error('Lemlist credentials not found. Please connect Lemlist in Settings.');
+    throw new Error(
+      'Lemlist credentials not found. Please connect Lemlist in Settings.'
+    );
   }
 
   // Set credentials in service
@@ -119,4 +130,3 @@ export async function bulkAddLeadsToLemlistCampaign(
   // Bulk add leads to campaign
   return await lemlistService.bulkAddLeadsToCampaign(campaignId, leads);
 }
-

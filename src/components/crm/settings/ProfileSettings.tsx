@@ -42,21 +42,28 @@ const ProfileSettings = () => {
         setEmail(authEmail);
 
         // Also try to fetch from user_profiles table
-        const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('full_name, email')
-          .eq('id', user.id)
-          .maybeSingle();
+        // Guard against empty user.id to prevent UUID errors
+        if (user.id && user.id.trim() !== '') {
+          const { data: profile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('full_name, email')
+            .eq('id', user.id)
+            .maybeSingle();
 
-        // Handle profile fetch - 406 or missing profile is OK, use auth data
-        if (profileError && profileError.code !== 'PGRST116') {
-          // PGRST116 = no rows returned, which is fine
-          console.warn('Profile fetch warning:', getErrorMessage(profileError), profileError);
-        }
+          // Handle profile fetch - 406 or missing profile is OK, use auth data
+          if (profileError && profileError.code !== 'PGRST116') {
+            // PGRST116 = no rows returned, which is fine
+            console.warn(
+              'Profile fetch warning:',
+              getErrorMessage(profileError),
+              profileError
+            );
+          }
 
-        if (profile) {
-          setFullName(profile.full_name || authName);
-          setEmail(profile.email || authEmail);
+          if (profile) {
+            setFullName(profile.full_name || authName);
+            setEmail(profile.email || authEmail);
+          }
         }
       } catch (err) {
         console.error('Error loading profile:', getErrorMessage(err), err);

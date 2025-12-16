@@ -85,12 +85,27 @@ export default function InvitationsPage() {
         .order('created_at', { ascending: false })
         .limit(1000); // Reasonable limit
 
-      if (error) throw error;
+      // Handle missing table gracefully
+      if (error) {
+        const errorMessage = error.message || '';
+        if (
+          errorMessage.includes('schema cache') ||
+          errorMessage.includes('does not exist') ||
+          error.code === 'PGRST116' ||
+          error.code === '42P01' // PostgreSQL table does not exist
+        ) {
+          console.debug('Invitations table does not exist, showing empty list');
+          setInvitations([]);
+          return;
+        }
+        throw error;
+      }
       // Type assertion: database returns invitations table structure
       setInvitations((data || []) as Invitation[]);
     } catch (error) {
       console.error('Error loading invitations:', error);
       toast.error('Failed to load invitations');
+      setInvitations([]);
     } finally {
       setLoading(false);
     }

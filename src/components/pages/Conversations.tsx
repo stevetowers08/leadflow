@@ -209,12 +209,13 @@ const ConversationsContent: React.FC = () => {
           subject,
           last_message_at,
           is_read,
-          people(
+          leads(
             id,
-            name,
-            email_address,
-            company_role,
-            companies(name)
+            first_name,
+            last_name,
+            email,
+            job_title,
+            company
           )
         `
         )
@@ -245,12 +246,13 @@ const ConversationsContent: React.FC = () => {
         subject: string | null;
         last_message_at: string;
         is_read: boolean;
-        people: {
+        leads: {
           id: string;
-          name: string | null;
-          email_address: string | null;
-          company_role: string | null;
-          companies: { name: string | null } | null;
+          first_name: string | null;
+          last_name: string | null;
+          email: string | null;
+          job_title: string | null;
+          company: string | null;
         } | null;
       }
 
@@ -261,23 +263,29 @@ const ConversationsContent: React.FC = () => {
           (
             thread
           ): thread is EmailThreadQueryResult & {
-            people: NonNullable<EmailThreadQueryResult['people']>;
-          } => thread.people !== null
+            leads: NonNullable<EmailThreadQueryResult['leads']>;
+          } => thread.leads !== null
         )
-        .map(thread => ({
-          id: thread.id,
-          gmail_thread_id: thread.gmail_thread_id,
-          person_id: thread.people.id,
-          person_name: thread.people.name || 'Unknown',
-          person_email: thread.people.email_address || '',
-          person_company: thread.people.companies?.name || undefined,
-          person_job_title: thread.people.company_role || undefined,
-          subject: thread.subject || 'No subject',
-          last_message_at: thread.last_message_at,
-          is_read: thread.is_read,
-          message_count: 1,
-          last_message_preview: thread.subject || '',
-        }));
+        .map(thread => {
+          const name =
+            [thread.leads.first_name, thread.leads.last_name]
+              .filter(Boolean)
+              .join(' ') || 'Unknown';
+          return {
+            id: thread.id,
+            gmail_thread_id: thread.gmail_thread_id,
+            person_id: thread.leads.id,
+            person_name: name,
+            person_email: thread.leads.email || '',
+            person_company: thread.leads.company || undefined,
+            person_job_title: thread.leads.job_title || undefined,
+            subject: thread.subject || 'No subject',
+            last_message_at: thread.last_message_at,
+            is_read: thread.is_read,
+            message_count: 1,
+            last_message_preview: thread.subject || '',
+          };
+        });
 
       setThreads(transformedThreads);
     } catch (error) {
