@@ -264,19 +264,27 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
             type?: 'email' | 'lemlist';
           }> = [];
 
-          // Fetch email campaigns
+          // Fetch email campaigns from workflows
           try {
-            const { data: emailCampaigns, error: emailError } = await supabase
-              .from('campaign_sequences' as never)
-              .select('id, name')
-              .eq('status', 'active')
+            const { data: workflows, error: workflowError } = await supabase
+              .from('workflows')
+              .select('id, name, pause_rules')
               .order('name', { ascending: true });
 
-            if (!emailError && emailCampaigns) {
+            if (!workflowError && workflows) {
+              // Filter active workflows
+              const activeWorkflows = workflows.filter(w => {
+                const status =
+                  (w.pause_rules as { status?: string })?.status || 'active';
+                return status === 'active';
+              });
+
               allCampaigns.push(
-                ...(emailCampaigns as Array<{ id: string; name: string }>).map(
-                  c => ({ ...c, type: 'email' as const })
-                )
+                ...activeWorkflows.map(c => ({
+                  id: c.id,
+                  name: c.name,
+                  type: 'email' as const,
+                }))
               );
             }
           } catch (emailErr) {

@@ -13,8 +13,7 @@ export interface CreateLeadInput {
   first_name?: string | null;
   last_name?: string | null;
   email?: string | null;
-  company?: string | null;
-  company_id?: string | null;
+  company?: string | null; // Company name (text field, not FK)
   job_title?: string | null;
   phone?: string | null;
   scan_image_url?: string | null;
@@ -30,8 +29,7 @@ export interface UpdateLeadInput {
   first_name?: string | null;
   last_name?: string | null;
   email?: string | null;
-  company?: string | null;
-  company_id?: string | null;
+  company?: string | null; // Company name (text field, not FK)
   job_title?: string | null;
   phone?: string | null;
   quality_rank?: 'hot' | 'warm' | 'cold' | null;
@@ -71,9 +69,19 @@ export async function createLead(input: CreateLeadInput): Promise<Lead> {
   }
 
   // Auto-link company to show if both are present
-  if (data.company_id && data.show_id) {
+  // Note: leads table doesn't have company_id, need to find company by name first
+  if (data.company && data.show_id) {
     try {
-      await linkCompanyToShow(data.show_id, data.company_id);
+      // Find company by name
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('name', data.company)
+        .maybeSingle();
+
+      if (companyData?.id) {
+        await linkCompanyToShow(data.show_id, companyData.id);
+      }
     } catch (linkError) {
       // Don't fail lead creation if linking fails (might already be linked)
       console.warn('Failed to link company to show:', linkError);
@@ -142,10 +150,11 @@ export async function getLeads(options?: {
   show_date?: string; // Legacy filter
 }): Promise<Lead[]> {
   // Helper function to build query with optional shows join
+  // Note: companies join removed - leads table doesn't have company_id FK
   const buildQuery = (includeShows: boolean) => {
     const selectQuery = includeShows
-      ? `*, companies(id, name, logo_url), shows(id, name, start_date, end_date, city, venue)`
-      : `*, companies(id, name, logo_url)`;
+      ? `*, shows(id, name, start_date, end_date, city, venue)`
+      : `*`;
 
     let query = supabase
       .from('leads')
@@ -164,9 +173,8 @@ export async function getLeads(options?: {
       query = query.eq('show_id', options.show_id);
     }
 
-    if (options?.company_id) {
-      query = query.eq('company_id', options.company_id);
-    }
+    // Note: leads table doesn't have company_id column, only company (text)
+    // company_id filter removed - use company name filter if needed
 
     // Legacy filters
     if (options?.show_name) {
@@ -189,25 +197,27 @@ export async function getLeads(options?: {
   };
 
   // Try with shows join first
-  const { data, error } = await buildQuery(true);
+  let { data, error } = await buildQuery(true);
 
-  // If error is due to missing shows table, retry without shows join
+  // If error, try without shows join
   if (error) {
     const errorMessage = (error as { message?: string })?.message || '';
-    const isMissingTable =
+    const isJoinError =
       error.code === 'PGRST116' ||
       error.code === '42P01' ||
       errorMessage.includes('does not exist') ||
       errorMessage.includes('relation') ||
+      errorMessage.includes('foreign key') ||
       (error as { status?: number })?.status === 400;
 
-    if (isMissingTable) {
+    if (isJoinError) {
       // Retry without shows join
-      const { data: retryData, error: retryError } = await buildQuery(false);
-      if (retryError) {
-        throw new Error(`Failed to get leads: ${retryError.message}`);
+      ({ data, error } = await buildQuery(false));
+
+      if (error) {
+        throw new Error(`Failed to get leads: ${error.message}`);
       }
-      return (retryData || []) as Lead[];
+      return (data || []) as Lead[];
     }
 
     throw new Error(`Failed to get leads: ${error.message}`);

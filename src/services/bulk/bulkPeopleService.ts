@@ -297,14 +297,14 @@ export const bulkAddToCampaign = async (
   let successCount = 0;
 
   try {
-    // First check if campaign sequence exists
-    const { data: campaign, error: campaignError } = await supabase
-      .from('campaign_sequences')
+    // First check if workflow exists
+    const { data: workflow, error: workflowError } = await supabase
+      .from('workflows')
       .select('id, name')
       .eq('id', campaignId)
       .single();
 
-    if (campaignError || !campaign) {
+    if (workflowError || !workflow) {
       return {
         success: false,
         successCount: 0,

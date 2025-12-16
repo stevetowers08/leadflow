@@ -23,35 +23,39 @@ export function useAllCampaigns() {
     queryFn: async (): Promise<CampaignOption[]> => {
       const allCampaigns: CampaignOption[] = [];
 
-      // Fetch email campaigns
+      // Fetch email campaigns from workflows table
       try {
-        const { data: emailCampaigns, error: emailError } = await supabase
-          .from('campaign_sequences' as never)
-          .select('id, name')
-          .eq('status', 'active')
+        const { data: workflows, error: workflowError } = await supabase
+          .from('workflows')
+          .select('id, name, pause_rules')
           .order('name', { ascending: true });
 
-        if (!emailError && emailCampaigns) {
+        if (!workflowError && workflows) {
+          // Filter active workflows (check pause_rules.status or default to active)
+          const activeWorkflows = workflows.filter(w => {
+            const status =
+              (w.pause_rules as { status?: string })?.status || 'active';
+            return status === 'active';
+          });
+
           allCampaigns.push(
-            ...(emailCampaigns as Array<{ id: string; name: string }>).map(
-              c => ({
-                id: c.id,
-                name: c.name,
-                type: 'email' as const,
-              })
-            )
+            ...activeWorkflows.map(c => ({
+              id: c.id,
+              name: c.name,
+              type: 'email' as const,
+            }))
           );
         }
-      } catch (emailErr) {
+      } catch (workflowErr) {
         // Silently handle missing table
-        const errorMsg = getErrorMessage(emailErr);
+        const errorMsg = getErrorMessage(workflowErr);
         if (
           !errorMsg.includes('schema cache') &&
           !errorMsg.includes('does not exist')
         ) {
           console.error(
-            '[useAllCampaigns] Error fetching email campaigns:',
-            emailErr
+            '[useAllCampaigns] Error fetching workflows:',
+            workflowErr
           );
         }
       }

@@ -102,16 +102,17 @@ async function processEmailStep(
 
   if (!person.email_address) throw new Error('No email address');
 
-  const { data: sequence } = await supabase
-    .from('campaign_sequences')
+  // Use workflows table instead of campaign_sequences
+  const { data: workflow } = await supabase
+    .from('workflows')
     .select('created_by')
-    .eq('id', lead.sequence_id)
+    .eq('id', lead.workflow_id || lead.sequence_id) // Support both for migration
     .single();
 
   const { data: emailAccount } = await supabase
     .from('email_accounts')
     .select('*')
-    .eq('user_id', sequence?.created_by)
+    .eq('user_id', workflow?.created_by)
     .eq('is_active', true)
     .limit(1)
     .single();

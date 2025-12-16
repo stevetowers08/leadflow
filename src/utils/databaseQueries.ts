@@ -148,18 +148,30 @@ export class DatabaseQueries {
     leads: Record<string, unknown>[];
   }> {
     try {
+      // First get company name, then find leads by company name
+      // Note: leads table doesn't have company_id, only company (text)
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('name')
+        .eq('id', companyId)
+        .single();
+
+      if (!companyData?.name) {
+        return { leads: [] };
+      }
+
       const [leadsResult] = await Promise.all([
-        // Fetch leads
+        // Fetch leads by company name
         supabase
           .from('leads')
           .select(
             `
-            id, first_name, last_name, email, company, company_id,
-            job_title, status, quality_rank, linkedin_url,
+            id, first_name, last_name, email, company,
+            job_title, status, quality_rank,
             created_at, updated_at
           `
           )
-          .eq('company_id', companyId)
+          .eq('company', companyData.name)
           .neq('id', excludeId || '')
           .order('created_at', { ascending: false }),
       ]);

@@ -471,49 +471,61 @@ export function useCampaignSequenceLeads(sequenceId: string) {
   } = useQuery({
     queryKey: ['campaign-sequence-leads', sequenceId],
     queryFn: async () => {
+      // Simplified - just get leads with workflow_id matching sequenceId
+      // Note: campaign_sequence_leads table doesn't exist, use workflow_id instead
       const { data, error } = await supabase
-        // .from('campaign_sequence_leads') // Removed - not in PDR
-        .from('leads') // Use leads table instead
-        .select(
-          `
-          *,
-          people:lead_id (
-            id,
-            name,
-            email_address,
-            company_role,
-            companies:company_id (
-              id,
-              name
-            )
-          )
-        `
-        )
-        .eq('sequence_id', sequenceId)
-        .order('started_at', { ascending: false });
+        .from('leads')
+        .select('*')
+        .eq('workflow_id', sequenceId)
+        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        // Handle gracefully if workflow_id column doesn't exist or other errors
+        const errorMessage = (error as { message?: string })?.message || '';
+        if (
+          errorMessage.includes('does not exist') ||
+          errorMessage.includes('column') ||
+          (error as { status?: number })?.status === 400
+        ) {
+          return []; // Return empty array if column doesn't exist
+        }
+        throw error;
+      }
+      return data || [];
     },
     enabled: !!sequenceId,
   });
 
   const addLeads = useMutation({
-    mutationFn: async (personIds: string[]) => {
-      const leadData = personIds.map(personId => ({
-        sequence_id: sequenceId,
-        lead_id: personId,
-        status: 'active' as const,
+    mutationFn: async (leadIds: string[]) => {
+      // Update leads to assign them to workflow
+      // Note: campaign_sequence_leads table doesn't exist, use workflow_id instead
+      const updates = leadIds.map(leadId => ({
+        id: leadId,
+        workflow_id: sequenceId,
+        workflow_status: 'active' as const,
       }));
 
-      const { data, error } = await supabase
-        // .from('campaign_sequence_leads') // Removed - not in PDR
-        .from('leads') // Use leads table instead
-        .insert(leadData)
-        .select();
+      const results = await Promise.all(
+        updates.map(update =>
+          supabase
+            .from('leads')
+            .update({
+              workflow_id: update.workflow_id,
+              workflow_status: update.workflow_status,
+            })
+            .eq('id', update.id)
+            .select()
+            .single()
+        )
+      );
 
-      if (error) throw error;
-      return data;
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        throw errors[0].error;
+      }
+
+      return results.map(r => r.data).filter(Boolean);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

@@ -134,7 +134,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
             email,
             phone,
             company,
-            company_id,
             show_id,
             job_title,
             scan_image_url,
@@ -160,31 +159,37 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
         if (leadError) throw leadError;
         setLead(leadData as Lead);
 
-        // Fetch company if lead has company_id
-        if (leadData?.company_id) {
-          const { data: companyData, error: companyError } = await supabase
-            .from('companies')
-            .select('*')
-            .eq('id', leadData.company_id)
-            .single();
+        // Fetch company by name if lead has company name
+        // Note: leads table doesn't have company_id, only company (text field)
+        if (leadData?.company) {
+          try {
+            const { data: companyData, error: companyError } = await supabase
+              .from('companies')
+              .select('*')
+              .eq('name', leadData.company)
+              .maybeSingle();
 
-          if (!companyError && companyData) {
-            setCompany(companyData as Company);
+            if (!companyError && companyData) {
+              setCompany(companyData as Company);
 
-            // Fetch other leads at same company
-            const { data: otherLeadsData, error: otherLeadsError } =
-              await supabase
-                .from('leads')
-                .select(
-                  'id, first_name, last_name, job_title, status, company_id'
-                )
-                .eq('company_id', leadData.company_id)
-                .neq('id', leadId)
-                .limit(5);
+              // Fetch other leads at same company (by name)
+              const { data: otherLeadsData, error: otherLeadsError } =
+                await supabase
+                  .from('leads')
+                  .select(
+                    'id, first_name, last_name, job_title, status, company'
+                  )
+                  .eq('company', leadData.company)
+                  .neq('id', leadId)
+                  .limit(5);
 
-            if (!otherLeadsError && otherLeadsData) {
-              setOtherLeads(otherLeadsData as Lead[]);
+              if (!otherLeadsError && otherLeadsData) {
+                setOtherLeads(otherLeadsData as Lead[]);
+              }
             }
+          } catch (err) {
+            // Silently fail - company lookup is optional
+            console.debug('Could not fetch company:', err);
           }
         }
 
@@ -290,19 +295,27 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
             type?: 'email' | 'lemlist';
           }> = [];
 
-          // Fetch email campaigns
+          // Fetch email campaigns from workflows
           try {
-            const { data: emailCampaigns, error: emailError } = await supabase
-              .from('campaign_sequences' as never)
-              .select('id, name')
-              .eq('status', 'active')
+            const { data: workflows, error: workflowError } = await supabase
+              .from('workflows')
+              .select('id, name, pause_rules')
               .order('name', { ascending: true });
 
-            if (!emailError && emailCampaigns) {
+            if (!workflowError && workflows) {
+              // Filter active workflows
+              const activeWorkflows = workflows.filter(w => {
+                const status =
+                  (w.pause_rules as { status?: string })?.status || 'active';
+                return status === 'active';
+              });
+
               allCampaigns.push(
-                ...(emailCampaigns as Array<{ id: string; name: string }>).map(
-                  c => ({ ...c, type: 'email' as const })
-                )
+                ...activeWorkflows.map(c => ({
+                  id: c.id,
+                  name: c.name,
+                  type: 'email' as const,
+                }))
               );
             }
           } catch (emailErr) {
