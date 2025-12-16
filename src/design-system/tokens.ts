@@ -165,20 +165,39 @@ export const designTokens = {
     },
   },
 
-  // Shadows - Professional elevation system (2025 Best Practices)
+  // Shadows - Professional elevation system with variety (2025 Best Practices)
   shadows: {
-    sm: 'shadow-sm', // 0 1px 2px 0 rgb(0 0 0 / 0.05) - Very subtle (static state)
-    md: 'shadow-md', // 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) - Medium elevation (hover state)
-    lg: 'shadow-lg', // Large elevation (for special cases only)
-    xl: 'shadow-xl', // Extra large elevation (for special cases only)
-    // Professional card-specific shadow patterns (2025 Best Practices)
-    card: 'shadow-sm hover:shadow-md transition-all duration-200', // Updated for 2025 standards
-    cardStatic: 'shadow-sm', // Static cards with no hover
-    cardHover: 'hover:bg-gray-100 hover:shadow-md transition-all duration-200', // Updated: includes background + shadow
-    mobile: 'shadow-sm', // Mobile-optimized minimal shadows
-    // Professional button shadows
+    // Base shadow levels
+    sm: 'shadow-sm', // 0 1px 2px 0 rgb(0 0 0 / 0.05) - Very subtle
+    md: 'shadow-md', // 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)
+    lg: 'shadow-lg', // 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)
+    xl: 'shadow-xl', // 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)
+    '2xl': 'shadow-2xl', // 0 25px 50px -12px rgb(0 0 0 / 0.25)
+    // Colored shadows for depth
+    primary: 'shadow-lg shadow-primary/10',
+    success: 'shadow-lg shadow-success/10',
+    warning: 'shadow-lg shadow-warning/10',
+    error: 'shadow-lg shadow-destructive/10',
+    // Soft shadows (subtle)
+    soft: 'shadow-[0_2px_8px_rgba(0,0,0,0.04)]',
+    softer: 'shadow-[0_1px_4px_rgba(0,0,0,0.02)]',
+    // Inner shadows
+    inner: 'shadow-inner',
+    // Card-specific shadow patterns
+    card: 'shadow-sm hover:shadow-md transition-all duration-200',
+    cardStatic: 'shadow-sm',
+    cardHover: 'hover:bg-gray-100 hover:shadow-md transition-all duration-200',
+    cardElevated: 'shadow-md hover:shadow-lg transition-all duration-200',
+    cardFloating: 'shadow-lg hover:shadow-xl transition-all duration-200',
+    cardGlow:
+      'shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30',
+    // Mobile-optimized
+    mobile: 'shadow-sm',
+    // Button shadows
     button: 'shadow-sm hover:shadow-md',
-    // Clickable card hover (Dashboard, Getting Started, etc.)
+    buttonPrimary:
+      'shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30',
+    // Interactive card shadows
     cardInteractive:
       'hover:bg-gray-100 hover:shadow-md transition-all duration-200',
   },
@@ -226,21 +245,40 @@ export const designTokens = {
     smooth: 'transition-all duration-300 ease-in-out',
   },
 
-  // Animations - 2025 Best Practices
+  // Animations - Enhanced variety (2025 Best Practices)
   animations: {
-    // Subtle pulse for attention
-    pulse: 'animate-pulse',
-    // Smooth fade in
+    // Fade animations
     fadeIn: 'animate-in fade-in duration-200',
+    fadeOut: 'animate-out fade-out duration-200',
+    fadeInSlow: 'animate-in fade-in duration-500',
     // Slide animations
     slideUp: 'animate-in slide-in-from-bottom-4 duration-200',
     slideDown: 'animate-in slide-in-from-top-4 duration-200',
     slideLeft: 'animate-in slide-in-from-right-4 duration-200',
     slideRight: 'animate-in slide-in-from-left-4 duration-200',
-    // Scale animations (use sparingly)
+    slideUpSlow: 'animate-in slide-in-from-bottom-4 duration-500',
+    // Scale animations
     scaleIn: 'animate-in zoom-in-95 duration-200',
+    scaleOut: 'animate-out zoom-out-95 duration-200',
+    scaleInSlow: 'animate-in zoom-in-95 duration-500',
+    // Pulse animations
+    pulse: 'animate-pulse',
+    pulseSlow: 'animate-pulse duration-3000',
     // Spin for loading
     spin: 'animate-spin',
+    spinSlow: 'animate-spin duration-3000',
+    // Bounce (subtle)
+    bounce: 'animate-bounce',
+    // Shimmer effect
+    shimmer: 'animate-enriched-shimmer',
+    // Custom entrance animations
+    enter: 'animate-in fade-in slide-in-from-bottom-2 duration-300',
+    enterFast: 'animate-in fade-in slide-in-from-bottom-2 duration-150',
+    // Hover animations
+    hoverLift: 'transition-transform duration-200 hover:-translate-y-1',
+    hoverScale: 'transition-transform duration-200 hover:scale-105',
+    hoverGlow:
+      'transition-shadow duration-200 hover:shadow-lg hover:shadow-primary/20',
   },
 
   // Loading States

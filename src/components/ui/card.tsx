@@ -6,67 +6,126 @@ import { cn } from '@/lib/utils';
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
-    variant?: 'default' | 'elevated' | 'outlined' | 'glass' | 'minimal';
-    interactive?: boolean; // Only apply scale effects when explicitly interactive
+    variant?:
+      | 'default'
+      | 'elevated'
+      | 'outlined'
+      | 'glass'
+      | 'minimal'
+      | 'floating'
+      | 'glow'
+      | 'soft';
+    interactive?: boolean;
+    animation?: 'none' | 'fade' | 'slide' | 'scale' | 'lift';
   }
->(({ className, variant = 'minimal', interactive, ...props }, ref) => {
-  // Check if card has click handler or is explicitly marked as interactive
-  const hasClickHandler = props.onClick !== undefined;
-  const isInteractive =
-    interactive !== undefined ? interactive : hasClickHandler;
+>(
+  (
+    {
+      className,
+      variant = 'minimal',
+      interactive,
+      animation = 'fade',
+      ...props
+    },
+    ref
+  ) => {
+    const hasClickHandler = props.onClick !== undefined;
+    const isInteractive =
+      interactive !== undefined ? interactive : hasClickHandler;
 
-  const baseStyles = cn(
-    'rounded-lg',
-    designTokens.borders.card, // 2025 Best Practice: Subtle but visible borders for card definition
-    designTokens.transitions.normal
-  );
-  const interactiveStyles = isInteractive
-    ? cn(
-        'cursor-pointer',
-        designTokens.shadows.cardHover,
-        'hover:border-border' // Enhanced border on hover for better feedback
-      )
-    : designTokens.shadows.cardStatic;
+    const baseStyles = cn(
+      'rounded-lg',
+      designTokens.borders.card,
+      designTokens.transitions.normal
+    );
 
-  const variants = {
-    default: cn(
-      baseStyles,
-      designTokens.colors.background.primary,
-      designTokens.shadows.sm,
-      interactiveStyles
-    ),
-    elevated: cn(
-      baseStyles,
-      designTokens.colors.background.primary,
-      designTokens.shadows.lg,
-      'hover:shadow-xl',
-      interactiveStyles
-    ),
-    outlined: cn(
-      baseStyles,
-      designTokens.colors.background.primary,
-      designTokens.shadows.sm,
-      interactiveStyles
-    ),
-    glass: cn(
-      baseStyles,
-      designTokens.colors.background.primary,
-      designTokens.shadows.xl,
-      'hover:shadow-2xl',
-      interactiveStyles
-    ),
-    minimal: cn(
-      baseStyles,
-      designTokens.colors.background.primary,
-      designTokens.shadows.sm,
-      interactiveStyles
-    ),
-  };
+    const interactiveStyles = isInteractive
+      ? cn(
+          'cursor-pointer',
+          designTokens.shadows.cardHover,
+          'hover:border-border',
+          animation === 'lift' && designTokens.animations.hoverLift,
+          animation === 'scale' && designTokens.animations.hoverScale,
+          animation === 'fade' && 'hover:opacity-90'
+        )
+      : designTokens.shadows.cardStatic;
 
-  return (
-    <div ref={ref} className={cn(variants[variant], className)} {...props} />
-  );
-});
+    const animationStyles = {
+      none: '',
+      fade: designTokens.animations.fadeIn,
+      slide: designTokens.animations.slideUp,
+      scale: designTokens.animations.scaleIn,
+      lift: '',
+    };
+
+    const variants = {
+      default: cn(
+        baseStyles,
+        designTokens.colors.background.primary,
+        designTokens.shadows.sm,
+        interactiveStyles,
+        animationStyles[animation]
+      ),
+      elevated: cn(
+        baseStyles,
+        designTokens.colors.background.primary,
+        designTokens.shadows.cardElevated,
+        interactiveStyles,
+        animationStyles[animation]
+      ),
+      outlined: cn(
+        baseStyles,
+        designTokens.colors.background.primary,
+        designTokens.shadows.sm,
+        'border-2',
+        interactiveStyles,
+        animationStyles[animation]
+      ),
+      glass: cn(
+        baseStyles,
+        designTokens.colors.background.primary,
+        'backdrop-blur-sm bg-white/80',
+        designTokens.shadows.xl,
+        'hover:shadow-2xl',
+        interactiveStyles,
+        animationStyles[animation]
+      ),
+      minimal: cn(
+        baseStyles,
+        designTokens.colors.background.primary,
+        designTokens.shadows.sm,
+        interactiveStyles,
+        animationStyles[animation]
+      ),
+      floating: cn(
+        baseStyles,
+        designTokens.colors.background.primary,
+        designTokens.shadows.cardFloating,
+        interactiveStyles,
+        animationStyles[animation]
+      ),
+      glow: cn(
+        baseStyles,
+        designTokens.colors.background.primary,
+        designTokens.shadows.cardGlow,
+        interactiveStyles,
+        animationStyles[animation]
+      ),
+      soft: cn(
+        baseStyles,
+        designTokens.colors.background.primary,
+        designTokens.shadows.soft,
+        'hover:shadow-md',
+        interactiveStyles,
+        animationStyles[animation]
+      ),
+    };
+
+    return (
+      <div ref={ref} className={cn(variants[variant], className)} {...props} />
+    );
+  }
+);
 Card.displayName = 'Card';
 
 const CardHeader = React.forwardRef<
