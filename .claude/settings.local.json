@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(wc:*)",
+      "Bash(git -C /c/Dev/leadflow log --oneline -10)",
+      "Bash(git -C /c/Dev/leadflow show:*)",
+      "Bash(git -C /c/Dev/leadflow diff HEAD~1 src/hooks/useNotificationTriggers.ts)",
+      "Bash(git -C /c/Dev/leadflow diff HEAD~1 src/services/gmailService.ts)",
+      "Bash(ls:*)"
+    ]
+  }
+}

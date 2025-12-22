@@ -5,8 +5,6 @@
  * - Optimized for free tier usage (better availability than gemini-2.0-flash-001)
  * - Supports vision/image analysis for OCR tasks
  * - Free tier quotas have been significantly reduced in Dec 2025
- *
- * Replaces Mindee OCR with free, AI-powered alternative
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';

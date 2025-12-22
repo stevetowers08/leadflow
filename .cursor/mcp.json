@@ -1,3 +1,7 @@
-{
-  "mcpServers": {}
+﻿{
+  "mcpServers": {
+    "Supabase (Leadflow)": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=isoenbpjhogyokuyeknu"
+    }
+  }
 }
