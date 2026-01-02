@@ -47,6 +47,7 @@ import { CompanyChip } from '@/components/shared/CompanyChip';
 import { ShowChip } from '@/components/shared/ShowChip';
 import { getShows } from '@/services/showsService';
 import type { Company, Show } from '@/types/database';
+import { LeadDetailsSlideOut } from '@/components/slide-out/LeadDetailsSlideOut';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 
 // Type for Lead with joined relations from getLeads query
@@ -63,6 +64,8 @@ export default function LeadsPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [showFilter, setShowFilter] = useState<string>('all');
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
   const bulkSelection = useBulkSelection();
   const { data: campaigns = [] } = useAllCampaigns();
   const queryClient = useQueryClient();
@@ -183,67 +186,21 @@ export default function LeadsPage() {
       },
       {
         key: 'email',
-        label: (
-          <div className='flex items-center gap-1.5'>
-            <span>Email</span>
-            <Bolt className='h-3.5 w-3.5 text-yellow-500' />
-          </div>
-        ),
+        label: 'Email',
         width: '250px',
         render: (_, lead) => {
-          const isEnriching =
-            lead.enrichment_status === 'enriching' ||
-            lead.enrichment_status === 'pending';
-          const isEnriched = lead.enrichment_status === 'completed';
-
           return (
-            <div className='flex items-center gap-2'>
-              {isEnriching ? (
-                <CellLoadingSpinner size='sm' />
-              ) : (
-                <span
-                  className={cn(
-                    'text-muted-foreground',
-                    isEnriched && 'text-foreground font-medium'
-                  )}
-                >
-                  {lead.email || '-'}
-                </span>
-              )}
-            </div>
+            <span className='text-muted-foreground'>{lead.email || '-'}</span>
           );
         },
       },
       {
         key: 'phone',
-        label: (
-          <div className='flex items-center gap-1.5'>
-            <span>Phone</span>
-            <Bolt className='h-3.5 w-3.5 text-yellow-500' />
-          </div>
-        ),
+        label: 'Phone',
         width: '150px',
         render: (_, lead) => {
-          const isEnriching =
-            lead.enrichment_status === 'enriching' ||
-            lead.enrichment_status === 'pending';
-          const isEnriched = lead.enrichment_status === 'completed';
-
           return (
-            <div className='flex items-center gap-2'>
-              {isEnriching ? (
-                <CellLoadingSpinner size='sm' />
-              ) : (
-                <span
-                  className={cn(
-                    'text-muted-foreground',
-                    isEnriched && lead.phone && 'text-foreground font-medium'
-                  )}
-                >
-                  {lead.phone || '-'}
-                </span>
-              )}
-            </div>
+            <span className='text-muted-foreground'>{lead.phone || '-'}</span>
           );
         },
       },
@@ -641,6 +598,10 @@ export default function LeadsPage() {
             emptyMessage='No leads captured yet. Start by capturing your first business card!'
             scrollable
             stickyHeaders
+            onRowClick={lead => {
+              setSelectedLeadId(lead.id);
+              setIsSlideOutOpen(true);
+            }}
           />
         </div>
       </div>
@@ -665,6 +626,20 @@ export default function LeadsPage() {
         open={showImportDialog}
         onOpenChange={setShowImportDialog}
         onImportComplete={handleImportComplete}
+      />
+
+      {/* Lead Details Slide-Out */}
+      <LeadDetailsSlideOut
+        leadId={selectedLeadId}
+        isOpen={isSlideOutOpen}
+        onClose={() => {
+          setIsSlideOutOpen(false);
+          setSelectedLeadId(null);
+        }}
+        onUpdate={() => {
+          queryClient.invalidateQueries({ queryKey: ['leads'] });
+          queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
+        }}
       />
     </Page>
   );
