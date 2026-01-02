@@ -32,6 +32,7 @@ import { LoggingProvider } from '@/utils/enhancedLogger';
 import { PerformanceProvider } from '@/utils/performanceMonitoring';
 import { useClientId } from '@/hooks/useClientId';
 import { OAuthRedirectHandler } from '@/components/auth/OAuthRedirectHandler';
+import { useLeadEnrichmentRealtime } from '@/hooks/useLeadEnrichmentRealtime';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +55,8 @@ function AppInitialization({ children }: { children: React.ReactNode }) {
   usePerformanceMonitoring();
   // Initialize notification triggers (meeting reminders, follow-ups)
   useNotificationTriggers();
+  // Listen for real-time lead enrichment status changes
+  useLeadEnrichmentRealtime();
 
   useEffect(() => {
     // Initialize console filtering to suppress browser extension noise

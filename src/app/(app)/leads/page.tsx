@@ -47,6 +47,7 @@ import { CompanyChip } from '@/components/shared/CompanyChip';
 import { ShowChip } from '@/components/shared/ShowChip';
 import { getShows } from '@/services/showsService';
 import type { Company, Show } from '@/types/database';
+import { getStatusDisplayText } from '@/utils/statusUtils';
 
 // Type for Lead with joined relations from getLeads query
 type LeadWithRelations = Lead & {
@@ -383,7 +384,7 @@ export default function LeadsPage() {
                 statusColors.processing
               }
             >
-              {status.replace('_', ' ')}
+              {getStatusDisplayText(status)}
             </Badge>
           );
         },

@@ -8,6 +8,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Lead } from '@/types/database';
 import { linkCompanyToShow } from './showCompaniesService';
+import { formatLeadTextFields } from '@/utils/textFormatting';
 
 export interface CreateLeadInput {
   first_name?: string | null;
@@ -52,10 +53,19 @@ export async function createLead(input: CreateLeadInput): Promise<Lead> {
   } = await supabase.auth.getUser();
   const userId = input.user_id || user?.id;
 
+  // Format text fields to Title Case
+  const formattedInput = formatLeadTextFields({
+    first_name: input.first_name,
+    last_name: input.last_name,
+    company: input.company,
+    job_title: input.job_title,
+  });
+
   const { data, error } = await supabase
     .from('leads')
     .insert({
       ...input,
+      ...formattedInput,
       user_id: userId,
       status: 'processing',
       created_at: new Date().toISOString(),
@@ -98,10 +108,19 @@ export async function updateLead(
   leadId: string,
   input: UpdateLeadInput
 ): Promise<Lead> {
+  // Format text fields to Title Case
+  const formattedInput = formatLeadTextFields({
+    first_name: input.first_name,
+    last_name: input.last_name,
+    company: input.company,
+    job_title: input.job_title,
+  });
+
   const { data, error } = await supabase
     .from('leads')
     .update({
       ...input,
+      ...formattedInput,
       updated_at: new Date().toISOString(),
     })
     .eq('id', leadId)

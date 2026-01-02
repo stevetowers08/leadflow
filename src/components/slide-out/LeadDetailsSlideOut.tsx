@@ -567,7 +567,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                       statusColors.processing
                     }
                   >
-                    {status.replace('_', ' ')}
+                    {getStatusDisplayText(status)}
                   </Badge>
                 );
               })()
@@ -1201,7 +1201,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                                   ] || statusColors.processing
                                 }`}
                               >
-                                {status.replace('_', ' ')}
+                                {getStatusDisplayText(status)}
                               </Badge>
                             );
                           })()

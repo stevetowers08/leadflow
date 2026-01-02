@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
+import { formatCompanyTextFields } from '@/utils/textFormatting';
 
 type CompanyInsertData = Tables<'companies'>['Insert'];
 
@@ -15,10 +16,20 @@ export const insertCompany = async (companyData: CompanyInsertData) => {
       throw new Error('Company name is required');
     }
 
+    // Format text fields to Title Case
+    const formattedData = formatCompanyTextFields({
+      name: companyData.name,
+      head_office: companyData.head_office,
+      industry: companyData.industry,
+    });
+
     // Insert the company
     const { data, error } = await supabase
       .from('companies')
-      .insert(companyData)
+      .insert({
+        ...companyData,
+        ...formattedData,
+      })
       .select();
 
     if (error) {
@@ -64,12 +75,19 @@ export const insertCompanyWithDuplicateHandling = async (
       const timestamp = Date.now();
       const uniqueName = `${originalName} (${timestamp})`;
 
+      // Format text fields to Title Case
+      const formattedData = formatCompanyTextFields({
+        name: uniqueName,
+        head_office: companyData.head_office,
+        industry: companyData.industry,
+      });
+
       // Try inserting with the unique name
       const { data: uniqueData, error: uniqueError } = await supabase
         .from('companies')
         .insert({
           ...companyData,
-          name: uniqueName,
+          ...formattedData,
         })
         .select();
 
@@ -109,9 +127,17 @@ export const upsertCompany = async (companyData: CompanyInsertData) => {
       throw new Error('User must be authenticated to create companies');
     }
 
+    // Format text fields to Title Case
+    const formattedData = formatCompanyTextFields({
+      name: companyData.name,
+      head_office: companyData.head_office,
+      industry: companyData.industry,
+    });
+
     // Set updated_at
     const companyDataWithTimestamp = {
       ...companyData,
+      ...formattedData,
       updated_at: new Date().toISOString(),
     };
 
@@ -220,10 +246,20 @@ export const insertCompanyWithAllDuplicateHandling = async (
       );
     }
 
+    // Format text fields to Title Case
+    const formattedData = formatCompanyTextFields({
+      name: processedData.name,
+      head_office: processedData.head_office,
+      industry: processedData.industry,
+    });
+
     // Insert with processed data
     const { data, error } = await supabase
       .from('companies')
-      .insert(processedData)
+      .insert({
+        ...processedData,
+        ...formattedData,
+      })
       .select();
 
     if (error) {

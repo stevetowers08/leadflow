@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import crypto from 'crypto';
 import type { Json } from '@/integrations/supabase/types';
+import { toTitleCase } from '@/utils/textFormatting';
 
 /**
  * Enrichment Callback Endpoint for n8n
@@ -169,10 +170,11 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    // Update enriched fields if provided
+    // Update enriched fields if provided (with Title Case formatting)
     if (payload.email !== undefined) updateData.email = payload.email;
     if (payload.phone !== undefined) updateData.phone = payload.phone;
-    if (payload.position !== undefined) updateData.job_title = payload.position;
+    if (payload.position !== undefined)
+      updateData.job_title = toTitleCase(payload.position);
     if (payload.lead_linkedin_url !== undefined)
       updateData.linkedin_url = payload.lead_linkedin_url;
 
@@ -217,11 +219,11 @@ export async function POST(request: NextRequest) {
         let companyId: string | null = existingCompany?.id || null;
 
         if (!companyId) {
-          // Create new company
+          // Create new company (with Title Case formatting)
           const { data: newCompany } = await supabase
             .from('companies')
             .insert({
-              name: lead.company,
+              name: toTitleCase(lead.company),
               linkedin_url: payload.company_linkedin_url || null,
               company_size: payload.company_size || null,
               estimated_arr: payload.arr || null,

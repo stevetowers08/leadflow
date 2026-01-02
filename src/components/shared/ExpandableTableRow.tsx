@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { getStatusDisplayText } from '@/utils/statusUtils';
 // Person type is not exported from database.ts - using inline type
 type Person = {
   id: string;
@@ -102,7 +103,7 @@ const PersonSubRow: React.FC<{
                     getStageColor(person.people_stage)
                   )}
                 >
-                  {person.people_stage.replace('_', ' ')}
+                  {getStatusDisplayText(person.people_stage)}
                 </span>
               ) : null}
               {person.score != null ? (

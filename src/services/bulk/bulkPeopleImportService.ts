@@ -163,11 +163,12 @@ async function findOrCreateCompany(
       return existing.id;
     }
 
-    // Create new company
+    // Create new company (with Title Case formatting)
+    const { toTitleCase } = await import('@/utils/textFormatting');
     const { data: newCompany, error: createError } = await supabase
       .from('companies')
       .insert({
-        name: companyName,
+        name: toTitleCase(companyName),
         website: website || null,
         created_at: new Date().toISOString(),
       })

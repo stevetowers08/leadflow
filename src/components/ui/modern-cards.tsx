@@ -242,8 +242,12 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
 
         {/* Company Info */}
         <div className='flex-1 min-w-0'>
-          <h3 className='font-medium text-foreground truncate'>{company.name}</h3>
-          <p className='text-sm text-muted-foreground truncate'>{company.industry}</p>
+          <h3 className='font-medium text-foreground truncate'>
+            {company.name}
+          </h3>
+          <p className='text-sm text-muted-foreground truncate'>
+            {company.industry}
+          </p>
 
           {/* Minimal Badges */}
           <div className='flex items-center gap-1.5 mt-1.5'>
@@ -254,7 +258,11 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
                   getStageColor(company.pipeline_stage)
                 )}
               >
-                {company.pipeline_stage.replace('_', ' ')}
+                {company.pipeline_stage
+                  .replace('_', ' ')
+                  .split(' ')
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ')}
               </span>
             )}
             {company.lead_score && (

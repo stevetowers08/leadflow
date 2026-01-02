@@ -356,6 +356,34 @@ class NotificationService {
       },
     });
   }
+
+  /**
+   * Create notification for lead enrichment completion
+   */
+  async notifyLeadEnriched(
+    userId: string,
+    leadName: string,
+    leadId: string,
+    success: boolean = true
+  ): Promise<Notification> {
+    return this.createNotification({
+      user_id: userId,
+      type: 'lead_enriched',
+      priority: success ? 'high' : 'medium',
+      title: success ? 'Lead Enriched' : 'Lead Enrichment Failed',
+      message: success
+        ? `${leadName} has been enriched with additional contact information.`
+        : `Failed to enrich ${leadName}. Please try again or update manually.`,
+      action_type: 'navigate',
+      action_url: `/leads`,
+      action_entity_type: 'lead',
+      action_entity_id: leadId,
+      metadata: {
+        lead_id: leadId,
+        enrichment_success: success,
+      },
+    });
+  }
 }
 
 export const notificationService = new NotificationService();
