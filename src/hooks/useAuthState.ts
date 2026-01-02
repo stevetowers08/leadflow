@@ -96,29 +96,40 @@ export const useAuthState = () => {
 
       // Clear all Supabase auth storage keys
       if (typeof window !== 'undefined') {
+        // Set flags to prevent auto-login in bypass mode FIRST (before clearing)
+        sessionStorage.setItem('bypass-auth-disabled', 'true');
+        localStorage.setItem('bypass-auth-disabled', 'true');
+
         // Clear all Supabase-related localStorage keys (comprehensive)
         const allKeys = Object.keys(localStorage);
         allKeys.forEach(key => {
           if (
-            key.includes('supabase') ||
-            key.includes('sb-') ||
-            key.includes('auth') ||
-            key.includes('token') ||
-            key.includes('session') ||
-            key.startsWith('supabase.auth')
+            (key.includes('supabase') ||
+              key.includes('sb-') ||
+              key.includes('auth') ||
+              key.includes('token') ||
+              key.includes('session') ||
+              key.startsWith('supabase.auth')) &&
+            key !== 'bypass-auth-disabled' // Preserve the bypass-disable flag
           ) {
             localStorage.removeItem(key);
           }
         });
 
-        // Clear sessionStorage completely
-        sessionStorage.clear();
-
-        // Set flags to prevent auto-login in bypass mode (both storage for persistence)
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('bypass-auth-disabled', 'true');
-          localStorage.setItem('bypass-auth-disabled', 'true');
-        }
+        // Clear sessionStorage auth items but preserve bypass-disable flag
+        const sessionKeys = Object.keys(sessionStorage);
+        sessionKeys.forEach(key => {
+          if (
+            (key.includes('supabase') ||
+              key.includes('sb-') ||
+              key.includes('auth') ||
+              key.includes('token') ||
+              key.includes('session')) &&
+            key !== 'bypass-auth-disabled' // Preserve the bypass-disable flag
+          ) {
+            sessionStorage.removeItem(key);
+          }
+        });
       }
 
       // Clear all state
@@ -139,10 +150,40 @@ export const useAuthState = () => {
       const authError = error as AuthError;
       console.error('❌ Sign out error:', authError);
 
-      // Force clear everything even if sign out fails
+      // Force clear everything even if sign out fails (but preserve bypass-disable flag)
       if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
+        // Set bypass-disable flag first
+        sessionStorage.setItem('bypass-auth-disabled', 'true');
+        localStorage.setItem('bypass-auth-disabled', 'true');
+
+        // Clear auth-related items only
+        const allKeys = Object.keys(localStorage);
+        allKeys.forEach(key => {
+          if (
+            (key.includes('supabase') ||
+              key.includes('sb-') ||
+              key.includes('auth') ||
+              key.includes('token') ||
+              key.includes('session')) &&
+            key !== 'bypass-auth-disabled'
+          ) {
+            localStorage.removeItem(key);
+          }
+        });
+
+        const sessionKeys = Object.keys(sessionStorage);
+        sessionKeys.forEach(key => {
+          if (
+            (key.includes('supabase') ||
+              key.includes('sb-') ||
+              key.includes('auth') ||
+              key.includes('token') ||
+              key.includes('session')) &&
+            key !== 'bypass-auth-disabled'
+          ) {
+            sessionStorage.removeItem(key);
+          }
+        });
       }
 
       setUser(null);

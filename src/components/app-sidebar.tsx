@@ -10,6 +10,7 @@ import {
   BarChart3,
   Camera,
   Calendar,
+  Building2,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -58,6 +59,11 @@ const data = {
       title: 'Leads',
       url: '/leads',
       icon: Users,
+    },
+    {
+      title: 'Companies',
+      url: '/companies',
+      icon: Building2,
     },
     {
       title: 'Inbox',

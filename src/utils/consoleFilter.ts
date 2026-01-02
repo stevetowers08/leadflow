@@ -9,6 +9,7 @@ const originalConsole = {
   error: console.error,
   log: console.log,
   info: console.info,
+  debug: console.debug as typeof console.debug | undefined,
 };
 
 // Patterns to suppress
@@ -56,7 +57,9 @@ function shouldSuppress(message: string): boolean {
 // Filter console methods
 function filterConsoleMethod(originalMethod: typeof console.warn) {
   return function (...args: unknown[]) {
-    const message = args.join(' ');
+    // Only convert the first argument (message string) to string for suppression check
+    // This preserves objects in the original arguments for proper console display
+    const message = args.length > 0 ? String(args[0]) : '';
     if (shouldSuppress(message)) {
       return; // Suppress the message
     }
@@ -74,8 +77,8 @@ export function initializeConsoleFilter(): void {
   console.info = filterConsoleMethod(originalConsole.info);
 
   // Also filter console.debug if it exists
-  if (console.debug) {
-    console.debug = filterConsoleMethod(originalConsole.debug || console.debug);
+  if (console.debug && originalConsole.debug) {
+    console.debug = filterConsoleMethod(originalConsole.debug);
   }
 }
 
@@ -85,6 +88,9 @@ export function restoreConsole(): void {
   console.error = originalConsole.error;
   console.log = originalConsole.log;
   console.info = originalConsole.info;
+  if (originalConsole.debug) {
+    console.debug = originalConsole.debug;
+  }
 }
 
 // Add custom suppression patterns

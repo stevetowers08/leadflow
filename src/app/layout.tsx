@@ -42,7 +42,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en' className='h-dvh overflow-hidden' suppressHydrationWarning>
+    <html
+      lang='en'
+      className='h-dvh overflow-hidden'
+      data-scroll-behavior='auto'
+      suppressHydrationWarning
+    >
       <head>
         <meta name='mobile-web-app-capable' content='yes' />
         <meta name='apple-mobile-web-app-capable' content='yes' />

@@ -624,7 +624,16 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                       alt={company.name}
                       className='w-6 h-6 rounded'
                     />
-                    <span>{company.name}</span>
+                    {company?.id ? (
+                      <button
+                        onClick={() => handleCompanyClick(company.id)}
+                        className='text-primary hover:underline font-medium'
+                      >
+                        {company.name}
+                      </button>
+                    ) : (
+                      <span>{company.name}</span>
+                    )}
                   </div>
                 ),
               },

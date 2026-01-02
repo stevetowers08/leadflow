@@ -221,10 +221,16 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
 
   // Get current user and profile (real or mock)
   // Only use mock user if bypass is enabled AND not disabled by sign-out
+  // IMPORTANT: Double-check bypassDisabled here to prevent auto-login after sign-out
   const shouldUseMock = bypassAuth && !bypassDisabled;
-  const currentUser = user || (shouldUseMock ? getMockUser() : null);
-  const currentUserProfile =
-    userProfile || (shouldUseMock ? getMockUserProfile() : null);
+
+  // If bypass is disabled, don't create mock user even if user is null
+  const currentUser = bypassDisabled
+    ? null
+    : user || (shouldUseMock ? getMockUser() : null);
+  const currentUserProfile = bypassDisabled
+    ? null
+    : userProfile || (shouldUseMock ? getMockUserProfile() : null);
 
   // If we're bypassing auth but still don't have a user, something is wrong
   if (bypassAuth && !bypassDisabled && !currentUser) {

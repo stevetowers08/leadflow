@@ -446,7 +446,7 @@ function UnifiedTableComponent<T = unknown>({
             {/* Colgroup to enforce exact column widths across header and body */}
             {/* With table-layout: fixed, colgroup widths are the single source of truth */}
             <colgroup>
-              {orderedColumns.map(column => {
+              {orderedColumns.map((column, colIndex) => {
                 // Handle 'auto' width for dynamic sizing
                 const widthPx =
                   column.width === 'auto'
@@ -454,10 +454,13 @@ function UnifiedTableComponent<T = unknown>({
                     : column.width || column.minWidth || '150px';
                 const isAuto = column.width === 'auto';
 
+                // Use column.key or fallback to index for key prop
+                const colKey = column.key || `col-${colIndex}`;
+
                 if (isAuto) {
                   return (
                     <col
-                      key={column.key}
+                      key={colKey}
                       style={{
                         width: 'auto',
                         minWidth: column.minWidth || '150px',
@@ -476,7 +479,7 @@ function UnifiedTableComponent<T = unknown>({
 
                 return (
                   <col
-                    key={column.key}
+                    key={colKey}
                     style={{
                       width: roundedWidth,
                       minWidth: roundedWidth,
@@ -503,9 +506,12 @@ function UnifiedTableComponent<T = unknown>({
                       ? column.label
                       : '';
 
+                  // Use column.key or fallback to index for key prop
+                  const headerKey = column.key || `header-${index}`;
+
                   return (
                     <TableHead
-                      key={column.key}
+                      key={headerKey}
                       scope='col'
                       align={column.align}
                       isFirst={index === 0}
