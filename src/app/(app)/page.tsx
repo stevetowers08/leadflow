@@ -4,14 +4,25 @@ import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { getLeadStats, getLeads } from '@/services/leadsService';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
-import { Users, Flame, Zap, Snowflake, Clock } from 'lucide-react';
+import {
+  Users,
+  Flame,
+  Zap,
+  Snowflake,
+  Clock,
+  Building2,
+  Briefcase,
+} from 'lucide-react';
 import { toast } from '@/utils/toast';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import type { Lead } from '@/types/database';
 
 /**
  * Overview Page - PDR Section 5.2
@@ -168,7 +179,7 @@ const OverviewPage = React.memo(function OverviewPage() {
                   </p>
                 </div>
               ) : (
-                <div className='space-y-4'>
+                <div className='space-y-2'>
                   {recentLeads.map(lead => {
                     const name =
                       [lead.first_name, lead.last_name]
@@ -181,55 +192,90 @@ const OverviewPage = React.memo(function OverviewPage() {
                       .toUpperCase()
                       .slice(0, 2);
 
+                    const quality = lead.quality_rank || 'warm';
+                    const qualityVariants = {
+                      hot: {
+                        icon: Flame,
+                        className:
+                          'bg-destructive/10 text-destructive border-destructive/20',
+                      },
+                      warm: {
+                        icon: Zap,
+                        className:
+                          'bg-warning/10 text-warning border-warning/20',
+                      },
+                      cold: {
+                        icon: Snowflake,
+                        className:
+                          'bg-muted text-muted-foreground border-border',
+                      },
+                    };
+                    const qualityVariant =
+                      qualityVariants[quality] || qualityVariants.warm;
+                    const QualityIcon = qualityVariant.icon;
+
                     return (
                       <div
                         key={lead.id}
-                        className='flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors'
+                        className='flex items-center gap-4 p-4 rounded-lg border border-border/50 hover:border-border hover:bg-muted/30 transition-all cursor-pointer group'
+                        onClick={() => router.push(`/leads?leadId=${lead.id}`)}
                       >
-                        <Avatar className='h-10 w-10'>
-                          <AvatarFallback>{initials}</AvatarFallback>
+                        <Avatar className='h-12 w-12 border-2 border-border/50 group-hover:border-border transition-colors'>
+                          <AvatarFallback className='text-sm font-semibold'>
+                            {initials}
+                          </AvatarFallback>
                         </Avatar>
-                        <div className='flex-1 min-w-0'>
-                          <p className='text-sm font-medium truncate'>{name}</p>
-                          <div className='flex items-center gap-2 mt-1'>
+                        <div className='flex-1 min-w-0 space-y-1.5'>
+                          <div className='flex items-center gap-2'>
+                            <p className='text-sm font-semibold text-foreground truncate'>
+                              {name}
+                            </p>
+                            {lead.quality_rank && (
+                              <Badge
+                                variant='outline'
+                                className={cn(
+                                  'h-5 px-2 text-xs',
+                                  qualityVariant.className
+                                )}
+                              >
+                                <QualityIcon className='h-3 w-3 mr-1' />
+                                {quality.charAt(0).toUpperCase() +
+                                  quality.slice(1)}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
                             {lead.company && (
-                              <p className='text-xs text-muted-foreground truncate'>
-                                {lead.company}
-                              </p>
+                              <div className='flex items-center gap-1.5 text-xs text-muted-foreground'>
+                                <Building2 className='h-3.5 w-3.5 flex-shrink-0' />
+                                <span className='truncate max-w-[200px]'>
+                                  {lead.company}
+                                </span>
+                              </div>
                             )}
                             {lead.job_title && (
-                              <>
-                                <span className='text-xs text-muted-foreground'>
-                                  •
-                                </span>
-                                <p className='text-xs text-muted-foreground truncate'>
+                              <div className='flex items-center gap-1.5 text-xs text-muted-foreground'>
+                                <Briefcase className='h-3.5 w-3.5 flex-shrink-0' />
+                                <span className='truncate max-w-[200px]'>
                                   {lead.job_title}
-                                </p>
-                              </>
+                                </span>
+                              </div>
                             )}
                           </div>
                         </div>
-                        <div className='flex flex-col items-end gap-1'>
+                        <div className='flex flex-col items-end gap-1.5 flex-shrink-0'>
                           {lead.created_at && (
-                            <div className='flex items-center gap-1 text-xs text-muted-foreground'>
-                              <Clock className='h-3 w-3' />
-                              {formatDistanceToNow(new Date(lead.created_at), {
-                                addSuffix: true,
-                              })}
+                            <div className='flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap'>
+                              <Clock className='h-3.5 w-3.5' />
+                              <span>
+                                {formatDistanceToNow(
+                                  new Date(lead.created_at),
+                                  {
+                                    addSuffix: true,
+                                  }
+                                )}
+                              </span>
                             </div>
-                          )}
-                          {lead.quality_rank && (
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full ${
-                                lead.quality_rank === 'hot'
-                                  ? 'bg-destructive/10 text-destructive'
-                                  : lead.quality_rank === 'warm'
-                                    ? 'bg-warning/10 text-warning'
-                                    : 'bg-muted text-muted-foreground'
-                              }`}
-                            >
-                              {lead.quality_rank}
-                            </span>
                           )}
                         </div>
                       </div>

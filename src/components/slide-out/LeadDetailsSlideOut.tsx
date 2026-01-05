@@ -60,7 +60,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { EmailComposer } from '@/components/crm/communications/EmailComposer';
 
 interface LeadDetailsSlideOutProps {
   leadId: string | null;
@@ -101,7 +100,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
     const [showCampaignSelect, setShowCampaignSelect] = useState(false);
-    const [showComposeEmail, setShowComposeEmail] = useState(false);
     const { toast } = useToast();
 
     // Sync tab when initialTab changes
@@ -110,11 +108,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
         setActiveTab(initialTab);
       }
     }, [isOpen, initialTab]);
-
-    // Close email dialog when lead changes
-    useEffect(() => {
-      setShowComposeEmail(false);
-    }, [leadId]);
 
     // Fetch lead details
     const fetchLeadDetails = useCallback(async () => {
@@ -371,19 +364,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
       fetchCampaigns();
     }, [user]);
 
-    const handleSendMessage = useCallback(() => {
-      if (!leadId) return;
-      if (!lead?.email) {
-        toast({
-          title: 'No Email Address',
-          description: 'This lead does not have an email address.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      setShowComposeEmail(true);
-    }, [leadId, lead, toast]);
-
     const handleAddToCampaign = useCallback(
       async (campaignId: string) => {
         if (!leadId || !user) return;
@@ -451,6 +431,11 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
       onClose();
       router.push(`/leads?id=${clickedLeadId}`);
     };
+
+    const handleSendMessage = useCallback(() => {
+      if (!lead?.email) return;
+      window.location.href = `mailto:${lead.email}`;
+    }, [lead]);
 
     // Computed values
     const leadFullName = useMemo(() => getLeadFullName(lead), [lead]);
@@ -763,20 +748,21 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               </div>
             </div>
             <div className='flex items-center gap-2 flex-shrink-0 ml-4'>
-              <Button
-                size='sm'
-                variant='ghost'
-                onClick={e => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSendMessage();
-                }}
-                className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-white'
-                title='Send message'
-                disabled={!lead.email}
-              >
-                <Mail className='h-4 w-4' />
-              </Button>
+              {lead.email && (
+                <Button
+                  size='sm'
+                  variant='ghost'
+                  onClick={e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSendMessage();
+                  }}
+                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-white'
+                  title='Send message'
+                >
+                  <Mail className='h-4 w-4' />
+                </Button>
+              )}
               {campaigns.length > 0 && (
                 <Button
                   size='sm'
@@ -1306,25 +1292,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-        {/* Compose Email Dialog */}
-        <Dialog open={showComposeEmail} onOpenChange={setShowComposeEmail}>
-          <DialogContent className='sm:max-w-[800px] w-full max-h-[90vh] overflow-y-auto'>
-            <DialogHeader>
-              <DialogTitle>Compose email</DialogTitle>
-            </DialogHeader>
-            <div className='mt-2'>
-              <EmailComposer
-                selectedPerson={lead as Lead}
-                variant='compact'
-                onSent={() => {
-                  setShowComposeEmail(false);
-                  onUpdate?.();
-                }}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
       </SlideOutPanel>
     );
   }

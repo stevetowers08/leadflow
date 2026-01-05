@@ -64,7 +64,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { EmailComposer } from '@/components/crm/communications/EmailComposer';
 import { Tables } from '@/integrations/supabase/types';
 
 interface PersonDetailsSlideOutProps {
@@ -396,26 +395,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
     // removed favourite toggle
 
-    const [showComposeEmail, setShowComposeEmail] = useState(false);
-
-    // Close dialog when person changes
-    useEffect(() => {
-      setShowComposeEmail(false);
-    }, [personId]);
-
-    const handleSendMessage = useCallback(() => {
-      if (!personId) return;
-      if (!person || !('email_address' in person) || !person.email_address) {
-        toast({
-          title: 'No Email Address',
-          description: 'This contact does not have an email address.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      setShowComposeEmail(true);
-    }, [personId, person, toast]);
-
     const handleAddToCampaign = useCallback(
       async (campaignId: string) => {
         if (!personId || !user) return;
@@ -742,20 +721,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               </div>
             </div>
             <div className='flex items-center gap-2 flex-shrink-0 ml-4'>
-              {/* Favourite button removed */}
-              <Button
-                size='sm'
-                variant='ghost'
-                onClick={e => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSendMessage();
-                }}
-                className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-white'
-                title='Send message'
-              >
-                <Mail className='h-4 w-4' />
-              </Button>
               {campaigns.length > 0 && (
                 <Button
                   size='sm'
@@ -1281,25 +1246,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-        {/* Compose Email Dialog */}
-        <Dialog open={showComposeEmail} onOpenChange={setShowComposeEmail}>
-          <DialogContent className='sm:max-w-[800px] w-full max-h-[90vh] overflow-y-auto'>
-            <DialogHeader>
-              <DialogTitle>Compose email</DialogTitle>
-            </DialogHeader>
-            <div className='mt-2'>
-              <EmailComposer
-                selectedPerson={person as Lead}
-                variant='compact'
-                onSent={() => {
-                  setShowComposeEmail(false);
-                  onUpdate?.();
-                }}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
       </SlideOutPanel>
     );
   });

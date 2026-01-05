@@ -59,11 +59,11 @@ export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
       <Card
         ref={ref}
         variant='minimal'
-        interactive={!!onClick}
         onClick={onClick}
         className={cn(
           designTokens.shadows.card,
           onClick && designTokens.shadows.cardHover,
+          onClick && 'cursor-pointer',
           className
         )}
       >

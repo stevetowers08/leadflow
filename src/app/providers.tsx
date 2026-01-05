@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect } from 'react';
 import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from '@/components/theme-provider';
 import {
   useGlobalErrorHandler,
   usePerformanceMonitoring,
@@ -259,25 +260,32 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ErrorBoundaryProvider>
       <LoggingProvider>
         <PerformanceProvider>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <OrganizationProvider>
-                <PermissionsWrapper>
-                  <OnboardingProvider>
-                    <SlidePanelProvider>
-                      <SearchProvider>
-                        <AppInitialization>
-                          <OAuthRedirectHandler />
-                          {children}
-                          <Toaster />
-                        </AppInitialization>
-                      </SearchProvider>
-                    </SlidePanelProvider>
-                  </OnboardingProvider>
-                </PermissionsWrapper>
-              </OrganizationProvider>
-            </AuthProvider>
-          </QueryClientProvider>
+          <ThemeProvider
+            attribute='class'
+            defaultTheme='dark'
+            enableSystem={false}
+            disableTransitionOnChange={false}
+          >
+            <QueryClientProvider client={queryClient}>
+              <AuthProvider>
+                <OrganizationProvider>
+                  <PermissionsWrapper>
+                    <OnboardingProvider>
+                      <SlidePanelProvider>
+                        <SearchProvider>
+                          <AppInitialization>
+                            <OAuthRedirectHandler />
+                            {children}
+                            <Toaster />
+                          </AppInitialization>
+                        </SearchProvider>
+                      </SlidePanelProvider>
+                    </OnboardingProvider>
+                  </PermissionsWrapper>
+                </OrganizationProvider>
+              </AuthProvider>
+            </QueryClientProvider>
+          </ThemeProvider>
         </PerformanceProvider>
       </LoggingProvider>
     </ErrorBoundaryProvider>

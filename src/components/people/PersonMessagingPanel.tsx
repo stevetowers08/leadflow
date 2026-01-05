@@ -17,10 +17,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  SendEmailRequest,
-  secureGmailService,
-} from '@/services/secureGmailService';
 // Person type is Contact - using inline type definition
 type Person = {
   id: string;
@@ -75,14 +71,10 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
-  const [sendMode, setSendMode] = useState<'campaign' | 'email' | 'copy'>(
-    'copy'
-  );
+  const [sendMode, setSendMode] = useState<'campaign' | 'copy'>('copy');
   const [selectedMessage, setSelectedMessage] =
     useState<ConversationMessage | null>(null);
   const [selectedCampaign, setSelectedCampaign] = useState<string>('');
-  const [emailSubject, setEmailSubject] = useState('');
-  const [emailBody, setEmailBody] = useState('');
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
@@ -211,19 +203,11 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
 
   const handleSend = (
     message: ConversationMessage,
-    mode: 'campaign' | 'email' | 'copy'
+    mode: 'campaign' | 'copy'
   ) => {
     setSelectedMessage(message);
     setSendMode(mode);
     setSendDialogOpen(true);
-
-    if (message.conversation_type === 'linkedin') {
-      setEmailSubject(`Re: ${person.name}`);
-      setEmailBody(message.content || '');
-    } else if (message.subject) {
-      setEmailSubject(message.subject);
-      setEmailBody(message.body_text || message.content || '');
-    }
   };
 
   const handleExecuteSend = async () => {
@@ -264,36 +248,9 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
           title: 'Success',
           description: `Added to campaign`,
         });
-      } else if (sendMode === 'email') {
-        if (!person?.email_address || !emailSubject || !emailBody) {
-          toast({
-            title: 'Error',
-            description: 'Missing required information',
-            variant: 'destructive',
-          });
-          return;
-        }
-
-        // Send email via Gmail
-        const emailRequest: SendEmailRequest = {
-          to: [person.email_address],
-          subject: emailSubject,
-          body: emailBody,
-          bodyHtml: emailBody,
-          personId: person.id,
-        };
-
-        await secureGmailService.sendEmail(emailRequest);
-
-        toast({
-          title: 'Email Sent',
-          description: `Message sent to ${person.email_address}`,
-        });
       }
 
       setSendDialogOpen(false);
-      setEmailSubject('');
-      setEmailBody('');
     } catch (error) {
       console.error('Error sending:', error);
       toast({
@@ -402,16 +359,11 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
         <DialogContent className='sm:max-w-md'>
           <DialogHeader>
             <DialogTitle>
-              {sendMode === 'campaign'
-                ? 'Add to Campaign'
-                : sendMode === 'email'
-                  ? 'Send Email'
-                  : 'Copy Message'}
+              {sendMode === 'campaign' ? 'Add to Campaign' : 'Copy Message'}
             </DialogTitle>
             <DialogDescription>
               {sendMode === 'campaign' &&
                 'Select a campaign to enroll this person'}
-              {sendMode === 'email' && 'Send this message via email'}
               {sendMode === 'copy' && 'Copy this message to clipboard'}
             </DialogDescription>
           </DialogHeader>
@@ -437,32 +389,6 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
-          )}
-
-          {sendMode === 'email' && (
-            <div className='space-y-4'>
-              <div>
-                <label className='text-sm font-medium mb-2 block'>
-                  Subject
-                </label>
-                <input
-                  type='text'
-                  value={emailSubject}
-                  onChange={e => setEmailSubject(e.target.value)}
-                  className='w-full px-3 py-2 border border-border/60 rounded-md text-sm'
-                  placeholder='Email subject'
-                />
-              </div>
-              <div>
-                <label className='text-sm font-medium mb-2 block'>Body</label>
-                <Textarea
-                  value={emailBody}
-                  onChange={e => setEmailBody(e.target.value)}
-                  className='w-full min-h-[150px]'
-                  placeholder='Email body'
-                />
               </div>
             </div>
           )}
@@ -495,13 +421,8 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
               ) : (
                 <>
                   {sendMode === 'copy' && <Copy className='h-4 w-4 mr-2' />}
-                  {sendMode === 'email' && <Mail className='h-4 w-4 mr-2' />}
                   {sendMode === 'campaign' && <Send className='h-4 w-4 mr-2' />}
-                  {sendMode === 'copy'
-                    ? 'Copy'
-                    : sendMode === 'email'
-                      ? 'Send Email'
-                      : 'Add to Campaign'}
+                  {sendMode === 'copy' ? 'Copy' : 'Add to Campaign'}
                 </>
               )}
             </Button>

@@ -1,6 +1,6 @@
+import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { ChevronRight, MoreHorizontal } from 'lucide-react';
-import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -66,7 +66,7 @@ const BreadcrumbPage = React.forwardRef<
     role='link'
     aria-disabled='true'
     aria-current='page'
-    className={cn('font-medium text-foreground', className)}
+    className={cn('font-normal text-foreground', className)}
     {...props}
   />
 ));
@@ -80,7 +80,7 @@ const BreadcrumbSeparator = ({
   <li
     role='presentation'
     aria-hidden='true'
-    className={cn('[&>svg]:size-3.5', className)}
+    className={cn('[&>svg]:w-3.5 [&>svg]:h-3.5', className)}
     {...props}
   >
     {children ?? <ChevronRight />}
@@ -106,10 +106,10 @@ BreadcrumbEllipsis.displayName = 'BreadcrumbElipssis';
 
 export {
   Breadcrumb,
-  BreadcrumbEllipsis,
+  BreadcrumbList,
   BreadcrumbItem,
   BreadcrumbLink,
-  BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
+  BreadcrumbEllipsis,
 };

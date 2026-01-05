@@ -12,7 +12,6 @@ import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { cn } from '@/lib/utils';
 import {
   Home,
-  MessageSquare,
   GitMerge,
   Settings,
   Users,
@@ -51,12 +50,6 @@ const allNavItems: NavItem[] = [
     to: '/leads',
     label: 'Leads',
     icon: <Users className='h-5 w-5' />,
-    isPrimary: true,
-  },
-  {
-    to: '/inbox',
-    label: 'Inbox',
-    icon: <MessageSquare className='h-5 w-5' />,
     isPrimary: true,
   },
   {

@@ -31,7 +31,7 @@ export const SecondaryNavigation = ({
   return (
     <aside
       className={cn(
-        'w-64 bg-white border-r border-border h-screen fixed left-56 z-20',
+        'w-64 bg-sidebar border-r border-sidebar-border h-screen fixed left-56 z-20',
         'flex flex-col',
         className
       )}

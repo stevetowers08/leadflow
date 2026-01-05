@@ -20,7 +20,6 @@ import {
   LogOut,
   Megaphone,
   Menu,
-  MessageSquare,
   Search,
   Settings,
   Star,
@@ -53,7 +52,6 @@ interface MobileSidebarProps {
  * LeadFlow MVP Navigation:
  * - Overview (/) - Dashboard
  * - Leads (/leads) - Lead list
- * - Inbox (/inbox) - Email conversations
  * - Campaigns (/workflows) - Campaign builder
  * - Analytics (/analytics) - Analytics dashboard
  * - Settings (/settings) - Settings
@@ -70,13 +68,6 @@ const sidebarItems: SidebarItem[] = [
     to: '/leads',
     label: 'Leads',
     icon: <Users className='h-4 w-4' />,
-    isPrimary: true,
-    category: 'main',
-  },
-  {
-    to: '/inbox',
-    label: 'Inbox',
-    icon: <MessageSquare className='h-4 w-4' />,
     isPrimary: true,
     category: 'main',
   },
@@ -314,16 +305,16 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                         )}
                         aria-current={isActive ? 'page' : undefined}
                       >
-                      <div className='flex-shrink-0'>{item.icon}</div>
-                      <span className='mobile-body-sm font-medium flex-1'>
-                        {item.label}
-                      </span>
-                      {item.badge && (
-                        <Badge variant='secondary' className='mobile-badge'>
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </Link>
+                        <div className='flex-shrink-0'>{item.icon}</div>
+                        <span className='mobile-body-sm font-medium flex-1'>
+                          {item.label}
+                        </span>
+                        {item.badge && (
+                          <Badge variant='secondary' className='mobile-badge'>
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </Link>
                     );
                   })}
                 </nav>
@@ -356,16 +347,16 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                         )}
                         aria-current={isActive ? 'page' : undefined}
                       >
-                      <div className='flex-shrink-0'>{item.icon}</div>
-                      <span className='mobile-body-sm font-medium flex-1'>
-                        {item.label}
-                      </span>
-                      {item.badge && (
-                        <Badge variant='secondary' className='mobile-badge'>
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </Link>
+                        <div className='flex-shrink-0'>{item.icon}</div>
+                        <span className='mobile-body-sm font-medium flex-1'>
+                          {item.label}
+                        </span>
+                        {item.badge && (
+                          <Badge variant='secondary' className='mobile-badge'>
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </Link>
                     );
                   })}
                 </nav>
@@ -398,16 +389,16 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                         )}
                         aria-current={isActive ? 'page' : undefined}
                       >
-                      <div className='flex-shrink-0'>{item.icon}</div>
-                      <span className='mobile-body-sm font-medium flex-1'>
-                        {item.label}
-                      </span>
-                      {item.badge && (
-                        <Badge variant='secondary' className='mobile-badge'>
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </Link>
+                        <div className='flex-shrink-0'>{item.icon}</div>
+                        <span className='mobile-body-sm font-medium flex-1'>
+                          {item.label}
+                        </span>
+                        {item.badge && (
+                          <Badge variant='secondary' className='mobile-badge'>
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </Link>
                     );
                   })}
                 </nav>

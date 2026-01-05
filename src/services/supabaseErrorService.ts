@@ -302,17 +302,17 @@ class SupabaseErrorService {
       const emailSubject = `🚨 ${errorLog.severity.toUpperCase()} Error in Empowr CRM`;
       const emailBody = this.generateErrorEmailBody(errorLog);
 
-      // Use the existing Gmail service to send the email
-      const { gmailService } = await import('@/services/gmailService');
+      // Email notifications disabled - Gmail integration removed
+      // Use Resend service or another email provider if needed
+      console.warn('Email notifications disabled - Gmail integration removed');
 
-      await gmailService.sendEmail({
-        to: [recipientEmail],
-        subject: emailSubject,
-        body: emailBody,
-      });
-
-      // Log the notification
-      await this.logNotification(errorLog.id, 'email', recipientEmail, 'sent');
+      // Log the notification attempt (but not sent)
+      await this.logNotification(
+        errorLog.id,
+        'email',
+        recipientEmail,
+        'failed'
+      );
     } catch (error) {
       console.error('Failed to send email notification:', error);
       await this.logNotification(

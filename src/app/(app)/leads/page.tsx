@@ -347,23 +347,6 @@ export default function LeadsPage() {
         },
       },
       {
-        key: 'show',
-        label: 'Show',
-        width: '180px',
-        render: (_, lead) => {
-          return (
-            <ShowChip
-              show={
-                (lead as LeadWithRelations).shows || {
-                  name: lead.show_name,
-                  start_date: lead.show_date,
-                }
-              }
-            />
-          );
-        },
-      },
-      {
         key: 'created_at',
         label: 'Created',
         width: '120px',

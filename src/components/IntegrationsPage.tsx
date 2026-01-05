@@ -9,11 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { secureGmailService } from '@/services/secureGmailService';
-import { GmailIntegrationCard } from '@/components/integrations/GmailIntegrationCard';
 import { LemlistIntegrationCard } from '@/components/integrations/LemlistIntegrationCard';
 import { CheckCircle2, Mail, XCircle } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 
 interface Integration {
   id: string;
@@ -25,31 +23,8 @@ interface Integration {
 }
 
 const IntegrationsPage = () => {
-  const [gmailConnected, setGmailConnected] = useState(false);
-
-  const checkGmailStatus = useCallback(async () => {
-    try {
-      const connected = await secureGmailService.isGmailConnected();
-      setGmailConnected(connected);
-    } catch (error) {
-      console.error('Error checking Gmail status:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    void checkGmailStatus();
-  }, [checkGmailStatus]);
-
-  // Filter integrations - show Gmail and Lemlist
+  // Filter integrations - show Lemlist
   const integrations: Integration[] = [
-    {
-      id: 'gmail',
-      name: 'Gmail',
-      description: 'Connect your Gmail account to send and receive emails',
-      icon: <Mail className='h-5 w-5' />,
-      status: gmailConnected ? 'connected' : 'disconnected',
-      category: 'email',
-    },
     {
       id: 'lemlist',
       name: 'Lemlist',
@@ -75,16 +50,8 @@ const IntegrationsPage = () => {
 
   const handleConnect = async (integrationId: string) => {
     try {
-      switch (integrationId) {
-        case 'gmail':
-          await secureGmailService.authenticateWithGmail();
-          // Refresh status after connection
-          await checkGmailStatus();
-          break;
-        default:
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Unknown integration:', integrationId);
-          }
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Unknown integration:', integrationId);
       }
     } catch (error) {
       console.error('Error connecting integration:', error);
@@ -107,17 +74,17 @@ const IntegrationsPage = () => {
         );
       case 'disconnected':
         return (
-          <Badge variant='outline' className='border-border/60 text-muted-foreground'>
+          <Badge
+            variant='outline'
+            className='border-border/60 text-muted-foreground'
+          >
             <XCircle className='h-3 w-3 mr-1' />
             Disconnected
           </Badge>
         );
       case 'pending':
         return (
-          <Badge
-            variant='outline'
-            className='border-yellow-300 text-warning'
-          >
+          <Badge variant='outline' className='border-yellow-300 text-warning'>
             Pending
           </Badge>
         );
@@ -136,20 +103,14 @@ const IntegrationsPage = () => {
       </div>
 
       <div className='grid gap-4 md:grid-cols-2'>
-        {/* Gmail Integration */}
-        <GmailIntegrationCard />
-        
         {/* Lemlist Integration */}
         <LemlistIntegrationCard />
-        
+
         {/* Other integrations using card-based approach */}
         {integrations
-          .filter((i) => i.id !== 'gmail' && i.id !== 'lemlist')
-          .map((integration) => (
-            <Card
-              key={integration.id}
-              className="transition-all"
-            >
+          .filter(i => i.id !== 'lemlist')
+          .map(integration => (
+            <Card key={integration.id} className='transition-all'>
               <CardHeader className='pb-4'>
                 <div className='flex items-center gap-3'>
                   <div className='flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-white flex items-center justify-center p-2'>
@@ -181,7 +142,9 @@ const IntegrationsPage = () => {
                     }
                     onClick={() => handleConnect(integration.id)}
                   >
-                    {integration.status === 'connected' ? 'Configure' : 'Connect'}
+                    {integration.status === 'connected'
+                      ? 'Configure'
+                      : 'Connect'}
                   </Button>
                 </div>
               </CardContent>

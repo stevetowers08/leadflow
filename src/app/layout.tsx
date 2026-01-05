@@ -66,6 +66,30 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Prevent flash of unstyled content - set dark mode immediately
+              // This runs before React hydrates to prevent FOUC
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme');
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                  } else if (theme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                  } else {
+                    // No theme in localStorage - default to dark
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {
+                  // Fallback: always use dark as default
+                  document.documentElement.classList.add('dark');
+                }
+              })();
+            `,
+          }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
               // Immediate OAuth hash fragment detection (runs before React)
               (function() {
                 if (typeof window === 'undefined') return;

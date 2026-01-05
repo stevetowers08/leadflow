@@ -2,18 +2,21 @@
 
 import * as React from 'react';
 import {
-  LayoutDashboard,
-  MessageSquare,
-  Settings2,
-  Users,
-  GitMerge,
   BarChart3,
   Camera,
-  Calendar,
+  Home,
+  LayoutDashboard,
+  Megaphone,
+  Settings,
+  Users,
   Building2,
+  Film,
+  Palette,
 } from 'lucide-react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { useAuth } from '@/contexts/AuthContext';
 import { NavMain } from '@/components/nav-main';
 import { NavSecondary } from '@/components/nav-secondary';
 import { NavUser } from '@/components/nav-user';
@@ -26,29 +29,38 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { LeadFlowLogo } from '@/components/RecruitEdgeLogo';
-import { OrganizationSwitcher } from '@/components/shared/OrganizationSwitcher';
-import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
 
-/**
- * Updated Navigation - PDR Section 5.1
- *
- * LeadFlow Console Navigation:
- * - Overview (/) - Icon: LayoutDashboard
- * - Capture (/capture) - Icon: Camera - Business card scanner
- * - Leads (/leads) - Icon: Users
- * - Inbox (/inbox) - Icon: MessageSquare
- * - Campaigns (/workflows) - Icon: GitMerge
- * - Analytics (/analytics) - Icon: BarChart3
- * - Settings (/settings) - Icon: Settings2
- */
-const data = {
-  navMain: [
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user, userProfile } = useAuth();
+  const pathname = usePathname();
+
+  // Get user data for NavUser
+  const userData = React.useMemo(() => {
+    if (!user) {
+      return {
+        name: 'Guest',
+        email: '',
+        avatar: '',
+      };
+    }
+
+    return {
+      name:
+        userProfile?.full_name ||
+        user.user_metadata?.full_name ||
+        user.email?.split('@')[0] ||
+        'User',
+      email: user.email || '',
+      avatar: userProfile?.avatar_url || user.user_metadata?.avatar_url || '',
+    };
+  }, [user, userProfile]);
+
+  // Leadflow navigation items
+  const navMain = [
     {
       title: 'Overview',
       url: '/',
-      icon: LayoutDashboard,
+      icon: Home,
     },
     {
       title: 'Capture',
@@ -66,14 +78,9 @@ const data = {
       icon: Building2,
     },
     {
-      title: 'Inbox',
-      url: '/inbox',
-      icon: MessageSquare,
-    },
-    {
       title: 'Campaigns',
       url: '/workflows',
-      icon: GitMerge,
+      icon: Megaphone,
     },
     {
       title: 'Analytics',
@@ -83,53 +90,43 @@ const data = {
     {
       title: 'Shows',
       url: '/shows',
-      icon: Calendar,
+      icon: Film,
     },
-  ],
-  navSecondary: [
+  ];
+
+  const navSecondary = [
+    {
+      title: 'Style Guide',
+      url: '/style-guide',
+      icon: Palette,
+    },
     {
       title: 'Settings',
       url: '/settings',
-      icon: Settings2,
+      icon: Settings,
     },
-  ],
-};
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useAuth();
-
-  const userData = {
-    name: user?.email?.split('@')[0] || 'User',
-    email: user?.email || '',
-    avatar:
-      (user?.user_metadata?.avatar_url as string | undefined) ||
-      '/avatars/default.jpg',
-  };
+  ];
 
   return (
     <Sidebar collapsible='offcanvas' {...props}>
-      <SidebarHeader className='flex-shrink-0'>
+      <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className='data-[slot=sidebar-menu-button]:!p-1.5'
-            >
+            <SidebarMenuButton asChild>
               <Link href='/'>
-                <LeadFlowLogo className='text-base font-semibold' />
+                <div className='flex items-center gap-2'>
+                  <span className='text-base font-semibold'>Leadflow</span>
+                </div>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className='px-3 py-2'>
-          <OrganizationSwitcher />
-        </div>
       </SidebarHeader>
-      <SidebarContent className='flex-1 min-h-0 overflow-y-auto'>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className='mt-auto' />
+      <SidebarContent>
+        <NavMain items={navMain} />
+        <NavSecondary items={navSecondary} className='mt-auto' />
       </SidebarContent>
-      <SidebarFooter className='flex-shrink-0'>
+      <SidebarFooter>
         <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>

@@ -76,10 +76,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         title: 'Leads',
         subheading: 'Manage your leads and track your outreach',
       },
-      '/inbox': {
-        title: 'Inbox',
-        subheading: 'View and manage all email conversations with your leads',
-      },
       '/workflows': {
         title: 'Campaigns',
         subheading: 'Create and manage email campaigns and automation',
@@ -101,10 +97,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         title: 'Leads',
         subheading: 'Manage your leads and track your outreach',
       },
-      '/conversations': {
-        title: 'Inbox',
-        subheading: 'View and manage all email conversations with your leads',
-      },
     };
 
     // Check for route patterns (e.g., /workflows/sequence/[id])
@@ -114,8 +106,6 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         data = routeData['/workflows'];
       } else if (pathname.startsWith('/leads')) {
         data = routeData['/leads'];
-      } else if (pathname.startsWith('/inbox')) {
-        data = routeData['/inbox'];
       } else if (pathname.startsWith('/analytics')) {
         data = routeData['/analytics'];
       } else if (pathname.startsWith('/settings')) {
