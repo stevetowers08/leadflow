@@ -82,7 +82,7 @@ const SettingsContent: React.FC = () => {
   };
 
   return (
-    <div className='flex bg-white h-full overflow-hidden'>
+    <div className='flex bg-background h-full overflow-hidden'>
       {/* Left Sidebar - Settings Navigation */}
       <SettingsSidebar
         activeSection={activeSection}

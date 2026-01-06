@@ -41,26 +41,26 @@ All colors MUST be HSL.
 
     /* PDR Color System - LeadFlow Brand Colors */
 
-    /* Primary - Accent Blue (Primary Actions) */
-    --primary: 217 91% 60%; /* Accent Blue #2563EB */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 91% 55%;
-    --primary-light: 217 91% 95%;
-    --primary-medium: 217 91% 85%;
+    /* Primary - Accent Yellow-Green (Primary Actions) */
+    --primary: 75 100% 77%; /* Accent Yellow-Green #E3FF8C */
+    --primary-foreground: 218 60% 9%; /* Deep Navy for contrast */
+    --primary-hover: 75 100% 72%;
+    --primary-light: 75 100% 95%;
+    --primary-medium: 75 100% 85%;
 
-    /* Secondary - Slightly darker blue for secondary actions */
-    --secondary: 217 91% 50%;
-    --secondary-foreground: 0 0% 100%;
-    --secondary-hover: 217 91% 45%;
-    --secondary-light: 217 91% 90%;
-    --secondary-medium: 217 91% 80%;
+    /* Secondary - Slightly darker yellow-green for secondary actions */
+    --secondary: 75 100% 70%;
+    --secondary-foreground: 218 60% 9%;
+    --secondary-hover: 75 100% 65%;
+    --secondary-light: 75 100% 90%;
+    --secondary-medium: 75 100% 80%;
 
     /* Accent - Same as primary for consistency */
-    --accent: 217 91% 60%; /* Accent Blue #2563EB */
-    --accent-foreground: 0 0% 100%;
-    --accent-hover: 217 91% 55%;
-    --accent-light: 217 91% 95%;
-    --accent-medium: 217 91% 85%;
+    --accent: 75 100% 77%; /* Accent Yellow-Green #E3FF8C */
+    --accent-foreground: 218 60% 9%;
+    --accent-hover: 75 100% 72%;
+    --accent-light: 75 100% 95%;
+    --accent-medium: 75 100% 85%;
 
     /* Muted - Professional grays */
     --muted: 240 4.8% 95.9%;
@@ -88,16 +88,16 @@ All colors MUST be HSL.
     --destructive-light: 0 85% 95%;
     --destructive-medium: 0 85% 85%;
 
-    --info: 217 91% 60%; /* Info Blue (same as primary) */
-    --info-foreground: 0 0% 100%;
-    --info-hover: 217 91% 55%;
-    --info-light: 217 91% 95%;
-    --info-medium: 217 91% 85%;
+    --info: 75 100% 77%; /* Info Yellow-Green (same as primary) */
+    --info-foreground: 218 60% 9%;
+    --info-hover: 75 100% 72%;
+    --info-light: 75 100% 95%;
+    --info-medium: 75 100% 85%;
 
     /* Clean Neutrals */
     --border: 240 5.9% 90%;
     --input: 240 5.9% 95%;
-    --ring: 217 91% 60%; /* Accent Blue focus rings */
+    --ring: 75 100% 77%; /* Accent Yellow-Green focus rings */
 
     --radius: 0.75rem; /* 12px rounded corners - PDR requirement */
 
@@ -117,15 +117,15 @@ All colors MUST be HSL.
     /* Professional Sidebar - PDR Colors */
     --sidebar-background: 0 0% 100%; /* White background (light mode) */
     --sidebar-foreground: 218 60% 9%; /* Deep Navy text */
-    --sidebar-primary: 217 91% 60%; /* Accent Blue #2563EB */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-primary-hover: 217 91% 55%;
-    --sidebar-primary-light: 217 91% 95%;
-    --sidebar-primary-medium: 217 91% 85%;
+    --sidebar-primary: 75 100% 77%; /* Accent Yellow-Green #E3FF8C */
+    --sidebar-primary-foreground: 218 60% 9%;
+    --sidebar-primary-hover: 75 100% 72%;
+    --sidebar-primary-light: 75 100% 95%;
+    --sidebar-primary-medium: 75 100% 85%;
     --sidebar-accent: 240 5% 96%; /* Very light gray for hover */
     --sidebar-accent-foreground: 218 60% 9%; /* Deep Navy text */
     --sidebar-border: 240 5.9% 85%;
-    --sidebar-ring: 217 91% 60%; /* Accent Blue focus */
+    --sidebar-ring: 75 100% 77%; /* Accent Yellow-Green focus */
 
     /* Glassmorphism sidebar background - Enterprise Professional */
     --sidebar-glass-bg: linear-gradient(
@@ -201,42 +201,42 @@ All colors MUST be HSL.
   /* Dark Mode - PDR Default Theme */
   .dark {
     /* LeadFlow PDR Design System - Dark Theme (Default) */
-    --background: 218 60% 9%; /* Deep Navy #0A1628 - PDR dark mode background */
+    --background: 0 0% 0%; /* Pure Black #000000 - dark mode background */
     --foreground: 0 0% 98%; /* Pure White #FFFFFF - primary text */
 
-    --card: 218 60% 12%; /* Slightly lighter navy for cards */
+    --card: 0 0% 8%; /* Dark gray for cards - matches sidebar */
     --card-foreground: 0 0% 98%;
 
-    --popover: 218 60% 12%;
+    --popover: 0 0% 8%; /* Dark gray for popovers */
     --popover-foreground: 0 0% 98%;
 
-    /* Primary - Accent Blue (same as light mode) */
-    --primary: 217 91% 60%; /* Accent Blue #2563EB */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 91% 65%; /* Lighter on dark background */
-    --primary-light: 217 91% 20%; /* Darker tint for dark mode */
-    --primary-medium: 217 91% 30%;
+    /* Primary - Accent Yellow-Green (same as light mode) */
+    --primary: 75 100% 77%; /* Accent Yellow-Green #E3FF8C */
+    --primary-foreground: 218 60% 9%; /* Deep Navy for contrast */
+    --primary-hover: 75 100% 82%; /* Lighter on dark background */
+    --primary-light: 75 100% 20%; /* Darker tint for dark mode */
+    --primary-medium: 75 100% 30%;
 
     /* Secondary */
-    --secondary: 217 91% 50%;
-    --secondary-foreground: 0 0% 100%;
-    --secondary-hover: 217 91% 55%;
-    --secondary-light: 217 91% 15%;
-    --secondary-medium: 217 91% 25%;
+    --secondary: 75 100% 70%;
+    --secondary-foreground: 218 60% 9%;
+    --secondary-hover: 75 100% 75%;
+    --secondary-light: 75 100% 15%;
+    --secondary-medium: 75 100% 25%;
 
     /* Accent */
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 100%;
-    --accent-hover: 217 91% 65%;
-    --accent-light: 217 91% 20%;
-    --accent-medium: 217 91% 30%;
+    --accent: 75 100% 77%;
+    --accent-foreground: 218 60% 9%;
+    --accent-hover: 75 100% 82%;
+    --accent-light: 75 100% 20%;
+    --accent-medium: 75 100% 30%;
 
-    /* Muted - Adjusted for dark mode */
-    --muted: 218 60% 15%;
-    --muted-foreground: 240 5% 65%;
-    --muted-hover: 218 60% 20%;
-    --muted-light: 218 60% 12%;
-    --muted-medium: 218 60% 18%;
+    /* Muted - Adjusted for dark mode - Attio style */
+    --muted: 0 0% 12%; /* Dark gray - Attio #1E1E1E */
+    --muted-foreground: 0 0% 70%; /* Light gray text */
+    --muted-hover: 0 0% 18%; /* Slightly lighter on hover - better for buttons */
+    --muted-light: 0 0% 8%;
+    --muted-medium: 0 0% 10%;
 
     /* Semantic Colors - Same as light mode */
     --success: 160 84% 39%; /* Success Green #10B981 */
@@ -257,38 +257,65 @@ All colors MUST be HSL.
     --destructive-light: 0 85% 15%;
     --destructive-medium: 0 85% 25%;
 
-    --info: 217 91% 60%;
-    --info-foreground: 0 0% 100%;
-    --info-hover: 217 91% 65%;
-    --info-light: 217 91% 20%;
-    --info-medium: 217 91% 30%;
+    --info: 75 100% 77%;
+    --info-foreground: 218 60% 9%;
+    --info-hover: 75 100% 82%;
+    --info-light: 75 100% 20%;
+    --info-medium: 75 100% 30%;
 
     /* Neutrals - Adjusted for dark mode */
-    --border: 218 60% 20%;
-    --input: 218 60% 15%;
-    --ring: 217 91% 60%;
+    --border: 0 0% 20%; /* Dark gray border */
+    --input: 0 0% 10%; /* Slightly lighter than background */
+    --ring: 75 100% 77%;
+
+    /* Modern Table Design System (2025) - Dark Mode - Attio Inspired */
+    --table-border-width: 0px; /* No outer borders - modern clean look */
+    --table-border-color: rgb(37, 37, 37); /* #252525 - Attio style border */
+    --table-border-style: solid;
+    --table-header-bg: rgb(
+      30,
+      30,
+      30
+    ); /* #1E1E1E - Attio dark gray background */
+    --table-cell-padding: 0.5rem 1rem; /* Reduced padding for 40px height */
+    --table-row-height: 40px; /* Exact 40px - Unified standard for all tables */
+    --table-inner-border-width: 1px; /* Subtle inner borders */
+    --table-row-hover: rgb(
+      37,
+      37,
+      37
+    ); /* #252525 - Attio lighter gray for hover */
+    --table-row-alt: rgb(
+      30,
+      30,
+      30
+    ); /* #1E1E1E - Alternating row - Attio style */
+    --table-row-bg: rgb(30, 30, 30); /* #1E1E1E - Base row background */
+    --table-shadow:
+      0 1px 3px 0 rgb(0, 0, 0, 0.3), 0 1px 2px 0 rgb(0, 0, 0, 0.2); /* Stronger shadow for dark mode */
+    --table-radius: 0.75rem; /* Modern rounded corners */
 
     /* Sidebar - Dark Mode */
-    --sidebar-background: 218 60% 12%; /* Slightly lighter navy */
+    --sidebar-background: 0 0% 8%; /* Dark gray - slightly lighter than black for separation */
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-primary-hover: 217 91% 65%;
-    --sidebar-primary-light: 217 91% 20%;
-    --sidebar-primary-medium: 217 91% 30%;
-    --sidebar-accent: 218 60% 18%;
+    --sidebar-primary: 75 100% 77%;
+    --sidebar-primary-foreground: 0 0% 0%; /* Black text on accent for contrast */
+    --sidebar-primary-hover: 75 100% 82%;
+    --sidebar-primary-light: 75 100% 15%; /* Darker tint for dark mode */
+    --sidebar-primary-medium: 75 100% 25%;
+    --sidebar-accent: 0 0% 12%; /* Slightly lighter gray for hover states */
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 218 60% 20%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-border: 0 0% 15%; /* Subtle border for separation */
+    --sidebar-ring: 75 100% 77%;
 
     /* Glassmorphism sidebar background - Dark Mode */
     --sidebar-glass-bg: linear-gradient(
       135deg,
-      rgba(10, 22, 40, 0.85) 0%,
-      rgba(10, 22, 40, 0.9) 50%,
-      rgba(15, 25, 45, 0.85) 100%
+      rgba(20, 20, 20, 0.85) 0%,
+      rgba(20, 20, 20, 0.9) 50%,
+      rgba(15, 15, 15, 0.85) 100%
     );
-    --sidebar-glass-border: rgba(30, 40, 60, 0.5);
+    --sidebar-glass-border: rgba(40, 40, 40, 0.5);
   }
 }
 
@@ -899,6 +926,31 @@ All colors MUST be HSL.
 
   /* Desktop Sidebar - Fixed position only on desktop */
   /* Note: Sidebar positioning handled in Layout.tsx, no global overrides needed */
+
+  /* Error message improvements for dark mode */
+  .dark [data-sonner-toast][data-type='error'],
+  .dark [data-sonner-toast][data-type='error'] * {
+    background-color: hsl(var(--destructive)) !important;
+    color: hsl(var(--destructive-foreground)) !important;
+    border-color: hsl(var(--destructive) / 0.5) !important;
+  }
+
+  .dark [data-sonner-toast][data-type='error'] [data-description],
+  .dark [data-sonner-toast][data-type='error'] [data-title] {
+    color: hsl(var(--destructive-foreground)) !important;
+  }
+
+  /* Ensure error toasts have good contrast in both modes */
+  [data-sonner-toast][data-type='error'] {
+    background-color: hsl(var(--destructive));
+    color: hsl(var(--destructive-foreground));
+    border-color: hsl(var(--destructive) / 0.5);
+  }
+
+  [data-sonner-toast][data-type='error'] [data-description],
+  [data-sonner-toast][data-type='error'] [data-title] {
+    color: hsl(var(--destructive-foreground));
+  }
 
   /* Custom scrollbar for sidebar - ultra-thin 2px */
   .custom-scrollbar {

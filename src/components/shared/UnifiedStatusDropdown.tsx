@@ -134,7 +134,7 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
 
   // Extract the background color class for the status indicator
   const statusIndicatorClass = React.useMemo(
-    () => statusClasses.split(' ')[0] || 'bg-gray-100',
+    () => statusClasses.split(' ')[0] || 'bg-muted',
     [statusClasses]
   );
 
@@ -156,7 +156,7 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
       )
     : cn(
         'flex items-center gap-2 px-3 text-sm',
-        'bg-white border border-border rounded-md',
+        'bg-background border border-border rounded-md',
         'hover:border-border hover:bg-muted',
         'focus:outline-none focus:ring-2 focus:ring-blue-500',
         'transition-colors',

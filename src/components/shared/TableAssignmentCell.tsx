@@ -267,7 +267,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
           </>
         ) : (
           <>
-            <div className='w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center'>
+            <div className='w-7 h-7 rounded-full bg-muted flex items-center justify-center border border-border'>
               <User className='w-3 h-3 text-muted-foreground' />
             </div>
             <span className='text-sm text-muted-foreground'>Unassigned</span>
@@ -278,7 +278,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
       {/* User Selection Dropdown */}
       {showUserList && (
         <div className='absolute top-full left-0 mt-1 w-64 z-50'>
-          <div className='relative z-50 max-h-96 min-w-[16rem] overflow-hidden rounded-md border bg-white text-foreground shadow-lg'>
+          <div className='relative z-50 max-h-96 min-w-[16rem] overflow-hidden rounded-md border bg-background text-foreground shadow-lg'>
             {/* Header */}
             <div className='p-3 border-b border-border'>
               <div className='flex items-center justify-between'>
@@ -311,7 +311,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
                     disabled={isUpdating}
                     className={cn(
                       'relative flex w-full cursor-default select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm outline-none transition-colors',
-                      'hover:bg-gray-100 focus:bg-gray-100',
+                      'hover:bg-accent focus:bg-accent',
                       currentOwner?.id === member.id &&
                         'bg-primary/10 text-blue-900',
                       isUpdating && 'opacity-50 pointer-events-none'
@@ -325,7 +325,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
                     </span>
 
                     {/* User Avatar */}
-                    <div className='w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium mr-3'>
+                    <div className='w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium mr-3 border border-border'>
                       {member.full_name
                         ? member.full_name
                             .split(' ')

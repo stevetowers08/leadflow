@@ -77,7 +77,7 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
               duration: 0.3,
               ease: [0.4, 0, 0.2, 1],
             }}
-            className='fixed top-12 -mt-px right-0 bottom-0 bg-white z-[10003] flex flex-col'
+            className='fixed top-12 -mt-px right-0 bottom-0 bg-background z-[10003] flex flex-col'
             style={{
               width: '320px',
               boxShadow: '-2px 0 15px rgba(0, 0, 0, 0.1)',
@@ -89,7 +89,7 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
               <h2 className='text-lg font-semibold text-foreground'>{title}</h2>
               <button
                 onClick={onClose}
-                className='ml-4 p-2 text-muted-foreground hover:text-muted-foreground hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
+                className='ml-4 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors flex-shrink-0'
                 aria-label='Close actions'
               >
                 <X className='h-5 w-5' />
@@ -116,7 +116,13 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
                         }
                       }}
                       disabled={action.disabled}
-                      variant={isDestructive ? 'destructive' : isSecondary ? 'secondary' : 'ghost'}
+                      variant={
+                        isDestructive
+                          ? 'destructive'
+                          : isSecondary
+                            ? 'secondary'
+                            : 'ghost'
+                      }
                       className={cn(
                         'w-full justify-start gap-3 px-4 py-3 h-auto text-sm',
                         isDestructive && 'hover:bg-destructive/10',
@@ -127,10 +133,14 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
                         className={cn(
                           'h-5 w-5 flex-shrink-0',
                           isDestructive && 'text-destructive',
-                          !isDestructive && !isSecondary && 'text-muted-foreground'
+                          !isDestructive &&
+                            !isSecondary &&
+                            'text-muted-foreground'
                         )}
                       />
-                      <span className='flex-1 text-left font-medium'>{action.label}</span>
+                      <span className='flex-1 text-left font-medium'>
+                        {action.label}
+                      </span>
                     </Button>
                   </React.Fragment>
                 );
@@ -142,4 +152,3 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
     </AnimatePresence>
   );
 };
-

@@ -116,7 +116,7 @@ export const TableRow = React.forwardRef<
       className={cn(
         'group h-[40px]',
         onClick && 'cursor-pointer',
-        'hover:bg-muted',
+        'hover:bg-[var(--table-row-hover)]',
         className
       )}
       role='row'
@@ -351,13 +351,13 @@ function UnifiedTableComponent<T = unknown>({
   const tableStructure = React.useMemo(() => {
     if (loading) {
       return (
-        <div className='bg-card rounded-md border shadow-sm w-full overflow-hidden'>
-          <div className='border-b bg-muted/30 p-4'>
+        <div className='bg-[var(--table-row-bg)] rounded-md border shadow-sm w-full overflow-hidden'>
+          <div className='border-b bg-[var(--table-header-bg)]/30 p-4'>
             <div className='flex gap-4'>
               {Array.from({ length: columns.length || 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className='h-4 bg-muted rounded animate-pulse flex-1'
+                  className='h-4 bg-[var(--table-row-hover)] rounded animate-pulse flex-1'
                 />
               ))}
             </div>
@@ -370,7 +370,7 @@ function UnifiedTableComponent<T = unknown>({
                     (_, colIndex) => (
                       <div
                         key={colIndex}
-                        className='h-4 bg-muted rounded animate-pulse flex-1'
+                        className='h-4 bg-[var(--table-row-hover)] rounded animate-pulse flex-1'
                       />
                     )
                   )}
@@ -384,7 +384,7 @@ function UnifiedTableComponent<T = unknown>({
 
     if (!data || data.length === 0) {
       return (
-        <div className='bg-card rounded-md border shadow-sm w-full overflow-hidden'>
+        <div className='bg-[var(--table-row-bg)] rounded-md border shadow-sm w-full overflow-hidden'>
           <div className='flex items-center justify-center h-32 text-muted-foreground'>
             {emptyMessage}
           </div>
@@ -420,7 +420,7 @@ function UnifiedTableComponent<T = unknown>({
     return (
       <div
         className={cn(
-          'bg-card border shadow-sm rounded-md',
+          'bg-[var(--table-row-bg)] border shadow-sm rounded-md overflow-hidden',
           scrollable && 'flex flex-col h-full min-w-0',
           !scrollable && 'w-full',
           className
@@ -491,7 +491,7 @@ function UnifiedTableComponent<T = unknown>({
             </colgroup>
             <TableHeader
               className={cn(
-                'bg-muted',
+                'bg-[var(--table-header-bg)]',
                 isScrolled &&
                   scrollable &&
                   'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
@@ -589,7 +589,7 @@ function UnifiedTableComponent<T = unknown>({
 
                           {/* Group Header Row */}
                           <TableRow
-                            className='bg-muted hover:bg-muted/80 cursor-pointer'
+                            className='bg-[var(--table-header-bg)] hover:bg-[var(--table-row-hover)] cursor-pointer'
                             onClick={() => onToggleGroup?.(group.label)}
                             aria-expanded={isExpanded}
                           >

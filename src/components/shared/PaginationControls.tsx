@@ -142,8 +142,8 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
               onValueChange={value => onPageSizeChange(Number(value))}
               disabled={loading}
             >
-              <SelectTrigger className='h-7 w-[52px] px-2 border border-gray-300 bg-white shadow-sm hover:border-gray-400 hover:shadow-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all rounded-md text-sm'>
-                <SelectValue className='font-medium text-gray-900 text-center' />
+              <SelectTrigger className='h-7 w-[52px] px-2 border border-border bg-background shadow-sm hover:border-border hover:shadow-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all rounded-md text-sm'>
+                <SelectValue className='font-medium text-foreground text-center' />
               </SelectTrigger>
               <SelectContent>
                 {pageSizeOptions.map(size => (
@@ -206,7 +206,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                     'cursor-pointer transition-colors',
                     !hasPreviousPage || loading
                       ? 'pointer-events-none opacity-50'
-                      : 'hover:bg-gray-100'
+                      : 'hover:bg-accent'
                   )}
                   aria-label='Go to first page'
                 >
@@ -226,7 +226,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                     'cursor-pointer transition-colors',
                     !hasPreviousPage || loading
                       ? 'pointer-events-none opacity-50'
-                      : 'hover:bg-gray-100'
+                      : 'hover:bg-accent'
                   )}
                   aria-label='Go to previous page'
                 >
@@ -240,7 +240,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                   <PaginationItem>
                     <PaginationLink
                       onClick={() => onPageChange(1)}
-                      className='cursor-pointer hover:bg-gray-100 transition-colors'
+                      className='cursor-pointer hover:bg-accent transition-colors'
                       aria-label='Go to page 1'
                     >
                       1
@@ -261,8 +261,8 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                     className={cn(
                       'cursor-pointer transition-colors',
                       page === currentPage
-                        ? 'bg-primary text-white hover:bg-primary/90'
-                        : 'hover:bg-gray-100'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        : 'hover:bg-accent'
                     )}
                     aria-label={`Go to page ${page}`}
                     aria-current={page === currentPage ? 'page' : undefined}
@@ -281,7 +281,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                   <PaginationItem>
                     <PaginationLink
                       onClick={() => onPageChange(totalPages)}
-                      className='cursor-pointer hover:bg-gray-100 transition-colors'
+                      className='cursor-pointer hover:bg-accent transition-colors'
                       aria-label={`Go to page ${totalPages}`}
                     >
                       {totalPages}
@@ -298,7 +298,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                     'cursor-pointer transition-colors',
                     !hasNextPage
                       ? 'pointer-events-none opacity-50'
-                      : 'hover:bg-gray-100'
+                      : 'hover:bg-accent'
                   )}
                   aria-label='Go to next page'
                 >
@@ -314,7 +314,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                     'cursor-pointer transition-colors',
                     !hasNextPage
                       ? 'pointer-events-none opacity-50'
-                      : 'hover:bg-gray-100'
+                      : 'hover:bg-accent'
                   )}
                   aria-label='Go to last page'
                 >

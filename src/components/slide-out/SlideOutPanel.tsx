@@ -84,7 +84,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
               ease: [0.4, 0, 0.2, 1],
             }}
             className={cn(
-              'fixed top-12 -mt-px right-0 bottom-0 bg-white z-[10001] flex flex-col',
+              'fixed top-12 -mt-px right-0 bottom-0 bg-background z-[10001] flex flex-col',
               widthClasses
             )}
             style={{
@@ -109,7 +109,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
               </div>
               <button
                 onClick={onClose}
-                className='ml-4 p-2 text-muted-foreground hover:text-muted-foreground hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
+                className='ml-4 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors flex-shrink-0'
                 aria-label='Close panel'
               >
                 <X className='h-5 w-5' />

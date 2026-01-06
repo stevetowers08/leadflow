@@ -34,7 +34,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
         </div>
         {showDivider && (
           <div className='pt-1.5'>
-            <div className='w-full h-[0.5px] bg-gray-200'></div>
+            <div className='w-full h-[0.5px] bg-border'></div>
           </div>
         )}
       </div>

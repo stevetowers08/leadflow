@@ -70,7 +70,7 @@ export const SmallSlidePanel: React.FC<SmallSlidePanelProps> = ({
               duration: 0.3,
               ease: [0.4, 0, 0.2, 1],
             }}
-            className='fixed top-12 -mt-px right-0 bottom-0 bg-white z-[10003] flex flex-col'
+            className='fixed top-12 -mt-px right-0 bottom-0 bg-background z-[10003] flex flex-col'
             style={{
               width: '400px',
             }}
@@ -83,7 +83,7 @@ export const SmallSlidePanel: React.FC<SmallSlidePanelProps> = ({
                 {headerActions}
                 <button
                   onClick={onClose}
-                  className='ml-2 p-2 text-muted-foreground hover:text-muted-foreground hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
+                  className='ml-2 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors flex-shrink-0'
                   aria-label='Close panel'
                 >
                   <X className='h-5 w-5' />
@@ -108,4 +108,3 @@ export const SmallSlidePanel: React.FC<SmallSlidePanelProps> = ({
     </AnimatePresence>
   );
 };
-

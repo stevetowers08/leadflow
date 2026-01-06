@@ -67,7 +67,7 @@ const PersonSubRow: React.FC<{
   };
 
   return (
-    <tr className='bg-muted hover:bg-gray-100 transition-colors border-b border-border last:border-b-0'>
+    <tr className='bg-muted hover:bg-accent transition-colors border-b border-border last:border-b-0'>
       {/* Expand/Collapse Cell - Empty for sub-rows */}
       <td className='px-4 py-2 border-r border-border border-b border-border'>
         <div className='w-6 h-6 flex items-center justify-center'>

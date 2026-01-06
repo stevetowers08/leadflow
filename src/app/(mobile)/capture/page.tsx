@@ -893,6 +893,13 @@ export default function CapturePage() {
                   </div>
                 )}
                 <div className='space-y-2'>
+                  <label className='text-sm font-medium'>Show</label>
+                  <ShowSelector
+                    value={currentShowId}
+                    onValueChange={handleShowChange}
+                  />
+                </div>
+                <div className='space-y-2'>
                   <label
                     htmlFor='confirmation-notes'
                     className='text-sm font-medium'
@@ -1101,6 +1108,13 @@ export default function CapturePage() {
                     onChange={e =>
                       setManualData({ ...manualData, phone: e.target.value })
                     }
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium'>Show</label>
+                  <ShowSelector
+                    value={currentShowId}
+                    onValueChange={handleShowChange}
                   />
                 </div>
                 <div className='space-y-2'>

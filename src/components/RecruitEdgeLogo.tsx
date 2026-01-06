@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 interface LeadFlowLogoProps {
   size?: number;
@@ -10,40 +11,61 @@ interface LeadFlowLogoProps {
 export const LeadFlowLogo: React.FC<LeadFlowLogoProps> = ({
   size = 32,
   className = '',
-  showText = true,
-  variant = 'horizontal',
+  showText = false,
+  variant = 'icon',
 }) => {
-  // Text-only logo
-  const textSize = size * 0.5;
-  const textColor = '#1E293B';
-  const fontWeight = '700';
-
-  const textClasses = 'font-bold tracking-tight font-sans text-slate-800';
-  const textStyle = { fontSize: `${textSize}px` };
+  const logoPath = '/leadflow-logo.png';
 
   if (variant === 'horizontal') {
     return (
-      <span className={`${textClasses} ${className}`} style={textStyle}>
-        Leadflow
-      </span>
+      <div className={`flex items-center gap-2 ${className}`}>
+        <Image
+          src={logoPath}
+          alt='Leadflow'
+          width={size}
+          height={size}
+          className='object-contain'
+          priority
+        />
+        {showText && (
+          <span className='text-base font-semibold text-foreground'>
+            Leadflow
+          </span>
+        )}
+      </div>
     );
   }
 
   if (variant === 'vertical') {
     return (
       <div className={`flex flex-col items-center gap-2 ${className}`}>
-        <span className={textClasses} style={textStyle}>
-          Leadflow
-        </span>
+        <Image
+          src={logoPath}
+          alt='Leadflow'
+          width={size}
+          height={size}
+          className='object-contain'
+          priority
+        />
+        {showText && (
+          <span className='text-sm font-semibold text-foreground'>
+            Leadflow
+          </span>
+        )}
       </div>
     );
   }
 
-  // Default text only
+  // Default icon only
   return (
-    <span className={`${textClasses} ${className}`} style={textStyle}>
-      Leadflow
-    </span>
+    <Image
+      src={logoPath}
+      alt='Leadflow'
+      width={size}
+      height={size}
+      className={`object-contain ${className}`}
+      priority
+    />
   );
 };
 

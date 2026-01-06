@@ -45,11 +45,11 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
           return (
             <button
               key={tab.id}
-              type="button"
-              role="tab"
+              type='button'
+              role='tab'
               aria-selected={isActive}
               aria-controls={`tabpanel-${tab.id}`}
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
                 onTabChange(tab.id);
@@ -69,7 +69,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                       'rounded-md',
                       isActive
                         ? 'bg-primary text-primary-foreground'
-                        : 'bg-gray-100 text-muted-foreground hover:bg-gray-200'
+                        : 'bg-muted text-muted-foreground hover:bg-muted-hover dark:bg-muted dark:hover:bg-muted-hover'
                     )
                   : cn(
                       'border-b-2 -mb-[1px]',
@@ -105,7 +105,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                     ),
                     isActive
                       ? 'bg-primary/10 text-primary'
-                      : 'bg-gray-100 text-muted-foreground'
+                      : 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground'
                   )}
                 >
                   {tab.count ?? 0}

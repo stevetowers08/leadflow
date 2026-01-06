@@ -688,7 +688,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
         customHeader={
           <div className='flex items-center justify-between w-full'>
             <div className='flex items-center gap-4'>
-              <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-border'>
+              <div className='w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border border-border'>
                 <User className='h-5 w-5 text-muted-foreground' />
               </div>
               <div className='flex-1 min-w-0'>
@@ -730,7 +730,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                     e.stopPropagation();
                     setShowCampaignSelect(true);
                   }}
-                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-white'
+                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-background'
                   title='Add to campaign'
                 >
                   <ListPlus className='h-4 w-4' />
@@ -872,7 +872,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                         {company.score_reason && (
                           <div className='mt-6'>
                             <div className='p-4 bg-primary/10 rounded-lg border border-primary/20'>
-                              <h5 className='text-sm font-semibold text-blue-900 mb-2'>
+                              <h5 className='text-sm font-semibold text-primary mb-2'>
                                 Company Analysis
                               </h5>
                               <p className='text-sm text-primary leading-relaxed'>
@@ -893,9 +893,9 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                                     onClick={() =>
                                       handlePersonClick(otherPerson.id)
                                     }
-                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-gray-100 transition-colors cursor-pointer'
+                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-accent transition-colors cursor-pointer'
                                   >
-                                    <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
+                                    <div className='w-10 h-10 bg-muted rounded-full flex items-center justify-center flex-shrink-0 border border-border'>
                                       <User className='h-5 w-5 text-muted-foreground' />
                                     </div>
                                     <div className='flex-1 min-w-0'>

@@ -13,13 +13,13 @@ import {
   Film,
   Palette,
 } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { NavMain } from '@/components/nav-main';
 import { NavSecondary } from '@/components/nav-secondary';
 import { NavUser } from '@/components/nav-user';
+import { LeadFlowLogo } from '@/components/RecruitEdgeLogo';
 import {
   Sidebar,
   SidebarContent,
@@ -112,12 +112,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href='/'>
-                <div className='flex items-center gap-2'>
-                  <span className='text-base font-semibold'>Leadflow</span>
-                </div>
-              </Link>
+            <SidebarMenuButton>
+              <LeadFlowLogo size={24} showText={false} variant='icon' />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

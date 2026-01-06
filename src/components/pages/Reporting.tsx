@@ -64,10 +64,10 @@ const Reporting: React.FC = () => {
 
   if (!isMounted) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-background'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading reporting...</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Loading reporting...</p>
         </div>
       </div>
     );
@@ -270,7 +270,7 @@ function ReportingContent() {
               <h3 className='text-lg font-semibold text-foreground mb-2'>
                 {LABELS.FAILED_TO_LOAD} Reporting Data
               </h3>
-              <p className='text-gray-600 text-center mb-4'>
+              <p className='text-muted-foreground text-center mb-4'>
                 {error instanceof Error
                   ? error.message
                   : ERROR_MESSAGES.GENERIC}
@@ -323,35 +323,35 @@ function ReportingContent() {
               </CardContent>
             </Card>
 
-            <Card className='bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200'>
+            <Card className='bg-success/10 border-success/20'>
               <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium text-emerald-900'>
+                <CardTitle className='text-sm font-medium text-success'>
                   Speed to Lead
                 </CardTitle>
-                <Clock className='h-4 w-4 text-emerald-600' />
+                <Clock className='h-4 w-4 text-success' />
               </CardHeader>
               <CardContent>
-                <div className='text-3xl font-bold text-emerald-900'>
+                <div className='text-3xl font-bold text-success'>
                   {leadflowMetrics.speedToLead}
                 </div>
-                <p className='text-xs text-emerald-700 mt-1'>
+                <p className='text-xs text-success/80 mt-1'>
                   Avg time: Scan → First Email
                 </p>
               </CardContent>
             </Card>
 
-            <Card className='bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200'>
+            <Card className='bg-primary/10 border-primary/20'>
               <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium text-blue-900'>
+                <CardTitle className='text-sm font-medium text-primary'>
                   Active Conversations
                 </CardTitle>
-                <MessageSquare className='h-4 w-4 text-blue-600' />
+                <MessageSquare className='h-4 w-4 text-primary' />
               </CardHeader>
               <CardContent>
-                <div className='text-3xl font-bold text-blue-900'>
+                <div className='text-3xl font-bold text-primary'>
                   {leadflowMetrics.activeConversations}
                 </div>
-                <p className='text-xs text-blue-700 mt-1'>Threads in inbox</p>
+                <p className='text-xs text-primary/80 mt-1'>Threads in inbox</p>
               </CardContent>
             </Card>
           </div>
@@ -371,7 +371,7 @@ function ReportingContent() {
               onChange={e =>
                 setSelectedPeriod(e.target.value as '7d' | '30d' | '90d')
               }
-              className='px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              className='px-3 py-2 border border-border rounded-md text-sm bg-background focus:ring-2 focus:ring-primary focus:border-primary'
             >
               {periodOptions.map(option => (
                 <option key={option.value} value={option.value}>
@@ -413,48 +413,48 @@ function ReportingContent() {
             </CardHeader>
             <CardContent>
               <div className='space-y-4'>
-                <div className='flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200'>
+                <div className='flex items-center justify-between p-4 bg-primary/10 rounded-lg border border-primary/20'>
                   <div className='flex items-center gap-3'>
-                    <div className='w-3 h-3 rounded-full bg-blue-500'></div>
+                    <div className='w-3 h-3 rounded-full bg-primary'></div>
                     <span className='font-medium'>Leads Captured</span>
                   </div>
-                  <span className='text-2xl font-bold text-blue-700'>
+                  <span className='text-2xl font-bold text-primary'>
                     {reportingData.totalPeople}
                   </span>
                 </div>
                 <div className='flex items-center justify-center'>
-                  <div className='w-1 h-8 bg-gray-300'></div>
+                  <div className='w-1 h-8 bg-border'></div>
                 </div>
-                <div className='flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200'>
+                <div className='flex items-center justify-between p-4 bg-success/10 rounded-lg border border-success/20'>
                   <div className='flex items-center gap-3'>
-                    <div className='w-3 h-3 rounded-full bg-emerald-500'></div>
+                    <div className='w-3 h-3 rounded-full bg-success'></div>
                     <span className='font-medium'>Qualified Leads</span>
                   </div>
-                  <span className='text-2xl font-bold text-emerald-700'>
+                  <span className='text-2xl font-bold text-success'>
                     {reportingData.peoplePipeline.qualified}
                   </span>
                 </div>
                 <div className='flex items-center justify-center'>
-                  <div className='w-1 h-8 bg-gray-300'></div>
+                  <div className='w-1 h-8 bg-border'></div>
                 </div>
-                <div className='flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200'>
+                <div className='flex items-center justify-between p-4 bg-primary/10 rounded-lg border border-primary/20'>
                   <div className='flex items-center gap-3'>
-                    <div className='w-3 h-3 rounded-full bg-purple-500'></div>
+                    <div className='w-3 h-3 rounded-full bg-primary'></div>
                     <span className='font-medium'>In Progress</span>
                   </div>
-                  <span className='text-2xl font-bold text-purple-700'>
+                  <span className='text-2xl font-bold text-primary'>
                     {reportingData.peoplePipeline.proceed}
                   </span>
                 </div>
                 <div className='flex items-center justify-center'>
-                  <div className='w-1 h-8 bg-gray-300'></div>
+                  <div className='w-1 h-8 bg-border'></div>
                 </div>
-                <div className='flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200'>
+                <div className='flex items-center justify-between p-4 bg-warning/10 rounded-lg border border-warning/20'>
                   <div className='flex items-center gap-3'>
-                    <div className='w-3 h-3 rounded-full bg-amber-500'></div>
+                    <div className='w-3 h-3 rounded-full bg-warning'></div>
                     <span className='font-medium'>Active Conversations</span>
                   </div>
-                  <span className='text-2xl font-bold text-amber-700'>
+                  <span className='text-2xl font-bold text-warning'>
                     {leadflowMetrics?.activeConversations || 0}
                   </span>
                 </div>
@@ -859,11 +859,11 @@ function ReportingContent() {
 
             <Card className='border-dashed'>
               <CardContent className='flex flex-col items-center justify-center py-12'>
-                <TrendingUp className='h-12 w-12 text-gray-400 mb-4' />
+                <TrendingUp className='h-12 w-12 text-muted-foreground mb-4' />
                 <h3 className='text-lg font-semibold text-foreground mb-2'>
                   Advanced Email Analytics Coming Soon
                 </h3>
-                <p className='text-gray-600 text-center max-w-md'>
+                <p className='text-muted-foreground text-center max-w-md'>
                   We&apos;re working on advanced email metrics including open
                   rates, click-through rates, reply tracking, and detailed
                   performance analytics.

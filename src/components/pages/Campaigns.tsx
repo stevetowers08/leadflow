@@ -42,10 +42,10 @@ const Campaigns: React.FC = () => {
 
   if (!isMounted) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='min-h-screen flex items-center justify-center bg-background'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading campaigns...</p>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Loading campaigns...</p>
         </div>
       </div>
     );
@@ -55,11 +55,11 @@ const Campaigns: React.FC = () => {
 };
 
 const STATUS_COLORS = {
-  draft: 'bg-gray-100 text-foreground',
-  active: 'bg-green-100 text-green-800',
-  paused: 'bg-yellow-100 text-yellow-800',
-  completed: 'bg-blue-100 text-blue-800',
-  cancelled: 'bg-red-100 text-red-800',
+  draft: 'bg-muted text-muted-foreground',
+  active: 'bg-success/10 text-success',
+  paused: 'bg-warning/10 text-warning',
+  completed: 'bg-primary/10 text-primary',
+  cancelled: 'bg-destructive/10 text-destructive',
 };
 
 interface CampaignAnalytics {
@@ -244,7 +244,7 @@ function CampaignsContent() {
             <div className='flex items-center gap-4'>
               {/* Filter Dropdown */}
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className='w-[200px] h-8 border-gray-300'>
+                <SelectTrigger className='w-[200px] h-8 border-border'>
                   <SelectValue placeholder='All Campaigns' />
                 </SelectTrigger>
                 <SelectContent>
@@ -258,12 +258,12 @@ function CampaignsContent() {
 
               {/* Search */}
               <div className='relative'>
-                <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+                <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
                 <Input
                   placeholder='Search Campaigns'
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className='pl-10 h-8 w-[200px] border-gray-300'
+                  className='pl-10 h-8 w-[200px] border-border'
                 />
               </div>
             </div>
@@ -284,7 +284,7 @@ function CampaignsContent() {
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className='bg-gray-100 rounded-lg h-20 animate-pulse'
+                  className='bg-muted rounded-lg h-20 animate-pulse'
                 ></div>
               ))}
             </div>
@@ -309,9 +309,9 @@ function CampaignsContent() {
               </CardContent>
             </Card>
           ) : (
-            <div className='bg-white rounded-lg border border-gray-300 overflow-hidden'>
+            <div className='bg-background rounded-lg border border-border overflow-hidden'>
               {/* Campaign Details and Report Header */}
-              <div className='bg-gray-50 border-b border-gray-300 px-6 py-3'>
+              <div className='bg-muted border-b border-border px-6 py-3'>
                 <div className='flex justify-between items-center'>
                   <h3 className='text-lg font-semibold text-foreground'>
                     Campaign Details
@@ -328,29 +328,29 @@ function CampaignsContent() {
                   const statusColor =
                     STATUS_COLORS[
                       sequence.status as keyof typeof STATUS_COLORS
-                    ] || 'bg-gray-100 text-foreground';
+                    ] || 'bg-muted text-muted-foreground';
 
                   return (
                     <div
                       key={sequence.id}
-                      className='px-6 py-3 hover:bg-gray-50 transition-colors cursor-pointer'
+                      className='px-6 py-3 hover:bg-accent transition-colors cursor-pointer'
                       onClick={() => handleOpenSequenceBuilder(sequence)}
                     >
                       <div className='flex items-center justify-between'>
                         {/* Campaign Details */}
                         <div className='flex items-center space-x-4 flex-1'>
                           <div className='flex items-center space-x-3'>
-                            <div className='w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center'>
-                              <Edit className='h-4 w-4 text-gray-600' />
+                            <div className='w-8 h-8 bg-muted rounded-full flex items-center justify-center border border-border'>
+                              <Edit className='h-4 w-4 text-muted-foreground' />
                             </div>
                             <div>
                               <div className='flex items-center space-x-2'>
-                                <h4 className='text-sm font-medium text-purple-600 hover:text-purple-700'>
+                                <h4 className='text-sm font-medium text-primary hover:text-primary/80'>
                                   {sequence.name}
                                 </h4>
-                                <ExternalLink className='h-3 w-3 text-gray-400' />
+                                <ExternalLink className='h-3 w-3 text-muted-foreground' />
                               </div>
-                              <div className='flex items-center space-x-2 text-xs text-gray-500 mt-1'>
+                              <div className='flex items-center space-x-2 text-xs text-muted-foreground mt-1'>
                                 <span
                                   className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
                                 >
@@ -377,60 +377,60 @@ function CampaignsContent() {
                         {/* Statistics */}
                         <div className='flex items-center space-x-6'>
                           <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                            <div className='text-2xl font-bold text-purple-600'>
+                            <div className='text-2xl font-bold text-primary'>
                               {campaignAnalytics[sequence.id]?.total_sent || 0}
                             </div>
                             <div className='flex items-center gap-1 mt-1'>
-                              <Mail className='h-4 w-4 text-gray-500' />
-                              <span className='text-xs text-gray-600'>
+                              <Mail className='h-4 w-4 text-muted-foreground' />
+                              <span className='text-xs text-muted-foreground'>
                                 Sent
                               </span>
                             </div>
                           </div>
                           <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                            <div className='text-2xl font-bold text-purple-600'>
+                            <div className='text-2xl font-bold text-primary'>
                               {campaignAnalytics[sequence.id]?.total_opened ||
                                 0}
                             </div>
                             <div className='flex items-center gap-1 mt-1'>
-                              <MailOpen className='h-4 w-4 text-gray-500' />
-                              <span className='text-xs text-gray-600'>
+                              <MailOpen className='h-4 w-4 text-muted-foreground' />
+                              <span className='text-xs text-muted-foreground'>
                                 Opened
                               </span>
                             </div>
                           </div>
                           <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                            <div className='text-2xl font-bold text-blue-500'>
+                            <div className='text-2xl font-bold text-primary'>
                               {campaignAnalytics[sequence.id]?.total_replied ||
                                 0}
                             </div>
                             <div className='flex items-center gap-1 mt-1'>
-                              <Reply className='h-4 w-4 text-gray-500' />
-                              <span className='text-xs text-gray-600'>
+                              <Reply className='h-4 w-4 text-muted-foreground' />
+                              <span className='text-xs text-muted-foreground'>
                                 Replied
                               </span>
                             </div>
                           </div>
                           <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                            <div className='text-2xl font-bold text-green-600'>
+                            <div className='text-2xl font-bold text-success'>
                               {campaignAnalytics[sequence.id]
                                 ?.total_positive_replies || 0}
                             </div>
                             <div className='flex items-center gap-1 mt-1'>
-                              <DollarSign className='h-4 w-4 text-gray-500' />
-                              <span className='text-xs text-gray-600'>
+                              <DollarSign className='h-4 w-4 text-muted-foreground' />
+                              <span className='text-xs text-muted-foreground'>
                                 Positive
                               </span>
                             </div>
                           </div>
                           <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                            <div className='text-2xl font-bold text-red-600'>
+                            <div className='text-2xl font-bold text-destructive'>
                               {campaignAnalytics[sequence.id]?.total_bounced ||
                                 0}
                             </div>
                             <div className='flex items-center gap-1 mt-1'>
-                              <AlertTriangle className='h-4 w-4 text-gray-500' />
-                              <span className='text-xs text-gray-600'>
+                              <AlertTriangle className='h-4 w-4 text-muted-foreground' />
+                              <span className='text-xs text-muted-foreground'>
                                 Bounced
                               </span>
                             </div>

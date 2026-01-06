@@ -45,6 +45,7 @@ import {
   Phone,
   Snowflake,
   Sparkles,
+  StickyNote,
   Target,
   User,
   Zap,
@@ -54,19 +55,15 @@ import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { GridItem, SlideOutGrid } from './SlideOutGrid';
 import { SlideOutPanel } from './SlideOutPanel';
 import { SlideOutSection } from './SlideOutSection';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { updateLead } from '@/services/leadsService';
 
 interface LeadDetailsSlideOutProps {
   leadId: string | null;
   isOpen: boolean;
   onClose: () => void;
   onUpdate?: () => void;
-  initialTab?: 'overview' | 'ai' | 'activity';
+  initialTab?: 'overview' | 'ai' | 'notes';
 }
 
 /**
@@ -100,6 +97,8 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
     const [showCampaignSelect, setShowCampaignSelect] = useState(false);
+    const [notesValue, setNotesValue] = useState('');
+    const [savingNotes, setSavingNotes] = useState(false);
     const { toast } = useToast();
 
     // Sync tab when initialTab changes
@@ -432,28 +431,54 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
       router.push(`/leads?id=${clickedLeadId}`);
     };
 
-    const handleSendMessage = useCallback(() => {
-      if (!lead?.email) return;
-      window.location.href = `mailto:${lead.email}`;
+    // Initialize notes value when lead changes
+    useEffect(() => {
+      if (lead) {
+        setNotesValue(lead.notes || '');
+      }
     }, [lead]);
+
+    const handleSaveNotes = useCallback(async () => {
+      if (!leadId || savingNotes) return;
+
+      setSavingNotes(true);
+      try {
+        await updateLead(leadId, { notes: notesValue || null });
+        await fetchLeadDetails();
+        toast({
+          title: 'Success',
+          description: 'Notes saved successfully',
+        });
+        onUpdate?.();
+      } catch (error) {
+        console.error('Error saving notes:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to save notes',
+          variant: 'destructive',
+        });
+      } finally {
+        setSavingNotes(false);
+      }
+    }, [leadId, notesValue, savingNotes, fetchLeadDetails, toast, onUpdate]);
 
     // Computed values
     const leadFullName = useMemo(() => getLeadFullName(lead), [lead]);
 
     const tabOptions: TabOption[] = useMemo(
       () => [
-        { id: 'overview', label: 'Overview', count: 0, icon: FileText },
-        {
-          id: 'activity' as const,
-          label: 'Activity',
-          count: 0,
-          icon: Mail,
-        },
+        { id: 'overview', label: 'AI Overview', count: 0, icon: Sparkles },
         {
           id: 'ai' as const,
           label: 'AI Messages',
           count: 0,
-          icon: Sparkles,
+          icon: Mail,
+        },
+        {
+          id: 'notes' as const,
+          label: 'Notes',
+          count: 0,
+          icon: StickyNote,
         },
       ],
       []
@@ -733,7 +758,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
         customHeader={
           <div className='flex items-center justify-between w-full'>
             <div className='flex items-center gap-4'>
-              <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-border'>
+              <div className='w-10 h-10 rounded-lg bg-card flex items-center justify-center flex-shrink-0 border border-border/50'>
                 <User className='h-5 w-5 text-muted-foreground' />
               </div>
               <div className='flex-1 min-w-0'>
@@ -748,21 +773,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               </div>
             </div>
             <div className='flex items-center gap-2 flex-shrink-0 ml-4'>
-              {lead.email && (
-                <Button
-                  size='sm'
-                  variant='ghost'
-                  onClick={e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSendMessage();
-                  }}
-                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-white'
-                  title='Send message'
-                >
-                  <Mail className='h-4 w-4' />
-                </Button>
-              )}
               {campaigns.length > 0 && (
                 <Button
                   size='sm'
@@ -772,7 +782,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                     e.stopPropagation();
                     setShowCampaignSelect(true);
                   }}
-                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-white'
+                  className='h-8 w-8 p-0 border border-border/50 rounded-md hover:border-border text-muted-foreground hover:text-foreground bg-card hover:bg-accent/50'
                   title='Add to campaign'
                 >
                   <ListPlus className='h-4 w-4' />
@@ -819,18 +829,176 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
             {/* Tab Content */}
             <div className='flex-1 overflow-y-auto overflow-x-hidden select-text m-0 p-0'>
               {activeTab === 'overview' && (
-                <div className='space-y-4 px-6 pb-8'>
-                  <div className='w-full border-t border-border'></div>
+                <div className='space-y-4 px-6 pb-8 pt-4'>
+                  {/* AI Overview - Lead Intelligence */}
+                  <div className='mt-2 mb-6'>
+                    <SlideOutSection title='Lead Intelligence'>
+                      {lead.ai_summary ? (
+                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-card border border-border/50 rounded-lg p-4'>
+                          {lead.ai_summary}
+                        </div>
+                      ) : (
+                        <div className='text-sm text-muted-foreground bg-card border border-border/50 rounded-lg p-4'>
+                          No AI summary available for this lead
+                        </div>
+                      )}
+                    </SlideOutSection>
+                  </div>
+
+                  {/* Company Intelligence */}
+                  {company && (
+                    <div className='mt-6 mb-6'>
+                      <SlideOutSection title='Company Intelligence'>
+                        <div className='space-y-3'>
+                          {company.score_reason && (
+                            <div className='bg-card border border-border/50 rounded-lg p-4'>
+                              <h5 className='text-sm font-semibold text-foreground mb-2 flex items-center gap-2'>
+                                <Target className='h-4 w-4' />
+                                Company Analysis
+                              </h5>
+                              <p className='text-sm text-foreground leading-relaxed'>
+                                {company.score_reason}
+                              </p>
+                            </div>
+                          )}
+
+                          {company.ai_company_intelligence &&
+                            typeof company.ai_company_intelligence ===
+                              'object' && (
+                              <div className='bg-card border border-border/50 rounded-lg p-4'>
+                                <h5 className='text-sm font-semibold text-foreground mb-2 flex items-center gap-2'>
+                                  <Sparkles className='h-4 w-4' />
+                                  AI Intelligence
+                                </h5>
+                                <div className='text-sm text-foreground leading-relaxed whitespace-pre-wrap font-mono text-xs'>
+                                  {JSON.stringify(
+                                    company.ai_company_intelligence,
+                                    null,
+                                    2
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                          <div className='grid grid-cols-2 gap-3'>
+                            {company.industry && (
+                              <div className='bg-card border border-border/50 rounded-lg p-3'>
+                                <div className='text-xs text-muted-foreground mb-1'>
+                                  Industry
+                                </div>
+                                <div className='text-sm text-foreground font-medium'>
+                                  {company.industry}
+                                </div>
+                              </div>
+                            )}
+
+                            {company.company_size && (
+                              <div className='bg-card border border-border/50 rounded-lg p-3'>
+                                <div className='text-xs text-muted-foreground mb-1'>
+                                  Company Size
+                                </div>
+                                <div className='text-sm text-foreground font-medium'>
+                                  {company.company_size}
+                                </div>
+                              </div>
+                            )}
+
+                            {company.funding_raised && (
+                              <div className='bg-card border border-border/50 rounded-lg p-3'>
+                                <div className='text-xs text-muted-foreground mb-1'>
+                                  Funding Raised
+                                </div>
+                                <div className='text-sm text-foreground font-medium'>
+                                  $
+                                  {new Intl.NumberFormat('en-US', {
+                                    maximumFractionDigits: 0,
+                                  }).format(company.funding_raised)}
+                                </div>
+                              </div>
+                            )}
+
+                            {company.estimated_arr && (
+                              <div className='bg-card border border-border/50 rounded-lg p-3'>
+                                <div className='text-xs text-muted-foreground mb-1'>
+                                  Estimated ARR
+                                </div>
+                                <div className='text-sm text-foreground font-medium'>
+                                  $
+                                  {new Intl.NumberFormat('en-US', {
+                                    maximumFractionDigits: 0,
+                                  }).format(company.estimated_arr)}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {lead.enrichment_data &&
+                            typeof lead.enrichment_data === 'object' && (
+                              <div className='bg-card border border-border/50 rounded-lg p-4'>
+                                <h5 className='text-sm font-semibold text-foreground mb-2 flex items-center gap-2'>
+                                  <Zap className='h-4 w-4' />
+                                  Enrichment Data
+                                </h5>
+                                <div className='text-sm text-foreground leading-relaxed whitespace-pre-wrap font-mono text-xs'>
+                                  {JSON.stringify(
+                                    lead.enrichment_data,
+                                    null,
+                                    2
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                        </div>
+                      </SlideOutSection>
+                    </div>
+                  )}
+
+                  {/* Other Company Leads */}
+                  {company && otherLeads.length > 0 && (
+                    <div className='mt-6 mb-6'>
+                      <SlideOutSection
+                        title={`Other Company Leads (${otherLeads.length})`}
+                      >
+                        <div className='space-y-3'>
+                          {otherLeads.map(otherLead => (
+                            <div
+                              key={otherLead.id}
+                              onClick={() => handleLeadClick(otherLead.id)}
+                              className='flex items-center gap-3 p-3 bg-card rounded-lg border border-border/50 hover:bg-accent/50 transition-colors cursor-pointer'
+                            >
+                              <div className='w-10 h-10 bg-card rounded-full flex items-center justify-center flex-shrink-0 border border-border/50'>
+                                <User className='h-5 w-5 text-muted-foreground' />
+                              </div>
+                              <div className='flex-1 min-w-0'>
+                                <div className='font-medium text-sm text-foreground truncate'>
+                                  {getLeadFullName(otherLead)}
+                                </div>
+                                <div className='text-xs text-muted-foreground truncate'>
+                                  {otherLead.job_title || 'No title'}
+                                </div>
+                              </div>
+                              {otherLead.status && (
+                                <StatusBadge
+                                  status={otherLead.status}
+                                  size='sm'
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </SlideOutSection>
+                    </div>
+                  )}
 
                   {/* Campaign Enrollment */}
                   {enrolledCampaigns.length > 0 && (
-                    <div className='mt-8 mb-24'>
-                      <SlideOutSection title='Campaigns'>
+                    <div className='mt-6 mb-6'>
+                      <SlideOutSection title='Active Campaigns'>
                         <div className='space-y-2'>
                           {enrolledCampaigns.map(campaign => (
                             <div
                               key={campaign.id}
-                              className='flex items-center gap-2 p-2 bg-muted rounded-md border border-border'
+                              className='flex items-center gap-2 p-2 bg-card rounded-lg border border-border/50'
                             >
                               <ListPlus className='h-4 w-4 text-muted-foreground' />
                               <span className='text-sm text-foreground flex-1'>
@@ -852,141 +1020,144 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                       </SlideOutSection>
                     </div>
                   )}
-
-                  {/* AI Summary */}
-                  {lead.ai_summary && (
-                    <div className='mt-8 mb-24'>
-                      <SlideOutSection title='AI Summary'>
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
-                          {lead.ai_summary}
-                        </div>
-                      </SlideOutSection>
-                    </div>
-                  )}
-
-                  {/* Notes */}
-                  {lead.notes && (
-                    <div className='mt-8 mb-24'>
-                      <SlideOutSection title='Notes'>
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
-                          {lead.notes}
-                        </div>
-                      </SlideOutSection>
-                    </div>
-                  )}
-
-                  {/* Scan Image */}
-                  {lead.scan_image_url && (
-                    <div className='mt-8 mb-24'>
-                      <SlideOutSection title='Business Card Scan'>
-                        <div className='flex items-center gap-2'>
-                          <ImageIcon className='h-4 w-4 text-muted-foreground' />
-                          <a
-                            href={lead.scan_image_url}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            className='text-sm text-primary hover:text-primary underline'
-                          >
-                            View scan image
-                          </a>
-                        </div>
-                      </SlideOutSection>
-                    </div>
-                  )}
-
-                  {/* Company Details */}
-                  {company && (
-                    <div className='mt-12 mb-24'>
-                      <SlideOutSection title='Company'>
-                        <div className='mt-2'>
-                          <SlideOutGrid items={companyDetailsItems} />
-                        </div>
-                        {company.score_reason && (
-                          <div className='mt-6'>
-                            <div className='p-4 bg-primary/10 rounded-lg border border-primary/20'>
-                              <h5 className='text-sm font-semibold text-blue-900 mb-2'>
-                                Company Analysis
-                              </h5>
-                              <p className='text-sm text-primary leading-relaxed'>
-                                {company.score_reason}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        {otherLeads.length > 0 && (
-                          <div className='mt-8'>
-                            <SlideOutSection
-                              title={`Other Company Leads (${otherLeads.length})`}
-                            >
-                              <div className='space-y-3'>
-                                {otherLeads.map(otherLead => (
-                                  <div
-                                    key={otherLead.id}
-                                    onClick={() =>
-                                      handleLeadClick(otherLead.id)
-                                    }
-                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-gray-100 transition-colors cursor-pointer'
-                                  >
-                                    <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
-                                      <User className='h-5 w-5 text-muted-foreground' />
-                                    </div>
-                                    <div className='flex-1 min-w-0'>
-                                      <div className='font-medium text-sm text-foreground truncate'>
-                                        {getLeadFullName(otherLead)}
-                                      </div>
-                                      <div className='text-xs text-muted-foreground truncate'>
-                                        {otherLead.job_title || 'No title'}
-                                      </div>
-                                    </div>
-                                    {otherLead.status && (
-                                      <StatusBadge
-                                        status={otherLead.status}
-                                        size='sm'
-                                      />
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </SlideOutSection>
-                          </div>
-                        )}
-                      </SlideOutSection>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === 'activity' && (
-                <div className='flex flex-col px-6'>
-                  <div className='mt-6 mb-8'>
-                    <SlideOutSection title='Activity'>
-                      <div className='space-y-2 select-text overflow-x-hidden'>
-                        <div className='text-center py-8 text-muted-foreground text-sm'>
-                          No activity yet
-                        </div>
-                      </div>
-                    </SlideOutSection>
-                  </div>
                 </div>
               )}
 
               {activeTab === 'ai' && (
-                <div className='flex flex-col px-6'>
+                <div className='flex flex-col px-6 pb-8 pt-4'>
+                  {/* AI Icebreaker Message */}
                   {lead.ai_icebreaker && (
-                    <div className='mt-6 mb-8'>
-                      <SlideOutSection title='AI Icebreaker'>
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
-                          {lead.ai_icebreaker}
+                    <div className='mt-2 mb-6'>
+                      <SlideOutSection title='Icebreaker Message'>
+                        <div className='bg-card border border-border/50 rounded-lg p-4'>
+                          <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed mb-4'>
+                            {lead.ai_icebreaker}
+                          </div>
+                          <div className='pt-3 mt-3 border-t border-border/50'>
+                            <div className='text-xs text-muted-foreground mb-2'>
+                              Lemlist Variables:
+                            </div>
+                            <div className='flex flex-wrap gap-2'>
+                              {lead.first_name && (
+                                <code className='text-xs bg-muted px-2 py-1 rounded border border-border'>
+                                  {'{first_name}'}
+                                </code>
+                              )}
+                              {lead.last_name && (
+                                <code className='text-xs bg-muted px-2 py-1 rounded border border-border'>
+                                  {'{last_name}'}
+                                </code>
+                              )}
+                              {lead.company && (
+                                <code className='text-xs bg-muted px-2 py-1 rounded border border-border'>
+                                  {'{company}'}
+                                </code>
+                              )}
+                              {lead.job_title && (
+                                <code className='text-xs bg-muted px-2 py-1 rounded border border-border'>
+                                  {'{title}'}
+                                </code>
+                              )}
+                              {company?.industry && (
+                                <code className='text-xs bg-muted px-2 py-1 rounded border border-border'>
+                                  {'{industry}'}
+                                </code>
+                              )}
+                              {company?.company_size && (
+                                <code className='text-xs bg-muted px-2 py-1 rounded border border-border'>
+                                  {'{company_size}'}
+                                </code>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </SlideOutSection>
                     </div>
                   )}
 
+                  {/* Personalized Outreach Message */}
                   {lead.ai_summary && (
-                    <div className='mt-6 mb-8'>
-                      <SlideOutSection title='AI Summary'>
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
-                          {lead.ai_summary}
+                    <div className='mt-6 mb-6'>
+                      <SlideOutSection title='Personalized Outreach Message'>
+                        <div className='bg-card border border-border/50 rounded-lg p-4'>
+                          <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed mb-4'>
+                            {lead.ai_summary}
+                          </div>
+                          <div className='pt-3 mt-3 border-t border-border/50'>
+                            <div className='text-xs text-muted-foreground mb-2'>
+                              Available Lemlist Variables:
+                            </div>
+                            <div className='flex flex-wrap gap-2'>
+                              {lead.first_name && (
+                                <code className='text-xs bg-muted/50 px-2 py-1 rounded border border-border/50 text-foreground'>
+                                  {'{first_name}'}
+                                </code>
+                              )}
+                              {lead.last_name && (
+                                <code className='text-xs bg-muted/50 px-2 py-1 rounded border border-border/50 text-foreground'>
+                                  {'{last_name}'}
+                                </code>
+                              )}
+                              {lead.company && (
+                                <code className='text-xs bg-muted/50 px-2 py-1 rounded border border-border/50 text-foreground'>
+                                  {'{company}'}
+                                </code>
+                              )}
+                              {lead.job_title && (
+                                <code className='text-xs bg-muted/50 px-2 py-1 rounded border border-border/50 text-foreground'>
+                                  {'{title}'}
+                                </code>
+                              )}
+                              {company?.industry && (
+                                <code className='text-xs bg-muted/50 px-2 py-1 rounded border border-border/50 text-foreground'>
+                                  {'{industry}'}
+                                </code>
+                              )}
+                              {company?.company_size && (
+                                <code className='text-xs bg-muted/50 px-2 py-1 rounded border border-border/50 text-foreground'>
+                                  {'{company_size}'}
+                                </code>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </SlideOutSection>
+                    </div>
+                  )}
+
+                  {/* Example Message with Variables */}
+                  {lead.first_name && lead.company && (
+                    <div className='mt-6 mb-6'>
+                      <SlideOutSection title='Example Message (with Variables)'>
+                        <div className='bg-card border border-border/50 rounded-lg p-4'>
+                          <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed mb-4'>
+                            {`Hi {first_name},
+
+I noticed you're ${lead.job_title ? `the ${lead.job_title}` : 'working'} at {company}${company?.industry ? ` in the ${company.industry} industry` : ''}. ${lead.ai_icebreaker || lead.ai_summary ? 'I thought you might be interested in learning more about how we can help.' : ''}
+
+Would you be open to a quick conversation?
+
+Best regards`}
+                          </div>
+                          <div className='pt-3 mt-3 border-t border-border/50'>
+                            <div className='text-xs text-muted-foreground mb-2'>
+                              This message uses Lemlist variables that will be
+                              automatically replaced:
+                            </div>
+                            <div className='flex flex-wrap gap-2'>
+                              <code className='text-xs bg-muted/50 px-2 py-1 rounded border border-border/50 text-foreground'>
+                                {'{first_name}'} → {lead.first_name}
+                              </code>
+                              <code className='text-xs bg-muted/50 px-2 py-1 rounded border border-border/50 text-foreground'>
+                                {'{company}'} → {lead.company}
+                              </code>
+                              {company?.industry && (
+                                <code className='text-xs bg-muted/50 px-2 py-1 rounded border border-border/50 text-foreground'>
+                                  {'{industry}'} → {company.industry}
+                                </code>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </SlideOutSection>
                     </div>
@@ -995,19 +1166,54 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                   {!lead.ai_icebreaker && !lead.ai_summary && (
                     <div className='mt-6 mb-12'>
                       <SlideOutSection title='AI Messages'>
-                        <div className='text-sm text-muted-foreground'>
-                          No AI messages available
+                        <div className='bg-card border border-border/50 rounded-lg p-4'>
+                          <div className='text-sm text-muted-foreground text-center py-4'>
+                            No AI messages available. AI messages will appear
+                            here once generated.
+                          </div>
                         </div>
                       </SlideOutSection>
                     </div>
                   )}
                 </div>
               )}
+
+              {activeTab === 'notes' && (
+                <div className='flex flex-col px-6 pb-8 pt-4'>
+                  <div className='mt-2 mb-6'>
+                    <SlideOutSection title='Notes'>
+                      <div className='space-y-4'>
+                        <Textarea
+                          value={notesValue}
+                          onChange={e => setNotesValue(e.target.value)}
+                          placeholder='Add notes about this lead...'
+                          className='min-h-[300px] resize-none bg-card border-border/50'
+                          onBlur={handleSaveNotes}
+                        />
+                        <div className='flex items-center justify-between'>
+                          <p className='text-xs text-muted-foreground'>
+                            Notes are saved automatically when you click away
+                            from the text area.
+                          </p>
+                          <Button
+                            onClick={handleSaveNotes}
+                            disabled={savingNotes}
+                            size='sm'
+                            variant='default'
+                          >
+                            {savingNotes ? 'Saving...' : 'Save Notes'}
+                          </Button>
+                        </div>
+                      </div>
+                    </SlideOutSection>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
           {/* Right Column - Sidebar */}
-          <div className='w-80 flex-shrink-0 border-l border-border flex flex-col h-full overflow-hidden ml-0'>
+          <div className='w-80 flex-shrink-0 border-l border-border/50 flex flex-col h-full overflow-hidden ml-0 bg-card/30'>
             <div className='flex-1 flex flex-col overflow-y-auto'>
               <div className='px-6 pt-6'>
                 <div className='mb-4'>

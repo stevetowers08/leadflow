@@ -168,7 +168,7 @@ export default function LeadsPage() {
             />
           </div>
         ),
-        width: '50px',
+        width: '52px',
         cellType: 'regular',
         align: 'center',
         render: (_, lead) => renderCheckbox(lead),
