@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
-import { LeadFlowLogoHorizontal } from '@/components/RecruitEdgeLogo';
+import { LeadFlowLogoHorizontal } from '@/components/LeadFlowLogo';
 import { Loader2, EyeOff, Eye } from 'lucide-react';
 
 export const SignIn: React.FC = () => {

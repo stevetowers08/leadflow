@@ -1,4 +1,4 @@
-import { LeadFlowLogoHorizontal } from '@/components/RecruitEdgeLogo';
+import { LeadFlowLogoHorizontal } from '@/components/LeadFlowLogo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

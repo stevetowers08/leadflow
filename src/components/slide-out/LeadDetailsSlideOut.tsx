@@ -201,15 +201,21 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               .in('status', ['active', 'paused', 'completed']);
 
             if (enrolledError) {
-              if (
-                enrolledError.message?.includes('schema cache') ||
-                enrolledError.message?.includes('does not exist')
-              ) {
-                console.warn(
-                  '[LeadDetailsSlideOut] campaign_sequence_leads table not found.'
-                );
+              // Handle missing table or schema errors gracefully
+              const errorMessage = enrolledError.message || '';
+              const isTableNotFound =
+                errorMessage.includes('schema cache') ||
+                errorMessage.includes('does not exist') ||
+                errorMessage.includes('relation') ||
+                errorMessage.includes('permission denied') ||
+                enrolledError.code === 'PGRST116' || // PostgREST table not found
+                enrolledError.code === '42P01'; // PostgreSQL relation does not exist
+
+              if (isTableNotFound) {
+                // Silently handle missing table - this is expected if migration hasn't run
                 setEnrolledCampaigns([]);
               } else {
+                // Only log non-expected errors
                 console.error(
                   '[LeadDetailsSlideOut] Error fetching enrolled campaigns:',
                   getErrorMessage(enrolledError)

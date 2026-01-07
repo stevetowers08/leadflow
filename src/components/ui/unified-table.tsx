@@ -163,7 +163,6 @@ export const TableCell = React.forwardRef<
         'px-4 py-1',
         'text-sm text-muted-foreground',
         'border-r border-border last:border-r-0',
-        'box-border',
         cellType !== 'status' && 'group-hover:text-muted-foreground',
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
@@ -171,6 +170,10 @@ export const TableCell = React.forwardRef<
         'overflow-hidden break-words',
         className
       )}
+      style={{
+        width: 0, // Force colgroup to control width
+        ...props.style,
+      }}
       {...props}
     />
   );
@@ -203,7 +206,6 @@ export const TableHead = React.forwardRef<
         'px-4 py-1 h-[40px]',
         'text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap',
         'border-b border-r border-border last:border-r-0',
-        'box-border',
         !isSticky && isFirst && 'rounded-tl-md',
         !isSticky && isLast && 'rounded-tr-md',
         align === 'center' && 'text-center',
@@ -212,6 +214,7 @@ export const TableHead = React.forwardRef<
         className
       )}
       style={{
+        width: 0, // Force colgroup to control width
         ...(isSticky && {
           position: 'sticky',
           top: 0,
@@ -439,8 +442,8 @@ function UnifiedTableComponent<T = unknown>({
             style={{
               tableLayout: 'fixed',
               width: `${Math.round(totalTableWidth)}px`,
-              borderCollapse: 'separate',
-              borderSpacing: 0,
+              minWidth: `${Math.round(totalTableWidth)}px`,
+              borderCollapse: 'collapse',
             }}
           >
             {/* Colgroup to enforce exact column widths across header and body */}
@@ -497,7 +500,7 @@ function UnifiedTableComponent<T = unknown>({
                   'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
               )}
             >
-              <tr className='border-b border-border'>
+              <tr>
                 {orderedColumns.map((column, index) => {
                   // Handle different label types
                   const labelContent = React.isValidElement(column.label)
@@ -649,11 +652,6 @@ function UnifiedTableComponent<T = unknown>({
                                         cellType={column.cellType}
                                         align={column.align}
                                         statusValue={statusValue}
-                                        style={{
-                                          ...(column.maxWidth && {
-                                            maxWidth: column.maxWidth,
-                                          }),
-                                        }}
                                       >
                                         {column.render ? (
                                           column.render(value, row, index)
@@ -707,11 +705,6 @@ function UnifiedTableComponent<T = unknown>({
                                 cellType={column.cellType}
                                 align={column.align}
                                 statusValue={statusValue}
-                                style={{
-                                  ...(column.maxWidth && {
-                                    maxWidth: column.maxWidth,
-                                  }),
-                                }}
                               >
                                 {column.render ? (
                                   column.render(value, row, index)

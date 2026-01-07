@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
-import { LeadFlowLogo } from '../RecruitEdgeLogo';
+import { LeadFlowLogo } from '../LeadFlowLogo';
 import { Loader2 } from 'lucide-react';
 
 export const FallbackAuth: React.FC = () => {

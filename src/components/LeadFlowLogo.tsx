@@ -19,14 +19,16 @@ export const LeadFlowLogo: React.FC<LeadFlowLogoProps> = ({
   if (variant === 'horizontal') {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        <Image
-          src={logoPath}
-          alt='Leadflow'
-          width={size}
-          height={size}
-          className='object-contain'
-          priority
-        />
+        <div style={{ width: size, height: size }}>
+          <Image
+            src={logoPath}
+            alt='Leadflow'
+            width={size}
+            height={size}
+            className='object-contain w-full h-full'
+            priority
+          />
+        </div>
         {showText && (
           <span className='text-base font-semibold text-foreground'>
             Leadflow
@@ -39,14 +41,16 @@ export const LeadFlowLogo: React.FC<LeadFlowLogoProps> = ({
   if (variant === 'vertical') {
     return (
       <div className={`flex flex-col items-center gap-2 ${className}`}>
-        <Image
-          src={logoPath}
-          alt='Leadflow'
-          width={size}
-          height={size}
-          className='object-contain'
-          priority
-        />
+        <div style={{ width: size, height: size }}>
+          <Image
+            src={logoPath}
+            alt='Leadflow'
+            width={size}
+            height={size}
+            className='object-contain w-full h-full'
+            priority
+          />
+        </div>
         {showText && (
           <span className='text-sm font-semibold text-foreground'>
             Leadflow
@@ -58,14 +62,16 @@ export const LeadFlowLogo: React.FC<LeadFlowLogoProps> = ({
 
   // Default icon only
   return (
-    <Image
-      src={logoPath}
-      alt='Leadflow'
-      width={size}
-      height={size}
-      className={`object-contain ${className}`}
-      priority
-    />
+    <div className={className} style={{ width: size, height: size }}>
+      <Image
+        src={logoPath}
+        alt='Leadflow'
+        width={size}
+        height={size}
+        className='object-contain w-full h-full'
+        priority
+      />
+    </div>
   );
 };
 

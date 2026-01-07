@@ -19,7 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { NavMain } from '@/components/nav-main';
 import { NavSecondary } from '@/components/nav-secondary';
 import { NavUser } from '@/components/nav-user';
-import { LeadFlowLogo } from '@/components/RecruitEdgeLogo';
+import { LeadFlowLogo } from '@/components/LeadFlowLogo';
 import {
   Sidebar,
   SidebarContent,

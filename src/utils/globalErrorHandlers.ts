@@ -73,9 +73,13 @@ export function setupGlobalErrorHandlers(): void {
       // Log failed requests to error tracking service
       // HTTP 5xx errors are handled gracefully by the application and won't spam console
       const url = args[0]?.toString() || '';
-      
+
       // Don't log errors from the error logging endpoint itself (prevents infinite loops)
-      if (!response.ok && !url.includes('/api/errors')) {
+      // Don't log 404s from Supabase REST API - these are expected for missing tables/records
+      const isSupabaseRestApi = url.includes('.supabase.co/rest/v1/');
+      const isExpected404 = response.status === 404 && isSupabaseRestApi;
+
+      if (!response.ok && !url.includes('/api/errors') && !isExpected404) {
         // Always log to error tracking service for monitoring
         await enhancedErrorLogger.logNetworkError(
           `HTTP ${response.status}: ${response.statusText}`,
@@ -94,21 +98,22 @@ export function setupGlobalErrorHandlers(): void {
 
       return response;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       const url = args[0]?.toString() || '';
-      
+
       // Suppress "Failed to fetch" errors from expected scenarios:
       // - API key validation/testing (Lemlist, external APIs)
       // - CORS errors from third-party APIs
       // - Network timeouts during connection testing
-      const isExpectedError = 
+      const isExpectedError =
         errorMessage === 'Failed to fetch' &&
-        (url.includes('api.lemlist.com') || 
-         url.includes('lemlist.com') ||
-         url.includes('/api/lemlist') ||
-         url.includes('/api/integrations') ||
-         url.includes('/api/oauth'));
-      
+        (url.includes('api.lemlist.com') ||
+          url.includes('lemlist.com') ||
+          url.includes('/api/lemlist') ||
+          url.includes('/api/integrations') ||
+          url.includes('/api/oauth'));
+
       if (!isExpectedError) {
         // Network errors (connection failures) should be logged for unexpected cases
         await enhancedErrorLogger.logNetworkError(error as Error, {

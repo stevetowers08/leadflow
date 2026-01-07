@@ -3,7 +3,7 @@ import {
   LeadFlowLogo,
   LeadFlowLogoHorizontal,
   LeadFlowLogoVertical,
-} from '../components/RecruitEdgeLogo';
+} from '../components/LeadFlowLogo';
 
 export const LogoShowcase: React.FC = () => {
   return (
