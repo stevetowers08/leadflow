@@ -1,6 +1,6 @@
 /**
  * Lemlist API Service
- * 
+ *
  * PDR Section: Technical Specifications - Workflow Automation
  * Handles Lemlist OAuth and API integration for email campaigns
  */
@@ -23,14 +23,31 @@ export interface LemlistCampaignStats {
   total_positive_replies: number;
 }
 
-interface LemlistLead {
+export interface LemlistLeadActivity {
+  opened?: boolean;
+  openedAt?: string;
+  clicked?: boolean;
+  clickedAt?: string;
+  replied?: boolean;
+  repliedAt?: string;
+  bounced?: boolean;
+  bouncedAt?: string;
+  unsubscribed?: boolean;
+  unsubscribedAt?: string;
+  lastActivityAt?: string;
+}
+
+export interface LemlistLead {
   id: string;
   email: string;
   firstName?: string;
   lastName?: string;
   company?: string;
   campaignId: string;
-  status: 'active' | 'paused' | 'completed';
+  status: 'active' | 'paused' | 'completed' | 'pending';
+  activity?: LemlistLeadActivity;
+  // Raw data from API for debugging
+  rawData?: Record<string, unknown>;
 }
 
 interface LemlistApiResponse<T> {
@@ -47,7 +64,11 @@ export class LemlistService {
 
   constructor(apiKey?: string, email?: string) {
     // Support both client-side (NEXT_PUBLIC_) and server-side env vars
-    this.apiKey = apiKey || process.env.NEXT_PUBLIC_LEMLIST_API_KEY || process.env.LEMLIST_API_KEY || null;
+    this.apiKey =
+      apiKey ||
+      process.env.NEXT_PUBLIC_LEMLIST_API_KEY ||
+      process.env.LEMLIST_API_KEY ||
+      null;
     this.lemlistEmail = email || process.env.LEMLIST_EMAIL || null;
   }
 
@@ -104,7 +125,11 @@ export class LemlistService {
   /**
    * Fetch with timeout wrapper
    */
-  private async fetchWithTimeout(url: string, options: RequestInit, timeout = 10000): Promise<Response> {
+  private async fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    timeout = 10000
+  ): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -134,10 +159,10 @@ export class LemlistService {
     }
 
     try {
-      const apiUrl = this.userId 
+      const apiUrl = this.userId
         ? `/api/lemlist/campaigns/${campaignId}?userId=${encodeURIComponent(this.userId)}`
         : `${this.baseUrl}/campaigns/${campaignId}`;
-      
+
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -146,10 +171,14 @@ export class LemlistService {
         headers['Authorization'] = this.getAuthHeader();
       }
 
-      const response = await this.fetchWithTimeout(apiUrl, {
-        method: 'GET',
-        headers,
-      }, 10000);
+      const response = await this.fetchWithTimeout(
+        apiUrl,
+        {
+          method: 'GET',
+          headers,
+        },
+        10000
+      );
 
       if (!response.ok) {
         return { emailCount: 0 };
@@ -162,7 +191,9 @@ export class LemlistService {
         email?: string;
         [key: string]: unknown;
       }
-      const emailSenders = (data.senders as LemlistSender[] | undefined)?.filter((s) => s.email) || [];
+      const emailSenders =
+        (data.senders as LemlistSender[] | undefined)?.filter(s => s.email) ||
+        [];
       return { emailCount: emailSenders.length };
     } catch (error) {
       return { emailCount: 0 };
@@ -181,10 +212,10 @@ export class LemlistService {
 
     try {
       // Use API route to avoid CORS issues
-      const apiUrl = this.userId 
+      const apiUrl = this.userId
         ? `/api/lemlist/campaigns?userId=${encodeURIComponent(this.userId)}`
         : `${this.baseUrl}/campaigns`; // Fallback to direct call if no userId (server-side)
-      
+
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -194,23 +225,31 @@ export class LemlistService {
         headers['Authorization'] = this.getAuthHeader();
       }
 
-      const response = await this.fetchWithTimeout(apiUrl, {
-        method: 'GET',
-        headers,
-      }, 10000);
+      const response = await this.fetchWithTimeout(
+        apiUrl,
+        {
+          method: 'GET',
+          headers,
+        },
+        10000
+      );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || `Lemlist API error: ${response.status}`);
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
+        throw new Error(
+          errorData.error || `Lemlist API error: ${response.status}`
+        );
       }
 
       const data = await response.json();
-      
+
       // Handle error response from API route
       if (data.error) {
         throw new Error(data.error);
       }
-      
+
       // Handle both array and object responses
       // Lemlist API returns campaigns in different formats
       interface LemlistCampaignResponse {
@@ -222,44 +261,64 @@ export class LemlistService {
       }
 
       let campaigns: LemlistCampaignResponse[] = [];
-      
+
       if (Array.isArray(data)) {
         campaigns = data as LemlistCampaignResponse[];
-      } else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
+      } else if (
+        data &&
+        typeof data === 'object' &&
+        'data' in data &&
+        Array.isArray(data.data)
+      ) {
         campaigns = data.data as LemlistCampaignResponse[];
-      } else if (data && typeof data === 'object' && 'campaigns' in data && Array.isArray(data.campaigns)) {
+      } else if (
+        data &&
+        typeof data === 'object' &&
+        'campaigns' in data &&
+        Array.isArray(data.campaigns)
+      ) {
         campaigns = data.campaigns as LemlistCampaignResponse[];
-      } else if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+      } else if (
+        data &&
+        typeof data === 'object' &&
+        Object.keys(data).length > 0
+      ) {
         // Sometimes it's an object with campaign IDs as keys
         campaigns = Object.values(data) as LemlistCampaignResponse[];
       }
-      
+
       return campaigns.map((campaign: LemlistCampaignResponse) => {
         // Map status: "running" -> "active" to match our type
         let status = campaign.status || campaign.campaignStatus || 'paused';
         if (status === 'running') {
           status = 'active';
         }
-        
+
         return {
           id: campaign._id || campaign.id || campaign.campaignId,
           name: campaign.name || campaign.campaignName,
           status: status as 'active' | 'paused' | 'completed',
           // Note: emailCount not available in list endpoint, will be 0 or fetched separately
-          emailCount: campaign.steps?.length || campaign.emailCount || campaign.numberOfEmails || 0,
-          createdAt: campaign.createdAt || campaign.created_at || campaign.dateCreated,
+          emailCount:
+            campaign.steps?.length ||
+            campaign.emailCount ||
+            campaign.numberOfEmails ||
+            0,
+          createdAt:
+            campaign.createdAt || campaign.created_at || campaign.dateCreated,
           description: campaign.description,
         };
       });
     } catch (error) {
       // Don't log network errors - they're expected during connection testing
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const isNetworkError = 
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const isNetworkError =
         errorMessage === 'Failed to fetch' ||
         errorMessage.includes('timeout') ||
         errorMessage.includes('network') ||
         errorMessage.includes('AbortError');
-      
+
       if (!isNetworkError) {
         console.error('Error fetching Lemlist campaigns:', error);
       }
@@ -284,19 +343,23 @@ export class LemlistService {
     }
 
     try {
-      const response = await this.fetchWithTimeout(`${this.baseUrl}/campaigns/${campaignId}/leads`, {
-        method: 'POST',
-        headers: {
-          'Authorization': this.getAuthHeader(),
-          'Content-Type': 'application/json',
+      const response = await this.fetchWithTimeout(
+        `${this.baseUrl}/campaigns/${campaignId}/leads`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: this.getAuthHeader(),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: lead.email,
+            firstName: lead.firstName,
+            lastName: lead.lastName,
+            company: lead.company,
+          }),
         },
-        body: JSON.stringify({
-          email: lead.email,
-          firstName: lead.firstName,
-          lastName: lead.lastName,
-          company: lead.company,
-        }),
-      }, 10000);
+        10000
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -331,7 +394,11 @@ export class LemlistService {
       lastName?: string;
       company?: string;
     }>
-  ): Promise<{ success: number; failed: number; errors: Array<{ lead: unknown; error: string }> }> {
+  ): Promise<{
+    success: number;
+    failed: number;
+    errors: Array<{ lead: unknown; error: string }>;
+  }> {
     if (!this.apiKey) {
       throw new Error('Lemlist API key not configured');
     }
@@ -350,8 +417,8 @@ export class LemlistService {
 
     for (let i = 0; i < leads.length; i += batchSize) {
       const batch = leads.slice(i, i + batchSize);
-      
-      const batchPromises = batch.map(async (lead) => {
+
+      const batchPromises = batch.map(async lead => {
         try {
           await this.addLeadToCampaign(campaignId, lead);
           results.success++;
@@ -367,7 +434,7 @@ export class LemlistService {
       });
 
       await Promise.all(batchPromises);
-      
+
       // Small delay between batches to avoid rate limiting
       if (i + batchSize < leads.length) {
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -378,9 +445,190 @@ export class LemlistService {
   }
 
   /**
-   * Get lead status from Lemlist
+   * Get lead by email from a Lemlist campaign
+   * API Reference: https://developer.lemlist.com/api-reference/endpoints/leads/get-lead-by-email
    */
-  async getLeadStatus(campaignId: string, leadId: string): Promise<LemlistLead> {
+  async getLeadByEmail(
+    campaignId: string,
+    email: string
+  ): Promise<LemlistLead | null> {
+    if (!this.apiKey) {
+      throw new Error('Lemlist API key not configured');
+    }
+
+    try {
+      // Lemlist API uses email as the identifier in the URL
+      const encodedEmail = encodeURIComponent(email);
+      const response = await this.fetchWithTimeout(
+        `${this.baseUrl}/campaigns/${campaignId}/leads/${encodedEmail}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: this.getAuthHeader(),
+            'Content-Type': 'application/json',
+          },
+        },
+        10000
+      );
+
+      if (response.status === 404) {
+        return null; // Lead not found
+      }
+
+      if (!response.ok) {
+        throw new Error(`Lemlist API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return this.mapLemlistLeadData(data, campaignId);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      // Don't throw on 404 - lead just doesn't exist
+      if (errorMessage.includes('404')) {
+        return null;
+      }
+      console.error('Error fetching Lemlist lead by email:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all leads from a Lemlist campaign with activity data
+   * API Reference: https://developer.lemlist.com/api-reference/endpoints/campaigns/get-campaign-leads
+   */
+  async getCampaignLeads(campaignId: string): Promise<LemlistLead[]> {
+    if (!this.apiKey) {
+      throw new Error('Lemlist API key not configured');
+    }
+
+    try {
+      const response = await this.fetchWithTimeout(
+        `${this.baseUrl}/campaigns/${campaignId}/leads`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: this.getAuthHeader(),
+            'Content-Type': 'application/json',
+          },
+        },
+        15000
+      );
+
+      // Handle rate limiting
+      if (response.status === 429) {
+        console.warn('Lemlist API rate limit reached');
+        return [];
+      }
+
+      if (!response.ok) {
+        // If no leads or campaign doesn't exist, return empty array (not an error)
+        if (response.status === 404 || response.status === 400) {
+          return [];
+        }
+        throw new Error(`Lemlist API error: ${response.status}`);
+      }
+
+      const leads = await response.json();
+      const leadsArray = Array.isArray(leads) ? leads : [];
+
+      return leadsArray.map((lead: Record<string, unknown>) =>
+        this.mapLemlistLeadData(lead, campaignId)
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const isNetworkError =
+        errorMessage === 'Failed to fetch' ||
+        errorMessage.includes('timeout') ||
+        errorMessage.includes('network') ||
+        errorMessage.includes('AbortError');
+
+      if (!isNetworkError) {
+        console.error('Error fetching Lemlist campaign leads:', error);
+      }
+
+      // Return empty array on error to prevent UI blocking
+      return [];
+    }
+  }
+
+  /**
+   * Map raw Lemlist API lead data to our LemlistLead interface
+   */
+  private mapLemlistLeadData(
+    data: Record<string, unknown>,
+    campaignId: string
+  ): LemlistLead {
+    // Extract activity data
+    const activity: LemlistLeadActivity = {
+      opened: !!(data.openedAt || data.opened || data.isOpened),
+      openedAt: this.extractTimestamp(data.openedAt),
+      clicked: !!(data.clickedAt || data.clicked || data.isClicked),
+      clickedAt: this.extractTimestamp(data.clickedAt),
+      replied: !!(data.repliedAt || data.replied || data.isReplied),
+      repliedAt: this.extractTimestamp(data.repliedAt),
+      bounced: !!(data.bounced || data.bouncedAt || data.isBounced),
+      bouncedAt: this.extractTimestamp(data.bouncedAt),
+      unsubscribed: !!(
+        data.unsubscribed ||
+        data.unsubscribedAt ||
+        data.isUnsubscribed
+      ),
+      unsubscribedAt: this.extractTimestamp(data.unsubscribedAt),
+      lastActivityAt: this.extractTimestamp(
+        data.lastActivityAt || data.lastActivity || data.updatedAt
+      ),
+    };
+
+    // Determine status
+    let status: LemlistLead['status'] = 'active';
+    if (data.status) {
+      const statusStr = String(data.status).toLowerCase();
+      if (['paused', 'paused'].includes(statusStr)) {
+        status = 'paused';
+      } else if (['completed', 'finished', 'done'].includes(statusStr)) {
+        status = 'completed';
+      } else if (['pending', 'waiting'].includes(statusStr)) {
+        status = 'pending';
+      }
+    }
+
+    return {
+      id: String(data._id || data.id || ''),
+      email: String(data.email || ''),
+      firstName: data.firstName ? String(data.firstName) : undefined,
+      lastName: data.lastName ? String(data.lastName) : undefined,
+      company: data.company ? String(data.company) : undefined,
+      campaignId,
+      status,
+      activity,
+      rawData: data,
+    };
+  }
+
+  /**
+   * Extract timestamp from various formats
+   */
+  private extractTimestamp(value: unknown): string | undefined {
+    if (!value) return undefined;
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') {
+      // Unix timestamp in seconds or milliseconds
+      const date = value > 1e10 ? new Date(value) : new Date(value * 1000);
+      return date.toISOString();
+    }
+    if (value instanceof Date) return value.toISOString();
+    return undefined;
+  }
+
+  /**
+   * Get lead status from Lemlist (by lead ID)
+   */
+  async getLeadStatus(
+    campaignId: string,
+    leadId: string
+  ): Promise<LemlistLead> {
     if (!this.apiKey) {
       throw new Error('Lemlist API key not configured');
     }
@@ -391,7 +639,7 @@ export class LemlistService {
         {
           method: 'GET',
           headers: {
-            'Authorization': this.getAuthHeader(),
+            Authorization: this.getAuthHeader(),
             'Content-Type': 'application/json',
           },
         },
@@ -403,15 +651,7 @@ export class LemlistService {
       }
 
       const data = await response.json();
-      return {
-        id: data._id,
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        company: data.company,
-        campaignId: campaignId,
-        status: data.status || 'active',
-      };
+      return this.mapLemlistLeadData(data, campaignId);
     } catch (error) {
       console.error('Error fetching Lemlist lead status:', error);
       throw error;
@@ -432,7 +672,7 @@ export class LemlistService {
         {
           method: 'PUT',
           headers: {
-            'Authorization': this.getAuthHeader(),
+            Authorization: this.getAuthHeader(),
             'Content-Type': 'application/json',
           },
         },
@@ -450,12 +690,12 @@ export class LemlistService {
 
   /**
    * Get campaign statistics by fetching leads and calculating metrics
-   * 
+   *
    * Best practices per official docs:
    * - Uses leads endpoint to calculate stats (no dedicated stats endpoint available)
    * - Implements proper error handling for rate limits and network issues
    * - Returns zero values on errors to prevent UI blocking
-   * 
+   *
    * Reference: https://developer.lemlist.com/api-reference/endpoints/campaigns
    */
   async getCampaignStats(campaignId: string): Promise<LemlistCampaignStats> {
@@ -471,7 +711,7 @@ export class LemlistService {
         {
           method: 'GET',
           headers: {
-            'Authorization': this.getAuthHeader(),
+            Authorization: this.getAuthHeader(),
             'Content-Type': 'application/json',
           },
         },
@@ -553,17 +793,18 @@ export class LemlistService {
       return stats;
     } catch (error) {
       // Best practice: Don't log network errors - they're expected during connection testing
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const isNetworkError = 
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const isNetworkError =
         errorMessage === 'Failed to fetch' ||
         errorMessage.includes('timeout') ||
         errorMessage.includes('network') ||
         errorMessage.includes('AbortError');
-      
+
       if (!isNetworkError) {
         console.error('Error fetching Lemlist campaign stats:', error);
       }
-      
+
       // Return zeros on error to prevent UI blocking (best practice)
       return {
         total_sent: 0,
@@ -579,4 +820,3 @@ export class LemlistService {
 
 // Export singleton instance
 export const lemlistService = new LemlistService();
-
