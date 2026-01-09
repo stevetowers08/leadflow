@@ -1,85 +1,63 @@
-import React from 'react';
-import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
-interface LeadFlowLogoProps {
+interface LogoProps {
   size?: number;
   className?: string;
-  showText?: boolean;
-  variant?: 'icon' | 'horizontal' | 'vertical';
 }
 
-export const LeadFlowLogo: React.FC<LeadFlowLogoProps> = ({
-  size = 32,
-  className = '',
-  showText = false,
-  variant = 'icon',
-}) => {
-  const logoPath = '/leadflow-logo.png';
-
-  if (variant === 'horizontal') {
-    return (
-      <div className={`flex items-center gap-2 ${className}`}>
-        <div style={{ width: size, height: size }}>
-          <Image
-            src={logoPath}
-            alt='Leadflow'
-            width={size}
-            height={size}
-            className='object-contain w-full h-full'
-            priority
-          />
-        </div>
-        {showText && (
-          <span className='text-base font-semibold text-foreground'>
-            Leadflow
-          </span>
-        )}
-      </div>
-    );
-  }
-
-  if (variant === 'vertical') {
-    return (
-      <div className={`flex flex-col items-center gap-2 ${className}`}>
-        <div style={{ width: size, height: size }}>
-          <Image
-            src={logoPath}
-            alt='Leadflow'
-            width={size}
-            height={size}
-            className='object-contain w-full h-full'
-            priority
-          />
-        </div>
-        {showText && (
-          <span className='text-sm font-semibold text-foreground'>
-            Leadflow
-          </span>
-        )}
-      </div>
-    );
-  }
-
-  // Default icon only
+/**
+ * LeadFlow Logo Component
+ *
+ * Main logo for the LeadFlow application
+ */
+export function LeadFlowLogo({ size = 120, className }: LogoProps) {
   return (
-    <div className={className} style={{ width: size, height: size }}>
-      <Image
-        src={logoPath}
-        alt='Leadflow'
+    <div className={cn('flex items-center gap-2', className)}>
+      <img
+        src='/Leadflow beta .png'
+        alt='LeadFlow Beta'
         width={size}
         height={size}
-        className='object-contain w-full h-full'
-        priority
+        className='object-contain'
       />
     </div>
   );
-};
+}
 
-// Export variants for easy use
-export const LeadFlowLogoHorizontal = (
-  props: Omit<LeadFlowLogoProps, 'variant'>
-) => <LeadFlowLogo {...props} variant='horizontal' />;
+/**
+ * LeadFlow Logo Horizontal
+ *
+ * Horizontal layout logo variant
+ */
+export function LeadFlowLogoHorizontal({ size = 120, className }: LogoProps) {
+  return (
+    <div className={cn('flex items-center gap-2', className)}>
+      <img
+        src='/Leadflow beta .png'
+        alt='LeadFlow Beta'
+        width={size}
+        height={size}
+        className='object-contain'
+      />
+    </div>
+  );
+}
 
-export const LeadFlowLogoVertical = (
-  props: Omit<LeadFlowLogoProps, 'variant'>
-) => <LeadFlowLogo {...props} variant='vertical' />;
+/**
+ * LeadFlow Logo Vertical
+ *
+ * Vertical layout logo variant
+ */
+export function LeadFlowLogoVertical({ size = 120, className }: LogoProps) {
+  return (
+    <div className={cn('flex flex-col items-center gap-2', className)}>
+      <img
+        src='/Leadflow beta .png'
+        alt='LeadFlow Beta'
+        width={size}
+        height={size}
+        className='object-contain'
+      />
+    </div>
+  );
+}

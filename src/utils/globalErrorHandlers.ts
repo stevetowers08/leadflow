@@ -75,25 +75,48 @@ export function setupGlobalErrorHandlers(): void {
       const url = args[0]?.toString() || '';
 
       // Don't log errors from the error logging endpoint itself (prevents infinite loops)
-      // Don't log 404s from Supabase REST API - these are expected for missing tables/records
-      const isSupabaseRestApi = url.includes('.supabase.co/rest/v1/');
-      const isExpected404 = response.status === 404 && isSupabaseRestApi;
+      if (!response.ok && !url.includes('/api/errors')) {
+        // For 400 errors, try to read the response body to get detailed error message
+        let errorMessage = `HTTP ${response.status}: ${response.statusText || 'Bad Request'}`;
+        let errorDetails: unknown = null;
 
-      if (!response.ok && !url.includes('/api/errors') && !isExpected404) {
-        // Always log to error tracking service for monitoring
-        await enhancedErrorLogger.logNetworkError(
-          `HTTP ${response.status}: ${response.statusText}`,
-          {
-            component: 'fetch',
-            action: 'http_request',
-            metadata: {
-              url,
-              status: response.status,
-              statusText: response.statusText,
-              method: args[1]?.method || 'GET',
-            },
+        if (response.status === 400) {
+          try {
+            // Clone the response to read body without consuming it
+            const clonedResponse = response.clone();
+            const contentType = clonedResponse.headers.get('content-type');
+
+            if (contentType?.includes('application/json')) {
+              const errorData = await clonedResponse.json();
+              errorDetails = errorData;
+
+              // Extract error message from Supabase error format
+              if (errorData?.message) {
+                errorMessage = `HTTP ${response.status}: ${errorData.message}`;
+              } else if (errorData?.error) {
+                errorMessage = `HTTP ${response.status}: ${errorData.error}`;
+              } else if (errorData?.code) {
+                errorMessage = `HTTP ${response.status}: ${errorData.code}${errorData.details ? ` - ${errorData.details}` : ''}`;
+              }
+            }
+          } catch (parseError) {
+            // If we can't parse the error, use the default message
+            // This is fine - we don't want error logging to fail
           }
-        );
+        }
+
+        // Always log to error tracking service for monitoring
+        await enhancedErrorLogger.logNetworkError(errorMessage, {
+          component: 'fetch',
+          action: 'http_request',
+          metadata: {
+            url,
+            status: response.status,
+            statusText: response.statusText,
+            method: args[1]?.method || 'GET',
+            errorDetails,
+          },
+        });
       }
 
       return response;

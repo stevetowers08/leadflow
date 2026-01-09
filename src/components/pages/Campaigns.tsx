@@ -182,18 +182,24 @@ function CampaignsContent() {
   }, [sequences, searchTerm, statusFilter]);
 
   const handleCreateNewSequence = async () => {
+    console.log('🔵 Create campaign button clicked');
     try {
+      console.log('🟢 Starting campaign creation...');
       const newSequence = await createSequence.mutateAsync({
         name: 'Untitled Campaign',
         description: '',
         status: 'draft',
       });
+      console.log('✅ Campaign created:', newSequence);
       // Use workflows route if we're on /workflows, otherwise use campaigns
       const basePath = window.location.pathname.startsWith('/workflows')
         ? '/workflows'
         : '/campaigns';
-      router.push(`${basePath}/sequence/${newSequence.id}`);
+      const targetPath = `${basePath}/sequence/${newSequence.id}`;
+      console.log('🔄 Navigating to:', targetPath);
+      router.push(targetPath);
     } catch (error) {
+      console.error('❌ Error creating campaign:', error);
       const errorMessage = getErrorMessage(error);
       toast({
         title: 'Error',
@@ -272,9 +278,10 @@ function CampaignsContent() {
             <Button
               onClick={handleCreateNewSequence}
               className='h-8 bg-purple-600 hover:bg-purple-700 text-white'
+              disabled={createSequence.isPending}
             >
               <Plus className='h-4 w-4 mr-2' />
-              Create Campaign
+              {createSequence.isPending ? 'Creating...' : 'Create Campaign'}
             </Button>
           </div>
 
@@ -301,9 +308,14 @@ function CampaignsContent() {
                     : 'Create your first campaign to start organizing your outreach efforts.'}
                 </p>
                 {!searchTerm && (
-                  <Button onClick={handleCreateNewSequence}>
+                  <Button
+                    onClick={handleCreateNewSequence}
+                    disabled={createSequence.isPending}
+                  >
                     <Plus className='h-4 w-4 mr-2' />
-                    Create Your First Campaign
+                    {createSequence.isPending
+                      ? 'Creating...'
+                      : 'Create Your First Campaign'}
                   </Button>
                 )}
               </CardContent>

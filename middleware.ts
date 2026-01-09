@@ -69,10 +69,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Block deprecated dashboard route
+  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   // Protect routes that require authentication
   // Only enforce auth if Supabase is properly configured
   const isProtectedRoute =
-    request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/leads') ||
     request.nextUrl.pathname.startsWith('/campaigns') ||
     request.nextUrl.pathname.startsWith('/settings');

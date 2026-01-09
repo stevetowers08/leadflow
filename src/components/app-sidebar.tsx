@@ -2,24 +2,19 @@
 
 import * as React from 'react';
 import {
+  LayoutDashboard,
+  Settings2,
+  Users,
+  GitMerge,
   BarChart3,
   Camera,
-  Home,
-  LayoutDashboard,
-  Megaphone,
-  Settings,
-  Users,
-  Building2,
-  Film,
-  Palette,
+  Calendar,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
-import { useAuth } from '@/contexts/AuthContext';
 import { NavMain } from '@/components/nav-main';
 import { NavSecondary } from '@/components/nav-secondary';
 import { NavUser } from '@/components/nav-user';
-import { LeadFlowLogo } from '@/components/LeadFlowLogo';
 import {
   Sidebar,
   SidebarContent,
@@ -29,38 +24,28 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { LeadFlowLogo } from '@/components/LeadFlowLogo';
+import { OrganizationSwitcher } from '@/components/shared/OrganizationSwitcher';
+import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user, userProfile } = useAuth();
-  const pathname = usePathname();
-
-  // Get user data for NavUser
-  const userData = React.useMemo(() => {
-    if (!user) {
-      return {
-        name: 'Guest',
-        email: '',
-        avatar: '',
-      };
-    }
-
-    return {
-      name:
-        userProfile?.full_name ||
-        user.user_metadata?.full_name ||
-        user.email?.split('@')[0] ||
-        'User',
-      email: user.email || '',
-      avatar: userProfile?.avatar_url || user.user_metadata?.avatar_url || '',
-    };
-  }, [user, userProfile]);
-
-  // Leadflow navigation items
-  const navMain = [
+/**
+ * Updated Navigation - PDR Section 5.1
+ *
+ * LeadFlow Console Navigation:
+ * - Overview (/) - Icon: LayoutDashboard
+ * - Capture (/capture) - Icon: Camera - Business card scanner
+ * - Leads (/leads) - Icon: Users
+ * - Campaigns (/workflows) - Icon: GitMerge
+ * - Analytics (/analytics) - Icon: BarChart3
+ * - Settings (/settings) - Icon: Settings2
+ */
+const data = {
+  navMain: [
     {
       title: 'Overview',
       url: '/',
-      icon: Home,
+      icon: LayoutDashboard,
     },
     {
       title: 'Capture',
@@ -73,14 +58,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Users,
     },
     {
-      title: 'Companies',
-      url: '/companies',
-      icon: Building2,
-    },
-    {
       title: 'Campaigns',
       url: '/workflows',
-      icon: Megaphone,
+      icon: GitMerge,
     },
     {
       title: 'Analytics',
@@ -90,39 +70,53 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: 'Shows',
       url: '/shows',
-      icon: Film,
+      icon: Calendar,
     },
-  ];
-
-  const navSecondary = [
-    {
-      title: 'Style Guide',
-      url: '/style-guide',
-      icon: Palette,
-    },
+  ],
+  navSecondary: [
     {
       title: 'Settings',
       url: '/settings',
-      icon: Settings,
+      icon: Settings2,
     },
-  ];
+  ],
+};
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth();
+
+  const userData = {
+    name: user?.email?.split('@')[0] || 'User',
+    email: user?.email || '',
+    avatar:
+      (user?.user_metadata?.avatar_url as string | undefined) ||
+      '/avatars/default.jpg',
+  };
 
   return (
     <Sidebar collapsible='offcanvas' {...props}>
-      <SidebarHeader>
+      <SidebarHeader className='flex-shrink-0'>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton>
-              <LeadFlowLogo size={24} showText={false} variant='icon' />
+            <SidebarMenuButton
+              asChild
+              className='data-[slot=sidebar-menu-button]:!p-1.5'
+            >
+              <Link href='/'>
+                <LeadFlowLogo className='text-base font-semibold' />
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className='px-3 py-2'>
+          <OrganizationSwitcher />
+        </div>
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={navMain} />
-        <NavSecondary items={navSecondary} className='mt-auto' />
+      <SidebarContent className='flex-1 min-h-0 overflow-y-auto'>
+        <NavMain items={data.navMain} />
+        <NavSecondary items={data.navSecondary} className='mt-auto' />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className='flex-shrink-0'>
         <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>

@@ -10,11 +10,12 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { shouldBypassAuth, getAuthConfig } from '@/config/auth';
 
 // Campaign Sequences Hook - DISABLED (not in PDR)
 export function useCampaignSequences() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
 
   const {
     data: sequences,
@@ -93,18 +94,51 @@ export function useCampaignSequences() {
 
   const createSequence = useMutation({
     mutationFn: async (formData: CampaignSequenceFormData) => {
-      // Verify user is authenticated
-      if (!user?.id) {
-        throw new Error('User not authenticated');
+      const bypassAuth = shouldBypassAuth();
+
+      // In bypass mode, use context user directly (no real session exists)
+      // In normal mode, require a Supabase session
+      let userId: string | undefined;
+
+      if (bypassAuth) {
+        // Bypass mode: use context user or session user, fallback to mock user from config
+        // The AuthContext creates a mock session in bypass mode, so check that first
+        userId = session?.user?.id || user?.id;
+        if (!userId) {
+          // Fallback: get mock user ID from config if context user not loaded yet
+          const authConfig = getAuthConfig();
+          userId = authConfig.mockUser.id;
+        }
+        if (!userId) {
+          // Best practice: Require NEXT_PUBLIC_MOCK_USER_ID to be set to a real user ID
+          // This ensures referential integrity and proper data relationships
+          throw new Error(
+            'User not authenticated. In bypass mode, you must set NEXT_PUBLIC_MOCK_USER_ID to a valid user ID from your database. ' +
+              'To get a user ID: 1) Sign in normally once, 2) Check auth.users table in Supabase, 3) Set NEXT_PUBLIC_MOCK_USER_ID to that UUID.'
+          );
+        }
+      } else {
+        // Normal mode: require Supabase session
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+        if (sessionError || !session) {
+          throw new Error('No active session. Please sign in again.');
+        }
+
+        // Get user from session (more reliable than context user)
+        const sessionUser = session.user;
+        if (!sessionUser?.id) {
+          throw new Error('User not authenticated');
+        }
+
+        // Use session user, fallback to context user
+        userId = sessionUser.id || user?.id;
       }
 
-      // Ensure Supabase session exists (required for RLS)
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        throw new Error('No active session. Please sign in again.');
+      if (!userId) {
+        throw new Error('User not authenticated');
       }
 
       // Create workflow instead of campaign_sequence
@@ -119,6 +153,9 @@ export function useCampaignSequences() {
             ? formData.status
             : 'draft';
 
+      // Best practice: workflows table uses created_by (nullable, references auth.users.id)
+      // Always use a real user ID from the database to maintain referential integrity
+      // The RLS policy "Allow all operations on workflows" permits this
       const { data, error } = await supabase
         .from('workflows')
         .insert({
@@ -127,15 +164,33 @@ export function useCampaignSequences() {
           email_provider: 'gmail', // Default to gmail for email campaigns
           gmail_sequence: null,
           pause_rules: { status: workflowStatus }, // Store status in pause_rules metadata
-          user_id: user.id,
+          created_by: userId, // workflows table uses created_by (not user_id)
         })
         .select()
         .single();
 
       if (error) {
-        throw new Error(
-          `Failed to create campaign sequence: ${getErrorMessage(error)}`
-        );
+        // Provide detailed error message for debugging
+        const errorMessage = getErrorMessage(error);
+        const supabaseError = error as {
+          code?: string;
+          message?: string;
+          details?: string;
+          hint?: string;
+        };
+
+        let detailedMessage = `Failed to create campaign sequence: ${errorMessage}`;
+        if (supabaseError.code) {
+          detailedMessage += ` (Code: ${supabaseError.code})`;
+        }
+        if (supabaseError.details) {
+          detailedMessage += ` - ${supabaseError.details}`;
+        }
+        if (supabaseError.hint) {
+          detailedMessage += ` (Hint: ${supabaseError.hint})`;
+        }
+
+        throw new Error(detailedMessage);
       }
 
       if (!data) {
@@ -145,10 +200,10 @@ export function useCampaignSequences() {
       }
 
       // Map workflow back to CampaignSequence format
-      const userId =
+      const mappedUserId =
         (data as { user_id?: string; created_by?: string }).user_id ||
         (data as { user_id?: string; created_by?: string }).created_by ||
-        user.id;
+        userId;
 
       // Get status from data.status or from pause_rules.status (fallback)
       const retrievedStatus =
@@ -169,7 +224,7 @@ export function useCampaignSequences() {
         status: mappedStatus,
         created_at: data.created_at || new Date().toISOString(),
         updated_at: data.updated_at || new Date().toISOString(),
-        created_by: userId,
+        created_by: mappedUserId,
         total_leads: 0,
         active_leads: 0,
       };
@@ -307,48 +362,58 @@ export function useCampaignSteps(sequenceId: string) {
   } = useQuery({
     queryKey: ['campaign-steps', sequenceId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        // .from('campaign_sequence_steps') // Removed - not in PDR
-        .from('workflows') // Use workflows instead
-        .select('*')
-        .eq('sequence_id', sequenceId)
-        .order('order_position', { ascending: true });
+      // Get the workflow by ID (sequenceId is the workflow ID)
+      const { data: workflow, error } = await supabase
+        .from('workflows')
+        .select('gmail_sequence')
+        .eq('id', sequenceId)
+        .single();
 
       if (error) {
         throw error;
       }
-      return data as unknown as CampaignStep[];
+
+      // Extract steps from gmail_sequence JSONB field
+      // gmail_sequence is an array of step objects
+      const gmailSequence = (workflow?.gmail_sequence as CampaignStep[]) || [];
+
+      // Map to CampaignStep format with sequence_id
+      return gmailSequence.map((step, index) => ({
+        ...step,
+        sequence_id: sequenceId,
+        order_position: step.order_position || index + 1,
+      })) as CampaignStep[];
     },
     enabled: !!sequenceId,
   });
 
   const addStep = useMutation({
     mutationFn: async (type: 'email' | 'wait' | 'condition') => {
-      // Get the next order position
-      const { data: existingSteps } = await supabase
-        // .from('campaign_sequence_steps') // Removed - not in PDR
-        .from('workflows') // Use workflows instead
-        .select('order_position')
-        .eq('sequence_id', sequenceId)
-        .order('order_position', { ascending: false })
-        .limit(1);
+      // Get current workflow with steps
+      const { data: workflow, error: fetchError } = await supabase
+        .from('workflows')
+        .select('gmail_sequence')
+        .eq('id', sequenceId)
+        .single();
 
-      const nextOrder = (
-        existingSteps as Array<{ order_position?: number }>
-      )?.[0]?.order_position
-        ? (existingSteps as Array<{ order_position: number }>)[0]
-            .order_position + 1
-        : 1;
+      if (fetchError) throw fetchError;
 
-      const stepData = {
+      // Get existing steps from gmail_sequence
+      const existingSteps = (workflow?.gmail_sequence as CampaignStep[]) || [];
+      const nextOrder = existingSteps.length + 1;
+
+      // Create new step
+      const newStep: CampaignStep = {
+        id: crypto.randomUUID(),
         sequence_id: sequenceId,
         step_type: type,
         order_position: nextOrder,
         name: `New ${type} step`,
+        created_at: new Date().toISOString(),
         ...(type === 'email' && {
           email_subject: '',
           email_body: '',
-          send_immediately: 'immediate', // Changed to string
+          send_immediately: 'immediate',
         }),
         ...(type === 'wait' && {
           wait_duration: 1,
@@ -359,17 +424,19 @@ export function useCampaignSteps(sequenceId: string) {
           condition_type: 'opened' as const,
           condition_wait_duration: 24,
         }),
-      };
+      } as CampaignStep;
 
-      const { data, error } = await supabase
-        // .from('campaign_sequence_steps') // Removed - not in PDR
-        .from('workflows') // Use workflows instead
-        .insert([stepData])
-        .select()
-        .single();
+      // Add new step to array
+      const updatedSteps = [...existingSteps, newStep];
+
+      // Update workflow's gmail_sequence field
+      const { error } = await supabase
+        .from('workflows')
+        .update({ gmail_sequence: updatedSteps })
+        .eq('id', sequenceId);
 
       if (error) throw error;
-      return data as unknown as CampaignStep;
+      return newStep;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -386,16 +453,32 @@ export function useCampaignSteps(sequenceId: string) {
       id: string;
       updates: Partial<CampaignStep>;
     }) => {
-      const { data, error } = await supabase
-        // .from('campaign_sequence_steps') // Removed - not in PDR
-        .from('workflows') // Use workflows instead
-        .update(updates)
-        .eq('id', id)
-        .select()
+      // Get current workflow with steps
+      const { data: workflow, error: fetchError } = await supabase
+        .from('workflows')
+        .select('gmail_sequence')
+        .eq('id', sequenceId)
         .single();
 
+      if (fetchError) throw fetchError;
+
+      // Get existing steps and update the one with matching id
+      const existingSteps = (workflow?.gmail_sequence as CampaignStep[]) || [];
+      const updatedSteps = existingSteps.map(step =>
+        step.id === id ? { ...step, ...updates } : step
+      );
+
+      // Update workflow's gmail_sequence field
+      const { error } = await supabase
+        .from('workflows')
+        .update({ gmail_sequence: updatedSteps })
+        .eq('id', sequenceId);
+
       if (error) throw error;
-      return data as unknown as CampaignStep;
+
+      const updatedStep = updatedSteps.find(s => s.id === id);
+      if (!updatedStep) throw new Error('Step not found after update');
+      return updatedStep as CampaignStep;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -406,11 +489,24 @@ export function useCampaignSteps(sequenceId: string) {
 
   const deleteStep = useMutation({
     mutationFn: async (id: string) => {
+      // Get current workflow with steps
+      const { data: workflow, error: fetchError } = await supabase
+        .from('workflows')
+        .select('gmail_sequence')
+        .eq('id', sequenceId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Remove step from array
+      const existingSteps = (workflow?.gmail_sequence as CampaignStep[]) || [];
+      const updatedSteps = existingSteps.filter(step => step.id !== id);
+
+      // Update workflow's gmail_sequence field
       const { error } = await supabase
-        // .from('campaign_sequence_steps') // Removed - not in PDR
-        .from('workflows') // Use workflows instead
-        .delete()
-        .eq('id', id);
+        .from('workflows')
+        .update({ gmail_sequence: updatedSteps })
+        .eq('id', sequenceId);
 
       if (error) throw error;
     },
@@ -423,22 +519,17 @@ export function useCampaignSteps(sequenceId: string) {
 
   const reorderSteps = useMutation({
     mutationFn: async (reorderedSteps: CampaignStep[]) => {
-      const updates = reorderedSteps.map((step, index) => ({
-        id: step.id,
+      // Update order_position for each step
+      const updatedSteps = reorderedSteps.map((step, index) => ({
+        ...step,
         order_position: index + 1,
       }));
 
-      // Update each step individually to avoid required field issues
-      const updatePromises = updates.map(update =>
-        supabase
-          // .from('campaign_sequence_steps') // Removed - not in PDR
-          .from('workflows') // Use workflows instead
-          .update({ order_position: update.order_position })
-          .eq('id', update.id)
-      );
-
-      const results = await Promise.all(updatePromises);
-      const error = results.find(r => r.error)?.error;
+      // Update workflow's gmail_sequence field with reordered steps
+      const { error } = await supabase
+        .from('workflows')
+        .update({ gmail_sequence: updatedSteps })
+        .eq('id', sequenceId);
 
       if (error) throw error;
     },

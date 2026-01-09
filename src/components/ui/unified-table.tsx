@@ -116,7 +116,7 @@ export const TableRow = React.forwardRef<
       className={cn(
         'group h-[40px]',
         onClick && 'cursor-pointer',
-        'hover:bg-[var(--table-row-hover)]',
+        'hover:bg-muted',
         className
       )}
       role='row'
@@ -163,6 +163,7 @@ export const TableCell = React.forwardRef<
         'px-4 py-1',
         'text-sm text-muted-foreground',
         'border-r border-border last:border-r-0',
+        'box-border',
         cellType !== 'status' && 'group-hover:text-muted-foreground',
         align === 'center' && 'text-center',
         align === 'right' && 'text-right',
@@ -170,10 +171,6 @@ export const TableCell = React.forwardRef<
         'overflow-hidden break-words',
         className
       )}
-      style={{
-        width: 0, // Force colgroup to control width
-        ...props.style,
-      }}
       {...props}
     />
   );
@@ -206,6 +203,7 @@ export const TableHead = React.forwardRef<
         'px-4 py-1 h-[40px]',
         'text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap',
         'border-b border-r border-border last:border-r-0',
+        'box-border',
         !isSticky && isFirst && 'rounded-tl-md',
         !isSticky && isLast && 'rounded-tr-md',
         align === 'center' && 'text-center',
@@ -214,7 +212,6 @@ export const TableHead = React.forwardRef<
         className
       )}
       style={{
-        width: 0, // Force colgroup to control width
         ...(isSticky && {
           position: 'sticky',
           top: 0,
@@ -354,13 +351,13 @@ function UnifiedTableComponent<T = unknown>({
   const tableStructure = React.useMemo(() => {
     if (loading) {
       return (
-        <div className='bg-[var(--table-row-bg)] rounded-md border shadow-sm w-full overflow-hidden'>
-          <div className='border-b bg-[var(--table-header-bg)]/30 p-4'>
+        <div className='bg-card rounded-md border shadow-sm w-full overflow-hidden'>
+          <div className='border-b bg-muted/30 p-4'>
             <div className='flex gap-4'>
               {Array.from({ length: columns.length || 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className='h-4 bg-[var(--table-row-hover)] rounded animate-pulse flex-1'
+                  className='h-4 bg-muted rounded animate-pulse flex-1'
                 />
               ))}
             </div>
@@ -373,7 +370,7 @@ function UnifiedTableComponent<T = unknown>({
                     (_, colIndex) => (
                       <div
                         key={colIndex}
-                        className='h-4 bg-[var(--table-row-hover)] rounded animate-pulse flex-1'
+                        className='h-4 bg-muted rounded animate-pulse flex-1'
                       />
                     )
                   )}
@@ -387,7 +384,7 @@ function UnifiedTableComponent<T = unknown>({
 
     if (!data || data.length === 0) {
       return (
-        <div className='bg-[var(--table-row-bg)] rounded-md border shadow-sm w-full overflow-hidden'>
+        <div className='bg-card rounded-md border shadow-sm w-full overflow-hidden'>
           <div className='flex items-center justify-center h-32 text-muted-foreground'>
             {emptyMessage}
           </div>
@@ -423,7 +420,7 @@ function UnifiedTableComponent<T = unknown>({
     return (
       <div
         className={cn(
-          'bg-[var(--table-row-bg)] border shadow-sm rounded-md overflow-hidden',
+          'bg-card border shadow-sm rounded-md',
           scrollable && 'flex flex-col h-full min-w-0',
           !scrollable && 'w-full',
           className
@@ -442,14 +439,14 @@ function UnifiedTableComponent<T = unknown>({
             style={{
               tableLayout: 'fixed',
               width: `${Math.round(totalTableWidth)}px`,
-              minWidth: `${Math.round(totalTableWidth)}px`,
-              borderCollapse: 'collapse',
+              borderCollapse: 'separate',
+              borderSpacing: 0,
             }}
           >
             {/* Colgroup to enforce exact column widths across header and body */}
             {/* With table-layout: fixed, colgroup widths are the single source of truth */}
             <colgroup>
-              {orderedColumns.map((column, colIndex) => {
+              {orderedColumns.map(column => {
                 // Handle 'auto' width for dynamic sizing
                 const widthPx =
                   column.width === 'auto'
@@ -457,13 +454,10 @@ function UnifiedTableComponent<T = unknown>({
                     : column.width || column.minWidth || '150px';
                 const isAuto = column.width === 'auto';
 
-                // Use column.key or fallback to index for key prop
-                const colKey = column.key || `col-${colIndex}`;
-
                 if (isAuto) {
                   return (
                     <col
-                      key={colKey}
+                      key={column.key}
                       style={{
                         width: 'auto',
                         minWidth: column.minWidth || '150px',
@@ -482,7 +476,7 @@ function UnifiedTableComponent<T = unknown>({
 
                 return (
                   <col
-                    key={colKey}
+                    key={column.key}
                     style={{
                       width: roundedWidth,
                       minWidth: roundedWidth,
@@ -494,13 +488,13 @@ function UnifiedTableComponent<T = unknown>({
             </colgroup>
             <TableHeader
               className={cn(
-                'bg-[var(--table-header-bg)]',
+                'bg-muted',
                 isScrolled &&
                   scrollable &&
                   'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
               )}
             >
-              <tr>
+              <tr className='border-b border-border'>
                 {orderedColumns.map((column, index) => {
                   // Handle different label types
                   const labelContent = React.isValidElement(column.label)
@@ -509,12 +503,9 @@ function UnifiedTableComponent<T = unknown>({
                       ? column.label
                       : '';
 
-                  // Use column.key or fallback to index for key prop
-                  const headerKey = column.key || `header-${index}`;
-
                   return (
                     <TableHead
-                      key={headerKey}
+                      key={column.key}
                       scope='col'
                       align={column.align}
                       isFirst={index === 0}
@@ -592,7 +583,7 @@ function UnifiedTableComponent<T = unknown>({
 
                           {/* Group Header Row */}
                           <TableRow
-                            className='bg-[var(--table-header-bg)] hover:bg-[var(--table-row-hover)] cursor-pointer'
+                            className='bg-muted hover:bg-muted/80 cursor-pointer'
                             onClick={() => onToggleGroup?.(group.label)}
                             aria-expanded={isExpanded}
                           >
@@ -652,6 +643,11 @@ function UnifiedTableComponent<T = unknown>({
                                         cellType={column.cellType}
                                         align={column.align}
                                         statusValue={statusValue}
+                                        style={{
+                                          ...(column.maxWidth && {
+                                            maxWidth: column.maxWidth,
+                                          }),
+                                        }}
                                       >
                                         {column.render ? (
                                           column.render(value, row, index)
@@ -705,6 +701,11 @@ function UnifiedTableComponent<T = unknown>({
                                 cellType={column.cellType}
                                 align={column.align}
                                 statusValue={statusValue}
+                                style={{
+                                  ...(column.maxWidth && {
+                                    maxWidth: column.maxWidth,
+                                  }),
+                                }}
                               >
                                 {column.render ? (
                                   column.render(value, row, index)

@@ -178,7 +178,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (bypassDisabled) {
             // User explicitly signed out - don't auto-login
             console.log(
-              '🔐 BypassAuth: User signed out, bypass disabled - not auto-logging in'
+              '🔐 BypassAuth: User signed out, bypass disabled - not auto-logging in',
+              {
+                sessionStorage: sessionStorage.getItem('bypass-auth-disabled'),
+                localStorage: localStorage.getItem('bypass-auth-disabled'),
+              }
             );
             if (isMountedRef.current) {
               authState.setUser(null);
@@ -187,6 +191,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               userProfile.setUserProfile(null);
             }
             // Early return - don't proceed with any auth logic
+            // IMPORTANT: Don't create mock user when bypass is disabled
             return;
           }
 
