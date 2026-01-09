@@ -12,16 +12,14 @@ interface LogoProps {
  */
 export function LeadFlowLogo({ size = 120, className }: LogoProps) {
   return (
-    <div className={cn('flex items-center gap-2 select-none', className)}>
-      <img
-        src='/Leadflow beta .png'
-        alt='LeadFlow Beta'
-        width={size}
-        height={size}
-        className='object-contain select-none pointer-events-none'
-        draggable='false'
-      />
-    </div>
+    <img
+      src='/leadflow-final.png'
+      alt='LeadFlow'
+      className={cn('select-none pointer-events-none', className)}
+      height={size}
+      width={size}
+      draggable='false'
+    />
   );
 }
 
@@ -34,7 +32,7 @@ export function LeadFlowLogoHorizontal({ size = 120, className }: LogoProps) {
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <img
-        src='/Leadflow beta .png'
+        src='/leadflow-final.png'
         alt='LeadFlow Beta'
         width={size}
         height={size}
@@ -53,7 +51,7 @@ export function LeadFlowLogoVertical({ size = 120, className }: LogoProps) {
   return (
     <div className={cn('flex flex-col items-center gap-2', className)}>
       <img
-        src='/Leadflow beta .png'
+        src='/leadflow-final.png'
         alt='LeadFlow Beta'
         width={size}
         height={size}

@@ -21,6 +21,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { LeadFlowLogo } from '@/components/LeadFlowLogo';
@@ -94,14 +95,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible='offcanvas' {...props}>
-      <SidebarHeader className='flex-shrink-0'>
+      <SidebarHeader className='flex-shrink-0 !gap-1'>
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className='p-1.5 select-none'>
-              <Link href='/' className='block'>
-                <LeadFlowLogo className='text-base font-semibold' />
+            <SidebarMenuButton asChild>
+              <Link href='/'>
+                <LeadFlowLogo size={120} />
               </Link>
-            </div>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
         <div className='px-3 py-2'>
