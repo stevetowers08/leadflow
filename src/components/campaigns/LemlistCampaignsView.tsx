@@ -117,6 +117,9 @@ export function LemlistCampaignsView() {
 
       const loadedCampaigns = await getLemlistCampaigns(user.id);
 
+      // Set userId so service uses API route proxy (avoids CORS)
+      lemlistService.setUserId(user.id);
+
       // Fetch email counts for campaigns (not available in list endpoint)
       // Process sequentially with rate limiting to avoid overwhelming API
       const campaignsWithCounts: LemlistCampaign[] = [];
@@ -161,9 +164,14 @@ export function LemlistCampaignsView() {
    * - Implements rate limiting (200ms delay between requests)
    * - Gracefully handles errors (returns zeros instead of blocking UI)
    * - Processes campaigns sequentially to avoid overwhelming API
+   * - Uses API route proxy to avoid CORS issues
    */
   const loadCampaignAnalytics = async (campaignsToLoad: LemlistCampaign[]) => {
     if (!campaignsToLoad || campaignsToLoad.length === 0) return;
+    if (!user) return;
+
+    // Set userId so service uses API route proxy (avoids CORS)
+    lemlistService.setUserId(user.id);
 
     const analyticsMap: Record<string, LemlistCampaignAnalytics> = {};
 

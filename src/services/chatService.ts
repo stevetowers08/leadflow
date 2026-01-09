@@ -1,6 +1,10 @@
 /**
  * Chat Service for AI Integration
  * Provides webhook-based chat functionality for external AI services
+ *
+ * ⚠️ NOTE: This service makes direct fetch calls to webhook URLs.
+ * If using external APIs (OpenAI, Anthropic), ensure they support CORS
+ * or configure them through an API route proxy to avoid CORS issues.
  */
 
 export interface ChatServiceConfig {

@@ -300,6 +300,9 @@ export function useCompaniesService(options: ServiceOptions = {}) {
 // }
 
 // Network service wrapper for external APIs
+// ⚠️ WARNING: This service allows direct fetch calls to any URL from the frontend.
+// For external APIs, use API route proxies to avoid CORS issues and keep credentials secure.
+// Only use this for internal API routes (starting with /api/) or trusted same-origin endpoints.
 export function useNetworkService(options: ServiceOptions = {}) {
   const {
     enableRetry = true,

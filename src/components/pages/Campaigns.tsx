@@ -277,7 +277,7 @@ function CampaignsContent() {
             {/* Create Campaign Button */}
             <Button
               onClick={handleCreateNewSequence}
-              className='h-8 bg-purple-600 hover:bg-purple-700 text-white'
+              className='h-8'
               disabled={createSequence.isPending}
             >
               <Plus className='h-4 w-4 mr-2' />

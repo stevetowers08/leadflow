@@ -51,22 +51,28 @@ export default function IntegrationCallback() {
         return;
       }
 
-      const clientId = process.env.NEXT_PUBLIC_HUBSPOT_CLIENT_ID;
-      const clientSecret = process.env.NEXT_PUBLIC_HUBSPOT_CLIENT_SECRET;
       const redirectUri = `${window.location.origin}/integrations/callback`;
 
-      if (!clientId || !clientSecret) {
-        setStatus('error');
-        setMessage('HubSpot credentials not configured');
-        return;
+      // Use API route to avoid CORS and keep client secret server-side
+      const response = await fetch('/api/hubspot/token-exchange', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code,
+          redirectUri,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || `Token exchange failed: ${response.status}`
+        );
       }
 
-      const tokens = await HubSpotAuthService.exchangeCodeForTokens(
-        code,
-        clientId,
-        clientSecret,
-        redirectUri
-      );
+      const tokens = await response.json();
 
       await HubSpotAuthService.saveConnection(user.id, tokens);
 

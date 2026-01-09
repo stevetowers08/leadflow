@@ -328,6 +328,7 @@ export class LemlistService {
 
   /**
    * Add a lead to a Lemlist campaign
+   * Uses Next.js API route to avoid CORS issues when called from frontend
    */
   async addLeadToCampaign(
     campaignId: string,
@@ -338,19 +339,30 @@ export class LemlistService {
       company?: string;
     }
   ): Promise<LemlistLead> {
-    if (!this.apiKey) {
+    if (!this.apiKey && !this.userId) {
       throw new Error('Lemlist API key not configured');
     }
 
     try {
+      // Use API route to avoid CORS issues when called from frontend
+      const apiUrl = this.userId
+        ? `/api/lemlist/campaigns/${campaignId}/leads?userId=${encodeURIComponent(this.userId)}`
+        : `${this.baseUrl}/campaigns/${campaignId}/leads`; // Fallback to direct call if no userId (server-side)
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Only add auth header if making direct API call (server-side)
+      if (!this.userId) {
+        headers['Authorization'] = this.getAuthHeader();
+      }
+
       const response = await this.fetchWithTimeout(
-        `${this.baseUrl}/campaigns/${campaignId}/leads`,
+        apiUrl,
         {
           method: 'POST',
-          headers: {
-            Authorization: this.getAuthHeader(),
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify({
             email: lead.email,
             firstName: lead.firstName,
@@ -362,13 +374,19 @@ export class LemlistService {
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Lemlist API error: ${response.status} - ${errorText}`);
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
+        throw new Error(
+          errorData.error ||
+            errorData.details ||
+            `Lemlist API error: ${response.status}`
+        );
       }
 
       const data = await response.json();
       return {
-        id: data._id,
+        id: data._id || data.id,
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -496,21 +514,33 @@ export class LemlistService {
   /**
    * Get all leads from a Lemlist campaign with activity data
    * API Reference: https://developer.lemlist.com/api-reference/endpoints/campaigns/get-campaign-leads
+   * Uses Next.js API route to avoid CORS issues when called from frontend
    */
   async getCampaignLeads(campaignId: string): Promise<LemlistLead[]> {
-    if (!this.apiKey) {
+    if (!this.apiKey && !this.userId) {
       throw new Error('Lemlist API key not configured');
     }
 
     try {
+      // Use API route to avoid CORS issues when called from frontend
+      const apiUrl = this.userId
+        ? `/api/lemlist/campaigns/${campaignId}/leads?userId=${encodeURIComponent(this.userId)}`
+        : `${this.baseUrl}/campaigns/${campaignId}/leads`; // Fallback to direct call if no userId (server-side)
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Only add auth header if making direct API call (server-side)
+      if (!this.userId) {
+        headers['Authorization'] = this.getAuthHeader();
+      }
+
       const response = await this.fetchWithTimeout(
-        `${this.baseUrl}/campaigns/${campaignId}/leads`,
+        apiUrl,
         {
           method: 'GET',
-          headers: {
-            Authorization: this.getAuthHeader(),
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
         15000
       );
@@ -526,7 +556,12 @@ export class LemlistService {
         if (response.status === 404 || response.status === 400) {
           return [];
         }
-        throw new Error(`Lemlist API error: ${response.status}`);
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
+        throw new Error(
+          errorData.error || `Lemlist API error: ${response.status}`
+        );
       }
 
       const leads = await response.json();
@@ -542,7 +577,8 @@ export class LemlistService {
         errorMessage === 'Failed to fetch' ||
         errorMessage.includes('timeout') ||
         errorMessage.includes('network') ||
-        errorMessage.includes('AbortError');
+        errorMessage.includes('AbortError') ||
+        errorMessage.includes('CORS');
 
       if (!isNetworkError) {
         console.error('Error fetching Lemlist campaign leads:', error);
@@ -695,25 +731,37 @@ export class LemlistService {
    * - Uses leads endpoint to calculate stats (no dedicated stats endpoint available)
    * - Implements proper error handling for rate limits and network issues
    * - Returns zero values on errors to prevent UI blocking
+   * - Uses Next.js API route to avoid CORS issues when called from frontend
    *
    * Reference: https://developer.lemlist.com/api-reference/endpoints/campaigns
    */
   async getCampaignStats(campaignId: string): Promise<LemlistCampaignStats> {
-    if (!this.apiKey) {
+    if (!this.apiKey && !this.userId) {
       throw new Error('Lemlist API key not configured');
     }
 
     try {
       // Fetch all leads for the campaign
       // Note: Lemlist API doesn't have a dedicated stats endpoint, so we calculate from leads
+      // Use API route to avoid CORS issues when called from frontend
+      const apiUrl = this.userId
+        ? `/api/lemlist/campaigns/${campaignId}/leads?userId=${encodeURIComponent(this.userId)}`
+        : `${this.baseUrl}/campaigns/${campaignId}/leads`; // Fallback to direct call if no userId (server-side)
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Only add auth header if making direct API call (server-side)
+      if (!this.userId) {
+        headers['Authorization'] = this.getAuthHeader();
+      }
+
       const response = await this.fetchWithTimeout(
-        `${this.baseUrl}/campaigns/${campaignId}/leads`,
+        apiUrl,
         {
           method: 'GET',
-          headers: {
-            Authorization: this.getAuthHeader(),
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
         15000
       );
@@ -743,7 +791,12 @@ export class LemlistService {
             total_positive_replies: 0,
           };
         }
-        throw new Error(`Lemlist API error: ${response.status}`);
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
+        throw new Error(
+          errorData.error || `Lemlist API error: ${response.status}`
+        );
       }
 
       const leads = await response.json();
@@ -799,7 +852,8 @@ export class LemlistService {
         errorMessage === 'Failed to fetch' ||
         errorMessage.includes('timeout') ||
         errorMessage.includes('network') ||
-        errorMessage.includes('AbortError');
+        errorMessage.includes('AbortError') ||
+        errorMessage.includes('CORS');
 
       if (!isNetworkError) {
         console.error('Error fetching Lemlist campaign stats:', error);
