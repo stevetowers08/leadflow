@@ -942,14 +942,18 @@ All colors MUST be HSL.
 
   /* Ensure error toasts have good contrast in both modes */
   [data-sonner-toast][data-type='error'] {
-    background-color: hsl(var(--destructive));
-    color: hsl(var(--destructive-foreground));
-    border-color: hsl(var(--destructive) / 0.5);
+    background-color: hsl(var(--destructive)) !important;
+    color: hsl(var(--destructive-foreground)) !important;
+    border-color: hsl(var(--destructive) / 0.5) !important;
+  }
+
+  [data-sonner-toast][data-type='error'] * {
+    color: hsl(var(--destructive-foreground)) !important;
   }
 
   [data-sonner-toast][data-type='error'] [data-description],
   [data-sonner-toast][data-type='error'] [data-title] {
-    color: hsl(var(--destructive-foreground));
+    color: hsl(var(--destructive-foreground)) !important;
   }
 
   /* Custom scrollbar for sidebar - ultra-thin 2px */

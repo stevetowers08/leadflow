@@ -175,7 +175,7 @@ export const TableCell = React.forwardRef<
           'px-4 py-1',
           'text-sm text-muted-foreground',
           'box-border relative',
-          // Add border-right class to ensure borders are visible
+          // Column borders: right border on all cells except last
           !isLast && 'border-r border-border',
           cellType !== 'status' && 'group-hover:text-muted-foreground',
           align === 'center' && 'text-center',
@@ -184,11 +184,7 @@ export const TableCell = React.forwardRef<
           'overflow-hidden break-words',
           className
         )}
-        style={{
-          // Use border-right with border-collapse: collapse to prevent shifting during horizontal scroll
-          ...props.style,
-          borderRight: isLast ? 'none' : '1px solid hsl(var(--border))',
-        }}
+        style={props.style}
         {...props}
       />
     );
@@ -233,6 +229,8 @@ export const TableHead = React.forwardRef<
           'px-4 py-1 h-[40px]',
           'text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap',
           'border-b border-border',
+          // Column borders: right border on all headers except last
+          !isLast && 'border-r border-border',
           'box-border',
           isFirst && 'rounded-tl-md',
           isLast && 'rounded-tr-md',
@@ -241,17 +239,33 @@ export const TableHead = React.forwardRef<
           align === 'left' && 'text-left',
           className
         )}
-        style={{
-          // Use border-right with border-collapse: collapse to prevent shifting during horizontal scroll
-          borderRight: isLast ? 'none' : '1px solid hsl(var(--border))',
-          ...baseStyle,
-        }}
+        style={baseStyle}
         {...props}
       />
     );
   }
 );
 TableHead.displayName = 'TableHead';
+
+// Helper function to calculate column width styles consistently
+// This ensures colgroup, headers, and cells all use the same width logic
+function getColumnWidthStyle(
+  column: ColumnConfig,
+  isSelectColumn: boolean
+): React.CSSProperties {
+  if (isSelectColumn) {
+    return { width: '48px', minWidth: '48px', maxWidth: '48px' };
+  }
+  const width = column.width || column.minWidth;
+  if (width) {
+    return {
+      width: width,
+      minWidth: column.minWidth || width,
+      maxWidth: column.maxWidth || undefined,
+    };
+  }
+  return { width: 'auto', minWidth: '150px' };
+}
 
 // Main UnifiedTable Component
 function UnifiedTableComponent<T = unknown>({
@@ -454,6 +468,7 @@ function UnifiedTableComponent<T = unknown>({
             className='w-full caption-bottom text-sm'
             style={{
               tableLayout: 'fixed',
+              borderCollapse: 'collapse',
             }}
           >
             <colgroup>
@@ -480,25 +495,11 @@ function UnifiedTableComponent<T = unknown>({
                   );
                 }
 
-                // Other columns: use specified width, or default to auto with min-width
-                const width = column.width || column.minWidth;
-                if (width) {
-                  return (
-                    <col
-                      key={column.key}
-                      style={{
-                        width: width,
-                        minWidth: column.minWidth || width,
-                      }}
-                    />
-                  );
-                }
-
-                // Default: auto width with reasonable minimum
+                // Use consistent width calculation
                 return (
                   <col
                     key={column.key}
-                    style={{ width: 'auto', minWidth: '150px' }}
+                    style={getColumnWidthStyle(column, isSelectColumn)}
                   />
                 );
               })}
@@ -528,6 +529,12 @@ function UnifiedTableComponent<T = unknown>({
                     column.key.toLowerCase().includes('select') ||
                     column.key.toLowerCase().includes('checkbox');
 
+                  // Use consistent width calculation (must match colgroup)
+                  const headerWidthStyle = getColumnWidthStyle(
+                    column,
+                    isSelectColumn
+                  );
+
                   return (
                     <TableHead
                       key={column.key}
@@ -536,22 +543,8 @@ function UnifiedTableComponent<T = unknown>({
                       isFirst={index === 0}
                       isLast={index === orderedColumns.length - 1}
                       isSticky={scrollable && stickyHeaders}
-                      className={cn(
-                        // Select columns: fixed small width
-                        isSelectColumn && 'w-[48px] min-w-[48px] max-w-[48px]',
-                        // Other columns: use specified widths or defaults
-                        !isSelectColumn &&
-                          column.width &&
-                          `w-[${column.width}]`,
-                        !isSelectColumn &&
-                          column.minWidth &&
-                          `min-w-[${column.minWidth}]`,
-                        !isSelectColumn &&
-                          !column.width &&
-                          !column.minWidth &&
-                          'min-w-[150px]',
-                        column.className
-                      )}
+                      className={column.className}
+                      style={headerWidthStyle}
                     >
                       <div
                         className={cn(
@@ -690,6 +683,12 @@ function UnifiedTableComponent<T = unknown>({
                                         .toLowerCase()
                                         .includes('checkbox');
 
+                                    // Use consistent width calculation (must match colgroup and header)
+                                    const cellWidthStyle = getColumnWidthStyle(
+                                      column,
+                                      isSelectColumn
+                                    );
+
                                     return (
                                       <TableCell
                                         key={`${group.label}-${index}-${colIndex}`}
@@ -699,26 +698,8 @@ function UnifiedTableComponent<T = unknown>({
                                         isLast={
                                           colIndex === orderedColumns.length - 1
                                         }
-                                        className={cn(
-                                          // Select columns: fixed small width
-                                          isSelectColumn &&
-                                            'w-[48px] min-w-[48px] max-w-[48px]',
-                                          // Other columns: use specified widths or defaults
-                                          !isSelectColumn &&
-                                            column.width &&
-                                            `w-[${column.width}]`,
-                                          !isSelectColumn &&
-                                            column.minWidth &&
-                                            `min-w-[${column.minWidth}]`,
-                                          !isSelectColumn &&
-                                            !column.width &&
-                                            !column.minWidth &&
-                                            'min-w-[150px]',
-                                          !isSelectColumn &&
-                                            column.maxWidth &&
-                                            `max-w-[${column.maxWidth}]`,
-                                          column.className
-                                        )}
+                                        className={column.className}
+                                        style={cellWidthStyle}
                                       >
                                         {column.render ? (
                                           column.render(value, row, index)
@@ -774,6 +755,12 @@ function UnifiedTableComponent<T = unknown>({
                               column.key.toLowerCase().includes('select') ||
                               column.key.toLowerCase().includes('checkbox');
 
+                            // Use consistent width calculation (must match colgroup and header)
+                            const cellWidthStyle = getColumnWidthStyle(
+                              column,
+                              isSelectColumn
+                            );
+
                             return (
                               <TableCell
                                 key={`${index}-${colIndex}`}
@@ -781,26 +768,8 @@ function UnifiedTableComponent<T = unknown>({
                                 align={column.align}
                                 statusValue={statusValue}
                                 isLast={colIndex === orderedColumns.length - 1}
-                                className={cn(
-                                  // Select columns: fixed small width
-                                  isSelectColumn &&
-                                    'w-[48px] min-w-[48px] max-w-[48px]',
-                                  // Other columns: use specified widths or defaults
-                                  !isSelectColumn &&
-                                    column.width &&
-                                    `w-[${column.width}]`,
-                                  !isSelectColumn &&
-                                    column.minWidth &&
-                                    `min-w-[${column.minWidth}]`,
-                                  !isSelectColumn &&
-                                    !column.width &&
-                                    !column.minWidth &&
-                                    'min-w-[150px]',
-                                  !isSelectColumn &&
-                                    column.maxWidth &&
-                                    `max-w-[${column.maxWidth}]`,
-                                  column.className
-                                )}
+                                className={column.className}
+                                style={cellWidthStyle}
                               >
                                 {column.render ? (
                                   column.render(value, row, index)
