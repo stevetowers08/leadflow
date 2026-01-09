@@ -9,6 +9,7 @@ import {
   BarChart3,
   Camera,
   Calendar,
+  Building2,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -36,6 +37,8 @@ import Link from 'next/link';
  * - Overview (/) - Icon: LayoutDashboard
  * - Capture (/capture) - Icon: Camera - Business card scanner
  * - Leads (/leads) - Icon: Users
+ * - Companies (/companies) - Icon: Building2
+ * - Shows (/shows) - Icon: Calendar
  * - Campaigns (/workflows) - Icon: GitMerge
  * - Analytics (/analytics) - Icon: BarChart3
  * - Settings (/settings) - Icon: Settings2
@@ -58,6 +61,16 @@ const data = {
       icon: Users,
     },
     {
+      title: 'Companies',
+      url: '/companies',
+      icon: Building2,
+    },
+    {
+      title: 'Shows',
+      url: '/shows',
+      icon: Calendar,
+    },
+    {
       title: 'Campaigns',
       url: '/workflows',
       icon: GitMerge,
@@ -66,11 +79,6 @@ const data = {
       title: 'Analytics',
       url: '/analytics',
       icon: BarChart3,
-    },
-    {
-      title: 'Shows',
-      url: '/shows',
-      icon: Calendar,
     },
   ],
   navSecondary: [

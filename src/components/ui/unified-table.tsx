@@ -147,34 +147,53 @@ export const TableCell = React.forwardRef<
     cellType?: ColumnConfig['cellType'];
     align?: ColumnConfig['align'];
     statusValue?: string;
+    isLast?: boolean;
   }
->(({ className, cellType, align = 'left', statusValue, ...props }, ref) => {
-  const statusClasses = React.useMemo(() => {
-    if ((cellType === 'status' || cellType === 'ai-score') && statusValue) {
-      return getUnifiedStatusClass(statusValue);
-    }
-    return '';
-  }, [cellType, statusValue]);
+>(
+  (
+    {
+      className,
+      cellType,
+      align = 'left',
+      statusValue,
+      isLast = false,
+      ...props
+    },
+    ref
+  ) => {
+    const statusClasses = React.useMemo(() => {
+      if ((cellType === 'status' || cellType === 'ai-score') && statusValue) {
+        return getUnifiedStatusClass(statusValue);
+      }
+      return '';
+    }, [cellType, statusValue]);
 
-  return (
-    <ShadcnTableCell
-      ref={ref}
-      className={cn(
-        'px-4 py-1',
-        'text-sm text-muted-foreground',
-        'border-r border-border last:border-r-0',
-        'box-border',
-        cellType !== 'status' && 'group-hover:text-muted-foreground',
-        align === 'center' && 'text-center',
-        align === 'right' && 'text-right',
-        statusClasses,
-        'overflow-hidden break-words',
-        className
-      )}
-      {...props}
-    />
-  );
-});
+    return (
+      <ShadcnTableCell
+        ref={ref}
+        className={cn(
+          'px-4 py-1',
+          'text-sm text-muted-foreground',
+          'box-border relative',
+          // Add border-right class to ensure borders are visible
+          !isLast && 'border-r border-border',
+          cellType !== 'status' && 'group-hover:text-muted-foreground',
+          align === 'center' && 'text-center',
+          align === 'right' && 'text-right',
+          statusClasses,
+          'overflow-hidden break-words',
+          className
+        )}
+        style={{
+          // Use border-right with border-collapse: collapse to prevent shifting during horizontal scroll
+          ...props.style,
+          borderRight: isLast ? 'none' : '1px solid hsl(var(--border))',
+        }}
+        {...props}
+      />
+    );
+  }
+);
 TableCell.displayName = 'TableCell';
 
 export const TableHead = React.forwardRef<
@@ -196,33 +215,41 @@ export const TableHead = React.forwardRef<
       ...props
     },
     ref
-  ) => (
-    <ShadcnTableHead
-      ref={ref}
-      className={cn(
-        'px-4 py-1 h-[40px]',
-        'text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap',
-        'border-b border-r border-border last:border-r-0',
-        'box-border',
-        !isSticky && isFirst && 'rounded-tl-md',
-        !isSticky && isLast && 'rounded-tr-md',
-        align === 'center' && 'text-center',
-        align === 'right' && 'text-right',
-        align === 'left' && 'text-left',
-        className
-      )}
-      style={{
-        ...(isSticky && {
-          position: 'sticky',
-          top: 0,
-          zIndex: 30,
-          backgroundColor: 'var(--muted)',
-        }),
-        ...props.style,
-      }}
-      {...props}
-    />
-  )
+  ) => {
+    const baseStyle = {
+      ...(isSticky && {
+        position: 'sticky' as const,
+        top: 0,
+        zIndex: 30,
+        backgroundColor: 'var(--muted)',
+      }),
+      ...props.style,
+    };
+
+    return (
+      <ShadcnTableHead
+        ref={ref}
+        className={cn(
+          'px-4 py-1 h-[40px]',
+          'text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap',
+          'border-b border-border',
+          'box-border',
+          isFirst && 'rounded-tl-md',
+          isLast && 'rounded-tr-md',
+          align === 'center' && 'text-center',
+          align === 'right' && 'text-right',
+          align === 'left' && 'text-left',
+          className
+        )}
+        style={{
+          // Use border-right with border-collapse: collapse to prevent shifting during horizontal scroll
+          borderRight: isLast ? 'none' : '1px solid hsl(var(--border))',
+          ...baseStyle,
+        }}
+        {...props}
+      />
+    );
+  }
 );
 TableHead.displayName = 'TableHead';
 
@@ -405,22 +432,10 @@ function UnifiedTableComponent<T = unknown>({
           })
         : columns;
 
-    // Calculate total table width from column widths (for table-layout: fixed)
-    // Round values to prevent sub-pixel rendering issues that cause wobble
-    const totalTableWidth = orderedColumns.reduce((sum, col) => {
-      const colWidth = col.width || col.minWidth || '150px';
-      // Parse width value - handle 'px', '%', 'rem', etc.
-      const widthStr = colWidth.toString().trim();
-      const widthMatch = widthStr.match(/^(\d+(?:\.\d+)?)/);
-      const widthNum = widthMatch ? parseFloat(widthMatch[1]) : 150;
-      // Round to prevent sub-pixel issues
-      return sum + Math.round(widthNum);
-    }, 0);
-
     return (
       <div
         className={cn(
-          'bg-card border shadow-sm rounded-md',
+          'bg-card border shadow-sm rounded-md overflow-hidden',
           scrollable && 'flex flex-col h-full min-w-0',
           !scrollable && 'w-full',
           className
@@ -436,52 +451,54 @@ function UnifiedTableComponent<T = unknown>({
           <table
             role='table'
             aria-label={tableId ? `Table: ${tableId}` : 'Data table'}
+            className='w-full caption-bottom text-sm'
             style={{
               tableLayout: 'fixed',
-              width: `${Math.round(totalTableWidth)}px`,
-              borderCollapse: 'separate',
-              borderSpacing: 0,
             }}
           >
-            {/* Colgroup to enforce exact column widths across header and body */}
-            {/* With table-layout: fixed, colgroup widths are the single source of truth */}
             <colgroup>
               {orderedColumns.map(column => {
-                // Handle 'auto' width for dynamic sizing
-                const widthPx =
-                  column.width === 'auto'
-                    ? column.minWidth || '150px'
-                    : column.width || column.minWidth || '150px';
-                const isAuto = column.width === 'auto';
+                // Check if this is a select/checkbox column (typically first column with no label or very short)
+                const isSelectColumn =
+                  !column.label ||
+                  (typeof column.label === 'string' &&
+                    column.label.trim().length === 0) ||
+                  column.key.toLowerCase().includes('select') ||
+                  column.key.toLowerCase().includes('checkbox');
 
-                if (isAuto) {
+                // Select columns get a small fixed width (48px for checkbox)
+                if (isSelectColumn) {
                   return (
                     <col
                       key={column.key}
                       style={{
-                        width: 'auto',
-                        minWidth: column.minWidth || '150px',
+                        width: '48px',
+                        minWidth: '48px',
+                        maxWidth: '48px',
                       }}
                     />
                   );
                 }
 
-                // Round pixel values to prevent sub-pixel rendering issues
-                const widthStr = widthPx.toString().trim();
-                const widthMatch = widthStr.match(/^(\d+(?:\.\d+)?)/);
-                const widthNum = widthMatch
-                  ? Math.round(parseFloat(widthMatch[1]))
-                  : 150;
-                const roundedWidth = `${widthNum}px`;
+                // Other columns: use specified width, or default to auto with min-width
+                const width = column.width || column.minWidth;
+                if (width) {
+                  return (
+                    <col
+                      key={column.key}
+                      style={{
+                        width: width,
+                        minWidth: column.minWidth || width,
+                      }}
+                    />
+                  );
+                }
 
+                // Default: auto width with reasonable minimum
                 return (
                   <col
                     key={column.key}
-                    style={{
-                      width: roundedWidth,
-                      minWidth: roundedWidth,
-                      maxWidth: roundedWidth,
-                    }}
+                    style={{ width: 'auto', minWidth: '150px' }}
                   />
                 );
               })}
@@ -503,6 +520,14 @@ function UnifiedTableComponent<T = unknown>({
                       ? column.label
                       : '';
 
+                  // Check if this is a select/checkbox column
+                  const isSelectColumn =
+                    !column.label ||
+                    (typeof column.label === 'string' &&
+                      column.label.trim().length === 0) ||
+                    column.key.toLowerCase().includes('select') ||
+                    column.key.toLowerCase().includes('checkbox');
+
                   return (
                     <TableHead
                       key={column.key}
@@ -511,6 +536,22 @@ function UnifiedTableComponent<T = unknown>({
                       isFirst={index === 0}
                       isLast={index === orderedColumns.length - 1}
                       isSticky={scrollable && stickyHeaders}
+                      className={cn(
+                        // Select columns: fixed small width
+                        isSelectColumn && 'w-[48px] min-w-[48px] max-w-[48px]',
+                        // Other columns: use specified widths or defaults
+                        !isSelectColumn &&
+                          column.width &&
+                          `w-[${column.width}]`,
+                        !isSelectColumn &&
+                          column.minWidth &&
+                          `min-w-[${column.minWidth}]`,
+                        !isSelectColumn &&
+                          !column.width &&
+                          !column.minWidth &&
+                          'min-w-[150px]',
+                        column.className
+                      )}
                     >
                       <div
                         className={cn(
@@ -637,17 +678,47 @@ function UnifiedTableComponent<T = unknown>({
                                       row as Record<string, unknown>
                                     )[column.key];
 
+                                    // Check if this is a select/checkbox column
+                                    const isSelectColumn =
+                                      !column.label ||
+                                      (typeof column.label === 'string' &&
+                                        column.label.trim().length === 0) ||
+                                      column.key
+                                        .toLowerCase()
+                                        .includes('select') ||
+                                      column.key
+                                        .toLowerCase()
+                                        .includes('checkbox');
+
                                     return (
                                       <TableCell
                                         key={`${group.label}-${index}-${colIndex}`}
                                         cellType={column.cellType}
                                         align={column.align}
                                         statusValue={statusValue}
-                                        style={{
-                                          ...(column.maxWidth && {
-                                            maxWidth: column.maxWidth,
-                                          }),
-                                        }}
+                                        isLast={
+                                          colIndex === orderedColumns.length - 1
+                                        }
+                                        className={cn(
+                                          // Select columns: fixed small width
+                                          isSelectColumn &&
+                                            'w-[48px] min-w-[48px] max-w-[48px]',
+                                          // Other columns: use specified widths or defaults
+                                          !isSelectColumn &&
+                                            column.width &&
+                                            `w-[${column.width}]`,
+                                          !isSelectColumn &&
+                                            column.minWidth &&
+                                            `min-w-[${column.minWidth}]`,
+                                          !isSelectColumn &&
+                                            !column.width &&
+                                            !column.minWidth &&
+                                            'min-w-[150px]',
+                                          !isSelectColumn &&
+                                            column.maxWidth &&
+                                            `max-w-[${column.maxWidth}]`,
+                                          column.className
+                                        )}
                                       >
                                         {column.render ? (
                                           column.render(value, row, index)
@@ -695,17 +766,41 @@ function UnifiedTableComponent<T = unknown>({
                               column.key
                             ];
 
+                            // Check if this is a select/checkbox column
+                            const isSelectColumn =
+                              !column.label ||
+                              (typeof column.label === 'string' &&
+                                column.label.trim().length === 0) ||
+                              column.key.toLowerCase().includes('select') ||
+                              column.key.toLowerCase().includes('checkbox');
+
                             return (
                               <TableCell
                                 key={`${index}-${colIndex}`}
                                 cellType={column.cellType}
                                 align={column.align}
                                 statusValue={statusValue}
-                                style={{
-                                  ...(column.maxWidth && {
-                                    maxWidth: column.maxWidth,
-                                  }),
-                                }}
+                                isLast={colIndex === orderedColumns.length - 1}
+                                className={cn(
+                                  // Select columns: fixed small width
+                                  isSelectColumn &&
+                                    'w-[48px] min-w-[48px] max-w-[48px]',
+                                  // Other columns: use specified widths or defaults
+                                  !isSelectColumn &&
+                                    column.width &&
+                                    `w-[${column.width}]`,
+                                  !isSelectColumn &&
+                                    column.minWidth &&
+                                    `min-w-[${column.minWidth}]`,
+                                  !isSelectColumn &&
+                                    !column.width &&
+                                    !column.minWidth &&
+                                    'min-w-[150px]',
+                                  !isSelectColumn &&
+                                    column.maxWidth &&
+                                    `max-w-[${column.maxWidth}]`,
+                                  column.className
+                                )}
                               >
                                 {column.render ? (
                                   column.render(value, row, index)
