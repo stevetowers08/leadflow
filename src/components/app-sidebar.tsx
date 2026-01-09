@@ -21,7 +21,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { LeadFlowLogo } from '@/components/LeadFlowLogo';
@@ -98,14 +97,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader className='flex-shrink-0'>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className='data-[slot=sidebar-menu-button]:!p-1.5'
-            >
-              <Link href='/'>
+            <div className='p-1.5 select-none'>
+              <Link href='/' className='block'>
                 <LeadFlowLogo className='text-base font-semibold' />
               </Link>
-            </SidebarMenuButton>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
         <div className='px-3 py-2'>

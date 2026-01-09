@@ -83,7 +83,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
       case 'completed':
         return 'bg-blue-100 text-primary';
       default:
-        return 'bg-gray-100 text-foreground';
+        return 'bg-muted text-muted-foreground';
     }
   }, []);
 
@@ -101,7 +101,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
             <ArrowLeft className='w-4 h-4 mr-2' />
             Back to Campaigns
           </Button>
-          <div className='h-8 w-px bg-gray-300' />
+          <div className='h-8 w-px bg-border' />
           <h1 className='text-lg font-semibold text-foreground'>
             {sequence.name}
           </h1>
@@ -277,7 +277,7 @@ const CampaignSequenceBuilder = memo(({ sequence, onClose }: Props) => {
 
                       {/* Connector Line */}
                       {index < steps.length - 1 && (
-                        <div className='absolute left-4 top-full w-px h-3 bg-gray-300 -translate-y-1'></div>
+                        <div className='absolute left-4 top-full w-px h-3 bg-border -translate-y-1'></div>
                       )}
                     </div>
                   ))}

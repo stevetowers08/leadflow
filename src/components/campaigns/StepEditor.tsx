@@ -135,7 +135,7 @@ export default function StepEditor({ step, onUpdate }: StepEditorProps) {
               <Underline className='w-4 h-4' />
             </Button>
 
-            <div className='w-px h-4 bg-gray-300 mx-1' />
+            <div className='w-px h-4 bg-border mx-1' />
 
             <Button variant='ghost' size='sm' className='p-1.5'>
               <span className='text-sm font-mono'>{'{}'}</span>
@@ -147,7 +147,7 @@ export default function StepEditor({ step, onUpdate }: StepEditorProps) {
               <span className='text-sm'>A:</span>
             </Button>
 
-            <div className='w-px h-4 bg-gray-300 mx-1' />
+            <div className='w-px h-4 bg-border mx-1' />
 
             <Button variant='ghost' size='sm' className='p-1.5'>
               <Image className='w-4 h-4' />
@@ -162,7 +162,7 @@ export default function StepEditor({ step, onUpdate }: StepEditorProps) {
               <Plus className='w-4 h-4' />
             </Button>
 
-            <div className='w-px h-4 bg-gray-300 mx-1' />
+            <div className='w-px h-4 bg-border mx-1' />
 
             <Button variant='ghost' size='sm' className='p-1.5'>
               <AlignLeft className='w-4 h-4' />
@@ -177,7 +177,7 @@ export default function StepEditor({ step, onUpdate }: StepEditorProps) {
               <AlignJustify className='w-4 h-4' />
             </Button>
 
-            <div className='w-px h-4 bg-gray-300 mx-1' />
+            <div className='w-px h-4 bg-border mx-1' />
 
             <Button variant='ghost' size='sm' className='p-1.5'>
               <List className='w-4 h-4' />
@@ -186,13 +186,13 @@ export default function StepEditor({ step, onUpdate }: StepEditorProps) {
               <ListOrdered className='w-4 h-4' />
             </Button>
 
-            <div className='w-px h-4 bg-gray-300 mx-1' />
+            <div className='w-px h-4 bg-border mx-1' />
 
             <Button variant='ghost' size='sm' className='p-1.5'>
               <span className='text-sm'>¶</span>
             </Button>
 
-            <div className='w-px h-4 bg-gray-300 mx-1' />
+            <div className='w-px h-4 bg-border mx-1' />
 
             <Button variant='ghost' size='sm' className='p-1.5'>
               <Undo className='w-4 h-4' />
@@ -201,7 +201,7 @@ export default function StepEditor({ step, onUpdate }: StepEditorProps) {
               <Redo className='w-4 h-4' />
             </Button>
 
-            <div className='w-px h-4 bg-gray-300 mx-1' />
+            <div className='w-px h-4 bg-border mx-1' />
 
             <Button variant='ghost' size='sm' className='p-1.5'>
               <MoreHorizontal className='w-4 h-4' />

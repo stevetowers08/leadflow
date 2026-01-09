@@ -335,7 +335,7 @@ function CampaignsContent() {
               </div>
 
               {/* Campaign Rows */}
-              <div className='divide-y divide-gray-300'>
+              <div className='divide-y divide-border'>
                 {filteredSequences.map(sequence => {
                   const statusColor =
                     STATUS_COLORS[
@@ -345,7 +345,7 @@ function CampaignsContent() {
                   return (
                     <div
                       key={sequence.id}
-                      className='px-6 py-3 hover:bg-accent transition-colors cursor-pointer'
+                      className='px-6 py-3 hover:bg-muted transition-colors cursor-pointer'
                       onClick={() => handleOpenSequenceBuilder(sequence)}
                     >
                       <div className='flex items-center justify-between'>
@@ -369,7 +369,7 @@ function CampaignsContent() {
                                   {sequence.status.charAt(0).toUpperCase() +
                                     sequence.status.slice(1)}
                                 </span>
-                                <span>ΓÇó</span>
+                                <span>•</span>
                                 <span>
                                   Created At:{' '}
                                   {format(
@@ -377,7 +377,7 @@ function CampaignsContent() {
                                     'dd MMM, hh:mm a'
                                   )}
                                 </span>
-                                <span>ΓÇó</span>
+                                <span>•</span>
                                 <span>
                                   {sequence.total_leads || 0} sequences
                                 </span>

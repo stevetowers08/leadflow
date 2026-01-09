@@ -141,7 +141,7 @@ export default function SimplifiedCampaignSequenceBuilder({
       case 'condition':
         return 'bg-purple-100 text-purple-800';
       default:
-        return 'bg-gray-100 text-foreground';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -160,7 +160,7 @@ export default function SimplifiedCampaignSequenceBuilder({
               <ArrowLeft className='w-4 h-4 mr-2' />
               Back to Campaigns
             </Button>
-            <div className='h-8 w-px bg-gray-300' />
+            <div className='h-8 w-px bg-border' />
             <h1 className='text-xl font-semibold text-foreground'>
               {sequence.name}
             </h1>

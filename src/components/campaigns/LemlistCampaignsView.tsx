@@ -55,11 +55,11 @@ import {
 import { useRouter } from 'next/navigation';
 
 const STATUS_COLORS = {
-  active: 'bg-green-100 text-green-800',
-  running: 'bg-green-100 text-green-800',
-  paused: 'bg-yellow-100 text-yellow-800',
-  completed: 'bg-blue-100 text-blue-800',
-  draft: 'bg-gray-100 text-foreground',
+  active: 'bg-success/10 text-success',
+  running: 'bg-success/10 text-success',
+  paused: 'bg-warning/10 text-warning',
+  completed: 'bg-primary/10 text-primary',
+  draft: 'bg-muted text-muted-foreground',
 };
 
 interface LemlistCampaignAnalytics {
@@ -276,7 +276,7 @@ export function LemlistCampaignsView() {
         <div className='flex items-center gap-4'>
           {/* Filter Dropdown */}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className='w-[200px] h-8 border-gray-300'>
+            <SelectTrigger className='w-[200px] h-8 border-border'>
               <SelectValue placeholder='All Campaigns' />
             </SelectTrigger>
             <SelectContent>
@@ -290,12 +290,12 @@ export function LemlistCampaignsView() {
 
           {/* Search */}
           <div className='relative'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
             <Input
               placeholder='Search Campaigns'
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className='pl-10 h-8 w-[200px] border-gray-300'
+              className='pl-10 h-8 w-[200px] border-border'
             />
           </div>
         </div>
@@ -327,7 +327,7 @@ export function LemlistCampaignsView() {
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className='bg-gray-100 rounded-lg h-20 animate-pulse'
+              className='bg-muted rounded-lg h-20 animate-pulse'
             ></div>
           ))}
         </div>
@@ -353,9 +353,9 @@ export function LemlistCampaignsView() {
           </CardContent>
         </Card>
       ) : (
-        <div className='bg-white rounded-lg border border-gray-300 overflow-hidden'>
+        <div className='bg-card rounded-lg border border-border overflow-hidden'>
           {/* Campaign Details and Report Header */}
-          <div className='bg-gray-50 border-b border-gray-300 px-6 py-3'>
+          <div className='bg-muted border-b border-border px-6 py-3'>
             <div className='flex justify-between items-center'>
               <h3 className='text-lg font-semibold text-foreground'>
                 Campaign Details
@@ -365,11 +365,11 @@ export function LemlistCampaignsView() {
           </div>
 
           {/* Campaign Rows */}
-          <div className='divide-y divide-gray-300'>
+          <div className='divide-y divide-border'>
             {filteredCampaigns.map(campaign => {
               const statusColor =
                 STATUS_COLORS[campaign.status as keyof typeof STATUS_COLORS] ||
-                'bg-gray-100 text-foreground';
+                'bg-muted text-muted-foreground';
               const analytics = campaignAnalytics[campaign.id] || {
                 total_sent: 0,
                 total_opened: 0,
@@ -381,28 +381,28 @@ export function LemlistCampaignsView() {
               return (
                 <div
                   key={campaign.id}
-                  className='px-6 py-3 hover:bg-gray-50 transition-colors'
+                  className='px-6 py-3 hover:bg-muted transition-colors'
                 >
                   <div className='flex items-center justify-between'>
                     {/* Campaign Details */}
                     <div className='flex items-center space-x-4 flex-1'>
                       <div className='flex items-center space-x-3'>
-                        <div className='w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center'>
-                          <Edit className='h-4 w-4 text-gray-600' />
+                        <div className='w-8 h-8 bg-muted rounded-full flex items-center justify-center border border-border'>
+                          <Edit className='h-4 w-4 text-muted-foreground' />
                         </div>
                         <div>
                           <div className='flex items-center space-x-2'>
                             <h4
-                              className='text-sm font-medium text-purple-600 hover:text-purple-700 cursor-pointer'
+                              className='text-sm font-medium text-primary hover:text-primary/80 cursor-pointer'
                               onClick={() =>
                                 window.open('https://app.lemlist.com', '_blank')
                               }
                             >
                               {campaign.name}
                             </h4>
-                            <ExternalLink className='h-3 w-3 text-gray-400' />
+                            <ExternalLink className='h-3 w-3 text-muted-foreground' />
                           </div>
-                          <div className='flex items-center space-x-2 text-xs text-gray-500 mt-1'>
+                          <div className='flex items-center space-x-2 text-xs text-muted-foreground mt-1'>
                             <span
                               className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
                             >
@@ -443,54 +443,56 @@ export function LemlistCampaignsView() {
                       {/* Statistics - Matching Email Tab */}
                       <div className='flex items-center space-x-6'>
                         <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-purple-600'>
+                          <div className='text-2xl font-bold text-primary'>
                             {analytics.total_sent}
                           </div>
                           <div className='flex items-center gap-1 mt-1'>
-                            <Mail className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>Sent</span>
+                            <Mail className='h-4 w-4 text-muted-foreground' />
+                            <span className='text-xs text-muted-foreground'>
+                              Sent
+                            </span>
                           </div>
                         </div>
                         <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-purple-600'>
+                          <div className='text-2xl font-bold text-primary'>
                             {analytics.total_opened}
                           </div>
                           <div className='flex items-center gap-1 mt-1'>
-                            <MailOpen className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>
+                            <MailOpen className='h-4 w-4 text-muted-foreground' />
+                            <span className='text-xs text-muted-foreground'>
                               Opened
                             </span>
                           </div>
                         </div>
                         <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-blue-500'>
+                          <div className='text-2xl font-bold text-primary'>
                             {analytics.total_replied}
                           </div>
                           <div className='flex items-center gap-1 mt-1'>
-                            <Reply className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>
+                            <Reply className='h-4 w-4 text-muted-foreground' />
+                            <span className='text-xs text-muted-foreground'>
                               Replied
                             </span>
                           </div>
                         </div>
                         <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-green-600'>
+                          <div className='text-2xl font-bold text-success'>
                             {analytics.total_positive_replies}
                           </div>
                           <div className='flex items-center gap-1 mt-1'>
-                            <DollarSign className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>
+                            <DollarSign className='h-4 w-4 text-muted-foreground' />
+                            <span className='text-xs text-muted-foreground'>
                               Positive
                             </span>
                           </div>
                         </div>
                         <div className='flex flex-col items-center justify-center min-w-[80px]'>
-                          <div className='text-2xl font-bold text-red-600'>
+                          <div className='text-2xl font-bold text-destructive'>
                             {analytics.total_bounced}
                           </div>
                           <div className='flex items-center gap-1 mt-1'>
-                            <AlertTriangle className='h-4 w-4 text-gray-500' />
-                            <span className='text-xs text-gray-600'>
+                            <AlertTriangle className='h-4 w-4 text-muted-foreground' />
+                            <span className='text-xs text-muted-foreground'>
                               Bounced
                             </span>
                           </div>

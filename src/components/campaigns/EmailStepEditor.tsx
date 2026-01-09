@@ -153,7 +153,7 @@ export default function EmailStepEditor({ step, onUpdate }: Props) {
                 >
                   U
                 </Button>
-                <div className='w-px h-5 bg-gray-300 mx-1' />
+                <div className='w-px h-5 bg-border mx-1' />
                 <Button variant='ghost' size='sm' className='p-1.5 text-sm'>
                   Link
                 </Button>

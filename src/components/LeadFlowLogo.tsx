@@ -12,13 +12,14 @@ interface LogoProps {
  */
 export function LeadFlowLogo({ size = 120, className }: LogoProps) {
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn('flex items-center gap-2 select-none', className)}>
       <img
         src='/Leadflow beta .png'
         alt='LeadFlow Beta'
         width={size}
         height={size}
-        className='object-contain'
+        className='object-contain select-none pointer-events-none'
+        draggable='false'
       />
     </div>
   );
