@@ -3,7 +3,7 @@
  * Runs periodically to refresh stale company logos
  */
 
-import { refreshStaleLogos, getLogoStats } from '@/services/logoService';
+import { batchUpdateLogos } from '@/services/logoService';
 import { logger } from '@/utils/productionLogger';
 
 class LogoRefreshService {
@@ -19,7 +19,9 @@ class LogoRefreshService {
       return;
     }
 
-    logger.info(`Starting logo refresh service (every ${intervalMinutes} minutes)`);
+    logger.info(
+      `Starting logo refresh service (every ${intervalMinutes} minutes)`
+    );
 
     // Run immediately
     this.runRefresh();
@@ -58,16 +60,9 @@ class LogoRefreshService {
     try {
       logger.info('Starting logo refresh...');
 
-      // Get stats before refresh
-      const statsBefore = await getLogoStats();
-      logger.debug('Logo stats before refresh:', statsBefore);
-
-      // Run refresh
-      await refreshStaleLogos();
-
-      // Get stats after refresh
-      const statsAfter = await getLogoStats();
-      logger.debug('Logo stats after refresh:', statsAfter);
+      // Run batch update for stale logos
+      // Note: This is a simplified refresh - batchUpdateLogos handles the refresh logic
+      await batchUpdateLogos();
 
       logger.info('Logo refresh completed');
     } catch (error) {

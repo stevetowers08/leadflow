@@ -3,6 +3,10 @@
  * Addresses mobile layout issues, browser compatibility, touch interactions, and accessibility
  */
 
+import React, { useState, useEffect, useRef, type ReactNode } from 'react';
+import { cn } from '@/lib/utils';
+import { Menu } from 'lucide-react';
+
 // 1. Enhanced Mobile Detection Hook
 export const useMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -418,19 +422,24 @@ export const EnhancedLayout: React.FC<EnhancedLayoutProps> = ({ children }) => {
         />
       )}
 
-      {/* Sidebar */}
-      <div
-        className={cn(
-          isMobile
-            ? `fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out ${
-                sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-              }`
-            : 'relative',
-          'sidebar'
-        )}
-      >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
-      </div>
+      {/* Sidebar - Placeholder for sidebar component */}
+      {isMobile && sidebarOpen && (
+        <div
+          className={cn(
+            'fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out translate-x-0',
+            'sidebar bg-background border-r'
+          )}
+        >
+          {/* Sidebar content would go here */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className='p-4 text-foreground'
+            aria-label='Close sidebar'
+          >
+            Close
+          </button>
+        </div>
+      )}
 
       {/* Main content */}
       <main
@@ -468,8 +477,12 @@ export const EnhancedLayout: React.FC<EnhancedLayoutProps> = ({ children }) => {
         </div>
       </main>
 
-      {/* Mobile bottom navigation */}
-      {isMobile && <MobileNav />}
+      {/* Mobile bottom navigation - Placeholder for mobile nav component */}
+      {isMobile && (
+        <div className='fixed bottom-0 left-0 right-0 z-40 bg-background border-t lg:hidden'>
+          {/* Mobile navigation content would go here */}
+        </div>
+      )}
     </div>
   );
 };
@@ -605,7 +618,7 @@ export const AccessibilityUtils = {
       if (!rgb) return 0;
 
       const [r, g, b] = rgb.map(colorValue => {
-        const val = parseInt(c) / 255;
+        const val = parseInt(colorValue) / 255;
         return val <= 0.03928
           ? val / 12.92
           : Math.pow((val + 0.055) / 1.055, 2.4);

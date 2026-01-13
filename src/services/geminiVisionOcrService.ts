@@ -240,8 +240,9 @@ Rules:
     // Check error object properties (from SDK)
     if (
       geminiError?.status === 429 ||
-      geminiError?.code === 429 ||
-      geminiError?.statusCode === 429 ||
+      (typeof geminiError?.code === 'number' && geminiError.code === 429) ||
+      (typeof geminiError?.statusCode === 'number' &&
+        geminiError.statusCode === 429) ||
       geminiError?.status === 'RESOURCE_EXHAUSTED'
     ) {
       isQuotaError = true;
@@ -249,10 +250,15 @@ Rules:
 
     // Check cause (SDK wraps HTTP errors in cause)
     if (geminiError?.cause) {
-      const cause = geminiError.cause;
+      const cause = geminiError.cause as {
+        status?: number | string;
+        code?: number | string;
+        message?: string;
+        details?: Array<{ '@type'?: string; retryDelay?: unknown }>;
+      };
       if (
         cause.status === 429 ||
-        cause.code === 429 ||
+        (typeof cause.code === 'number' && cause.code === 429) ||
         cause.status === 'RESOURCE_EXHAUSTED' ||
         cause.message?.toLowerCase().includes('quota')
       ) {
@@ -261,7 +267,8 @@ Rules:
         // Try to extract retry info from cause.details
         if (cause.details && Array.isArray(cause.details)) {
           const retryInfo = cause.details.find(
-            d => d && d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
+            (d: { '@type'?: string; retryDelay?: unknown }) =>
+              d && d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
           );
           if (retryInfo?.retryDelay) {
             const delayStr = String(retryInfo.retryDelay).replace(
