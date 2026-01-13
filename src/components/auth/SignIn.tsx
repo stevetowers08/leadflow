@@ -29,7 +29,7 @@ export const SignIn: React.FC = () => {
   // Redirect if user is already signed in
   useEffect(() => {
     if (user) {
-      router.push('/');
+      router.push('/companies');
     }
   }, [user, router]);
 

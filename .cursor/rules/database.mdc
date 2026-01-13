@@ -26,28 +26,31 @@ For any database-related issues, queries, migrations, or operations, you have ac
 
 ## Key Tables
 
-- **jobs** - Job postings (qualification_status: new | qualify | skip)
-- **people** - Leads/contacts (stage: new | qualified | proceed | skip)
-- **companies** - Company profiles
-- **interactions** - Activity tracking
+- **leads** - Event-captured leads with OCR data (status: processing | active | replied_manual, quality_rank: hot | warm | cold)
+- **workflows** - Email automation workflows (email_provider: lemlist | gmail)
+- **companies** - Company profiles with enrichment data
+- **shows** - Exhibition/event tracking (status: upcoming | live | ended)
+- **activity_log** - Activity tracking for leads
+- **email_sends** - Email send tracking
+- **email_replies** - Reply analysis and sentiment tracking
+- **email_threads** - Gmail conversation threads
+- **email_messages** - Individual email messages
 - **user_profiles** - User accounts
-- **client_jobs** - Client-specific job data
-- **campaigns** - Email campaigns
-- **campaign_participants** - Campaign member tracking
+- **user_settings** - User preferences and settings
 
 ## Database Access Patterns
 
 ```typescript
 // ✅ CORRECT: Use type-safe queries
 import { DatabaseQueries } from '@/utils/databaseQueries';
-const person = await DatabaseQueries.getEntity<Person>('people', id);
+const lead = await DatabaseQueries.getEntity<Lead>('leads', id);
 
 // ✅ CORRECT: Use service functions
-import { getJobs } from '@/services/jobsService';
-const jobs = await getJobs({ status: 'new' });
+import { getLeads } from '@/services/leadsService';
+const leads = await getLeads({ status: 'active', quality_rank: 'hot' });
 
 // ❌ INCORRECT: Don't bypass type system
-const { data } = await supabase.from('people').select('*').eq('id', id);
+const { data } = await supabase.from('leads').select('*').eq('id', id);
 ```
 
 ## Supabase Client Usage
@@ -57,34 +60,47 @@ const { data } = await supabase.from('people').select('*').eq('id', id);
 import { supabase } from '@/integrations/supabase/client';
 
 // ✅ CORRECT: Always use service functions
-import { getPeople } from '@/services/peopleService';
+import { getLeads } from '@/services/leadsService';
 
 // ✅ CORRECT: Type-safe queries with proper selection
 const { data, error } = await supabase
-  .from('people')
-  .select('id, name, email_address, stage')
-  .eq('stage', 'new');
+  .from('leads')
+  .select('id, first_name, last_name, email, status, quality_rank')
+  .eq('status', 'active')
+  .eq('quality_rank', 'hot');
 
 // ❌ INCORRECT: Selecting all columns
-const { data } = await supabase.from('people').select('*');
+const { data } = await supabase.from('leads').select('*');
 
 // ❌ INCORRECT: Not handling errors
-const { data } = await supabase.from('people').select('*');
-setPeople(data); // data could be null!
+const { data } = await supabase.from('leads').select('*');
+setLeads(data); // data could be null!
 ```
 
 ## RLS (Row Level Security)
 
 - RLS is **always enabled** on Supabase tables
-- Users can only access data they own (via `owner_id`)
+- Users can only access data they own (via `user_id` for leads, `owner_id` for shows)
 - Never bypass RLS - it's a security feature
 - Test with different users to ensure proper access control
+
+## Lead Status & Quality
+
+### Lead Status (leads table)
+- **processing** - OCR scan being processed
+- **active** - Lead is active and ready for outreach
+- **replied_manual** - Lead has manually replied
+
+### Quality Rank (leads table)
+- **hot** - High-quality lead
+- **warm** - Medium-quality lead
+- **cold** - Low-quality lead
 
 ## Database Commands
 
 ```bash
 npm run db:schema              # Show all tables
-npm run db:schema people       # Show people table fields
+npm run db:schema leads        # Show leads table fields
 npm run db:schema companies name  # Show specific field
 ```
 

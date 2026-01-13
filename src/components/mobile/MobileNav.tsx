@@ -35,12 +35,6 @@ interface NavItem {
 // Updated for LeadFlow PDR - PDR Section 5.1
 const allNavItems: NavItem[] = [
   {
-    to: '/',
-    label: 'Overview',
-    icon: <Home className='h-5 w-5' />,
-    isPrimary: true,
-  },
-  {
     to: '/capture',
     label: 'Capture',
     icon: <Camera className='h-5 w-5' />,
@@ -318,7 +312,6 @@ export const CompactStatsCard: React.FC<CompactStatsCardProps> = ({
 }) => {
   return (
     <Card
-      variant='default'
       className={cn(
         'p-3 shadow-sm hover:shadow-md transition-shadow',
         'touch-manipulation min-h-[60px]',

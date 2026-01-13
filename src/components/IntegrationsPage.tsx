@@ -10,8 +10,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { LemlistIntegrationCard } from '@/components/integrations/LemlistIntegrationCard';
+import { LemlistWebhookManager } from '@/components/integrations/LemlistWebhookManager';
 import { CheckCircle2, Mail, XCircle } from 'lucide-react';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Integration {
   id: string;
@@ -23,6 +26,28 @@ interface Integration {
 }
 
 const IntegrationsPage = () => {
+  const { user } = useAuth();
+  const [lemlistConnected, setLemlistConnected] = useState(false);
+
+  // Check Lemlist connection status
+  useEffect(() => {
+    async function checkLemlistConnection() {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('metadata')
+        .eq('id', user.id)
+        .single();
+
+      const metadata = (data?.metadata as Record<string, unknown>) || {};
+      const hasApiKey = !!metadata.lemlist_api_key;
+      setLemlistConnected(hasApiKey);
+    }
+
+    checkLemlistConnection();
+  }, [user]);
+
   // Filter integrations - show Lemlist
   const integrations: Integration[] = [
     {
@@ -151,6 +176,13 @@ const IntegrationsPage = () => {
             </Card>
           ))}
       </div>
+
+      {/* Show webhook manager if Lemlist is connected */}
+      {lemlistConnected && (
+        <div className='mt-6'>
+          <LemlistWebhookManager />
+        </div>
+      )}
     </div>
   );
 };

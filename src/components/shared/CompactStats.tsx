@@ -54,11 +54,7 @@ export const CompactStats: React.FC<CompactStatsProps> = ({
         className={cn('grid grid-cols-2 md:hidden', designTokens.spacing.md)}
       >
         {statsItems.map((item, index) => (
-          <Card
-            key={index}
-            variant='glass'
-            className={designTokens.shadows.cardStatic}
-          >
+          <Card key={index} className={designTokens.shadows.cardStatic}>
             <CardContent className={designTokens.spacing.cardPadding.compact}>
               <div className={cn('flex items-center', designTokens.spacing.sm)}>
                 <div
@@ -103,11 +99,7 @@ export const CompactStats: React.FC<CompactStatsProps> = ({
         )}
       >
         {statsItems.map((item, index) => (
-          <Card
-            key={index}
-            variant='glass'
-            className={designTokens.shadows.card}
-          >
+          <Card key={index} className={designTokens.shadows.card}>
             <CardContent
               className={designTokens.spacing.cardPadding.responsive}
             >
@@ -229,7 +221,7 @@ export const StatsWithTrends: React.FC<StatsWithTrendsProps> = ({
       )}
     >
       {statsItems.map((item, index) => (
-        <Card key={index} variant='glass' className={designTokens.shadows.card}>
+        <Card key={index} className={designTokens.shadows.card}>
           <CardContent className={designTokens.spacing.cardPadding.responsive}>
             <div className='flex items-center justify-between'>
               <div

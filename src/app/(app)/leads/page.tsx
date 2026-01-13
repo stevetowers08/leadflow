@@ -22,25 +22,16 @@ import {
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import type { Lead } from '@/types/database';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  exportLeadsToCSV,
-  exportLeadsToJSON,
-  downloadExport,
-} from '@/services/exportService';
+import { exportLeadsToCSV, downloadExport } from '@/services/exportService';
 import { toast } from 'sonner';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { FloatingActionBar } from '@/components/people/FloatingActionBar';
 import { useAllCampaigns } from '@/hooks/useAllCampaigns';
 import { bulkAddLeadsToCampaign } from '@/services/bulk/bulkLeadsService';
+import { bulkDeletePeople } from '@/services/bulk/bulkPeopleService';
 import { CSVImportDialog } from '@/components/people/CSVImportDialog';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDeleteConfirmation } from '@/contexts/ConfirmationContext';
 import { CellLoadingSpinner } from '@/components/ui/cell-loading-spinner';
 import { cn } from '@/lib/utils';
 import { CompanyChip } from '@/components/shared/CompanyChip';
@@ -49,6 +40,9 @@ import { getShows } from '@/services/showsService';
 import type { Company, Show } from '@/types/database';
 import { LeadDetailsSlideOut } from '@/components/slide-out/LeadDetailsSlideOut';
 import { getStatusDisplayText } from '@/utils/statusUtils';
+import { TableFilterBar } from '@/components/tables/TableFilterBar';
+import { useTableViewPreferences } from '@/hooks/useTableViewPreferences';
+import type { SortOption, FilterConfig } from '@/types/tableFilters';
 
 // Type for Lead with joined relations from getLeads query
 type LeadWithRelations = Lead & {
@@ -59,16 +53,66 @@ type LeadWithRelations = Lead & {
   > | null;
 };
 
+// Sort options for leads
+const LEAD_SORT_OPTIONS: SortOption[] = [
+  {
+    value: 'created_at_desc',
+    label: 'Newest First',
+    field: 'created_at',
+    direction: 'desc',
+  },
+  {
+    value: 'created_at_asc',
+    label: 'Oldest First',
+    field: 'created_at',
+    direction: 'asc',
+  },
+  {
+    value: 'name_asc',
+    label: 'Name (A-Z)',
+    field: 'first_name',
+    direction: 'asc',
+  },
+  {
+    value: 'name_desc',
+    label: 'Name (Z-A)',
+    field: 'first_name',
+    direction: 'desc',
+  },
+  {
+    value: 'quality_desc',
+    label: 'Quality (Hot → Cold)',
+    field: 'quality_rank',
+    direction: 'desc',
+  },
+  {
+    value: 'quality_asc',
+    label: 'Quality (Cold → Hot)',
+    field: 'quality_rank',
+    direction: 'asc',
+  },
+];
+
 export default function LeadsPage() {
   const { user, loading: authLoading } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
-  const [showFilter, setShowFilter] = useState<string>('all');
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
   const bulkSelection = useBulkSelection();
   const { data: campaigns = [] } = useAllCampaigns();
   const queryClient = useQueryClient();
+  const showDeleteConfirmation = useDeleteConfirmation();
+
+  // Table view preferences (filters + sorting)
+  const { preferences, updatePreferences } = useTableViewPreferences('leads', {
+    sortBy: 'created_at_desc',
+    filters: {
+      show: 'all',
+      quality: 'all',
+      status: 'all',
+    },
+  });
 
   const { data: shows = [] } = useQuery({
     queryKey: ['shows'],
@@ -82,14 +126,34 @@ export default function LeadsPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['leads', showFilter],
-    queryFn: () =>
-      getLeads({
+    queryKey: ['leads', preferences],
+    queryFn: () => {
+      const showFilter = preferences.filters.show;
+      const showId =
+        showFilter !== 'all' && typeof showFilter === 'string'
+          ? showFilter
+          : undefined;
+
+      return getLeads({
         limit: 50,
-        show_id: showFilter !== 'all' ? showFilter : undefined,
-      }),
+        show_id: showId,
+        quality_rank:
+          preferences.filters.quality !== 'all'
+            ? (preferences.filters.quality as 'hot' | 'warm' | 'cold')
+            : undefined,
+        status:
+          preferences.filters.status !== 'all'
+            ? (preferences.filters.status as
+                | 'processing'
+                | 'active'
+                | 'replied_manual')
+            : undefined,
+        sortBy: preferences.sortBy,
+      });
+    },
     enabled: shouldBypassAuth() || (!authLoading && !!user),
-    staleTime: 2 * 60 * 1000,
+    staleTime: 30 * 1000, // Reduced to 30 seconds for better real-time updates
+    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 
   const { data: stats } = useQuery({
@@ -99,6 +163,44 @@ export default function LeadsPage() {
     staleTime: 5 * 60 * 1000, // Cache stats for 5 minutes
     refetchOnWindowFocus: false, // Don't refetch on window focus
   });
+
+  // Build filter configurations
+  const filterConfigs: FilterConfig[] = useMemo(
+    () => [
+      {
+        key: 'show',
+        label: 'Show',
+        placeholder: 'All Shows',
+        options: [
+          { value: 'all', label: 'All Shows' },
+          ...shows.map(show => ({ value: show.id, label: show.name })),
+        ],
+      },
+      {
+        key: 'quality',
+        label: 'Quality',
+        placeholder: 'All Qualities',
+        options: [
+          { value: 'all', label: 'All Qualities' },
+          { value: 'hot', label: 'Hot', icon: Flame },
+          { value: 'warm', label: 'Warm', icon: Zap },
+          { value: 'cold', label: 'Cold', icon: Snowflake },
+        ],
+      },
+      {
+        key: 'status',
+        label: 'Status',
+        placeholder: 'All Statuses',
+        options: [
+          { value: 'all', label: 'All Statuses' },
+          { value: 'processing', label: 'Processing' },
+          { value: 'active', label: 'Active' },
+          { value: 'replied_manual', label: 'Replied' },
+        ],
+      },
+    ],
+    [shows]
+  );
 
   // Keyboard shortcuts (Cmd/Ctrl+A for select all, Escape to clear)
   useEffect(() => {
@@ -187,20 +289,48 @@ export default function LeadsPage() {
       },
       {
         key: 'email',
-        label: 'Email',
+        label: (
+          <div
+            className='flex items-center gap-1.5'
+            title='Email addresses may be enriched from external sources'
+          >
+            <span>Email</span>
+            <Zap className='h-3.5 w-3.5 text-yellow-500' />
+          </div>
+        ),
         width: '250px',
         render: (_, lead) => {
-          return (
+          const isEnriching =
+            lead.enrichment_status === 'enriching' ||
+            lead.enrichment_status === 'pending';
+
+          return isEnriching ? (
+            <CellLoadingSpinner size='sm' />
+          ) : (
             <span className='text-muted-foreground'>{lead.email || '-'}</span>
           );
         },
       },
       {
         key: 'phone',
-        label: 'Phone',
+        label: (
+          <div
+            className='flex items-center gap-1.5'
+            title='Phone numbers may be enriched from external sources'
+          >
+            <span>Phone</span>
+            <Zap className='h-3.5 w-3.5 text-yellow-500' />
+          </div>
+        ),
         width: '150px',
         render: (_, lead) => {
-          return (
+          const isEnriching =
+            lead.enrichment_status === 'enriching' ||
+            lead.enrichment_status === 'pending';
+
+          return isEnriching ? (
+            <CellLoadingSpinner size='sm' />
+          ) : (
             <span className='text-muted-foreground'>{lead.phone || '-'}</span>
           );
         },
@@ -208,9 +338,12 @@ export default function LeadsPage() {
       {
         key: 'company',
         label: (
-          <div className='flex items-center gap-1.5'>
+          <div
+            className='flex items-center gap-1.5'
+            title='Company information is enriched from external sources'
+          >
             <span>Company</span>
-            <Bolt className='h-3.5 w-3.5 text-yellow-500' />
+            <Zap className='h-3.5 w-3.5 text-yellow-500' />
           </div>
         ),
         width: '200px',
@@ -227,7 +360,7 @@ export default function LeadsPage() {
                 <CompanyChip
                   company={
                     (lead as LeadWithRelations).companies || {
-                      name: lead.company,
+                      name: lead.company || 'Unknown',
                       logo_url: null,
                     }
                   }
@@ -246,7 +379,7 @@ export default function LeadsPage() {
             <ShowChip
               show={
                 (lead as LeadWithRelations).shows || {
-                  name: lead.show_name,
+                  name: lead.show_name || 'Unknown',
                   start_date: lead.show_date,
                 }
               }
@@ -257,9 +390,12 @@ export default function LeadsPage() {
       {
         key: 'job_title',
         label: (
-          <div className='flex items-center gap-1.5'>
+          <div
+            className='flex items-center gap-1.5'
+            title='Job titles are enriched from external sources'
+          >
             <span>Position</span>
-            <Bolt className='h-3.5 w-3.5 text-yellow-500' />
+            <Zap className='h-3.5 w-3.5 text-yellow-500' />
           </div>
         ),
         width: '200px',
@@ -392,19 +528,14 @@ export default function LeadsPage() {
     [stats, leads.length]
   );
 
-  const handleExport = async (format: 'csv' | 'json') => {
+  const handleExport = async () => {
     try {
       setIsExporting(true);
       const timestamp = new Date().toISOString().split('T')[0];
-      const filename = `leads-export-${timestamp}.${format}`;
+      const filename = `leads-export-${timestamp}.csv`;
 
-      if (format === 'csv') {
-        const csvData = await exportLeadsToCSV({ format: 'csv' });
-        downloadExport(csvData, filename, 'text/csv');
-      } else {
-        const jsonData = await exportLeadsToJSON({ format: 'json' });
-        downloadExport(jsonData, filename, 'application/json');
-      }
+      const csvData = await exportLeadsToCSV({ format: 'csv' });
+      downloadExport(csvData, filename, 'text/csv');
 
       toast.success('Export successful', {
         description: `Downloaded ${filename}`,
@@ -469,9 +600,63 @@ export default function LeadsPage() {
   );
 
   const handleDelete = useCallback(async () => {
-    // Placeholder - implement delete functionality if needed
-    toast.info('Delete functionality not yet implemented');
-  }, []);
+    const selectedLeadIds = bulkSelection.getSelectedIds(leads.map(l => l.id));
+
+    if (selectedLeadIds.length === 0) {
+      toast.error('Error', { description: 'No leads selected' });
+      return;
+    }
+
+    showDeleteConfirmation(
+      async () => {
+        console.log(
+          '🗑️ [handleDelete] Confirmed, starting delete for',
+          selectedLeadIds.length,
+          'leads'
+        );
+        try {
+          const result = await bulkDeletePeople(selectedLeadIds);
+          console.log('🗑️ [handleDelete] Delete result:', result);
+
+          if (result.successCount > 0) {
+            toast.success('Success', {
+              description: `Deleted ${result.successCount} lead${result.successCount === 1 ? '' : 's'}${
+                result.errorCount > 0 ? ` (${result.errorCount} failed)` : ''
+              }`,
+            });
+
+            // Invalidate queries to refresh the list
+            queryClient.invalidateQueries({ queryKey: ['leads'] });
+            queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
+
+            // Clear selection
+            bulkSelection.deselectAll();
+          } else {
+            const errorMsg =
+              result.errors[0]?.error || 'Failed to delete leads';
+            console.error(
+              '🗑️ [handleDelete] Delete failed:',
+              errorMsg,
+              result.errors
+            );
+            toast.error('Error', {
+              description: errorMsg,
+            });
+          }
+        } catch (error) {
+          console.error('🗑️ [handleDelete] Exception during delete:', error);
+          toast.error('Error', {
+            description:
+              error instanceof Error ? error.message : 'Failed to delete leads',
+          });
+        }
+      },
+      {
+        customTitle: 'Delete Leads',
+        customDescription: `Are you sure you want to delete ${selectedLeadIds.length} lead${selectedLeadIds.length === 1 ? '' : 's'}? This action cannot be undone.`,
+      }
+    );
+  }, [bulkSelection, leads, showDeleteConfirmation, queryClient]);
 
   const handleFavourite = useCallback(async () => {
     // Placeholder - implement favourite functionality if needed
@@ -507,87 +692,77 @@ export default function LeadsPage() {
   }
 
   return (
-    <Page stats={pageStats} title='Leads' loading={isLoading}>
-      <div className='flex flex-col min-w-0 w-full'>
-        <div className='flex items-center justify-between gap-2 mb-4 flex-shrink-0 w-full'>
-          <div className='flex items-center gap-2 flex-shrink-0'>
-            {actualSelectedCount > 0 && (
-              <>
-                <Badge variant='secondary'>
-                  {actualSelectedCount}{' '}
-                  {actualSelectedCount === 1 ? 'lead' : 'leads'} selected
-                </Badge>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={() => bulkSelection.deselectAll()}
-                >
-                  Clear selection
-                </Button>
-              </>
-            )}
-            {shows.length > 0 && (
-              <Select value={showFilter} onValueChange={setShowFilter}>
-                <SelectTrigger className='w-[200px]'>
-                  <SelectValue placeholder='Filter by show' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Shows</SelectItem>
-                  {shows.map(show => (
-                    <SelectItem key={show.id} value={show.id}>
-                      {show.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-          <div className='flex gap-2 ml-auto flex-shrink-0'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => setShowImportDialog(true)}
-            >
-              <Upload className='h-4 w-4 mr-2' />
-              Import CSV
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => handleExport('csv')}
-              disabled={isExporting || leads.length === 0}
-            >
-              <Download className='h-4 w-4 mr-2' />
-              Export CSV
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => handleExport('json')}
-              disabled={isExporting || leads.length === 0}
-            >
-              <Download className='h-4 w-4 mr-2' />
-              Export JSON
-            </Button>
-          </div>
+    <Page
+      stats={pageStats}
+      title='Leads'
+      loading={isLoading}
+      padding='none'
+      hideHeader
+    >
+      <TableFilterBar
+        entityLabel='Leads'
+        entityCount={leads.length}
+        sortOptions={LEAD_SORT_OPTIONS}
+        filterConfigs={filterConfigs}
+        preferences={preferences}
+        onPreferencesChange={updatePreferences}
+      />
+
+      <div className='flex items-center justify-between gap-2 px-4 py-2 border-b border-border bg-background'>
+        <div className='flex items-center gap-2 flex-shrink-0'>
+          {actualSelectedCount > 0 && (
+            <>
+              <Badge variant='secondary'>
+                {actualSelectedCount}{' '}
+                {actualSelectedCount === 1 ? 'lead' : 'leads'} selected
+              </Badge>
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => bulkSelection.deselectAll()}
+              >
+                Clear selection
+              </Button>
+            </>
+          )}
         </div>
-        <div
-          className='w-full min-w-0 flex-1'
-          style={{ minHeight: '400px', maxHeight: 'calc(100vh - 280px)' }}
-        >
-          <UnifiedTable
-            data={leads}
-            columns={columns}
-            loading={isLoading}
-            emptyMessage='No leads captured yet. Start by capturing your first business card!'
-            scrollable
-            stickyHeaders
-            onRowClick={lead => {
-              setSelectedLeadId(lead.id);
-              setIsSlideOutOpen(true);
-            }}
-          />
+        <div className='flex gap-2 ml-auto flex-shrink-0'>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => setShowImportDialog(true)}
+          >
+            <Upload className='h-4 w-4 mr-2' />
+            Import CSV
+          </Button>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={handleExport}
+            disabled={isExporting || leads.length === 0}
+          >
+            <Download className='h-4 w-4 mr-2' />
+            Export CSV
+          </Button>
         </div>
+      </div>
+
+      <div
+        className='w-full min-w-0 flex-1'
+        style={{ minHeight: '400px', maxHeight: 'calc(100vh - 280px)' }}
+      >
+        <UnifiedTable
+          data={leads}
+          columns={columns}
+          loading={isLoading}
+          emptyMessage='No leads captured yet. Start by capturing your first business card!'
+          scrollable
+          stickyHeaders
+          onRowClick={lead => {
+            setSelectedLeadId(lead.id);
+            setIsSlideOutOpen(true);
+          }}
+        />
       </div>
 
       {/* Floating Action Bar for bulk operations */}
@@ -595,9 +770,7 @@ export default function LeadsPage() {
         selectedCount={actualSelectedCount}
         onDelete={handleDelete}
         onFavourite={handleFavourite}
-        onExport={async () => {
-          await handleExport('csv');
-        }}
+        onExport={handleExport}
         onSyncCRM={handleSyncCRM}
         onSendEmail={handleSendEmail}
         onAddToCampaign={handleAddToCampaign}

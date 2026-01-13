@@ -172,8 +172,8 @@ export default function AcceptInvitePage() {
       // Refresh profile
       await refreshProfile();
 
-      // Redirect to dashboard
-      router.push('/');
+      // Redirect to companies
+      router.push('/companies');
     } catch (err) {
       console.error('Error accepting invitation:', err);
       setError(

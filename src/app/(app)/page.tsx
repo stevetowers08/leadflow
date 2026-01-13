@@ -1,92 +1,44 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow } from 'date-fns';
-import { useQuery } from '@tanstack/react-query';
-import { getLeadStats, getLeads } from '@/services/leadsService';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
+import { getLeads, getLeadStats } from '@/services/leadsService';
+import { useQuery } from '@tanstack/react-query';
 import {
   Users,
   Flame,
   Zap,
   Snowflake,
-  Clock,
   Building2,
   Briefcase,
+  Clock,
 } from 'lucide-react';
-import { toast } from '@/utils/toast';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { formatDistanceToNow } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { Lead } from '@/types/database';
 
-/**
- * Overview Page - PDR Section 5.2
- *
- * Key Metrics + Recent Leads Feed
- * Simple MVP dashboard
- */
-const OverviewPage = React.memo(function OverviewPage() {
+export default function OverviewPage() {
   const { user, loading: authLoading } = useAuth();
-  const searchParams = useSearchParams();
   const router = useRouter();
-
-  // Handle OAuth errors from callback route
-  useEffect(() => {
-    const authError = searchParams.get('auth_error');
-    const errorDescription = searchParams.get('error_description');
-
-    if (authError) {
-      // Show user-friendly error message
-      let errorMessage = 'Authentication failed';
-
-      switch (authError) {
-        case 'exchange_failed':
-          errorMessage = 'Failed to complete sign-in. Please try again.';
-          break;
-        case 'no_session':
-          errorMessage =
-            'Session could not be created. Please try signing in again.';
-          break;
-        case 'unexpected_error':
-          errorMessage =
-            errorDescription || 'An unexpected error occurred during sign-in.';
-          break;
-        default:
-          errorMessage = errorDescription || 'Authentication error occurred.';
-      }
-
-      toast.error('Sign-in Failed', {
-        description: errorMessage,
-        duration: 8000,
-      });
-
-      // Clean up URL params
-      const url = new URL(window.location.href);
-      url.searchParams.delete('auth_error');
-      url.searchParams.delete('error_description');
-      router.replace(url.pathname + url.search, { scroll: false });
-    }
-  }, [searchParams, router]);
 
   const { data: stats } = useQuery({
     queryKey: ['lead-stats'],
     queryFn: () => getLeadStats(),
     enabled: shouldBypassAuth() || (!authLoading && !!user),
-    staleTime: 5 * 60 * 1000, // Cache stats for 5 minutes (less frequently changing)
-    refetchOnWindowFocus: false, // Don't refetch on window focus
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: recentLeads = [] } = useQuery({
     queryKey: ['recent-leads'],
     queryFn: () => getLeads({ limit: 10 }),
     enabled: shouldBypassAuth() || (!authLoading && !!user),
-    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
-    refetchOnWindowFocus: false, // Don't refetch on window focus for better performance
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   return (
@@ -289,6 +241,4 @@ const OverviewPage = React.memo(function OverviewPage() {
       </div>
     </div>
   );
-});
-
-export default OverviewPage;
+}

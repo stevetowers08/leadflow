@@ -125,7 +125,7 @@ function ReportingContent() {
             emailSendsError
           );
           error = emailSendsError;
-          data = emailsData || [];
+          data = emailSendsData || [];
         } else {
           data = emailSendsData || [];
         }

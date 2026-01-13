@@ -50,20 +50,12 @@ interface MobileSidebarProps {
 /**
  * Sidebar items following PDR structure:
  * LeadFlow MVP Navigation:
- * - Overview (/) - Dashboard
  * - Leads (/leads) - Lead list
  * - Campaigns (/workflows) - Campaign builder
  * - Analytics (/analytics) - Analytics dashboard
  * - Settings (/settings) - Settings
  */
 const sidebarItems: SidebarItem[] = [
-  {
-    to: '/',
-    label: 'Overview',
-    icon: <Home className='h-4 w-4' />,
-    isPrimary: true,
-    category: 'main',
-  },
   {
     to: '/leads',
     label: 'Leads',

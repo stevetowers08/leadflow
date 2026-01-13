@@ -68,6 +68,7 @@ export interface Company {
   id: string;
   name: string;
   website: string | null;
+  domain: string | null;
   linkedin_url: string | null;
   head_office: string | null;
   industry: string | null;
@@ -88,6 +89,10 @@ export interface Company {
   last_activity: string | null;
   funding_raised: number | null;
   estimated_arr: number | null;
+  description: string | null;
+  categories: string[] | null;
+  connection_strength: 'none' | 'weak' | 'medium' | 'strong' | null;
+  enrichment_status: 'pending' | 'enriching' | 'completed' | 'failed' | null;
   ai_company_intelligence: Metadata | null;
   ai_marketi_info: Metadata | null;
   ai_funding: Metadata | null;
@@ -288,20 +293,53 @@ export interface EmailReply {
 export interface ActivityLog {
   id: string;
   lead_id: string | null;
+  workflow_id: string | null;
   timestamp: string | null;
   activity_type:
     | 'email_sent'
     | 'email_opened'
     | 'email_clicked'
     | 'email_replied'
+    | 'email_bounced'
+    | 'email_unsubscribed'
     | 'workflow_paused'
     | 'workflow_resumed'
+    | 'workflow_completed'
     | 'lead_created'
     | 'lead_updated'
     | 'workflow_assigned'
+    | 'linkedin_activity'
     | 'manual_note';
   metadata: Metadata | null;
   created_at: string | null;
+}
+
+// Lemlist webhook configuration
+export interface LemlistWebhook {
+  id: string;
+  user_id: string;
+  webhook_url: string;
+  lemlist_webhook_id: string | null;
+  event_types: string[];
+  campaign_id: string | null;
+  is_active: boolean;
+  trigger_once: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Lemlist webhook delivery log
+export interface LemlistWebhookDelivery {
+  id: string;
+  webhook_id: string | null;
+  event_type: string;
+  payload: Record<string, unknown>;
+  lead_email: string | null;
+  campaign_id: string | null;
+  processed: boolean;
+  processing_error: string | null;
+  received_at: string;
+  processed_at: string | null;
 }
 
 // Multi-tenant client organizations - REMOVED (not in PDR)

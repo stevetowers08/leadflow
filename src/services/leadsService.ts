@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Lead } from '@/types/database';
 import { linkCompanyToShow } from './showCompaniesService';
 import { formatLeadTextFields } from '@/utils/textFormatting';
+import { triggerEnrichmentWebhook } from './enrichLeadWebhook';
 
 export interface CreateLeadInput {
   first_name?: string | null;
@@ -68,6 +69,7 @@ export async function createLead(input: CreateLeadInput): Promise<Lead> {
       ...formattedInput,
       user_id: userId,
       status: 'processing',
+      enrichment_status: 'pending',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
@@ -98,6 +100,19 @@ export async function createLead(input: CreateLeadInput): Promise<Lead> {
     }
   }
 
+  // Trigger automatic enrichment webhook (fire-and-forget)
+  triggerEnrichmentWebhook({
+    lead_id: data.id,
+    company: data.company || undefined,
+    email: data.email || undefined,
+    first_name: data.first_name || undefined,
+    last_name: data.last_name || undefined,
+    linkedin_url: null,
+  }).catch(error => {
+    // Log but don't fail lead creation
+    console.error('Failed to trigger enrichment webhook:', error);
+  });
+
   return data as Lead;
 }
 
@@ -108,6 +123,15 @@ export async function updateLead(
   leadId: string,
   input: UpdateLeadInput
 ): Promise<Lead> {
+  // Get current lead to check status change
+  const { data: currentLead } = await supabase
+    .from('leads')
+    .select(
+      'status, enrichment_status, email, first_name, last_name, company, linkedin_url'
+    )
+    .eq('id', leadId)
+    .single();
+
   // Format text fields to Title Case
   const formattedInput = formatLeadTextFields({
     first_name: input.first_name,
@@ -129,6 +153,26 @@ export async function updateLead(
 
   if (error) {
     throw new Error(`Failed to update lead: ${error.message}`);
+  }
+
+  // Trigger enrichment if status changed to 'active' and enrichment hasn't been completed
+  if (
+    currentLead &&
+    currentLead.status !== 'active' &&
+    input.status === 'active' &&
+    currentLead.enrichment_status !== 'completed' &&
+    currentLead.enrichment_status !== 'enriching'
+  ) {
+    triggerEnrichmentWebhook({
+      lead_id: leadId,
+      company: currentLead.company || undefined,
+      email: currentLead.email || undefined,
+      first_name: currentLead.first_name || undefined,
+      last_name: currentLead.last_name || undefined,
+      linkedin_url: currentLead.linkedin_url || undefined,
+    }).catch(error => {
+      console.error('Failed to trigger enrichment webhook on approval:', error);
+    });
   }
 
   return data as Lead;
@@ -155,6 +199,24 @@ export async function getLead(leadId: string): Promise<Lead | null> {
 }
 
 /**
+ * Parse sort option into field and direction
+ */
+function parseSortBy(sortBy?: string): [string, 'asc' | 'desc'] {
+  if (!sortBy) return ['created_at', 'desc'];
+
+  const sortMap: Record<string, [string, 'asc' | 'desc']> = {
+    created_at_desc: ['created_at', 'desc'],
+    created_at_asc: ['created_at', 'asc'],
+    name_asc: ['first_name', 'asc'],
+    name_desc: ['first_name', 'desc'],
+    quality_desc: ['quality_rank', 'desc'], // hot, warm, cold
+    quality_asc: ['quality_rank', 'asc'], // cold, warm, hot
+  };
+
+  return sortMap[sortBy] || ['created_at', 'desc'];
+}
+
+/**
  * Get all leads for the current user
  * RLS policies ensure users only see their own leads
  */
@@ -165,6 +227,8 @@ export async function getLeads(options?: {
   status?: 'processing' | 'active' | 'replied_manual';
   show_id?: string;
   company_id?: string;
+  company?: string; // Filter by company name (text match)
+  sortBy?: string;
   show_name?: string; // Legacy filter
   show_date?: string; // Legacy filter
 }): Promise<Lead[]> {
@@ -175,10 +239,13 @@ export async function getLeads(options?: {
       ? `*, shows(id, name, start_date, end_date, city, venue)`
       : `*`;
 
+    // Parse sorting
+    const [sortField, sortDirection] = parseSortBy(options?.sortBy);
+
     let query = supabase
       .from('leads')
       .select(selectQuery)
-      .order('created_at', { ascending: false });
+      .order(sortField, { ascending: sortDirection === 'asc' });
 
     if (options?.quality_rank) {
       query = query.eq('quality_rank', options.quality_rank);
@@ -190,6 +257,11 @@ export async function getLeads(options?: {
 
     if (options?.show_id) {
       query = query.eq('show_id', options.show_id);
+    }
+
+    // Filter by company name (text match)
+    if (options?.company) {
+      query = query.ilike('company', `%${options.company}%`);
     }
 
     // Note: leads table doesn't have company_id column, only company (text)
@@ -249,10 +321,20 @@ export async function getLeads(options?: {
  * Delete a lead
  */
 export async function deleteLead(leadId: string): Promise<void> {
-  const { error } = await supabase.from('leads').delete().eq('id', leadId);
+  // Try to delete - RLS will automatically filter what the user can delete
+  const { data: deletedData, error: deleteError } = await supabase
+    .from('leads')
+    .delete()
+    .eq('id', leadId)
+    .select('id');
 
-  if (error) {
-    throw new Error(`Failed to delete lead: ${error.message}`);
+  if (deleteError) {
+    throw new Error(`Failed to delete lead: ${deleteError.message}`);
+  }
+
+  // If no rows were deleted, it means RLS blocked it or lead doesn't exist
+  if (!deletedData || deletedData.length === 0) {
+    throw new Error('Lead not found or access denied');
   }
 }
 

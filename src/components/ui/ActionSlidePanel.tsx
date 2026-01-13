@@ -57,13 +57,13 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Subtle overlay - excludes header and sidebar */}
+          {/* Overlay - matches page background with blur */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className='fixed top-12 left-56 right-0 bottom-0 bg-black/20 z-[10002] max-md:left-0'
+            className='fixed top-12 left-56 right-0 bottom-32 bg-background/80 backdrop-blur-sm z-[10002] max-md:left-0'
             onClick={onClose}
           />
 
@@ -77,9 +77,9 @@ export const ActionSlidePanel: React.FC<ActionSlidePanelProps> = ({
               duration: 0.3,
               ease: [0.4, 0, 0.2, 1],
             }}
-            className='fixed top-12 -mt-px right-0 bottom-0 bg-background z-[10003] flex flex-col'
+            className='fixed top-12 -mt-px right-0 bottom-32 bg-background z-[10003] flex flex-col'
             style={{
-              width: '320px',
+              width: '420px',
               boxShadow: '-2px 0 15px rgba(0, 0, 0, 0.1)',
             }}
             onClick={e => e.stopPropagation()}

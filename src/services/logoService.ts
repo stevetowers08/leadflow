@@ -32,14 +32,22 @@ const getFallbackDomainFromName = (companyName?: string): string | null => {
 };
 
 const buildProviderUrl = (domain: string): string => {
-  const logoDevKey = process.env.LOGO_DEV_API_KEY as
+  // Try Brandfetch first (preferred) - uses CDN hotlinking
+  const brandfetchClientId = process.env.NEXT_PUBLIC_BRANDFETCH_CLIENT_ID as
     | string
     | undefined;
+  if (brandfetchClientId) {
+    // Brandfetch CDN - direct image URL (best practice: hotlinking)
+    return API_URLS.BRANDFETCH_LOGO(domain, brandfetchClientId);
+  }
+
+  // Fallback to Logo.dev
+  const logoDevKey = process.env.LOGO_DEV_API_KEY as string | undefined;
   if (logoDevKey) {
-    // Logo.dev image endpoint
     return API_URLS.LOGO_DEV(domain, logoDevKey);
   }
-  // Fallback (deprecated) to Clearbit while migrating
+
+  // Final fallback to Clearbit (deprecated)
   return API_URLS.CLEARBIT_LOGO(domain);
 };
 
@@ -59,9 +67,12 @@ export const testLogoUrl = async (url: string): Promise<boolean> => {
  * Get or fetch-and-store company logo, returning a public URL.
  * If a cached URL is passed, it is returned without network calls.
  */
-export const getOrStoreCompanyLogo = async (
-  company: { id: string; name: string; website: string | null; logo_url?: string | null }
-): Promise<string | null> => {
+export const getOrStoreCompanyLogo = async (company: {
+  id: string;
+  name: string;
+  website: string | null;
+  logo_url?: string | null;
+}): Promise<string | null> => {
   try {
     if (company.logo_url && company.logo_url.trim()) return company.logo_url;
 
@@ -71,21 +82,44 @@ export const getOrStoreCompanyLogo = async (
     if (!domain) return null;
 
     const providerUrl = buildProviderUrl(domain);
+    const isBrandfetch = providerUrl.includes('cdn.brandfetch.io');
+
+    // Brandfetch: Use CDN URL directly (hotlinking - best practice)
+    // No need to download/store, just cache the URL
+    if (isBrandfetch) {
+      // Test if logo exists
+      const ok = await testLogoUrl(providerUrl);
+      if (ok) {
+        // Store the CDN URL for future use
+        await supabase
+          .from('companies')
+          .update({
+            logo_url: providerUrl,
+            logo_cached_at: new Date().toISOString(),
+          })
+          .eq('id', company.id);
+        return providerUrl;
+      }
+      // If Brandfetch fails, fall through to other providers
+    }
+
+    // For other providers (Logo.dev, Clearbit), download and store
     const ok = await testLogoUrl(providerUrl);
     if (!ok) return null;
 
     const res = await fetch(providerUrl);
     if (!res.ok) return null;
+
     const contentType = res.headers.get('content-type') || 'image/png';
     const extension = contentType.includes('webp')
       ? 'webp'
       : contentType.includes('svg')
-      ? 'svg'
-      : contentType.includes('jpeg') || contentType.includes('jpg')
-      ? 'jpg'
-      : 'png';
-    const arrayBuffer = await res.arrayBuffer();
+        ? 'svg'
+        : contentType.includes('jpeg') || contentType.includes('jpg')
+          ? 'jpg'
+          : 'png';
 
+    const arrayBuffer = await res.arrayBuffer();
     const objectPath = `companies/${domain}.${extension}`;
     const { error: uploadError } = await supabase.storage
       .from('logos')
@@ -104,7 +138,10 @@ export const getOrStoreCompanyLogo = async (
     if (publicUrl) {
       await supabase
         .from('companies')
-        .update({ logo_url: publicUrl, logo_cached_at: new Date().toISOString() })
+        .update({
+          logo_url: publicUrl,
+          logo_cached_at: new Date().toISOString(),
+        })
         .eq('id', company.id);
     }
 

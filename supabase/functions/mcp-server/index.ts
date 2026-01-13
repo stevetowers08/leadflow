@@ -177,7 +177,9 @@ class SupabaseMCPServer {
   private async getCompanyInfo(companyId: string) {
     const { data, error } = await this.supabase
       .from('companies')
-      .select('*')
+      .select(
+        'id, name, website, linkedin_url, head_office, industry, company_size, confidence_level, lead_score, score_reason, is_favourite, priority, logo_url, description, categories, connection_strength, created_at, updated_at'
+      )
       .eq('id', companyId)
       .single();
 
@@ -186,10 +188,24 @@ class SupabaseMCPServer {
   }
 
   private async getCompanyEmployees(companyId: string) {
+    // First get the company name
+    const { data: company, error: companyError } = await this.supabase
+      .from('companies')
+      .select('name')
+      .eq('id', companyId)
+      .single();
+
+    if (companyError) throw companyError;
+    if (!company) throw new Error('Company not found');
+
+    // Then get leads for that company (leads.company is a text field matching company name)
     const { data, error } = await this.supabase
-      .from('people')
-      .select('*')
-      .eq('company_id', companyId);
+      .from('leads')
+      .select(
+        'id, first_name, last_name, email, phone, company, job_title, status, quality_rank, workflow_status, enrichment_status, show_id, created_at'
+      )
+      .eq('company', company.name)
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data;
@@ -197,9 +213,13 @@ class SupabaseMCPServer {
 
   private async searchLeads(query: string, limit: number) {
     const { data, error } = await this.supabase
-      .from('people')
-      .select('*')
-      .or(`name.ilike.%${query}%,company_role.ilike.%${query}%`)
+      .from('leads')
+      .select(
+        'id, first_name, last_name, email, company, job_title, status, quality_rank'
+      )
+      .or(
+        `first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%,company.ilike.%${query}%,job_title.ilike.%${query}%`
+      )
       .limit(limit);
 
     if (error) throw error;
@@ -208,8 +228,10 @@ class SupabaseMCPServer {
 
   private async getLeadDetails(leadId: string) {
     const { data, error } = await this.supabase
-      .from('people')
-      .select('*')
+      .from('leads')
+      .select(
+        'id, user_id, first_name, last_name, email, phone, company, job_title, scan_image_url, quality_rank, ai_summary, ai_icebreaker, status, gmail_thread_id, workflow_id, workflow_status, enrichment_data, enrichment_timestamp, enrichment_status, show_id, show_name, show_date, linkedin_url, notes, created_at, updated_at'
+      )
       .eq('id', leadId)
       .single();
 
@@ -220,8 +242,24 @@ class SupabaseMCPServer {
 
 // Edge Function handler
 serve(async req => {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+  // Use environment variables that match the app configuration
+  // SUPABASE_URL is automatically available in Edge Functions
+  // Use anon key for RLS-respecting queries (matches app's NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  const supabaseUrl =
+    Deno.env.get('SUPABASE_URL') || Deno.env.get('NEXT_PUBLIC_SUPABASE_URL')!;
+  const supabaseKey =
+    Deno.env.get('SUPABASE_ANON_KEY') ||
+    Deno.env.get('NEXT_PUBLIC_SUPABASE_ANON_KEY')!;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return new Response(
+      JSON.stringify({
+        error:
+          'Missing Supabase configuration. SUPABASE_URL and SUPABASE_ANON_KEY are required.',
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
 
   const mcpServer = new SupabaseMCPServer(supabaseUrl, supabaseKey);
   return await mcpServer.handleRequest(req);

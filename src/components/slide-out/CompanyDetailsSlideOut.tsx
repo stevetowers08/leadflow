@@ -64,7 +64,7 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
           const { data: leadsData, error: leadsError } = await supabase
             .from('leads')
             .select(
-              'id, first_name, last_name, email, job_title, status, created_at'
+              'id, first_name, last_name, email, phone, company, job_title, status, enrichment_timestamp, enrichment_data, created_at'
             )
             .eq('company', companyData.name)
             .order('created_at', { ascending: false })
@@ -194,10 +194,12 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
         {
           id: 'overview',
           label: 'Overview',
+          count: 0,
         },
         {
           id: 'leads',
-          label: `Leads (${relatedLeads.length})`,
+          label: 'Leads',
+          count: relatedLeads.length,
         },
       ],
       [relatedLeads.length]
@@ -292,11 +294,13 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
                   {relatedLeads.map(lead => (
                     <div
                       key={lead.id}
-                      className='p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors'
-                      onClick={() => handleLeadClick(lead.id)}
+                      className='p-3 border rounded-lg hover:bg-accent transition-colors'
                     >
-                      <div className='flex items-center justify-between'>
-                        <div>
+                      <div className='flex items-center justify-between gap-3'>
+                        <div
+                          className='flex-1 cursor-pointer'
+                          onClick={() => handleLeadClick(lead.id)}
+                        >
                           <div className='font-medium'>
                             {lead.first_name || ''} {lead.last_name || ''}
                             {!lead.first_name && !lead.last_name && 'Unknown'}
@@ -312,7 +316,7 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
                             </div>
                           )}
                         </div>
-                        <div className='flex items-center gap-2'>
+                        <div className='flex items-center gap-2 flex-shrink-0'>
                           {lead.status && (
                             <Badge variant='outline' className='text-xs'>
                               {getStatusDisplayText(lead.status)}

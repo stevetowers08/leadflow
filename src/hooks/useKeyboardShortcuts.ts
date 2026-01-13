@@ -52,8 +52,8 @@ export const useKeyboardShortcuts = () => {
     {
       key: '1',
       ctrlKey: true,
-      action: () => router.push('/'),
-      description: 'Go to Dashboard',
+      action: () => router.push('/companies'),
+      description: 'Go to Companies',
     },
     {
       key: '2',

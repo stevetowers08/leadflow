@@ -1,16 +1,16 @@
-import { Separator } from '@/components/ui/separator';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { memo } from 'react';
+import {
+  Camera,
+  Users,
+  Building2,
+  Calendar,
+  GitMerge,
+  BarChart3,
+  Settings2,
+  LucideIcon,
+} from 'lucide-react';
 
 interface TopNavigationBarProps {
   pageTitle: string;
@@ -19,6 +19,17 @@ interface TopNavigationBarProps {
   className?: string;
   style?: React.CSSProperties;
 }
+
+// Map routes to their icons and titles from sidebar
+const routeConfig: Record<string, { icon: LucideIcon; title: string }> = {
+  '/capture': { icon: Camera, title: 'Capture' },
+  '/leads': { icon: Users, title: 'Leads' },
+  '/companies': { icon: Building2, title: 'Companies' },
+  '/shows': { icon: Calendar, title: 'Shows' },
+  '/workflows': { icon: GitMerge, title: 'Campaigns' },
+  '/analytics': { icon: BarChart3, title: 'Analytics' },
+  '/settings': { icon: Settings2, title: 'Settings' },
+};
 
 export const TopNavigationBar = memo(
   ({
@@ -30,35 +41,25 @@ export const TopNavigationBar = memo(
   }: TopNavigationBarProps) => {
     const pathname = usePathname();
 
+    // Get icon and title for current route
+    const currentRoute = Object.keys(routeConfig).find(route =>
+      pathname?.startsWith(route)
+    );
+    const config = currentRoute ? routeConfig[currentRoute] : null;
+    const Icon = config?.icon;
+    const displayTitle = config?.title || pageTitle;
+
     return (
       <header
         className={cn(
-          'group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear',
+          'group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-12 shrink-0 items-center gap-3 transition-[width,height] ease-linear relative border-b border-border bg-background',
           className
         )}
         style={style}
       >
-        <div className='flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6'>
-          <SidebarTrigger className='-ml-1' />
-          <Separator
-            orientation='vertical'
-            className='mx-2 data-[orientation=vertical]:h-4'
-          />
-          <Breadcrumb className='min-w-0 flex-1'>
-            <BreadcrumbList className='flex items-center min-w-0'>
-              <BreadcrumbItem className='hidden md:block'>
-                <BreadcrumbLink href='/' className='truncate'>
-                  Home
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className='hidden md:block' />
-              <BreadcrumbItem className='min-w-0'>
-                <BreadcrumbPage className='truncate text-sm sm:text-base'>
-                  {pageTitle}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+        <div className='flex w-full items-center gap-3 px-4 lg:px-6'>
+          {Icon && <Icon className='h-5 w-5 text-foreground' />}
+          <h1 className='text-lg font-semibold'>{displayTitle}</h1>
         </div>
       </header>
     );

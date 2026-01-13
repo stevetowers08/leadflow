@@ -50,6 +50,79 @@ export interface LemlistLead {
   rawData?: Record<string, unknown>;
 }
 
+// Lemlist webhook event types
+export const LEMLIST_EVENT_TYPES = {
+  // Lead status events
+  CONTACTED: 'contacted',
+  HOOKED: 'hooked',
+  ATTRACTED: 'attracted',
+  WARMED: 'warmed',
+  INTERESTED: 'interested',
+  SKIPPED: 'skipped',
+  NOT_INTERESTED: 'notInterested',
+
+  // Email activity events
+  EMAIL_SENT: 'emailsSent',
+  EMAIL_OPENED: 'emailsOpened',
+  EMAIL_CLICKED: 'emailsClicked',
+  EMAIL_REPLIED: 'emailsReplied',
+  EMAIL_BOUNCED: 'emailsBounced',
+  EMAIL_SEND_FAILED: 'emailsSendFailed',
+  EMAIL_FAILED: 'emailsFailed',
+  EMAIL_UNSUBSCRIBED: 'emailsUnsubscribed',
+  EMAIL_INTERESTED: 'emailsInterested',
+  EMAIL_NOT_INTERESTED: 'emailsNotInterested',
+
+  // LinkedIn events
+  LINKEDIN_VISIT_DONE: 'linkedinVisitDone',
+  LINKEDIN_VISIT_FAILED: 'linkedinVisitFailed',
+  LINKEDIN_INVITE_DONE: 'linkedinInviteDone',
+  LINKEDIN_INVITE_FAILED: 'linkedinInviteFailed',
+  LINKEDIN_INVITE_ACCEPTED: 'linkedinInviteAccepted',
+  LINKEDIN_REPLIED: 'linkedinReplied',
+  LINKEDIN_SENT: 'linkedinSent',
+  LINKEDIN_INTERESTED: 'linkedinInterested',
+  LINKEDIN_NOT_INTERESTED: 'linkedinNotInterested',
+
+  // Operational alerts
+  CUSTOM_DOMAIN_ERRORS: 'customDomainErrors',
+  CONNECTION_ISSUE: 'connectionIssue',
+  SEND_LIMIT_REACHED: 'sendLimitReached',
+  LEMWARM_PAUSED: 'lemwarmPaused',
+  CAMPAIGN_COMPLETE: 'campaignComplete',
+} as const;
+
+export type LemlistEventType =
+  (typeof LEMLIST_EVENT_TYPES)[keyof typeof LEMLIST_EVENT_TYPES];
+
+export interface LemlistWebhookPayload {
+  type: string;
+  campaignId?: string;
+  campaignName?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  lemlistCampaignId?: string;
+  isFirst?: boolean;
+  [key: string]: unknown;
+}
+
+export interface CreateWebhookParams {
+  targetUrl: string;
+  event?: LemlistEventType;
+  campaignId?: string;
+  isFirst?: boolean;
+}
+
+export interface LemlistWebhookResponse {
+  hookId: string;
+  targetUrl: string;
+  event?: string;
+  campaignId?: string;
+  isFirst?: boolean;
+}
+
 interface LemlistApiResponse<T> {
   data: T;
   success: boolean;
@@ -868,6 +941,128 @@ export class LemlistService {
         total_bounced: 0,
         total_positive_replies: 0,
       };
+    }
+  }
+
+  /**
+   * Create a webhook subscription
+   * API Reference: https://developer.lemlist.com/api-reference/endpoints/webhooks/add-webhook
+   */
+  async createWebhook(
+    params: CreateWebhookParams
+  ): Promise<LemlistWebhookResponse> {
+    if (!this.apiKey) {
+      throw new Error('Lemlist API key not configured');
+    }
+
+    try {
+      const response = await this.fetchWithTimeout(
+        `${this.baseUrl}/hooks`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: this.getAuthHeader(),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            targetUrl: params.targetUrl,
+            event: params.event,
+            campaignId: params.campaignId,
+            isFirst: params.isFirst,
+          }),
+        },
+        10000
+      );
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
+        throw new Error(
+          errorData.error || `Lemlist API error: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error creating Lemlist webhook:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a webhook subscription
+   * API Reference: https://developer.lemlist.com/api-reference/endpoints/webhooks/delete-webhook
+   */
+  async deleteWebhook(hookId: string): Promise<void> {
+    if (!this.apiKey) {
+      throw new Error('Lemlist API key not configured');
+    }
+
+    try {
+      const response = await this.fetchWithTimeout(
+        `${this.baseUrl}/hooks/${hookId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: this.getAuthHeader(),
+            'Content-Type': 'application/json',
+          },
+        },
+        10000
+      );
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
+        throw new Error(
+          errorData.error || `Lemlist API error: ${response.status}`
+        );
+      }
+    } catch (error) {
+      console.error('Error deleting Lemlist webhook:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * List all webhooks
+   * API Reference: https://developer.lemlist.com/api-reference/endpoints/webhooks/list-webhooks
+   */
+  async listWebhooks(): Promise<LemlistWebhookResponse[]> {
+    if (!this.apiKey) {
+      throw new Error('Lemlist API key not configured');
+    }
+
+    try {
+      const response = await this.fetchWithTimeout(
+        `${this.baseUrl}/hooks`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: this.getAuthHeader(),
+            'Content-Type': 'application/json',
+          },
+        },
+        10000
+      );
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
+        throw new Error(
+          errorData.error || `Lemlist API error: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Error listing Lemlist webhooks:', error);
+      throw error;
     }
   }
 }

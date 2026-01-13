@@ -17,6 +17,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Lead } from '@/types/database';
+import { shouldBypassAuth, getMockUser } from '@/config/auth';
 
 const BATCH_SIZE = 50;
 
@@ -35,6 +36,55 @@ export interface BulkOperationResult {
 export const bulkDeletePeople = async (
   peopleIds: string[]
 ): Promise<BulkOperationResult> => {
+  console.log(
+    '🗑️ [bulkDeletePeople] Starting delete for',
+    peopleIds.length,
+    'leads'
+  );
+
+  // Check authentication (handle bypass auth mode)
+  const bypassAuth = shouldBypassAuth();
+  let userId: string | null = null;
+
+  if (bypassAuth) {
+    // In bypass mode, use mock user
+    const mockUser = getMockUser();
+    userId = mockUser.id;
+    console.log(
+      '🗑️ [bulkDeletePeople] Using bypass auth mode, mock user:',
+      userId
+    );
+  } else {
+    // Normal auth mode - check Supabase session
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('🗑️ [bulkDeletePeople] Not authenticated:', authError);
+      return {
+        success: false,
+        successCount: 0,
+        errorCount: peopleIds.length,
+        errors: peopleIds.map(id => ({ id, error: 'Not authenticated' })),
+        message: 'Authentication required to delete leads',
+      };
+    }
+    userId = user.id;
+    console.log('🗑️ [bulkDeletePeople] User authenticated:', userId);
+  }
+
+  if (!userId) {
+    console.error('🗑️ [bulkDeletePeople] No user ID available');
+    return {
+      success: false,
+      successCount: 0,
+      errorCount: peopleIds.length,
+      errors: peopleIds.map(id => ({ id, error: 'User ID not available' })),
+      message: 'User ID not available',
+    };
+  }
+
   const errors: Array<{ id: string; error: string }> = [];
   let successCount = 0;
 
@@ -42,15 +92,55 @@ export const bulkDeletePeople = async (
     // Process in batches
     for (let i = 0; i < peopleIds.length; i += BATCH_SIZE) {
       const batch = peopleIds.slice(i, i + BATCH_SIZE);
+      console.log(
+        '🗑️ [bulkDeletePeople] Processing batch',
+        i / BATCH_SIZE + 1,
+        'with',
+        batch.length,
+        'leads:',
+        batch
+      );
 
-      const { error } = await supabase.from('leads').delete().in('id', batch);
+      // Try to delete - RLS will automatically filter what the user can delete
+      const { data: deletedData, error: deleteError } = await supabase
+        .from('leads')
+        .delete()
+        .in('id', batch)
+        .select('id');
 
-      if (error) {
-        batch.forEach(id => errors.push({ id, error: error.message }));
+      console.log('🗑️ [bulkDeletePeople] Delete result:', {
+        deletedCount: deletedData?.length || 0,
+        error: deleteError?.message || null,
+        deletedIds: deletedData?.map(r => r.id) || [],
+      });
+
+      if (deleteError) {
+        console.error('🗑️ [bulkDeletePeople] Delete error:', deleteError);
+        // Database error - add all IDs in batch as errors
+        batch.forEach(id => errors.push({ id, error: deleteError.message }));
       } else {
-        successCount += batch.length;
+        // Check which leads were actually deleted
+        const deletedIds = new Set(deletedData?.map(row => row.id) || []);
+        const deletedCount = deletedIds.size;
+        successCount += deletedCount;
+
+        // Track any IDs that weren't deleted (RLS blocked or doesn't exist)
+        batch.forEach(id => {
+          if (!deletedIds.has(id)) {
+            console.warn('🗑️ [bulkDeletePeople] Lead not deleted:', id);
+            errors.push({
+              id,
+              error: 'Lead not found or access denied',
+            });
+          }
+        });
       }
     }
+
+    console.log('🗑️ [bulkDeletePeople] Final result:', {
+      successCount,
+      errorCount: errors.length,
+    });
 
     return {
       success: errors.length === 0,
@@ -59,8 +149,8 @@ export const bulkDeletePeople = async (
       errors,
       message:
         errors.length === 0
-          ? `Successfully deleted ${successCount} leads`
-          : `Deleted ${successCount} leads with ${errors.length} errors`,
+          ? `Successfully deleted ${successCount} lead${successCount === 1 ? '' : 's'}`
+          : `Deleted ${successCount} lead${successCount === 1 ? '' : 's'} with ${errors.length} error${errors.length === 1 ? '' : 's'}`,
     };
   } catch (error) {
     return {

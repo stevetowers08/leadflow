@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { createLead } from '@/services/leadsService';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import type { Json } from '@/integrations/supabase/types';
 
 /**
@@ -200,7 +200,8 @@ async function processLeadCreation(
     user_id: payload.user_id || null,
   });
 
-  // Set enrichment status to pending (will be updated when n8n sends enrichment data back)
+  // Set enrichment status to pending
+  // Note: createLead() automatically triggers enrichment webhook
   await supabase
     .from('leads')
     .update({
@@ -208,9 +209,6 @@ async function processLeadCreation(
       updated_at: new Date().toISOString(),
     })
     .eq('id', lead.id);
-
-  // Webhook is one-way only - enrichment will be sent back via n8n workflow
-  // No enrichment trigger here - handled externally
 
   return { lead_id: lead.id, duplicate: false };
 }

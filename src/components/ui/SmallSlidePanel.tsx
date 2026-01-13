@@ -50,13 +50,13 @@ export const SmallSlidePanel: React.FC<SmallSlidePanelProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Subtle overlay - excludes header and sidebar */}
+          {/* Overlay - matches page background with blur */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className='fixed top-12 left-56 right-0 bottom-0 bg-black/20 z-[10002] max-md:left-0'
+            className='fixed top-12 left-56 right-0 bottom-0 bg-background/80 backdrop-blur-sm z-[10002] max-md:left-0'
             onClick={onClose}
           />
 

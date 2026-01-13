@@ -217,7 +217,7 @@ export const TableHead = React.forwardRef<
         position: 'sticky' as const,
         top: 0,
         zIndex: 30,
-        backgroundColor: 'var(--muted)',
+        backgroundColor: 'var(--background)',
       }),
       ...props.style,
     };
@@ -232,8 +232,6 @@ export const TableHead = React.forwardRef<
           // Column borders: right border on all headers except last
           !isLast && 'border-r border-border',
           'box-border',
-          isFirst && 'rounded-tl-md',
-          isLast && 'rounded-tr-md',
           align === 'center' && 'text-center',
           align === 'right' && 'text-right',
           align === 'left' && 'text-left',
@@ -392,7 +390,7 @@ function UnifiedTableComponent<T = unknown>({
   const tableStructure = React.useMemo(() => {
     if (loading) {
       return (
-        <div className='bg-card rounded-md border shadow-sm w-full overflow-hidden'>
+        <div className='bg-background border-t border-b w-full overflow-hidden'>
           <div className='border-b bg-muted/30 p-4'>
             <div className='flex gap-4'>
               {Array.from({ length: columns.length || 6 }).map((_, i) => (
@@ -425,7 +423,7 @@ function UnifiedTableComponent<T = unknown>({
 
     if (!data || data.length === 0) {
       return (
-        <div className='bg-card rounded-md border shadow-sm w-full overflow-hidden'>
+        <div className='bg-background border-t border-b w-full overflow-hidden'>
           <div className='flex items-center justify-center h-32 text-muted-foreground'>
             {emptyMessage}
           </div>
@@ -449,7 +447,7 @@ function UnifiedTableComponent<T = unknown>({
     return (
       <div
         className={cn(
-          'bg-card border shadow-sm rounded-md overflow-hidden',
+          'bg-background border-t border-b overflow-hidden',
           scrollable && 'flex flex-col h-full min-w-0',
           !scrollable && 'w-full',
           className
@@ -506,7 +504,7 @@ function UnifiedTableComponent<T = unknown>({
             </colgroup>
             <TableHeader
               className={cn(
-                'bg-muted',
+                'bg-background',
                 isScrolled &&
                   scrollable &&
                   'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'

@@ -30,7 +30,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* LeadFlow PDR Design System - Light Theme */
-    --background: 0 0% 100%; /* Pure White #FFFFFF */
+    --background: 0 0% 96%; /* Light Grey background */
     --foreground: 218 60% 9%; /* Deep Navy #0A1628 - primary text */
 
     --card: 0 0% 100%;
@@ -115,16 +115,16 @@ All colors MUST be HSL.
     --table-radius: 0.75rem; /* Modern rounded corners */
 
     /* Professional Sidebar - PDR Colors */
-    --sidebar-background: 0 0% 100%; /* White background (light mode) */
-    --sidebar-foreground: 218 60% 9%; /* Deep Navy text */
+    --sidebar-background: 0 0% 20%; /* Dark grey background (light mode) */
+    --sidebar-foreground: 0 0% 98%; /* White text */
     --sidebar-primary: 75 100% 77%; /* Accent Yellow-Green #E3FF8C */
     --sidebar-primary-foreground: 218 60% 9%;
     --sidebar-primary-hover: 75 100% 72%;
     --sidebar-primary-light: 75 100% 95%;
     --sidebar-primary-medium: 75 100% 85%;
-    --sidebar-accent: 240 5% 96%; /* Very light gray for hover */
-    --sidebar-accent-foreground: 218 60% 9%; /* Deep Navy text */
-    --sidebar-border: 240 5.9% 85%;
+    --sidebar-accent: 0 0% 25%; /* Slightly lighter grey for hover */
+    --sidebar-accent-foreground: 0 0% 98%; /* White text */
+    --sidebar-border: 0 0% 30%; /* Darker border for dark sidebar */
     --sidebar-ring: 75 100% 77%; /* Accent Yellow-Green focus */
 
     /* Glassmorphism sidebar background - Enterprise Professional */
@@ -201,10 +201,10 @@ All colors MUST be HSL.
   /* Dark Mode - PDR Default Theme */
   .dark {
     /* LeadFlow PDR Design System - Dark Theme (Default) */
-    --background: 0 0% 0%; /* Pure Black #000000 - dark mode background */
-    --foreground: 0 0% 98%; /* Pure White #FFFFFF - primary text */
+    --background: 0 0% 14%; /* Lighter grey for main page background */
+    --foreground: 0 0% 98%; /* White text */
 
-    --card: 0 0% 8%; /* Dark gray for cards - matches sidebar */
+    --card: 0 0% 14%; /* Lighter grey for page content - same as background */
     --card-foreground: 0 0% 98%;
 
     --popover: 0 0% 8%; /* Dark gray for popovers */
@@ -296,16 +296,16 @@ All colors MUST be HSL.
     --table-radius: 0.75rem; /* Modern rounded corners */
 
     /* Sidebar - Dark Mode */
-    --sidebar-background: 0 0% 8%; /* Dark gray - slightly lighter than black for separation */
+    --sidebar-background: 0 0% 10%; /* Darker grey for sidebar */
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 75 100% 77%;
     --sidebar-primary-foreground: 0 0% 0%; /* Black text on accent for contrast */
     --sidebar-primary-hover: 75 100% 82%;
     --sidebar-primary-light: 75 100% 15%; /* Darker tint for dark mode */
     --sidebar-primary-medium: 75 100% 25%;
-    --sidebar-accent: 0 0% 12%; /* Slightly lighter gray for hover states */
+    --sidebar-accent: 0 0% 18%; /* Slightly lighter gray for hover states */
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 15%; /* Subtle border for separation */
+    --sidebar-border: 0 0% 20%; /* Subtle border for separation */
     --sidebar-ring: 75 100% 77%;
 
     /* Glassmorphism sidebar background - Dark Mode */

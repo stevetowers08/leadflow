@@ -338,14 +338,14 @@ export default function StyleGuidePage() {
                   <Button variant='outline'>Outline</Button>
                   <Button variant='ghost'>Ghost</Button>
                   <Button variant='link'>Link</Button>
-                  <Button variant='success'>Success</Button>
-                  <Button variant='warning'>Warning</Button>
+                  {/* <Button variant='success'>Success</Button> */}
+                  {/* <Button variant='warning'>Warning</Button> */}
                 </div>
               </div>
               <div className='space-y-3'>
                 <h3 className={designTokens.typography.heading.h3}>Sizes</h3>
                 <div className='flex flex-wrap items-center gap-3'>
-                  <Button size='xs'>Extra Small</Button>
+                  {/* <Button size='xs'>Extra Small</Button> */}
                   <Button size='sm'>Small</Button>
                   <Button size='default'>Default</Button>
                   <Button size='lg'>Large</Button>
@@ -390,7 +390,7 @@ export default function StyleGuidePage() {
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                <Card variant='default'>
+                <Card>
                   <CardHeader>
                     <CardTitle>Default Card</CardTitle>
                     <CardDescription>Standard card variant</CardDescription>
@@ -399,7 +399,7 @@ export default function StyleGuidePage() {
                     <p className='text-sm'>Card content goes here</p>
                   </CardContent>
                 </Card>
-                <Card variant='elevated'>
+                <Card>
                   <CardHeader>
                     <CardTitle>Elevated Card</CardTitle>
                     <CardDescription>
@@ -410,7 +410,7 @@ export default function StyleGuidePage() {
                     <p className='text-sm'>Card content goes here</p>
                   </CardContent>
                 </Card>
-                <Card variant='outlined'>
+                <Card>
                   <CardHeader>
                     <CardTitle>Outlined Card</CardTitle>
                     <CardDescription>Card with border emphasis</CardDescription>

@@ -24,6 +24,12 @@ export const API_URLS = {
   LOGO_DEV: (domain: string, apiKey: string) =>
     `https://img.logo.dev/${domain}?apikey=${apiKey}`,
   CLEARBIT_LOGO: (domain: string) => `https://logo.clearbit.com/${domain}`,
+  // Brandfetch CDN - direct hotlinking (recommended by Brandfetch)
+  // Format: https://cdn.brandfetch.io/{domain}?c={clientId}
+  BRANDFETCH_LOGO: (domain: string, clientId?: string) => {
+    const baseUrl = `https://cdn.brandfetch.io/${domain}`;
+    return clientId ? `${baseUrl}?c=${clientId}` : baseUrl;
+  },
   UI_AVATARS: (name: string, size: number, bg: string, color: string) =>
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=${size}&background=${bg}&color=${color}&format=png`,
 } as const;

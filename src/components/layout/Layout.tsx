@@ -135,7 +135,7 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
 
   return (
     <SidebarProvider>
-      <AppSidebar variant='inset' />
+      <AppSidebar variant='sidebar' />
       <SidebarInset className='min-w-0'>
         {/* Top Navigation - Fixed position with glassmorphism */}
         <TopNavigationBar

@@ -348,8 +348,11 @@ describe('leadsService', () => {
   describe('deleteLead', () => {
     it('should delete a lead', async () => {
       const mockDelete = vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          error: null,
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({
+            data: [{ id: 'lead-1' }],
+            error: null,
+          }),
         }),
       });
 
@@ -362,10 +365,51 @@ describe('leadsService', () => {
       expect(mockDelete).toHaveBeenCalled();
     });
 
-    it('should throw error on database failure', async () => {
+    it('should throw error if lead not found', async () => {
       const mockDelete = vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          error: { message: 'Delete failed' },
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
+        }),
+      });
+
+      vi.mocked(supabase.from).mockReturnValue({
+        delete: mockDelete,
+      } as unknown as ReturnType<typeof supabase.from>);
+
+      await expect(deleteLead('lead-1')).rejects.toThrow(
+        'Lead not found or access denied'
+      );
+    });
+
+    it('should throw error if access denied', async () => {
+      const mockDelete = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({
+            data: null,
+            error: null,
+          }),
+        }),
+      });
+
+      vi.mocked(supabase.from).mockReturnValue({
+        delete: mockDelete,
+      } as unknown as ReturnType<typeof supabase.from>);
+
+      await expect(deleteLead('lead-1')).rejects.toThrow(
+        'Lead not found or access denied'
+      );
+    });
+
+    it('should throw error on delete failure', async () => {
+      const mockDelete = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({
+            data: null,
+            error: { message: 'Delete failed' },
+          }),
         }),
       });
 

@@ -24,6 +24,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { LeadFlowLogo } from '@/components/LeadFlowLogo';
 import { OrganizationSwitcher } from '@/components/shared/OrganizationSwitcher';
@@ -34,7 +35,6 @@ import Link from 'next/link';
  * Updated Navigation - PDR Section 5.1
  *
  * LeadFlow Console Navigation:
- * - Overview (/) - Icon: LayoutDashboard
  * - Capture (/capture) - Icon: Camera - Business card scanner
  * - Leads (/leads) - Icon: Users
  * - Companies (/companies) - Icon: Building2
@@ -45,11 +45,6 @@ import Link from 'next/link';
  */
 const data = {
   navMain: [
-    {
-      title: 'Overview',
-      url: '/',
-      icon: LayoutDashboard,
-    },
     {
       title: 'Capture',
       url: '/capture',
@@ -102,19 +97,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar collapsible='offcanvas' {...props}>
-      <SidebarHeader className='flex-shrink-0 !gap-1'>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href='/'>
-                <LeadFlowLogo size={120} />
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <div className='px-3 py-2'>
-          <OrganizationSwitcher />
+    <Sidebar collapsible='icon' {...props}>
+      <SidebarHeader className='flex-shrink-0 !gap-0 !p-0'>
+        <div className='w-full h-12 border-b border-sidebar-border bg-sidebar px-4 flex items-center justify-between group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0'>
+          <Link
+            href='/companies'
+            className='flex items-center group-data-[collapsible=icon]:hidden'
+          >
+            <LeadFlowLogo size={110} />
+          </Link>
+          <SidebarTrigger className='ml-auto group-data-[collapsible=icon]:ml-0' />
         </div>
       </SidebarHeader>
       <SidebarContent className='flex-1 min-h-0 overflow-y-auto'>

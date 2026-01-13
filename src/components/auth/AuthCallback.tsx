@@ -210,7 +210,7 @@ const AuthCallback: React.FC = () => {
               const {
                 data: { session: redirectSession },
               } = await supabase.auth.getSession();
-              console.log('🔄 Redirecting to home page', {
+              console.log('🔄 Redirecting to companies page', {
                 sessionExists: !!redirectSession?.user,
                 userId: redirectSession?.user?.id,
                 email: redirectSession?.user?.email,
@@ -219,7 +219,7 @@ const AuthCallback: React.FC = () => {
               // Use replace to avoid adding to history (best practice)
               // This prevents back button issues
               // Full page reload ensures cookies are read
-              window.location.href = '/';
+              window.location.href = '/companies';
               return;
             }
           } catch (fetchError) {
@@ -304,7 +304,7 @@ const AuthCallback: React.FC = () => {
             setStatus('success');
             await refreshProfile();
             await new Promise(resolve => setTimeout(resolve, 500));
-            router.push('/');
+            router.push('/companies');
             return;
           }
         }
@@ -350,7 +350,7 @@ const AuthCallback: React.FC = () => {
           setStatus('success');
           await refreshProfile();
           await new Promise(resolve => setTimeout(resolve, 500));
-          router.push('/');
+          router.push('/companies');
         } else {
           console.log('⚠️ No session found');
           setErrorMessage(
@@ -438,9 +438,9 @@ const AuthCallback: React.FC = () => {
         <div className='flex gap-3 justify-center'>
           <button
             onClick={() => {
-              // Clear auth state and redirect to home to retry
+              // Clear auth state and redirect to companies to retry
               supabase.auth.signOut().then(() => {
-                router.push('/');
+                router.push('/companies');
               });
             }}
             className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'
@@ -448,10 +448,10 @@ const AuthCallback: React.FC = () => {
             Try Again
           </button>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/companies')}
             className='px-4 py-2 bg-gray-200 text-foreground rounded-md hover:bg-gray-300 transition-colors'
           >
-            Return to Dashboard
+            Return to Companies
           </button>
         </div>
       </div>

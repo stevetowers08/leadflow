@@ -224,9 +224,7 @@ export async function POST(request: NextRequest) {
             .from('companies')
             .insert({
               name: toTitleCase(lead.company),
-              linkedin_url: payload.company_linkedin_url || null,
-              company_size: payload.company_size || null,
-              estimated_arr: payload.arr || null,
+              industry: null,
             })
             .select('id')
             .single();

@@ -26,9 +26,10 @@ export function useLeadEnrichmentRealtime() {
           event: 'UPDATE',
           schema: 'public',
           table: 'leads',
-          filter: 'enrichment_status=neq.null',
+          filter: `user_id=eq.${user.id}`,
         },
         async payload => {
+          console.log('🔔 Real-time update received for lead:', payload.new.id);
           const lead = payload.new as {
             id: string;
             enrichment_status:
@@ -51,8 +52,46 @@ export function useLeadEnrichmentRealtime() {
               | null;
           };
 
-          // Only process if this is the current user's lead
-          if (lead.user_id !== user.id) return;
+          // Check if any enrichment-related field changed
+          const statusChanged =
+            oldLead.enrichment_status !== lead.enrichment_status;
+          const oldData = payload.old as {
+            enrichment_data?: unknown;
+            linkedin_url?: string | null;
+            job_title?: string | null;
+          };
+          const newData = payload.new as {
+            enrichment_data?: unknown;
+            linkedin_url?: string | null;
+            job_title?: string | null;
+          };
+
+          // Check if enrichment data, linkedin_url, or job_title changed
+          const enrichmentDataChanged =
+            JSON.stringify(oldData?.enrichment_data) !==
+            JSON.stringify(newData?.enrichment_data);
+          const linkedinChanged =
+            oldData?.linkedin_url !== newData?.linkedin_url;
+          const jobTitleChanged = oldData?.job_title !== newData?.job_title;
+
+          // Skip if nothing enrichment-related changed
+          if (
+            !statusChanged &&
+            !enrichmentDataChanged &&
+            !linkedinChanged &&
+            !jobTitleChanged
+          ) {
+            return;
+          }
+
+          console.log('📊 Enrichment change detected:', {
+            statusChanged,
+            enrichmentDataChanged,
+            linkedinChanged,
+            jobTitleChanged,
+            oldStatus: oldLead.enrichment_status,
+            newStatus: lead.enrichment_status,
+          });
 
           // Check if enrichment status changed from pending/enriching to completed/failed
           const wasEnriching =
@@ -62,54 +101,94 @@ export function useLeadEnrichmentRealtime() {
             lead.enrichment_status === 'completed' ||
             lead.enrichment_status === 'failed';
 
-          // Only notify on status transition from enriching to complete/failed
-          if (wasEnriching && isNowComplete) {
+          // Also handle when status changes to enriching (for real-time feedback)
+          const isNowEnriching = lead.enrichment_status === 'enriching';
+          const wasNotEnriching =
+            oldLead.enrichment_status !== 'enriching' &&
+            oldLead.enrichment_status !== 'pending';
+
+          // Always update UI if enrichment-related fields changed
+          const shouldNotify =
+            (wasEnriching && isNowComplete) ||
+            (wasNotEnriching && isNowEnriching);
+
+          // Always refresh queries if any enrichment data changed
+          if (
+            enrichmentDataChanged ||
+            linkedinChanged ||
+            jobTitleChanged ||
+            statusChanged
+          ) {
             // Prevent duplicate notifications (debounce)
-            const leadKey = `${lead.id}-${lead.enrichment_status}`;
-            if (processedLeadsRef.current.has(leadKey)) {
-              return;
+            if (shouldNotify) {
+              const leadKey = `${lead.id}-${lead.enrichment_status}`;
+              if (processedLeadsRef.current.has(leadKey)) {
+                // Still update UI even if we've notified before
+              } else {
+                processedLeadsRef.current.add(leadKey);
+
+                // Clean up old keys after 5 seconds
+                setTimeout(() => {
+                  processedLeadsRef.current.delete(leadKey);
+                }, 5000);
+
+                const leadName =
+                  [lead.first_name, lead.last_name].filter(Boolean).join(' ') ||
+                  'Lead';
+
+                const success = lead.enrichment_status === 'completed';
+
+                // Show toast notification
+                if (success) {
+                  toast.success('Lead Enriched', {
+                    description: `${leadName} has been enriched with additional information.`,
+                  });
+                } else if (lead.enrichment_status === 'failed') {
+                  toast.error('Enrichment Failed', {
+                    description: `Failed to enrich ${leadName}. Please try again.`,
+                  });
+                }
+
+                // Create persistent notification
+                if (shouldNotify) {
+                  try {
+                    await notificationService.notifyLeadEnriched(
+                      user.id,
+                      leadName,
+                      lead.id,
+                      success
+                    );
+                  } catch (error) {
+                    console.error(
+                      'Failed to create enrichment notification:',
+                      error
+                    );
+                  }
+                }
+              }
             }
-            processedLeadsRef.current.add(leadKey);
 
-            // Clean up old keys after 5 seconds to allow re-notification if status changes again
-            setTimeout(() => {
-              processedLeadsRef.current.delete(leadKey);
-            }, 5000);
-
-            const leadName =
-              [lead.first_name, lead.last_name].filter(Boolean).join(' ') ||
-              'Lead';
-
-            const success = lead.enrichment_status === 'completed';
-
-            // Show toast notification
-            if (success) {
-              toast.success('Lead Enriched', {
-                description: `${leadName} has been enriched with additional information.`,
-              });
-            } else {
-              toast.error('Enrichment Failed', {
-                description: `Failed to enrich ${leadName}. Please try again.`,
-              });
-            }
-
-            // Create persistent notification
-            try {
-              await notificationService.notifyLeadEnriched(
-                user.id,
-                leadName,
-                lead.id,
-                success
-              );
-            } catch (error) {
-              console.error('Failed to create enrichment notification:', error);
-            }
-
-            // Invalidate queries to refresh UI
-            queryClient.invalidateQueries({ queryKey: ['leads'] });
-            queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
+            // Always invalidate and refetch queries when enrichment data changes
+            console.log(
+              '🔄 Invalidating leads queries due to enrichment update'
+            );
             queryClient.invalidateQueries({
-              queryKey: ['leads-all-for-filter'],
+              predicate: query => {
+                const key = query.queryKey[0];
+                return (
+                  key === 'leads' ||
+                  key === 'lead-stats' ||
+                  key === 'leads-all-for-filter'
+                );
+              },
+            });
+
+            // Force immediate refetch
+            queryClient.refetchQueries({
+              predicate: query => {
+                const key = query.queryKey[0];
+                return key === 'leads' || key === 'lead-stats';
+              },
             });
           }
         }

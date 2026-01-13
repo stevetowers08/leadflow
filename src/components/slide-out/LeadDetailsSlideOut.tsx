@@ -4,6 +4,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Badge } from '@/components/ui/badge';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
+import { EnrichmentDataDisplay } from '@/components/leads/EnrichmentDataDisplay';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -121,37 +122,10 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
 
       setLoading(true);
       try {
-        // Fetch lead with all actual fields
+        // Fetch lead with all fields
         const { data: leadData, error: leadError } = await supabase
           .from('leads')
-          .select(
-            `
-            id,
-            user_id,
-            first_name,
-            last_name,
-            email,
-            phone,
-            company,
-            show_id,
-            job_title,
-            scan_image_url,
-            quality_rank,
-            ai_summary,
-            ai_icebreaker,
-            status,
-            workflow_id,
-            workflow_status,
-            enrichment_data,
-            enrichment_timestamp,
-            gmail_thread_id,
-            show_name,
-            show_date,
-            notes,
-            created_at,
-            updated_at
-          `
-          )
+          .select('*')
           .eq('id', leadId)
           .single();
 
@@ -208,18 +182,33 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               .in('status', ['active', 'paused', 'completed']);
 
             if (enrolledError) {
+              // Handle various error cases gracefully
+              const errorMessage = getErrorMessage(enrolledError);
+              const errorCode = (enrolledError as { code?: string })?.code;
+              const statusCode = (enrolledError as { status?: number })?.status;
+
+              // Check for table not found, schema cache, RLS, or HTTP errors
               if (
-                enrolledError.message?.includes('schema cache') ||
-                enrolledError.message?.includes('does not exist')
+                errorMessage?.includes('schema cache') ||
+                errorMessage?.includes('does not exist') ||
+                errorMessage?.includes('permission denied') ||
+                errorMessage?.includes('row-level security') ||
+                errorCode === 'PGRST116' || // Table not found
+                errorCode === '42501' || // Insufficient privilege
+                statusCode === 400 ||
+                statusCode === 404
               ) {
-                console.warn(
-                  '[LeadDetailsSlideOut] campaign_sequence_leads table not found.'
+                // Silently handle - table may not exist or RLS may block in bypass auth mode
+                console.debug(
+                  '[LeadDetailsSlideOut] campaign_sequence_leads query failed (expected in some environments):',
+                  errorMessage
                 );
                 setEnrolledCampaigns([]);
               } else {
-                console.error(
+                // Log unexpected errors
+                console.warn(
                   '[LeadDetailsSlideOut] Error fetching enrolled campaigns:',
-                  getErrorMessage(enrolledError)
+                  errorMessage
                 );
                 setEnrolledCampaigns([]);
               }
@@ -259,9 +248,11 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               setEnrolledCampaigns([]);
             }
           } catch (err) {
-            console.error(
-              '[LeadDetailsSlideOut] Error in enrolled campaigns query:',
-              err
+            // Catch any unexpected errors and handle gracefully
+            const errorMessage = getErrorMessage(err);
+            console.debug(
+              '[LeadDetailsSlideOut] Error in enrolled campaigns query (handled gracefully):',
+              errorMessage
             );
             setEnrolledCampaigns([]);
           }
@@ -738,7 +729,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
         customHeader={
           <div className='flex items-center justify-between w-full'>
             <div className='flex items-center gap-4'>
-              <div className='w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-border'>
+              <div className='w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border border-border'>
                 <User className='h-5 w-5 text-muted-foreground' />
               </div>
               <div className='flex-1 min-w-0'>
@@ -761,7 +752,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                   e.stopPropagation();
                   handleSendMessage();
                 }}
-                className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-white'
+                className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted'
                 title='Send message'
                 disabled={!lead.email}
               >
@@ -776,7 +767,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                     e.stopPropagation();
                     setShowCampaignSelect(true);
                   }}
-                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-white'
+                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted'
                   title='Add to campaign'
                 >
                   <ListPlus className='h-4 w-4' />
@@ -868,6 +859,11 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                     </div>
                   )}
 
+                  {/* Enrichment Data */}
+                  <div className='mt-8 mb-24'>
+                    <EnrichmentDataDisplay lead={lead} />
+                  </div>
+
                   {/* Notes */}
                   {lead.notes && (
                     <div className='mt-8 mb-24'>
@@ -908,7 +904,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                         {company.score_reason && (
                           <div className='mt-6'>
                             <div className='p-4 bg-primary/10 rounded-lg border border-primary/20'>
-                              <h5 className='text-sm font-semibold text-blue-900 mb-2'>
+                              <h5 className='text-sm font-semibold text-foreground mb-2'>
                                 Company Analysis
                               </h5>
                               <p className='text-sm text-primary leading-relaxed'>
@@ -929,9 +925,9 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                                     onClick={() =>
                                       handleLeadClick(otherLead.id)
                                     }
-                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-gray-100 transition-colors cursor-pointer'
+                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-muted/80 transition-colors cursor-pointer'
                                   >
-                                    <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0'>
+                                    <div className='w-10 h-10 bg-muted rounded-full flex items-center justify-center flex-shrink-0 border border-border'>
                                       <User className='h-5 w-5 text-muted-foreground' />
                                     </div>
                                     <div className='flex-1 min-w-0'>

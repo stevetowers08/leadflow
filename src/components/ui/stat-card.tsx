@@ -58,7 +58,6 @@ export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
     return (
       <Card
         ref={ref}
-        variant='minimal'
         onClick={onClick}
         className={cn(
           designTokens.shadows.card,

@@ -97,7 +97,7 @@ export async function middleware(request: NextRequest) {
 
     // Redirect authenticated users away from auth pages
     if (isAuthRoute && user && request.nextUrl.pathname !== '/') {
-      return NextResponse.redirect(new URL('/', request.url));
+      return NextResponse.redirect(new URL('/companies', request.url));
     }
   }
 

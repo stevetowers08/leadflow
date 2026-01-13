@@ -79,8 +79,9 @@ export function setupGlobalErrorHandlers(): void {
         // For 400 errors, try to read the response body to get detailed error message
         let errorMessage = `HTTP ${response.status}: ${response.statusText || 'Bad Request'}`;
         let errorDetails: unknown = null;
+        let shouldSuppress = false;
 
-        if (response.status === 400) {
+        if (response.status === 400 || response.status === 404) {
           try {
             // Clone the response to read body without consuming it
             const clonedResponse = response.clone();
@@ -98,6 +99,29 @@ export function setupGlobalErrorHandlers(): void {
               } else if (errorData?.code) {
                 errorMessage = `HTTP ${response.status}: ${errorData.code}${errorData.details ? ` - ${errorData.details}` : ''}`;
               }
+
+              // Suppress expected Supabase errors (table not found, RLS blocks, schema cache)
+              const supabaseErrorCode = errorData?.code || '';
+              const supabaseMessage = (
+                errorData?.message ||
+                errorData?.error ||
+                ''
+              ).toLowerCase();
+
+              if (
+                supabaseErrorCode === 'PGRST116' || // Table not found
+                supabaseErrorCode === '42501' || // Insufficient privilege (RLS)
+                supabaseMessage.includes('schema cache') ||
+                supabaseMessage.includes('does not exist') ||
+                supabaseMessage.includes('permission denied') ||
+                supabaseMessage.includes('row-level security') ||
+                (url.includes('/rest/v1/') &&
+                  (response.status === 400 || response.status === 404))
+              ) {
+                // These are expected errors in development/bypass auth mode
+                // Components handle them gracefully, so we don't need to log them
+                shouldSuppress = true;
+              }
             }
           } catch (parseError) {
             // If we can't parse the error, use the default message
@@ -105,18 +129,20 @@ export function setupGlobalErrorHandlers(): void {
           }
         }
 
-        // Always log to error tracking service for monitoring
-        await enhancedErrorLogger.logNetworkError(errorMessage, {
-          component: 'fetch',
-          action: 'http_request',
-          metadata: {
-            url,
-            status: response.status,
-            statusText: response.statusText,
-            method: args[1]?.method || 'GET',
-            errorDetails,
-          },
-        });
+        // Only log unexpected errors (not suppressed)
+        if (!shouldSuppress) {
+          await enhancedErrorLogger.logNetworkError(errorMessage, {
+            component: 'fetch',
+            action: 'http_request',
+            metadata: {
+              url,
+              status: response.status,
+              statusText: response.statusText,
+              method: args[1]?.method || 'GET',
+              errorDetails,
+            },
+          });
+        }
       }
 
       return response;

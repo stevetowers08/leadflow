@@ -28,12 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ActionSlideTrigger, type ActionItem } from '@/components/ui/ActionSlideTrigger';
 import {
   Download,
   ListPlus,
-  Mail,
-  MoreHorizontal,
   RefreshCw,
   Trash2,
   Workflow,
@@ -49,7 +46,10 @@ export interface FloatingActionBarProps {
   onExport: () => Promise<void>;
   onSyncCRM: () => Promise<void>;
   onSendEmail: () => Promise<void>;
-  onAddToCampaign: (campaignId: string, campaignType: 'email' | 'lemlist') => Promise<void>;
+  onAddToCampaign: (
+    campaignId: string,
+    campaignType: 'email' | 'lemlist'
+  ) => Promise<void>;
   onClear: () => void;
   campaigns?: Array<{ id: string; name: string; type: 'email' | 'lemlist' }>;
 }
@@ -89,8 +89,13 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
     setShowDeleteDialog(false);
   };
 
-  const handleCampaignSelect = async (campaignId: string, campaignType: 'email' | 'lemlist') => {
-    await handleAction('campaign', () => onAddToCampaign(campaignId, campaignType));
+  const handleCampaignSelect = async (
+    campaignId: string,
+    campaignType: 'email' | 'lemlist'
+  ) => {
+    await handleAction('campaign', () =>
+      onAddToCampaign(campaignId, campaignType)
+    );
     setShowCampaignSelect(false);
   };
 
@@ -106,14 +111,8 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
         role='toolbar'
         aria-label='Bulk actions toolbar'
       >
-        <div className='rounded-xl shadow-xl border bg-background text-foreground'>
-          <div className='flex items-center gap-3 px-3 py-2'>
-            {/* Count pill */}
-            <div className='inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-sm font-medium'>
-              <span>{isAllSelected ? 'All' : selectedCount}</span>
-              <span className='text-muted-foreground'>selected</span>
-            </div>
-
+        <div className='rounded-xl shadow-xl border bg-background text-foreground min-w-[600px] max-w-[90vw]'>
+          <div className='flex items-center gap-3 px-4 py-2.5'>
             {/* Add to list */}
             {campaigns.length > 0 && (
               <Button
@@ -121,24 +120,11 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 size='sm'
                 onClick={() => setShowCampaignSelect(true)}
                 disabled={loading !== null}
-                className='gap-2'
               >
                 <ListPlus className='h-4 w-4' />
                 Add to list
               </Button>
             )}
-
-            {/* Send email (placeholder – caller can replace later) */}
-            <Button
-              variant='secondary'
-              size='sm'
-              onClick={() => handleAction('email', onSendEmail)}
-              disabled={loading !== null}
-              className='gap-2'
-            >
-              <Mail className='h-4 w-4' />
-              Send email
-            </Button>
 
             {/* Run campaigns */}
             <Button
@@ -146,46 +132,44 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               size='sm'
               onClick={() => handleAction('sync', onSyncCRM)}
               disabled={loading !== null}
-              className='gap-2'
             >
               <Workflow className='h-4 w-4' />
               Run campaigns
             </Button>
 
-            {/* More Actions Slider */}
-            <ActionSlideTrigger
-              actions={[
-                {
-                  id: 'export',
-                  label: 'Export CSV',
-                  icon: Download,
-                  onClick: () => handleAction('export', onExport),
-                  variant: 'default',
-                },
-                {
-                  id: 'delete',
-                  label: 'Delete',
-                  icon: Trash2,
-                  onClick: () => setShowDeleteDialog(true),
-                  variant: 'destructive',
-                  divider: true,
-                },
-                {
-                  id: 'clear',
-                  label: 'Clear selection',
-                  icon: X,
-                  onClick: onClear,
-                  variant: 'default',
-                  divider: true,
-                },
-              ]}
-              title='More Actions'
+            {/* Export CSV */}
+            <Button
               variant='secondary'
               size='sm'
+              onClick={() => handleAction('export', onExport)}
+              disabled={loading !== null}
             >
-              More
-              <MoreHorizontal className='h-4 w-4' />
-            </ActionSlideTrigger>
+              <Download className='h-4 w-4' />
+              Export CSV
+            </Button>
+
+            {/* Delete */}
+            <Button
+              variant='destructive'
+              size='sm'
+              onClick={() => setShowDeleteDialog(true)}
+              disabled={loading !== null}
+            >
+              <Trash2 className='h-4 w-4' />
+              Delete
+            </Button>
+
+            {/* Clear selection */}
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={onClear}
+              disabled={loading !== null}
+              className='h-8 text-sm gap-2'
+            >
+              <X className='h-4 w-4' />
+              Clear
+            </Button>
           </div>
 
           {loading && (
@@ -234,12 +218,17 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className='py-4'>
-            <Select onValueChange={(value) => {
-              const selectedCampaign = campaigns.find(c => c.id === value);
-              if (selectedCampaign) {
-                handleCampaignSelect(selectedCampaign.id, selectedCampaign.type);
-              }
-            }}>
+            <Select
+              onValueChange={value => {
+                const selectedCampaign = campaigns.find(c => c.id === value);
+                if (selectedCampaign) {
+                  handleCampaignSelect(
+                    selectedCampaign.id,
+                    selectedCampaign.type
+                  );
+                }
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder='Select a campaign' />
               </SelectTrigger>

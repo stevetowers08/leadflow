@@ -63,13 +63,13 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
+          {/* Overlay - matches page background with blur */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className='fixed inset-0 bg-black/50 z-[10000]'
+            className='fixed inset-0 bg-background/80 backdrop-blur-sm z-[10000]'
             onClick={onClose}
           />
 

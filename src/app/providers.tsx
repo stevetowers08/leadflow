@@ -29,6 +29,7 @@ import { PermissionsProvider } from '@/contexts/PermissionsContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { SearchProvider } from '@/contexts/SearchContext';
 import { SlidePanelProvider } from '@/contexts/SlidePanelContext';
+import { ConfirmationProvider } from '@/contexts/ConfirmationContext';
 import { LoggingProvider } from '@/utils/enhancedLogger';
 import { PerformanceProvider } from '@/utils/performanceMonitoring';
 import { useClientId } from '@/hooks/useClientId';
@@ -273,11 +274,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     <OnboardingProvider>
                       <SlidePanelProvider>
                         <SearchProvider>
-                          <AppInitialization>
-                            <OAuthRedirectHandler />
-                            {children}
-                            <Toaster />
-                          </AppInitialization>
+                          <ConfirmationProvider>
+                            <AppInitialization>
+                              <OAuthRedirectHandler />
+                              {children}
+                              <Toaster />
+                            </AppInitialization>
+                          </ConfirmationProvider>
                         </SearchProvider>
                       </SlidePanelProvider>
                     </OnboardingProvider>

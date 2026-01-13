@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import {
   Camera,
   Settings,
   X,
+  ArrowLeft,
 } from 'lucide-react';
 import { createLead } from '@/services/leadsService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -67,6 +69,7 @@ export default function CapturePage() {
     phone: '',
   });
   const { user } = useAuth();
+  const router = useRouter();
 
   // Load current show from localStorage
   useEffect(() => {
@@ -729,7 +732,18 @@ export default function CapturePage() {
       {/* Layer 2: Controls */}
       {/* Header */}
       <div className='absolute top-0 z-10 w-full h-16 bg-gradient-to-b from-black/80 to-transparent p-4 flex items-center justify-between'>
-        <div className='text-white font-semibold'>LeadFlow</div>
+        <div className='flex items-center gap-3'>
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => router.back()}
+            className='text-white hover:bg-white/20'
+            aria-label='Go back'
+          >
+            <ArrowLeft className='h-5 w-5' />
+          </Button>
+          <div className='text-white font-semibold'>LeadFlow</div>
+        </div>
         <div className='flex items-center gap-3'>
           <div className='bg-white/10 rounded-md'>
             <ShowSelector
@@ -1015,7 +1029,6 @@ export default function CapturePage() {
                   </label>
                   <Input
                     id='manual-first-name'
-                    variant='mobile'
                     placeholder='First name'
                     value={manualData.firstName}
                     onChange={e =>
@@ -1036,7 +1049,6 @@ export default function CapturePage() {
                   </label>
                   <Input
                     id='manual-last-name'
-                    variant='mobile'
                     placeholder='Last name'
                     value={manualData.lastName}
                     onChange={e =>
@@ -1054,7 +1066,6 @@ export default function CapturePage() {
                   </label>
                   <Input
                     id='manual-company'
-                    variant='mobile'
                     placeholder='Company name'
                     value={manualData.company}
                     onChange={e =>
@@ -1070,7 +1081,6 @@ export default function CapturePage() {
                   <Input
                     id='manual-email'
                     type='email'
-                    variant='mobile'
                     placeholder='email@example.com'
                     value={manualData.email}
                     onChange={e =>
@@ -1087,7 +1097,6 @@ export default function CapturePage() {
                   </label>
                   <Input
                     id='manual-job-title'
-                    variant='mobile'
                     placeholder='Job title'
                     value={manualData.jobTitle}
                     onChange={e =>
@@ -1102,7 +1111,6 @@ export default function CapturePage() {
                   <Input
                     id='manual-phone'
                     type='tel'
-                    variant='mobile'
                     placeholder='Phone number'
                     value={manualData.phone}
                     onChange={e =>

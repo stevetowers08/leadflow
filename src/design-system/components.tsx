@@ -95,7 +95,7 @@ interface PageProps {
   loading?: boolean;
   loadingMessage?: string;
   hideHeader?: boolean;
-  padding?: 'default' | 'large'; // Padding size: default (p-4 lg:p-6) or large (p-8 lg:p-10)
+  padding?: 'none' | 'default' | 'large'; // Padding size: none (edge-to-edge), default (p-4 lg:p-6), or large (p-8 lg:p-10)
 }
 
 export const Page: React.FC<PageProps> = ({
@@ -125,24 +125,40 @@ export const Page: React.FC<PageProps> = ({
   // Vertical padding moved inside scroll container so content isn't cut off when scrolling
   // Content areas (header, scroll container) add right padding back via design tokens
 
-  // Padding sizes: default (1rem mobile, 1.5rem desktop) or large (3rem mobile, 4rem desktop)
+  // Padding sizes: none (edge-to-edge), default (1rem mobile, 1.5rem desktop), or large (3rem mobile, 4rem desktop)
+  const isNoPadding = padding === 'none';
   const isLargePadding = padding === 'large';
-  const containerPadding = isLargePadding
-    ? 'pl-12 lg:pl-16 pr-0' // Large: 3rem mobile, 4rem desktop
-    : 'pl-4 lg:pl-6 pr-0'; // Default: 1rem mobile, 1.5rem desktop
-  const contentRightPadding = isLargePadding
-    ? 'pr-12 lg:pr-16' // Large: 3rem mobile, 4rem desktop
-    : 'pr-4 lg:pr-6'; // Default: 1rem mobile, 1.5rem desktop
-  const verticalPadding = isLargePadding
-    ? 'pt-12 pb-6' // Large: top 3rem (48px), bottom 1.5rem (24px)
-    : 'pt-6 pb-3'; // Default: top 1.5rem (24px), bottom 0.75rem (12px)
-  const scrollPadding = isLargePadding
-    ? '3rem' // 48px
-    : '1.5rem'; // 24px
+
+  const containerPadding = isNoPadding
+    ? 'pl-0 pr-0' // None: edge-to-edge
+    : isLargePadding
+      ? 'pl-12 lg:pl-16 pr-0' // Large: 3rem mobile, 4rem desktop
+      : 'pl-4 lg:pl-6 pr-0'; // Default: 1rem mobile, 1.5rem desktop
+
+  const contentRightPadding = isNoPadding
+    ? 'pr-0' // None: edge-to-edge
+    : isLargePadding
+      ? 'pr-12 lg:pr-16' // Large: 3rem mobile, 4rem desktop
+      : 'pr-4 lg:pr-6'; // Default: 1rem mobile, 1.5rem desktop
+
+  const verticalPadding = isNoPadding
+    ? 'pt-0 pb-0' // None: edge-to-edge
+    : isLargePadding
+      ? 'pt-12 pb-6' // Large: top 3rem (48px), bottom 1.5rem (24px)
+      : 'pt-6 pb-3'; // Default: top 1.5rem (24px), bottom 0.75rem (12px)
+
+  const scrollPadding = isNoPadding
+    ? '0' // None
+    : isLargePadding
+      ? '3rem' // 48px
+      : '1.5rem'; // 24px
 
   return (
     <div
-      className={cn('w-full flex flex-col overflow-hidden min-w-0', containerPadding)}
+      className={cn(
+        'w-full flex flex-col overflow-hidden min-w-0',
+        containerPadding
+      )}
       style={{ height: '100%', minHeight: 0, maxHeight: '100%' }}
     >
       {!hideHeader && (
@@ -187,9 +203,17 @@ export const Page: React.FC<PageProps> = ({
       >
         <div
           className={cn(
-            hideHeader 
-              ? isLargePadding ? 'pt-12' : 'pt-6'
-              : isLargePadding ? 'pb-6' : 'pb-3',
+            hideHeader
+              ? isNoPadding
+                ? 'pt-0'
+                : isLargePadding
+                  ? 'pt-12'
+                  : 'pt-6'
+              : isNoPadding
+                ? 'pb-0'
+                : isLargePadding
+                  ? 'pb-6'
+                  : 'pb-3',
             'min-w-0'
           )}
         >
@@ -291,8 +315,8 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
           {onFavoritesToggle && (
             <Button
               onClick={onFavoritesToggle}
-              variant={showFavoritesOnly ? "secondary" : "outline"}
-              size="sm"
+              variant={showFavoritesOnly ? 'secondary' : 'outline'}
+              size='sm'
               className={cn(
                 showFavoritesOnly
                   ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100'
@@ -335,8 +359,8 @@ export const FilterControls: React.FC<FilterControlsProps> = React.memo(
           ) : (
             <Button
               onClick={onSearchToggle}
-              variant="outline"
-              size="sm"
+              variant='outline'
+              size='sm'
               aria-label='Search'
             >
               <Search className={tokens.icon} />
