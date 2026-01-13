@@ -157,6 +157,7 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
     : cn(
         'flex items-center gap-2 px-3 text-sm',
         'bg-background border border-border rounded-md',
+        'shadow-[0_1px_4px_rgba(0,0,0,0.15)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.35)]',
         'hover:border-border hover:bg-muted',
         'focus:outline-none focus:ring-2 focus:ring-blue-500',
         'transition-colors',

@@ -51,6 +51,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
         className={cn(
           'flex items-center justify-between w-full px-3 py-2 text-sm',
           'bg-white border border-border rounded-md',
+          'shadow-[0_1px_4px_rgba(0,0,0,0.15)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.35)]',
           'hover:border-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
           'transition-all duration-200 ease-in-out',
           'min-h-[36px]',
@@ -226,6 +227,7 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
         className={cn(
           'flex items-center justify-between w-full px-3 py-2 text-sm',
           'bg-white border border-border rounded-md',
+          'shadow-[0_1px_4px_rgba(0,0,0,0.15)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.35)]',
           'hover:border-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
           'transition-all duration-200 ease-in-out',
           'min-h-[36px]',
