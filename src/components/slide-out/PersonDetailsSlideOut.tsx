@@ -66,20 +66,24 @@ import {
 } from '@/components/ui/dialog';
 import { Tables } from '@/integrations/supabase/types';
 
+// Helper to get company initials
+const getCompanyInitials = (name: string): string => {
+  if (!name) return '?';
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) {
+    return words[0].substring(0, 2).toUpperCase();
+  }
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+};
+
 // Company logo image component with proper error handling
 const CompanyLogoImage: React.FC<{ company: Company; size?: number }> = memo(
   ({ company, size = 16 }) => {
     const [imageError, setImageError] = useState(false);
 
-    // Use cached logo_url if available, filter out Clearbit URLs
-    const cachedLogoUrl =
-      company.logo_url && !company.logo_url.includes('logo.clearbit.com')
-        ? company.logo_url
-        : null;
-
-    // Fallback to sync URL generation if no cached logo
+    // Use cached logo_url if available, otherwise generate sync URL
     const logoUrl =
-      cachedLogoUrl ||
+      company.logo_url?.trim() ||
       getCompanyLogoUrlSync(company.name, company.website || undefined);
 
     // Generate fallback avatar URL
@@ -94,20 +98,18 @@ const CompanyLogoImage: React.FC<{ company: Company; size?: number }> = memo(
         <img
           src={fallbackUrl}
           alt={company.name}
-          className='w-4 h-4 rounded-sm border border-border'
+          className='w-4 h-4 rounded-sm'
         />
       );
     }
 
     return (
-      <div className='w-4 h-4 rounded-sm border border-border bg-white'>
-        <img
-          src={logoUrl}
-          alt={company.name}
-          className='w-full h-full rounded-sm object-contain'
-          onError={handleImageError}
-        />
-      </div>
+      <img
+        src={logoUrl}
+        alt={company.name}
+        className='w-4 h-4 rounded-sm object-contain'
+        onError={handleImageError}
+      />
     );
   }
 );
@@ -635,16 +637,25 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                 label: 'Company Name',
                 value: (
                   <div className='flex items-center gap-2'>
-                    <img
-                      src={
+                    {(() => {
+                      const logoUrl =
+                        company.logo_url?.trim() ||
                         getCompanyLogoUrlSync(
                           company.name,
                           company.website || undefined
-                        ) || ''
-                      }
-                      alt={company.name}
-                      className='w-6 h-6 rounded'
-                    />
+                        );
+                      return logoUrl ? (
+                        <img
+                          src={logoUrl}
+                          alt={company.name}
+                          className='w-6 h-6 rounded'
+                        />
+                      ) : (
+                        <div className='w-6 h-6 rounded bg-muted flex items-center justify-center text-xs font-medium'>
+                          {getCompanyInitials(company.name)}
+                        </div>
+                      );
+                    })()}
                     <span>{company.name}</span>
                   </div>
                 ),

@@ -90,15 +90,9 @@ const CompanyLogoImage: React.FC<{ company: Company; size?: number }> = memo(
   ({ company, size = 16 }) => {
     const [imageError, setImageError] = useState(false);
 
-    // Use cached logo_url if available, filter out Clearbit URLs
-    const cachedLogoUrl =
-      company.logo_url && !company.logo_url.includes('logo.clearbit.com')
-        ? company.logo_url
-        : null;
-
-    // Fallback to sync URL generation if no cached logo
+    // Use cached logo_url if available, otherwise generate sync URL
     const logoUrl =
-      cachedLogoUrl ||
+      company.logo_url?.trim() ||
       getCompanyLogoUrlSync(company.name, company.website || undefined);
 
     // Generate fallback avatar URL with initials and consistent colors
@@ -120,20 +114,18 @@ const CompanyLogoImage: React.FC<{ company: Company; size?: number }> = memo(
         <img
           src={fallbackUrl}
           alt={company.name}
-          className='w-4 h-4 rounded-sm border border-border flex-shrink-0'
+          className='w-4 h-4 rounded-sm flex-shrink-0'
         />
       );
     }
 
     return (
-      <div className='w-4 h-4 rounded-sm border border-border bg-white flex-shrink-0'>
-        <img
-          src={logoUrl}
-          alt={company.name}
-          className='w-full h-full rounded-sm object-contain'
-          onError={handleImageError}
-        />
-      </div>
+      <img
+        src={logoUrl}
+        alt={company.name}
+        className='w-4 h-4 rounded-sm flex-shrink-0 object-contain'
+        onError={handleImageError}
+      />
     );
   }
 );
@@ -683,10 +675,12 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                 value: (
                   <div className='flex items-center gap-2'>
                     {(() => {
-                      const logoUrl = getCompanyLogoUrlSync(
-                        company.name,
-                        company.website || undefined
-                      );
+                      const logoUrl =
+                        company.logo_url?.trim() ||
+                        getCompanyLogoUrlSync(
+                          company.name,
+                          company.website || undefined
+                        );
                       return logoUrl ? (
                         <img
                           src={logoUrl}

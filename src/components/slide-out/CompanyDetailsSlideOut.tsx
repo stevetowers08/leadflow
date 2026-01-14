@@ -51,15 +51,9 @@ const CompanyLogoDisplay: React.FC<{ company: Company; size?: number }> = memo(
   ({ company, size = 24 }) => {
     const [imageError, setImageError] = useState(false);
 
-    // Use cached logo_url if available, filter out Clearbit URLs
-    const cachedLogoUrl =
-      company.logo_url && !company.logo_url.includes('logo.clearbit.com')
-        ? company.logo_url
-        : null;
-
-    // Fallback to sync URL generation if no cached logo
+    // Use cached logo_url if available, otherwise generate sync URL
     const logoUrl =
-      cachedLogoUrl ||
+      company.logo_url?.trim() ||
       getCompanyLogoUrlSync(company.name, company.website || undefined);
 
     // Generate fallback avatar URL
@@ -72,22 +66,18 @@ const CompanyLogoDisplay: React.FC<{ company: Company; size?: number }> = memo(
     return (
       <div className='flex items-center gap-2'>
         {!imageError && logoUrl ? (
-          <div
-            className='rounded bg-white flex-shrink-0 border border-border/50'
+          <img
+            src={logoUrl}
+            alt={company.name}
+            className='rounded flex-shrink-0 object-contain'
             style={{ width: `${size}px`, height: `${size}px` }}
-          >
-            <img
-              src={logoUrl}
-              alt={company.name}
-              className='w-full h-full rounded object-contain block'
-              onError={handleImageError}
-            />
-          </div>
+            onError={handleImageError}
+          />
         ) : (
           <img
             src={fallbackUrl}
             alt={company.name}
-            className='rounded flex-shrink-0 border border-border/50'
+            className='rounded flex-shrink-0'
             style={{ width: `${size}px`, height: `${size}px` }}
           />
         )}
@@ -104,15 +94,9 @@ const CompanyLogoHeader: React.FC<{ company: Company }> = memo(
   ({ company }) => {
     const [imageError, setImageError] = useState(false);
 
-    // Use cached logo_url if available, filter out Clearbit URLs
-    const cachedLogoUrl =
-      company.logo_url && !company.logo_url.includes('logo.clearbit.com')
-        ? company.logo_url
-        : null;
-
-    // Fallback to sync URL generation if no cached logo
+    // Use cached logo_url if available, otherwise generate sync URL
     const logoUrl =
-      cachedLogoUrl ||
+      company.logo_url?.trim() ||
       getCompanyLogoUrlSync(company.name, company.website || undefined);
 
     // Generate fallback avatar URL - size to match logo
@@ -125,19 +109,17 @@ const CompanyLogoHeader: React.FC<{ company: Company }> = memo(
     return (
       <div className='flex items-center gap-3'>
         {!imageError && logoUrl ? (
-          <div className='w-10 h-10 rounded-lg bg-white flex-shrink-0 border border-border/50'>
-            <img
-              src={logoUrl}
-              alt={company.name}
-              className='w-full h-full rounded-md object-contain'
-              onError={handleImageError}
-            />
-          </div>
+          <img
+            src={logoUrl}
+            alt={company.name}
+            className='w-10 h-10 rounded-lg flex-shrink-0 object-contain'
+            onError={handleImageError}
+          />
         ) : (
           <img
             src={fallbackUrl}
             alt={company.name}
-            className='w-10 h-10 rounded-lg flex-shrink-0 border border-border/50'
+            className='w-10 h-10 rounded-lg flex-shrink-0'
           />
         )}
         <div className='min-w-0 flex-1'>
