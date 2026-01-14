@@ -699,14 +699,38 @@ export default function LeadsPage() {
       padding='none'
       hideHeader
     >
-      <TableFilterBar
-        entityLabel='Leads'
-        entityCount={leads.length}
-        sortOptions={LEAD_SORT_OPTIONS}
-        filterConfigs={filterConfigs}
-        preferences={preferences}
-        onPreferencesChange={updatePreferences}
-      />
+      <div className='flex items-center justify-between gap-2 border-b border-border bg-background'>
+        <div className='flex-1'>
+          <TableFilterBar
+            entityLabel='Leads'
+            entityCount={leads.length}
+            sortOptions={LEAD_SORT_OPTIONS}
+            filterConfigs={filterConfigs}
+            preferences={preferences}
+            onPreferencesChange={updatePreferences}
+            className='border-0'
+          />
+        </div>
+        <div className='flex gap-2 px-4 flex-shrink-0'>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => setShowImportDialog(true)}
+          >
+            <Upload className='h-4 w-4 mr-2' />
+            Import CSV
+          </Button>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={handleExport}
+            disabled={isExporting || leads.length === 0}
+          >
+            <Download className='h-4 w-4 mr-2' />
+            Export CSV
+          </Button>
+        </div>
+      </div>
 
       <div className='flex items-center justify-between gap-2 px-4 py-2 border-b border-border bg-background'>
         <div className='flex items-center gap-2 flex-shrink-0'>
@@ -725,25 +749,6 @@ export default function LeadsPage() {
               </Button>
             </>
           )}
-        </div>
-        <div className='flex gap-2 ml-auto flex-shrink-0'>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={() => setShowImportDialog(true)}
-          >
-            <Upload className='h-4 w-4 mr-2' />
-            Import CSV
-          </Button>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={handleExport}
-            disabled={isExporting || leads.length === 0}
-          >
-            <Download className='h-4 w-4 mr-2' />
-            Export CSV
-          </Button>
         </div>
       </div>
 

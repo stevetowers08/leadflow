@@ -50,23 +50,27 @@ export function TableFilterBar({
     <div
       className={cn(
         'w-full border-b border-border bg-background',
-        'px-4 py-2',
+        'px-3 py-2 md:px-4',
         className
       )}
     >
-      {/* Sort + Filters */}
-      <div className='flex items-center gap-2 flex-wrap'>
+      {/* Sort + Filters - horizontal scroll on mobile */}
+      <div className='flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-3 px-3 md:mx-0 md:px-0 md:flex-wrap'>
         {/* Sort Dropdown */}
         <Select
           value={preferences.sortBy}
           onValueChange={sortBy => onPreferencesChange({ sortBy })}
         >
-          <SelectTrigger className='h-8 w-auto min-w-[140px] text-sm border-border'>
+          <SelectTrigger className='h-10 sm:h-8 w-auto min-w-[140px] text-sm border-border touch-manipulation flex-shrink-0'>
             <SelectValue placeholder='Sort by' />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className='max-h-[50vh]'>
             {sortOptions.map(option => (
-              <SelectItem key={option.value} value={option.value}>
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className='py-3 sm:py-2 touch-manipulation'
+              >
                 {option.label}
               </SelectItem>
             ))}
@@ -98,15 +102,19 @@ export function TableFilterBar({
             >
               <SelectTrigger
                 className={cn(
-                  'h-8 w-auto min-w-[120px] text-sm border-border',
+                  'h-10 sm:h-8 w-auto min-w-[100px] sm:min-w-[120px] text-sm border-border touch-manipulation flex-shrink-0',
                   isActive && 'border-primary bg-primary/5'
                 )}
               >
                 <SelectValue placeholder={filter.placeholder || filter.label} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className='max-h-[50vh]'>
                 {filter.options.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className='py-3 sm:py-2 touch-manipulation'
+                  >
                     <div className='flex items-center gap-2'>
                       {option.icon && <option.icon className='h-4 w-4' />}
                       {option.label}
@@ -125,15 +133,18 @@ export function TableFilterBar({
 
         {/* Active Filters Badge + Clear */}
         {activeFilterCount > 0 && (
-          <div className='flex items-center gap-2 ml-2'>
-            <Badge variant='secondary' className='h-6 text-xs'>
+          <div className='flex items-center gap-2 ml-2 flex-shrink-0'>
+            <Badge
+              variant='secondary'
+              className='h-6 text-xs whitespace-nowrap'
+            >
               {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''}
             </Badge>
             <Button
               variant='ghost'
               size='sm'
               onClick={handleClearFilters}
-              className='h-6 px-2 text-xs'
+              className='h-8 sm:h-6 px-2 text-xs touch-manipulation'
             >
               <X className='h-3 w-3 mr-1' />
               Clear

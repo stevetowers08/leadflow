@@ -35,9 +35,9 @@ import Link from 'next/link';
  * Updated Navigation - PDR Section 5.1
  *
  * LeadFlow Console Navigation:
+ * - Companies (/) - Icon: Building2 - Home page
  * - Capture (/capture) - Icon: Camera - Business card scanner
  * - Leads (/leads) - Icon: Users
- * - Companies (/companies) - Icon: Building2
  * - Shows (/shows) - Icon: Calendar
  * - Campaigns (/workflows) - Icon: GitMerge
  * - Analytics (/analytics) - Icon: BarChart3
@@ -45,6 +45,11 @@ import Link from 'next/link';
  */
 const data = {
   navMain: [
+    {
+      title: 'Companies',
+      url: '/',
+      icon: Building2,
+    },
     {
       title: 'Capture',
       url: '/capture',
@@ -54,11 +59,6 @@ const data = {
       title: 'Leads',
       url: '/leads',
       icon: Users,
-    },
-    {
-      title: 'Companies',
-      url: '/companies',
-      icon: Building2,
     },
     {
       title: 'Shows',
@@ -101,7 +101,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader className='flex-shrink-0 !gap-0 !p-0'>
         <div className='w-full h-12 border-b border-sidebar-border bg-sidebar px-4 flex items-center justify-between group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0'>
           <Link
-            href='/companies'
+            href='/'
             className='flex items-center group-data-[collapsible=icon]:hidden'
           >
             <LeadFlowLogo size={110} />

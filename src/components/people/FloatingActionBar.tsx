@@ -105,14 +105,15 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
 
   return (
     <>
-      {/* Floating Action Bar */}
+      {/* Floating Action Bar - mobile optimized */}
       <div
-        className='fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-2 fade-in duration-200'
+        className='fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-2 fade-in duration-200 w-[calc(100%-2rem)] sm:w-auto pb-[env(safe-area-inset-bottom)]'
         role='toolbar'
         aria-label='Bulk actions toolbar'
       >
-        <div className='rounded-xl shadow-xl border bg-background text-foreground min-w-[600px] max-w-[90vw]'>
-          <div className='flex items-center gap-3 px-4 py-2.5'>
+        <div className='rounded-xl shadow-xl border bg-background text-foreground w-full sm:min-w-[600px] sm:max-w-[90vw]'>
+          {/* Horizontal scroll container for mobile */}
+          <div className='flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 overflow-x-auto scrollbar-hide'>
             {/* Add to list */}
             {campaigns.length > 0 && (
               <Button
@@ -120,9 +121,10 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 size='sm'
                 onClick={() => setShowCampaignSelect(true)}
                 disabled={loading !== null}
+                className='h-10 sm:h-8 px-3 sm:px-4 touch-manipulation flex-shrink-0 gap-1.5 sm:gap-2'
               >
                 <ListPlus className='h-4 w-4' />
-                Add to list
+                <span className='hidden xs:inline'>Add to list</span>
               </Button>
             )}
 
@@ -132,9 +134,10 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               size='sm'
               onClick={() => handleAction('sync', onSyncCRM)}
               disabled={loading !== null}
+              className='h-10 sm:h-8 px-3 sm:px-4 touch-manipulation flex-shrink-0 gap-1.5 sm:gap-2'
             >
               <Workflow className='h-4 w-4' />
-              Run campaigns
+              <span className='hidden xs:inline'>Run</span>
             </Button>
 
             {/* Export CSV */}
@@ -143,9 +146,10 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               size='sm'
               onClick={() => handleAction('export', onExport)}
               disabled={loading !== null}
+              className='h-10 sm:h-8 px-3 sm:px-4 touch-manipulation flex-shrink-0 gap-1.5 sm:gap-2'
             >
               <Download className='h-4 w-4' />
-              Export CSV
+              <span className='hidden xs:inline'>Export</span>
             </Button>
 
             {/* Delete */}
@@ -154,9 +158,10 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               size='sm'
               onClick={() => setShowDeleteDialog(true)}
               disabled={loading !== null}
+              className='h-10 sm:h-8 px-3 sm:px-4 touch-manipulation flex-shrink-0 gap-1.5 sm:gap-2'
             >
               <Trash2 className='h-4 w-4' />
-              Delete
+              <span className='hidden xs:inline'>Delete</span>
             </Button>
 
             {/* Clear selection */}
@@ -165,10 +170,10 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               size='sm'
               onClick={onClear}
               disabled={loading !== null}
-              className='h-8 text-sm gap-2'
+              className='h-10 sm:h-8 text-sm gap-1.5 sm:gap-2 touch-manipulation flex-shrink-0'
             >
               <X className='h-4 w-4' />
-              Clear
+              <span className='hidden xs:inline'>Clear</span>
             </Button>
           </div>
 
@@ -183,21 +188,25 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog - mobile optimized */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className='w-[calc(100%-2rem)] max-w-md mx-auto rounded-xl sm:rounded-lg'>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {countText}?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className='text-base sm:text-lg'>
+              Delete {countText}?
+            </AlertDialogTitle>
+            <AlertDialogDescription className='text-sm'>
               This action cannot be undone. This will permanently delete the
               selected people and all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className='flex-col-reverse sm:flex-row gap-2 sm:gap-0'>
+            <AlertDialogCancel className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation w-full sm:w-auto'>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+              className='h-12 sm:h-10 text-base sm:text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80 touch-manipulation w-full sm:w-auto'
             >
               Delete
             </AlertDialogAction>
@@ -205,15 +214,17 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Campaign Selection Dialog */}
+      {/* Campaign Selection Dialog - mobile optimized */}
       <AlertDialog
         open={showCampaignSelect}
         onOpenChange={setShowCampaignSelect}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className='w-[calc(100%-2rem)] max-w-md mx-auto rounded-xl sm:rounded-lg'>
           <AlertDialogHeader>
-            <AlertDialogTitle>Add to Campaign</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className='text-base sm:text-lg'>
+              Add to Campaign
+            </AlertDialogTitle>
+            <AlertDialogDescription className='text-sm'>
               Select a campaign to enroll {countText}.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -229,20 +240,26 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 }
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation'>
                 <SelectValue placeholder='Select a campaign' />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className='max-h-[50vh]'>
                 {campaigns.map(campaign => (
-                  <SelectItem key={campaign.id} value={campaign.id}>
+                  <SelectItem
+                    key={campaign.id}
+                    value={campaign.id}
+                    className='py-3 sm:py-2 text-base sm:text-sm touch-manipulation'
+                  >
                     {campaign.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className='flex-col-reverse sm:flex-row gap-2 sm:gap-0'>
+            <AlertDialogCancel className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation w-full sm:w-auto'>
+              Cancel
+            </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -3,6 +3,16 @@
  * Additional mobile-specific enhancements for better UX
  */
 
+/* Scrollbar hide utility - works across all breakpoints */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 /* Mobile touch scrolling improvements */
 @media (max-width: 767px) {
   /* Improved touch scrolling - use with scrollbar classes */
@@ -46,4 +56,3 @@
     }
   }
 }
-

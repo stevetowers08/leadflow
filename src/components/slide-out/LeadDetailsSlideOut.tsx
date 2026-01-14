@@ -727,23 +727,23 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
         width='wide'
         className='pb-0'
         customHeader={
-          <div className='flex items-center justify-between w-full'>
-            <div className='flex items-center gap-4'>
-              <div className='w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border border-border'>
+          <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3 sm:gap-4'>
+            {/* Lead info - stacks on mobile */}
+            <div className='flex items-center gap-3 sm:gap-4 min-w-0'>
+              <div className='w-10 h-10 sm:w-10 sm:h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border border-border'>
                 <User className='h-5 w-5 text-muted-foreground' />
               </div>
               <div className='flex-1 min-w-0'>
-                <div className='flex items-center gap-3'>
-                  <h2 className='text-lg font-semibold text-foreground truncate'>
-                    {leadFullName}
-                  </h2>
-                </div>
-                <p className='text-sm text-muted-foreground truncate'>
+                <h2 className='text-base sm:text-lg font-semibold text-foreground truncate'>
+                  {leadFullName}
+                </h2>
+                <p className='text-xs sm:text-sm text-muted-foreground truncate'>
                   {lead.job_title || lead.company || 'Lead Information'}
                 </p>
               </div>
             </div>
-            <div className='flex items-center gap-2 flex-shrink-0 ml-4'>
+            {/* Actions - horizontal scroll on mobile with proper touch targets */}
+            <div className='flex items-center gap-2 flex-shrink-0 overflow-x-auto pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-hide'>
               <Button
                 size='sm'
                 variant='ghost'
@@ -752,7 +752,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                   e.stopPropagation();
                   handleSendMessage();
                 }}
-                className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted'
+                className='h-10 w-10 sm:h-8 sm:w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted active:bg-muted/80 touch-manipulation flex-shrink-0'
                 title='Send message'
                 disabled={!lead.email}
               >
@@ -767,7 +767,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                     e.stopPropagation();
                     setShowCampaignSelect(true);
                   }}
-                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted'
+                  className='h-10 w-10 sm:h-8 sm:w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted active:bg-muted/80 touch-manipulation flex-shrink-0'
                   title='Add to campaign'
                 >
                   <ListPlus className='h-4 w-4' />
@@ -796,25 +796,26 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
           </div>
         }
       >
-        <div className='flex gap-0 h-full -mx-6'>
-          {/* Left Column - Tabs and Content */}
-          <section className='flex-1 min-w-0 flex flex-col overflow-hidden m-0 p-0'>
-            {/* Tabs */}
-            <div className='pt-3 pb-3 pl-6 pr-0 flex-shrink-0 overflow-visible'>
+        {/* Main container - single column on mobile, two columns on lg+ */}
+        <div className='flex flex-col lg:flex-row gap-0 h-full -mx-4 md:-mx-6'>
+          {/* Main Content Column - full width on mobile, flex on desktop */}
+          <section className='flex-1 min-w-0 flex flex-col overflow-hidden m-0 p-0 order-2 lg:order-1'>
+            {/* Tabs - horizontal scroll on mobile for touch */}
+            <div className='pt-3 pb-3 px-4 md:pl-6 md:pr-0 flex-shrink-0 overflow-x-auto overflow-y-visible scrollbar-hide'>
               <TabNavigation
                 tabs={tabOptions}
                 activeTab={activeTab}
                 onTabChange={tabId => setActiveTab(tabId as typeof activeTab)}
                 variant='pill'
                 size='sm'
-                className='w-full mr-0 pr-0'
+                className='w-full min-w-max md:min-w-0 mr-0 pr-0'
               />
             </div>
 
-            {/* Tab Content */}
-            <div className='flex-1 overflow-y-auto overflow-x-hidden select-text m-0 p-0'>
+            {/* Tab Content - responsive padding */}
+            <div className='flex-1 overflow-y-auto overflow-x-hidden select-text m-0 p-0 overscroll-behavior-y-contain'>
               {activeTab === 'overview' && (
-                <div className='space-y-4 px-6 pb-8'>
+                <div className='space-y-4 px-4 md:px-6 pb-8'>
                   <div className='w-full border-t border-border'></div>
 
                   {/* Campaign Enrollment */}
@@ -957,7 +958,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               )}
 
               {activeTab === 'activity' && (
-                <div className='flex flex-col px-6'>
+                <div className='flex flex-col px-4 md:px-6'>
                   <div className='mt-6 mb-8'>
                     <SlideOutSection title='Activity'>
                       <div className='space-y-2 select-text overflow-x-hidden'>
@@ -971,7 +972,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               )}
 
               {activeTab === 'ai' && (
-                <div className='flex flex-col px-6'>
+                <div className='flex flex-col px-4 md:px-6'>
                   {lead.ai_icebreaker && (
                     <div className='mt-6 mb-8'>
                       <SlideOutSection title='AI Icebreaker'>
@@ -1006,44 +1007,45 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
             </div>
           </section>
 
-          {/* Right Column - Sidebar */}
-          <div className='w-80 flex-shrink-0 border-l border-border flex flex-col h-full overflow-hidden ml-0'>
-            <div className='flex-1 flex flex-col overflow-y-auto'>
-              <div className='px-6 pt-6'>
-                <div className='mb-4'>
-                  <button className='flex items-center gap-2 w-full text-left'>
+          {/* Right Column - Sidebar (shows as collapsible card on mobile, sidebar on desktop) */}
+          <div className='w-full lg:w-80 flex-shrink-0 lg:border-l border-border flex flex-col lg:h-full overflow-hidden order-1 lg:order-2 border-b lg:border-b-0'>
+            <div className='flex-1 flex flex-col lg:overflow-y-auto'>
+              <div className='px-4 md:px-6 py-4 lg:pt-6'>
+                <div className='mb-3 lg:mb-4'>
+                  <button className='flex items-center gap-2 w-full text-left touch-manipulation'>
                     <ChevronDown className='h-4 w-4 text-muted-foreground' />
-                    <h3 className='text-base font-semibold text-foreground'>
+                    <h3 className='text-sm lg:text-base font-semibold text-foreground'>
                       Lead Details
                     </h3>
                   </button>
                 </div>
-                <div className='space-y-3'>
+                {/* Details grid - compact on mobile, spacious on desktop */}
+                <div className='space-y-2 lg:space-y-3'>
                   {/* Name */}
-                  <div className='flex items-center gap-3'>
+                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
                     <User className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>
+                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                      <span className='text-xs text-muted-foreground flex-shrink-0'>
                         Name
                       </span>
-                      <span className='text-sm text-foreground font-medium text-right'>
+                      <span className='text-sm text-foreground font-medium text-right truncate'>
                         {leadFullName}
                       </span>
                     </div>
                   </div>
 
                   {/* Company */}
-                  <div className='flex items-center gap-3'>
+                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
                     <Building2 className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>
+                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                      <span className='text-xs text-muted-foreground flex-shrink-0'>
                         Company
                       </span>
                       <button
                         onClick={() =>
                           company?.id && handleCompanyClick(company.id)
                         }
-                        className='flex items-center gap-2 text-right hover:underline'
+                        className='flex items-center gap-2 text-right hover:underline active:opacity-70 touch-manipulation min-w-0'
                         title='View company'
                       >
                         {company ? (
@@ -1055,29 +1057,29 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                               ) || ''
                             }
                             alt={company.name}
-                            className='w-4 h-4 rounded-sm border border-border'
+                            className='w-4 h-4 rounded-sm border border-border flex-shrink-0'
                           />
                         ) : (
-                          <Building2 className='h-4 w-4 text-muted-foreground' />
+                          <Building2 className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                         )}
-                        <span className='text-sm text-foreground'>
+                        <span className='text-sm text-foreground truncate'>
                           {lead?.company || company?.name || '-'}
                         </span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Email */}
-                  <div className='flex items-center gap-3'>
+                  {/* Email - larger touch target on mobile */}
+                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
                     <Mail className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>
+                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                      <span className='text-xs text-muted-foreground flex-shrink-0'>
                         Email
                       </span>
                       {lead?.email ? (
                         <a
                           href={`mailto:${lead.email}`}
-                          className='text-sm text-primary hover:text-primary underline text-right'
+                          className='text-sm text-primary hover:text-primary active:opacity-70 underline text-right truncate touch-manipulation py-1'
                         >
                           {lead.email}
                         </a>
@@ -1089,17 +1091,17 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                     </div>
                   </div>
 
-                  {/* Phone */}
-                  <div className='flex items-center gap-3'>
+                  {/* Phone - larger touch target on mobile */}
+                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
                     <Phone className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>
+                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                      <span className='text-xs text-muted-foreground flex-shrink-0'>
                         Phone
                       </span>
                       {lead?.phone ? (
                         <a
                           href={`tel:${lead.phone}`}
-                          className='text-sm text-primary hover:text-primary underline text-right'
+                          className='text-sm text-primary hover:text-primary active:opacity-70 underline text-right touch-manipulation py-1'
                         >
                           {lead.phone}
                         </a>
@@ -1112,13 +1114,13 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                   </div>
 
                   {/* Job Title */}
-                  <div className='flex items-center gap-3'>
+                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
                     <User className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>
+                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                      <span className='text-xs text-muted-foreground flex-shrink-0'>
                         Job Title
                       </span>
-                      <span className='text-sm text-foreground text-right'>
+                      <span className='text-sm text-foreground text-right truncate'>
                         {lead?.job_title || '-'}
                       </span>
                     </div>
@@ -1126,10 +1128,10 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
 
                   {/* Quality Rank */}
                   {lead?.quality_rank && (
-                    <div className='flex items-center gap-3'>
+                    <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
                       <Zap className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                      <div className='flex-1 flex items-center justify-between gap-4'>
-                        <span className='text-xs text-muted-foreground'>
+                      <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                        <span className='text-xs text-muted-foreground flex-shrink-0'>
                           Quality
                         </span>
                         <div className='text-right'>
@@ -1172,10 +1174,10 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                   )}
 
                   {/* Status */}
-                  <div className='flex items-center gap-3'>
+                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
                     <Target className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>
+                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                      <span className='text-xs text-muted-foreground flex-shrink-0'>
                         Status
                       </span>
                       <div className='text-right'>
@@ -1211,13 +1213,13 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
 
                   {/* Show */}
                   {(lead?.show_name || lead?.show_date) && (
-                    <div className='flex items-center gap-3'>
+                    <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
                       <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                      <div className='flex-1 flex items-center justify-between gap-4'>
-                        <span className='text-xs text-muted-foreground'>
+                      <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                        <span className='text-xs text-muted-foreground flex-shrink-0'>
                           Show
                         </span>
-                        <span className='text-sm text-foreground text-right'>
+                        <span className='text-sm text-foreground text-right truncate'>
                           {(() => {
                             let dateStr = '';
                             if (lead.show_date) {
@@ -1240,10 +1242,10 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                   )}
 
                   {/* Created */}
-                  <div className='flex items-center gap-3'>
+                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
                     <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-4'>
-                      <span className='text-xs text-muted-foreground'>
+                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                      <span className='text-xs text-muted-foreground flex-shrink-0'>
                         Created
                       </span>
                       <span className='text-sm text-foreground text-right'>
@@ -1261,51 +1263,63 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
           </div>
         </div>
 
-        {/* Campaign Selection Dialog */}
+        {/* Campaign Selection Dialog - mobile optimized */}
         <AlertDialog
           open={showCampaignSelect}
           onOpenChange={setShowCampaignSelect}
         >
-          <AlertDialogContent>
+          <AlertDialogContent className='w-[calc(100%-2rem)] max-w-md mx-auto rounded-xl sm:rounded-lg'>
             <AlertDialogHeader>
-              <AlertDialogTitle>Add to Campaign</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className='text-base sm:text-lg'>
+                Add to Campaign
+              </AlertDialogTitle>
+              <AlertDialogDescription className='text-sm'>
                 Select a campaign to enroll this lead.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <div className='py-4'>
               <Select onValueChange={handleAddToCampaign} defaultValue=''>
-                <SelectTrigger>
+                <SelectTrigger className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation'>
                   <SelectValue placeholder='Select a campaign' />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className='max-h-[50vh]'>
                   {campaigns.map(campaign => (
-                    <SelectItem key={campaign.id} value={campaign.id}>
+                    <SelectItem
+                      key={campaign.id}
+                      value={campaign.id}
+                      className='py-3 sm:py-2 text-base sm:text-sm touch-manipulation'
+                    >
                       {campaign.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogFooter className='flex-col-reverse sm:flex-row gap-2 sm:gap-0'>
+              <AlertDialogCancel className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation w-full sm:w-auto'>
+                Cancel
+              </AlertDialogCancel>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Compose Email Dialog */}
+        {/* Compose Email Dialog - mobile optimized with bottom sheet style */}
         <Dialog open={showComposeEmail} onOpenChange={setShowComposeEmail}>
-          <DialogContent className='sm:max-w-[800px] w-full max-h-[90vh] overflow-y-auto'>
+          <DialogContent className='w-[calc(100%-1rem)] sm:max-w-[800px] max-w-none mx-auto max-h-[85vh] sm:max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-lg fixed bottom-0 sm:bottom-auto sm:top-[50%] sm:translate-y-[-50%] translate-y-0 data-[state=open]:slide-in-from-bottom sm:data-[state=open]:slide-in-from-bottom-0'>
             <DialogHeader>
-              <DialogTitle>Compose email</DialogTitle>
+              <DialogTitle className='text-base sm:text-lg'>
+                Compose email
+              </DialogTitle>
             </DialogHeader>
             <div className='mt-2 p-4 text-center text-muted-foreground'>
-              <p>Email composer is currently unavailable.</p>
+              <p className='text-sm sm:text-base'>
+                Email composer is currently unavailable.
+              </p>
               {lead?.email && (
-                <p className='mt-2'>
+                <p className='mt-4'>
                   <a
                     href={`mailto:${lead.email}`}
-                    className='text-primary hover:underline'
+                    className='inline-flex items-center justify-center h-12 sm:h-10 px-6 bg-primary text-primary-foreground rounded-lg text-base sm:text-sm font-medium hover:bg-primary/90 active:bg-primary/80 touch-manipulation transition-colors'
                   >
                     Open email client
                   </a>

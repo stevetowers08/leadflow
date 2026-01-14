@@ -22,6 +22,7 @@ interface TopNavigationBarProps {
 
 // Map routes to their icons and titles from sidebar
 const routeConfig: Record<string, { icon: LucideIcon; title: string }> = {
+  '/': { icon: Building2, title: 'Companies' },
   '/capture': { icon: Camera, title: 'Capture' },
   '/leads': { icon: Users, title: 'Leads' },
   '/companies': { icon: Building2, title: 'Companies' },
@@ -42,9 +43,13 @@ export const TopNavigationBar = memo(
     const pathname = usePathname();
 
     // Get icon and title for current route
-    const currentRoute = Object.keys(routeConfig).find(route =>
-      pathname?.startsWith(route)
-    );
+    // Check exact match for '/' first, then check other routes
+    const currentRoute =
+      pathname === '/'
+        ? '/'
+        : Object.keys(routeConfig)
+            .filter(route => route !== '/')
+            .find(route => pathname?.startsWith(route));
     const config = currentRoute ? routeConfig[currentRoute] : null;
     const Icon = config?.icon;
     const displayTitle = config?.title || pageTitle;
