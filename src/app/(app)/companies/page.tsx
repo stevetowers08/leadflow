@@ -345,7 +345,7 @@ export default function CompaniesPage() {
       let query = supabase
         .from('companies')
         .select(
-          'id, name, website, domain, industry, created_at, categories, linkedin_url, description, head_office, company_size, last_activity, logo_url, estimated_arr'
+          'id, name, website, industry, created_at, categories, linkedin_url, description, head_office, company_size, last_activity, logo_url, estimated_arr'
         );
 
       // Apply filters
@@ -379,7 +379,6 @@ export default function CompaniesPage() {
               linkedin_url: sample.linkedin_url,
               company_size: sample.company_size,
               head_office: sample.head_office,
-              domain: sample.domain,
               description: sample.description,
             },
             null,

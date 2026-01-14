@@ -57,7 +57,7 @@ const data = {
     },
     {
       title: 'Companies',
-      url: '/',
+      url: '/companies',
       icon: Building2,
     },
     {

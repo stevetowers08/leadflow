@@ -290,7 +290,7 @@ class NotificationService {
       title: 'Meeting Reminder',
       message: `Meeting with ${companyName} ${meetingTime}`,
       action_type: 'navigate',
-      action_url: `/companies/${companyId}`,
+      action_url: `/companies?id=${companyId}`,
       action_entity_type: 'company',
       action_entity_id: companyId,
       metadata: {
@@ -347,7 +347,7 @@ class NotificationService {
             } found.`
           : `${companyName} enriched successfully.`,
       action_type: 'navigate',
-      action_url: `/companies/${companyId}`,
+      action_url: `/companies?id=${companyId}`,
       action_entity_type: 'company',
       action_entity_id: companyId,
       metadata: {

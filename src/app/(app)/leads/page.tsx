@@ -44,6 +44,7 @@ import { TableFilterBar } from '@/components/tables/TableFilterBar';
 import { useTableViewPreferences } from '@/hooks/useTableViewPreferences';
 import type { SortOption, FilterConfig } from '@/types/tableFilters';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 // Type for Lead with joined relations from getLeads query
 type LeadWithRelations = Lead & {

@@ -512,7 +512,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
 
     const handleCompanyClick = (companyId: string) => {
       onClose();
-      router.push(`/?id=${companyId}`);
+      router.push(`/companies?id=${companyId}`);
     };
 
     const handlePersonClick = (clickedPersonId: string) => {
