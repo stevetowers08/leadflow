@@ -339,7 +339,7 @@ const FloatingActionBarComponent: React.FC<FloatingActionBarProps> = ({
               <SelectTrigger className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation'>
                 <SelectValue placeholder='Select a campaign' />
               </SelectTrigger>
-              <SelectContent className='max-h-[50vh]'>
+              <SelectContent>
                 {campaigns.map(campaign => (
                   <SelectItem
                     key={campaign.id}
@@ -402,7 +402,7 @@ const FloatingActionBarComponent: React.FC<FloatingActionBarProps> = ({
                 <SelectTrigger className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation'>
                   <SelectValue placeholder='Select a lemlist workflow' />
                 </SelectTrigger>
-                <SelectContent className='max-h-[50vh]'>
+                <SelectContent>
                   {lemlistWorkflows.map(workflow => (
                     <SelectItem
                       key={workflow.id}

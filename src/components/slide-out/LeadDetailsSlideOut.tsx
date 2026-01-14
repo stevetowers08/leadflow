@@ -1354,7 +1354,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                 <SelectTrigger className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation'>
                   <SelectValue placeholder='Select a campaign' />
                 </SelectTrigger>
-                <SelectContent className='max-h-[50vh]'>
+                <SelectContent>
                   {campaigns.map(campaign => (
                     <SelectItem
                       key={campaign.id}

@@ -101,7 +101,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
           />
 
           {/* Menu */}
-          <div className='absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-border rounded-md shadow-lg max-h-64 overflow-hidden'>
+          <div className='absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-border rounded-md shadow-lg max-h-[200px] overflow-hidden'>
             {/* Search Input */}
             <div className='p-2 border-b border-gray-100'>
               <input
@@ -115,7 +115,7 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
             </div>
 
             {/* Options List */}
-            <div className='max-h-48 overflow-y-auto'>
+            <div className='max-h-[140px] overflow-y-auto'>
               {filteredOptions.map(option => (
                 <button
                   key={option.value}
@@ -274,7 +274,7 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
             onClick={() => setIsOpen(false)}
           />
 
-          <div className='absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-border rounded-md shadow-lg max-h-64 overflow-hidden'>
+          <div className='absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-border rounded-md shadow-lg max-h-[200px] overflow-hidden'>
             {/* Search Input */}
             <div className='p-2 border-b border-gray-100'>
               <input
@@ -288,7 +288,7 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
             </div>
 
             {/* Grouped Options */}
-            <div className='max-h-48 overflow-y-auto'>
+            <div className='max-h-[140px] overflow-y-auto'>
               {filteredGroups.map((group, groupIndex) => (
                 <div key={group.group}>
                   {/* Group Header */}

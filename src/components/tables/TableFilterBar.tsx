@@ -61,10 +61,10 @@ export function TableFilterBar({
           value={preferences.sortBy}
           onValueChange={sortBy => onPreferencesChange({ sortBy })}
         >
-          <SelectTrigger className='h-10 sm:h-8 w-auto min-w-[140px] text-sm border-border touch-manipulation flex-shrink-0'>
+          <SelectTrigger className='h-8 w-auto min-w-[140px] text-sm border-border touch-manipulation flex-shrink-0'>
             <SelectValue placeholder='Sort by' />
           </SelectTrigger>
-          <SelectContent className='max-h-[50vh]'>
+          <SelectContent>
             {sortOptions.map(option => (
               <SelectItem
                 key={option.value}
@@ -102,13 +102,13 @@ export function TableFilterBar({
             >
               <SelectTrigger
                 className={cn(
-                  'h-10 sm:h-8 w-auto min-w-[100px] sm:min-w-[120px] text-sm border-border touch-manipulation flex-shrink-0',
+                  'h-8 w-auto min-w-[100px] sm:min-w-[120px] text-sm border-border touch-manipulation flex-shrink-0',
                   isActive && 'border-primary bg-primary/5'
                 )}
               >
                 <SelectValue placeholder={filter.placeholder || filter.label} />
               </SelectTrigger>
-              <SelectContent className='max-h-[50vh]'>
+              <SelectContent>
                 {filter.options.map(option => (
                   <SelectItem
                     key={option.value}
