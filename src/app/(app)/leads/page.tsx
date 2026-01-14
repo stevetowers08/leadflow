@@ -20,6 +20,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import type { Lead } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { exportLeadsToCSV, downloadExport } from '@/services/exportService';
@@ -32,7 +33,6 @@ import { bulkDeletePeople } from '@/services/bulk/bulkPeopleService';
 import { CSVImportDialog } from '@/components/people/CSVImportDialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDeleteConfirmation } from '@/contexts/ConfirmationContext';
-import { CellLoadingSpinner } from '@/components/ui/cell-loading-spinner';
 import { cn } from '@/lib/utils';
 import { CompanyChip } from '@/components/shared/CompanyChip';
 import { ShowChip } from '@/components/shared/ShowChip';
@@ -43,10 +43,11 @@ import { getStatusDisplayText } from '@/utils/statusUtils';
 import { TableFilterBar } from '@/components/tables/TableFilterBar';
 import { useTableViewPreferences } from '@/hooks/useTableViewPreferences';
 import type { SortOption, FilterConfig } from '@/types/tableFilters';
+import { supabase } from '@/integrations/supabase/client';
 
 // Type for Lead with joined relations from getLeads query
 type LeadWithRelations = Lead & {
-  companies?: Pick<Company, 'id' | 'name' | 'logo_url'> | null;
+  companies?: Pick<Company, 'id' | 'name' | 'logo_url' | 'website'> | null;
   shows?: Pick<
     Show,
     'id' | 'name' | 'start_date' | 'end_date' | 'city' | 'venue'
@@ -95,10 +96,20 @@ const LEAD_SORT_OPTIONS: SortOption[] = [
 
 export default function LeadsPage() {
   const { user, loading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
   const [isExporting, setIsExporting] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
+
+  // Open slide-out if id is in URL
+  useEffect(() => {
+    const idFromUrl = searchParams.get('id');
+    if (idFromUrl && idFromUrl !== selectedLeadId) {
+      setSelectedLeadId(idFromUrl);
+      setIsSlideOutOpen(true);
+    }
+  }, [searchParams, selectedLeadId]);
   const bulkSelection = useBulkSelection();
   const { data: campaigns = [] } = useAllCampaigns();
   const queryClient = useQueryClient();
@@ -127,14 +138,14 @@ export default function LeadsPage() {
     error,
   } = useQuery({
     queryKey: ['leads', preferences],
-    queryFn: () => {
+    queryFn: async () => {
       const showFilter = preferences.filters.show;
       const showId =
         showFilter !== 'all' && typeof showFilter === 'string'
           ? showFilter
           : undefined;
 
-      return getLeads({
+      const fetchedLeads = await getLeads({
         limit: 50,
         show_id: showId,
         quality_rank:
@@ -150,6 +161,79 @@ export default function LeadsPage() {
             : undefined,
         sortBy: preferences.sortBy,
       });
+
+      // Fetch company data for unique company names to get logos
+      const uniqueCompanyNames = [
+        ...new Set(
+          fetchedLeads
+            .map(lead => lead.company?.trim())
+            .filter((name): name is string => !!name)
+        ),
+      ];
+
+      if (uniqueCompanyNames.length > 0) {
+        // Use case-insensitive matching with ilike for better matching
+        // Since Supabase doesn't support case-insensitive .in(), we'll fetch all and match manually
+        const { data: companies } = await supabase
+          .from('companies')
+          .select('id, name, logo_url, website');
+
+        // Create a case-insensitive map of company name to company data
+        const companyMap = new Map<
+          string,
+          {
+            id: string;
+            name: string;
+            logo_url: string | null;
+            website: string | null;
+          }
+        >();
+
+        (companies || []).forEach(company => {
+          const normalizedName = company.name.toLowerCase().trim();
+          companyMap.set(normalizedName, {
+            id: company.id,
+            name: company.name,
+            logo_url: company.logo_url,
+            website: company.website,
+          });
+        });
+
+        // Enrich leads with company data using case-insensitive matching
+        return fetchedLeads.map(lead => {
+          const leadCompanyName = lead.company?.trim();
+          const normalizedLeadCompanyName = leadCompanyName?.toLowerCase();
+          const matchedCompany = normalizedLeadCompanyName
+            ? companyMap.get(normalizedLeadCompanyName)
+            : null;
+
+          return {
+            ...lead,
+            companies:
+              matchedCompany ||
+              (leadCompanyName
+                ? {
+                    name: leadCompanyName,
+                    logo_url: null,
+                    website: null,
+                    id: undefined, // No ID if company not in database
+                  }
+                : null),
+          };
+        }) as LeadWithRelations[];
+      }
+
+      // If no company names, still return leads with company data structure
+      return fetchedLeads.map(lead => ({
+        ...lead,
+        companies: lead.company
+          ? {
+              name: lead.company,
+              logo_url: null,
+              website: null,
+            }
+          : null,
+      })) as LeadWithRelations[];
     },
     enabled: shouldBypassAuth() || (!authLoading && !!user),
     staleTime: 30 * 1000, // Reduced to 30 seconds for better real-time updates
@@ -289,84 +373,38 @@ export default function LeadsPage() {
       },
       {
         key: 'email',
-        label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Email addresses may be enriched from external sources'
-          >
-            <span>Email</span>
-            <Zap className='h-3.5 w-3.5 text-yellow-500' />
-          </div>
-        ),
+        label: 'Email',
         width: '250px',
         render: (_, lead) => {
-          const isEnriching =
-            lead.enrichment_status === 'enriching' ||
-            lead.enrichment_status === 'pending';
-
-          return isEnriching ? (
-            <CellLoadingSpinner size='sm' />
-          ) : (
+          return (
             <span className='text-muted-foreground'>{lead.email || '-'}</span>
           );
         },
       },
       {
         key: 'phone',
-        label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Phone numbers may be enriched from external sources'
-          >
-            <span>Phone</span>
-            <Zap className='h-3.5 w-3.5 text-yellow-500' />
-          </div>
-        ),
+        label: 'Phone',
         width: '150px',
         render: (_, lead) => {
-          const isEnriching =
-            lead.enrichment_status === 'enriching' ||
-            lead.enrichment_status === 'pending';
-
-          return isEnriching ? (
-            <CellLoadingSpinner size='sm' />
-          ) : (
+          return (
             <span className='text-muted-foreground'>{lead.phone || '-'}</span>
           );
         },
       },
       {
         key: 'company',
-        label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Company information is enriched from external sources'
-          >
-            <span>Company</span>
-            <Zap className='h-3.5 w-3.5 text-yellow-500' />
-          </div>
-        ),
+        label: 'Company',
         width: '200px',
         render: (_, lead) => {
-          const isEnriching =
-            lead.enrichment_status === 'enriching' ||
-            lead.enrichment_status === 'pending';
-
           return (
-            <div className='flex items-center gap-2'>
-              {isEnriching ? (
-                <CellLoadingSpinner size='sm' />
-              ) : (
-                <CompanyChip
-                  company={
-                    (lead as LeadWithRelations).companies || {
-                      name: lead.company || 'Unknown',
-                      logo_url: null,
-                    }
-                  }
-                />
-              )}
-            </div>
+            <CompanyChip
+              company={
+                (lead as LeadWithRelations).companies || {
+                  name: lead.company || 'Unknown',
+                  logo_url: null,
+                }
+              }
+            />
           );
         },
       },
@@ -389,39 +427,13 @@ export default function LeadsPage() {
       },
       {
         key: 'job_title',
-        label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Job titles are enriched from external sources'
-          >
-            <span>Position</span>
-            <Zap className='h-3.5 w-3.5 text-yellow-500' />
-          </div>
-        ),
+        label: 'Position',
         width: '200px',
         render: (_, lead) => {
-          const isEnriching =
-            lead.enrichment_status === 'enriching' ||
-            lead.enrichment_status === 'pending';
-          const isEnriched = lead.enrichment_status === 'completed';
-
           return (
-            <div className='flex items-center gap-2'>
-              {isEnriching ? (
-                <CellLoadingSpinner size='sm' />
-              ) : (
-                <span
-                  className={cn(
-                    'text-muted-foreground',
-                    isEnriched &&
-                      lead.job_title &&
-                      'text-foreground font-medium'
-                  )}
-                >
-                  {lead.job_title || '-'}
-                </span>
-              )}
-            </div>
+            <span className='text-muted-foreground'>
+              {lead.job_title || '-'}
+            </span>
           );
         },
       },
@@ -541,7 +553,7 @@ export default function LeadsPage() {
         description: `Downloaded ${filename}`,
       });
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
       const errorMessage =
         error instanceof Error ? error.message : 'Please try again';
       toast.error('Export failed', {
@@ -587,7 +599,7 @@ export default function LeadsPage() {
           });
         }
       } catch (error) {
-        console.error('Error adding leads to campaign:', error);
+        logger.error('Error adding leads to campaign:', error);
         toast.error('Error', {
           description:
             error instanceof Error
@@ -609,14 +621,14 @@ export default function LeadsPage() {
 
     showDeleteConfirmation(
       async () => {
-        console.log(
+        logger.debug(
           '🗑️ [handleDelete] Confirmed, starting delete for',
           selectedLeadIds.length,
           'leads'
         );
         try {
           const result = await bulkDeletePeople(selectedLeadIds);
-          console.log('🗑️ [handleDelete] Delete result:', result);
+          logger.debug('🗑️ [handleDelete] Delete result:', result);
 
           if (result.successCount > 0) {
             toast.success('Success', {
@@ -634,7 +646,7 @@ export default function LeadsPage() {
           } else {
             const errorMsg =
               result.errors[0]?.error || 'Failed to delete leads';
-            console.error(
+            logger.error(
               '🗑️ [handleDelete] Delete failed:',
               errorMsg,
               result.errors
@@ -644,7 +656,7 @@ export default function LeadsPage() {
             });
           }
         } catch (error) {
-          console.error('🗑️ [handleDelete] Exception during delete:', error);
+          logger.error('🗑️ [handleDelete] Exception during delete:', error);
           toast.error('Error', {
             description:
               error instanceof Error ? error.message : 'Failed to delete leads',
@@ -664,9 +676,64 @@ export default function LeadsPage() {
   }, []);
 
   const handleSyncCRM = useCallback(async () => {
-    // Placeholder - implement CRM sync functionality if needed
-    toast.info('CRM sync functionality not yet implemented');
+    // This is handled by FloatingActionBar's lemlist workflow selection dialog
+    // If onAddToLemlistWorkflow is not provided, show fallback message
+    toast.info('Please select a lemlist workflow from the dialog');
   }, []);
+
+  const handleAddToLemlistWorkflow = useCallback(
+    async (workflowId: string) => {
+      if (!user) {
+        toast.error('You must be logged in to sync leads');
+        return;
+      }
+
+      const selectedLeadIds = bulkSelection.getSelectedIds(
+        leads.map(l => l.id)
+      );
+
+      if (selectedLeadIds.length === 0) {
+        toast.error('No leads selected');
+        return;
+      }
+
+      try {
+        const { bulkAddPeopleToLemlistCampaign } =
+          await import('@/services/bulkLemlistService');
+
+        const result = await bulkAddPeopleToLemlistCampaign(
+          user.id,
+          workflowId,
+          selectedLeadIds
+        );
+
+        if (result.success > 0) {
+          toast.success(
+            `Added ${result.success} lead${result.success === 1 ? '' : 's'} to lemlist workflow${result.failed > 0 ? ` (${result.failed} failed)` : ''}`
+          );
+
+          // Clear selection after successful sync
+          bulkSelection.deselectAll();
+
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ['leads'] });
+          queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
+        } else {
+          toast.error(
+            `Failed to add leads to workflow: ${result.errors[0]?.error || 'Unknown error'}`
+          );
+        }
+      } catch (error) {
+        logger.error('Error adding leads to lemlist workflow:', error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'Failed to add leads to lemlist workflow'
+        );
+      }
+    },
+    [user, bulkSelection, leads, queryClient]
+  );
 
   const handleSendEmail = useCallback(async () => {
     // Placeholder - implement send email functionality if needed
@@ -769,14 +836,6 @@ export default function LeadsPage() {
               </span>{' '}
               selected
             </Badge>
-            <Button
-              variant='ghost'
-              size='sm'
-              onClick={() => bulkSelection.deselectAll()}
-              className='h-8 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm touch-manipulation'
-            >
-              Clear
-            </Button>
           </div>
         </div>
       )}
@@ -808,8 +867,10 @@ export default function LeadsPage() {
         onSyncCRM={handleSyncCRM}
         onSendEmail={handleSendEmail}
         onAddToCampaign={handleAddToCampaign}
+        onAddToLemlistWorkflow={handleAddToLemlistWorkflow}
         onClear={() => bulkSelection.deselectAll()}
         campaigns={campaigns}
+        userId={user?.id}
       />
 
       {/* CSV Import Dialog */}

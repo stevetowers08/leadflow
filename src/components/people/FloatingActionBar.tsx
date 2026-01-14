@@ -33,10 +33,13 @@ import {
   ListPlus,
   RefreshCw,
   Trash2,
-  Workflow,
   X,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { logger } from '@/utils/logger';
 
 export interface FloatingActionBarProps {
   selectedCount: number;
@@ -50,11 +53,13 @@ export interface FloatingActionBarProps {
     campaignId: string,
     campaignType: 'email' | 'lemlist'
   ) => Promise<void>;
-  onClear: () => void;
+  onAddToLemlistWorkflow?: (workflowId: string) => Promise<void>;
+  onClear?: () => void;
   campaigns?: Array<{ id: string; name: string; type: 'email' | 'lemlist' }>;
+  userId?: string;
 }
 
-export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
+const FloatingActionBarComponent: React.FC<FloatingActionBarProps> = ({
   selectedCount,
   isAllSelected = false,
   onDelete,
@@ -63,41 +68,142 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
   onSyncCRM,
   onSendEmail,
   onAddToCampaign,
+  onAddToLemlistWorkflow,
   onClear,
   campaigns = [],
+  userId,
 }) => {
+  // Debug logging at component entry
+  logger.debug('[FloatingActionBar] Component called with:', {
+    selectedCount,
+    isAllSelected,
+    campaignsCount: campaigns.length,
+    hasUserId: !!userId,
+  });
+
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCampaignSelect, setShowCampaignSelect] = useState(false);
+  const [showLemlistWorkflowSelect, setShowLemlistWorkflowSelect] =
+    useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+  const [lemlistWorkflows, setLemlistWorkflows] = useState<
+    Array<{ id: string; name: string; status: string; emailCount: number }>
+  >([]);
+  const [loadingWorkflows, setLoadingWorkflows] = useState(false);
+  const [workflowError, setWorkflowError] = useState<string | null>(null);
 
-  // Don't show if nothing selected
+  const handleAction = useCallback(
+    async (action: string, fn: () => Promise<void>) => {
+      setLoading(action);
+      try {
+        await fn();
+      } finally {
+        setLoading(null);
+      }
+    },
+    []
+  );
+
+  const handleDelete = useCallback(async () => {
+    setLoading('delete');
+    try {
+      await onDelete();
+    } finally {
+      setLoading(null);
+    }
+    setShowDeleteDialog(false);
+  }, [onDelete]);
+
+  const handleCampaignSelect = useCallback(
+    async (campaignId: string, campaignType: 'email' | 'lemlist') => {
+      setLoading('campaign');
+      try {
+        await onAddToCampaign(campaignId, campaignType);
+      } finally {
+        setLoading(null);
+      }
+      setShowCampaignSelect(false);
+    },
+    [onAddToCampaign]
+  );
+
+  const handleLemlistWorkflowSelect = useCallback(
+    async (workflowId: string) => {
+      if (!onAddToLemlistWorkflow) return;
+      setLoading('lemlist');
+      try {
+        await onAddToLemlistWorkflow(workflowId);
+      } finally {
+        setLoading(null);
+      }
+      setShowLemlistWorkflowSelect(false);
+    },
+    [onAddToLemlistWorkflow]
+  );
+
+  const loadLemlistWorkflows = useCallback(async () => {
+    if (!userId) {
+      setWorkflowError('User ID not available');
+      return;
+    }
+
+    setLoadingWorkflows(true);
+    setWorkflowError(null);
+
+    try {
+      const { getLemlistCampaigns } =
+        await import('@/services/lemlistWorkflowService');
+      const workflows = await getLemlistCampaigns(userId);
+      setLemlistWorkflows(
+        workflows.map(w => ({
+          id: w.id,
+          name: w.name,
+          status: w.status,
+          emailCount: w.emailCount,
+        }))
+      );
+    } catch (error) {
+      logger.error('Error loading lemlist workflows:', error);
+      setWorkflowError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to load lemlist workflows. Please ensure Lemlist is connected in Settings.'
+      );
+    } finally {
+      setLoadingWorkflows(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (
+      showLemlistWorkflowSelect &&
+      lemlistWorkflows.length === 0 &&
+      !loadingWorkflows &&
+      !workflowError &&
+      userId
+    ) {
+      loadLemlistWorkflows();
+    }
+  }, [
+    showLemlistWorkflowSelect,
+    lemlistWorkflows.length,
+    loadingWorkflows,
+    workflowError,
+    userId,
+    loadLemlistWorkflows,
+  ]);
+
+  // Don't show if nothing selected - MUST be after all hooks
   if (selectedCount === 0 && !isAllSelected) {
     return null;
   }
 
-  const handleAction = async (action: string, fn: () => Promise<void>) => {
-    setLoading(action);
-    try {
-      await fn();
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  const handleDelete = async () => {
-    await handleAction('delete', onDelete);
-    setShowDeleteDialog(false);
-  };
-
-  const handleCampaignSelect = async (
-    campaignId: string,
-    campaignType: 'email' | 'lemlist'
-  ) => {
-    await handleAction('campaign', () =>
-      onAddToCampaign(campaignId, campaignType)
-    );
-    setShowCampaignSelect(false);
-  };
+  // Debug logging
+  logger.debug('[FloatingActionBar] Rendering with:', {
+    selectedCount,
+    isAllSelected,
+    shouldShow: selectedCount > 0 || isAllSelected,
+  });
 
   const countText = isAllSelected
     ? `All selected`
@@ -107,74 +213,64 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
     <>
       {/* Floating Action Bar - mobile optimized */}
       <div
-        className='fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-2 fade-in duration-200 w-[calc(100%-2rem)] sm:w-auto pb-[env(safe-area-inset-bottom)]'
+        className='fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-2 fade-in duration-200 pb-[env(safe-area-inset-bottom)]'
         role='toolbar'
         aria-label='Bulk actions toolbar'
       >
-        <div className='rounded-xl shadow-xl border bg-background text-foreground w-full sm:min-w-[600px] sm:max-w-[90vw]'>
+        <div className='rounded-xl shadow-xl border bg-background text-foreground px-3 py-1.5'>
           {/* Horizontal scroll container for mobile */}
-          <div className='flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 overflow-x-auto scrollbar-hide'>
+          <div className='flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide'>
             {/* Add to list */}
             {campaigns.length > 0 && (
               <Button
                 variant='secondary'
-                size='sm'
+                size='default'
                 onClick={() => setShowCampaignSelect(true)}
                 disabled={loading !== null}
-                className='h-10 sm:h-8 px-3 sm:px-4 touch-manipulation flex-shrink-0 gap-1.5 sm:gap-2'
+                className='touch-manipulation flex-shrink-0'
               >
                 <ListPlus className='h-4 w-4' />
-                <span className='hidden xs:inline'>Add to list</span>
+                <span>Add to list</span>
               </Button>
             )}
-
-            {/* Run campaigns */}
-            <Button
-              variant='secondary'
-              size='sm'
-              onClick={() => handleAction('sync', onSyncCRM)}
-              disabled={loading !== null}
-              className='h-10 sm:h-8 px-3 sm:px-4 touch-manipulation flex-shrink-0 gap-1.5 sm:gap-2'
-            >
-              <Workflow className='h-4 w-4' />
-              <span className='hidden xs:inline'>Run</span>
-            </Button>
 
             {/* Export CSV */}
             <Button
               variant='secondary'
-              size='sm'
+              size='default'
               onClick={() => handleAction('export', onExport)}
               disabled={loading !== null}
-              className='h-10 sm:h-8 px-3 sm:px-4 touch-manipulation flex-shrink-0 gap-1.5 sm:gap-2'
+              className='touch-manipulation flex-shrink-0'
             >
               <Download className='h-4 w-4' />
-              <span className='hidden xs:inline'>Export</span>
+              <span>Export</span>
             </Button>
 
             {/* Delete */}
             <Button
               variant='destructive'
-              size='sm'
+              size='default'
               onClick={() => setShowDeleteDialog(true)}
               disabled={loading !== null}
-              className='h-10 sm:h-8 px-3 sm:px-4 touch-manipulation flex-shrink-0 gap-1.5 sm:gap-2'
+              className='touch-manipulation flex-shrink-0'
             >
               <Trash2 className='h-4 w-4' />
-              <span className='hidden xs:inline'>Delete</span>
+              <span>Delete</span>
             </Button>
 
             {/* Clear selection */}
-            <Button
-              variant='ghost'
-              size='sm'
-              onClick={onClear}
-              disabled={loading !== null}
-              className='h-10 sm:h-8 text-sm gap-1.5 sm:gap-2 touch-manipulation flex-shrink-0'
-            >
-              <X className='h-4 w-4' />
-              <span className='hidden xs:inline'>Clear</span>
-            </Button>
+            {onClear && (
+              <Button
+                variant='ghost'
+                size='default'
+                onClick={onClear}
+                disabled={loading !== null}
+                className='touch-manipulation flex-shrink-0'
+              >
+                <X className='h-4 w-4' />
+                <span>Clear</span>
+              </Button>
+            )}
           </div>
 
           {loading && (
@@ -263,6 +359,102 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Lemlist Workflow Selection Dialog - mobile optimized */}
+      <AlertDialog
+        open={showLemlistWorkflowSelect}
+        onOpenChange={setShowLemlistWorkflowSelect}
+      >
+        <AlertDialogContent className='w-[calc(100%-2rem)] max-w-md mx-auto rounded-xl sm:rounded-lg'>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='text-base sm:text-lg'>
+              Add to Lemlist Workflow
+            </AlertDialogTitle>
+            <AlertDialogDescription className='text-sm'>
+              Select a lemlist workflow to add {countText}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className='py-4'>
+            {loadingWorkflows ? (
+              <div className='flex items-center justify-center py-8'>
+                <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
+                <span className='ml-2 text-sm text-muted-foreground'>
+                  Loading workflows...
+                </span>
+              </div>
+            ) : workflowError ? (
+              <Alert variant='destructive'>
+                <AlertCircle className='h-4 w-4' />
+                <AlertDescription className='text-sm'>
+                  {workflowError}
+                </AlertDescription>
+              </Alert>
+            ) : lemlistWorkflows.length === 0 ? (
+              <Alert>
+                <AlertCircle className='h-4 w-4' />
+                <AlertDescription className='text-sm'>
+                  No lemlist workflows found. Please create a workflow in
+                  Lemlist or connect your Lemlist account in Settings.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <Select onValueChange={handleLemlistWorkflowSelect}>
+                <SelectTrigger className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation'>
+                  <SelectValue placeholder='Select a lemlist workflow' />
+                </SelectTrigger>
+                <SelectContent className='max-h-[50vh]'>
+                  {lemlistWorkflows.map(workflow => (
+                    <SelectItem
+                      key={workflow.id}
+                      value={workflow.id}
+                      className='py-3 sm:py-2 text-base sm:text-sm touch-manipulation'
+                    >
+                      <div className='flex flex-col'>
+                        <span>{workflow.name}</span>
+                        <span className='text-xs text-muted-foreground'>
+                          {workflow.emailCount} email
+                          {workflow.emailCount !== 1 ? 's' : ''} •{' '}
+                          {workflow.status}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          <AlertDialogFooter className='flex-col-reverse sm:flex-row gap-2 sm:gap-0'>
+            <AlertDialogCancel
+              className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation w-full sm:w-auto'
+              onClick={() => {
+                setShowLemlistWorkflowSelect(false);
+                setWorkflowError(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            {!loadingWorkflows &&
+              !workflowError &&
+              lemlistWorkflows.length > 0 && (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={loadLemlistWorkflows}
+                  disabled={loadingWorkflows}
+                  className='h-12 sm:h-10 text-base sm:text-sm touch-manipulation w-full sm:w-auto'
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${loadingWorkflows ? 'animate-spin' : ''}`}
+                  />
+                  Refresh
+                </Button>
+              )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
+
+// Memoize to prevent unnecessary re-renders when parent component updates
+export const FloatingActionBar = memo(FloatingActionBarComponent);

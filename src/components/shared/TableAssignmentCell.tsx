@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { User, UserX } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { logger } from '@/utils/productionLogger';
 
 interface TableAssignmentCellProps {
   ownerId: string | null;
@@ -53,7 +54,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
       const uuidRegex =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(ownerId)) {
-        console.warn('Invalid ownerId format:', ownerId);
+        logger.warn('Invalid ownerId format:', ownerId);
         setCurrentOwner(null);
         return;
       }
@@ -68,14 +69,14 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
         if (error) {
           // Only log non-PGRST116 errors (PGRST116 means no rows found, which is normal)
           if (error.code !== 'PGRST116') {
-            console.error('Error fetching current owner:', error);
+            logger.error('Error fetching current owner:', error);
           }
           setCurrentOwner(null);
         } else if (data && 'id' in data) {
           setCurrentOwner(data as UserProfile);
         }
       } catch (error) {
-        console.error('Error fetching current owner:', error);
+        logger.error('Error fetching current owner:', error);
         setCurrentOwner(null);
       }
     };
@@ -93,13 +94,13 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
         .order('full_name');
 
       if (error) {
-        console.error('Error fetching team members:', error);
+        logger.error('Error fetching team members:', error);
         throw error;
       }
 
       setTeamMembers((data || []) as UserProfile[]);
     } catch (error) {
-      console.error('Error fetching team members:', error);
+      logger.error('Error fetching team members:', error);
     }
   };
 
@@ -133,7 +134,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
       onAssignmentChange?.();
       setShowUserList(false);
     } catch (error) {
-      console.error('Error assigning entity:', error);
+      logger.error('Error assigning entity:', error);
       toast({
         title: 'Assignment Failed',
         description:
@@ -175,7 +176,7 @@ export const TableAssignmentCell: React.FC<TableAssignmentCellProps> = ({
       onAssignmentChange?.();
       setShowUserList(false);
     } catch (error) {
-      console.error('Error unassigning entity:', error);
+      logger.error('Error unassigning entity:', error);
       toast({
         title: 'Assignment Failed',
         description:

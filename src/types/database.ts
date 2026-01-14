@@ -82,23 +82,12 @@ export interface Company {
   logo_cached_at: string | null;
   owner_id: string | null;
   // client_id removed - not in PDR
-  lead_source: string | null;
-  source_details: string | null;
-  source_date: string | null;
   pipeline_stage: string | null;
   last_activity: string | null;
-  funding_raised: number | null;
   estimated_arr: number | null;
   description: string | null;
   categories: string[] | null;
-  connection_strength: 'none' | 'weak' | 'medium' | 'strong' | null;
   enrichment_status: 'pending' | 'enriching' | 'completed' | 'failed' | null;
-  ai_company_intelligence: Metadata | null;
-  ai_marketi_info: Metadata | null;
-  ai_funding: Metadata | null;
-  ai_new_location: Metadata | null;
-  key_info_raw: KeyInfoRaw | null;
-  loxo_company_id: string | null;
   created_at: string | null;
   updated_at: string | null;
 }

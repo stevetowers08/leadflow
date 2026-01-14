@@ -9,6 +9,7 @@ import type {
   SimplifiedEnrichmentData,
 } from '@/types/peopleDataLabs';
 import { simplifyEnrichmentData } from '@/services/peopleDataLabsService';
+import { findOrCreateCompany } from '@/services/companiesService';
 import { toTitleCase } from '@/utils/textFormatting';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -95,33 +96,34 @@ async function enrichCompany(
   const companyNameToUse = lead?.company || companyName;
   if (!companyNameToUse) return;
 
-  // Find or create company
-  const { data: existingCompany } = await supabase
-    .from('companies')
-    .select('id')
-    .eq('name', toTitleCase(companyNameToUse) || companyNameToUse)
-    .maybeSingle();
+  // Find or create company using centralized service
+  const companyId = await findOrCreateCompany(
+    companyNameToUse,
+    {
+      website: companyWebsite || null,
+      linkedin_url: companyLinkedIn || null,
+      company_size: companySize || null,
+    },
+    supabase
+  );
 
-  const companyUpdate: Record<string, unknown> = {
-    updated_at: new Date().toISOString(),
-  };
+  if (companyId) {
+    // Update company with any additional enrichment data
+    const companyUpdate: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
 
-  if (companyLinkedIn) companyUpdate.linkedin_url = companyLinkedIn;
-  if (companySize) companyUpdate.company_size = companySize;
-  if (companyWebsite) companyUpdate.website = companyWebsite;
+    if (companyLinkedIn) companyUpdate.linkedin_url = companyLinkedIn;
+    if (companySize) companyUpdate.company_size = companySize;
+    if (companyWebsite) companyUpdate.website = companyWebsite;
 
-  if (existingCompany) {
-    // Update existing company
-    await supabase
-      .from('companies')
-      .update(companyUpdate)
-      .eq('id', existingCompany.id);
-  } else {
-    // Create new company
-    await supabase.from('companies').insert({
-      name: toTitleCase(companyNameToUse) || companyNameToUse,
-      ...companyUpdate,
-    });
+    // Only update if there's data to update
+    if (Object.keys(companyUpdate).length > 1) {
+      await supabase
+        .from('companies')
+        .update(companyUpdate)
+        .eq('id', companyId);
+    }
   }
 }
 
@@ -278,20 +280,36 @@ export async function enrichAndStoreLead(
       };
     }
 
+    // Get existing lead data to check what's already populated
+    const { data: existingLead } = await supabase
+      .from('leads')
+      .select(
+        'phone, job_title, linkedin_url, email, company, first_name, last_name'
+      )
+      .eq('id', params.lead_id)
+      .single();
+
     // Simplify and store enrichment data
     const simplifiedData = simplifyEnrichmentData(pdlResponse);
 
-    await supabase
-      .from('leads')
-      .update({
-        enrichment_data: simplifiedData as unknown as Json,
-        enrichment_timestamp: new Date().toISOString(),
-        enrichment_status: 'completed',
-        linkedin_url: simplifiedData.linkedin_url || undefined,
-        job_title: simplifiedData.job_title || undefined,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', params.lead_id);
+    // Only update fields that are missing - never overwrite existing data
+    const updateFields: Record<string, unknown> = {
+      enrichment_data: simplifiedData as unknown as Json,
+      enrichment_timestamp: new Date().toISOString(),
+      enrichment_status: 'completed',
+      updated_at: new Date().toISOString(),
+    };
+
+    // Only enrich missing fields - never overwrite business card data
+    if (simplifiedData.linkedin_url && !existingLead?.linkedin_url) {
+      updateFields.linkedin_url = simplifiedData.linkedin_url;
+    }
+    if (simplifiedData.job_title && !existingLead?.job_title) {
+      updateFields.job_title = simplifiedData.job_title;
+    }
+    // Note: phone enrichment handled separately if needed
+
+    await supabase.from('leads').update(updateFields).eq('id', params.lead_id);
 
     // Enrich company data if available
     await enrichCompany(supabase, params.lead_id, pdlResponse.data);

@@ -60,8 +60,8 @@ export default function RootLayout({
           href='https://fonts.gstatic.com'
           crossOrigin='anonymous'
         />
-        <link rel='dns-prefetch' href='https://logo.clearbit.com' />
         <link rel='dns-prefetch' href='https://ui-avatars.com' />
+        <link rel='dns-prefetch' href='https://cdn.brandfetch.io' />
         <link rel='manifest' href='/manifest.json' />
         <script
           dangerouslySetInnerHTML={{

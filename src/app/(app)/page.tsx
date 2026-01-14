@@ -14,7 +14,6 @@ import {
   Download,
   Linkedin,
   Clock,
-  Globe,
   FileText,
   Tag,
   Signal,
@@ -31,8 +30,34 @@ import { TableFilterBar } from '@/components/tables/TableFilterBar';
 import { useTableViewPreferences } from '@/hooks/useTableViewPreferences';
 import type { SortOption, FilterConfig } from '@/types/tableFilters';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
-import { CellLoadingSpinner } from '@/components/ui/cell-loading-spinner';
 import { useCompanyEnrichmentRealtime } from '@/hooks/useCompanyEnrichmentRealtime';
+import {
+  getShowsForCompany,
+  linkCompanyToShow,
+  unlinkCompanyFromShow,
+} from '@/services/showCompaniesService';
+import { getShows } from '@/services/showsService';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ShowChip } from '@/components/shared/ShowChip';
+import { FloatingActionBar } from '@/components/people/FloatingActionBar';
+import { useAllCampaigns } from '@/hooks/useAllCampaigns';
+import { useDeleteConfirmation } from '@/contexts/ConfirmationContext';
+import { logger } from '@/utils/logger';
+import { Calendar, X, Plus, ChevronDown } from 'lucide-react';
 
 // Sort options for companies
 const COMPANY_SORT_OPTIONS: SortOption[] = [
@@ -52,6 +77,208 @@ const COMPANY_SORT_OPTIONS: SortOption[] = [
   { value: 'name_desc', label: 'Name (Z-A)', field: 'name', direction: 'desc' },
 ];
 
+// Inline Company Shows Editor Component
+function InlineCompanyShowsEditor({
+  company,
+  shows,
+  companyShows,
+  onShowsUpdate,
+}: {
+  company: Company;
+  shows: Array<{ id: string; name: string; start_date: string | null }>;
+  companyShows: Array<{ id: string; name: string; start_date: string | null }>;
+  onShowsUpdate: (
+    shows: Array<{ id: string; name: string; start_date: string | null }>
+  ) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [selectedShowId, setSelectedShowId] = useState<string | null>(null);
+  const [localShows, setLocalShows] = useState(companyShows);
+  const queryClient = useQueryClient();
+
+  // Fetch shows when popover opens
+  useEffect(() => {
+    if (open && localShows.length === 0) {
+      getShowsForCompany(company.id)
+        .then(shows => {
+          setLocalShows(shows);
+          onShowsUpdate(shows);
+        })
+        .catch(() => {
+          // Silently fail
+        });
+    }
+  }, [open, company.id]);
+
+  // Update local shows when prop changes
+  useEffect(() => {
+    setLocalShows(companyShows);
+  }, [companyShows]);
+
+  const availableShows = shows.filter(
+    s => !localShows.some(cs => cs.id === s.id)
+  );
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant='ghost'
+          className='h-auto p-1.5 justify-start bg-transparent hover:bg-muted dark:hover:bg-[rgb(37,37,37)] text-foreground dark:text-foreground'
+          onClick={e => e.stopPropagation()}
+        >
+          {localShows.length > 0 ? (
+            <div className='flex items-center gap-1 flex-wrap'>
+              {localShows.slice(0, 2).map(show => (
+                <Badge
+                  key={show.id}
+                  variant='secondary'
+                  className='text-xs dark:bg-secondary dark:text-secondary-foreground'
+                >
+                  {show.name}
+                </Badge>
+              ))}
+              {localShows.length > 2 && (
+                <Badge
+                  variant='secondary'
+                  className='text-xs dark:bg-secondary dark:text-secondary-foreground'
+                >
+                  +{localShows.length - 2}
+                </Badge>
+              )}
+            </div>
+          ) : (
+            <span className='text-xs text-muted-foreground dark:text-muted-foreground flex items-center gap-1'>
+              <Calendar className='h-3 w-3' />
+              Add shows
+            </span>
+          )}
+          <ChevronDown className='h-3 w-3 ml-1 opacity-50 dark:opacity-70' />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className='w-72 p-3'
+        align='start'
+        onClick={e => e.stopPropagation()}
+      >
+        <div className='space-y-3'>
+          <div className='text-sm font-medium'>Manage Shows</div>
+
+          {/* Current Shows */}
+          {localShows.length > 0 && (
+            <div className='space-y-2'>
+              <div className='text-xs text-muted-foreground'>Linked Shows</div>
+              <div className='flex flex-wrap gap-1.5'>
+                {localShows.map(show => (
+                  <Badge
+                    key={show.id}
+                    variant='secondary'
+                    className='text-xs flex items-center gap-1 pr-1'
+                  >
+                    <ShowChip show={show} className='text-xs' />
+                    <button
+                      onClick={async e => {
+                        e.stopPropagation();
+                        try {
+                          await unlinkCompanyFromShow(show.id, company.id);
+                          const updatedShows = await getShowsForCompany(
+                            company.id
+                          );
+                          setLocalShows(updatedShows);
+                          onShowsUpdate(updatedShows);
+                          queryClient.invalidateQueries({
+                            queryKey: ['companies'],
+                          });
+                          toast.success('Show removed');
+                        } catch (error) {
+                          toast.error('Failed to remove show');
+                        }
+                      }}
+                      className='ml-1 hover:text-destructive'
+                    >
+                      <X className='h-3 w-3' />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add Show */}
+          {availableShows.length > 0 && (
+            <div className='space-y-2'>
+              <div className='text-xs text-muted-foreground'>Add Show</div>
+              <div className='flex gap-1'>
+                <Select
+                  value={selectedShowId || undefined}
+                  onValueChange={setSelectedShowId}
+                >
+                  <SelectTrigger className='h-8 text-xs flex-1'>
+                    <SelectValue placeholder='Select show' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableShows.map(show => {
+                      let dateStr: string | null = null;
+                      if (show.start_date) {
+                        try {
+                          const date = new Date(show.start_date);
+                          if (!isNaN(date.getTime())) {
+                            dateStr = date.toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                            });
+                          }
+                        } catch {
+                          // Invalid date, ignore
+                        }
+                      }
+                      return (
+                        <SelectItem key={show.id} value={show.id}>
+                          <div className='flex items-center gap-2'>
+                            <span>{show.name}</span>
+                            {dateStr && (
+                              <span className='text-xs text-muted-foreground'>
+                                {dateStr}
+                              </span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                <Button
+                  size='sm'
+                  onClick={async e => {
+                    e.stopPropagation();
+                    if (!selectedShowId) return;
+                    try {
+                      await linkCompanyToShow(selectedShowId, company.id);
+                      const updatedShows = await getShowsForCompany(company.id);
+                      setLocalShows(updatedShows);
+                      onShowsUpdate(updatedShows);
+                      setSelectedShowId(null);
+                      queryClient.invalidateQueries({
+                        queryKey: ['companies'],
+                      });
+                      toast.success('Show added');
+                    } catch (error) {
+                      toast.error('Failed to add show');
+                    }
+                  }}
+                  disabled={!selectedShowId}
+                >
+                  <Plus className='h-3 w-3' />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function CompaniesPage() {
   const { user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
@@ -61,6 +288,15 @@ export default function CompaniesPage() {
   );
   const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
   const bulkSelection = useBulkSelection();
+  const queryClient = useQueryClient();
+  const { data: campaigns = [] } = useAllCampaigns();
+  const showDeleteConfirmation = useDeleteConfirmation();
+  const [companyShowsMap, setCompanyShowsMap] = useState<
+    Record<
+      string,
+      Array<{ id: string; name: string; start_date: string | null }>
+    >
+  >({});
 
   // Enable real-time enrichment updates
   useCompanyEnrichmentRealtime();
@@ -70,9 +306,7 @@ export default function CompaniesPage() {
     'companies',
     {
       sortBy: 'created_at_desc',
-      filters: {
-        connectionStrength: 'all',
-      },
+      filters: {},
     }
   );
 
@@ -84,6 +318,13 @@ export default function CompaniesPage() {
       setIsSlideOutOpen(true);
     }
   }, [searchParams]);
+
+  const { data: shows = [] } = useQuery({
+    queryKey: ['shows'],
+    queryFn: () => getShows(),
+    enabled: shouldBypassAuth() || (!authLoading && !!user),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const {
     data: companies = [],
@@ -99,13 +340,11 @@ export default function CompaniesPage() {
 
       let query = supabase
         .from('companies')
-        .select('id, name, website, industry, created_at');
+        .select(
+          'id, name, website, domain, industry, created_at, categories, linkedin_url, description, head_office, company_size, last_activity, logo_url, estimated_arr'
+        );
 
       // Apply filters
-      // Note: connection_strength column doesn't exist in current schema
-      // if (preferences.filters.connectionStrength !== 'all') {
-      //   query = query.eq('connection_strength', preferences.filters.connectionStrength);
-      // }
 
       // Apply sorting
       query = query.order(sortOption.field, {
@@ -114,7 +353,37 @@ export default function CompaniesPage() {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        logger.error('[CompaniesPage] Query error:', error);
+        throw error;
+      }
+
+      logger.debug(
+        '[CompaniesPage] Fetched companies:',
+        data?.length,
+        'companies'
+      );
+      if (data && data.length > 0) {
+        const sample = data[0];
+        logger.debug(
+          '[CompaniesPage] Sample company enrichment data:',
+          JSON.stringify(
+            {
+              name: sample.name,
+              industry: sample.industry,
+              website: sample.website,
+              linkedin_url: sample.linkedin_url,
+              company_size: sample.company_size,
+              head_office: sample.head_office,
+              domain: sample.domain,
+              description: sample.description,
+            },
+            null,
+            2
+          )
+        );
+      }
+
       return (data || []) as Company[];
     },
     enabled: shouldBypassAuth() || (!authLoading && !!user),
@@ -122,23 +391,21 @@ export default function CompaniesPage() {
   });
 
   // Build filter configurations
-  const filterConfigs: FilterConfig[] = useMemo(
-    () => [
-      {
-        key: 'connectionStrength',
-        label: 'Connection',
-        placeholder: 'All Connections',
-        options: [
-          { value: 'all', label: 'All Connections' },
-          { value: 'strong', label: 'Strong (Replied)' },
-          { value: 'medium', label: 'Medium (Opened)' },
-          { value: 'weak', label: 'Weak (Sent)' },
-          { value: 'none', label: 'None' },
-        ],
-      },
-    ],
-    []
-  );
+  const filterConfigs: FilterConfig[] = useMemo(() => [], []);
+
+  // Calculate actual selected count (resolves select-all against all companies)
+  const actualSelectedCount = bulkSelection.getSelectedIds(
+    companies.map(c => c.id)
+  ).length;
+
+  // Debug logging
+  logger.debug('[CompaniesPage] Selection state:', {
+    actualSelectedCount,
+    companiesCount: companies.length,
+    bulkSelectionSelectedCount: bulkSelection.selectedCount,
+    bulkSelectionIsAllSelected: bulkSelection.isAllSelected,
+    selectedIds: bulkSelection.getSelectedIds(companies.map(c => c.id)),
+  });
 
   // Memoized checkbox render to prevent re-renders
   const renderCheckbox = useCallback(
@@ -200,25 +467,9 @@ export default function CompaniesPage() {
       },
       {
         key: 'categories',
-        label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Categories are enriched from external sources'
-          >
-            <span>Categories</span>
-            <Zap className='h-3.5 w-3.5 text-yellow-500' />
-          </div>
-        ),
+        label: 'Categories',
         width: '200px',
         render: (value, row) => {
-          const isEnriching =
-            row.enrichment_status === 'enriching' ||
-            row.enrichment_status === 'pending';
-
-          if (isEnriching) {
-            return <CellLoadingSpinner size='sm' />;
-          }
-
           const categories = row.categories;
           if (
             !categories ||
@@ -256,65 +507,42 @@ export default function CompaniesPage() {
         },
       },
       {
-        key: 'connection_strength',
-        label: 'Connection',
-        width: '140px',
+        key: 'shows',
+        label: (
+          <div className='flex items-center gap-1.5'>
+            <span>Shows</span>
+            <Zap className='h-3.5 w-3.5 text-yellow-500' />
+          </div>
+        ),
+        width: '200px',
         render: (value, row) => {
-          const strength = row.connection_strength || 'none';
-          const strengthConfig = {
-            strong: {
-              label: 'Replied',
-              color: 'bg-green-500',
-              textColor: 'text-green-700',
-            },
-            medium: {
-              label: 'Opened',
-              color: 'bg-amber-500',
-              textColor: 'text-amber-700',
-            },
-            weak: {
-              label: 'Sent',
-              color: 'bg-red-500',
-              textColor: 'text-red-700',
-            },
-            none: {
-              label: 'None',
-              color: 'bg-gray-300',
-              textColor: 'text-gray-600',
-            },
-          };
-          const config = strengthConfig[strength] || strengthConfig.none;
+          const companyShows = companyShowsMap[row.id] || [];
+
           return (
-            <div className='flex items-center gap-2'>
-              <div className={`w-2 h-2 rounded-full ${config.color}`} />
-              <span className={`text-sm font-medium ${config.textColor}`}>
-                {config.label}
-              </span>
-            </div>
+            <InlineCompanyShowsEditor
+              company={row}
+              shows={shows}
+              companyShows={companyShows}
+              onShowsUpdate={updatedShows => {
+                setCompanyShowsMap(prev => ({
+                  ...prev,
+                  [row.id]: updatedShows,
+                }));
+              }}
+            />
           );
         },
       },
       {
         key: 'industry',
         label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Industry data is enriched from external sources'
-          >
+          <div className='flex items-center gap-1.5'>
             <span>Industry</span>
             <Zap className='h-3.5 w-3.5 text-yellow-500' />
           </div>
         ),
         width: '180px',
         render: (value, row) => {
-          const isEnriching =
-            row.enrichment_status === 'enriching' ||
-            row.enrichment_status === 'pending';
-
-          if (isEnriching) {
-            return <CellLoadingSpinner size='sm' />;
-          }
-
           const industry = row.industry;
           if (!industry)
             return <span className='text-muted-foreground'>-</span>;
@@ -324,24 +552,13 @@ export default function CompaniesPage() {
       {
         key: 'website',
         label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Website URLs are enriched from external sources'
-          >
+          <div className='flex items-center gap-1.5'>
             <span>Website</span>
             <Zap className='h-3.5 w-3.5 text-yellow-500' />
           </div>
         ),
         width: '200px',
         render: (value, row) => {
-          const isEnriching =
-            row.enrichment_status === 'enriching' ||
-            row.enrichment_status === 'pending';
-
-          if (isEnriching) {
-            return <CellLoadingSpinner size='sm' />;
-          }
-
           const website = row.website;
           if (!website) return <span className='text-muted-foreground'>-</span>;
           return (
@@ -359,57 +576,15 @@ export default function CompaniesPage() {
         },
       },
       {
-        key: 'domain',
-        label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Domain information is enriched from external sources'
-          >
-            <span>Domain</span>
-            <Zap className='h-3.5 w-3.5 text-yellow-500' />
-          </div>
-        ),
-        width: '180px',
-        render: (value, row) => {
-          const isEnriching =
-            row.enrichment_status === 'enriching' ||
-            row.enrichment_status === 'pending';
-
-          if (isEnriching) {
-            return <CellLoadingSpinner size='sm' />;
-          }
-
-          const domain = row.domain;
-          if (!domain) return <span className='text-muted-foreground'>-</span>;
-          return (
-            <div className='flex items-center gap-1.5 text-sm'>
-              <Globe className='h-3.5 w-3.5 text-muted-foreground' />
-              <span className='truncate'>{domain}</span>
-            </div>
-          );
-        },
-      },
-      {
         key: 'linkedin_url',
         label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='LinkedIn URLs are enriched from external sources'
-          >
+          <div className='flex items-center gap-1.5'>
             <span>LinkedIn</span>
             <Zap className='h-3.5 w-3.5 text-yellow-500' />
           </div>
         ),
         width: '180px',
         render: (value, row) => {
-          const isEnriching =
-            row.enrichment_status === 'enriching' ||
-            row.enrichment_status === 'pending';
-
-          if (isEnriching) {
-            return <CellLoadingSpinner size='sm' />;
-          }
-
           const linkedinUrl = row.linkedin_url;
           if (!linkedinUrl)
             return <span className='text-muted-foreground'>-</span>;
@@ -435,24 +610,13 @@ export default function CompaniesPage() {
       {
         key: 'description',
         label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Company descriptions are enriched from external sources'
-          >
+          <div className='flex items-center gap-1.5'>
             <span>Description</span>
             <Zap className='h-3.5 w-3.5 text-yellow-500' />
           </div>
         ),
         width: '300px',
         render: (value, row) => {
-          const isEnriching =
-            row.enrichment_status === 'enriching' ||
-            row.enrichment_status === 'pending';
-
-          if (isEnriching) {
-            return <CellLoadingSpinner size='sm' />;
-          }
-
           const description = row.description;
           if (!description)
             return <span className='text-muted-foreground'>-</span>;
@@ -472,59 +636,62 @@ export default function CompaniesPage() {
       {
         key: 'head_office',
         label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Location data is enriched from external sources'
-          >
+          <div className='flex items-center gap-1.5'>
             <span>Location</span>
             <Zap className='h-3.5 w-3.5 text-yellow-500' />
           </div>
         ),
         width: '200px',
         render: (value, row) => {
-          const isEnriching =
-            row.enrichment_status === 'enriching' ||
-            row.enrichment_status === 'pending';
-
-          if (isEnriching) {
-            return <CellLoadingSpinner size='sm' />;
-          }
-
           const location = row.head_office;
           if (!location)
             return <span className='text-muted-foreground'>-</span>;
-          return (
-            <div className='flex items-center gap-1 text-sm'>
-              <MapPin className='h-3 w-3 text-muted-foreground' />
-              <span className='truncate'>{location}</span>
-            </div>
-          );
+          return <span className='text-sm truncate'>{location}</span>;
         },
       },
       {
         key: 'company_size',
         label: (
-          <div
-            className='flex items-center gap-1.5'
-            title='Company size is enriched from external sources'
-          >
+          <div className='flex items-center gap-1.5'>
             <span>Size</span>
             <Zap className='h-3.5 w-3.5 text-yellow-500' />
           </div>
         ),
         width: '120px',
         render: (value, row) => {
-          const isEnriching =
-            row.enrichment_status === 'enriching' ||
-            row.enrichment_status === 'pending';
-
-          if (isEnriching) {
-            return <CellLoadingSpinner size='sm' />;
-          }
-
           const size = row.company_size;
           if (!size) return <span className='text-muted-foreground'>-</span>;
           return <span className='text-sm'>{size}</span>;
+        },
+      },
+      {
+        key: 'estimated_arr',
+        label: (
+          <div
+            className='flex items-center gap-1.5'
+            title='Estimated Annual Recurring Revenue'
+          >
+            <span>ARR</span>
+            <Zap className='h-3.5 w-3.5 text-yellow-500' />
+          </div>
+        ),
+        width: '140px',
+        render: (value, row) => {
+          const arr = row.estimated_arr as number | null | undefined;
+
+          if (arr === null || arr === undefined) {
+            return <span className='text-muted-foreground'>-</span>;
+          }
+
+          // Format as currency (USD)
+          const formatted = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          }).format(arr);
+
+          return <span className='text-sm font-medium'>{formatted}</span>;
         },
       },
       {
@@ -548,7 +715,7 @@ export default function CompaniesPage() {
         },
       },
     ],
-    [companies, bulkSelection, renderCheckbox]
+    [companies, bulkSelection, renderCheckbox, shows, companyShowsMap]
   );
 
   if (error) {
@@ -582,7 +749,7 @@ export default function CompaniesPage() {
           data={companies}
           columns={columns}
           loading={isLoading}
-          emptyMessage='No companies found. Companies are created automatically when leads are enriched.'
+          emptyMessage='No companies found.'
           scrollable
           stickyHeaders
           onRowClick={company => {

@@ -15,6 +15,7 @@ interface EnrichmentPayload {
   email?: string;
   phone?: string;
   company_size?: string;
+  company_industry?: string;
   arr?: number; // Annual Recurring Revenue
   company_linkedin_url?: string;
   lead_linkedin_url?: string;
@@ -145,10 +146,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if lead exists
+    // Check if lead exists and get current values
     const { data: existingLead, error: fetchError } = await supabase
       .from('leads')
-      .select('id, enrichment_status')
+      .select(
+        'id, enrichment_status, email, phone, job_title, linkedin_url, company, first_name, last_name'
+      )
       .eq('id', payload.lead_id)
       .single();
 
@@ -165,18 +168,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prepare update data
+    // Prepare update data - only enrich missing fields, never overwrite existing data
     const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
 
-    // Update enriched fields if provided (with Title Case formatting)
-    if (payload.email !== undefined) updateData.email = payload.email;
-    if (payload.phone !== undefined) updateData.phone = payload.phone;
-    if (payload.position !== undefined)
+    // Only update fields that are missing (null/empty)
+    // Never overwrite: email, company, first_name, last_name (from business card)
+    if (payload.phone !== undefined && !existingLead.phone) {
+      updateData.phone = payload.phone;
+    }
+    if (payload.position !== undefined && !existingLead.job_title) {
       updateData.job_title = toTitleCase(payload.position);
-    if (payload.lead_linkedin_url !== undefined)
+    }
+    if (payload.lead_linkedin_url !== undefined && !existingLead.linkedin_url) {
       updateData.linkedin_url = payload.lead_linkedin_url;
+    }
 
     // Update enrichment metadata
     const enrichmentStatus =
@@ -187,6 +194,7 @@ export async function POST(request: NextRequest) {
     // Store enrichment data in JSONB field
     const enrichmentData: Record<string, unknown> = {
       company_size: payload.company_size,
+      company_industry: payload.company_industry,
       arr: payload.arr,
       company_linkedin_url: payload.company_linkedin_url,
       enrichment_source: payload.enrichment_source,
@@ -201,7 +209,12 @@ export async function POST(request: NextRequest) {
 
     // If company data is provided, update or create company record
     // Note: leads table has 'company' (string) field, not 'company_id'
-    if (payload.company_linkedin_url || payload.company_size || payload.arr) {
+    if (
+      payload.company_linkedin_url ||
+      payload.company_size ||
+      payload.company_industry ||
+      payload.arr
+    ) {
       const { data: lead } = await supabase
         .from('leads')
         .select('company')
@@ -212,7 +225,7 @@ export async function POST(request: NextRequest) {
         // Try to find existing company by name
         const { data: existingCompany } = await supabase
           .from('companies')
-          .select('id')
+          .select('id, industry')
           .eq('name', lead.company)
           .maybeSingle();
 
@@ -224,7 +237,7 @@ export async function POST(request: NextRequest) {
             .from('companies')
             .insert({
               name: toTitleCase(lead.company),
-              industry: null,
+              industry: payload.company_industry || null,
             })
             .select('id')
             .single();
@@ -233,13 +246,21 @@ export async function POST(request: NextRequest) {
             companyId = newCompany.id;
           }
         } else {
-          // Update existing company
+          // Update existing company - only fill missing fields
           const companyUpdate: Record<string, unknown> = {};
           if (payload.company_linkedin_url)
             companyUpdate.linkedin_url = payload.company_linkedin_url;
           if (payload.company_size)
             companyUpdate.company_size = payload.company_size;
           if (payload.arr) companyUpdate.estimated_arr = payload.arr;
+          // Only update industry if it's missing or empty
+          if (
+            payload.company_industry &&
+            (!existingCompany?.industry ||
+              existingCompany.industry.trim() === '')
+          ) {
+            companyUpdate.industry = payload.company_industry;
+          }
 
           if (Object.keys(companyUpdate).length > 0) {
             await supabase

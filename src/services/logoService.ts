@@ -5,6 +5,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { API_URLS } from '@/constants/urls';
+import { fetchCompanyLogo } from './brandfetchService';
 
 const getDomainFromWebsite = (website?: string): string | null => {
   try {
@@ -31,33 +32,46 @@ const getFallbackDomainFromName = (companyName?: string): string | null => {
   return cleanName ? `${cleanName}.com` : null;
 };
 
-const buildProviderUrl = (domain: string): string => {
-  // Try Brandfetch first (preferred) - uses CDN hotlinking
-  const brandfetchClientId = process.env.NEXT_PUBLIC_BRANDFETCH_CLIENT_ID as
-    | string
-    | undefined;
-  if (brandfetchClientId) {
-    // Brandfetch CDN - direct image URL (best practice: hotlinking)
-    return API_URLS.BRANDFETCH_LOGO(domain, brandfetchClientId);
-  }
-
+const buildProviderUrl = (domain: string): string | null => {
   // Fallback to Logo.dev
   const logoDevKey = process.env.LOGO_DEV_API_KEY as string | undefined;
   if (logoDevKey) {
     return API_URLS.LOGO_DEV(domain, logoDevKey);
   }
 
-  // Final fallback to Clearbit (deprecated)
-  return API_URLS.CLEARBIT_LOGO(domain);
+  // Clearbit is currently down/unreachable - skip it
+  // Return null to trigger UI Avatars fallback instead
+  return null;
 };
 
 /**
  * Test if a logo URL is accessible
+ * Uses image loading to avoid CORS issues with HEAD requests
  */
 export const testLogoUrl = async (url: string): Promise<boolean> => {
   try {
-    const response = await fetch(url, { method: 'HEAD' });
-    return response.ok;
+    // Use image loading instead of fetch to avoid CORS issues
+    // This method works even when HEAD requests fail due to CORS
+    return new Promise(resolve => {
+      const img = new Image();
+      const timeout = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
+        resolve(false);
+      }, 3000); // 3 second timeout
+
+      img.onload = () => {
+        clearTimeout(timeout);
+        resolve(true);
+      };
+
+      img.onerror = () => {
+        clearTimeout(timeout);
+        resolve(false);
+      };
+
+      img.src = url;
+    });
   } catch {
     return false;
   }
@@ -81,29 +95,39 @@ export const getOrStoreCompanyLogo = async (company: {
       getFallbackDomainFromName(company.name || undefined);
     if (!domain) return null;
 
-    const providerUrl = buildProviderUrl(domain);
-    const isBrandfetch = providerUrl.includes('cdn.brandfetch.io');
-
-    // Brandfetch: Use CDN URL directly (hotlinking - best practice)
-    // No need to download/store, just cache the URL
-    if (isBrandfetch) {
-      // Test if logo exists
-      const ok = await testLogoUrl(providerUrl);
-      if (ok) {
-        // Store the CDN URL for future use
-        await supabase
-          .from('companies')
-          .update({
-            logo_url: providerUrl,
-            logo_cached_at: new Date().toISOString(),
-          })
-          .eq('id', company.id);
-        return providerUrl;
+    // Try Brandfetch API first (preferred) - uses API to get CDN URLs
+    const brandfetchApiKey = process.env.NEXT_PUBLIC_BRANDFETCH_API_KEY;
+    if (brandfetchApiKey) {
+      try {
+        const logoUrl = await fetchCompanyLogo(domain);
+        if (logoUrl) {
+          // Store the CDN URL from Brandfetch API response
+          await supabase
+            .from('companies')
+            .update({
+              logo_url: logoUrl,
+              logo_cached_at: new Date().toISOString(),
+            })
+            .eq('id', company.id);
+          return logoUrl;
+        }
+      } catch (error) {
+        // Fall through to other providers if Brandfetch fails
+        console.warn(`Brandfetch API failed for ${domain}:`, error);
       }
-      // If Brandfetch fails, fall through to other providers
     }
 
-    // For other providers (Logo.dev, Clearbit), download and store
+    // Fallback to other providers
+    const providerUrl = buildProviderUrl(domain);
+
+    // If no provider URL available (Clearbit skipped), return null
+    // UI will show fallback avatar
+    if (!providerUrl) {
+      return null;
+    }
+
+    // For other providers (Logo.dev), test before downloading
+    // Only test if we need to download and store
     const ok = await testLogoUrl(providerUrl);
     if (!ok) return null;
 
@@ -240,9 +264,13 @@ export const getCompanyLogoUrlSync = (
     // 2. Build provider URL (sync, uncached) as a temporary display until stored
     const domain =
       getDomainFromWebsite(website) || getFallbackDomainFromName(companyName);
-    if (domain) return buildProviderUrl(domain);
+    if (domain) {
+      const providerUrl = buildProviderUrl(domain);
+      // Only return if provider URL is available (Clearbit is skipped)
+      if (providerUrl) return providerUrl;
+    }
 
-    // 3. Return null if no website (will fallback to initials in UI)
+    // 3. Return null if no website or no provider available (will fallback to initials in UI)
     return null;
   } catch (error) {
     // Use logger instead of console.error

@@ -21,6 +21,15 @@ export const useGlobalErrorHandler = () => {
         return; // Silently ignore these errors
       }
 
+      // Suppress Clearbit logo errors (service is down/unreachable)
+      if (
+        event.message?.includes('logo.clearbit.com') ||
+        event.filename?.includes('logo.clearbit.com') ||
+        event.error?.message?.includes('ERR_NAME_NOT_RESOLVED')
+      ) {
+        return; // Silently ignore Clearbit errors
+      }
+
       const errorReport: ErrorReport = {
         message: event.message,
         stack: event.error?.stack,
@@ -38,7 +47,7 @@ export const useGlobalErrorHandler = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(errorReport),
-        }).catch((err) => {
+        }).catch(err => {
           // Silently fail - don't log error reporting failures
           if (process.env.NODE_ENV === 'development') {
             console.error('Failed to report error:', err);
@@ -65,7 +74,7 @@ export const useGlobalErrorHandler = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(errorReport),
-        }).catch((err) => {
+        }).catch(err => {
           // Silently fail - don't log error reporting failures
           if (process.env.NODE_ENV === 'development') {
             console.error('Failed to report error:', err);
@@ -82,6 +91,15 @@ export const useGlobalErrorHandler = () => {
           target.tagName === 'SCRIPT' ||
           target.tagName === 'LINK')
       ) {
+        // Suppress Clearbit logo loading errors
+        if (
+          target.tagName === 'IMG' &&
+          (target.getAttribute('src')?.includes('logo.clearbit.com') ||
+            (event as ErrorEvent).message?.includes('logo.clearbit.com'))
+        ) {
+          return; // Silently ignore Clearbit image errors
+        }
+
         const errorReport: ErrorReport = {
           message: `Failed to load resource: ${target.tagName}`,
           timestamp: new Date().toISOString(),
@@ -90,7 +108,10 @@ export const useGlobalErrorHandler = () => {
           type: 'resource',
         };
 
-        console.warn('Resource Load Error:', JSON.stringify(errorReport, null, 2));
+        console.warn(
+          'Resource Load Error:',
+          JSON.stringify(errorReport, null, 2)
+        );
       }
     };
 
@@ -178,11 +199,17 @@ export const usePerformanceMonitoring = () => {
           // Only log slow measures (>100ms) in verbose mode, or errors (>500ms) always
           // Custom measures (development only)
           if (process.env.NODE_ENV === 'development') {
-            if (entry.duration > 100 || entry.name.includes('Page') || entry.name.includes('Load')) {
+            if (
+              entry.duration > 100 ||
+              entry.name.includes('Page') ||
+              entry.name.includes('Load')
+            ) {
               // Log slow measures in development only
             }
           } else if (entry.duration > 500) {
-            console.warn(`⚠️ Slow operation: ${entry.name} took ${entry.duration.toFixed(2)}ms`);
+            console.warn(
+              `⚠️ Slow operation: ${entry.name} took ${entry.duration.toFixed(2)}ms`
+            );
           }
         }
       });

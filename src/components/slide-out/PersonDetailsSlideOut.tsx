@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getCompanyLogoUrlSync } from '@/services/logoService';
+import { API_URLS } from '@/constants/urls';
 import { useStatusAutomation } from '@/services/statusAutomationService';
 import { Company, Lead } from '@/types/database';
 // Interaction type removed - using inline type
@@ -58,6 +59,7 @@ import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { GridItem, SlideOutGrid } from './SlideOutGrid';
 import { SlideOutPanel } from './SlideOutPanel';
 import { SlideOutSection } from './SlideOutSection';
+import { logger } from '@/utils/productionLogger';
 import {
   Dialog,
   DialogContent,
@@ -65,6 +67,54 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Tables } from '@/integrations/supabase/types';
+
+// Company logo image component with proper error handling
+const CompanyLogoImage: React.FC<{ company: Company; size?: number }> = memo(
+  ({ company, size = 16 }) => {
+    const [imageError, setImageError] = useState(false);
+
+    // Use cached logo_url if available, filter out Clearbit URLs
+    const cachedLogoUrl =
+      company.logo_url && !company.logo_url.includes('logo.clearbit.com')
+        ? company.logo_url
+        : null;
+
+    // Fallback to sync URL generation if no cached logo
+    const logoUrl =
+      cachedLogoUrl ||
+      getCompanyLogoUrlSync(company.name, company.website || undefined);
+
+    // Generate fallback avatar URL
+    const fallbackUrl = `${API_URLS.UI_AVATARS}?name=${encodeURIComponent(company.name)}&background=random&size=${size}`;
+
+    const handleImageError = useCallback(() => {
+      setImageError(true);
+    }, []);
+
+    if (!logoUrl || imageError) {
+      return (
+        <img
+          src={fallbackUrl}
+          alt={company.name}
+          className='w-4 h-4 rounded-sm border border-border'
+        />
+      );
+    }
+
+    return (
+      <div className='w-4 h-4 rounded-sm border border-border bg-white'>
+        <img
+          src={logoUrl}
+          alt={company.name}
+          className='w-full h-full rounded-sm object-contain'
+          onError={handleImageError}
+        />
+      </div>
+    );
+  }
+);
+
+CompanyLogoImage.displayName = 'CompanyLogoImage';
 
 interface PersonDetailsSlideOutProps {
   personId: string | null;
@@ -180,12 +230,12 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                 enrolledError.message?.includes('schema cache') ||
                 enrolledError.message?.includes('does not exist')
               ) {
-                console.warn(
+                logger.warn(
                   '[PersonDetailsSlideOut] campaign_sequence_leads table not found. Migration may not have been run.'
                 );
                 setEnrolledCampaigns([]);
               } else {
-                console.error(
+                logger.error(
                   '[PersonDetailsSlideOut] Error fetching enrolled campaigns:',
                   getErrorMessage(enrolledError),
                   enrolledError
@@ -228,7 +278,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               setEnrolledCampaigns([]);
             }
           } catch (err) {
-            console.error(
+            logger.error(
               '[PersonDetailsSlideOut] Error in enrolled campaigns query:',
               err
             );
@@ -236,7 +286,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
           }
         }
       } catch (error) {
-        console.error('Error fetching person details:', error);
+        logger.error('Error fetching person details:', error);
         toast({
           title: 'Error',
           description: 'Failed to load person details',
@@ -292,7 +342,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               !getErrorMessage(emailErr).includes('schema cache') &&
               !getErrorMessage(emailErr).includes('does not exist')
             ) {
-              console.error(
+              logger.error(
                 '[PersonDetailsSlideOut] Error fetching email campaigns:',
                 emailErr
               );
@@ -314,7 +364,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               );
             } catch (lemlistErr) {
               // Silently handle Lemlist errors (credentials not set, etc.)
-              console.debug(
+              logger.debug(
                 '[PersonDetailsSlideOut] Could not fetch Lemlist campaigns:',
                 lemlistErr
               );
@@ -328,7 +378,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
             !errorMessage.includes('schema cache') &&
             !errorMessage.includes('does not exist')
           ) {
-            console.error(
+            logger.error(
               '[PersonDetailsSlideOut] Error fetching campaigns:',
               errorMessage,
               error
@@ -372,7 +422,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
               { skipNotification: true }
             );
           } catch (statusError) {
-            console.error('Failed to update company status:', statusError);
+            logger.error('Failed to update company status:', statusError);
           }
         }
 
@@ -384,7 +434,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
         onUpdate?.();
         fetchPersonDetails();
       } catch (error) {
-        console.error('Error updating person stage:', error);
+        logger.error('Error updating person stage:', error);
         toast({
           title: 'Error',
           description: 'Failed to update person stage',
@@ -730,7 +780,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                     e.stopPropagation();
                     setShowCampaignSelect(true);
                   }}
-                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground bg-background'
+                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 dark:hover:border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-muted/60 bg-background'
                   title='Add to campaign'
                 >
                   <ListPlus className='h-4 w-4' />
@@ -893,7 +943,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                                     onClick={() =>
                                       handlePersonClick(otherPerson.id)
                                     }
-                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-accent transition-colors cursor-pointer'
+                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-accent dark:hover:bg-muted/60 transition-colors cursor-pointer'
                                   >
                                     <div className='w-10 h-10 bg-muted rounded-full flex items-center justify-center flex-shrink-0 border border-border'>
                                       <User className='h-5 w-5 text-muted-foreground' />
@@ -1039,16 +1089,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                         title='View company'
                       >
                         {company ? (
-                          <img
-                            src={
-                              getCompanyLogoUrlSync(
-                                company.name,
-                                company.website || undefined
-                              ) || ''
-                            }
-                            alt={company.name}
-                            className='w-4 h-4 rounded-sm border border-border'
-                          />
+                          <CompanyLogoImage company={company} size={16} />
                         ) : (
                           <Building2 className='h-4 w-4 text-muted-foreground' />
                         )}

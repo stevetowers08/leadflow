@@ -35,6 +35,7 @@ import { PerformanceProvider } from '@/utils/performanceMonitoring';
 import { useClientId } from '@/hooks/useClientId';
 import { OAuthRedirectHandler } from '@/components/auth/OAuthRedirectHandler';
 import { useLeadEnrichmentRealtime } from '@/hooks/useLeadEnrichmentRealtime';
+import { logger } from '@/utils/productionLogger';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -72,7 +73,7 @@ function AppInitialization({ children }: { children: React.ReactNode }) {
         await initializeErrorHandling(adminEmail);
         setupGlobalErrorHandlers();
       } catch (error) {
-        console.error('Failed to initialize error handling:', error);
+        logger.error('Failed to initialize error handling:', error);
       }
     };
 
@@ -117,7 +118,7 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
           const supabaseCookies = cookies.filter(
             c => c.startsWith('sb-') || c.includes('supabase')
           );
-          console.log('🍪 Available cookies:', {
+          logger.debug('🍪 Available cookies:', {
             total: cookies.length,
             supabaseCookies: supabaseCookies.length,
             cookieNames: supabaseCookies.map(c => c.split('=')[0]),
@@ -130,7 +131,7 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
         } = await supabase.auth.getSession();
         const hasValidSession = !!session?.user;
 
-        console.log('🔍 PermissionsWrapper: Session check', {
+        logger.debug('🔍 PermissionsWrapper: Session check', {
           hasSession: hasValidSession,
           userId: session?.user?.id,
           email: session?.user?.email,
@@ -143,7 +144,7 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
 
         setHasSession(hasValidSession);
       } catch (error) {
-        console.error('❌ Error checking session:', error);
+        logger.error('❌ Error checking session:', error);
         setHasSession(false);
       } finally {
         setCheckingSession(false);
@@ -209,7 +210,7 @@ function PermissionsWrapper({ children }: { children: React.ReactNode }) {
   // IMPORTANT: Give session check time to complete before redirecting
   // This handles the race condition where cookies exist but haven't been read yet
   if (!bypassAuth && !user && !hasSession && !checkingSession) {
-    console.log('🔍 PermissionsWrapper: No user found', {
+    logger.debug('🔍 PermissionsWrapper: No user found', {
       user: !!user,
       hasSession,
       loading,

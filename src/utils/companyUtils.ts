@@ -1,12 +1,14 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
-import { formatCompanyTextFields } from '@/utils/textFormatting';
+import { findOrCreateCompanyFull } from '@/services/companiesService';
 
 type CompanyInsertData = Tables<'companies'>['Insert'];
 
 /**
  * Handles company insertion
+ * Uses centralized findOrCreateCompany service to prevent duplicates
  *
+ * @deprecated Consider using findOrCreateCompany or findOrCreateCompanyFull from @/services/companiesService directly
  * Best Practice: Always include proper validation and error handling
  */
 export const insertCompany = async (companyData: CompanyInsertData) => {
@@ -16,29 +18,39 @@ export const insertCompany = async (companyData: CompanyInsertData) => {
       throw new Error('Company name is required');
     }
 
-    // Format text fields to Title Case
-    const formattedData = formatCompanyTextFields({
-      name: companyData.name,
-      head_office: companyData.head_office,
-      industry: companyData.industry,
-    });
+    // Use centralized service to prevent duplicates
+    const company = await findOrCreateCompanyFull(
+      companyData.name,
+      companyData
+    );
 
-    // Insert the company
-    const { data, error } = await supabase
-      .from('companies')
-      .insert({
-        ...companyData,
-        ...formattedData,
-      })
-      .select();
-
-    if (error) {
-      console.error('Failed to insert company:', error);
-      throw error;
+    if (!company) {
+      throw new Error('Failed to create or find company');
     }
 
-    console.log('Company inserted successfully:', data);
-    return data;
+    // If company already existed, update it with any new data
+    if (company.id) {
+      const updateData: Partial<CompanyInsertData> = { ...companyData };
+      delete updateData.name; // Don't update name
+
+      // Only update if there's data to update
+      if (Object.keys(updateData).length > 0) {
+        const { data: updated, error: updateError } = await supabase
+          .from('companies')
+          .update(updateData)
+          .eq('id', company.id)
+          .select();
+
+        if (updateError) {
+          console.error('Failed to update company:', updateError);
+          // Don't throw - company was found/created successfully
+        } else if (updated && updated.length > 0) {
+          return updated;
+        }
+      }
+    }
+
+    return [company];
   } catch (error) {
     console.error('Failed to insert company:', error);
     throw error;

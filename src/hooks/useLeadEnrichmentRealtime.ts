@@ -29,7 +29,6 @@ export function useLeadEnrichmentRealtime() {
           filter: `user_id=eq.${user.id}`,
         },
         async payload => {
-          console.log('🔔 Real-time update received for lead:', payload.new.id);
           const lead = payload.new as {
             id: string;
             enrichment_status:
@@ -67,9 +66,14 @@ export function useLeadEnrichmentRealtime() {
           };
 
           // Check if enrichment data, linkedin_url, or job_title changed
+          // Use shallow comparison for enrichment_data presence check (avoids expensive JSON.stringify)
           const enrichmentDataChanged =
-            JSON.stringify(oldData?.enrichment_data) !==
-            JSON.stringify(newData?.enrichment_data);
+            Boolean(oldData?.enrichment_data) !==
+              Boolean(newData?.enrichment_data) ||
+            (newData?.enrichment_data &&
+              typeof newData.enrichment_data === 'object' &&
+              Object.keys(newData.enrichment_data as object).length !==
+                Object.keys((oldData?.enrichment_data as object) || {}).length);
           const linkedinChanged =
             oldData?.linkedin_url !== newData?.linkedin_url;
           const jobTitleChanged = oldData?.job_title !== newData?.job_title;
@@ -83,15 +87,6 @@ export function useLeadEnrichmentRealtime() {
           ) {
             return;
           }
-
-          console.log('📊 Enrichment change detected:', {
-            statusChanged,
-            enrichmentDataChanged,
-            linkedinChanged,
-            jobTitleChanged,
-            oldStatus: oldLead.enrichment_status,
-            newStatus: lead.enrichment_status,
-          });
 
           // Check if enrichment status changed from pending/enriching to completed/failed
           const wasEnriching =
@@ -168,10 +163,9 @@ export function useLeadEnrichmentRealtime() {
               }
             }
 
-            // Always invalidate and refetch queries when enrichment data changes
-            console.log(
-              '🔄 Invalidating leads queries due to enrichment update'
-            );
+            // Invalidate queries when enrichment data changes
+            // Note: invalidateQueries with refetchType: 'active' will refetch active queries automatically
+            // No need for separate refetchQueries call (removes double-fetch)
             queryClient.invalidateQueries({
               predicate: query => {
                 const key = query.queryKey[0];
@@ -181,14 +175,7 @@ export function useLeadEnrichmentRealtime() {
                   key === 'leads-all-for-filter'
                 );
               },
-            });
-
-            // Force immediate refetch
-            queryClient.refetchQueries({
-              predicate: query => {
-                const key = query.queryKey[0];
-                return key === 'leads' || key === 'lead-stats';
-              },
+              refetchType: 'active', // Only refetch currently active queries
             });
           }
         }

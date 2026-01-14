@@ -1,5 +1,6 @@
 import { showCompaniesQueries } from '@/utils/typeSafeSupabase';
 import type { ShowCompany } from '@/types/missingTables';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Link a company to a show

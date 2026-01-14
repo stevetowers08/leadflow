@@ -4,7 +4,6 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Badge } from '@/components/ui/badge';
 import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
 import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
-import { EnrichmentDataDisplay } from '@/components/leads/EnrichmentDataDisplay';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -27,12 +26,15 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getCompanyLogoUrlSync } from '@/services/logoService';
+import { API_URLS } from '@/constants/urls';
 import { Company, Lead } from '@/types/database';
 import { bulkAddToCampaign } from '@/services/bulk/bulkPeopleService';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { getUnifiedStatusClass } from '@/utils/colorScheme';
 import { getErrorMessage } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
+import { ShowSelector } from '@/components/shared/ShowSelector';
+import { updateLead } from '@/services/leadsService';
 import {
   Building2,
   Calendar,
@@ -55,12 +57,61 @@ import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { GridItem, SlideOutGrid } from './SlideOutGrid';
 import { SlideOutPanel } from './SlideOutPanel';
 import { SlideOutSection } from './SlideOutSection';
+import { logger } from '@/utils/productionLogger';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+
+// Company logo image component with proper error handling
+const CompanyLogoImage: React.FC<{ company: Company; size?: number }> = memo(
+  ({ company, size = 16 }) => {
+    const [imageError, setImageError] = useState(false);
+
+    // Use cached logo_url if available, filter out Clearbit URLs
+    const cachedLogoUrl =
+      company.logo_url && !company.logo_url.includes('logo.clearbit.com')
+        ? company.logo_url
+        : null;
+
+    // Fallback to sync URL generation if no cached logo
+    const logoUrl =
+      cachedLogoUrl ||
+      getCompanyLogoUrlSync(company.name, company.website || undefined);
+
+    // Generate fallback avatar URL
+    const fallbackUrl = `${API_URLS.UI_AVATARS}?name=${encodeURIComponent(company.name)}&background=random&size=${size}`;
+
+    const handleImageError = useCallback(() => {
+      setImageError(true);
+    }, []);
+
+    if (!logoUrl || imageError) {
+      return (
+        <img
+          src={fallbackUrl}
+          alt={company.name}
+          className='w-4 h-4 rounded-sm border border-border flex-shrink-0'
+        />
+      );
+    }
+
+    return (
+      <div className='w-4 h-4 rounded-sm border border-border bg-white flex-shrink-0'>
+        <img
+          src={logoUrl}
+          alt={company.name}
+          className='w-full h-full rounded-sm object-contain'
+          onError={handleImageError}
+        />
+      </div>
+    );
+  }
+);
+
+CompanyLogoImage.displayName = 'CompanyLogoImage';
 
 interface LeadDetailsSlideOutProps {
   leadId: string | null;
@@ -134,15 +185,24 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
 
         // Fetch company by name if lead has company name
         // Note: leads table doesn't have company_id, only company (text field)
+        // Use case-insensitive matching to handle name variations
         if (leadData?.company) {
           try {
             const { data: companyData, error: companyError } = await supabase
               .from('companies')
               .select('*')
-              .eq('name', leadData.company)
+              .ilike('name', leadData.company.trim())
               .maybeSingle();
 
             if (!companyError && companyData) {
+              logger.debug('[LeadDetailsSlideOut] Company data fetched:', {
+                name: companyData.name,
+                head_office: companyData.head_office,
+                company_size: companyData.company_size,
+                industry: companyData.industry,
+                linkedin_url: companyData.linkedin_url,
+                website: companyData.website,
+              });
               setCompany(companyData as Company);
 
               // Fetch other leads at same company (by name)
@@ -162,7 +222,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
             }
           } catch (err) {
             // Silently fail - company lookup is optional
-            console.debug('Could not fetch company:', err);
+            logger.debug('Could not fetch company:', err);
           }
         }
 
@@ -199,14 +259,14 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                 statusCode === 404
               ) {
                 // Silently handle - table may not exist or RLS may block in bypass auth mode
-                console.debug(
+                logger.debug(
                   '[LeadDetailsSlideOut] campaign_sequence_leads query failed (expected in some environments):',
                   errorMessage
                 );
                 setEnrolledCampaigns([]);
               } else {
                 // Log unexpected errors
-                console.warn(
+                logger.warn(
                   '[LeadDetailsSlideOut] Error fetching enrolled campaigns:',
                   errorMessage
                 );
@@ -250,7 +310,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
           } catch (err) {
             // Catch any unexpected errors and handle gracefully
             const errorMessage = getErrorMessage(err);
-            console.debug(
+            logger.debug(
               '[LeadDetailsSlideOut] Error in enrolled campaigns query (handled gracefully):',
               errorMessage
             );
@@ -258,7 +318,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
           }
         }
       } catch (error) {
-        console.error('Error fetching lead details:', error);
+        logger.error('Error fetching lead details:', error);
         toast({
           title: 'Error',
           description: 'Failed to load lead details',
@@ -314,7 +374,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               !errorMsg.includes('schema cache') &&
               !errorMsg.includes('does not exist')
             ) {
-              console.error(
+              logger.error(
                 '[LeadDetailsSlideOut] Error fetching email campaigns:',
                 emailErr
               );
@@ -335,7 +395,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                 }))
               );
             } catch (lemlistErr) {
-              console.debug(
+              logger.debug(
                 '[LeadDetailsSlideOut] Could not fetch Lemlist campaigns:',
                 lemlistErr
               );
@@ -349,7 +409,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
             !errorMessage.includes('schema cache') &&
             !errorMessage.includes('does not exist')
           ) {
-            console.error(
+            logger.error(
               '[LeadDetailsSlideOut] Error fetching campaigns:',
               errorMessage
             );
@@ -565,23 +625,33 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
         },
         {
           label: 'Show',
-          value:
-            lead?.show_name || lead?.show_date
-              ? (() => {
-                  let dateStr = '';
-                  if (lead.show_date) {
-                    try {
-                      const date = new Date(lead.show_date);
-                      if (!isNaN(date.getTime())) {
-                        dateStr = ` (${format(date, 'MMM d, yyyy')})`;
-                      }
-                    } catch {
-                      // Invalid date, ignore
-                    }
-                  }
-                  return `${lead.show_name || ''}${dateStr}`.trim() || '-';
-                })()
-              : '-',
+          value: (
+            <ShowSelector
+              value={lead?.show_id || null}
+              onValueChange={async showId => {
+                if (!leadId) return;
+                try {
+                  await updateLead(leadId, { show_id: showId });
+                  await fetchLeadDetails();
+                  onUpdate?.();
+                  toast({
+                    title: 'Success',
+                    description: 'Show updated successfully',
+                  });
+                } catch (error) {
+                  toast({
+                    title: 'Error',
+                    description:
+                      error instanceof Error
+                        ? error.message
+                        : 'Failed to update show',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              className='w-full'
+            />
+          ),
         },
         {
           label: 'Created',
@@ -626,12 +696,17 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                 label: 'Website',
                 value: company.website ? (
                   <a
-                    href={company.website}
+                    href={
+                      company.website.startsWith('http')
+                        ? company.website
+                        : `https://${company.website}`
+                    }
                     target='_blank'
                     rel='noopener noreferrer'
                     className='text-primary hover:text-primary flex items-center gap-1'
                   >
-                    Visit <ExternalLink className='h-3 w-3' />
+                    {company.website.replace(/^https?:\/\//, '')}
+                    <ExternalLink className='h-3 w-3' />
                   </a>
                 ) : (
                   '-'
@@ -641,7 +716,11 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                 label: 'LinkedIn',
                 value: company.linkedin_url ? (
                   <a
-                    href={company.linkedin_url}
+                    href={
+                      company.linkedin_url.startsWith('http')
+                        ? company.linkedin_url
+                        : `https://${company.linkedin_url}`
+                    }
                     target='_blank'
                     rel='noopener noreferrer'
                     className='text-primary hover:text-primary flex items-center gap-1'
@@ -752,7 +831,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                   e.stopPropagation();
                   handleSendMessage();
                 }}
-                className='h-10 w-10 sm:h-8 sm:w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted active:bg-muted/80 touch-manipulation flex-shrink-0'
+                className='h-10 w-10 sm:h-8 sm:w-8 p-0 border border-border rounded-md hover:border-border/60 dark:hover:border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-muted/60 active:bg-muted/80 dark:active:bg-muted/70 touch-manipulation flex-shrink-0'
                 title='Send message'
                 disabled={!lead.email}
               >
@@ -767,7 +846,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                     e.stopPropagation();
                     setShowCampaignSelect(true);
                   }}
-                  className='h-10 w-10 sm:h-8 sm:w-8 p-0 border border-border rounded-md hover:border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted active:bg-muted/80 touch-manipulation flex-shrink-0'
+                  className='h-10 w-10 sm:h-8 sm:w-8 p-0 border border-border rounded-md hover:border-border/60 dark:hover:border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-muted/60 active:bg-muted/80 dark:active:bg-muted/70 touch-manipulation flex-shrink-0'
                   title='Add to campaign'
                 >
                   <ListPlus className='h-4 w-4' />
@@ -860,11 +939,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                     </div>
                   )}
 
-                  {/* Enrichment Data */}
-                  <div className='mt-8 mb-24'>
-                    <EnrichmentDataDisplay lead={lead} />
-                  </div>
-
                   {/* Notes */}
                   {lead.notes && (
                     <div className='mt-8 mb-24'>
@@ -926,7 +1000,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                                     onClick={() =>
                                       handleLeadClick(otherLead.id)
                                     }
-                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-muted/80 transition-colors cursor-pointer'
+                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-muted/80 dark:hover:bg-muted/60 transition-colors cursor-pointer'
                                   >
                                     <div className='w-10 h-10 bg-muted rounded-full flex items-center justify-center flex-shrink-0 border border-border'>
                                       <User className='h-5 w-5 text-muted-foreground' />
@@ -1049,16 +1123,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                         title='View company'
                       >
                         {company ? (
-                          <img
-                            src={
-                              getCompanyLogoUrlSync(
-                                company.name,
-                                company.website || undefined
-                              ) || ''
-                            }
-                            alt={company.name}
-                            className='w-4 h-4 rounded-sm border border-border flex-shrink-0'
-                          />
+                          <CompanyLogoImage company={company} size={16} />
                         ) : (
                           <Building2 className='h-4 w-4 text-muted-foreground flex-shrink-0' />
                         )}
@@ -1212,34 +1277,41 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                   </div>
 
                   {/* Show */}
-                  {(lead?.show_name || lead?.show_date) && (
-                    <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
-                      <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                      <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
-                        <span className='text-xs text-muted-foreground flex-shrink-0'>
-                          Show
-                        </span>
-                        <span className='text-sm text-foreground text-right truncate'>
-                          {(() => {
-                            let dateStr = '';
-                            if (lead.show_date) {
-                              try {
-                                const date = new Date(lead.show_date);
-                                if (!isNaN(date.getTime())) {
-                                  dateStr = ` (${format(date, 'MMM d, yyyy')})`;
-                                }
-                              } catch {
-                                // Invalid date, ignore
-                              }
+                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
+                    <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                      <span className='text-xs text-muted-foreground flex-shrink-0'>
+                        Show
+                      </span>
+                      <div className='text-right flex-1 max-w-[200px]'>
+                        <ShowSelector
+                          value={lead?.show_id || null}
+                          onValueChange={async showId => {
+                            if (!leadId) return;
+                            try {
+                              await updateLead(leadId, { show_id: showId });
+                              await fetchLeadDetails();
+                              onUpdate?.();
+                              toast({
+                                title: 'Success',
+                                description: 'Show updated successfully',
+                              });
+                            } catch (error) {
+                              toast({
+                                title: 'Error',
+                                description:
+                                  error instanceof Error
+                                    ? error.message
+                                    : 'Failed to update show',
+                                variant: 'destructive',
+                              });
                             }
-                            return (
-                              `${lead.show_name || ''}${dateStr}`.trim() || '-'
-                            );
-                          })()}
-                        </span>
+                          }}
+                          className='w-full'
+                        />
                       </div>
                     </div>
-                  )}
+                  </div>
 
                   {/* Created */}
                   <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>

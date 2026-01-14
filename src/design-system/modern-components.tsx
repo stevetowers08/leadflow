@@ -16,6 +16,12 @@ import { cn } from '@/lib/utils';
 import { Loader2, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import React from 'react';
 import { designTokens } from './tokens';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // Modern Chart Container
 interface ModernChartContainerProps {
@@ -236,87 +242,98 @@ export const DataTable: React.FC<DataTableProps> = ({
   }
 
   return (
-    <div className='bg-white rounded-lg border border-border'>
-      <Table>
-        <TableHeader>
-          <TableRow className='transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-border bg-muted/50'>
-            {columns.map(column => (
-              <TableHead
-                key={column.key}
-                className={cn(
-                  'text-sm font-semibold text-muted-foreground uppercase tracking-wider',
-                  column.align === 'center'
-                    ? 'text-center'
-                    : column.align === 'right'
-                      ? 'text-right'
-                      : 'text-left'
-                )}
-                scope='col'
-                style={{
-                  width: column.width || 'auto',
-                  minWidth: column.minWidth || 'auto',
-                }}
-              >
-                <div
-                  className={cn(
-                    'flex items-center gap-2',
-                    column.align === 'center'
-                      ? 'justify-center'
-                      : column.align === 'right'
-                        ? 'justify-end'
-                        : 'justify-start'
-                  )}
-                >
-                  <span>{column.label}</span>
-                </div>
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((row, index) => (
-            <TableRow
-              key={index}
-              className={cn(
-                'data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-muted/80 hover:shadow-sm hover:border-border transition-colors duration-200 group',
-                onRowClick ? 'cursor-pointer relative' : ''
-              )}
-              role='row'
-              tabIndex={onRowClick ? 0 : undefined}
-              aria-label={`Row ${index + 1}`}
-              onClick={onRowClick ? () => onRowClick(row) : undefined}
-            >
+    <TooltipProvider>
+      <div className='bg-white rounded-lg border border-border'>
+        <Table>
+          <TableHeader>
+            <TableRow className='transition-colors data-[state=selected]:bg-muted hover:bg-muted/50 border-b border-border bg-muted/50'>
               {columns.map(column => (
-                <TableCell
+                <TableHead
                   key={column.key}
                   className={cn(
-                    'align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0',
+                    'text-sm font-semibold text-muted-foreground uppercase tracking-wider',
                     column.align === 'center'
                       ? 'text-center'
                       : column.align === 'right'
                         ? 'text-right'
                         : 'text-left'
                   )}
+                  scope='col'
                   style={{
                     width: column.width || 'auto',
                     minWidth: column.minWidth || 'auto',
                   }}
                 >
-                  {column.render ? (
-                    column.render(row[column.key], row)
-                  ) : (
-                    <div className='min-w-0'>
-                      <div className='text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis'>
-                        {String(row[column.key] ?? '-')}
-                      </div>
-                    </div>
-                  )}
-                </TableCell>
+                  <div
+                    className={cn(
+                      'flex items-center gap-2',
+                      column.align === 'center'
+                        ? 'justify-center'
+                        : column.align === 'right'
+                          ? 'justify-end'
+                          : 'justify-start'
+                    )}
+                  >
+                    <span>{column.label}</span>
+                  </div>
+                </TableHead>
               ))}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {data.map((row, index) => (
+              <TableRow
+                key={index}
+                className={cn(
+                  'data-[state=selected]:bg-muted border-b border-gray-100 hover:bg-muted/80 hover:shadow-sm hover:border-border transition-colors duration-200 group',
+                  onRowClick ? 'cursor-pointer relative' : ''
+                )}
+                role='row'
+                tabIndex={onRowClick ? 0 : undefined}
+                aria-label={`Row ${index + 1}`}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+              >
+                {columns.map(column => (
+                  <TableCell
+                    key={column.key}
+                    className={cn(
+                      'align-middle [&:has([role=checkbox])]:pr-0 text-sm font-normal leading-tight px-4 py-1 border-r border-gray-50 last:border-r-0 group-hover:border-r-gray-100 group-hover:last:border-r-0',
+                      column.align === 'center'
+                        ? 'text-center'
+                        : column.align === 'right'
+                          ? 'text-right'
+                          : 'text-left'
+                    )}
+                    style={{
+                      width: column.width || 'auto',
+                      minWidth: column.minWidth || 'auto',
+                    }}
+                  >
+                    {column.render ? (
+                      column.render(row[column.key], row)
+                    ) : (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className='min-w-0 w-full'>
+                            <div className='text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis'>
+                              {String(row[column.key] ?? '-')}
+                            </div>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className='max-w-xs break-words'>
+                            {String(row[column.key] ?? '-')}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </TooltipProvider>
   );
 };

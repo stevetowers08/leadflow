@@ -23,6 +23,12 @@ import {
   TableCell as ShadcnTableCell,
   TableHead as ShadcnTableHead,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // TypeScript Interfaces for Column Configuration
 export interface ColumnConfig<T = unknown> {
@@ -265,6 +271,38 @@ function getColumnWidthStyle(
   return { width: 'auto', minWidth: '150px' };
 }
 
+// Helper component to wrap cell content with tooltip
+function CellWithTooltip({
+  content,
+  children,
+}: {
+  content: unknown;
+  children: React.ReactNode;
+}) {
+  const contentString = React.useMemo(() => {
+    if (typeof content === 'string') return content;
+    if (typeof content === 'number') return String(content);
+    if (content === null || content === undefined) return '';
+    return String(content);
+  }, [content]);
+
+  // Don't show tooltip for empty content
+  if (!contentString || contentString === '-') {
+    return <>{children}</>;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className='w-full truncate'>{children}</div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p className='max-w-xs break-words'>{contentString}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 // Main UnifiedTable Component
 function UnifiedTableComponent<T = unknown>({
   data,
@@ -439,81 +477,34 @@ function UnifiedTableComponent<T = unknown>({
         : columns;
 
     return (
-      <div
-        className={cn(
-          'bg-background border-t border-b overflow-hidden',
-          scrollable && 'flex flex-col h-full min-w-0',
-          !scrollable && 'w-full',
-          className
-        )}
-      >
+      <TooltipProvider>
         <div
-          ref={scrollContainerRef}
           className={cn(
-            scrollable && 'flex-1 min-h-0 min-w-0 overflow-auto',
-            !scrollable && 'w-full overflow-x-auto'
+            'bg-background border-t border-b overflow-hidden',
+            scrollable && 'flex flex-col h-full min-w-0',
+            !scrollable && 'w-full',
+            className
           )}
         >
-          <table
-            role='table'
-            aria-label={tableId ? `Table: ${tableId}` : 'Data table'}
-            className='w-full caption-bottom text-sm'
-            style={{
-              tableLayout: 'fixed',
-              borderCollapse: 'collapse',
-            }}
+          <div
+            ref={scrollContainerRef}
+            className={cn(
+              scrollable && 'flex-1 min-h-0 min-w-0 overflow-auto',
+              !scrollable && 'w-full overflow-x-auto'
+            )}
           >
-            <colgroup>
-              {orderedColumns.map(column => {
-                // Check if this is a select/checkbox column (typically first column with no label or very short)
-                const isSelectColumn =
-                  !column.label ||
-                  (typeof column.label === 'string' &&
-                    column.label.trim().length === 0) ||
-                  column.key.toLowerCase().includes('select') ||
-                  column.key.toLowerCase().includes('checkbox');
-
-                // Select columns get a small fixed width (48px for checkbox)
-                if (isSelectColumn) {
-                  return (
-                    <col
-                      key={column.key}
-                      style={{
-                        width: '48px',
-                        minWidth: '48px',
-                        maxWidth: '48px',
-                      }}
-                    />
-                  );
-                }
-
-                // Use consistent width calculation
-                return (
-                  <col
-                    key={column.key}
-                    style={getColumnWidthStyle(column, isSelectColumn)}
-                  />
-                );
-              })}
-            </colgroup>
-            <TableHeader
-              className={cn(
-                'bg-background',
-                isScrolled &&
-                  scrollable &&
-                  'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
-              )}
+            <table
+              role='table'
+              aria-label={tableId ? `Table: ${tableId}` : 'Data table'}
+              className='w-full caption-bottom text-sm'
+              style={{
+                tableLayout: 'fixed',
+                borderCollapse: 'collapse',
+              }}
             >
-              <tr className='border-b border-border'>
-                {orderedColumns.map((column, index) => {
-                  // Handle different label types
-                  const labelContent = React.isValidElement(column.label)
-                    ? column.label
-                    : typeof column.label === 'string'
-                      ? column.label
-                      : '';
-
-                  // Check if this is a select/checkbox column
+              <colgroup>
+                {orderedColumns.map(column => {
+                  // Check if this is a select/checkbox column (typically first column with no label or very short)
                   const isSelectColumn =
                     !column.label ||
                     (typeof column.label === 'string' &&
@@ -521,280 +512,340 @@ function UnifiedTableComponent<T = unknown>({
                     column.key.toLowerCase().includes('select') ||
                     column.key.toLowerCase().includes('checkbox');
 
-                  // Use consistent width calculation (must match colgroup)
-                  const headerWidthStyle = getColumnWidthStyle(
-                    column,
-                    isSelectColumn
-                  );
+                  // Select columns get a small fixed width (48px for checkbox)
+                  if (isSelectColumn) {
+                    return (
+                      <col
+                        key={column.key}
+                        style={{
+                          width: '48px',
+                          minWidth: '48px',
+                          maxWidth: '48px',
+                        }}
+                      />
+                    );
+                  }
 
+                  // Use consistent width calculation
                   return (
-                    <TableHead
+                    <col
                       key={column.key}
-                      scope='col'
-                      align={column.align}
-                      isFirst={index === 0}
-                      isLast={index === orderedColumns.length - 1}
-                      isSticky={scrollable && stickyHeaders}
-                      className={column.className}
-                      style={headerWidthStyle}
-                    >
-                      <div
-                        className={cn(
-                          'w-full h-full select-none',
-                          'flex items-center',
-                          column.align === 'center' && 'justify-center',
-                          column.align === 'right' && 'justify-end',
-                          column.align === 'left' && 'justify-start',
-                          !column.align && 'justify-start'
-                        )}
-                      >
-                        {labelContent}
-                      </div>
-                    </TableHead>
+                      style={getColumnWidthStyle(column, isSelectColumn)}
+                    />
                   );
                 })}
-              </tr>
-            </TableHeader>
+              </colgroup>
+              <TableHeader
+                className={cn(
+                  'bg-background',
+                  isScrolled &&
+                    scrollable &&
+                    'shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
+                )}
+              >
+                <tr className='border-b border-border'>
+                  {orderedColumns.map((column, index) => {
+                    // Handle different label types
+                    const labelContent = React.isValidElement(column.label)
+                      ? column.label
+                      : typeof column.label === 'string'
+                        ? column.label
+                        : '';
 
-            <TableBody>
-              {(() => {
-                // Show empty message if no data
-                if (isEmpty && (!grouped || !groups || groups.length === 0)) {
-                  return (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className='text-center py-8'
+                    // Check if this is a select/checkbox column
+                    const isSelectColumn =
+                      !column.label ||
+                      (typeof column.label === 'string' &&
+                        column.label.trim().length === 0) ||
+                      column.key.toLowerCase().includes('select') ||
+                      column.key.toLowerCase().includes('checkbox');
+
+                    // Use consistent width calculation (must match colgroup)
+                    const headerWidthStyle = getColumnWidthStyle(
+                      column,
+                      isSelectColumn
+                    );
+
+                    return (
+                      <TableHead
+                        key={column.key}
+                        scope='col'
+                        align={column.align}
+                        isFirst={index === 0}
+                        isLast={index === orderedColumns.length - 1}
+                        isSticky={scrollable && stickyHeaders}
+                        className={column.className}
+                        style={headerWidthStyle}
                       >
-                        <div className='text-muted-foreground'>
-                          {emptyMessage}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                }
-
-                // If grouped mode but no groups, show empty message
-                if (
-                  grouped &&
-                  groups &&
-                  Array.isArray(groups) &&
-                  groups.length === 0
-                ) {
-                  return (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className='text-center py-8'
-                      >
-                        <div className='text-muted-foreground'>
-                          {emptyMessage}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                }
-
-                // TableBody rendering path (development only)
-
-                return grouped &&
-                  groups &&
-                  Array.isArray(groups) &&
-                  groups.length > 0
-                  ? // Render grouped data
-                    groups.map((group, groupIndex) => {
-                      const isExpanded =
-                        expandedGroups?.has(group.label) ?? true;
-                      const shouldRender = group.data.length > 0;
-
-                      if (!shouldRender) return null;
-
-                      return (
-                        <React.Fragment
-                          key={`group-${group.label}-${groupIndex}`}
+                        <div
+                          className={cn(
+                            'w-full h-full select-none',
+                            'flex items-center',
+                            column.align === 'center' && 'justify-center',
+                            column.align === 'right' && 'justify-end',
+                            column.align === 'left' && 'justify-start',
+                            !column.align && 'justify-start'
+                          )}
                         >
-                          {/* Spacer between groups */}
-                          {groupIndex > 0 && (
-                            <TableRow className='h-4 bg-transparent pointer-events-none border-0'>
+                          {labelContent}
+                        </div>
+                      </TableHead>
+                    );
+                  })}
+                </tr>
+              </TableHeader>
+
+              <TableBody>
+                {(() => {
+                  // Show empty message if no data
+                  if (isEmpty && (!grouped || !groups || groups.length === 0)) {
+                    return (
+                      <TableRow>
+                        <TableCell
+                          colSpan={columns.length}
+                          className='text-center py-8'
+                        >
+                          <div className='text-muted-foreground'>
+                            {emptyMessage}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+
+                  // If grouped mode but no groups, show empty message
+                  if (
+                    grouped &&
+                    groups &&
+                    Array.isArray(groups) &&
+                    groups.length === 0
+                  ) {
+                    return (
+                      <TableRow>
+                        <TableCell
+                          colSpan={columns.length}
+                          className='text-center py-8'
+                        >
+                          <div className='text-muted-foreground'>
+                            {emptyMessage}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+
+                  // TableBody rendering path (development only)
+
+                  return grouped &&
+                    groups &&
+                    Array.isArray(groups) &&
+                    groups.length > 0
+                    ? // Render grouped data
+                      groups.map((group, groupIndex) => {
+                        const isExpanded =
+                          expandedGroups?.has(group.label) ?? true;
+                        const shouldRender = group.data.length > 0;
+
+                        if (!shouldRender) return null;
+
+                        return (
+                          <React.Fragment
+                            key={`group-${group.label}-${groupIndex}`}
+                          >
+                            {/* Spacer between groups */}
+                            {groupIndex > 0 && (
+                              <TableRow className='h-4 bg-transparent pointer-events-none border-0'>
+                                <TableCell
+                                  colSpan={columns.length}
+                                  className='p-0 border-0'
+                                />
+                              </TableRow>
+                            )}
+
+                            {/* Group Header Row */}
+                            <TableRow
+                              className='bg-muted hover:bg-muted/80 cursor-pointer'
+                              onClick={() => onToggleGroup?.(group.label)}
+                              aria-expanded={isExpanded}
+                            >
                               <TableCell
                                 colSpan={columns.length}
-                                className='p-0 border-0'
-                              />
-                            </TableRow>
-                          )}
-
-                          {/* Group Header Row */}
-                          <TableRow
-                            className='bg-muted hover:bg-muted/80 cursor-pointer'
-                            onClick={() => onToggleGroup?.(group.label)}
-                            aria-expanded={isExpanded}
-                          >
-                            <TableCell
-                              colSpan={columns.length}
-                              className='font-semibold text-sm text-foreground py-3'
-                            >
-                              <div className='flex items-center justify-between'>
-                                <span>{group.label}</span>
-                                <div className='flex items-center gap-3'>
-                                  <span className='text-xs font-normal text-muted-foreground'>
-                                    {group.count}
-                                  </span>
-                                  <span className='text-xs'>
-                                    {isExpanded ? '−' : '+'}
-                                  </span>
+                                className='font-semibold text-sm text-foreground py-3'
+                              >
+                                <div className='flex items-center justify-between'>
+                                  <span>{group.label}</span>
+                                  <div className='flex items-center gap-3'>
+                                    <span className='text-xs font-normal text-muted-foreground'>
+                                      {group.count}
+                                    </span>
+                                    <span className='text-xs'>
+                                      {isExpanded ? '−' : '+'}
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
-                            </TableCell>
-                          </TableRow>
+                              </TableCell>
+                            </TableRow>
 
-                          {/* Group Rows */}
-                          {isExpanded &&
-                            group.data.map((row, index) => {
-                              const rowProps = getRowProps?.(row, index) || {};
-                              const customClassName = getRowClassName?.(
-                                row,
-                                index
+                            {/* Group Rows */}
+                            {isExpanded &&
+                              group.data.map((row, index) => {
+                                const rowProps =
+                                  getRowProps?.(row, index) || {};
+                                const customClassName = getRowClassName?.(
+                                  row,
+                                  index
+                                );
+                                return (
+                                  <TableRow
+                                    key={`${group.label}-${index}`}
+                                    index={index}
+                                    onClick={() => onRowClick?.(row, index)}
+                                    className={cn(
+                                      'bg-white',
+                                      rowProps.className,
+                                      customClassName
+                                    )}
+                                    isEnriched={rowProps.isEnriched}
+                                  >
+                                    {orderedColumns.map((column, colIndex) => {
+                                      const statusValue =
+                                        (column.cellType === 'status' ||
+                                          column.cellType === 'ai-score') &&
+                                        column.getStatusValue
+                                          ? column.getStatusValue(row)
+                                          : undefined;
+
+                                      const value = (
+                                        row as Record<string, unknown>
+                                      )[column.key];
+
+                                      // Check if this is a select/checkbox column
+                                      const isSelectColumn =
+                                        !column.label ||
+                                        (typeof column.label === 'string' &&
+                                          column.label.trim().length === 0) ||
+                                        column.key
+                                          .toLowerCase()
+                                          .includes('select') ||
+                                        column.key
+                                          .toLowerCase()
+                                          .includes('checkbox');
+
+                                      // Use consistent width calculation (must match colgroup and header)
+                                      const cellWidthStyle =
+                                        getColumnWidthStyle(
+                                          column,
+                                          isSelectColumn
+                                        );
+
+                                      return (
+                                        <TableCell
+                                          key={`${group.label}-${index}-${colIndex}`}
+                                          cellType={column.cellType}
+                                          align={column.align}
+                                          statusValue={statusValue}
+                                          isLast={
+                                            colIndex ===
+                                            orderedColumns.length - 1
+                                          }
+                                          className={column.className}
+                                          style={cellWidthStyle}
+                                        >
+                                          <CellWithTooltip content={value}>
+                                            {column.render ? (
+                                              column.render(value, row, index)
+                                            ) : (
+                                              <span>
+                                                {String(value ?? '-')}
+                                              </span>
+                                            )}
+                                          </CellWithTooltip>
+                                        </TableCell>
+                                      );
+                                    })}
+                                  </TableRow>
+                                );
+                              })}
+                          </React.Fragment>
+                        );
+                      })
+                    : // Render ungrouped data
+                      displayData.map((row, index) => {
+                        const rowProps = getRowProps?.(row, index) || {};
+                        const customClassName = getRowClassName?.(row, index);
+                        const rowId = (row as Record<string, unknown>)?.id as
+                          | string
+                          | undefined;
+                        const handleRowClick = onRowClick
+                          ? () => onRowClick(row, index)
+                          : undefined;
+                        return (
+                          <TableRow
+                            key={rowId ? `row-${rowId}` : `row-${index}`}
+                            index={index}
+                            onClick={handleRowClick}
+                            className={cn(rowProps.className, customClassName)}
+                            isEnriched={rowProps.isEnriched}
+                          >
+                            {orderedColumns.map((column, colIndex) => {
+                              // Get status value for status and ai-score cells
+                              const statusValue =
+                                (column.cellType === 'status' ||
+                                  column.cellType === 'ai-score') &&
+                                column.getStatusValue
+                                  ? column.getStatusValue(row)
+                                  : undefined;
+
+                              // Extract the value for this column
+                              const value = (row as Record<string, unknown>)[
+                                column.key
+                              ];
+
+                              // Check if this is a select/checkbox column
+                              const isSelectColumn =
+                                !column.label ||
+                                (typeof column.label === 'string' &&
+                                  column.label.trim().length === 0) ||
+                                column.key.toLowerCase().includes('select') ||
+                                column.key.toLowerCase().includes('checkbox');
+
+                              // Use consistent width calculation (must match colgroup and header)
+                              const cellWidthStyle = getColumnWidthStyle(
+                                column,
+                                isSelectColumn
                               );
+
                               return (
-                                <TableRow
-                                  key={`${group.label}-${index}`}
-                                  index={index}
-                                  onClick={() => onRowClick?.(row, index)}
-                                  className={cn(
-                                    'bg-white',
-                                    rowProps.className,
-                                    customClassName
-                                  )}
-                                  isEnriched={rowProps.isEnriched}
+                                <TableCell
+                                  key={`${index}-${colIndex}`}
+                                  cellType={column.cellType}
+                                  align={column.align}
+                                  statusValue={statusValue}
+                                  isLast={
+                                    colIndex === orderedColumns.length - 1
+                                  }
+                                  className={column.className}
+                                  style={cellWidthStyle}
                                 >
-                                  {orderedColumns.map((column, colIndex) => {
-                                    const statusValue =
-                                      (column.cellType === 'status' ||
-                                        column.cellType === 'ai-score') &&
-                                      column.getStatusValue
-                                        ? column.getStatusValue(row)
-                                        : undefined;
-
-                                    const value = (
-                                      row as Record<string, unknown>
-                                    )[column.key];
-
-                                    // Check if this is a select/checkbox column
-                                    const isSelectColumn =
-                                      !column.label ||
-                                      (typeof column.label === 'string' &&
-                                        column.label.trim().length === 0) ||
-                                      column.key
-                                        .toLowerCase()
-                                        .includes('select') ||
-                                      column.key
-                                        .toLowerCase()
-                                        .includes('checkbox');
-
-                                    // Use consistent width calculation (must match colgroup and header)
-                                    const cellWidthStyle = getColumnWidthStyle(
-                                      column,
-                                      isSelectColumn
-                                    );
-
-                                    return (
-                                      <TableCell
-                                        key={`${group.label}-${index}-${colIndex}`}
-                                        cellType={column.cellType}
-                                        align={column.align}
-                                        statusValue={statusValue}
-                                        isLast={
-                                          colIndex === orderedColumns.length - 1
-                                        }
-                                        className={column.className}
-                                        style={cellWidthStyle}
-                                      >
-                                        {column.render ? (
-                                          column.render(value, row, index)
-                                        ) : (
-                                          <span>{String(value ?? '-')}</span>
-                                        )}
-                                      </TableCell>
-                                    );
-                                  })}
-                                </TableRow>
+                                  <CellWithTooltip content={value}>
+                                    {column.render ? (
+                                      column.render(value, row, index)
+                                    ) : (
+                                      <span>{String(value ?? '-')}</span>
+                                    )}
+                                  </CellWithTooltip>
+                                </TableCell>
                               );
                             })}
-                        </React.Fragment>
-                      );
-                    })
-                  : // Render ungrouped data
-                    displayData.map((row, index) => {
-                      const rowProps = getRowProps?.(row, index) || {};
-                      const customClassName = getRowClassName?.(row, index);
-                      const rowId = (row as Record<string, unknown>)?.id as
-                        | string
-                        | undefined;
-                      const handleRowClick = onRowClick
-                        ? () => onRowClick(row, index)
-                        : undefined;
-                      return (
-                        <TableRow
-                          key={rowId ? `row-${rowId}` : `row-${index}`}
-                          index={index}
-                          onClick={handleRowClick}
-                          className={cn(rowProps.className, customClassName)}
-                          isEnriched={rowProps.isEnriched}
-                        >
-                          {orderedColumns.map((column, colIndex) => {
-                            // Get status value for status and ai-score cells
-                            const statusValue =
-                              (column.cellType === 'status' ||
-                                column.cellType === 'ai-score') &&
-                              column.getStatusValue
-                                ? column.getStatusValue(row)
-                                : undefined;
-
-                            // Extract the value for this column
-                            const value = (row as Record<string, unknown>)[
-                              column.key
-                            ];
-
-                            // Check if this is a select/checkbox column
-                            const isSelectColumn =
-                              !column.label ||
-                              (typeof column.label === 'string' &&
-                                column.label.trim().length === 0) ||
-                              column.key.toLowerCase().includes('select') ||
-                              column.key.toLowerCase().includes('checkbox');
-
-                            // Use consistent width calculation (must match colgroup and header)
-                            const cellWidthStyle = getColumnWidthStyle(
-                              column,
-                              isSelectColumn
-                            );
-
-                            return (
-                              <TableCell
-                                key={`${index}-${colIndex}`}
-                                cellType={column.cellType}
-                                align={column.align}
-                                statusValue={statusValue}
-                                isLast={colIndex === orderedColumns.length - 1}
-                                className={column.className}
-                                style={cellWidthStyle}
-                              >
-                                {column.render ? (
-                                  column.render(value, row, index)
-                                ) : (
-                                  <span>{String(value ?? '-')}</span>
-                                )}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      );
-                    });
-              })()}
-            </TableBody>
-          </table>
+                          </TableRow>
+                        );
+                      });
+                })()}
+              </TableBody>
+            </table>
+          </div>
         </div>
-      </div>
+      </TooltipProvider>
     );
   }, [
     data,

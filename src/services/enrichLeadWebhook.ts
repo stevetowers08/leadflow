@@ -17,8 +17,10 @@ import type {
   SimplifiedEnrichmentData,
 } from '@/types/peopleDataLabs';
 import { simplifyEnrichmentData } from '@/services/peopleDataLabsService';
+import { findOrCreateCompany } from '@/services/companiesService';
 import { toTitleCase } from '@/utils/textFormatting';
 import type { Json } from '@/integrations/supabase/types';
+import { getOrStoreCompanyLogo } from '@/services/logoService';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -60,53 +62,222 @@ async function updateEnrichmentStatus(
 /**
  * Enrich company data from PDL response
  */
+/**
+ * Extract domain from website URL
+ */
+function extractDomain(website: string | undefined | null): string | null {
+  if (!website) return null;
+  try {
+    // Remove protocol if present
+    const url = website.replace(/^https?:\/\//, '').replace(/^www\./, '');
+    // Extract domain (everything before first /)
+    const domain = url.split('/')[0].toLowerCase();
+    return domain || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Build location string from PDL location data
+ * Extracts from experience[].company.location (primary/current job)
+ */
+function buildLocationString(
+  pdlData: PDLEnrichmentResponse['data']
+): string | null {
+  // Try to get location from primary/current job experience
+  const primaryExperience = pdlData.experience?.find(exp => exp.is_primary);
+  const companyLocation = primaryExperience?.company?.location;
+
+  if (companyLocation) {
+    const parts: string[] = [];
+
+    if (companyLocation.street_address) {
+      parts.push(companyLocation.street_address);
+    }
+    if (companyLocation.locality) {
+      parts.push(companyLocation.locality);
+    }
+    if (companyLocation.region) {
+      parts.push(companyLocation.region);
+    }
+    if (companyLocation.postal_code) {
+      parts.push(companyLocation.postal_code);
+    }
+    if (companyLocation.country) {
+      parts.push(companyLocation.country);
+    }
+
+    // Use location name if we have parts, otherwise fallback to name field
+    if (parts.length > 0) {
+      return parts.join(', ');
+    }
+    if (companyLocation.name) {
+      return companyLocation.name;
+    }
+  }
+
+  return null;
+}
+
 async function enrichCompany(
   supabase: ReturnType<typeof createClient>,
   leadId: string,
   pdlData: PDLEnrichmentResponse['data']
 ): Promise<void> {
-  const companyName = pdlData.job_company_name;
-  const companyLinkedIn = pdlData.job_company_linkedin_url;
-  const companySize = pdlData.job_company_size;
-  const companyWebsite = pdlData.job_company_website;
+  // Extract company data from PDL response
+  // Try to get from primary/current job experience first (most reliable)
+  const primaryExperience = pdlData.experience?.find(exp => exp.is_primary);
+  const companyFromExperience = primaryExperience?.company;
 
-  if (!companyName && !companyLinkedIn && !companySize) {
-    return;
-  }
+  const companyName = companyFromExperience?.name || pdlData.job_company_name;
+  const companyLinkedIn =
+    companyFromExperience?.linkedin_url || pdlData.job_company_linkedin_url;
+  const companySize = companyFromExperience?.size || pdlData.job_company_size;
+  const companyWebsite =
+    companyFromExperience?.website || pdlData.job_company_website;
+  const companyIndustry =
+    companyFromExperience?.industry || pdlData.job_company_industry;
+  const companyLocation = buildLocationString(pdlData);
+  const companyFounded = companyFromExperience?.founded;
 
+  // Extract domain from website (always extract, even if website exists)
+  const companyDomain = extractDomain(companyWebsite);
+
+  // Get lead's company name first
   const { data: lead } = await supabase
     .from('leads')
     .select('company')
     .eq('id', leadId)
     .single();
 
+  // Use lead's company name if available, otherwise use PDL company name
   const companyNameToUse = lead?.company || companyName;
-  if (!companyNameToUse) return;
 
+  // Only proceed if we have at least a company name OR LinkedIn URL (for matching)
+  if (!companyNameToUse && !companyLinkedIn) {
+    return;
+  }
+
+  // First try to find existing company by LinkedIn URL (most reliable - prevents duplicates)
+  let companyId: string | null = null;
+  if (companyLinkedIn) {
+    const { data: existingByLinkedIn } = await supabase
+      .from('companies')
+      .select('id')
+      .eq('linkedin_url', companyLinkedIn)
+      .maybeSingle();
+
+    if (existingByLinkedIn?.id) {
+      companyId = existingByLinkedIn.id;
+    }
+  }
+
+  // If not found by LinkedIn, find or create by name
+  if (!companyId && companyNameToUse) {
+    companyId = await findOrCreateCompany(
+      companyNameToUse,
+      {
+        website: companyWebsite || null,
+        linkedin_url: companyLinkedIn || null,
+        company_size: companySize || null,
+        industry: companyIndustry || null,
+        head_office: companyLocation || null,
+        domain: companyDomain || null,
+        description: null, // PDL doesn't provide description, but we include it for consistency
+      },
+      supabase
+    );
+  }
+
+  // If still no company ID, can't proceed
+  if (!companyId) {
+    return;
+  }
+
+  // Update company with enrichment data
+  // Check what fields already exist (only fill missing fields)
   const { data: existingCompany } = await supabase
     .from('companies')
-    .select('id')
-    .eq('name', toTitleCase(companyNameToUse) || companyNameToUse)
+    .select(
+      'website, linkedin_url, company_size, industry, head_office, domain, description'
+    )
+    .eq('id', companyId)
     .maybeSingle();
 
   const companyUpdate: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
 
-  if (companyLinkedIn) companyUpdate.linkedin_url = companyLinkedIn;
-  if (companySize) companyUpdate.company_size = companySize;
-  if (companyWebsite) companyUpdate.website = companyWebsite;
+  // Update website if missing
+  if (companyWebsite && !existingCompany?.website) {
+    companyUpdate.website = companyWebsite;
+  }
 
-  if (existingCompany) {
-    await supabase
-      .from('companies')
-      .update(companyUpdate)
-      .eq('id', existingCompany.id);
-  } else {
-    await supabase.from('companies').insert({
-      name: toTitleCase(companyNameToUse) || companyNameToUse,
-      ...companyUpdate,
-    });
+  // Update LinkedIn URL if missing
+  if (companyLinkedIn && !existingCompany?.linkedin_url) {
+    companyUpdate.linkedin_url = companyLinkedIn;
+  }
+
+  // Update company size if missing
+  if (companySize && !existingCompany?.company_size) {
+    companyUpdate.company_size = companySize;
+  }
+
+  // Always extract and update domain from website if missing
+  // Extract from existing website if domain is missing but website exists
+  const domainToSet =
+    companyDomain ||
+    (existingCompany?.website ? extractDomain(existingCompany.website) : null);
+  if (domainToSet && !existingCompany?.domain) {
+    companyUpdate.domain = domainToSet;
+  }
+
+  // Update industry if missing or empty
+  if (
+    companyIndustry &&
+    (!existingCompany?.industry || existingCompany.industry.trim() === '')
+  ) {
+    companyUpdate.industry = companyIndustry;
+  }
+
+  // Update location if missing
+  if (companyLocation && !existingCompany?.head_office) {
+    companyUpdate.head_office = companyLocation;
+  }
+
+  // Note: PDL doesn't provide company description, but we could add it from other sources later
+  // For now, we only update fields that PDL provides
+
+  // Update if there's data to update (more than just updated_at)
+  if (Object.keys(companyUpdate).length > 1) {
+    await supabase.from('companies').update(companyUpdate).eq('id', companyId);
+  }
+
+  // Automatically fetch and store company logo if not already present
+  // Fetch updated company data to get the latest website/name
+  const { data: updatedCompany } = await supabase
+    .from('companies')
+    .select('id, name, website, logo_url')
+    .eq('id', companyId)
+    .maybeSingle();
+
+  if (updatedCompany && !updatedCompany.logo_url) {
+    try {
+      // Fetch logo asynchronously (don't block enrichment if logo fetch fails)
+      await getOrStoreCompanyLogo({
+        id: updatedCompany.id,
+        name: updatedCompany.name,
+        website: updatedCompany.website,
+        logo_url: updatedCompany.logo_url,
+      });
+    } catch (error) {
+      // Log but don't fail enrichment if logo fetch fails
+      console.error(
+        `Failed to fetch logo for company ${updatedCompany.name}:`,
+        error
+      );
+    }
   }
 }
 
@@ -265,20 +436,43 @@ export async function triggerEnrichmentWebhook(
       return;
     }
 
+    // Get existing lead data to check what's already populated
+    const { data: existingLead } = await supabase
+      .from('leads')
+      .select(
+        'phone, job_title, linkedin_url, email, company, first_name, last_name'
+      )
+      .eq('id', params.lead_id)
+      .single();
+
     // Simplify and store enrichment data
     const simplifiedData = simplifyEnrichmentData(pdlResponse);
 
-    await supabase
-      .from('leads')
-      .update({
-        enrichment_data: simplifiedData as unknown as Json,
-        enrichment_timestamp: new Date().toISOString(),
-        enrichment_status: 'completed',
-        linkedin_url: simplifiedData.linkedin_url || undefined,
-        job_title: simplifiedData.job_title || undefined,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', params.lead_id);
+    // Only update fields that are missing - never overwrite existing data
+    const updateFields: Record<string, unknown> = {
+      enrichment_data: simplifiedData as unknown as Json,
+      enrichment_timestamp: new Date().toISOString(),
+      enrichment_status: 'completed',
+      updated_at: new Date().toISOString(),
+    };
+
+    // Only enrich missing fields - never overwrite business card data
+    if (simplifiedData.linkedin_url && !existingLead?.linkedin_url) {
+      updateFields.linkedin_url = simplifiedData.linkedin_url;
+    }
+    if (simplifiedData.job_title && !existingLead?.job_title) {
+      updateFields.job_title = simplifiedData.job_title;
+    }
+    // Only enrich phone if missing (never overwrite business card phone)
+    if (simplifiedData.mobile_phone && !existingLead?.phone) {
+      updateFields.phone = simplifiedData.mobile_phone;
+    }
+    // Only enrich company name if missing (never overwrite business card company)
+    if (simplifiedData.job_company && !existingLead?.company) {
+      updateFields.company = simplifiedData.job_company;
+    }
+
+    await supabase.from('leads').update(updateFields).eq('id', params.lead_id);
 
     // Enrich company data if available
     await enrichCompany(supabase, params.lead_id, pdlResponse.data);

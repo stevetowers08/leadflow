@@ -26,7 +26,11 @@
       "Bash(grep:*)",
       "Bash(npx tsc:*)",
       "Bash(del srcutilsuserAssignmentQueries.ts)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(find:*)",
+      "Bash(npx madge:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

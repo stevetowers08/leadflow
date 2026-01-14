@@ -178,7 +178,7 @@ class SupabaseMCPServer {
     const { data, error } = await this.supabase
       .from('companies')
       .select(
-        'id, name, website, linkedin_url, head_office, industry, company_size, confidence_level, lead_score, score_reason, is_favourite, priority, logo_url, description, categories, connection_strength, created_at, updated_at'
+        'id, name, website, linkedin_url, head_office, industry, company_size, confidence_level, lead_score, score_reason, is_favourite, priority, logo_url, description, categories, created_at, updated_at'
       )
       .eq('id', companyId)
       .single();

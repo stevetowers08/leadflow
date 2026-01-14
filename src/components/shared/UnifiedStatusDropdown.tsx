@@ -25,6 +25,7 @@ import { getStatusDisplayText } from '@/utils/statusUtils';
 import { shouldBypassAuth } from '@/config/auth';
 import { Check, ChevronDown } from 'lucide-react';
 import React, { useState } from 'react';
+import { logger } from '@/utils/productionLogger';
 
 export interface UnifiedStatusDropdownProps {
   entityId: string;
@@ -97,7 +98,7 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
         });
       } catch (error) {
         setLocalStatus(previousStatus);
-        console.error('Status update failed:', error);
+        logger.error('Status update failed:', error);
 
         toast({
           title: 'Update failed',

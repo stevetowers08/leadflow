@@ -76,12 +76,27 @@ export function setupGlobalErrorHandlers(): void {
 
       // Don't log errors from the error logging endpoint itself (prevents infinite loops)
       if (!response.ok && !url.includes('/api/errors')) {
-        // For 400 errors, try to read the response body to get detailed error message
-        let errorMessage = `HTTP ${response.status}: ${response.statusText || 'Bad Request'}`;
+        // Get appropriate status text
+        const statusText =
+          response.status === 429
+            ? 'Too Many Requests'
+            : response.status === 400
+              ? 'Bad Request'
+              : response.statusText || 'Unknown Error';
+        let errorMessage = `HTTP ${response.status}: ${statusText}`;
         let errorDetails: unknown = null;
         let shouldSuppress = false;
 
-        if (response.status === 400 || response.status === 404) {
+        // Suppress 429 errors from Brandfetch API (expected rate limiting)
+        if (response.status === 429 && url.includes('api.brandfetch.io')) {
+          shouldSuppress = true;
+        }
+
+        if (
+          response.status === 400 ||
+          response.status === 404 ||
+          response.status === 429
+        ) {
           try {
             // Clone the response to read body without consuming it
             const clonedResponse = response.clone();
@@ -156,6 +171,7 @@ export function setupGlobalErrorHandlers(): void {
       // - CORS errors from third-party APIs
       // - Network timeouts during connection testing
       // - Supabase requests (handled gracefully by Supabase client, network issues are expected)
+      // - Brandfetch API (rate limiting handled with retry logic)
       const isExpectedError =
         errorMessage === 'Failed to fetch' &&
         (url.includes('api.lemlist.com') ||
@@ -165,7 +181,8 @@ export function setupGlobalErrorHandlers(): void {
           url.includes('/api/oauth') ||
           url.includes('/rest/v1/') ||
           url.includes('.supabase.co') ||
-          url.includes('supabase'));
+          url.includes('supabase') ||
+          url.includes('api.brandfetch.io'));
 
       if (!isExpectedError) {
         // Network errors (connection failures) should be logged for unexpected cases

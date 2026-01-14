@@ -6,9 +6,19 @@ import { TabNavigation, TabOption } from '@/components/ui/tab-navigation';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getCompanyLogoUrlSync } from '@/services/logoService';
+import { API_URLS } from '@/constants/urls';
 import { Company, Lead } from '@/types/database';
 import { getStatusDisplayText } from '@/utils/statusUtils';
 import { format } from 'date-fns';
+import {
+  getShowsForCompany,
+  linkCompanyToShow,
+  unlinkCompanyFromShow,
+} from '@/services/showCompaniesService';
+import { getShows } from '@/services/showsService';
+import { ShowSelector } from '@/components/shared/ShowSelector';
+import { SlideOutSection } from './SlideOutSection';
+import { X } from 'lucide-react';
 import {
   Building2,
   ExternalLink,
@@ -22,6 +32,7 @@ import {
 import { memo, useState, useEffect, useCallback, useMemo } from 'react';
 import { SlideOutPanel } from './SlideOutPanel';
 import { SlideOutGrid } from './SlideOutGrid';
+import { logger } from '@/utils/productionLogger';
 import { useRouter } from 'next/navigation';
 
 interface CompanyDetailsSlideOutProps {
@@ -35,13 +46,133 @@ interface GridItem {
   value: React.ReactNode;
 }
 
+// Reusable company logo display component
+const CompanyLogoDisplay: React.FC<{ company: Company; size?: number }> = memo(
+  ({ company, size = 24 }) => {
+    const [imageError, setImageError] = useState(false);
+
+    // Use cached logo_url if available, filter out Clearbit URLs
+    const cachedLogoUrl =
+      company.logo_url && !company.logo_url.includes('logo.clearbit.com')
+        ? company.logo_url
+        : null;
+
+    // Fallback to sync URL generation if no cached logo
+    const logoUrl =
+      cachedLogoUrl ||
+      getCompanyLogoUrlSync(company.name, company.website || undefined);
+
+    // Generate fallback avatar URL
+    const fallbackUrl = `${API_URLS.UI_AVATARS}?name=${encodeURIComponent(company.name)}&background=random&size=${size}`;
+
+    const handleImageError = useCallback(() => {
+      setImageError(true);
+    }, []);
+
+    return (
+      <div className='flex items-center gap-2'>
+        {!imageError && logoUrl ? (
+          <div
+            className='rounded bg-white flex-shrink-0 border border-border/50'
+            style={{ width: `${size}px`, height: `${size}px` }}
+          >
+            <img
+              src={logoUrl}
+              alt={company.name}
+              className='w-full h-full rounded object-contain block'
+              onError={handleImageError}
+            />
+          </div>
+        ) : (
+          <img
+            src={fallbackUrl}
+            alt={company.name}
+            className='rounded flex-shrink-0 border border-border/50'
+            style={{ width: `${size}px`, height: `${size}px` }}
+          />
+        )}
+        <span className='font-medium'>{company.name}</span>
+      </div>
+    );
+  }
+);
+
+CompanyLogoDisplay.displayName = 'CompanyLogoDisplay';
+
+// Company logo header component with proper error handling
+const CompanyLogoHeader: React.FC<{ company: Company }> = memo(
+  ({ company }) => {
+    const [imageError, setImageError] = useState(false);
+
+    // Use cached logo_url if available, filter out Clearbit URLs
+    const cachedLogoUrl =
+      company.logo_url && !company.logo_url.includes('logo.clearbit.com')
+        ? company.logo_url
+        : null;
+
+    // Fallback to sync URL generation if no cached logo
+    const logoUrl =
+      cachedLogoUrl ||
+      getCompanyLogoUrlSync(company.name, company.website || undefined);
+
+    // Generate fallback avatar URL - size to match logo
+    const fallbackUrl = `${API_URLS.UI_AVATARS}?name=${encodeURIComponent(company.name)}&background=random&size=40`;
+
+    const handleImageError = useCallback(() => {
+      setImageError(true);
+    }, []);
+
+    return (
+      <div className='flex items-center gap-3'>
+        {!imageError && logoUrl ? (
+          <div className='w-10 h-10 rounded-lg bg-white flex-shrink-0 border border-border/50'>
+            <img
+              src={logoUrl}
+              alt={company.name}
+              className='w-full h-full rounded-md object-contain'
+              onError={handleImageError}
+            />
+          </div>
+        ) : (
+          <img
+            src={fallbackUrl}
+            alt={company.name}
+            className='w-10 h-10 rounded-lg flex-shrink-0 border border-border/50'
+          />
+        )}
+        <div className='min-w-0 flex-1'>
+          <h2 className='text-lg font-semibold text-foreground truncate leading-tight'>
+            {company.name}
+          </h2>
+          {company.industry && (
+            <p className='text-sm text-muted-foreground truncate leading-tight'>
+              {company.industry}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+);
+
+CompanyLogoHeader.displayName = 'CompanyLogoHeader';
+
 const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
   memo(({ companyId, isOpen, onClose }) => {
     const router = useRouter();
     const [company, setCompany] = useState<Company | null>(null);
     const [relatedLeads, setRelatedLeads] = useState<Lead[]>([]);
+    const [companyShows, setCompanyShows] = useState<
+      Array<{
+        id: string;
+        name: string;
+        start_date: string | null;
+        end_date: string | null;
+      }>
+    >([]);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
+    const [selectedShowId, setSelectedShowId] = useState<string | null>(null);
     const { toast } = useToast();
 
     const fetchCompanyDetails = useCallback(async () => {
@@ -59,6 +190,15 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
         if (companyError) throw companyError;
         setCompany(companyData as Company);
 
+        // Fetch shows for this company
+        try {
+          const shows = await getShowsForCompany(companyId);
+          setCompanyShows(shows);
+        } catch (err) {
+          logger.error('Error fetching company shows:', err);
+          setCompanyShows([]);
+        }
+
         // Fetch related leads (by company name)
         if (companyData?.name) {
           const { data: leadsData, error: leadsError } = await supabase
@@ -75,7 +215,7 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
           }
         }
       } catch (error) {
-        console.error('Error fetching company details:', error);
+        logger.error('Error fetching company details:', error);
         toast({
           title: 'Error',
           description: 'Failed to load company details',
@@ -103,21 +243,7 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
           ? [
               {
                 label: 'Company Name',
-                value: (
-                  <div className='flex items-center gap-2'>
-                    <img
-                      src={
-                        getCompanyLogoUrlSync(
-                          company.name,
-                          company.website || undefined
-                        ) || ''
-                      }
-                      alt={company.name}
-                      className='w-6 h-6 rounded'
-                    />
-                    <span className='font-medium'>{company.name}</span>
-                  </div>
-                ),
+                value: <CompanyLogoDisplay company={company} size={24} />,
               },
               {
                 label: 'Industry',
@@ -127,7 +253,11 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
                 label: 'Website',
                 value: company.website ? (
                   <a
-                    href={company.website}
+                    href={
+                      company.website.startsWith('http')
+                        ? company.website
+                        : `https://${company.website}`
+                    }
                     target='_blank'
                     rel='noopener noreferrer'
                     className='text-primary hover:underline flex items-center gap-1'
@@ -143,7 +273,11 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
                 label: 'LinkedIn',
                 value: company.linkedin_url ? (
                   <a
-                    href={company.linkedin_url}
+                    href={
+                      company.linkedin_url.startsWith('http')
+                        ? company.linkedin_url
+                        : `https://${company.linkedin_url}`
+                    }
                     target='_blank'
                     rel='noopener noreferrer'
                     className='text-primary hover:underline flex items-center gap-1'
@@ -187,6 +321,52 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
             ]
           : [],
       [company]
+    );
+
+    const handleAddShow = useCallback(async () => {
+      if (!selectedShowId || !companyId) return;
+
+      try {
+        await linkCompanyToShow(selectedShowId, companyId);
+        const shows = await getShowsForCompany(companyId);
+        setCompanyShows(shows);
+        setSelectedShowId(null);
+        toast({
+          title: 'Success',
+          description: 'Show linked to company',
+        });
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description:
+            error instanceof Error ? error.message : 'Failed to link show',
+          variant: 'destructive',
+        });
+      }
+    }, [selectedShowId, companyId, toast]);
+
+    const handleRemoveShow = useCallback(
+      async (showId: string) => {
+        if (!companyId) return;
+
+        try {
+          await unlinkCompanyFromShow(showId, companyId);
+          const shows = await getShowsForCompany(companyId);
+          setCompanyShows(shows);
+          toast({
+            title: 'Success',
+            description: 'Show unlinked from company',
+          });
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description:
+              error instanceof Error ? error.message : 'Failed to unlink show',
+            variant: 'destructive',
+          });
+        }
+      },
+      [companyId, toast]
     );
 
     const tabOptions: TabOption[] = useMemo(
@@ -242,30 +422,7 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
         title={company.name}
         subtitle={company.industry || undefined}
         width='wide'
-        customHeader={
-          <div className='flex items-center gap-2'>
-            <img
-              src={
-                getCompanyLogoUrlSync(
-                  company.name,
-                  company.website || undefined
-                ) || ''
-              }
-              alt={company.name}
-              className='w-6 h-6 rounded'
-            />
-            <div>
-              <h2 className='text-lg font-semibold text-foreground truncate'>
-                {company.name}
-              </h2>
-              {company.industry && (
-                <p className='text-sm text-muted-foreground mt-0.5 truncate'>
-                  {company.industry}
-                </p>
-              )}
-            </div>
-          </div>
-        }
+        customHeader={<CompanyLogoHeader company={company} />}
       >
         <div className='border-b border-border'>
           <TabNavigation
@@ -277,8 +434,71 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
 
         <div className='flex-1 overflow-y-auto'>
           {activeTab === 'overview' && (
-            <div className='p-6'>
+            <div className='p-6 space-y-6'>
               <SlideOutGrid items={companyDetailsItems} />
+
+              {/* Shows Section */}
+              <div className='mt-6 pt-6 border-t border-border'>
+                <h3 className='text-sm font-semibold text-foreground mb-4 flex items-center gap-2'>
+                  <Calendar className='h-4 w-4' />
+                  Shows
+                </h3>
+
+                {/* Add Show */}
+                <div className='flex gap-2 mb-4'>
+                  <div className='flex-1'>
+                    <ShowSelector
+                      value={selectedShowId}
+                      onValueChange={setSelectedShowId}
+                      className='w-full'
+                    />
+                  </div>
+                  <Button
+                    onClick={handleAddShow}
+                    disabled={!selectedShowId}
+                    size='sm'
+                  >
+                    Add
+                  </Button>
+                </div>
+
+                {/* Show List */}
+                {companyShows.length === 0 ? (
+                  <p className='text-sm text-muted-foreground'>
+                    No shows linked
+                  </p>
+                ) : (
+                  <div className='space-y-2'>
+                    {companyShows.map(show => (
+                      <div
+                        key={show.id}
+                        className='flex items-center justify-between p-2 bg-muted rounded-md border border-border'
+                      >
+                        <div className='flex-1'>
+                          <div className='text-sm font-medium text-foreground'>
+                            {show.name}
+                          </div>
+                          {show.start_date && (
+                            <div className='text-xs text-muted-foreground'>
+                              {format(new Date(show.start_date), 'MMM d, yyyy')}
+                              {show.end_date &&
+                                ` - ${format(new Date(show.end_date), 'MMM d, yyyy')}`}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          onClick={() => handleRemoveShow(show.id)}
+                          className='h-8 w-8 p-0'
+                        >
+                          <X className='h-4 w-4' />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -290,13 +510,13 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
                   <p>No leads found for this company</p>
                 </div>
               ) : (
-                <div className='space-y-2'>
+                <div className='space-y-4'>
                   {relatedLeads.map(lead => (
                     <div
                       key={lead.id}
-                      className='p-3 border rounded-lg hover:bg-accent transition-colors'
+                      className='p-4 border rounded-lg hover:bg-accent dark:hover:bg-muted/60 transition-colors'
                     >
-                      <div className='flex items-center justify-between gap-3'>
+                      <div className='flex items-center justify-between gap-3 mb-3'>
                         <div
                           className='flex-1 cursor-pointer'
                           onClick={() => handleLeadClick(lead.id)}

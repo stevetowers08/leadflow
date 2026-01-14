@@ -197,20 +197,32 @@ export const useAssignmentState = (options: AssignmentOptions) => {
           });
       }
 
-      // Invalidate relevant queries
+      // Invalidate relevant queries in a single batch using predicate
+      // This is more efficient than multiple individual invalidateQueries calls
       queryClient.invalidateQueries({
-        queryKey: ['assignment', entityType, entityId],
+        predicate: query => {
+          const key = query.queryKey[0] as string;
+          // Specific assignment query for this entity
+          if (
+            query.queryKey[0] === 'assignment' &&
+            query.queryKey[1] === entityType &&
+            query.queryKey[2] === entityId
+          ) {
+            return true;
+          }
+          // Related assignment and entity queries
+          return [
+            'user-assignment-stats',
+            'leads-with-assignments',
+            'companies-with-assignments',
+            'unassigned-leads',
+            'unassigned-companies',
+            'leads',
+            'companies',
+          ].includes(key);
+        },
+        refetchType: 'active', // Only refetch currently active queries
       });
-      queryClient.invalidateQueries({ queryKey: ['user-assignment-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['leads-with-assignments'] });
-      queryClient.invalidateQueries({
-        queryKey: ['companies-with-assignments'],
-      });
-      queryClient.invalidateQueries({ queryKey: ['unassigned-leads'] });
-      queryClient.invalidateQueries({ queryKey: ['unassigned-companies'] });
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
-      queryClient.invalidateQueries({ queryKey: ['companies'] });
-      // Jobs removed - not in PDR
 
       toast({
         title: 'Assignment Updated',

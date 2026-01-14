@@ -132,6 +132,39 @@ export function simplifyEnrichmentData(
 ): SimplifiedEnrichmentData {
   const { data, likelihood } = response;
 
+  // Extract phone number - check mobile_phone string first, then phone_numbers array
+  // Note: PDL sometimes returns booleans to indicate presence, but actual values may be in arrays
+  let mobilePhone: string | undefined;
+  if (typeof data.mobile_phone === 'string') {
+    mobilePhone = data.mobile_phone;
+  } else if (
+    Array.isArray(data.phone_numbers) &&
+    data.phone_numbers.length > 0
+  ) {
+    // Filter out boolean values and get first actual phone number string
+    const phoneNumbers = data.phone_numbers.filter(
+      (p): p is string => typeof p === 'string'
+    );
+    if (phoneNumbers.length > 0) {
+      mobilePhone = phoneNumbers[0];
+    }
+  }
+
+  // Extract work email - check work_email string first, then emails array
+  // Note: PDL sometimes returns booleans to indicate presence, but actual values may be in arrays
+  let workEmail: string | undefined;
+  if (typeof data.work_email === 'string') {
+    workEmail = data.work_email;
+  } else if (Array.isArray(data.emails) && data.emails.length > 0) {
+    // Filter out boolean values and get first actual email string
+    const emails = data.emails.filter(
+      (e): e is string => typeof e === 'string'
+    );
+    if (emails.length > 0) {
+      workEmail = emails[0];
+    }
+  }
+
   return {
     pdl_id: data.id,
     likelihood,
@@ -139,10 +172,8 @@ export function simplifyEnrichmentData(
     linkedin_username: data.linkedin_username,
     twitter_url: data.twitter_url,
     github_url: data.github_url || undefined,
-    mobile_phone:
-      typeof data.mobile_phone === 'string' ? data.mobile_phone : undefined,
-    work_email:
-      typeof data.work_email === 'string' ? data.work_email : undefined,
+    mobile_phone: mobilePhone,
+    work_email: workEmail,
     personal_emails: Array.isArray(data.personal_emails)
       ? data.personal_emails
       : undefined,

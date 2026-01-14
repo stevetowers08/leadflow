@@ -36,12 +36,20 @@ export const ClearbitLogo: React.FC<ClearbitLogoProps> = ({
   const sizeClass = sizeMap[size];
   const textSizeClass = textSizeMap[size];
 
+  // Reset state when logo URL changes
+  React.useEffect(() => {
+    setImageError(false);
+    setImageLoaded(false);
+  }, [logoUrl]);
+
   const handleError = useCallback(() => {
     setImageError(true);
+    setImageLoaded(false);
   }, []);
 
   const handleLoad = useCallback(() => {
     setImageLoaded(true);
+    setImageError(false);
   }, []);
 
   // If no website or image failed, show initials fallback
@@ -105,6 +113,11 @@ export const ClearbitLogoSync: React.FC<ClearbitLogoProps> = ({
   const url = getCompanyLogoUrlSync(companyName, website);
   const sizeClass = sizeMap[size];
   const textSizeClass = textSizeMap[size];
+
+  // Reset error state when URL changes
+  React.useEffect(() => {
+    setHasError(false);
+  }, [url]);
 
   const handleImageError = () => {
     setHasError(true);

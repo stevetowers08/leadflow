@@ -112,36 +112,41 @@ export function useCompanies(
         throw new Error(`Failed to fetch companies: ${error.message}`);
       }
 
-      // Get leads count for each company
-      const companiesWithCounts = await Promise.all(
-        (data || []).map(async company => {
-          const { count: leadsCount } = await supabase
-            .from('leads')
-            .select('*', { count: 'exact', head: true })
-            .eq('company_id', company.id);
+      // Get leads count for all companies in a single query (avoids N+1 problem)
+      // Note: leads table uses company (text) field, not company_id
+      const companyNames = (data || []).map(c => c.name);
 
-          // Convert null to undefined for TypeScript compatibility (only for nullable fields)
-          return {
-            ...company,
-            website: company.website ?? undefined,
-            linkedin_url: company.linkedin_url ?? undefined,
-            head_office: company.head_office ?? undefined,
-            industry: company.industry ?? undefined,
-            company_size: company.company_size ?? undefined,
-            lead_score: company.lead_score ?? undefined,
-            priority: company.priority ?? undefined,
-            confidence_level: company.confidence_level ?? undefined,
-            score_reason: company.score_reason ?? undefined,
-            logo_url: company.logo_url ?? undefined,
-            is_favourite: company.is_favourite ?? false,
-            // created_at and updated_at are required, ensure they're always strings
-            created_at: company.created_at || new Date().toISOString(),
-            updated_at: company.updated_at || new Date().toISOString(),
-            people_count: leadsCount || 0,
-            // jobs_count removed - not in PDR
-          };
-        })
-      );
+      // Single aggregated query for all lead counts
+      const { data: leadCounts } = await supabase
+        .from('leads')
+        .select('company')
+        .in('company', companyNames);
+
+      // Build a count map from the results
+      const countMap = new Map<string, number>();
+      (leadCounts || []).forEach(lead => {
+        const current = countMap.get(lead.company) || 0;
+        countMap.set(lead.company, current + 1);
+      });
+
+      // Map companies with their counts
+      const companiesWithCounts = (data || []).map(company => ({
+        ...company,
+        website: company.website ?? undefined,
+        linkedin_url: company.linkedin_url ?? undefined,
+        head_office: company.head_office ?? undefined,
+        industry: company.industry ?? undefined,
+        company_size: company.company_size ?? undefined,
+        lead_score: company.lead_score ?? undefined,
+        priority: company.priority ?? undefined,
+        confidence_level: company.confidence_level ?? undefined,
+        score_reason: company.score_reason ?? undefined,
+        logo_url: company.logo_url ?? undefined,
+        is_favourite: company.is_favourite ?? false,
+        created_at: company.created_at || new Date().toISOString(),
+        updated_at: company.updated_at || new Date().toISOString(),
+        people_count: countMap.get(company.name) || 0,
+      }));
 
       return {
         data: companiesWithCounts,

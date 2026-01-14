@@ -19,6 +19,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Lead } from '@/types/database';
+import { findOrCreateCompany } from '@/services/companiesService';
 
 const BATCH_SIZE = 50;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -55,6 +56,9 @@ const DEFAULT_FIELD_MAPPINGS: FieldMapping[] = [
   { csvColumn: 'Role', dbField: 'job_title', required: false },
   { csvColumn: 'Company', dbField: 'company', required: false },
   { csvColumn: 'Company Name', dbField: 'company', required: false },
+  { csvColumn: 'Show name', dbField: 'show_name', required: false },
+  { csvColumn: 'Show Name', dbField: 'show_name', required: false },
+  { csvColumn: 'Show', dbField: 'show_name', required: false },
   { csvColumn: 'LinkedIn', dbField: 'linkedin_url', required: false },
   { csvColumn: 'LinkedIn URL', dbField: 'linkedin_url', required: false },
   { csvColumn: 'Status', dbField: 'status', required: false },
@@ -142,49 +146,14 @@ function isValidEmail(email: string): boolean {
 }
 
 /**
- * Find or create company
+ * Find or create company (delegates to centralized service)
+ * @deprecated Use findOrCreateCompany from @/services/companiesService directly
  */
-async function findOrCreateCompany(
+async function findOrCreateCompanyLocal(
   companyName: string,
   website?: string
 ): Promise<string | null> {
-  if (!companyName) return null;
-
-  try {
-    // Try to find existing company
-    const { data: existing, error: findError } = await supabase
-      .from('companies')
-      .select('id')
-      .ilike('name', companyName)
-      .limit(1)
-      .single();
-
-    if (existing && !findError) {
-      return existing.id;
-    }
-
-    // Create new company (with Title Case formatting)
-    const { toTitleCase } = await import('@/utils/textFormatting');
-    const { data: newCompany, error: createError } = await supabase
-      .from('companies')
-      .insert({
-        name: toTitleCase(companyName),
-        website: website || null,
-        created_at: new Date().toISOString(),
-      })
-      .select('id')
-      .single();
-
-    if (createError || !newCompany) {
-      console.error('Error creating company:', createError);
-      return null;
-    }
-
-    return newCompany.id;
-  } catch (error) {
-    console.error('Error in findOrCreateCompany:', error);
-    return null;
-  }
+  return findOrCreateCompany(companyName, { website: website || null });
 }
 
 /**
@@ -238,6 +207,9 @@ async function transformRow(
         case 'company':
           leadData.company = csvValue.trim();
           break;
+        case 'show_name':
+          leadData.show_name = csvValue.trim();
+          break;
         case 'linkedin_url':
           leadData.linkedin_url = csvValue.trim();
           break;
@@ -276,7 +248,10 @@ async function transformRow(
   if (companyName && !leadData.company) {
     leadData.company = companyName;
     // Optionally create/link company
-    const companyId = await findOrCreateCompany(companyName, companyWebsite);
+    const companyId = await findOrCreateCompanyLocal(
+      companyName,
+      companyWebsite
+    );
     if (companyId) {
       leadData.company_id = companyId;
     }
@@ -291,6 +266,7 @@ async function transformRow(
   leadData.created_at = now;
   leadData.updated_at = now;
   leadData.status = leadData.status || 'active';
+  leadData.enrichment_status = 'pending'; // Set to pending for automatic enrichment
 
   return {
     data: errors.length === 0 ? leadData : null,
@@ -496,10 +472,20 @@ export async function bulkImportPeople(
       batches.push(currentBatch);
     }
 
-    // Insert batches
+    // Insert batches and trigger enrichment
+    const createdLeads: Array<{
+      id: string;
+      email: string | null;
+      company: string | null;
+      first_name: string | null;
+      last_name: string | null;
+    }> = [];
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex];
-      const { error } = await supabase.from('leads').insert(batch);
+      const { data: insertedLeads, error } = await supabase
+        .from('leads')
+        .insert(batch)
+        .select('id, email, company, first_name, last_name');
 
       if (error) {
         // More accurate row calculation for batch errors
@@ -512,7 +498,43 @@ export async function bulkImportPeople(
         });
       } else {
         successCount += batch.length;
+        // Collect lead data for enrichment
+        if (insertedLeads) {
+          createdLeads.push(...insertedLeads);
+        }
       }
+    }
+
+    // Trigger automatic enrichment for all successfully imported leads
+    // Batch enrichment triggers for better performance
+    if (createdLeads.length > 0) {
+      const { triggerEnrichmentWebhook } =
+        await import('@/services/enrichLeadWebhook');
+
+      // Trigger enrichment for all leads in parallel (fire-and-forget)
+      // Using Promise.allSettled to handle all promises without blocking
+      Promise.allSettled(
+        createdLeads.map(lead =>
+          triggerEnrichmentWebhook({
+            lead_id: lead.id,
+            company: lead.company || undefined,
+            email: lead.email || undefined,
+            first_name: lead.first_name || undefined,
+            last_name: lead.last_name || undefined,
+            linkedin_url: null,
+          })
+        )
+      ).then(results => {
+        // Log any failures but don't fail import
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            console.error(
+              `Failed to trigger enrichment for lead ${createdLeads[index]?.id}:`,
+              result.reason
+            );
+          }
+        });
+      });
     }
 
     const errorCount = errors.length;

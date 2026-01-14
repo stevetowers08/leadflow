@@ -18,6 +18,9 @@ export function useCompanyEnrichmentRealtime() {
   useEffect(() => {
     if (!user?.id) return;
 
+    // Note: enrichment_status field doesn't exist in companies table
+    // This hook is disabled until enrichment_status is added back or removed from types
+    // For now, we'll just listen for any company updates to refresh the UI
     const channel = supabase
       .channel('company-enrichment-changes')
       .on(
@@ -26,93 +29,37 @@ export function useCompanyEnrichmentRealtime() {
           event: 'UPDATE',
           schema: 'public',
           table: 'companies',
-          filter: 'enrichment_status=neq.null',
         },
         async payload => {
           const company = payload.new as {
             id: string;
-            enrichment_status:
-              | 'pending'
-              | 'enriching'
-              | 'completed'
-              | 'failed'
-              | null;
             name: string | null;
-            owner_id: string | null;
           };
 
-          const oldCompany = payload.old as {
-            enrichment_status:
-              | 'pending'
-              | 'enriching'
-              | 'completed'
-              | 'failed'
-              | null;
-          };
+          // Invalidate only specific company queries to avoid full refetch of all company data
+          // Use predicate to match company-specific queries while avoiding broad invalidation
+          queryClient.invalidateQueries({
+            predicate: query => {
+              const key = query.queryKey;
+              // Match specific company query: ['company', companyId]
+              if (key[0] === 'company' && key[1] === company.id) {
+                return true;
+              }
+              // For list queries, only invalidate if they're currently active
+              // to avoid unnecessary refetches
+              return false;
+            },
+            refetchType: 'active',
+          });
 
-          // Only process if this is the current user's company
-          if (company.owner_id !== user.id) return;
+          // Also invalidate the companies list, but only active queries
+          queryClient.invalidateQueries({
+            queryKey: ['companies'],
+            refetchType: 'active',
+          });
 
-          // Check if enrichment status changed from pending/enriching to completed/failed
-          const wasEnriching =
-            oldCompany.enrichment_status === 'pending' ||
-            oldCompany.enrichment_status === 'enriching';
-          const isNowComplete =
-            company.enrichment_status === 'completed' ||
-            company.enrichment_status === 'failed';
-
-          // Only notify on status transition from enriching to complete/failed
-          if (wasEnriching && isNowComplete) {
-            // Prevent duplicate notifications (debounce)
-            const companyKey = `${company.id}-${company.enrichment_status}`;
-            if (processedCompaniesRef.current.has(companyKey)) {
-              return;
-            }
-            processedCompaniesRef.current.add(companyKey);
-
-            // Clean up old keys after 5 seconds to allow re-notification if status changes again
-            setTimeout(() => {
-              processedCompaniesRef.current.delete(companyKey);
-            }, 5000);
-
-            const companyName = company.name || 'Company';
-            const success = company.enrichment_status === 'completed';
-
-            // Show toast notification
-            if (success) {
-              toast.success('Company Enriched', {
-                description: `${companyName} has been enriched with additional information.`,
-              });
-            } else {
-              toast.error('Enrichment Failed', {
-                description: `Failed to enrich ${companyName}. Please try again.`,
-              });
-            }
-
-            // Create persistent notification
-            try {
-              await notificationService.create({
-                userId: user.id,
-                type: 'company_enriched',
-                title: success ? 'Company Enriched' : 'Enrichment Failed',
-                message: success
-                  ? `${companyName} has been enriched with additional information.`
-                  : `Failed to enrich ${companyName}.`,
-                priority: 'medium',
-                action: `/companies?id=${company.id}`,
-                metadata: {
-                  companyId: company.id,
-                  companyName,
-                  success,
-                },
-              });
-            } catch (error) {
-              console.error('Failed to create enrichment notification:', error);
-            }
-
-            // Invalidate queries to refresh UI
-            queryClient.invalidateQueries({ queryKey: ['companies'] });
-          }
+          // Note: Enrichment status tracking removed - companies table doesn't have enrichment_status field
+          // If enrichment notifications are needed, they should be handled via leads table instead
         }
       )
       .subscribe();
@@ -120,5 +67,19 @@ export function useCompanyEnrichmentRealtime() {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, [queryClient]);
+}
+
+// Legacy hook - kept for backwards compatibility but disabled enrichment status tracking
+export function useCompanyEnrichmentRealtimeLegacy() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const processedCompaniesRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Disabled - enrichment_status doesn't exist in companies table
+    // Legacy functionality removed - this hook is kept for backwards compatibility only
   }, [user?.id, queryClient]);
 }

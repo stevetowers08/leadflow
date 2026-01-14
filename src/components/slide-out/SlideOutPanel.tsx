@@ -117,7 +117,7 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
               {/* Close button - minimum 44x44 touch target for mobile accessibility */}
               <button
                 onClick={onClose}
-                className='ml-2 md:ml-4 p-2.5 md:p-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent active:bg-accent/80 rounded-lg transition-colors flex-shrink-0 touch-manipulation'
+                className='ml-2 md:ml-4 p-2.5 md:p-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent dark:hover:bg-muted/60 active:bg-accent/80 dark:active:bg-muted/70 rounded-lg transition-colors flex-shrink-0 touch-manipulation'
                 aria-label='Close panel'
               >
                 <X className='h-5 w-5' />

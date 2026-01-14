@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import type { Lead } from '@/types/database';
 import { Sparkles, RefreshCw } from 'lucide-react';
 import type { ButtonProps } from '@/components/ui/button';
+import { logger } from '@/utils/productionLogger';
 
 interface EnrichLeadButtonProps {
   lead: Lead;
@@ -64,7 +65,7 @@ export function EnrichLeadButton({
         });
       }
     } catch (error) {
-      console.error('Error enriching lead:', error);
+      logger.error('Error enriching lead:', error);
       toast.error('Failed to enrich lead', {
         description:
           error instanceof Error
