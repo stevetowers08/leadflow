@@ -80,14 +80,8 @@ const UnifiedStatusDropdownComponent: React.FC<UnifiedStatusDropdownProps> = ({
             .eq('id', entityId);
           if (error) throw error;
         } else if (entityType === 'companies') {
-          const { error } = await supabase
-            .from('companies')
-            .update({
-              pipeline_stage: newStatus,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', entityId);
-          if (error) throw error;
+          // Pipeline stages removed - no update needed
+          // Companies don't have status updates in LeadFlow
         }
 
         onStatusChange?.();

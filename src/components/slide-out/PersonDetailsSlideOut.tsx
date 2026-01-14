@@ -2,8 +2,6 @@
 import { StatusBadge } from '@/components/StatusBadge';
 import { ScoreBadge } from '@/components/shared/ScoreBadge';
 import { Badge } from '@/components/ui/badge';
-import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
-import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -694,19 +692,6 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                 value: company.company_size || '-',
               },
               {
-                label: 'Pipeline Stage',
-                value: company.pipeline_stage ? (
-                  <Badge
-                    variant='outline'
-                    className={`rounded-md font-medium whitespace-nowrap border px-2 py-0.5 text-xs ${getUnifiedStatusClass(company.pipeline_stage)}`}
-                  >
-                    {getStatusDisplayText(company.pipeline_stage)}
-                  </Badge>
-                ) : (
-                  '-'
-                ),
-              },
-              {
                 label: (
                   <span className='flex items-center gap-1.5'>
                     <Sparkles className='h-3.5 w-3.5' />
@@ -780,46 +765,12 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
                     e.stopPropagation();
                     setShowCampaignSelect(true);
                   }}
-                  className='h-8 w-8 p-0 border border-border rounded-md hover:border-border/60 dark:hover:border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-muted/60 bg-background'
-                  title='Add to campaign'
+                  className='h-8 w-8 p-0 border border-border dark:border-border/70 rounded-md hover:border-border/80 dark:hover:border-border text-muted-foreground dark:text-foreground/70 hover:text-foreground dark:hover:text-foreground hover:bg-muted dark:hover:bg-muted/80 active:bg-muted/80 dark:active:bg-muted/90 touch-manipulation flex-shrink-0 transition-colors'
+                  title='Add to workflow'
                 >
                   <ListPlus className='h-4 w-4' />
                 </Button>
               )}
-              <IconOnlyAssignmentCell
-                ownerId={null}
-                entityId={person.id}
-                entityType='people'
-                onAssignmentChange={() => {
-                  onUpdate?.();
-                  fetchPersonDetails();
-                }}
-              />
-              <UnifiedStatusDropdown
-                entityId={person.id}
-                entityType='people'
-                currentStatus={
-                  'people_stage' in person && person.people_stage
-                    ? String(person.people_stage)
-                    : 'status' in person && person.status
-                      ? String(person.status)
-                      : 'new_lead'
-                }
-                availableStatuses={[
-                  'new_lead',
-                  'message_sent',
-                  'replied',
-                  'interested',
-                  'meeting_scheduled',
-                  'meeting_completed',
-                  'follow_up',
-                  'not_interested',
-                ]}
-                onStatusChange={() => {
-                  onUpdate?.();
-                  fetchPersonDetails();
-                }}
-              />
             </div>
           </div>
         }

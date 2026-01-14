@@ -16,9 +16,6 @@ export interface StatusColorScheme {
   // Company Statuses
   companyStatuses: Record<string, ColorScheme>;
 
-  // Company Pipeline Stages
-  companyPipelineStages: Record<string, ColorScheme>;
-
   // Reply Types
   replyTypes: Record<string, ColorScheme>;
 
@@ -264,169 +261,6 @@ export const UNIFIED_COLOR_SCHEME: StatusColorScheme = {
       background: 'bg-error-solid',
       text: 'text-white',
       border: 'border-error-solid',
-    },
-  },
-
-  // Company Pipeline Stages - Modern Dark Colors (2024-2025 Standards)
-  companyPipelineStages: {
-    // Initial stages - Dark Info (modern informative)
-    new_lead: {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    NEW_LEAD: {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    'new lead': {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-
-    // Qualified - Modern Dark Green (system working)
-    qualified: {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    QUALIFIED: {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-
-    // Automated/Processed - Modern Dark Green (system working)
-    automated: {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    AUTOMATED: {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-
-    // Engagement - Modern Dark Amber/Orange (active communication)
-    replied: {
-      background: 'bg-warning-solid',
-      text: 'text-white',
-      border: 'border-warning-solid',
-    },
-    REPLIED: {
-      background: 'bg-warning-solid',
-      text: 'text-white',
-      border: 'border-warning-solid',
-    },
-    // Distinguish message sent from replied: use info (blue) for sent, amber for replied
-    message_sent: {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    'message sent': {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    'MSG SENT': {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    meeting_scheduled: {
-      background: 'bg-warning-solid',
-      text: 'text-white',
-      border: 'border-warning-solid',
-    },
-    'meeting scheduled': {
-      background: 'bg-warning-solid',
-      text: 'text-white',
-      border: 'border-warning-solid',
-    },
-    MEETING_SCHEDULED: {
-      background: 'bg-warning-solid',
-      text: 'text-white',
-      border: 'border-warning-solid',
-    },
-
-    // Business stages - Modern Dark Purple/Amber (serious business)
-    proposal_sent: {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    'proposal sent': {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    PROPOSAL_SENT: {
-      background: 'bg-info-solid',
-      text: 'text-white',
-      border: 'border-info-solid',
-    },
-    negotiation: {
-      background: 'bg-warning-solid',
-      text: 'text-white',
-      border: 'border-warning-solid',
-    },
-    NEGOTIATION: {
-      background: 'bg-warning-solid',
-      text: 'text-white',
-      border: 'border-warning-solid',
-    },
-
-    // Final outcomes - Modern Dark Green/Red (success/failure)
-    closed_won: {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    'closed won': {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    CLOSED_WON: {
-      background: 'bg-success-solid',
-      text: 'text-white',
-      border: 'border-success-solid',
-    },
-    closed_lost: {
-      background: 'bg-error-solid',
-      text: 'text-white',
-      border: 'border-error-solid',
-    },
-    'closed lost': {
-      background: 'bg-error-solid',
-      text: 'text-white',
-      border: 'border-error-solid',
-    },
-    CLOSED_LOST: {
-      background: 'bg-error-solid',
-      text: 'text-white',
-      border: 'border-error-solid',
-    },
-
-    // Hold status - Modern Dark Gray (paused)
-    on_hold: {
-      background: 'bg-neutral-solid',
-      text: 'text-white',
-      border: 'border-neutral-solid',
-    },
-    'on hold': {
-      background: 'bg-neutral-solid',
-      text: 'text-white',
-      border: 'border-neutral-solid',
-    },
-    ON_HOLD: {
-      background: 'bg-neutral-solid',
-      text: 'text-white',
-      border: 'border-neutral-solid',
     },
   },
 
@@ -736,7 +570,6 @@ export function getUnifiedStatusColors(status: string): ColorScheme {
   const categories = [
     // Prioritize context-specific mappings first to avoid cross-entity collisions
     UNIFIED_COLOR_SCHEME.companyStatuses,
-    UNIFIED_COLOR_SCHEME.companyPipelineStages,
     // Then generic/people mappings
     UNIFIED_COLOR_SCHEME.leadStages,
     UNIFIED_COLOR_SCHEME.replyTypes,

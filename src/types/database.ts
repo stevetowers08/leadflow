@@ -82,6 +82,7 @@ export interface Company {
   logo_cached_at: string | null;
   owner_id: string | null;
   // client_id removed - not in PDR
+  /** @deprecated Pipeline stages removed from LeadFlow - kept for database compatibility only */
   pipeline_stage: string | null;
   last_activity: string | null;
   estimated_arr: number | null;

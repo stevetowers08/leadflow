@@ -339,7 +339,7 @@ export function useBackgroundSync() {
           fn: async () => {
             const { data, error } = await supabase
               .from('companies')
-              .select('id, name, pipeline_stage, updated_at')
+              .select('id, name, updated_at')
               .limit(100);
             if (error) throw error;
             return data;

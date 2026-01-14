@@ -2,8 +2,6 @@
 
 import { StatusBadge } from '@/components/StatusBadge';
 import { Badge } from '@/components/ui/badge';
-import { IconOnlyAssignmentCell } from '@/components/shared/IconOnlyAssignmentCell';
-import { UnifiedStatusDropdown } from '@/components/shared/UnifiedStatusDropdown';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -58,12 +56,34 @@ import { GridItem, SlideOutGrid } from './SlideOutGrid';
 import { SlideOutPanel } from './SlideOutPanel';
 import { SlideOutSection } from './SlideOutSection';
 import { logger } from '@/utils/productionLogger';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+
+// Helper to get company initials
+const getCompanyInitials = (name: string): string => {
+  if (!name) return '?';
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) {
+    return words[0].substring(0, 2).toUpperCase();
+  }
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+};
+
+// Helper to get consistent color based on company name
+const getCompanyColor = (name: string): { bg: string; text: string } => {
+  const COMPANY_COLORS = [
+    { bg: '4f46e5', text: 'ffffff' }, // Indigo
+    { bg: '059669', text: 'ffffff' }, // Emerald
+    { bg: 'dc2626', text: 'ffffff' }, // Red
+    { bg: 'ea580c', text: 'ffffff' }, // Orange
+    { bg: '7c3aed', text: 'ffffff' }, // Purple
+    { bg: '0891b2', text: 'ffffff' }, // Cyan
+    { bg: 'be185d', text: 'ffffff' }, // Pink
+    { bg: 'b45309', text: 'ffffff' }, // Amber
+  ] as const;
+  const hash = name
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return COMPANY_COLORS[hash % COMPANY_COLORS.length];
+};
 
 // Company logo image component with proper error handling
 const CompanyLogoImage: React.FC<{ company: Company; size?: number }> = memo(
@@ -81,8 +101,15 @@ const CompanyLogoImage: React.FC<{ company: Company; size?: number }> = memo(
       cachedLogoUrl ||
       getCompanyLogoUrlSync(company.name, company.website || undefined);
 
-    // Generate fallback avatar URL
-    const fallbackUrl = `${API_URLS.UI_AVATARS}?name=${encodeURIComponent(company.name)}&background=random&size=${size}`;
+    // Generate fallback avatar URL with initials and consistent colors
+    const initials = getCompanyInitials(company.name);
+    const colors = getCompanyColor(company.name);
+    const fallbackUrl = API_URLS.UI_AVATARS(
+      initials,
+      size,
+      colors.bg,
+      colors.text
+    );
 
     const handleImageError = useCallback(() => {
       setImageError(true);
@@ -152,7 +179,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
     const [showCampaignSelect, setShowCampaignSelect] = useState(false);
-    const [showComposeEmail, setShowComposeEmail] = useState(false);
     const { toast } = useToast();
 
     // Sync tab when initialTab changes
@@ -161,11 +187,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
         setActiveTab(initialTab);
       }
     }, [isOpen, initialTab]);
-
-    // Close email dialog when lead changes
-    useEffect(() => {
-      setShowComposeEmail(false);
-    }, [leadId]);
 
     // Fetch lead details
     const fetchLeadDetails = useCallback(async () => {
@@ -191,7 +212,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
             const { data: companyData, error: companyError } = await supabase
               .from('companies')
               .select('*')
-              .ilike('name', leadData.company.trim())
+              .ilike('name', `%${leadData.company.trim()}%`)
               .maybeSingle();
 
             if (!companyError && companyData) {
@@ -420,19 +441,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
 
       fetchCampaigns();
     }, [user]);
-
-    const handleSendMessage = useCallback(() => {
-      if (!leadId) return;
-      if (!lead?.email) {
-        toast({
-          title: 'No Email Address',
-          description: 'This lead does not have an email address.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      setShowComposeEmail(true);
-    }, [leadId, lead, toast]);
 
     const handleAddToCampaign = useCallback(
       async (campaignId: string) => {
@@ -674,16 +682,23 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                 label: 'Company Name',
                 value: (
                   <div className='flex items-center gap-2'>
-                    <img
-                      src={
-                        getCompanyLogoUrlSync(
-                          company.name,
-                          company.website || undefined
-                        ) || ''
-                      }
-                      alt={company.name}
-                      className='w-6 h-6 rounded'
-                    />
+                    {(() => {
+                      const logoUrl = getCompanyLogoUrlSync(
+                        company.name,
+                        company.website || undefined
+                      );
+                      return logoUrl ? (
+                        <img
+                          src={logoUrl}
+                          alt={company.name}
+                          className='w-6 h-6 rounded'
+                        />
+                      ) : (
+                        <div className='w-6 h-6 rounded bg-muted flex items-center justify-center text-xs font-medium'>
+                          {getCompanyInitials(company.name)}
+                        </div>
+                      );
+                    })()}
                     <span>{company.name}</span>
                   </div>
                 ),
@@ -738,19 +753,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               {
                 label: 'Company Size',
                 value: company.company_size || '-',
-              },
-              {
-                label: 'Pipeline Stage',
-                value: company.pipeline_stage ? (
-                  <Badge
-                    variant='outline'
-                    className={`rounded-md font-medium whitespace-nowrap border px-2 py-0.5 text-xs ${getUnifiedStatusClass(company.pipeline_stage)}`}
-                  >
-                    {getStatusDisplayText(company.pipeline_stage)}
-                  </Badge>
-                ) : (
-                  '-'
-                ),
               },
               {
                 label: (
@@ -823,20 +825,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
             </div>
             {/* Actions - horizontal scroll on mobile with proper touch targets */}
             <div className='flex items-center gap-2 flex-shrink-0 overflow-x-auto pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-hide'>
-              <Button
-                size='sm'
-                variant='ghost'
-                onClick={e => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSendMessage();
-                }}
-                className='h-10 w-10 sm:h-8 sm:w-8 p-0 border border-border rounded-md hover:border-border/60 dark:hover:border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-muted/60 active:bg-muted/80 dark:active:bg-muted/70 touch-manipulation flex-shrink-0'
-                title='Send message'
-                disabled={!lead.email}
-              >
-                <Mail className='h-4 w-4' />
-              </Button>
               {campaigns.length > 0 && (
                 <Button
                   size='sm'
@@ -846,31 +834,12 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                     e.stopPropagation();
                     setShowCampaignSelect(true);
                   }}
-                  className='h-10 w-10 sm:h-8 sm:w-8 p-0 border border-border rounded-md hover:border-border/60 dark:hover:border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-muted/60 active:bg-muted/80 dark:active:bg-muted/70 touch-manipulation flex-shrink-0'
-                  title='Add to campaign'
+                  className='h-10 w-10 sm:h-8 sm:w-8 p-0 border border-border dark:border-border/70 rounded-md hover:border-border/80 dark:hover:border-border text-muted-foreground dark:text-foreground/70 hover:text-foreground dark:hover:text-foreground hover:bg-muted dark:hover:bg-muted/80 active:bg-muted/80 dark:active:bg-muted/90 touch-manipulation flex-shrink-0 transition-colors'
+                  title='Add to workflow'
                 >
                   <ListPlus className='h-4 w-4' />
                 </Button>
               )}
-              <IconOnlyAssignmentCell
-                ownerId={null}
-                entityId={lead.id}
-                entityType='leads'
-                onAssignmentChange={() => {
-                  onUpdate?.();
-                  fetchLeadDetails();
-                }}
-              />
-              <UnifiedStatusDropdown
-                entityId={lead.id}
-                entityType='leads'
-                currentStatus={lead.status || 'processing'}
-                availableStatuses={['processing', 'active', 'replied_manual']}
-                onStatusChange={() => {
-                  onUpdate?.();
-                  fetchLeadDetails();
-                }}
-              />
             </div>
           </div>
         }
@@ -1374,32 +1343,6 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-        {/* Compose Email Dialog - mobile optimized with bottom sheet style */}
-        <Dialog open={showComposeEmail} onOpenChange={setShowComposeEmail}>
-          <DialogContent className='w-[calc(100%-1rem)] sm:max-w-[800px] max-w-none mx-auto max-h-[85vh] sm:max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-lg fixed bottom-0 sm:bottom-auto sm:top-[50%] sm:translate-y-[-50%] translate-y-0 data-[state=open]:slide-in-from-bottom sm:data-[state=open]:slide-in-from-bottom-0'>
-            <DialogHeader>
-              <DialogTitle className='text-base sm:text-lg'>
-                Compose email
-              </DialogTitle>
-            </DialogHeader>
-            <div className='mt-2 p-4 text-center text-muted-foreground'>
-              <p className='text-sm sm:text-base'>
-                Email composer is currently unavailable.
-              </p>
-              {lead?.email && (
-                <p className='mt-4'>
-                  <a
-                    href={`mailto:${lead.email}`}
-                    className='inline-flex items-center justify-center h-12 sm:h-10 px-6 bg-primary text-primary-foreground rounded-lg text-base sm:text-sm font-medium hover:bg-primary/90 active:bg-primary/80 touch-manipulation transition-colors'
-                  >
-                    Open email client
-                  </a>
-                </p>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
       </SlideOutPanel>
     );
   }

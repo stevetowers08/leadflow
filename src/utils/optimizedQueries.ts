@@ -276,9 +276,7 @@ export class OptimizedQueries {
     // See migration: 20250130000004_optimize_user_assignment_queries.sql
     let query = supabase.from('company_assignments_with_users').select('*');
 
-    if (filters.stage && filters.stage !== 'all') {
-      query = query.eq('pipeline_stage', filters.stage);
-    }
+    // Pipeline stages removed - stage filter no longer applies
 
     if (filters.ownerId && filters.ownerId !== 'all') {
       if (filters.ownerId === 'assigned') {

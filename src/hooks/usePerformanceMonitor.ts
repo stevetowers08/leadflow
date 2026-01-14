@@ -206,7 +206,7 @@ export function usePerformanceMonitor() {
           fn: async () => {
             const { data, error } = await supabase
               .from('companies')
-              .select('id, name, pipeline_stage')
+              .select('id, name')
               .limit(50);
             if (error) throw error;
             return data;

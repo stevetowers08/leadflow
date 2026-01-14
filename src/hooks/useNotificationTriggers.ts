@@ -22,11 +22,9 @@ export function useMeetingReminders() {
       const tomorrow = new Date();
       tomorrow.setHours(tomorrow.getHours() + 24);
 
+      // Pipeline stages removed - no meeting notifications based on pipeline stage
       const { data: companiesWithMeetings, error: companiesError } =
-        await supabase
-          .from('companies')
-          .select('id, name, pipeline_stage')
-          .eq('pipeline_stage', 'meeting_scheduled');
+        await supabase.from('companies').select('id, name').limit(0); // Return empty since pipeline stages are removed
 
       // Handle Supabase errors gracefully (network issues, auth errors, etc.)
       if (companiesError) {

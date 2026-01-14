@@ -164,7 +164,7 @@ export function useEnhancedCompaniesService(
     async () => {
       const { page, pageSize } = pagination;
       const { column, ascending } = sort;
-      const { search, pipeline_stage, ...otherFilters } = filters;
+      const { search, ...otherFilters } = filters;
 
       let query = supabase.from('companies').select(
         `
@@ -174,7 +174,6 @@ export function useEnhancedCompaniesService(
           linkedin_url,
           industry,
           lead_score,
-          pipeline_stage,
           created_at,
           updated_at
         `,
@@ -184,10 +183,6 @@ export function useEnhancedCompaniesService(
       // Apply filters
       if (search) {
         query = query.or(`name.ilike.%${search}%,industry.ilike.%${search}%`);
-      }
-
-      if (pipeline_stage && pipeline_stage !== 'all') {
-        query = query.eq('pipeline_stage', pipeline_stage);
       }
 
       // Apply other filters
@@ -310,35 +305,7 @@ export function useOptimisticMutations() {
     }
   );
 
-  // Optimistic update for company pipeline stage
-  const updateCompanyPipelineStage = useOptimisticMutation(
-    async ({
-      companyId,
-      newStage,
-    }: {
-      companyId: string;
-      newStage: string;
-    }) => {
-      const { data, error } = await supabase
-        .from('companies')
-        .update({
-          pipeline_stage: newStage,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', companyId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    {
-      invalidateQueries: [['companies'], ['dashboard']],
-    }
-  );
-
   return {
     updatePersonStage,
-    updateCompanyPipelineStage,
   };
 }

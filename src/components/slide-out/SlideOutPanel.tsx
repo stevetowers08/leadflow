@@ -28,16 +28,14 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
   customHeader,
   className,
 }) => {
-  // Mobile-first responsive width classes
-  // On mobile: full width with safe area support
-  // On tablet (md): appropriate percentage widths
-  // On desktop (lg+): original percentage widths
-  const widthClasses =
+  // Calculate width - simple and explicit
+  const panelWidth =
     width === 'wide'
-      ? 'w-full md:w-[85vw] lg:w-[75vw] max-w-none md:max-w-[85vw] lg:max-w-[75vw]'
+      ? 'min(85vw, calc(100vw - var(--sidebar-width, 14rem)))'
       : width === 'medium'
-        ? 'w-full md:w-[75vw] lg:w-[60vw] max-w-none md:max-w-[75vw] lg:max-w-[60vw]'
-        : 'w-full md:w-[70vw] lg:w-[50vw] max-w-none md:max-w-[70vw] lg:max-w-[50vw]';
+        ? 'min(75vw, calc(100vw - var(--sidebar-width, 14rem)))'
+        : 'min(70vw, calc(100vw - var(--sidebar-width, 14rem)))';
+
   // Handle ESC key
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -66,17 +64,27 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay - matches page background with blur */}
+          {/* Overlay - matches page background with blur, respects sidebar and header */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className='fixed inset-0 bg-background/80 backdrop-blur-sm z-[10000]'
+            className={cn(
+              // Mobile: full screen
+              'fixed inset-0',
+              // Desktop: respect sidebar and header
+              'md:top-12 md:right-0 md:bottom-0',
+              'bg-background/80 backdrop-blur-sm z-[10000]'
+            )}
+            style={{
+              // Use CSS variable for sidebar width, fallback to 14rem (expanded)
+              left: 'var(--sidebar-width, 14rem)',
+            }}
             onClick={onClose}
           />
 
-          {/* Panel */}
+          {/* Panel - Simplified: right-aligned, never covers sidebar */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -87,19 +95,27 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
               ease: [0.4, 0, 0.2, 1],
             }}
             className={cn(
-              // Base positioning - full height on mobile, offset from nav on larger screens
-              'fixed inset-0 md:top-12 md:-mt-px md:left-auto right-0 bottom-0',
-              'bg-background z-[10001] flex flex-col',
-              // Safe area padding for notched devices
+              'fixed bg-background z-[10001] flex flex-col',
+              // Mobile: full screen
+              'inset-0',
+              // Desktop: positioned from top and bottom, right-aligned
+              'md:top-12 md:bottom-0',
+              // Safe area padding
               'pb-[env(safe-area-inset-bottom)]',
-              widthClasses
+              className
             )}
             style={{
+              // RIGHT ALIGNED - no left positioning
+              right: 0,
+              // Width constrained to never cover sidebar
+              width: panelWidth,
+              // Ensure no left positioning
+              left: 'auto',
               boxShadow: '-2px 0 15px rgba(0, 0, 0, 0.1)',
             }}
           >
-            {/* Header - responsive padding and touch targets */}
-            <div className='flex items-center justify-between px-4 py-3 md:px-6 md:py-4 border-b border-border flex-shrink-0 pt-[max(0.75rem,env(safe-area-inset-top))] md:pt-4'>
+            {/* Header - compact padding, same text size */}
+            <div className='flex items-center justify-between px-4 py-2 md:px-6 md:py-2.5 border-b border-border flex-shrink-0 pt-[max(0.5rem,env(safe-area-inset-top))] md:pt-2.5'>
               <div className='flex-1 min-w-0'>
                 {customHeader || (
                   <>
@@ -114,13 +130,14 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
                   </>
                 )}
               </div>
-              {/* Close button - minimum 44x44 touch target for mobile accessibility */}
+              {/* Close button - more visible, minimum 44x44 touch target for mobile */}
               <button
                 onClick={onClose}
-                className='ml-2 md:ml-4 p-2.5 md:p-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent dark:hover:bg-muted/60 active:bg-accent/80 dark:active:bg-muted/70 rounded-lg transition-colors flex-shrink-0 touch-manipulation'
+                className='ml-2 md:ml-4 p-2 md:p-1.5 min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent dark:hover:bg-muted/60 active:bg-accent/80 dark:active:bg-muted/70 rounded-lg transition-colors flex-shrink-0 touch-manipulation'
                 aria-label='Close panel'
+                title='Close'
               >
-                <X className='h-5 w-5' />
+                <X className='h-5 w-5 md:h-4 md:w-4' />
               </button>
             </div>
 

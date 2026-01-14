@@ -151,7 +151,6 @@ export class DashboardService {
           head_office,
           logo_url,
           company_size,
-          pipeline_stage,
           created_at
         `
           )
@@ -331,7 +330,7 @@ export class DashboardService {
       head_office: company.head_office || null,
       logo_url: company.logo_url || '',
       employee_count: company.company_size || 0,
-      stage: company.pipeline_stage || 'New',
+      stage: 'New', // Pipeline stages removed
       created_at: company.created_at,
       assigned_to: null,
       notes_count: notesCount.get(company.id) || 0,

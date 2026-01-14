@@ -19,7 +19,6 @@ export const TABLE_COLUMNS = {
     'created_at',
     'updated_at',
     'client_id',
-    'pipeline_stage',
     'is_favourite',
     'confidence_level',
     'lead_score',
@@ -103,7 +102,7 @@ export class QueryOptimizer {
   static getEssentialColumns(tableName: keyof typeof TABLE_COLUMNS): string {
     const essentialMap = {
       companies:
-        'id, name, website, industry, head_office, company_size, priority, logo_url, lead_score, client_id, pipeline_stage, is_favourite, confidence_level, score_reason, created_at',
+        'id, name, website, industry, head_office, company_size, priority, logo_url, lead_score, client_id, is_favourite, confidence_level, score_reason, created_at',
       people:
         'id, name, company_id, email_address, company_role, people_stage, score, client_id',
       activity_log: 'id, lead_id, timestamp, activity_type, metadata',

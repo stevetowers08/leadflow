@@ -73,38 +73,19 @@ class StatusAutomationService {
 
   /**
    * Update company status when first message sent
-   * Automatically progresses: new_lead → outreach_started
+   * Note: Pipeline stages removed - this method is kept for backward compatibility but does nothing
    */
   async onOutreachStarted(
     companyId: string,
     options: StatusUpdateOptions = {}
   ): Promise<void> {
-    try {
-      const { data, error } = await supabase
-        .from('companies')
-        .update({ pipeline_stage: 'outreach_started' })
-        .eq('id', companyId)
-        .eq('pipeline_stage', 'new_lead') // Only update if still new_lead
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      if (data && !options.skipNotification && this.toastHandler) {
-        this.toastHandler.toast({
-          title: 'Pipeline Updated',
-          description: 'Company moved to "Outreach Started"',
-        });
-      }
-    } catch (error) {
-      console.error('Failed to update company status:', error);
-    }
+    // Pipeline stages removed - no action needed
+    return;
   }
 
   /**
    * Update statuses when response received
    * Lead: active → replied_manual
-   * Company: outreach_started → replied
    */
   async onResponseReceived(
     personId: string,
@@ -123,17 +104,10 @@ class StatusAutomationService {
         })
         .eq('id', personId);
 
-      // Update company
-      await supabase
-        .from('companies')
-        .update({ pipeline_stage: 'replied' })
-        .eq('id', companyId)
-        .eq('pipeline_stage', 'outreach_started');
-
       if (!options.skipNotification && this.toastHandler) {
         this.toastHandler.toast({
           title: 'Response Received',
-          description: 'Lead updated to "Replied", company to "Replied"',
+          description: 'Lead updated to "Replied"',
         });
       }
     } catch (error) {
@@ -143,57 +117,24 @@ class StatusAutomationService {
 
   /**
    * Update company status when meeting scheduled
-   * Company: replied → meeting_scheduled
+   * Note: Pipeline stages removed - this method is kept for backward compatibility but does nothing
    */
   async onMeetingScheduled(
     companyId: string,
     meetingDate: string,
     options: StatusUpdateOptions = {}
   ): Promise<void> {
-    try {
-      await supabase
-        .from('companies')
-        .update({ pipeline_stage: 'meeting_scheduled' })
-        .eq('id', companyId);
-
-      if (!options.skipNotification && this.toastHandler) {
-        this.toastHandler.toast({
-          title: 'Meeting Scheduled',
-          description: 'Company moved to "Meeting Scheduled"',
-        });
-      }
-    } catch (error) {
-      console.error('Failed to update meeting status:', error);
-    }
+    // Pipeline stages removed - no action needed
+    return;
   }
 
   /**
    * Check for inactive companies (30+ days)
-   * Automatically moves to on_hold
+   * Note: Pipeline stages removed - this method is kept for backward compatibility but does nothing
    */
   async checkInactivity(): Promise<void> {
-    try {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      const { data: inactiveCompanies } = await supabase
-        .from('companies')
-        .select('id, name')
-        .in('pipeline_stage', ['new_lead', 'outreach_started'])
-        .lt('updated_at', thirtyDaysAgo.toISOString());
-
-      if (inactiveCompanies && inactiveCompanies.length > 0) {
-        await supabase
-          .from('companies')
-          .update({ pipeline_stage: 'on_hold' })
-          .in(
-            'id',
-            inactiveCompanies.map(c => c.id)
-          );
-      }
-    } catch (error) {
-      console.error('Failed to check inactivity:', error);
-    }
+    // Pipeline stages removed - no action needed
+    return;
   }
 
   /**

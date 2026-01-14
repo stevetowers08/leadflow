@@ -15,7 +15,6 @@ interface CompanyCardProps {
     website?: string;
     logo?: string;
     lead_score?: string;
-    pipeline_stage?: string;
   };
   onClick: () => void;
   className?: string;
@@ -69,12 +68,8 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
             )}
           </div>
 
-          {/* Pipeline Stage and AI Score */}
+          {/* AI Score */}
           <div className='flex items-center gap-2'>
-            <StatusBadge
-              status={company.pipeline_stage || 'new_lead'}
-              size='sm'
-            />
             <span
               className={cn(
                 'inline-flex items-center justify-center h-8 px-3 rounded-md text-xs font-medium border',

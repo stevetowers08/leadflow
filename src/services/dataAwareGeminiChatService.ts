@@ -40,7 +40,6 @@ interface CompanyData {
   lead_score?: number;
   automation_active?: boolean;
   created_at: string;
-  pipeline_stage?: string;
 }
 
 interface LeadData {

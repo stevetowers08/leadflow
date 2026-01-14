@@ -169,7 +169,6 @@ interface CompanyCardProps {
     logo?: string;
     industry?: string;
     employee_count?: number;
-    pipeline_stage?: string;
     lead_score?: string;
   };
   onClick: () => void;
@@ -183,23 +182,6 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
   className,
   variant = 'minimal',
 }) => {
-  const getStageColor = (stage?: string) => {
-    switch (stage?.toLowerCase()) {
-      case 'new_lead':
-        return 'bg-primary/10/80 text-primary border-blue-100/60';
-      case 'automated':
-        return 'bg-emerald-50/80 text-emerald-700 border-emerald-100/60';
-      case 'meeting_scheduled':
-        return 'bg-warning/10/80 text-warning border-orange-100/60';
-      case 'closed_won':
-        return 'bg-success/10/80 text-success border-green-100/60';
-      case 'closed_lost':
-        return 'bg-destructive/10/80 text-destructive border-red-100/60';
-      default:
-        return 'bg-muted/80 text-foreground border-gray-100/60';
-    }
-  };
-
   const getScoreColor = (score?: string) => {
     switch (score?.toLowerCase()) {
       case 'high':
@@ -251,20 +233,6 @@ export const ModernCompanyCard: React.FC<CompanyCardProps> = ({
 
           {/* Minimal Badges */}
           <div className='flex items-center gap-1.5 mt-1.5'>
-            {company.pipeline_stage && (
-              <span
-                className={cn(
-                  'px-2 py-0.5 rounded-md text-xs font-medium border',
-                  getStageColor(company.pipeline_stage)
-                )}
-              >
-                {company.pipeline_stage
-                  .replace('_', ' ')
-                  .split(' ')
-                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(' ')}
-              </span>
-            )}
             {company.lead_score && (
               <span
                 className={cn(

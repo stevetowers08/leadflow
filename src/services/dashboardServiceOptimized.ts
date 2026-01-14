@@ -39,7 +39,6 @@ export interface RecentCompany {
   head_office?: string | null;
   logo_url?: string | null;
   company_size?: string | null;
-  pipeline_stage?: string | null;
   created_at: string;
   assigned_to?: string | null;
   notes_count?: number;
@@ -120,7 +119,7 @@ export class DashboardServiceOptimized {
               .select(
                 `
               id, name, industry, website, head_office, logo_url, company_size, 
-              pipeline_stage, created_at, client_id
+              created_at, client_id
             `
               )
               .order('created_at', { ascending: false })
@@ -220,7 +219,6 @@ export class DashboardServiceOptimized {
       head_office: company.head_office,
       logo_url: company.logo_url,
       company_size: company.company_size,
-      pipeline_stage: company.pipeline_stage,
       created_at: company.created_at,
       assigned_to: null, // owner_id removed - using client_id for multi-tenant
       notes_count: 0, // Skip notes for performance
