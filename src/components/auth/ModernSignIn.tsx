@@ -92,10 +92,10 @@ export const SignIn: React.FC = () => {
           <CardContent className='p-8'>
             {/* Login Title */}
             <div className='text-center mb-8'>
-              <h1 className='text-3xl font-bold text-foreground mb-2'>
+              <h1 className='text-3xl font-bold text-gray-900 mb-2'>
                 Welcome back
               </h1>
-              <p className='text-muted-foreground'>
+              <p className='text-gray-500'>
                 Sign in to your professional dashboard
               </p>
             </div>
@@ -118,7 +118,7 @@ export const SignIn: React.FC = () => {
               <Button
                 onClick={handleGoogleSignIn}
                 variant='outline'
-                className='w-full h-12 font-medium text-foreground hover:bg-muted border-border rounded-lg flex items-center justify-center'
+                className='w-full h-12 font-medium text-gray-700 hover:bg-gray-50 border-gray-300 bg-white rounded-lg flex items-center justify-center'
                 disabled={loading !== null}
               >
                 {loading === 'google' ? (
@@ -155,10 +155,10 @@ export const SignIn: React.FC = () => {
             {/* Divider */}
             <div className='relative my-6'>
               <div className='absolute inset-0 flex items-center'>
-                <div className='w-full border-t border-border'></div>
+                <div className='w-full border-t border-gray-200'></div>
               </div>
               <div className='relative flex justify-center text-sm'>
-                <span className='px-2 bg-white text-muted-foreground'>or</span>
+                <span className='px-2 bg-white text-gray-500'>or</span>
               </div>
             </div>
 
@@ -167,7 +167,7 @@ export const SignIn: React.FC = () => {
               <div className='space-y-2'>
                 <Label
                   htmlFor='email'
-                  className='text-sm font-medium text-foreground'
+                  className='text-sm font-medium text-gray-700'
                 >
                   Email address
                 </Label>
@@ -177,7 +177,7 @@ export const SignIn: React.FC = () => {
                   placeholder='Enter your email'
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className='h-12 border-border focus:border-foreground focus:ring-foreground rounded-lg'
+                  className='h-12 border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:ring-gray-900 rounded-lg'
                   disabled={loading !== null}
                   required
                 />
@@ -186,7 +186,7 @@ export const SignIn: React.FC = () => {
               <div className='space-y-2'>
                 <Label
                   htmlFor='password'
-                  className='text-sm font-medium text-foreground'
+                  className='text-sm font-medium text-gray-700'
                 >
                   Password
                 </Label>
@@ -197,14 +197,14 @@ export const SignIn: React.FC = () => {
                     placeholder='Enter your password'
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className='h-12 pr-12 border-border focus:border-foreground focus:ring-foreground rounded-lg'
+                    className='h-12 pr-12 border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:ring-gray-900 rounded-lg'
                     disabled={loading !== null}
                     required
                   />
                   <button
                     type='button'
                     onClick={() => setShowPassword(!showPassword)}
-                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground'
+                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
                     disabled={loading !== null}
                   >
                     {showPassword ? (
@@ -219,7 +219,7 @@ export const SignIn: React.FC = () => {
               <div className='flex items-center justify-start'>
                 <button
                   type='button'
-                  className='text-sm text-foreground/70 hover:text-foreground font-medium'
+                  className='text-sm text-gray-600 hover:text-gray-900 font-medium'
                   disabled={loading !== null}
                 >
                   Forgot password?
@@ -228,7 +228,7 @@ export const SignIn: React.FC = () => {
 
               <Button
                 type='submit'
-                className='w-full h-12 bg-foreground hover:bg-foreground/90 text-background font-medium rounded-lg'
+                className='w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg'
                 disabled={loading !== null}
               >
                 {loading === 'email' ? (
@@ -244,12 +244,12 @@ export const SignIn: React.FC = () => {
 
             {/* Additional Links */}
             <div className='mt-8 space-y-3 text-center'>
-              <button className='block w-full text-sm text-foreground/70 hover:text-foreground font-medium'>
+              <button className='block w-full text-sm text-gray-600 hover:text-gray-900 font-medium'>
                 Can&apos;t Access Your Account?
               </button>
-              <div className='text-sm text-muted-foreground'>
+              <div className='text-sm text-gray-500'>
                 Don&apos;t have an account?{' '}
-                <button className='text-foreground/70 hover:text-foreground font-medium'>
+                <button className='text-gray-600 hover:text-gray-900 font-medium'>
                   Sign Up
                 </button>
               </div>
