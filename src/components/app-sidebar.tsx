@@ -35,9 +35,9 @@ import Link from 'next/link';
  * Updated Navigation - PDR Section 5.1
  *
  * LeadFlow Console Navigation:
- * - Companies (/) - Icon: Building2 - Home page
  * - Capture (/capture) - Icon: Camera - Business card scanner
  * - Leads (/leads) - Icon: Users
+ * - Companies (/) - Icon: Building2 - Home page
  * - Shows (/shows) - Icon: Calendar
  * - Campaigns (/workflows) - Icon: GitMerge
  * - Analytics (/analytics) - Icon: BarChart3
@@ -45,11 +45,6 @@ import Link from 'next/link';
  */
 const data = {
   navMain: [
-    {
-      title: 'Companies',
-      url: '/',
-      icon: Building2,
-    },
     {
       title: 'Capture',
       url: '/capture',
@@ -59,6 +54,11 @@ const data = {
       title: 'Leads',
       url: '/leads',
       icon: Users,
+    },
+    {
+      title: 'Companies',
+      url: '/',
+      icon: Building2,
     },
     {
       title: 'Shows',
