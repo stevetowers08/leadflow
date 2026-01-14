@@ -92,7 +92,8 @@ export const VirtualizedList: React.FC<VirtualizedListProps> = memo(
         rowHeight={itemHeight}
         rowProps={{ items, onItemClick, type } as Record<string, unknown>}
         className='scrollbar-modern'
-        rowComponent={VirtualizedListItem as React.ComponentType<unknown>}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        rowComponent={VirtualizedListItem as any}
         style={{ height }}
       />
     );

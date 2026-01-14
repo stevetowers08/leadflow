@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
           email: lead.email || undefined,
           first_name: lead.first_name || undefined,
           last_name: lead.last_name || undefined,
-          linkedin_url: null,
+          linkedin_url: undefined,
         })
       )
     );

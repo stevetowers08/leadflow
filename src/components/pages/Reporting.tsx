@@ -119,15 +119,27 @@ function ReportingContent() {
           .select('status, sent_at')
           .gte('sent_at', startDate.toISOString());
 
+        // Cast to proper type - columns may not be in generated Supabase types
+        const typedEmailSends = (emailSendsData || []) as unknown as Array<{
+          status: string | null;
+          sent_at: string | null;
+        }>;
+
         if (emailSendsError) {
           console.warn(
             'Email analytics: email_sends table not available:',
             emailSendsError
           );
           error = emailSendsError;
-          data = emailSendsData || [];
+          data = typedEmailSends.map(email => ({
+            status: email.status ?? undefined,
+            sent_at: email.sent_at ?? undefined,
+          }));
         } else {
-          data = emailSendsData || [];
+          data = typedEmailSends.map(email => ({
+            status: email.status ?? undefined,
+            sent_at: email.sent_at ?? undefined,
+          }));
         }
 
         const statusCounts = { sent: 0, delivered: 0, failed: 0, bounced: 0 };

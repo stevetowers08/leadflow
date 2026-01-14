@@ -1,6 +1,10 @@
 'use client';
 
-import { UnifiedTable, ColumnConfig } from '@/components/ui/unified-table';
+import {
+  UnifiedTable,
+  ColumnConfig,
+  TableSummary,
+} from '@/components/ui/unified-table';
 import { Page } from '@/design-system/components';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -541,6 +545,63 @@ export default function LeadsPage() {
     [stats, leads.length]
   );
 
+  // Attio-style table summary
+  const tableSummary: TableSummary = useMemo(() => {
+    const hotCount = leads.filter(l => l.quality_rank === 'hot').length;
+    const warmCount = leads.filter(l => l.quality_rank === 'warm').length;
+    const coldCount = leads.filter(l => l.quality_rank === 'cold').length;
+    const withEmail = leads.filter(l => l.email).length;
+    const withPhone = leads.filter(l => l.phone).length;
+    const withCompany = leads.filter(l => l.company).length;
+
+    return {
+      cells: [
+        { key: 'checkbox', value: '' },
+        {
+          key: 'name',
+          value: `${leads.length} leads`,
+          type: 'count',
+          className: 'text-muted-foreground',
+        },
+        {
+          key: 'email',
+          value: `${withEmail} with email`,
+          type: 'count',
+          className: 'text-muted-foreground text-xs',
+        },
+        {
+          key: 'phone',
+          value: `${withPhone} with phone`,
+          type: 'count',
+          className: 'text-muted-foreground text-xs',
+        },
+        {
+          key: 'company',
+          value: `${withCompany} with company`,
+          type: 'count',
+          className: 'text-muted-foreground text-xs',
+        },
+        { key: 'show', value: '', type: 'label' },
+        { key: 'job_title', value: '', type: 'label' },
+        {
+          key: 'quality_rank',
+          value: (
+            <div className='flex items-center gap-1.5 text-xs'>
+              <span className='text-destructive'>{hotCount} hot</span>
+              <span className='text-muted-foreground'>·</span>
+              <span className='text-warning'>{warmCount} warm</span>
+              <span className='text-muted-foreground'>·</span>
+              <span className='text-muted-foreground'>{coldCount} cold</span>
+            </div>
+          ),
+          type: 'custom',
+        },
+        { key: 'status', value: '', type: 'label' },
+        { key: 'created_at', value: '', type: 'label' },
+      ],
+    };
+  }, [leads]);
+
   const handleExport = async () => {
     try {
       setIsExporting(true);
@@ -852,6 +913,7 @@ export default function LeadsPage() {
           emptyMessage='No leads captured yet. Start by capturing your first business card!'
           scrollable
           stickyHeaders
+          summary={tableSummary}
           onRowClick={lead => {
             setSelectedLeadId(lead.id);
             setIsSlideOutOpen(true);

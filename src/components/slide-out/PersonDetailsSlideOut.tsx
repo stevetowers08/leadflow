@@ -177,7 +177,7 @@ const PersonDetailsSlideOutComponent: React.FC<PersonDetailsSlideOutProps> =
             .single();
 
           if (!companyError && companyData) {
-            setCompany(companyData as Company);
+            setCompany(companyData as unknown as Company);
 
             // Fetch other leads at same company
             const { data: otherPeopleData, error: otherPeopleError } =

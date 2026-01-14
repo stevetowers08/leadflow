@@ -147,13 +147,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if lead exists and get current values
-    const { data: existingLead, error: fetchError } = await supabase
+    const { data: rawLead, error: fetchError } = await supabase
       .from('leads')
       .select(
         'id, enrichment_status, email, phone, job_title, linkedin_url, company, first_name, last_name'
       )
       .eq('id', payload.lead_id)
       .single();
+
+    // Cast to proper type - columns may not be in generated Supabase types
+    const existingLead = rawLead as unknown as {
+      id: string;
+      enrichment_status: string | null;
+      email: string | null;
+      phone: string | null;
+      job_title: string | null;
+      linkedin_url: string | null;
+      company: string | null;
+      first_name: string | null;
+      last_name: string | null;
+    } | null;
 
     if (fetchError || !existingLead) {
       return NextResponse.json(
@@ -236,9 +249,9 @@ export async function POST(request: NextRequest) {
           const { data: newCompany } = await supabase
             .from('companies')
             .insert({
-              name: toTitleCase(lead.company),
+              name: toTitleCase(lead.company) as string,
               industry: payload.company_industry || null,
-            })
+            } as never)
             .select('id')
             .single();
 

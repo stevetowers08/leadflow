@@ -43,15 +43,15 @@ export const ModernStatusDropdown: React.FC<ModernStatusDropdownProps> = ({
   };
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn('relative overflow-visible p-0.5', className)}>
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
         className={cn(
           'flex items-center justify-between w-full px-3 py-2 text-sm',
-          'bg-white border border-border rounded-md',
-          'shadow-[0_1px_4px_rgba(0,0,0,0.15)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.35)]',
+          'bg-background border border-border rounded-md',
+          'shadow-[0_4px_6px_-1px_rgb(0_0_0_/_0.1),0_2px_4px_-2px_rgb(0_0_0_/_0.1)] m-[2px]',
           'hover:border-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
           'transition-all duration-200 ease-in-out',
           'min-h-[36px]',
@@ -219,15 +219,15 @@ export const GroupedStatusDropdown: React.FC<GroupedStatusDropdownProps> = ({
   };
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn('relative overflow-visible p-0.5', className)}>
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
         className={cn(
           'flex items-center justify-between w-full px-3 py-2 text-sm',
-          'bg-white border border-border rounded-md',
-          'shadow-[0_1px_4px_rgba(0,0,0,0.15)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.35)]',
+          'bg-background border border-border rounded-md',
+          'shadow-[0_4px_6px_-1px_rgb(0_0_0_/_0.1),0_2px_4px_-2px_rgb(0_0_0_/_0.1)] m-[2px]',
           'hover:border-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
           'transition-all duration-200 ease-in-out',
           'min-h-[36px]',

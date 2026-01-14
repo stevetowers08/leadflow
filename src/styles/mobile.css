@@ -171,25 +171,25 @@ button[title*='Favorite'] {
   width: 32px;
 }
 
-/* 2025: Enhanced touch targets - 48px minimum (WCAG 2.5.5 Level AAA, 2025 Standard) */
+/* 2025: Enhanced touch targets - 44px minimum (iOS standard, meets WCAG 2.5.5 Level AAA) */
 @media (hover: none) and (pointer: coarse) {
-  /* Ensure all interactive elements are at least 48px (2025 standard) */
+  /* Ensure all interactive elements are at least 44px (iOS standard, accessible) */
   button:not([class*='min-h']):not([class*='h-']),
   [role='button']:not([class*='min-h']),
   input[type='button'],
   input[type='submit'],
   a:not([class*='min-h']) {
-    min-height: 48px;
-    min-width: 48px;
-    padding: 12px 16px; /* Better spacing for touch */
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 16px; /* Optimal spacing for touch (py-2.5 px-4) */
   }
 
   /* 2025: Ensure icon buttons meet minimum size */
   button[class*='icon'],
   button[aria-label],
   [role='button'][aria-label] {
-    min-height: 48px;
-    min-width: 48px;
+    min-height: 44px;
+    min-width: 44px;
   }
 
   /* 2025: Spacing between touch targets (8px minimum) */

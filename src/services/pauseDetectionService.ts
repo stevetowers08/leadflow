@@ -1,6 +1,6 @@
 /**
  * Pause Detection Service
- * 
+ *
  * PDR Section: Phase 2 - Workflow Automation
  * Detects when workflows should pause based on lead activity
  */
@@ -40,10 +40,7 @@ export async function checkAndPauseWorkflow(
     return true;
   }
 
-  if (
-    pauseRules.onOpenCount &&
-    activity.openCount >= pauseRules.onOpenCount
-  ) {
+  if (pauseRules.onOpenCount && activity.openCount >= pauseRules.onOpenCount) {
     await pauseLeadWorkflow(leadId, 'opened_multiple');
     return true;
   }
@@ -63,11 +60,11 @@ async function getLeadActivity(leadId: string): Promise<LeadActivity> {
     .order('timestamp', { ascending: false });
 
   const hasReplied =
-    activities?.some((a) => a.activity_type === 'email_replied') || false;
+    activities?.some(a => a.activity_type === 'email_replied') || false;
   const hasClicked =
-    activities?.some((a) => a.activity_type === 'email_clicked') || false;
+    activities?.some(a => a.activity_type === 'email_clicked') || false;
   const openCount =
-    activities?.filter((a) => a.activity_type === 'email_opened').length || 0;
+    activities?.filter(a => a.activity_type === 'email_opened').length || 0;
 
   const lastActivity = activities?.[0]?.timestamp;
 
@@ -76,7 +73,7 @@ async function getLeadActivity(leadId: string): Promise<LeadActivity> {
     hasReplied,
     hasClicked,
     openCount,
-    lastActivityAt: lastActivity,
+    lastActivityAt: lastActivity ?? undefined,
   };
 }
 
@@ -152,7 +149,7 @@ export async function resumeLeadWorkflow(leadId: string): Promise<void> {
 export async function processEmailWebhook(
   leadId: string,
   eventType: 'email_opened' | 'email_clicked' | 'email_replied',
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   // Log the activity
   await supabase.from('activity_log').insert({
@@ -186,4 +183,3 @@ export async function processEmailWebhook(
   // Check if workflow should pause
   await checkAndPauseWorkflow(leadId, workflow.pause_rules as PauseRules);
 }
-

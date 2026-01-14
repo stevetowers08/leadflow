@@ -29,7 +29,14 @@ export class OptimizedQueries {
       { id: string; full_name: string; email: string; role: string }
     > = {};
     data?.forEach(user => {
-      cache[user.id] = user;
+      if (user.full_name && user.role) {
+        cache[user.id] = {
+          id: user.id,
+          full_name: user.full_name,
+          email: user.email,
+          role: user.role,
+        };
+      }
     });
 
     return cache;

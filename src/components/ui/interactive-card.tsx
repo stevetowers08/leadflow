@@ -1,11 +1,16 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { Card } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card';
 import { designTokens } from '@/design-system/tokens';
 import { LucideIcon } from 'lucide-react';
 
-export interface InteractiveCardProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface InteractiveCardProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
   description?: string;
   icon?: LucideIcon;
@@ -50,8 +55,6 @@ export const InteractiveCard = React.forwardRef<
     return (
       <Card
         ref={ref}
-        variant={variant}
-        interactive={isInteractive}
         onClick={onClick}
         className={cn(
           variantClasses[variant],
@@ -64,7 +67,7 @@ export const InteractiveCard = React.forwardRef<
         {...props}
       >
         {(title || description || Icon) && (
-          <Card.Header>
+          <CardHeader>
             <div className='flex items-start gap-3'>
               {Icon && (
                 <div
@@ -84,20 +87,20 @@ export const InteractiveCard = React.forwardRef<
               )}
               <div className='flex-1 min-w-0'>
                 {title && (
-                  <Card.Title className='text-base font-semibold'>
+                  <CardTitle className='text-base font-semibold'>
                     {title}
-                  </Card.Title>
+                  </CardTitle>
                 )}
                 {description && (
-                  <Card.Description className='mt-1'>
+                  <CardDescription className='mt-1'>
                     {description}
-                  </Card.Description>
+                  </CardDescription>
                 )}
               </div>
             </div>
-          </Card.Header>
+          </CardHeader>
         )}
-        {children && <Card.Content>{children}</Card.Content>}
+        {children && <CardContent>{children}</CardContent>}
         {footer && <div className={cn('px-6 pb-6 pt-0')}>{footer}</div>}
       </Card>
     );

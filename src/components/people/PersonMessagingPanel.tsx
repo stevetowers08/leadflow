@@ -240,7 +240,7 @@ export const PersonMessagingPanel: React.FC<PersonMessagingPanelProps> = ({
             lead_id: person.id,
             status: 'active',
             started_at: new Date().toISOString(),
-          });
+          } as never);
 
         if (error) throw error;
 

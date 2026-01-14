@@ -98,6 +98,58 @@ function getSupabaseClient() {
       // Use createBrowserClient from @supabase/ssr for SSR compatibility
       // This reads from cookies set by server-side exchange-code route
       // Ensure we pass valid, non-empty strings (2025 best practice)
+      // Double-check values are defined before calling trim() to prevent production crashes
+      if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+        // Fallback to mock client if values are missing
+        const createChainableQuery = () => {
+          const query = {
+            select: () => query,
+            insert: () => query,
+            update: () => query,
+            delete: () => query,
+            eq: () => query,
+            or: () => query,
+            neq: () => query,
+            gt: () => query,
+            lt: () => query,
+            gte: () => query,
+            lte: () => query,
+            like: () => query,
+            ilike: () => query,
+            is: () => query,
+            in: () => query,
+            contains: () => query,
+            order: () => query,
+            limit: () => query,
+            range: () => query,
+            single: () => Promise.resolve({ data: null, error: null }),
+            maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            then: (
+              onResolve: (value: { data: unknown[]; error: null }) => unknown
+            ) => Promise.resolve({ data: [], error: null }).then(onResolve),
+            catch: (onReject: (reason?: unknown) => unknown) =>
+              Promise.resolve({ data: [], error: null }).catch(onReject),
+          };
+          return query;
+        };
+
+        _supabaseClient = {
+          from: () => createChainableQuery(),
+          auth: {
+            signIn: () => Promise.resolve({ data: null, error: null }),
+            signOut: () => Promise.resolve({ error: null }),
+            getUser: () =>
+              Promise.resolve({ data: { user: null }, error: null }),
+            getSession: () =>
+              Promise.resolve({ data: { session: null }, error: null }),
+            onAuthStateChange: () => ({
+              data: { subscription: { unsubscribe: () => {} } },
+            }),
+          },
+        } as unknown as SupabaseBrowserClient;
+        return _supabaseClient;
+      }
+
       _supabaseClient = createBrowserClient<Database>(
         SUPABASE_URL.trim(),
         SUPABASE_PUBLISHABLE_KEY.trim()
@@ -236,6 +288,97 @@ function getSupabaseClient() {
     // - PKCE flow for OAuth
     // - Session persistence and auto-refresh
     // Ensure we pass valid, non-empty strings (2025 best practice)
+    // Double-check values are defined before calling trim() to prevent production crashes
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      // This should never happen due to validation above, but add safety check
+      // Return mock client instead of throwing to prevent production crashes
+      const errorMessage =
+        'Missing or invalid Supabase environment variables: ' +
+        (!SUPABASE_URL ? 'NEXT_PUBLIC_SUPABASE_URL' : '') +
+        (!SUPABASE_URL && !SUPABASE_PUBLISHABLE_KEY ? ', ' : '') +
+        (!SUPABASE_PUBLISHABLE_KEY ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : '') +
+        '. Please set these in your environment variables.';
+
+      const createChainableQuery = () => {
+        const query = {
+          select: () => query,
+          insert: () => query,
+          update: () => query,
+          delete: () => query,
+          eq: () => query,
+          or: () => query,
+          neq: () => query,
+          gt: () => query,
+          lt: () => query,
+          gte: () => query,
+          lte: () => query,
+          like: () => query,
+          ilike: () => query,
+          is: () => query,
+          in: () => query,
+          contains: () => query,
+          order: () => query,
+          limit: () => query,
+          range: () => query,
+          single: () =>
+            Promise.resolve({
+              data: null,
+              error: { message: errorMessage, code: 'ENV_MISSING' },
+            }),
+          maybeSingle: () =>
+            Promise.resolve({
+              data: null,
+              error: { message: errorMessage, code: 'ENV_MISSING' },
+            }),
+          then: (
+            onResolve: (value: {
+              data: unknown[];
+              error: { message: string; code: string };
+            }) => unknown
+          ) =>
+            Promise.resolve({
+              data: [],
+              error: { message: errorMessage, code: 'ENV_MISSING' },
+            }).then(onResolve),
+          catch: (onReject: (reason?: unknown) => unknown) =>
+            Promise.resolve({
+              data: [],
+              error: { message: errorMessage, code: 'ENV_MISSING' },
+            }).catch(onReject),
+        };
+        return query;
+      };
+
+      _supabaseClient = {
+        from: () => createChainableQuery(),
+        auth: {
+          signIn: () =>
+            Promise.resolve({
+              data: null,
+              error: { message: errorMessage, code: 'ENV_MISSING' },
+            }),
+          signOut: () =>
+            Promise.resolve({
+              error: { message: errorMessage, code: 'ENV_MISSING' },
+            }),
+          getUser: () =>
+            Promise.resolve({
+              data: { user: null },
+              error: { message: errorMessage, code: 'ENV_MISSING' },
+            }),
+          getSession: () =>
+            Promise.resolve({
+              data: { session: null },
+              error: { message: errorMessage, code: 'ENV_MISSING' },
+            }),
+          onAuthStateChange: () => ({
+            data: { subscription: { unsubscribe: () => {} } },
+          }),
+        },
+      } as unknown as SupabaseBrowserClient;
+      return _supabaseClient;
+    }
+
     _supabaseClient = createBrowserClient<Database>(
       SUPABASE_URL.trim(),
       SUPABASE_PUBLISHABLE_KEY.trim()

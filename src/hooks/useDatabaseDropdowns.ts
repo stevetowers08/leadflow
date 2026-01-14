@@ -28,13 +28,16 @@ export const useDatabaseDropdowns = (dropdownType: DropdownType) => {
         setLoading(true);
         setError(null);
 
-        const { data, error } = await supabase.rpc('get_dropdown_options', {
-          dropdown_type: dropdownType,
-        } as never);
+        const { data, error } = await supabase.rpc(
+          'get_dropdown_options' as never,
+          {
+            dropdown_type: dropdownType,
+          } as never
+        );
 
         if (error) throw error;
 
-        setOptions(data || []);
+        setOptions((data as DatabaseDropdownOption[]) || []);
       } catch (err) {
         console.error(`Error fetching ${dropdownType} options:`, err);
         setError(

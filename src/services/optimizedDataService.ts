@@ -68,28 +68,32 @@ export class OptimizedDataService {
               totalLeads: leads.length,
               totalCompanies: companies.length,
               leadsThisWeek: leads.filter(
-                l => new Date(l.created_at) >= oneWeekAgo
+                l => l.created_at && new Date(l.created_at) >= oneWeekAgo
               ).length,
               companiesThisWeek: companies.filter(
-                c => new Date(c.created_at) >= oneWeekAgo
+                c => c.created_at && new Date(c.created_at) >= oneWeekAgo
               ).length,
               activeAutomations: 0, // Simplified for now
               automationSuccessRate: 0,
             },
-            recentLeads: leads.map(l => ({
-              id: l.id,
-              first_name: l.first_name,
-              last_name: l.last_name,
-              email: l.email,
-              company: l.company,
-              created_at: l.created_at,
-            })),
-            recentCompanies: companies.map(c => ({
-              id: c.id,
-              name: c.name,
-              industry: c.industry,
-              created_at: c.created_at,
-            })),
+            recentLeads: leads
+              .filter(l => l.created_at)
+              .map(l => ({
+                id: l.id,
+                first_name: l.first_name,
+                last_name: l.last_name,
+                email: l.email,
+                company: l.company,
+                created_at: l.created_at!,
+              })),
+            recentCompanies: companies
+              .filter(c => c.created_at)
+              .map(c => ({
+                id: c.id,
+                name: c.name,
+                industry: c.industry,
+                created_at: c.created_at!,
+              })),
           };
 
           monitor.setCache(cacheKey, data, 300000); // 5 minutes

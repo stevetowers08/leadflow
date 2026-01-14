@@ -209,9 +209,9 @@ export const MobileButton: React.FC<MobileButtonProps> = ({
   };
 
   const sizeClasses = {
-    sm: isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-2 text-sm',
-    md: isMobile ? 'px-4 py-3 text-sm' : 'px-6 py-3 text-base',
-    lg: isMobile ? 'px-6 py-4 text-base' : 'px-8 py-4 text-lg',
+    sm: isMobile ? 'px-3 py-1.5 text-sm' : 'px-4 py-2 text-sm',
+    md: isMobile ? 'px-4 py-2 text-sm' : 'px-6 py-3 text-base',
+    lg: isMobile ? 'px-6 py-2.5 text-sm' : 'px-8 py-4 text-lg',
   };
 
   return (
@@ -340,11 +340,11 @@ export const MobileSelect: React.FC<MobileSelectProps> = ({
       onChange={e => onChange(e.target.value)}
       disabled={disabled}
       className={cn(
-        'w-full rounded-lg border border-border/60 px-3 py-3 text-base bg-white',
+        'w-full rounded-lg border border-border/60 px-3 py-2 text-sm sm:text-base bg-white',
         'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
         'disabled:bg-gray-100 disabled:cursor-not-allowed',
         error && 'border-red-300 focus:ring-red-500 focus:border-red-500',
-        isMobile && 'min-h-[48px]',
+        isMobile && 'min-h-[44px]',
         className
       )}
     >

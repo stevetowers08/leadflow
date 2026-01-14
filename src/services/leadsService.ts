@@ -107,7 +107,7 @@ export async function createLead(input: CreateLeadInput): Promise<Lead> {
     email: data.email || undefined,
     first_name: data.first_name || undefined,
     last_name: data.last_name || undefined,
-    linkedin_url: null,
+    linkedin_url: undefined,
   }).catch(error => {
     // Log but don't fail lead creation
     console.error('Failed to trigger enrichment webhook:', error);

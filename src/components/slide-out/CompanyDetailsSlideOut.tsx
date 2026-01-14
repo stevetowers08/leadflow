@@ -188,7 +188,7 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
           .single();
 
         if (companyError) throw companyError;
-        setCompany(companyData as Company);
+        setCompany(companyData as unknown as Company);
 
         // Fetch shows for this company
         try {

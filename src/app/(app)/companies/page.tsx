@@ -1,6 +1,10 @@
 'use client';
 
-import { UnifiedTable, ColumnConfig } from '@/components/ui/unified-table';
+import {
+  UnifiedTable,
+  ColumnConfig,
+  TableSummary,
+} from '@/components/ui/unified-table';
 import { Page } from '@/design-system/components';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -362,13 +366,16 @@ export default function CompaniesPage() {
         throw error;
       }
 
+      // Cast to Company[] - the select includes columns that may not be in generated types
+      const companies = (data || []) as unknown as Company[];
+
       logger.debug(
         '[CompaniesPage] Fetched companies:',
-        data?.length,
+        companies.length,
         'companies'
       );
-      if (data && data.length > 0) {
-        const sample = data[0];
+      if (companies.length > 0) {
+        const sample = companies[0];
         logger.debug(
           '[CompaniesPage] Sample company enrichment data:',
           JSON.stringify(
@@ -387,7 +394,7 @@ export default function CompaniesPage() {
         );
       }
 
-      return (data || []) as Company[];
+      return companies;
     },
     enabled: shouldBypassAuth() || (!authLoading && !!user),
     staleTime: 2 * 60 * 1000,
@@ -752,6 +759,79 @@ export default function CompaniesPage() {
     [companies, bulkSelection, renderCheckbox]
   );
 
+  // Attio-style table summary for companies
+  const tableSummary: TableSummary = useMemo(() => {
+    const withWebsite = companies.filter(c => c.website).length;
+    const withLinkedIn = companies.filter(c => c.linkedin_url).length;
+    const withIndustry = companies.filter(c => c.industry).length;
+    const withSize = companies.filter(c => c.company_size).length;
+    const withARR = companies.filter(c => c.estimated_arr).length;
+    const totalARR = companies.reduce(
+      (sum, c) => sum + (c.estimated_arr || 0),
+      0
+    );
+
+    return {
+      cells: [
+        { key: 'checkbox', value: '' },
+        {
+          key: 'name',
+          value: `${companies.length} companies`,
+          type: 'count',
+          className: 'text-muted-foreground',
+        },
+        { key: 'categories', value: '', type: 'label' },
+        { key: 'shows', value: '', type: 'label' },
+        {
+          key: 'industry',
+          value: `${withIndustry} enriched`,
+          type: 'count',
+          className: 'text-muted-foreground text-xs',
+        },
+        {
+          key: 'website',
+          value: `${withWebsite} with website`,
+          type: 'count',
+          className: 'text-muted-foreground text-xs',
+        },
+        {
+          key: 'linkedin_url',
+          value: `${withLinkedIn} with LinkedIn`,
+          type: 'count',
+          className: 'text-muted-foreground text-xs',
+        },
+        { key: 'description', value: '', type: 'label' },
+        { key: 'head_office', value: '', type: 'label' },
+        {
+          key: 'company_size',
+          value: `${withSize} with size`,
+          type: 'count',
+          className: 'text-muted-foreground text-xs',
+        },
+        {
+          key: 'estimated_arr',
+          value:
+            withARR > 0 ? (
+              <span className='text-xs text-muted-foreground'>
+                {withARR} with ARR · Total:{' '}
+                {new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                  notation: 'compact',
+                }).format(totalARR)}
+              </span>
+            ) : (
+              ''
+            ),
+          type: 'custom',
+        },
+        { key: 'last_activity', value: '', type: 'label' },
+      ],
+    };
+  }, [companies]);
+
   // Handler functions for bulk operations
   const handleDelete = useCallback(async () => {
     const selectedCompanyIds = bulkSelection.getSelectedIds(
@@ -809,7 +889,7 @@ export default function CompaniesPage() {
     }
 
     try {
-      const { data: selectedCompanies, error: fetchError } = await supabase
+      const { data: rawCompanies, error: fetchError } = await supabase
         .from('companies')
         .select(
           'name, website, industry, linkedin_url, description, head_office, company_size, created_at, estimated_arr'
@@ -817,6 +897,19 @@ export default function CompaniesPage() {
         .in('id', selectedCompanyIds);
 
       if (fetchError) throw fetchError;
+
+      // Cast to proper type - columns may not be in generated Supabase types
+      const selectedCompanies = (rawCompanies || []) as unknown as Array<{
+        name: string | null;
+        website: string | null;
+        industry: string | null;
+        linkedin_url: string | null;
+        description: string | null;
+        head_office: string | null;
+        company_size: string | null;
+        created_at: string | null;
+        estimated_arr: number | null;
+      }>;
 
       const headers = [
         'Name',
@@ -832,18 +925,19 @@ export default function CompaniesPage() {
 
       const csvRows = [
         headers.join(','),
-        ...(selectedCompanies || []).map(company =>
-          [
-            `"${company.name || ''}"`,
-            `"${company.website || ''}"`,
-            `"${company.industry || ''}"`,
-            `"${company.linkedin_url || ''}"`,
-            `"${(company.description || '').replace(/"/g, '""')}"`,
-            `"${company.head_office || ''}"`,
-            `"${company.company_size || ''}"`,
-            `"${company.estimated_arr ? `$${company.estimated_arr.toLocaleString()}` : ''}"`,
-            `"${company.created_at ? new Date(company.created_at).toLocaleDateString() : ''}"`,
-          ].join(',')
+        ...selectedCompanies.map(
+          (company: (typeof selectedCompanies)[number]) =>
+            [
+              `"${company.name || ''}"`,
+              `"${company.website || ''}"`,
+              `"${company.industry || ''}"`,
+              `"${company.linkedin_url || ''}"`,
+              `"${(company.description || '').replace(/"/g, '""')}"`,
+              `"${company.head_office || ''}"`,
+              `"${company.company_size || ''}"`,
+              `"${company.estimated_arr ? `$${company.estimated_arr.toLocaleString()}` : ''}"`,
+              `"${company.created_at ? new Date(company.created_at).toLocaleDateString() : ''}"`,
+            ].join(',')
         ),
       ];
 
@@ -947,6 +1041,7 @@ export default function CompaniesPage() {
           emptyMessage='No companies found.'
           scrollable
           stickyHeaders
+          summary={tableSummary}
           onRowClick={company => {
             setSelectedCompanyId(company.id);
             setIsSlideOutOpen(true);

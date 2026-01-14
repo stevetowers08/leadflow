@@ -107,15 +107,17 @@ export const RecentActivityButton: React.FC = () => {
         }
 
         // Enrich company names for notes
+        type NoteWithEntity = { entity_type: string; entity_id: string };
+        const typedNotes = notes as unknown as NoteWithEntity[];
         const companyIds = Array.from(
           new Set(
-            notes
+            typedNotes
               .filter(
-                (n): n is { entity_type: string; entity_id: string } =>
+                n =>
                   typeof n === 'object' &&
                   n !== null &&
                   'entity_type' in n &&
-                  (n as { entity_type: string }).entity_type === 'company'
+                  n.entity_type === 'company'
               )
               .map(n => n.entity_id)
           )

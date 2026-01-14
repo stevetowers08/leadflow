@@ -61,7 +61,7 @@ export function MobileInput({
     <MobileFormField label={label} error={error} required={required}>
       <Input
         className={cn(
-          'w-full min-h-[48px] text-base', // Larger touch target and text
+          'w-full min-h-[44px] text-sm sm:text-base', // Optimal touch target (44px) with responsive text
           'touch-manipulation', // Better touch handling
           className
         )}
@@ -88,7 +88,7 @@ export function MobileTextarea({
     <MobileFormField label={label} error={error} required={required}>
       <Textarea
         className={cn(
-          'w-full min-h-[48px] text-base resize-none', // Larger touch target and text
+          'w-full min-h-[44px] text-sm sm:text-base resize-none', // Optimal touch target (44px) with responsive text
           'touch-manipulation', // Better touch handling
           className
         )}
@@ -124,7 +124,7 @@ export function MobileSelect({
       <Select value={value} onValueChange={onValueChange}>
         <SelectTrigger
           className={cn(
-            'w-full min-h-[48px] text-base', // Larger touch target and text
+            'w-full min-h-[44px] h-auto text-sm sm:text-base', // Optimal touch target (44px) with responsive text
             'touch-manipulation', // Better touch handling
             className
           )}
@@ -136,7 +136,7 @@ export function MobileSelect({
             <SelectItem
               key={option.value}
               value={option.value}
-              className='min-h-[44px] text-base' // Larger touch targets
+              className='min-h-[44px] text-sm sm:text-base' // Optimal touch targets with responsive text
             >
               {option.label}
             </SelectItem>
@@ -160,7 +160,7 @@ export function MobileButton({
   return (
     <Button
       className={cn(
-        'min-h-[48px] text-base font-medium', // Larger touch target and text
+        'min-h-[44px] h-auto px-4 py-2 text-sm sm:text-base font-medium', // Optimal touch target (44px) with responsive text and padding
         'touch-manipulation', // Better touch handling
         fullWidth && 'w-full',
         className

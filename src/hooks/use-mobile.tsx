@@ -3,19 +3,36 @@ import * as React from 'react';
 const MOBILE_BREAKPOINT = 768;
 
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
-    undefined
-  );
+  // Initialize with false to ensure consistent hook count during SSR/hydration
+  // This prevents React error #310 (hooks count mismatch)
+  const [isMobile, setIsMobile] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const onChange = () => {
+    // Guard against SSR and ensure window is available
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      // Set initial value immediately
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    };
-    mql.addEventListener('change', onChange);
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => mql.removeEventListener('change', onChange);
+
+      const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+      const onChange = () => {
+        if (typeof window !== 'undefined') {
+          setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+        }
+      };
+      mql.addEventListener('change', onChange);
+      return () => mql.removeEventListener('change', onChange);
+    } catch (error) {
+      // Fallback to false if matchMedia fails (shouldn't happen, but be defensive)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error in useIsMobile:', error);
+      }
+      setIsMobile(false);
+    }
   }, []);
 
-  return !!isMobile;
+  return isMobile;
 }

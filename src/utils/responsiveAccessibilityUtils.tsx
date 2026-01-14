@@ -335,9 +335,9 @@ export const EnhancedMobileButton: React.FC<EnhancedMobileButtonProps> = ({
   };
 
   const sizeClasses = {
-    sm: 'px-3 py-2 text-sm min-h-[44px] min-w-[44px]', // Minimum touch target
-    md: 'px-4 py-3 text-base min-h-[48px]',
-    lg: 'px-6 py-4 text-lg min-h-[52px]',
+    sm: 'px-3 py-1.5 text-sm min-h-[44px] min-w-[44px]', // Minimum touch target
+    md: 'px-4 py-2 text-sm sm:text-base min-h-[44px]', // Optimal size with responsive text
+    lg: 'px-6 py-2.5 text-base sm:text-lg min-h-[44px]', // Compact but accessible
   };
 
   return (

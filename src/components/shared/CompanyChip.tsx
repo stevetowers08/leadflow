@@ -291,7 +291,7 @@ function CompanyChipComponent({ company, className }: CompanyChipProps) {
       {/* Show logo or fallback avatar */}
       <div className='h-5 w-5 flex-shrink-0 flex items-center justify-center relative'>
         {/* Previous logo (for smooth transition) - only for actual logos, not fallbacks */}
-        {showPrevLogo && (
+        {showPrevLogo && prevLogoRef.current && (
           <div className='absolute inset-0 h-5 w-5 rounded bg-white'>
             <img
               src={prevLogoRef.current}

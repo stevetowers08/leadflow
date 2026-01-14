@@ -203,7 +203,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                 linkedin_url: companyData.linkedin_url,
                 website: companyData.website,
               });
-              setCompany(companyData as Company);
+              setCompany(companyData as unknown as Company);
 
               // Fetch other leads at same company (by name)
               const { data: otherLeadsData, error: otherLeadsError } =

@@ -125,8 +125,10 @@ export function useCompanies(
       // Build a count map from the results
       const countMap = new Map<string, number>();
       (leadCounts || []).forEach(lead => {
-        const current = countMap.get(lead.company) || 0;
-        countMap.set(lead.company, current + 1);
+        if (lead.company) {
+          const current = countMap.get(lead.company) || 0;
+          countMap.set(lead.company, current + 1);
+        }
       });
 
       // Map companies with their counts

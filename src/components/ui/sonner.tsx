@@ -37,9 +37,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
             'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',
           error:
             'group-[.toaster]:!bg-destructive group-[.toaster]:!text-destructive-foreground group-[.toaster]:!border-destructive/50',
-          errorDescription: 'group-[.toast]:!text-destructive-foreground/95',
-          errorTitle:
-            'group-[.toast]:!text-destructive-foreground !font-semibold',
         },
       }}
       {...props}

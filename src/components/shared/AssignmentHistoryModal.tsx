@@ -57,7 +57,7 @@ export const AssignmentHistoryModal: React.FC<AssignmentHistoryModalProps> = ({
         entityType,
         entityId
       );
-      setHistory(historyData);
+      setHistory(historyData as unknown as AssignmentHistoryEntry[]);
     } catch (error) {
       console.error('Error loading assignment history:', error);
     } finally {

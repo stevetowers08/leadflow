@@ -69,8 +69,8 @@ export function formatLocationShort(loc: LocationData): string {
 export function isAustraliaLocation(loc: LocationData): boolean {
   return (
     loc.country === 'AU' ||
-    loc.location?.includes('Australia') ||
-    loc.location?.includes('AU')
+    (loc.location?.includes('Australia') ?? false) ||
+    (loc.location?.includes('AU') ?? false)
   );
 }
 

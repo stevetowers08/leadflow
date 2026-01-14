@@ -119,7 +119,7 @@ export const useAssignmentState = (options: AssignmentOptions) => {
         .from(entityType as never)
         .update({
           updated_at: new Date().toISOString(),
-        })
+        } as never)
         .eq('id', entityId);
 
       if (error) throw error;

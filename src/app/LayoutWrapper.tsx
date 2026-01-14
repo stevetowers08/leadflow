@@ -25,12 +25,20 @@ import {
 export function LayoutWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
-  // 2025: Initialize mobile optimizations
+  // 2025: Initialize mobile optimizations with error handling
   useEffect(() => {
-    initMobileViewport();
+    try {
+      initMobileViewport();
+    } catch (error) {
+      // Silently fail during SSR/hydration - mobile optimizations are non-critical
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to initialize mobile viewport:', error);
+      }
+    }
   }, []);
 
   // 2025: Apply mobile performance optimizations
+  // These hooks have their own guards for SSR safety
   useImageOptimization();
   usePreventDoubleTapZoom();
   useSmoothScroll();

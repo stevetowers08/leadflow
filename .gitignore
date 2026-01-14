@@ -58,6 +58,7 @@ logs
 # Temporary files
 tmp/
 temp/
+tmpclaude-*
 
 # Environment files with secrets
 env.production

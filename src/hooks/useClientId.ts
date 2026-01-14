@@ -79,7 +79,10 @@ export function useClientId() {
         return null;
       }
 
-      return (clientUser as { client_id?: string })?.client_id || null;
+      return (
+        (clientUser as unknown as { client_id?: string } | null)?.client_id ||
+        null
+      );
     },
     enabled: !currentOrganization?.id && (!!user?.id || bypassAuth),
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -148,5 +151,7 @@ export async function getClientId(): Promise<string | null> {
     return null;
   }
 
-  return (clientUser as { client_id?: string })?.client_id || null;
+  return (
+    (clientUser as unknown as { client_id?: string } | null)?.client_id || null
+  );
 }

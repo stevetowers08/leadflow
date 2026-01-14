@@ -272,7 +272,10 @@ class AnalyticsTracker {
     };
   }
 
-  public trackEvent(event: string, properties?: Record<string, unknown>): void {
+  public trackEvent(
+    event: string,
+    properties?: Record<string, string | number | boolean | null | undefined>
+  ): void {
     if (!this.config.enabled) return;
 
     const analyticsEvent: AnalyticsEvent = {

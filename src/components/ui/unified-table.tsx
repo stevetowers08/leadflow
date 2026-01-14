@@ -19,6 +19,7 @@ import {
 import {
   TableHeader as ShadcnTableHeader,
   TableBody as ShadcnTableBody,
+  TableFooter as ShadcnTableFooter,
   TableRow as ShadcnTableRow,
   TableCell as ShadcnTableCell,
   TableHead as ShadcnTableHead,
@@ -43,6 +44,19 @@ export interface ColumnConfig<T = unknown> {
   render?: (value: unknown, row: T, index: number) => React.ReactNode;
   className?: string;
   getStatusValue?: (row: T) => string; // For status cells to get the status value
+}
+
+// Summary cell configuration for table footer (Attio-style)
+export interface SummaryCell {
+  key: string; // Matches column key
+  value: string | number | React.ReactNode;
+  type?: 'count' | 'sum' | 'average' | 'label' | 'custom';
+  className?: string;
+}
+
+export interface TableSummary {
+  cells: SummaryCell[];
+  className?: string;
 }
 
 export interface TableGroup<T = unknown> {
@@ -72,6 +86,7 @@ export interface UnifiedTableProps<T = unknown> {
     row: T,
     index: number
   ) => { isEnriched?: boolean; className?: string }; // Row-specific props
+  summary?: TableSummary; // Attio-style summary row at bottom of table
 }
 
 // Compound Component Pattern - Table Sub-components
@@ -253,8 +268,8 @@ TableHead.displayName = 'TableHead';
 
 // Helper function to calculate column width styles consistently
 // This ensures colgroup, headers, and cells all use the same width logic
-function getColumnWidthStyle(
-  column: ColumnConfig,
+function getColumnWidthStyle<T = unknown>(
+  column: ColumnConfig<T>,
   isSelectColumn: boolean
 ): React.CSSProperties {
   if (isSelectColumn) {
@@ -322,6 +337,7 @@ function UnifiedTableComponent<T = unknown>({
   tableId,
   getRowClassName,
   getRowProps,
+  summary,
 }: UnifiedTableProps<T>) {
   // ----- Column order (TanStack Table headless) -----
   const initialOrder = React.useRef<ColumnOrderState>([]);
@@ -842,6 +858,65 @@ function UnifiedTableComponent<T = unknown>({
                       });
                 })()}
               </TableBody>
+
+              {/* Attio-style Summary Footer */}
+              {summary && summary.cells.length > 0 && (
+                <ShadcnTableFooter
+                  className={cn(
+                    'sticky bottom-0 z-20 bg-muted/80 backdrop-blur-sm',
+                    summary.className
+                  )}
+                >
+                  <tr className='border-t border-border'>
+                    {orderedColumns.map((column, colIndex) => {
+                      const summaryCell = summary.cells.find(
+                        cell => cell.key === column.key
+                      );
+
+                      // Check if this is a select/checkbox column
+                      const isSelectColumn =
+                        !column.label ||
+                        (typeof column.label === 'string' &&
+                          column.label.trim().length === 0) ||
+                        column.key.toLowerCase().includes('select') ||
+                        column.key.toLowerCase().includes('checkbox');
+
+                      const cellWidthStyle = getColumnWidthStyle(
+                        column,
+                        isSelectColumn
+                      );
+
+                      return (
+                        <td
+                          key={column.key}
+                          className={cn(
+                            'px-4 py-2 text-sm font-medium',
+                            !isSelectColumn &&
+                              colIndex === 0 &&
+                              'text-muted-foreground',
+                            colIndex !== orderedColumns.length - 1 &&
+                              'border-r border-border',
+                            column.align === 'center' && 'text-center',
+                            column.align === 'right' && 'text-right',
+                            summaryCell?.className
+                          )}
+                          style={cellWidthStyle}
+                        >
+                          {summaryCell ? (
+                            typeof summaryCell.value === 'number' ? (
+                              <span className='tabular-nums'>
+                                {summaryCell.value.toLocaleString()}
+                              </span>
+                            ) : (
+                              summaryCell.value
+                            )
+                          ) : null}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </ShadcnTableFooter>
+              )}
             </table>
           </div>
         </div>
@@ -862,6 +937,7 @@ function UnifiedTableComponent<T = unknown>({
     columnOrder,
     getRowClassName,
     getRowProps,
+    summary,
   ]);
 
   return tableStructure;

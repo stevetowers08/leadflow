@@ -153,7 +153,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
         .from(tableName as never)
         .update({
           updated_at: new Date().toISOString(),
-        })
+        } as never)
         .eq('id', entityId);
 
       if (error) {
@@ -200,7 +200,7 @@ export const IconOnlyAssignmentCell: React.FC<IconOnlyAssignmentCellProps> = ({
         .from(tableName as never)
         .update({
           updated_at: new Date().toISOString(),
-        })
+        } as never)
         .eq('id', entityId);
 
       if (error) {

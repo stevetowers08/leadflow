@@ -440,6 +440,14 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  /* Ensure shadows render properly on buttons and inputs */
+  button[class*='shadow'],
+  [role='button'][class*='shadow'],
+  input[class*='shadow'],
+  select[class*='shadow'] {
+    overflow: visible !important;
+  }
+
   /* Unified Color System Utilities */
   .bg-primary-light {
     background-color: hsl(var(--primary-light));
@@ -859,14 +867,14 @@ All colors MUST be HSL.
       font-size: 16px !important; /* Prevent iOS zoom on focus */
     }
 
-    /* 2025: Better touch targets - 48px minimum (WCAG 2.5.5 Level AAA) */
+    /* 2025: Better touch targets - 44px minimum (iOS standard, meets WCAG 2.5.5 Level AAA) */
     button:not([class*='min-h']):not([class*='h-']),
     [role='button']:not([class*='min-h']),
     input[type='button'],
     input[type='submit'],
     a[role='button']:not([class*='min-h']) {
-      min-height: 48px;
-      min-width: 48px;
+      min-height: 44px;
+      min-width: 44px;
     }
 
     /* Prevent horizontal scroll */

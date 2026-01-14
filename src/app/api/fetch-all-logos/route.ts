@@ -71,15 +71,6 @@ export async function POST(request: NextRequest) {
     }
 
     const companies = allCompanies;
-    const error = null;
-
-    if (error) {
-      console.error('Error fetching companies:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch companies', details: error.message },
-        { status: 500 }
-      );
-    }
 
     if (!companies || companies.length === 0) {
       return NextResponse.json({

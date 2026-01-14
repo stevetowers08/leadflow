@@ -11,6 +11,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth, getAuthConfig } from '@/config/auth';
+import { Json } from '@/integrations/supabase/types';
 
 // Campaign Sequences Hook - DISABLED (not in PDR)
 export function useCampaignSequences() {
@@ -375,7 +376,8 @@ export function useCampaignSteps(sequenceId: string) {
 
       // Extract steps from gmail_sequence JSONB field
       // gmail_sequence is an array of step objects
-      const gmailSequence = (workflow?.gmail_sequence as CampaignStep[]) || [];
+      const gmailSequence =
+        (workflow?.gmail_sequence as unknown as CampaignStep[]) || [];
 
       // Map to CampaignStep format with sequence_id
       return gmailSequence.map((step, index) => ({
@@ -399,7 +401,8 @@ export function useCampaignSteps(sequenceId: string) {
       if (fetchError) throw fetchError;
 
       // Get existing steps from gmail_sequence
-      const existingSteps = (workflow?.gmail_sequence as CampaignStep[]) || [];
+      const existingSteps =
+        (workflow?.gmail_sequence as unknown as CampaignStep[]) || [];
       const nextOrder = existingSteps.length + 1;
 
       // Create new step
@@ -432,7 +435,7 @@ export function useCampaignSteps(sequenceId: string) {
       // Update workflow's gmail_sequence field
       const { error } = await supabase
         .from('workflows')
-        .update({ gmail_sequence: updatedSteps })
+        .update({ gmail_sequence: updatedSteps as unknown as Json })
         .eq('id', sequenceId);
 
       if (error) throw error;
@@ -463,7 +466,8 @@ export function useCampaignSteps(sequenceId: string) {
       if (fetchError) throw fetchError;
 
       // Get existing steps and update the one with matching id
-      const existingSteps = (workflow?.gmail_sequence as CampaignStep[]) || [];
+      const existingSteps =
+        (workflow?.gmail_sequence as unknown as CampaignStep[]) || [];
       const updatedSteps = existingSteps.map(step =>
         step.id === id ? { ...step, ...updates } : step
       );
@@ -471,7 +475,7 @@ export function useCampaignSteps(sequenceId: string) {
       // Update workflow's gmail_sequence field
       const { error } = await supabase
         .from('workflows')
-        .update({ gmail_sequence: updatedSteps })
+        .update({ gmail_sequence: updatedSteps as unknown as Json })
         .eq('id', sequenceId);
 
       if (error) throw error;
@@ -499,13 +503,14 @@ export function useCampaignSteps(sequenceId: string) {
       if (fetchError) throw fetchError;
 
       // Remove step from array
-      const existingSteps = (workflow?.gmail_sequence as CampaignStep[]) || [];
+      const existingSteps =
+        (workflow?.gmail_sequence as unknown as CampaignStep[]) || [];
       const updatedSteps = existingSteps.filter(step => step.id !== id);
 
       // Update workflow's gmail_sequence field
       const { error } = await supabase
         .from('workflows')
-        .update({ gmail_sequence: updatedSteps })
+        .update({ gmail_sequence: updatedSteps as unknown as Json })
         .eq('id', sequenceId);
 
       if (error) throw error;

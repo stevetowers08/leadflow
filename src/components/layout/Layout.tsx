@@ -53,6 +53,7 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
+  // All hooks must be called unconditionally to prevent React error #310
   const [isMounted, setIsMounted] = useState(false);
   const isMobile = useIsMobile();
   const mainContentRef = useRef<HTMLElement>(null);
@@ -66,6 +67,9 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     if (pageTitle) {
       return { currentPageTitle: pageTitle, currentPageSubheading: undefined };
     }
+
+    // Safeguard: ensure pathname is available before using it
+    const currentPathname = pathname || '/';
 
     const routeData: Record<string, { title: string; subheading?: string }> = {
       '/': {
@@ -92,6 +96,10 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
         title: 'Shows',
         subheading: 'Manage your exhibition shows',
       },
+      '/companies': {
+        title: 'Companies',
+        subheading: 'Manage your companies and contacts',
+      },
       // Legacy routes (for redirects)
       '/contacts': {
         title: 'Leads',
@@ -100,18 +108,20 @@ export const Layout = ({ children, pageTitle, onSearch }: LayoutProps) => {
     };
 
     // Check for route patterns (e.g., /workflows/sequence/[id])
-    let data = pathname ? routeData[pathname] : undefined;
-    if (!data && pathname) {
-      if (pathname.startsWith('/workflows')) {
+    let data = routeData[currentPathname];
+    if (!data) {
+      if (currentPathname.startsWith('/workflows')) {
         data = routeData['/workflows'];
-      } else if (pathname.startsWith('/leads')) {
+      } else if (currentPathname.startsWith('/leads')) {
         data = routeData['/leads'];
-      } else if (pathname.startsWith('/analytics')) {
+      } else if (currentPathname.startsWith('/analytics')) {
         data = routeData['/analytics'];
-      } else if (pathname.startsWith('/settings')) {
+      } else if (currentPathname.startsWith('/settings')) {
         data = routeData['/settings'];
-      } else if (pathname.startsWith('/shows')) {
+      } else if (currentPathname.startsWith('/shows')) {
         data = routeData['/shows'];
+      } else if (currentPathname.startsWith('/companies')) {
+        data = routeData['/companies'];
       }
     }
 
