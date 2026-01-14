@@ -52,7 +52,7 @@ export const useKeyboardShortcuts = () => {
     {
       key: '1',
       ctrlKey: true,
-      action: () => router.push('/companies'),
+      action: () => router.push('/'),
       description: 'Go to Companies',
     },
     {
@@ -64,7 +64,7 @@ export const useKeyboardShortcuts = () => {
     {
       key: '3',
       ctrlKey: true,
-      action: () => router.push('/companies'),
+      action: () => router.push('/'),
       description: 'Go to Companies',
     },
     {

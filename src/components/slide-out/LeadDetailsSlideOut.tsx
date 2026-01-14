@@ -493,7 +493,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
 
     const handleCompanyClick = (companyId: string) => {
       onClose();
-      router.push(`/companies?id=${companyId}`);
+      router.push(`/?id=${companyId}`);
     };
 
     const handleLeadClick = (clickedLeadId: string) => {

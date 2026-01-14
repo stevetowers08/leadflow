@@ -8,16 +8,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { shouldBypassAuth } from '@/config/auth';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Building2,
   ExternalLink,
-  MapPin,
-  Download,
   Linkedin,
   Clock,
   FileText,
   Tag,
-  Signal,
   Zap,
+  Calendar,
+  X,
+  Plus,
+  ChevronDown,
 } from 'lucide-react';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import type { Company } from '@/types/database';
@@ -57,7 +57,6 @@ import { FloatingActionBar } from '@/components/people/FloatingActionBar';
 import { useAllCampaigns } from '@/hooks/useAllCampaigns';
 import { useDeleteConfirmation } from '@/contexts/ConfirmationContext';
 import { logger } from '@/utils/logger';
-import { Calendar, X, Plus, ChevronDown } from 'lucide-react';
 
 // Sort options for companies
 const COMPANY_SORT_OPTIONS: SortOption[] = [
@@ -543,33 +542,37 @@ export default function CompaniesPage() {
         ),
         width: '180px',
         render: (value, row) => {
-          const industry = row.industry;
-          if (!industry)
+          const industry = (value || row.industry) as string | null | undefined;
+          if (
+            !industry ||
+            (typeof industry === 'string' && industry.trim() === '')
+          )
             return <span className='text-muted-foreground'>-</span>;
           return <span className='text-sm'>{industry}</span>;
         },
       },
       {
         key: 'website',
-        label: (
-          <div className='flex items-center gap-1.5'>
-            <span>Website</span>
-            <Zap className='h-3.5 w-3.5 text-yellow-500' />
-          </div>
-        ),
+        label: 'Website',
         width: '200px',
         render: (value, row) => {
-          const website = row.website;
+          const website = (value || row.website) as string | null | undefined;
           if (!website) return <span className='text-muted-foreground'>-</span>;
+
+          const displayText = website.replace(/^https?:\/\//, '');
+          const href = website.startsWith('http')
+            ? website
+            : `https://${website}`;
+
           return (
             <a
-              href={website.startsWith('http') ? website : `https://${website}`}
+              href={href}
               target='_blank'
               rel='noopener noreferrer'
               className='text-primary hover:underline flex items-center gap-1 text-sm'
               onClick={e => e.stopPropagation()}
             >
-              {website.replace(/^https?:\/\//, '')}
+              {displayText}
               <ExternalLink className='h-3 w-3' />
             </a>
           );
@@ -585,16 +588,19 @@ export default function CompaniesPage() {
         ),
         width: '180px',
         render: (value, row) => {
-          const linkedinUrl = row.linkedin_url;
-          if (!linkedinUrl)
+          // Use row property directly - UnifiedTable may not extract value correctly for all columns
+          const linkedinUrl = row.linkedin_url as string | null | undefined;
+          if (!linkedinUrl) {
             return <span className='text-muted-foreground'>-</span>;
+          }
+
+          const href = linkedinUrl.startsWith('http')
+            ? linkedinUrl
+            : `https://${linkedinUrl}`;
+
           return (
             <a
-              href={
-                linkedinUrl.startsWith('http')
-                  ? linkedinUrl
-                  : `https://${linkedinUrl}`
-              }
+              href={href}
               target='_blank'
               rel='noopener noreferrer'
               className='text-primary hover:underline flex items-center gap-1 text-sm'
@@ -617,7 +623,10 @@ export default function CompaniesPage() {
         ),
         width: '300px',
         render: (value, row) => {
-          const description = row.description;
+          const description = (value || row.description) as
+            | string
+            | null
+            | undefined;
           if (!description)
             return <span className='text-muted-foreground'>-</span>;
           return (
@@ -643,7 +652,8 @@ export default function CompaniesPage() {
         ),
         width: '200px',
         render: (value, row) => {
-          const location = row.head_office;
+          // Use row property directly - UnifiedTable may not extract value correctly for all columns
+          const location = row.head_office as string | null | undefined;
           if (!location)
             return <span className='text-muted-foreground'>-</span>;
           return <span className='text-sm truncate'>{location}</span>;
@@ -659,8 +669,25 @@ export default function CompaniesPage() {
         ),
         width: '120px',
         render: (value, row) => {
-          const size = row.company_size;
-          if (!size) return <span className='text-muted-foreground'>-</span>;
+          // Use row property directly - UnifiedTable may not extract value correctly for all columns
+          // Try multiple ways to access the value
+          const size = (row.company_size ?? value ?? null) as
+            | string
+            | null
+            | undefined;
+
+          // Debug logging
+          if (!size && row.name) {
+            logger.debug('[CompanySize] Missing size for:', row.name, {
+              row_company_size: row.company_size,
+              value: value,
+              row_keys: Object.keys(row),
+            });
+          }
+
+          if (!size || size.trim() === '') {
+            return <span className='text-muted-foreground'>-</span>;
+          }
           return <span className='text-sm'>{size}</span>;
         },
       },
@@ -677,7 +704,10 @@ export default function CompaniesPage() {
         ),
         width: '140px',
         render: (value, row) => {
-          const arr = row.estimated_arr as number | null | undefined;
+          const arr = (row.estimated_arr ?? value ?? null) as
+            | number
+            | null
+            | undefined;
 
           if (arr === null || arr === undefined) {
             return <span className='text-muted-foreground'>-</span>;
@@ -715,7 +745,153 @@ export default function CompaniesPage() {
         },
       },
     ],
-    [companies, bulkSelection, renderCheckbox, shows, companyShowsMap]
+    [companies, bulkSelection, renderCheckbox]
+  );
+
+  // Handler functions for bulk operations
+  const handleDelete = useCallback(async () => {
+    const selectedCompanyIds = bulkSelection.getSelectedIds(
+      companies.map(c => c.id)
+    );
+
+    if (selectedCompanyIds.length === 0) {
+      toast.error('Error', { description: 'No companies selected' });
+      return;
+    }
+
+    showDeleteConfirmation(
+      async () => {
+        try {
+          const { error: deleteError } = await supabase
+            .from('companies')
+            .delete()
+            .in('id', selectedCompanyIds);
+
+          if (deleteError) {
+            throw deleteError;
+          }
+
+          toast.success('Success', {
+            description: `Deleted ${selectedCompanyIds.length} compan${selectedCompanyIds.length === 1 ? 'y' : 'ies'}`,
+          });
+
+          queryClient.invalidateQueries({ queryKey: ['companies'] });
+          bulkSelection.deselectAll();
+        } catch (error) {
+          console.error('Error deleting companies:', error);
+          toast.error('Error', {
+            description:
+              error instanceof Error
+                ? error.message
+                : 'Failed to delete companies',
+          });
+        }
+      },
+      {
+        customTitle: 'Delete Companies',
+        customDescription: `Are you sure you want to delete ${selectedCompanyIds.length} compan${selectedCompanyIds.length === 1 ? 'y' : 'ies'}? This action cannot be undone.`,
+      }
+    );
+  }, [bulkSelection, companies, showDeleteConfirmation, queryClient]);
+
+  const handleExport = useCallback(async () => {
+    const selectedCompanyIds = bulkSelection.getSelectedIds(
+      companies.map(c => c.id)
+    );
+
+    if (selectedCompanyIds.length === 0) {
+      toast.error('Error', { description: 'No companies selected' });
+      return;
+    }
+
+    try {
+      const { data: selectedCompanies, error: fetchError } = await supabase
+        .from('companies')
+        .select(
+          'name, website, industry, linkedin_url, description, head_office, company_size, created_at, estimated_arr'
+        )
+        .in('id', selectedCompanyIds);
+
+      if (fetchError) throw fetchError;
+
+      const headers = [
+        'Name',
+        'Website',
+        'Industry',
+        'LinkedIn',
+        'Description',
+        'Location',
+        'Company Size',
+        'Estimated ARR',
+        'Created Date',
+      ];
+
+      const csvRows = [
+        headers.join(','),
+        ...(selectedCompanies || []).map(company =>
+          [
+            `"${company.name || ''}"`,
+            `"${company.website || ''}"`,
+            `"${company.industry || ''}"`,
+            `"${company.linkedin_url || ''}"`,
+            `"${(company.description || '').replace(/"/g, '""')}"`,
+            `"${company.head_office || ''}"`,
+            `"${company.company_size || ''}"`,
+            `"${company.estimated_arr ? `$${company.estimated_arr.toLocaleString()}` : ''}"`,
+            `"${company.created_at ? new Date(company.created_at).toLocaleDateString() : ''}"`,
+          ].join(',')
+        ),
+      ];
+
+      const BOM = '\uFEFF';
+      const csvContent = BOM + csvRows.join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `companies_export_${new Date().toISOString().split('T')[0]}.csv`
+      );
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Export successful', {
+        description: `Downloaded companies_export_${new Date().toISOString().split('T')[0]}.csv`,
+      });
+    } catch (error) {
+      logger.error('Export error:', error);
+      toast.error('Export failed', {
+        description:
+          error instanceof Error ? error.message : 'Please try again',
+      });
+    }
+  }, [bulkSelection, companies]);
+
+  const handleFavourite = useCallback(async () => {
+    toast.info('Favourite functionality not yet implemented for companies');
+  }, []);
+
+  const handleSyncCRM = useCallback(async () => {
+    toast.info('CRM sync functionality not yet implemented for companies');
+  }, []);
+
+  const handleSendEmail = useCallback(async () => {
+    toast.info('Send email functionality not yet implemented for companies');
+  }, []);
+
+  const handleAddToCampaign = useCallback(
+    async (campaignId: string, campaignType: 'email' | 'lemlist') => {
+      toast.info(
+        'Add to campaign functionality not yet implemented for companies'
+      );
+    },
+    []
   );
 
   if (error) {
@@ -741,6 +917,21 @@ export default function CompaniesPage() {
         onPreferencesChange={updatePreferences}
       />
 
+      {/* Selection indicator - responsive */}
+      {actualSelectedCount > 0 && (
+        <div className='flex items-center justify-between gap-2 px-3 sm:px-4 py-2 border-b border-border bg-background'>
+          <div className='flex items-center gap-2 flex-shrink-0'>
+            <Badge variant='secondary' className='text-xs sm:text-sm'>
+              {actualSelectedCount}{' '}
+              <span className='hidden xs:inline'>
+                {actualSelectedCount === 1 ? 'company' : 'companies'}
+              </span>{' '}
+              selected
+            </Badge>
+          </div>
+        </div>
+      )}
+
       <div
         className='w-full min-w-0 flex-1'
         style={{ minHeight: '400px', maxHeight: 'calc(100vh - 200px)' }}
@@ -758,6 +949,20 @@ export default function CompaniesPage() {
           }}
         />
       </div>
+
+      {/* Floating Action Bar for bulk operations */}
+      <FloatingActionBar
+        selectedCount={actualSelectedCount}
+        onDelete={handleDelete}
+        onFavourite={handleFavourite}
+        onExport={handleExport}
+        onSyncCRM={handleSyncCRM}
+        onSendEmail={handleSendEmail}
+        onAddToCampaign={handleAddToCampaign}
+        onClear={() => bulkSelection.deselectAll()}
+        campaigns={campaigns}
+        userId={user?.id}
+      />
 
       {/* Company Details Slide Out */}
       {selectedCompanyId && (
