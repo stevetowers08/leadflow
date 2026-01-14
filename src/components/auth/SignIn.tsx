@@ -196,7 +196,7 @@ export const SignIn: React.FC = () => {
                   placeholder='Enter your email'
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className='h-12 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-lg'
+                  className='h-12 border-border focus:border-foreground focus:ring-foreground rounded-lg'
                   disabled={loading !== null}
                   required
                 />
@@ -216,7 +216,7 @@ export const SignIn: React.FC = () => {
                     placeholder='Enter your password'
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className='h-12 pr-12 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-lg'
+                    className='h-12 pr-12 border-border focus:border-foreground focus:ring-foreground rounded-lg'
                     disabled={loading !== null}
                     required
                   />
@@ -238,7 +238,7 @@ export const SignIn: React.FC = () => {
               <div className='flex items-center justify-start'>
                 <button
                   type='button'
-                  className='text-sm text-sidebar-primary hover:text-sidebar-primary/80 font-medium'
+                  className='text-sm text-foreground/70 hover:text-foreground font-medium'
                   disabled={loading !== null}
                 >
                   Forgot password?
@@ -247,7 +247,7 @@ export const SignIn: React.FC = () => {
 
               <Button
                 type='submit'
-                className='w-full h-12 bg-sidebar-primary hover:bg-sidebar-primary/90 text-white font-medium rounded-lg'
+                className='w-full h-12 bg-foreground hover:bg-foreground/90 text-background font-medium rounded-lg'
                 disabled={loading !== null}
               >
                 {loading === 'email' ? (
@@ -263,7 +263,7 @@ export const SignIn: React.FC = () => {
 
             {/* Additional Links */}
             <div className='mt-8 space-y-3 text-center'>
-              <button className='block w-full text-sm text-sidebar-primary hover:text-sidebar-primary/80 font-medium'>
+              <button className='block w-full text-sm text-foreground/70 hover:text-foreground font-medium'>
                 Can&apos;t Access Your Account?
               </button>
             </div>

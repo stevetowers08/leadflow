@@ -4,9 +4,15 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import type { Lead } from '@/types/database';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { Sparkles, RefreshCw, AlertCircle } from 'lucide-react';
 import type { ButtonProps } from '@/components/ui/button';
 import { logger } from '@/utils/productionLogger';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface EnrichLeadButtonProps {
   lead: Lead;
@@ -84,6 +90,21 @@ export function EnrichLeadButton({
     lead.enrichment_status === 'pending' ||
     lead.enrichment_status === 'enriching';
 
+  // Get error message from enrichment_data if failed
+  const errorMessage =
+    isFailed && lead.enrichment_data
+      ? (
+          lead.enrichment_data as {
+            error?: string;
+            missing_config?: string;
+            reason?: string;
+          }
+        )?.error ||
+        (lead.enrichment_data as { missing_config?: string })?.missing_config ||
+        (lead.enrichment_data as { reason?: string })?.reason ||
+        'Enrichment failed'
+      : null;
+
   // Check if enriched recently (within 90 days)
   const enrichedRecently =
     lead.enrichment_timestamp &&
@@ -114,15 +135,38 @@ export function EnrichLeadButton({
     );
   }
 
-  return (
+  // Show button with error tooltip if failed
+  const button = (
     <Button
       onClick={handleEnrich}
       disabled={enriching || !lead.email}
       size={size}
       variant={variant || (isFailed ? 'outline' : 'default')}
     >
-      <Sparkles className='h-4 w-4 mr-2' />
+      {isFailed ? (
+        <AlertCircle className='h-4 w-4 mr-2' />
+      ) : (
+        <Sparkles className='h-4 w-4 mr-2' />
+      )}
       {enriching ? 'Enriching...' : 'Enrich with PDL'}
     </Button>
   );
+
+  // Wrap in tooltip if there's an error message
+  if (isFailed && errorMessage) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>{button}</TooltipTrigger>
+          <TooltipContent className='max-w-xs'>
+            <p className='font-medium'>Enrichment Failed</p>
+            <p className='text-sm text-muted-foreground'>{errorMessage}</p>
+            <p className='text-xs text-muted-foreground mt-1'>Click to retry</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return button;
 }

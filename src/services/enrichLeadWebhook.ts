@@ -288,9 +288,31 @@ async function enrichCompany(
 export async function triggerEnrichmentWebhook(
   params: EnrichmentWebhookParams
 ): Promise<void> {
-  // Skip if not configured
+  // Check configuration and update status if missing
   if (!N8N_ENRICHMENT_WEBHOOK_URL || !N8N_API_KEY) {
-    console.log('Enrichment webhook not configured, skipping');
+    console.warn(
+      `Enrichment webhook not configured for lead ${params.lead_id}. Missing: ${!N8N_ENRICHMENT_WEBHOOK_URL ? 'N8N_ENRICHMENT_WEBHOOK_URL' : 'N8N_API_KEY'}`
+    );
+
+    // Update enrichment status to failed with reason
+    if (supabaseUrl && supabaseServiceKey) {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      await supabase
+        .from('leads')
+        .update({
+          enrichment_status: 'failed',
+          enrichment_timestamp: new Date().toISOString(),
+          enrichment_data: {
+            error: 'Enrichment webhook not configured',
+            missing_config: !N8N_ENRICHMENT_WEBHOOK_URL
+              ? 'N8N_ENRICHMENT_WEBHOOK_URL'
+              : 'N8N_API_KEY',
+            failed_at: new Date().toISOString(),
+          } as unknown as Json,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', params.lead_id);
+    }
     return;
   }
 
@@ -302,8 +324,24 @@ export async function triggerEnrichmentWebhook(
   // Validate required fields
   if (!params.email && !params.first_name && !params.last_name) {
     console.log(
-      `Skipping enrichment for lead ${params.lead_id}: insufficient data`
+      `Skipping enrichment for lead ${params.lead_id}: insufficient data (need email, first_name, or last_name)`
     );
+
+    // Update enrichment status to failed with reason
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    await supabase
+      .from('leads')
+      .update({
+        enrichment_status: 'failed',
+        enrichment_timestamp: new Date().toISOString(),
+        enrichment_data: {
+          error: 'Insufficient data for enrichment',
+          reason: 'Missing email, first_name, and last_name',
+          failed_at: new Date().toISOString(),
+        } as unknown as Json,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', params.lead_id);
     return;
   }
 

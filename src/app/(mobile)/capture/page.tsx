@@ -731,39 +731,45 @@ export default function CapturePage() {
 
       {/* Layer 2: Controls */}
       {/* Header */}
-      <div className='absolute top-0 z-10 w-full h-16 bg-gradient-to-b from-black/80 to-transparent p-4 flex items-center justify-between'>
-        <div className='flex items-center gap-3'>
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={() => router.back()}
-            className='text-white hover:bg-white/20'
-            aria-label='Go back'
-          >
-            <ArrowLeft className='h-5 w-5' />
-          </Button>
-          <div className='text-white font-semibold'>LeadFlow</div>
+      <div className='absolute top-0 z-10 w-full bg-gradient-to-b from-black/80 to-transparent'>
+        {/* Top row: Back button, Logo, Status indicator */}
+        <div className='flex items-center justify-between px-3 pt-3 pb-1'>
+          <div className='flex items-center gap-2'>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={() => router.back()}
+              className='h-9 w-9 text-white hover:bg-white/20'
+              aria-label='Go back'
+            >
+              <ArrowLeft className='h-5 w-5' />
+            </Button>
+            <div className='text-white font-semibold text-sm'>LeadFlow</div>
+          </div>
+          <div className='flex items-center gap-2'>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={() => setShowSettings(true)}
+              className='h-9 w-9 text-white hover:bg-white/20'
+              aria-label='Show settings'
+            >
+              <Settings className='h-5 w-5' />
+            </Button>
+            <div className='flex items-center gap-1.5 px-2'>
+              <div className='h-2 w-2 rounded-full bg-emerald-500 animate-pulse' />
+              <span className='text-white text-xs'>Online</span>
+            </div>
+          </div>
         </div>
-        <div className='flex items-center gap-3'>
+        {/* Second row: Show selector - full width */}
+        <div className='px-3 pb-2'>
           <div className='bg-white/10 rounded-md'>
             <ShowSelector
               value={currentShowId}
               onValueChange={handleShowChange}
-              className='w-[160px] border-0 bg-transparent text-white [&>button]:text-white [&>button]:border-white/20'
+              className='w-full border-0 bg-transparent text-white [&>button]:text-white [&>button]:border-white/20 [&>button]:h-8 [&>button]:text-xs'
             />
-          </div>
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={() => setShowSettings(true)}
-            className='text-white hover:bg-white/20'
-            aria-label='Show settings'
-          >
-            <Settings className='h-5 w-5' />
-          </Button>
-          <div className='flex items-center gap-2'>
-            <div className='h-2 w-2 rounded-full bg-emerald-500 animate-pulse' />
-            <span className='text-white text-sm'>Online</span>
           </div>
         </div>
       </div>
@@ -839,11 +845,11 @@ export default function CapturePage() {
 
       {/* Confirmation Screen */}
       {showConfirmation && !isProcessing && !isSaving && ocrResult && (
-        <div className='absolute inset-0 z-30 bg-black/90 flex items-center justify-center p-4 overflow-y-auto'>
-          <Card className='w-full max-w-md max-h-[90vh] overflow-y-auto'>
-            <CardContent className='p-6 space-y-4'>
-              <div className='flex items-center justify-between mb-4'>
-                <h3 className='text-lg font-semibold'>Confirm Lead</h3>
+        <div className='absolute inset-0 z-30 bg-black/90 flex items-start justify-center p-3 pt-12 overflow-y-auto'>
+          <Card className='w-full max-w-md'>
+            <CardContent className='p-4 space-y-3'>
+              <div className='flex items-center justify-between mb-2'>
+                <h3 className='text-base font-semibold'>Confirm Lead</h3>
                 <Button
                   variant='ghost'
                   size='sm'
@@ -863,60 +869,69 @@ export default function CapturePage() {
                   <X className='h-5 w-5' />
                 </Button>
               </div>
-              <div className='space-y-4'>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium text-muted-foreground'>
+              <div className='space-y-3'>
+                <div className='space-y-1'>
+                  <label className='text-xs font-medium text-muted-foreground'>
                     Name
                   </label>
-                  <div className='text-lg font-semibold'>
+                  <div className='text-base font-semibold'>
                     {ocrResult.fullName ||
                       `${ocrResult.firstName || ''} ${ocrResult.lastName || ''}`.trim() ||
                       'N/A'}
                   </div>
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium text-muted-foreground'>
+                <div className='space-y-1'>
+                  <label className='text-xs font-medium text-muted-foreground'>
                     Company
                   </label>
-                  <div className='text-lg font-semibold'>
+                  <div className='text-base font-semibold'>
                     {ocrResult.companyName || 'N/A'}
                   </div>
                 </div>
-                {ocrResult.jobTitle && (
-                  <div className='space-y-2'>
-                    <label className='text-sm font-medium text-muted-foreground'>
-                      Job Title
-                    </label>
-                    <div className='text-base'>{ocrResult.jobTitle}</div>
+                {(ocrResult.jobTitle || ocrResult.email || ocrResult.phone) && (
+                  <div className='grid grid-cols-2 gap-2'>
+                    {ocrResult.jobTitle && (
+                      <div className='space-y-0.5'>
+                        <label className='text-xs font-medium text-muted-foreground'>
+                          Job Title
+                        </label>
+                        <div className='text-sm truncate'>
+                          {ocrResult.jobTitle}
+                        </div>
+                      </div>
+                    )}
+                    {ocrResult.email && (
+                      <div className='space-y-0.5'>
+                        <label className='text-xs font-medium text-muted-foreground'>
+                          Email
+                        </label>
+                        <div className='text-sm truncate'>
+                          {ocrResult.email}
+                        </div>
+                      </div>
+                    )}
+                    {ocrResult.phone && (
+                      <div className='space-y-0.5'>
+                        <label className='text-xs font-medium text-muted-foreground'>
+                          Phone
+                        </label>
+                        <div className='text-sm'>{ocrResult.phone}</div>
+                      </div>
+                    )}
                   </div>
                 )}
-                {ocrResult.email && (
-                  <div className='space-y-2'>
-                    <label className='text-sm font-medium text-muted-foreground'>
-                      Email
-                    </label>
-                    <div className='text-base'>{ocrResult.email}</div>
-                  </div>
-                )}
-                {ocrResult.phone && (
-                  <div className='space-y-2'>
-                    <label className='text-sm font-medium text-muted-foreground'>
-                      Phone
-                    </label>
-                    <div className='text-base'>{ocrResult.phone}</div>
-                  </div>
-                )}
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Show</label>
+                <div className='space-y-1'>
+                  <label className='text-xs font-medium'>Show</label>
                   <ShowSelector
                     value={currentShowId}
                     onValueChange={handleShowChange}
+                    className='[&>button]:h-9'
                   />
                 </div>
-                <div className='space-y-2'>
+                <div className='space-y-1'>
                   <label
                     htmlFor='confirmation-notes'
-                    className='text-sm font-medium'
+                    className='text-xs font-medium'
                   >
                     Notes
                   </label>
@@ -925,13 +940,14 @@ export default function CapturePage() {
                     placeholder='Add any notes about this lead...'
                     value={notes}
                     onChange={e => setNotes(e.target.value)}
-                    className='min-h-[100px]'
+                    className='min-h-[80px] text-sm'
                   />
                 </div>
               </div>
-              <div className='flex gap-2 pt-4'>
+              <div className='flex gap-2 pt-3'>
                 <Button
                   variant='outline'
+                  size='sm'
                   onClick={() => {
                     setShowConfirmation(false);
                     setCapturedImage(null);
@@ -943,11 +959,12 @@ export default function CapturePage() {
                       });
                     }
                   }}
-                  className='flex-1'
+                  className='flex-1 h-10'
                 >
                   Cancel
                 </Button>
                 <Button
+                  size='sm'
                   onClick={async e => {
                     e.preventDefault();
                     if (isSaving) return;
@@ -970,7 +987,7 @@ export default function CapturePage() {
                     );
                     setShowConfirmation(false);
                   }}
-                  className='flex-1'
+                  className='flex-1 h-10'
                   disabled={isSaving}
                   type='button'
                 >
@@ -991,11 +1008,11 @@ export default function CapturePage() {
 
       {/* Manual Entry Form */}
       {showManualEntry && !isProcessing && !isSaving && (
-        <div className='absolute inset-0 z-30 bg-black/90 flex items-center justify-center p-4 overflow-y-auto'>
-          <Card className='w-full max-w-md max-h-[90vh] overflow-y-auto'>
-            <CardContent className='p-6 space-y-4'>
-              <div className='flex items-center justify-between mb-4'>
-                <h3 className='text-lg font-semibold'>Manual Entry</h3>
+        <div className='absolute inset-0 z-30 bg-black/90 flex items-start justify-center p-3 pt-8 overflow-y-auto'>
+          <Card className='w-full max-w-md mb-8'>
+            <CardContent className='p-4 space-y-3'>
+              <div className='flex items-center justify-between mb-2'>
+                <h3 className='text-base font-semibold'>Manual Entry</h3>
                 <Button
                   variant='ghost'
                   size='sm'
@@ -1016,51 +1033,59 @@ export default function CapturePage() {
                   <X className='h-5 w-5' />
                 </Button>
               </div>
-              <p className='text-sm text-muted-foreground mb-4'>
+              <p className='text-xs text-muted-foreground mb-2'>
                 Please complete the required fields to save this lead.
               </p>
-              <div className='space-y-4'>
-                <div className='space-y-2'>
-                  <label
-                    htmlFor='manual-first-name'
-                    className='text-sm font-medium'
-                  >
-                    First Name <span className='text-destructive'>*</span>
-                  </label>
-                  <Input
-                    id='manual-first-name'
-                    placeholder='First name'
-                    value={manualData.firstName}
-                    onChange={e =>
-                      setManualData({
-                        ...manualData,
-                        firstName: e.target.value,
-                      })
-                    }
-                    required
-                  />
+              <div className='space-y-3'>
+                {/* Name fields in a row */}
+                <div className='grid grid-cols-2 gap-2'>
+                  <div className='space-y-1'>
+                    <label
+                      htmlFor='manual-first-name'
+                      className='text-xs font-medium'
+                    >
+                      First Name <span className='text-destructive'>*</span>
+                    </label>
+                    <Input
+                      id='manual-first-name'
+                      placeholder='First name'
+                      value={manualData.firstName}
+                      onChange={e =>
+                        setManualData({
+                          ...manualData,
+                          firstName: e.target.value,
+                        })
+                      }
+                      className='h-9 text-sm'
+                      required
+                    />
+                  </div>
+                  <div className='space-y-1'>
+                    <label
+                      htmlFor='manual-last-name'
+                      className='text-xs font-medium'
+                    >
+                      Last Name <span className='text-destructive'>*</span>
+                    </label>
+                    <Input
+                      id='manual-last-name'
+                      placeholder='Last name'
+                      value={manualData.lastName}
+                      onChange={e =>
+                        setManualData({
+                          ...manualData,
+                          lastName: e.target.value,
+                        })
+                      }
+                      className='h-9 text-sm'
+                      required
+                    />
+                  </div>
                 </div>
-                <div className='space-y-2'>
-                  <label
-                    htmlFor='manual-last-name'
-                    className='text-sm font-medium'
-                  >
-                    Last Name <span className='text-destructive'>*</span>
-                  </label>
-                  <Input
-                    id='manual-last-name'
-                    placeholder='Last name'
-                    value={manualData.lastName}
-                    onChange={e =>
-                      setManualData({ ...manualData, lastName: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className='space-y-2'>
+                <div className='space-y-1'>
                   <label
                     htmlFor='manual-company'
-                    className='text-sm font-medium'
+                    className='text-xs font-medium'
                   >
                     Company <span className='text-destructive'>*</span>
                   </label>
@@ -1071,11 +1096,12 @@ export default function CapturePage() {
                     onChange={e =>
                       setManualData({ ...manualData, company: e.target.value })
                     }
+                    className='h-9 text-sm'
                     required
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label htmlFor='manual-email' className='text-sm font-medium'>
+                <div className='space-y-1'>
+                  <label htmlFor='manual-email' className='text-xs font-medium'>
                     Email
                   </label>
                   <Input
@@ -1086,47 +1112,60 @@ export default function CapturePage() {
                     onChange={e =>
                       setManualData({ ...manualData, email: e.target.value })
                     }
+                    className='h-9 text-sm'
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label
-                    htmlFor='manual-job-title'
-                    className='text-sm font-medium'
-                  >
-                    Job Title
-                  </label>
-                  <Input
-                    id='manual-job-title'
-                    placeholder='Job title'
-                    value={manualData.jobTitle}
-                    onChange={e =>
-                      setManualData({ ...manualData, jobTitle: e.target.value })
-                    }
-                  />
+                {/* Job title and phone in a row */}
+                <div className='grid grid-cols-2 gap-2'>
+                  <div className='space-y-1'>
+                    <label
+                      htmlFor='manual-job-title'
+                      className='text-xs font-medium'
+                    >
+                      Job Title
+                    </label>
+                    <Input
+                      id='manual-job-title'
+                      placeholder='Job title'
+                      value={manualData.jobTitle}
+                      onChange={e =>
+                        setManualData({
+                          ...manualData,
+                          jobTitle: e.target.value,
+                        })
+                      }
+                      className='h-9 text-sm'
+                    />
+                  </div>
+                  <div className='space-y-1'>
+                    <label
+                      htmlFor='manual-phone'
+                      className='text-xs font-medium'
+                    >
+                      Phone
+                    </label>
+                    <Input
+                      id='manual-phone'
+                      type='tel'
+                      placeholder='Phone number'
+                      value={manualData.phone}
+                      onChange={e =>
+                        setManualData({ ...manualData, phone: e.target.value })
+                      }
+                      className='h-9 text-sm'
+                    />
+                  </div>
                 </div>
-                <div className='space-y-2'>
-                  <label htmlFor='manual-phone' className='text-sm font-medium'>
-                    Phone
-                  </label>
-                  <Input
-                    id='manual-phone'
-                    type='tel'
-                    placeholder='Phone number'
-                    value={manualData.phone}
-                    onChange={e =>
-                      setManualData({ ...manualData, phone: e.target.value })
-                    }
-                  />
-                </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Show</label>
+                <div className='space-y-1'>
+                  <label className='text-xs font-medium'>Show</label>
                   <ShowSelector
                     value={currentShowId}
                     onValueChange={handleShowChange}
+                    className='[&>button]:h-9'
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label htmlFor='manual-notes' className='text-sm font-medium'>
+                <div className='space-y-1'>
+                  <label htmlFor='manual-notes' className='text-xs font-medium'>
                     Notes
                   </label>
                   <Textarea
@@ -1134,13 +1173,14 @@ export default function CapturePage() {
                     placeholder='Add any notes about this lead...'
                     value={notes}
                     onChange={e => setNotes(e.target.value)}
-                    className='min-h-[100px]'
+                    className='min-h-[70px] text-sm'
                   />
                 </div>
               </div>
-              <div className='flex gap-2 pt-4'>
+              <div className='flex gap-2 pt-3'>
                 <Button
                   variant='outline'
+                  size='sm'
                   onClick={() => {
                     setShowManualEntry(false);
                     setCapturedImage(null);
@@ -1153,11 +1193,12 @@ export default function CapturePage() {
                       });
                     }
                   }}
-                  className='flex-1'
+                  className='flex-1 h-10'
                 >
                   Cancel
                 </Button>
                 <Button
+                  size='sm'
                   onClick={async e => {
                     e.preventDefault();
                     // Prevent double submission
@@ -1177,7 +1218,7 @@ export default function CapturePage() {
                     );
                     setShowManualEntry(false);
                   }}
-                  className='flex-1'
+                  className='flex-1 h-10'
                   disabled={isSaving}
                   type='button'
                 >
@@ -1200,13 +1241,13 @@ export default function CapturePage() {
       {(isProcessing || isSaving || saveStatus !== 'idle') &&
         !showManualEntry &&
         !showConfirmation && (
-          <div className='absolute inset-0 z-20 bg-black/80 flex items-center justify-center'>
-            <Card className='w-[90%] max-w-md'>
-              <CardContent className='p-6 space-y-4 text-center'>
+          <div className='absolute inset-0 z-20 bg-black/80 flex items-center justify-center p-4'>
+            <Card className='w-full max-w-sm'>
+              <CardContent className='p-5 space-y-3 text-center'>
                 {isProcessing && (
                   <>
-                    <Loader2 className='h-12 w-12 mx-auto animate-spin text-primary' />
-                    <h3 className='text-lg font-semibold'>
+                    <Loader2 className='h-10 w-10 mx-auto animate-spin text-primary' />
+                    <h3 className='text-base font-semibold'>
                       Processing Business Card
                     </h3>
                     <p className='text-sm text-muted-foreground'>
@@ -1217,8 +1258,8 @@ export default function CapturePage() {
 
                 {isSaving && (
                   <>
-                    <Loader2 className='h-12 w-12 mx-auto animate-spin text-primary' />
-                    <h3 className='text-lg font-semibold'>Saving Lead</h3>
+                    <Loader2 className='h-10 w-10 mx-auto animate-spin text-primary' />
+                    <h3 className='text-base font-semibold'>Saving Lead</h3>
                     <p className='text-sm text-muted-foreground'>
                       Adding to your leads...
                     </p>
@@ -1227,10 +1268,10 @@ export default function CapturePage() {
 
                 {saveStatus === 'success' && (
                   <>
-                    <CheckCircle2 className='h-12 w-12 mx-auto text-success' />
-                    <h3 className='text-lg font-semibold'>Lead Captured!</h3>
+                    <CheckCircle2 className='h-10 w-10 mx-auto text-success' />
+                    <h3 className='text-base font-semibold'>Lead Captured!</h3>
                     {ocrResult && (
-                      <div className='text-sm space-y-1'>
+                      <div className='text-sm space-y-0.5'>
                         <p className='font-medium'>
                           {ocrResult.fullName || 'Lead'}
                         </p>
@@ -1241,7 +1282,7 @@ export default function CapturePage() {
                         )}
                       </div>
                     )}
-                    <p className='text-xs text-muted-foreground mt-2'>
+                    <p className='text-xs text-muted-foreground mt-1'>
                       Ready for next capture...
                     </p>
                   </>
@@ -1249,14 +1290,17 @@ export default function CapturePage() {
 
                 {saveStatus === 'error' && (
                   <>
-                    <AlertCircle className='h-12 w-12 mx-auto text-destructive' />
-                    <h3 className='text-lg font-semibold'>Processing Failed</h3>
+                    <AlertCircle className='h-10 w-10 mx-auto text-destructive' />
+                    <h3 className='text-base font-semibold'>
+                      Processing Failed
+                    </h3>
                     <p className='text-sm text-muted-foreground'>
                       Please try capturing again
                     </p>
-                    <div className='flex gap-2 mt-4'>
+                    <div className='flex gap-2 mt-3'>
                       <Button
                         variant='outline'
+                        size='sm'
                         onClick={() => {
                           setCapturedImage(null);
                           setOcrResult(null);
@@ -1271,16 +1315,17 @@ export default function CapturePage() {
                               });
                           }
                         }}
-                        className='flex-1'
+                        className='flex-1 h-9'
                       >
                         Try Again
                       </Button>
                       <Button
+                        size='sm'
                         onClick={() => {
                           setShowManualEntry(true);
                           setSaveStatus('idle');
                         }}
-                        className='flex-1'
+                        className='flex-1 h-9'
                       >
                         Enter Manually
                       </Button>
@@ -1298,29 +1343,31 @@ export default function CapturePage() {
         saveStatus === 'idle' &&
         isCameraActive &&
         !cameraError && (
-          <div className='absolute bottom-0 z-10 w-full h-32 bg-gradient-to-t from-black/90 to-transparent flex items-center justify-center'>
-            <Button
-              onClick={capture}
-              disabled={isProcessing || isSaving || !isCameraActive}
-              size='lg'
-              className='size-20 rounded-full border-[6px] border-white/30 bg-white hover:bg-white/90 active:scale-95 transition-transform shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed p-0'
-              aria-label='Capture business card'
-              aria-describedby='capture-button-description'
-              onKeyDown={e => {
-                // Dec 2025 best practice: Keyboard accessibility
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  if (!isProcessing && !isSaving && isCameraActive) {
-                    capture();
+          <div className='absolute bottom-0 z-10 w-full pb-safe'>
+            <div className='h-24 bg-gradient-to-t from-black/90 to-transparent flex items-center justify-center'>
+              <Button
+                onClick={capture}
+                disabled={isProcessing || isSaving || !isCameraActive}
+                size='lg'
+                className='h-16 w-16 rounded-full border-4 border-white/30 bg-white hover:bg-white/90 active:scale-95 transition-transform shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed p-0'
+                aria-label='Capture business card'
+                aria-describedby='capture-button-description'
+                onKeyDown={e => {
+                  // Dec 2025 best practice: Keyboard accessibility
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (!isProcessing && !isSaving && isCameraActive) {
+                      capture();
+                    }
                   }
-                }
-              }}
-            >
-              <Camera className='h-8 w-8 text-foreground' />
-              <span id='capture-button-description' className='sr-only'>
-                Press Enter or Space to capture business card image
-              </span>
-            </Button>
+                }}
+              >
+                <Camera className='h-6 w-6 text-foreground' />
+                <span id='capture-button-description' className='sr-only'>
+                  Press Enter or Space to capture business card image
+                </span>
+              </Button>
+            </div>
           </div>
         )}
     </div>
