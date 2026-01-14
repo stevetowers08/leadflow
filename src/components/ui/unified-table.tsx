@@ -421,15 +421,9 @@ function UnifiedTableComponent<T = unknown>({
       );
     }
 
-    if (!data || data.length === 0) {
-      return (
-        <div className='bg-background border-t border-b w-full overflow-hidden'>
-          <div className='flex items-center justify-center h-32 text-muted-foreground'>
-            {emptyMessage}
-          </div>
-        </div>
-      );
-    }
+    // Show table structure even when empty
+    const isEmpty = !data || data.length === 0;
+    const displayData = isEmpty ? [] : data;
 
     // Apply column order if set
     const orderedColumns =
@@ -564,6 +558,22 @@ function UnifiedTableComponent<T = unknown>({
 
             <TableBody>
               {(() => {
+                // Show empty message if no data
+                if (isEmpty && (!grouped || !groups || groups.length === 0)) {
+                  return (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className='text-center py-8'
+                      >
+                        <div className='text-muted-foreground'>
+                          {emptyMessage}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                }
+
                 // If grouped mode but no groups, show empty message
                 if (
                   grouped &&
@@ -714,7 +724,7 @@ function UnifiedTableComponent<T = unknown>({
                       );
                     })
                   : // Render ungrouped data
-                    data.map((row, index) => {
+                    displayData.map((row, index) => {
                       const rowProps = getRowProps?.(row, index) || {};
                       const customClassName = getRowClassName?.(row, index);
                       const rowId = (row as Record<string, unknown>)?.id as

@@ -699,8 +699,9 @@ export default function LeadsPage() {
       padding='none'
       hideHeader
     >
-      <div className='flex items-center justify-between gap-2 border-b border-border bg-background'>
-        <div className='flex-1'>
+      {/* Filter bar and actions - responsive layout */}
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border bg-background'>
+        <div className='flex-1 min-w-0'>
           <TableFilterBar
             entityLabel='Leads'
             entityCount={leads.length}
@@ -708,14 +709,16 @@ export default function LeadsPage() {
             filterConfigs={filterConfigs}
             preferences={preferences}
             onPreferencesChange={updatePreferences}
-            className='border-0'
+            className='!border-0'
           />
         </div>
-        <div className='flex gap-2 px-4 flex-shrink-0'>
+        {/* Action buttons - hidden on mobile, shown on sm+ */}
+        <div className='hidden sm:flex gap-2 px-4 flex-shrink-0'>
           <Button
             variant='outline'
             size='sm'
             onClick={() => setShowImportDialog(true)}
+            className='touch-manipulation'
           >
             <Upload className='h-4 w-4 mr-2' />
             Import CSV
@@ -725,36 +728,62 @@ export default function LeadsPage() {
             size='sm'
             onClick={handleExport}
             disabled={isExporting || leads.length === 0}
+            className='touch-manipulation'
           >
             <Download className='h-4 w-4 mr-2' />
             Export CSV
           </Button>
         </div>
-      </div>
-
-      <div className='flex items-center justify-between gap-2 px-4 py-2 border-b border-border bg-background'>
-        <div className='flex items-center gap-2 flex-shrink-0'>
-          {actualSelectedCount > 0 && (
-            <>
-              <Badge variant='secondary'>
-                {actualSelectedCount}{' '}
-                {actualSelectedCount === 1 ? 'lead' : 'leads'} selected
-              </Badge>
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => bulkSelection.deselectAll()}
-              >
-                Clear selection
-              </Button>
-            </>
-          )}
+        {/* Mobile action buttons - icon only */}
+        <div className='flex sm:hidden gap-2 px-3 pb-2 flex-shrink-0'>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => setShowImportDialog(true)}
+            className='h-10 w-10 p-0 touch-manipulation'
+            title='Import CSV'
+          >
+            <Upload className='h-4 w-4' />
+          </Button>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={handleExport}
+            disabled={isExporting || leads.length === 0}
+            className='h-10 w-10 p-0 touch-manipulation'
+            title='Export CSV'
+          >
+            <Download className='h-4 w-4' />
+          </Button>
         </div>
       </div>
 
+      {/* Selection indicator - responsive */}
+      {actualSelectedCount > 0 && (
+        <div className='flex items-center justify-between gap-2 px-3 sm:px-4 py-2 border-b border-border bg-background'>
+          <div className='flex items-center gap-2 flex-shrink-0'>
+            <Badge variant='secondary' className='text-xs sm:text-sm'>
+              {actualSelectedCount}{' '}
+              <span className='hidden xs:inline'>
+                {actualSelectedCount === 1 ? 'lead' : 'leads'}
+              </span>{' '}
+              selected
+            </Badge>
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={() => bulkSelection.deselectAll()}
+              className='h-8 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm touch-manipulation'
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div
         className='w-full min-w-0 flex-1'
-        style={{ minHeight: '400px', maxHeight: 'calc(100vh - 280px)' }}
+        style={{ minHeight: '400px', maxHeight: 'calc(100vh - 200px)' }}
       >
         <UnifiedTable
           data={leads}
