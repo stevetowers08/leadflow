@@ -69,9 +69,20 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // 2025 Best Practice: Handle homepage redirect at middleware level (fastest, no JS needed)
+  // This runs before any React components, providing instant redirect
+  if (request.nextUrl.pathname === '/') {
+    const redirectUrl = new URL('/companies', request.url);
+    // Preserve query params
+    request.nextUrl.searchParams.forEach((value, key) => {
+      redirectUrl.searchParams.set(key, value);
+    });
+    return NextResponse.redirect(redirectUrl);
+  }
+
   // Block deprecated dashboard route
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/companies', request.url));
   }
 
   // Protect routes that require authentication
@@ -84,8 +95,7 @@ export async function middleware(request: NextRequest) {
   // Allow auth routes and public routes
   const isAuthRoute =
     request.nextUrl.pathname.startsWith('/auth') ||
-    request.nextUrl.pathname === '/sign-in' ||
-    request.nextUrl.pathname === '/';
+    request.nextUrl.pathname === '/sign-in';
 
   // Only enforce auth checks if Supabase is configured
   if (isValidUrl && isValidKey) {
@@ -96,7 +106,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Redirect authenticated users away from auth pages
-    if (isAuthRoute && user && request.nextUrl.pathname !== '/') {
+    if (isAuthRoute && user) {
       return NextResponse.redirect(new URL('/companies', request.url));
     }
   }
