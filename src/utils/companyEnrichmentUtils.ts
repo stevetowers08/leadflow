@@ -9,14 +9,7 @@ export function isCompanyEnriched(company: Company): boolean {
   const hasScoreReason = !!company.score_reason;
   const hasConfidenceLevel = !!company.confidence_level;
   const hasDescription = !!company.description;
-  const hasCategories = !!company.categories && company.categories.length > 0;
 
   // Company is considered enriched if any enrichment field is populated
-  return (
-    hasLeadScore ||
-    hasScoreReason ||
-    hasConfidenceLevel ||
-    hasDescription ||
-    hasCategories
-  );
+  return hasLeadScore || hasScoreReason || hasConfidenceLevel || hasDescription;
 }

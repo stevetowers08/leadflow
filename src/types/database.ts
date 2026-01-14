@@ -87,7 +87,6 @@ export interface Company {
   last_activity: string | null;
   estimated_arr: number | null;
   description: string | null;
-  categories: string[] | null;
   enrichment_status: 'pending' | 'enriching' | 'completed' | 'failed' | null;
   created_at: string | null;
   updated_at: string | null;

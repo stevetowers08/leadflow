@@ -1,4 +1,4 @@
-import { Calendar } from 'lucide-react';
+import { Calendar, Plus, Settings } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -6,9 +6,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { getShows, getCurrentShow } from '@/services/showsService';
 import { useEffect } from 'react';
+import Link from 'next/link';
 
 interface ShowSelectorProps {
   value?: string | null;
@@ -43,15 +45,21 @@ export function ShowSelector({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, shows.length]);
 
-  // Show empty state with create option when no shows exist
+  // Show empty state with manage/create options when no shows exist
   if (shows.length === 0) {
     return (
-      <Select value={undefined} disabled>
-        <SelectTrigger className={className}>
-          <Calendar className='h-4 w-4 mr-2' />
-          <SelectValue placeholder='No shows' />
-        </SelectTrigger>
-      </Select>
+      <div className={`flex items-center gap-2 ${className || ''}`}>
+        <div className='flex items-center gap-1.5 text-sm text-muted-foreground'>
+          <Calendar className='h-4 w-4' />
+          <span>No shows</span>
+        </div>
+        <Link href='/shows'>
+          <Button variant='outline' size='sm' className='h-7 text-xs'>
+            <Plus className='h-3 w-3 mr-1' />
+            Add Show
+          </Button>
+        </Link>
+      </div>
     );
   }
 

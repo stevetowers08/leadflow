@@ -19,7 +19,6 @@ import {
   Linkedin,
   Clock,
   FileText,
-  Tag,
   Signal,
   Zap,
   Calendar,
@@ -213,7 +212,7 @@ function InlineCompanyShowsEditor({
           )}
 
           {/* Add Show */}
-          {availableShows.length > 0 && (
+          {availableShows.length > 0 ? (
             <div className='space-y-2'>
               <div className='text-xs text-muted-foreground'>Add Show</div>
               <div className='flex gap-1'>
@@ -280,7 +279,23 @@ function InlineCompanyShowsEditor({
                 </Button>
               </div>
             </div>
-          )}
+          ) : shows.length === 0 ? (
+            <div className='space-y-2'>
+              <div className='text-xs text-muted-foreground'>
+                No shows available
+              </div>
+              <a href='/shows'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='w-full h-8 text-xs'
+                >
+                  <Plus className='h-3 w-3 mr-1' />
+                  Create Show
+                </Button>
+              </a>
+            </div>
+          ) : null}
         </div>
       </PopoverContent>
     </Popover>
@@ -349,7 +364,7 @@ export default function CompaniesPage() {
       let query = supabase
         .from('companies')
         .select(
-          'id, name, website, industry, created_at, categories, linkedin_url, description, head_office, company_size, last_activity, logo_url, estimated_arr'
+          'id, name, website, industry, created_at, linkedin_url, description, head_office, company_size, last_activity, logo_url, estimated_arr'
         );
 
       // Apply filters
@@ -471,47 +486,6 @@ export default function CompaniesPage() {
           return (
             <div className='flex items-center gap-2'>
               <CompanyChip company={row} />
-            </div>
-          );
-        },
-      },
-      {
-        key: 'categories',
-        label: 'Categories',
-        width: '200px',
-        render: (value, row) => {
-          const categories = row.categories;
-          if (
-            !categories ||
-            !Array.isArray(categories) ||
-            categories.length === 0
-          )
-            return <span className='text-muted-foreground'>-</span>;
-
-          // Filter out any null/undefined values and ensure strings
-          const validCategories = categories.filter(
-            (cat): cat is string =>
-              typeof cat === 'string' && cat.trim().length > 0
-          );
-
-          if (validCategories.length === 0)
-            return <span className='text-muted-foreground'>-</span>;
-
-          return (
-            <div className='flex items-center gap-1.5 flex-wrap'>
-              <Tag className='h-3.5 w-3.5 text-muted-foreground flex-shrink-0' />
-              <div className='flex gap-1 flex-wrap'>
-                {validCategories.slice(0, 2).map((cat, idx) => (
-                  <Badge key={idx} variant='outline' className='text-xs'>
-                    {cat}
-                  </Badge>
-                ))}
-                {validCategories.length > 2 && (
-                  <Badge variant='outline' className='text-xs'>
-                    +{validCategories.length - 2}
-                  </Badge>
-                )}
-              </div>
             </div>
           );
         },

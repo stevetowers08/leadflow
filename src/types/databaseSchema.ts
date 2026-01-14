@@ -45,7 +45,6 @@ export const DATABASE_SCHEMA = {
       last_activity: 'timestamptz',
       estimated_arr: 'numeric',
       description: 'text',
-      categories: 'text[]',
       enrichment_status: 'enrichment_status_enum',
       created_at: 'timestamptz',
       updated_at: 'timestamptz',
