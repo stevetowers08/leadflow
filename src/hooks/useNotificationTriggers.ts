@@ -22,10 +22,17 @@ export function useMeetingReminders() {
       const tomorrow = new Date();
       tomorrow.setHours(tomorrow.getHours() + 24);
 
-      const { data: companiesWithMeetings } = await supabase
-        .from('companies')
-        .select('id, name, pipeline_stage')
-        .eq('pipeline_stage', 'meeting_scheduled');
+      const { data: companiesWithMeetings, error: companiesError } =
+        await supabase
+          .from('companies')
+          .select('id, name, pipeline_stage')
+          .eq('pipeline_stage', 'meeting_scheduled');
+
+      // Handle Supabase errors gracefully (network issues, auth errors, etc.)
+      if (companiesError) {
+        // Silently return - errors are expected during network issues or when user is not authenticated
+        return;
+      }
 
       if (!companiesWithMeetings || companiesWithMeetings.length === 0) {
         return;
@@ -33,13 +40,20 @@ export function useMeetingReminders() {
 
       // Check if notification already exists for today
       const today = new Date().toISOString().split('T')[0];
-      const { data: existingNotifications } = await supabase
-        .from('user_notifications' as never)
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('type', 'meeting_reminder')
-        .gte('created_at', `${today}T00:00:00`)
-        .eq('is_read', false);
+      const { data: existingNotifications, error: notificationsError } =
+        await supabase
+          .from('user_notifications' as never)
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('type', 'meeting_reminder')
+          .gte('created_at', `${today}T00:00:00`)
+          .eq('is_read', false);
+
+      // Handle Supabase errors gracefully
+      if (notificationsError) {
+        // Silently return - errors are expected during network issues
+        return;
+      }
 
       const existingCompanyIds = new Set(
         (existingNotifications || [])
@@ -113,14 +127,20 @@ export function useFollowUpReminders() {
       // Note: people table does not have client_id column; scoping by client
       // should be done via mapping tables if needed. Skip client filter here.
 
-      const { data: peopleNeedingFollowUp } = await query;
+      const { data: peopleNeedingFollowUp, error: leadsError } = await query;
+
+      // Handle Supabase errors gracefully (network issues, auth errors, etc.)
+      if (leadsError) {
+        // Silently return - errors are expected during network issues or when user is not authenticated
+        return;
+      }
 
       if (!peopleNeedingFollowUp || peopleNeedingFollowUp.length === 0) {
         return;
       }
 
       // Filter to only those who have sent at least one email
-      const { data: emailSends } = await supabase
+      const { data: emailSends, error: emailSendsError } = await supabase
         .from('email_sends')
         .select('lead_id')
         .eq('status', 'sent')
@@ -128,6 +148,12 @@ export function useFollowUpReminders() {
           'lead_id',
           peopleNeedingFollowUp.map(p => p.id)
         );
+
+      // Handle Supabase errors gracefully
+      if (emailSendsError) {
+        // Silently return - errors are expected during network issues
+        return;
+      }
 
       const peopleWithEmails = new Set(
         (emailSends || []).map(e => e.lead_id).filter(Boolean)
@@ -143,14 +169,21 @@ export function useFollowUpReminders() {
 
       // Check if notification already exists for today
       const today = new Date().toISOString().split('T')[0];
-      const { data: existingNotification } = await supabase
-        .from('user_notifications' as never)
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('type', 'follow_up_reminder')
-        .gte('created_at', `${today}T00:00:00`)
-        .eq('is_read', false)
-        .maybeSingle();
+      const { data: existingNotification, error: notificationCheckError } =
+        await supabase
+          .from('user_notifications' as never)
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('type', 'follow_up_reminder')
+          .gte('created_at', `${today}T00:00:00`)
+          .eq('is_read', false)
+          .maybeSingle();
+
+      // Handle Supabase errors gracefully
+      if (notificationCheckError) {
+        // Silently return - errors are expected during network issues
+        return;
+      }
 
       if (existingNotification) {
         return; // Already notified today

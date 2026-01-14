@@ -155,13 +155,17 @@ export function setupGlobalErrorHandlers(): void {
       // - API key validation/testing (Lemlist, external APIs)
       // - CORS errors from third-party APIs
       // - Network timeouts during connection testing
+      // - Supabase requests (handled gracefully by Supabase client, network issues are expected)
       const isExpectedError =
         errorMessage === 'Failed to fetch' &&
         (url.includes('api.lemlist.com') ||
           url.includes('lemlist.com') ||
           url.includes('/api/lemlist') ||
           url.includes('/api/integrations') ||
-          url.includes('/api/oauth'));
+          url.includes('/api/oauth') ||
+          url.includes('/rest/v1/') ||
+          url.includes('.supabase.co') ||
+          url.includes('supabase'));
 
       if (!isExpectedError) {
         // Network errors (connection failures) should be logged for unexpected cases
